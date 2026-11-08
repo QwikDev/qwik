@@ -18,7 +18,13 @@ const page = () => Promise.resolve({});
 vi.mock('./router-config', async (importOriginal) => ({
   ...((await importOriginal()) as object),
   findRouterConfig: () => ({
-    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+    routes: {
+      test: { _I: page },
+      product: { _W: { _P: 'id', _I: page } },
+      upper: { _S: 'Upper', _W: { _P: 'ItemId', _I: page } },
+      shared: { _S: 'Shared', lower: { _C: { 0: 'shared' }, _I: page } },
+      docs: { _S: 'Docs', _W: { _P: 'PageId', _0: 'Pre', _9: 'Post', _I: page } },
+    },
   }),
 }));
 
@@ -113,6 +119,18 @@ describe.each([
     getClientNavPathMock.mockReturnValue('/missing/');
     const unmatched = await renderLink(render);
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
+  it.each([
+    ['/PRODUCT/Hoodie-01/', '/product/[id]'],
+    ['/UPPER/CaseSensitive/', '/Upper/[ItemId]'],
+    ['/SHARED/lower/', '/shared/lower'],
+    ['/DOCS/PREGuidePOST/', '/Docs/Pre[PageId]Post'],
+  ])('renders the canonical route for %s', async (pathname, routeName) => {
+    getClientNavPathMock.mockReturnValue(pathname);
+    const { anchor } = await renderLink(render);
+    expect(anchor.getAttribute('data-q-route')).toBe(routeName);
+    expect(anchor.getAttribute('href')).toBe(pathname);
   });
 
   it('prefetches route data on intent', async () => {

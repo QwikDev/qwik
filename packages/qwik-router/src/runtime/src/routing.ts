@@ -330,7 +330,7 @@ function findChild(node: RouteData, part: string, partLower: string): ChildMatch
     return {
       next: exact,
       groups: [],
-      routePart: part,
+      routePart: exact._S ?? partLower,
       done: false,
       kind: ChildMatchKind.Exact,
     };
@@ -489,7 +489,7 @@ function findChildAll(
     candidates.push({
       next: exact,
       groups: [],
-      routePart: part,
+      routePart: exact._S ?? partLower,
       done: false,
       kind: ChildMatchKind.Exact,
     });
@@ -645,6 +645,13 @@ function findGroupBoundary(
   }
   return { v: r.value, layouts: groupLayouts };
 }
+
+const restoreRouteSpelling = (parts: string[], spellings: Record<number, string>) => {
+  for (const [index, spelling] of Object.entries(spellings)) {
+    parts[Number(index)] = spelling;
+  }
+  return parts;
+};
 
 /**
  * Match a URL pathname against the route trie.
@@ -885,7 +892,7 @@ export function matchRouteTree(
       return {
         loaders: fallback.loaders,
         params: fbParams,
-        routeParts: fbRouteParts,
+        routeParts: fb.aNode._C ? restoreRouteSpelling(fbRouteParts, fb.aNode._C) : fbRouteParts,
         notFound: false,
         routeBundleNames: fb.aNode._B as string[] | undefined,
         loaderPathsByHash:
@@ -957,7 +964,7 @@ export function matchRouteTree(
   return {
     loaders,
     params,
-    routeParts,
+    routeParts: node._C ? restoreRouteSpelling(routeParts, node._C) : routeParts,
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,

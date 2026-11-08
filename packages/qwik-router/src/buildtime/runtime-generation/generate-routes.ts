@@ -25,8 +25,11 @@ function toRuntimeTrieKey(key: string) {
 }
 
 /** A rewrite target or base path with each segment converted to its runtime trie key. */
-function toRuntimeTriePath(path: string) {
-  return path.split('/').map(toRuntimeTrieKey).join('/');
+function toRuntimeTriePath(path: string, basePathname: string) {
+  const baseKeys = basePathname
+    .split('/')
+    .map((segment) => escapeStaticTrieKey(segment.toLowerCase()));
+  return baseKeys.join('/') + path.split('/').map(toRuntimeTrieKey).join('/');
 }
 
 /**
@@ -59,6 +62,7 @@ export function createRoutes(
   // First pass: collect all layout, route, and menu file IDs, emit imports
   const layoutIdMap = new Map<string, string>(); // filePath → varName
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
+  const routeNames = new Map<string, string>();
   const menuIdMap = new Map<string, string>(); // filePath → varName
 
   let layoutCount = 0;
@@ -116,6 +120,8 @@ export function createRoutes(
   // Emit route imports and build loader expression map
   c.push(`\n/** Qwik Router Routes (${routeCount}) */`);
   for (const route of ctx.routes) {
+    const name = route.routeName.split('/').filter(Boolean).join('/');
+    routeNames.set(name.toLowerCase(), name);
     if (isPageExt(route.ext)) {
       // Skip the loader so the trie node prunes and the chunk tree-shakes out of the server bundle.
       if (serverExcludePaths?.has(route.filePath)) {
@@ -137,6 +143,8 @@ export function createRoutes(
     }
   }
 
+  const baseSegments = ctx.opts.basePathname.split('/').filter((s) => s.length > 0);
+
   // Serialize the trie
   const trieStr = serializeBuildTrie(
     ctx,
@@ -147,6 +155,8 @@ export function createRoutes(
     menuIdMap,
     isSSR,
     '',
+    baseSegments.join('/'),
+    routeNames,
     loadersByFile,
     routeLoaderSourceFiles
   );
@@ -157,10 +167,14 @@ export function createRoutes(
 
   // Wrap the trie in the base pathname segments (e.g., '/qwikrouter-test/' → 'qwikrouter-test')
   // The runtime matcher receives the full URL pathname, so the trie must include the base prefix.
-  const baseSegments = ctx.opts.basePathname.split('/').filter((s) => s.length > 0);
   let routesExpr = trieStr;
   for (let j = baseSegments.length - 1; j >= 0; j--) {
-    routesExpr = `{ ${JSON.stringify(escapeStaticTrieKey(baseSegments[j]))}: ${routesExpr} }`;
+    const segment = baseSegments[j];
+    const key = segment.toLowerCase();
+    if (segment !== key) {
+      routesExpr = `{ _S: ${JSON.stringify(segment)},${routesExpr.slice(1)}`;
+    }
+    routesExpr = `{ ${JSON.stringify(escapeStaticTrieKey(key))}: ${routesExpr} }`;
   }
 
   c.push(`export const routes = ${routesExpr};`);
@@ -188,6 +202,8 @@ function serializeBuildTrie(
   menuIdMap: Map<string, string>,
   isSSR: boolean,
   indent: string,
+  routeName: string,
+  routeNames: ReadonlyMap<string, string>,
   loadersByFile?: Map<string, string[]>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ): string {
@@ -207,7 +223,7 @@ function serializeBuildTrie(
 
   // _G rewrite target
   if (node._G != null) {
-    const target = toRuntimeTriePath(ctx.opts.basePathname + node._G);
+    const target = toRuntimeTriePath(node._G, ctx.opts.basePathname);
     lines.push(`${nextIndent}_G: ${JSON.stringify(target)},`);
   }
 
@@ -266,6 +282,21 @@ function serializeBuildTrie(
   // Emit _L (single layout loader for this node)
   if (layoutExpr) {
     lines.push(`${nextIndent}_L: ${layoutExpr},`);
+  }
+
+  if (indexExpr || node._G != null) {
+    const canonicalName = routeNames.get(routeName.toLowerCase());
+    if (canonicalName != null && canonicalName !== routeName) {
+      const canonicalParts = canonicalName.split('/');
+      const currentParts = routeName.split('/');
+      const spellings: Record<number, string> = {};
+      for (let index = 0; index < canonicalParts.length; index++) {
+        if (canonicalParts[index] !== currentParts[index]) {
+          spellings[index] = canonicalParts[index];
+        }
+      }
+      lines.push(`${nextIndent}_C: ${JSON.stringify(spellings)},`);
+    }
   }
 
   // Emit _I (index/page loader)
@@ -355,6 +386,8 @@ function serializeBuildTrie(
         menuIdMap,
         isSSR,
         nextIndent,
+        routeName,
+        routeNames,
         loadersByFile,
         routeLoaderSourceFiles
       );
@@ -369,6 +402,10 @@ function serializeBuildTrie(
 
   // Serialize regular children, skipping empty nodes
   for (const [key, child] of regularChildren) {
+    const segment = child._P
+      ? `${child._0 ?? ''}[${key === '_A' ? '...' : ''}${child._P}]${child._9 ?? ''}`
+      : (child._S ?? key);
+    const childRouteName = routeName ? `${routeName}/${segment}` : segment;
     const childStr = serializeBuildTrie(
       ctx,
       qwikPlugin,
@@ -378,6 +415,8 @@ function serializeBuildTrie(
       menuIdMap,
       isSSR,
       nextIndent,
+      childRouteName,
+      routeNames,
       loadersByFile,
       routeLoaderSourceFiles
     );
@@ -389,6 +428,9 @@ function serializeBuildTrie(
 
   if (lines.length === 0) {
     return '{}';
+  }
+  if (node._S) {
+    lines.unshift(`${nextIndent}_S: ${JSON.stringify(node._S)},`);
   }
   return `{\n${lines.join('\n')}\n${indent}}`;
 }

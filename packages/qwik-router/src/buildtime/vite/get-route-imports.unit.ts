@@ -4,6 +4,21 @@ import type { BuiltLayout, BuiltRoute } from '../types';
 import { getRouteImports } from './get-route-imports';
 
 describe('modifyBundleGraph', () => {
+  test.each([
+    ['PRODUCT/[ItemId]', 'PRODUCT/[ItemId]/'],
+    ['Docs/Pre[PageId]Post', 'Docs/Pre[PageId]Post/'],
+    ['Docs/[...Slug]', 'Docs/[...Slug]/'],
+  ])('preserves the original graph key %s', (routeName, graphKey) => {
+    const filePath = `/app/src/routes/${routeName}/index.tsx`;
+    const manifest = {
+      bundles: { 'page.js': { origins: [filePath] } },
+    } as unknown as QwikManifest;
+    const routes = [{ routeName, filePath }] as BuiltRoute[];
+    expect(getRouteImports(routes, manifest)).toEqual({
+      [graphKey]: { dynamicImports: ['page.js'] },
+    });
+  });
+
   test('keys catch-all routes with the trailing slash the runtime looks up', () => {
     const manifest = {
       bundles: { 'docs.js': { origins: ['src/routes/docs/[...slug]/index.tsx'] } },

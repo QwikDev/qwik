@@ -1,4 +1,13 @@
-import { assert, describe, test } from 'vitest';
+import fs from 'node:fs';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { assert, describe, test, vi } from 'vitest';
+import { normalizePath } from '../../utils/fs';
+import { createBuildContext } from '../context';
+import { updateRoutingContext } from '../build';
+import { matchRouteTree } from '../../runtime/src/routing';
+import { getRouteImports } from '../vite/get-route-imports';
 import type { BuildTrieNode, BuiltRoute, RouteSourceFile } from '../types';
 import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 
@@ -105,6 +114,12 @@ function getRoutesExpr(
 }
 
 describe('generate-routes: empty node pruning', () => {
+  test('original segment spelling does not retain an empty directory', () => {
+    const root = makeNode();
+    root.children.set('unused', makeNode({ _S: 'Unused' }));
+    assert.include(getRoutesExpr(root), '= {}');
+  });
+
   test('empty leaf child is pruned from output', () => {
     const root = makeNode();
     root.children.set('emptydir', makeNode());
@@ -467,9 +482,221 @@ test('generate-routes: override metadata follows the selected layout chain', () 
   );
 });
 
-test('rewrite targets include the trie base pathname', () => {
+test.each([
+  ['/app/', '/app/target'],
+  ['/App/', '/app/target'],
+  ['/_A/', '/__a/target'],
+])('rewrite targets use lookup keys for the base %s', (basePathname, target) => {
   const trie = makeNode();
   trie.children.set('alias', makeNode({ _G: 'target' }));
-  const expr = getRoutesExpr(trie, [], undefined, { basePathname: '/app/' });
-  assert.include(expr, '_G: "/app/target"');
+  const expr = getRoutesExpr(trie, [], undefined, { basePathname });
+  assert.include(expr, `_G: ${JSON.stringify(target)}`);
 });
+
+test.each([
+  {
+    path: 'shop/product/b',
+    extraPaths: ['shop/Product/a'],
+    url: '/SHOP/product/b/',
+    route: 'shop/product/b/',
+    names: 1,
+    exception: { 1: 'product' },
+    paramValue: '',
+    neighbors: [['/shop/Product/a/', 'shop/Product/a/']],
+  },
+  {
+    path: 'outer/inner/b',
+    extraPaths: ['Outer/Inner/a'],
+    url: '/OUTER/INNER/b/',
+    route: 'outer/inner/b/',
+    names: 2,
+    exception: { 0: 'outer', 1: 'inner' },
+    paramValue: '',
+    neighbors: [['/Outer/Inner/a/', 'Outer/Inner/a/']],
+  },
+  {
+    path: 'product/b',
+    extraPaths: ['product/a'],
+    url: '/PRODUCT/b/',
+    route: 'product/b/',
+    names: 0,
+    paramValue: '',
+    neighbors: [['/product/a/', 'product/a/']],
+  },
+  {
+    path: 'product/b',
+    extraPaths: ['Product/a'],
+    url: '/product/b/',
+    route: 'product/b/',
+    names: 1,
+    exception: { 0: 'product' },
+    paramValue: '',
+    neighbors: [['/Product/a/', 'Product/a/']],
+  },
+  {
+    path: 'docs',
+    extraPaths: ['product/existing'],
+    rewriteOptions: [{ paths: { docs: 'Product' } }],
+    url: '/Product/',
+    route: 'Product/',
+    names: 0,
+    exception: { 0: 'Product' },
+    paramValue: '',
+    neighbors: [['/product/existing/', 'product/existing/']],
+  },
+  {
+    path: 'docs',
+    extraPaths: ['Product/existing'],
+    rewriteOptions: [{ paths: { docs: 'product' } }],
+    url: '/product/',
+    route: 'product/',
+    names: 1,
+    exception: { 0: 'product' },
+    paramValue: '',
+    neighbors: [['/Product/existing/', 'Product/existing/']],
+  },
+  {
+    path: 'product/[...Slug]',
+    extraPaths: ['Product/a'],
+    url: '/PRODUCT/Case/Sensitive/',
+    route: 'product/[...Slug]/',
+    names: 1,
+    exception: { 0: 'product' },
+    paramValue: 'Case/Sensitive',
+    neighbors: [['/Product/a/', 'Product/a/']],
+  },
+  {
+    path: 'product/[ItemId]',
+    url: '/PRODUCT/CaseSensitive/',
+    route: 'product/[ItemId]/',
+    names: 0,
+  },
+  {
+    path: '(Group)/Product/[ItemId]',
+    url: '/PRODUCT/CaseSensitive/',
+    route: 'Product/[ItemId]/',
+    names: 1,
+  },
+  {
+    path: 'Docs/Pre[PageId]Post',
+    url: '/DOCS/PRECaseSensitivePOST/',
+    route: 'Docs/Pre[PageId]Post/',
+    names: 1,
+  },
+  {
+    path: 'Product/[...Slug]',
+    url: '/PRODUCT/Case/Sensitive/',
+    route: 'Product/[...Slug]/',
+    names: 1,
+  },
+  {
+    path: '_Drafts/[ItemId]',
+    url: '/_DRAFTS/CaseSensitive/',
+    route: '_Drafts/[ItemId]/',
+    names: 1,
+  },
+  {
+    path: 'product/[ItemId]',
+    base: '/Shop/',
+    url: '/sHoP/PRODUCT/CaseSensitive/',
+    route: 'Shop/product/[ItemId]/',
+    names: 1,
+  },
+  {
+    path: 'product/[ItemId]',
+    rewrite: true,
+    url: '/it/PRODOTTI/CaseSensitive/',
+    route: 'IT/Prodotti/[ItemId]/',
+    names: 2,
+  },
+])(
+  'preserves the built route $route when matching $url',
+  async ({
+    path,
+    extraPaths = [],
+    base = '/',
+    rewrite,
+    rewriteOptions,
+    url,
+    route,
+    names,
+    exception,
+    paramValue,
+    neighbors = [],
+  }) => {
+    const root = await mkdtemp(join(tmpdir(), 'qwik-route-case-'));
+    const readDirectory = fs.promises.readdir.bind(fs.promises);
+    const readdir = vi.spyOn(fs.promises, 'readdir');
+    try {
+      const files = [path, ...extraPaths].map((routePath) =>
+        normalizePath(join(root, 'src/routes', routePath, 'index.tsx'))
+      );
+      for (const source of files) {
+        await mkdir(dirname(source), { recursive: true });
+        await writeFile(source, 'export default () => null;');
+      }
+      // Preserve case-sensitive directory enumeration on every test filesystem.
+      const entries = new Map<string, Set<string>>();
+      for (const routePath of [path, ...extraPaths]) {
+        let directory = normalizePath(join(root, 'src/routes'));
+        for (const segment of [...routePath.split('/'), 'index.tsx']) {
+          if (!entries.has(directory)) {
+            entries.set(directory, new Set());
+          }
+          entries.get(directory)!.add(segment);
+          directory = normalizePath(join(directory, segment));
+        }
+      }
+      readdir.mockImplementation(async (directory) => {
+        const names = entries.get(normalizePath(String(directory)));
+        return names ? ([...names] as any) : readDirectory(directory);
+      });
+      const ctx = createBuildContext(
+        root,
+        base,
+        {
+          rewriteRoutes:
+            rewriteOptions ??
+            (rewrite ? [{ prefix: 'IT', paths: { product: 'Prodotti' } }] : undefined),
+        },
+        'client'
+      );
+      await updateRoutingContext(ctx);
+      const code: string[] = [];
+      createRoutes(ctx, mockQwikPlugin, code, [], false, new Map());
+      const expression = code.find((line) => line.startsWith('export const routes'))!;
+      // eslint-disable-next-line no-new-func
+      const routes = new Function(expression.replace('export const routes =', 'return'))();
+      assert.equal((expression.match(/_S:/g) ?? []).length, names);
+      assert.equal((expression.match(/_C:/g) ?? []).length, exception ? 1 : 0);
+      if (exception) {
+        assert.include(expression, `_C: ${JSON.stringify(exception)}`);
+      }
+      const matched = matchRouteTree(routes, url);
+      assert.isFalse(matched.notFound);
+      assert.equal(matched.routeParts.join('/') + '/', route);
+      assert.equal(
+        Object.values(matched.params).join('/'),
+        paramValue ?? (path.includes('[...') ? 'Case/Sensitive' : 'CaseSensitive')
+      );
+      const imports = getRouteImports(ctx.routes, {
+        bundles: Object.fromEntries(
+          files.map((source, index) => [
+            index ? `page-${index}.js` : 'page.js',
+            { origins: [source] },
+          ])
+        ),
+      } as any);
+      assert.deepEqual(imports[route].dynamicImports, ['page.js']);
+      for (const [neighborUrl, neighborRoute] of neighbors) {
+        const neighbor = matchRouteTree(routes, neighborUrl);
+        assert.isFalse(neighbor.notFound);
+        assert.equal(neighbor.routeParts.join('/') + '/', neighborRoute);
+        assert.property(imports, neighborRoute);
+      }
+    } finally {
+      readdir.mockRestore();
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+);

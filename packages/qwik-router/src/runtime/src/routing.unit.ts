@@ -1327,3 +1327,17 @@ test('loadRoute — chained rewrites keep target layout paths and dynamic params
   });
   assert.deepEqual(result.$params$, { id: '42' });
 });
+
+test('loadRoute — restores canonical spelling on rest fallback after a failed rewrite', async () => {
+  const routes: RouteData = {
+    product: {
+      _S: 'Product',
+      _W: { _P: 'id', _G: 'missing' },
+      _A: { _P: 'Slug', _C: { 0: 'product' }, _I: makeLoader() },
+    },
+  };
+  const result = await loadRoute(routes, false, '/PRODUCT/CaseSensitive/');
+  assert.isFalse(result.$notFound$);
+  assert.equal(result.$routeName$, '/product/[...Slug]');
+  assert.deepEqual(result.$params$, { Slug: 'CaseSensitive' });
+});

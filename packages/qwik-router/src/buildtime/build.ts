@@ -284,6 +284,7 @@ function translateRoute(
 function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOption[]) {
   interface TriePathStep {
     key: string;
+    staticName?: string;
     paramName?: string;
     prefix?: string;
     suffix?: string;
@@ -309,6 +310,7 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
           ...steps,
           {
             key,
+            staticName: child._S,
             paramName: child._P,
             prefix: child._0,
             suffix: child._9,
@@ -346,14 +348,21 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
       const translatedSteps: TriePathStep[] = [];
 
       if (config.prefix) {
-        translatedSteps.push({ key: config.prefix.toLowerCase() });
+        const key = config.prefix.toLowerCase();
+        translatedSteps.push({
+          key,
+          staticName: config.prefix !== key ? config.prefix : undefined,
+        });
       }
 
       for (const step of steps) {
         const translated = translations[step.key];
+        const key = translated ? translated.toLowerCase() : step.key;
+        const staticName = translated || step.staticName;
         translatedSteps.push({
           ...step,
-          key: translated ? translated.toLowerCase() : step.key,
+          key,
+          staticName: staticName !== key ? staticName : undefined,
         });
       }
 
@@ -372,6 +381,9 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
             _files: [],
             children: new Map(),
           };
+          if (step.staticName) {
+            child._S = step.staticName;
+          }
           if (step.paramName) {
             child._P = step.paramName;
           }

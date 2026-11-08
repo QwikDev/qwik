@@ -99,6 +99,9 @@ function getOrCreateChildNode(node: BuildTrieNode, dirName: string): BuildTrieNo
     _files: [],
     children: new Map(),
   };
+  if (parsed.key !== null && !parsed.paramName && dirName !== parsed.key) {
+    child._S = dirName;
+  }
   if (parsed.paramName) {
     child._P = parsed.paramName;
   }

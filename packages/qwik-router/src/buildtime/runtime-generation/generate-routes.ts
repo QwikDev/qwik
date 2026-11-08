@@ -64,6 +64,12 @@ export function createRoutes(
   serverExcludePaths?: ReadonlySet<string>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ) {
+  const routesByFilePath = new Map<string, BuiltRoute>();
+  for (const route of ctx.routes) {
+    if (!routesByFilePath.has(route.filePath)) {
+      routesByFilePath.set(route.filePath, route);
+    }
+  }
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
 
@@ -86,7 +92,7 @@ export function createRoutes(
         layoutCount++;
       }
     } else if (file.type === 'route') {
-      const route = ctx.routes.find((r) => r.filePath === file.filePath);
+      const route = routesByFilePath.get(file.filePath);
       if (route) {
         routeCount++;
       }
@@ -160,10 +166,12 @@ export function createRoutes(
     ctx.routeTrie,
     layoutIdMap,
     routeIdMap,
+    routesByFilePath,
     menuIdMap,
     isSSR,
     '',
     baseSegments.join('/'),
+    getRouteTriePath(baseSegments.join('/')),
     routeNamesByTriePath,
     loadersByFile,
     routeLoaderSourceFiles
@@ -207,10 +215,12 @@ function serializeBuildTrie(
   node: BuildTrieNode,
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
+  routesByFilePath: ReadonlyMap<string, BuiltRoute>,
   menuIdMap: Map<string, string>,
   isSSR: boolean,
   indent: string,
   routeName: string,
+  triePath: string,
   routeNamesByTriePath: ReadonlyMap<string, string>,
   loadersByFile?: Map<string, string[]>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
@@ -270,7 +280,7 @@ function serializeBuildTrie(
       continue;
     }
 
-    const route = ctx.routes.find((route) => route.filePath === file.filePath);
+    const route = routesByFilePath.get(file.filePath);
     const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, route?.layouts ?? []);
 
     // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
@@ -293,7 +303,7 @@ function serializeBuildTrie(
   }
 
   if (indexExpr || node._G != null) {
-    const canonicalName = routeNamesByTriePath.get(getRouteTriePath(routeName));
+    const canonicalName = routeNamesByTriePath.get(triePath);
     if (canonicalName != null && canonicalName !== routeName) {
       const canonicalParts = canonicalName.split('/');
       const currentParts = routeName.split('/');
@@ -391,10 +401,12 @@ function serializeBuildTrie(
         child,
         layoutIdMap,
         routeIdMap,
+        routesByFilePath,
         menuIdMap,
         isSSR,
         nextIndent,
         routeName,
+        triePath,
         routeNamesByTriePath,
         loadersByFile,
         routeLoaderSourceFiles
@@ -420,10 +432,12 @@ function serializeBuildTrie(
       child,
       layoutIdMap,
       routeIdMap,
+      routesByFilePath,
       menuIdMap,
       isSSR,
       nextIndent,
       childRouteName,
+      triePath ? `${triePath}/${key}` : key,
       routeNamesByTriePath,
       loadersByFile,
       routeLoaderSourceFiles

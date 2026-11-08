@@ -6666,7 +6666,7 @@ export const Other = component$(() => {
 }
 
 #[test]
-fn should_move_function_component_with_event_handler() {
+fn should_move_inline_component_with_event_handler() {
 	test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
@@ -6691,7 +6691,7 @@ export const Table = component$(() => (
 }
 
 #[test]
-fn should_move_custom_hook_with_task() {
+fn should_move_hook_with_task() {
 	test_input!(TestInput {
 		code: r#"
 import { component$, useSignal, useTask$ } from '@qwik.dev/core';

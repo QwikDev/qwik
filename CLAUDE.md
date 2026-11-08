@@ -139,6 +139,9 @@ pnpm vitest packages/qwik/src/qwikloader.unit.ts -u
 
 If any of those fail, fix and push your changes.
 
+For optimizer PRs, include a code example in the description: the smallest input that shows the
+change, and the relevant output before and after it.
+
 ## Rules
 
 Recent Qwik v2 work by core maintainers favors small, behavior-shaped changes with regression proof.

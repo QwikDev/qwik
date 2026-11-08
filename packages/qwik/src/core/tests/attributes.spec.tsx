@@ -997,7 +997,7 @@ describe(`${name}: inner HTML`, () => {
     expect(container.querySelector('#fixed h3')?.textContent).toBe('Test content');
   });
 
-  it('should render children from dynamic props', async () => {
+  it('should ignore children spread into a dynamic tag', async () => {
     const App = component$(() => {
       const props = useSignal({ type: 'div' as const, children: ['Hello'] });
       const Tag = props.value.type;
@@ -1012,9 +1012,11 @@ describe(`${name}: inner HTML`, () => {
     });
     const { container, cleanup, qwikLoader } = await render(App);
     onTestFinished(cleanup);
-    expect(container.querySelector('#dynamic')?.textContent).toBe('Hello');
+    // only JSX children render; a spread `children` is no attribute either
+    expect(container.querySelector('#dynamic')?.textContent).toBe('');
+    expect(container.querySelector('#dynamic')?.hasAttribute('children')).toBe(false);
     await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
-    expect(container.querySelector('#dynamic')?.textContent).toBe('Changed');
+    expect(container.querySelector('#dynamic')?.textContent).toBe('');
   });
 
   it('should render svg with dangerouslySetInnerHTML', async () => {

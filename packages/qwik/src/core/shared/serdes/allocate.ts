@@ -14,6 +14,7 @@ import { BranchSubscription } from '../../dom/branch/branch';
 import { ContentSubscription, PendingContentSubscription } from '../../dom/content/content';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../reactive/computed-qrl';
+import { ComputedStatus } from '../../reactive/computed';
 import { AsyncSignal } from '../../reactive/async-signal';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { Signal } from '../../reactive/signal';
@@ -148,6 +149,8 @@ export const allocate = (
       return new SerializerSignal(null, context);
     case TypeIds.ComputedSignal:
       return new ComputedQrl(null!);
+    case TypeIds.ComputedStatus:
+      return new ComputedStatus();
     case TypeIds.Store: {
       const data = value as unknown[];
       const t = data[0] as TypeIds;

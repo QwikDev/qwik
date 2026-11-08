@@ -55,4 +55,7 @@ export function markComputedDirty(computed: ComputedSubscriber): void {
 
   computed.flags |= ComputedFlags.Dirty;
   notifySourceSubscribers(computed);
+  if (computed.status !== null) {
+    notifySourceSubscribers(computed.status);
+  }
 }

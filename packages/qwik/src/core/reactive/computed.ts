@@ -73,12 +73,19 @@ class AsyncJob<T> implements AsyncCtx<T> {
   }
 }
 
+/** Readers of `pending` and `error`, kept apart so value readers skip loading changes. */
+export class ComputedStatus implements Source<undefined> {
+  v = undefined;
+  subs: SourceSubs = null;
+}
+
 export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, ComputedSignal<T> {
   readonly kind = SubscriberKind.Computed;
   owner: Owner | null = null;
   deps: Source[] | null = null;
   flags = ComputedFlags.Dirty;
   subs: SourceSubs = null;
+  status: ComputedStatus | null = null;
 
   loadingValue = false;
   errorValue: Error | undefined = undefined;
@@ -143,7 +150,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   get pending(): boolean {
-    track(this);
+    this.trackStatus();
     return this.untrackedPending;
   }
 
@@ -160,7 +167,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   get error(): Error | undefined {
-    track(this);
+    this.trackStatus();
     return this.errorValue;
   }
 
@@ -236,6 +243,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     } finally {
       cleanupDeps(this);
       this.subs = null;
+      this.status = null;
       if (this.cleanupObservation !== undefined) {
         this.cleanupObservation.computed = undefined;
         this.cleanupObservation = undefined;
@@ -468,12 +476,26 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   private setLoading(value: boolean): void {
     if (this.loadingValue !== value) {
       this.loadingValue = value;
-      this.notify();
+      this.notifyStatus();
+    }
+  }
+
+  private trackStatus(): void {
+    // allocate only for a tracking read
+    if (getActiveCollector() !== null) {
+      track((this.status ??= new ComputedStatus()));
+    }
+  }
+
+  private notifyStatus(): void {
+    if (this.status !== null) {
+      notifySourceSubscribers(this.status);
     }
   }
 
   private notify(): void {
     notifySourceSubscribers(this);
+    this.notifyStatus();
   }
 
   private addToEagerResume(): void {
@@ -597,3 +619,4 @@ export function isAsyncComputed(computed: ComputedSubscriber): boolean {
 }
 
 isServer && brandClass(Computed, Brand.Computed);
+isServer && brandClass(ComputedStatus, Brand.ComputedStatus);

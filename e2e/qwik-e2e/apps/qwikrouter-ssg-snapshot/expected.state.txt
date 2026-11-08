@@ -381,6 +381,7 @@
     RootRef [omitted]
     RootRef [omitted]
   ]
+  Constant null
   EffectSubscription [
     {number} 3
     {number} 1
@@ -424,6 +425,7 @@
     RootRef [omitted]
   ]
   RootRef [omitted]
+  Constant null
   RootRef [omitted]
   RootRef [omitted]
   {number} 3
@@ -434,6 +436,7 @@
     RootRef [omitted]
   ]
   RootRef [omitted]
+  Constant null
   RootRef [omitted]
   RootRef [omitted]
   {number} 6
@@ -444,6 +447,7 @@
     RootRef [omitted]
   ]
   RootRef [omitted]
+  Constant null
   RootRef [omitted]
   RootRef [omitted]
   {number} 9
@@ -454,6 +458,7 @@
     RootRef [omitted]
   ]
   RootRef [omitted]
+  Constant null
   RootRef [omitted]
   RootRef [omitted]
   {number} 12
@@ -487,6 +492,7 @@
   Array [
     Constant undefined
   ]
+  Constant null
   EffectSubscription [
     {number} 5
     {number} 8
@@ -531,6 +537,7 @@
   QRL "[omitted]"
   Constant EMPTY_ARRAY
   Constant NEEDS_COMPUTATION
+  Constant null
   EffectSubscription [
     {number} 7
     {number} 11
@@ -603,6 +610,7 @@
     {string} "clicks"
     {number} 2
   ]
+  Constant null
   EffectSubscription [
     {number} 7
     {number} 14
@@ -657,6 +665,7 @@
     {string} "summary"
     RootRef [omitted]
   ]
+  Constant null
   Constant null
   EffectSubscription [
     {number} 3

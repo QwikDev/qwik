@@ -52,6 +52,7 @@ export const enum TypeIds {
   PropSource,
   PendingSubscription,
   CatchSubscription,
+  ComputedStatus,
 }
 
 /** Debug names for `_dumpState`; the length check in `dump-state.unit.ts` keeps them in sync. */
@@ -108,4 +109,5 @@ export const _typeIdNames = [
   'PropSource',
   'PendingSubscription',
   'CatchSubscription',
+  'ComputedStatus',
 ] as const;

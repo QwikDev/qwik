@@ -194,6 +194,92 @@ describe(`${name}: async signals`, () => {
     cleanup();
   });
 
+  it('does not rerun value readers when only the pending state changes', async () => {
+    (globalThis as any).__labelRuns = 0;
+    (globalThis as any).__adopt = undefined;
+    const App = () => {
+      const source = useAsync$(
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 1));
+          // like a route loader reusing the SSR data: adopt the value without a change
+          const adopt = (globalThis as any).__adopt;
+          if (adopt) {
+            adopt.untrackedValue = 'same';
+          }
+          return 'same';
+        },
+        { serializationStrategy: 'never' }
+      );
+      const label = useComputed$(() => {
+        (globalThis as any).__labelRuns++;
+        return 'label:' + source.value;
+      });
+      return (
+        <button
+          onClick$={() => {
+            (globalThis as any).__adopt = source;
+            return source.promise();
+          }}
+        >
+          {label.value}
+        </button>
+      );
+    };
+
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    await drain(flush);
+    const button = container.querySelector('button')!;
+    const labelRuns = (globalThis as any).__labelRuns;
+
+    await qwikLoader?.dispatch(button, 'click');
+    await delay(5);
+    await drain(flush);
+
+    expect(button.textContent).toBe('label:same');
+    expect((globalThis as any).__labelRuns).toBe(labelRuns);
+
+    cleanup();
+    (globalThis as any).__adopt = undefined;
+  });
+
+  it('updates a reader of only the pending state', async () => {
+    (globalThis as any).__pendingResolve = undefined;
+    const App = () => {
+      const count = useSignal(1);
+      const source = useAsync$(async () => {
+        const value = count.value;
+        if (value > 1) {
+          await new Promise<void>((resolve) => {
+            (globalThis as any).__pendingResolve = resolve;
+          });
+        }
+        return value;
+      });
+      return (
+        <div>
+          <span>{source.pending ? 'loading' : 'idle'}</span>
+          <button onClick$={() => count.value++}></button>
+        </div>
+      );
+    };
+
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    await drain(flush);
+    const span = container.querySelector('span')!;
+    expect(span.textContent).toBe('idle');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    await drain(flush);
+    expect(span.textContent).toBe('loading');
+
+    (globalThis as any).__pendingResolve();
+    await drain(flush);
+    expect(span.textContent).toBe('idle');
+
+    cleanup();
+    (globalThis as any).__pendingResolve = undefined;
+  });
+
   it('shows error state', async () => {
     const Counter = () => {
       const count = useSignal(1);

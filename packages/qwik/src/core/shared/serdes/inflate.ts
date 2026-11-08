@@ -33,6 +33,7 @@ import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { ComputedFlags, OwnerFlags, SubscriberFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
 import { ComputedQrl } from '../../reactive/computed-qrl';
+import type { ComputedStatus } from '../../reactive/computed';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { createLazySourceSubs, LazySerialized } from '../../reactive/lazy-serialized';
 import { Signal as ReactiveSignal } from '../../reactive/signal';
@@ -264,6 +265,7 @@ const inflatePayload = (
     typeId !== TypeIds.ComputedSignal &&
     typeId !== TypeIds.AsyncSignal &&
     typeId !== TypeIds.SerializerSignal &&
+    typeId !== TypeIds.ComputedStatus &&
     Array.isArray(data)
   ) {
     return maybeThen(_eagerDeserializeArray(container, data, undefined, 0, end), (data) => {
@@ -374,70 +376,77 @@ const inflateResolved = (
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedQrl<unknown>>;
       const d = data as unknown[];
+      const subscriberOffset = 8;
       return maybeThen(readSerializedSlot(container, d, 0), (qrl) =>
         maybeThen(readSerializedSlot(container, d, 2), (deps) =>
-          maybeThen(readSerializedSlot(container, d, 4), (value) => {
-            if (rejectDisposedInflation(computed)) {
-              return;
-            }
-            computed.computeQrl = qrl as ComputedQrl<unknown>['computeQrl'];
-            computed.container = container;
-            restoreDependencies(computed, deps as Source[]);
-            if (value === NEEDS_COMPUTATION) {
-              computed.flags = ComputedFlags.Dirty;
-            } else {
-              computed.v = value;
-              computed.flags = ComputedFlags.HasValue;
-            }
-            if (end > 6) {
-              restoreSourceSubs(computed, container, d, 6, end);
-              if (value === NEEDS_COMPUTATION) {
-                computed.flags |= ComputedFlags.ShowsServerValue;
+          maybeThen(readSerializedSlot(container, d, 4), (value) =>
+            maybeThen(readSerializedSlot(container, d, 6), (status) => {
+              if (rejectDisposedInflation(computed)) {
+                return;
               }
-            }
-            if (value === NEEDS_COMPUTATION) {
-              return maybeThen(
-                getFunctionOrResolve(computed.computeQrl!, container, false),
-                () => {}
-              );
-            }
-          })
+              computed.computeQrl = qrl as ComputedQrl<unknown>['computeQrl'];
+              computed.container = container;
+              computed.status = status as ComputedStatus | null;
+              restoreDependencies(computed, deps as Source[]);
+              if (value === NEEDS_COMPUTATION) {
+                computed.flags = ComputedFlags.Dirty;
+              } else {
+                computed.v = value;
+                computed.flags = ComputedFlags.HasValue;
+              }
+              if (end > subscriberOffset) {
+                restoreSourceSubs(computed, container, d, subscriberOffset, end);
+                if (value === NEEDS_COMPUTATION) {
+                  computed.flags |= ComputedFlags.ShowsServerValue;
+                }
+              }
+              if (value === NEEDS_COMPUTATION) {
+                return maybeThen(
+                  getFunctionOrResolve(computed.computeQrl!, container, false),
+                  () => {}
+                );
+              }
+            })
+          )
         )
       );
     }
     case TypeIds.AsyncSignal: {
       const signal = target as AsyncSignal<unknown>;
       const d = data as unknown[];
-      const subscriberOffset = 8;
+      const subscriberOffset = 10;
       return maybeThen(readSerializedSlot(container, d, 0), (qrl) =>
         maybeThen(readSerializedSlot(container, d, 2), (deps) =>
           maybeThen(readSerializedSlot(container, d, 4), (value) =>
-            maybeThen(readSerializedSlot(container, d, 6), (options) => {
-              if (rejectDisposedInflation(signal)) {
-                return;
-              }
-              signal.computeQrl = qrl as AsyncSignal<unknown>['computeQrl'];
-              signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
-              restoreDependencies(signal, deps as Source[]);
-              if (value === NEEDS_COMPUTATION) {
-                signal.flags = ComputedFlags.Dirty | ComputedFlags.Async;
-              } else {
-                signal.v = value as unknown;
-                signal.flags = ComputedFlags.HasValue | ComputedFlags.Async;
-              }
-              if (end > subscriberOffset) {
-                restoreSourceSubs(signal, container, d, subscriberOffset, end);
-                if (value === NEEDS_COMPUTATION) {
-                  signal.flags |= ComputedFlags.ShowsServerValue;
+            maybeThen(readSerializedSlot(container, d, 6), (options) =>
+              maybeThen(readSerializedSlot(container, d, 8), (status) => {
+                if (rejectDisposedInflation(signal)) {
+                  return;
                 }
-              }
-              if (value === NEEDS_COMPUTATION) {
-                return maybeThen(
-                  getFunctionOrResolve(signal.computeQrl!, container, false),
-                  () => {}
-                );
-              }
-            })
+                signal.computeQrl = qrl as AsyncSignal<unknown>['computeQrl'];
+                signal.status = status as ComputedStatus | null;
+                signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
+                restoreDependencies(signal, deps as Source[]);
+                if (value === NEEDS_COMPUTATION) {
+                  signal.flags = ComputedFlags.Dirty | ComputedFlags.Async;
+                } else {
+                  signal.v = value as unknown;
+                  signal.flags = ComputedFlags.HasValue | ComputedFlags.Async;
+                }
+                if (end > subscriberOffset) {
+                  restoreSourceSubs(signal, container, d, subscriberOffset, end);
+                  if (value === NEEDS_COMPUTATION) {
+                    signal.flags |= ComputedFlags.ShowsServerValue;
+                  }
+                }
+                if (value === NEEDS_COMPUTATION) {
+                  return maybeThen(
+                    getFunctionOrResolve(signal.computeQrl!, container, false),
+                    () => {}
+                  );
+                }
+              })
+            )
           )
         )
       );
@@ -479,6 +488,12 @@ const inflateResolved = (
           return restoreStoreSources(container, raw, d[2] as TypeIds, d[3]);
         }
       });
+    }
+    case TypeIds.ComputedStatus: {
+      if (end > 0) {
+        restoreSourceSubs(target as ComputedStatus, container, data as unknown[], 0, end);
+      }
+      break;
     }
     case TypeIds.StoreProp: {
       const source = target as StorePropSource;

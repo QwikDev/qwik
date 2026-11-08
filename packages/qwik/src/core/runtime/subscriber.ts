@@ -53,6 +53,8 @@ export interface ComputedSubscriber<T = unknown>
   extends Collector, ComputedSource<T>, OwnedSubscriber {
   readonly kind: SubscriberKind.Computed;
   flags: ComputedFlags;
+  /** Readers of the pending and error state, when any tracked them. */
+  readonly status: Source | null;
   compute: () => T;
   dispose(): void;
 }

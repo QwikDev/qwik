@@ -327,6 +327,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       [],
       TypeIds.Plain,
       1,
+      TypeIds.Constant,
+      Constants.Null,
       TypeIds.EffectSubscription,
       [
         TypeIds.Plain,
@@ -372,6 +374,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       [],
       TypeIds.Plain,
       17,
+      TypeIds.Constant,
+      Constants.Null,
       TypeIds.EffectSubscription,
       [
         TypeIds.Plain,

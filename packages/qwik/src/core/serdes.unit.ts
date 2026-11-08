@@ -581,6 +581,9 @@ describe('serdes emit-only', () => {
       TypeIds.Constant,
       Constants.NEEDS_COMPUTATION,
       ...(typeId === TypeIds.AsyncSignal ? [TypeIds.Constant, Constants.Null] : []),
+      // status
+      TypeIds.Constant,
+      Constants.Null,
     ];
     const restored = await allocate(container, typeId, data);
     let didInflate = false;
@@ -825,7 +828,10 @@ describe('serdes emit-only', () => {
     expect(payload[5]).toBe(6);
     expect(payload[6]).toBe(TypeIds.Constant);
     expect(payload[7]).toBe(Constants.Null);
-    expect(payload[8]).toBe(TypeIds.EffectSubscription);
+    // no pending or error reader: no status
+    expect(payload[8]).toBe(TypeIds.Constant);
+    expect(payload[9]).toBe(Constants.Null);
+    expect(payload[10]).toBe(TypeIds.EffectSubscription);
   });
 
   it('deserializes async signal cached value', async () => {
@@ -848,6 +854,8 @@ describe('serdes emit-only', () => {
       [],
       TypeIds.Plain,
       7,
+      TypeIds.Constant,
+      Constants.Null,
       TypeIds.Constant,
       Constants.Null,
     ]);
@@ -1556,7 +1564,7 @@ describe('serdes emit-only', () => {
 
     const state = await serialize(doubled);
     const computedPayload = state[1] as unknown[];
-    const effectPayload = computedPayload[7] as unknown[];
+    const effectPayload = computedPayload[9] as unknown[];
     const signalPayload = state[3] as unknown[];
 
     expect(computedPayload[0]).toBe(TypeIds.QRL);
@@ -1565,7 +1573,9 @@ describe('serdes emit-only', () => {
     expect(computedPayload[3]).toEqual([TypeIds.RootRef, 1]);
     expect(computedPayload[4]).toBe(TypeIds.Plain);
     expect(computedPayload[5]).toBe(4);
-    expect(computedPayload[6]).toBe(TypeIds.EffectSubscription);
+    expect(computedPayload[6]).toBe(TypeIds.Constant);
+    expect(computedPayload[7]).toBe(Constants.Null);
+    expect(computedPayload[8]).toBe(TypeIds.EffectSubscription);
     expect(effectPayload[1]).toBe(EffectKind.TextNode);
     expect(effectPayload[3]).toBe(EffectTargetKind.ElementText);
     expect(effectPayload[5]).toBe(4);
@@ -1631,6 +1641,8 @@ describe('serdes emit-only', () => {
       if (type === TypeIds.AsyncSignal) {
         payload.push(TypeIds.Constant, Constants.Null);
       }
+      // status
+      payload.push(TypeIds.Constant, Constants.Null);
       const computed = (await deserializeData(container, type, payload)) as ComputedQrl<number>;
 
       expect(imports).toBe(1);

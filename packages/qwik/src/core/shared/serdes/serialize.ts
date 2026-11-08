@@ -18,7 +18,7 @@ import {
 } from '../../dom/effect/ssr-effect';
 import { ComputedFlags, OwnerFlags, SubscriberFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
-import { Computed, isAsyncComputed } from '../../reactive/computed';
+import { Computed, ComputedStatus, isAsyncComputed } from '../../reactive/computed';
 import { ComputedQrl } from '../../reactive/computed-qrl';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { Signal } from '../../reactive/signal';
@@ -753,6 +753,10 @@ export class Serializer {
       this.output(TypeIds.Store, this.serializeStore(value));
     } else if (value instanceof StorePropSource) {
       this.output(TypeIds.StoreProp, this.serializeStoreProp(value));
+    } else if (value instanceof ComputedStatus) {
+      this.output(TypeIds.ComputedStatus, [
+        ...serializeSubscribers(value.subs, this.$serializationContext$),
+      ]);
     } else if (value instanceof PropSource) {
       this.output(TypeIds.PropSource, [
         this.$serializationContext$.$addRoot$(value.props),
@@ -1203,6 +1207,7 @@ function serializeComputed(
     computed.computeQrl,
     serializeDeps(computed.deps),
     value,
+    computed.status,
     ...serializeSubscribers(computed.subs, context),
   ];
 }
@@ -1275,6 +1280,7 @@ function serializeAsyncSignal(signal: Computed<unknown>, context: SerializationC
     serializeDeps(signal.deps),
     value,
     serializeAsyncSignalOptions(signal),
+    signal.status,
     ...serializeSubscribers(signal.subs, context),
   ];
 }

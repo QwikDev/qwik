@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { _captures, _capturesObj, setCaptures, withCaptures } from './shared/qrl/qrl-captures';
 import { assertQrl } from './shared/qrl/qrl-utils';
-import { isPromise, retryOnPromise } from './shared/utils/promises';
+import { isPromise, maybeThen, retryOnPromise } from './shared/utils/promises';
 import type { ValueOrPromise } from './shared/utils/types';
 import {
   getOrCreateContainerContext,
@@ -36,10 +36,9 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     if (paramId === null) {
       return start(EMPTY_ARRAY);
     }
-    return context
-      .getRoot(paramId)
-      .then((value) => whenRootInflated(context, value))
-      .then((value) => {
+    return maybeThen(
+      maybeThen(context.getRoot(paramId), (value) => whenRootInflated(context, value)),
+      (value) => {
         if (single !== null) {
           (element as QElement)._qEventParam = value;
           return start([value]);
@@ -48,7 +47,8 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
           (element as QElement)._qEventParams = params;
           return start(params);
         }
-      });
+      }
+    );
   });
 }
 

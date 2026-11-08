@@ -14,6 +14,7 @@ import type { ServerDataContext } from './use-server-data';
 import type { Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
 import type { ValueOrPromise } from '../shared/utils/types';
+import { maybeThen } from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
@@ -52,7 +53,7 @@ export interface ContainerContext extends ServerDataContext {
   forwardRefs: Array<number | string> | null;
   styleIds?: Map<string, string>;
   getForwardRefs(): Array<number | string> | null;
-  getRoot(id: number | string): Promise<unknown>;
+  getRoot(id: number | string): ValueOrPromise<unknown>;
   discardRoot(id: number | string): void;
   disposeRoot(id: number | string): Promise<void>;
   prepareRoot(id: number | string): Promise<void>;
@@ -264,10 +265,10 @@ export function whenRootInflated<T>(context: ContainerContext, root: T): ValueOr
   return inflation === undefined ? root : inflation.then(() => root);
 }
 
-export function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
+export function getStateRoot(context: ContainerContext, id: number): ValueOrPromise<unknown> {
   const state = context.state;
   if (state.liveRoots.has(id)) {
-    return Promise.resolve(state.liveRoots.get(id));
+    return state.liveRoots.get(id);
   }
   // Concurrent readers share one load, or each would allocate its own copy of the root.
   const loading = (state.loadingRoots ??= new Map());
@@ -378,9 +379,9 @@ function appendStreamedSubscriber(
 ): LazySerialized<Subscriber> {
   const lazy = new LazySerialized(
     () =>
-      context
-        .getRoot(subscriberId)
-        .then((subscriber) => whenRootInflated(context, subscriber as Subscriber)),
+      maybeThen(context.getRoot(subscriberId), (subscriber) =>
+        whenRootInflated(context, subscriber as Subscriber)
+      ),
     context.scheduler
   );
   appendSourceSubscriber(source, lazy);

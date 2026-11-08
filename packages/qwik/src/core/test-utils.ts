@@ -383,7 +383,7 @@ export function createCaptureContainer(
       return container.forwardRefs;
     },
     getRoot(id) {
-      return Promise.resolve(captures[String(id)]);
+      return captures[String(id)];
     },
     discardRoot() {},
     async disposeRoot() {},

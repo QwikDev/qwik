@@ -6,7 +6,7 @@ contributors:
   - mrhoodz
   - thejackshelton
   - maiieul
-updated_at: '2026-11-07T12:00:00Z'
+updated_at: '2026-11-08T12:00:00Z'
 created_at: '2023-06-22T22:13:24Z'
 ---
 
@@ -126,19 +126,30 @@ qwikInsights({
 
 ## Self-hosted collection
 
-Instead of the central Insights service, you can collect sessions into your own libSQL database: a local SQLite file, or a remote [Turso](https://turso.tech) database. The build then computes the bundling strategy from that database.
+Instead of the central Insights service, you can collect sessions into your own libSQL database: a local SQLite file, or a remote one such as [Turso](https://turso.tech) or a self-hosted libSQL server. Three pieces work together:
 
-Point the plugin at the database with `db`, and at your collector route with `postUrl`:
+1. **The tracker** in sampled browser sessions posts beacons to `postUrl`.
+2. **A collector route** in your app receives them and writes them into the database.
+3. **The build** reads the database and computes the bundling strategy from it.
 
-```typescript
-qwikInsights({
-  publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
-  db: 'file:.qwik/insights.db',
-  postUrl: '/insights-collect/',
-}),
-```
+Which setup fits depends on where your app runs. See [Choosing a setup](#choosing-a-setup) for complete examples.
 
-Then record the beacons in a Qwik Router endpoint. Client errors are posted to `postUrl` + `error/`, so use a catch-all route that handles both:
+### Settings
+
+| Setting | Where | What it does |
+| --- | --- | --- |
+| `publicApiKey` | `qwikInsights()` | Names your app in the database. When self-hosting, any name of 5 or more characters works. |
+| `postUrl` | `qwikInsights()` | Where browsers send beacons: your collector route, on the same origin as the site. |
+| `db` | `qwikInsights()` | The database the build reads. Relative file paths resolve against the Vite root. Defaults to `QWIK_INSIGHTS_DB_URL`. |
+| `QWIK_INSIGHTS_DB_URL` | environment | The database for the build and the collector, e.g. `file:/var/lib/app/insights.db` or `libsql://my-db.turso.io`. The collector defaults to `file:.qwik/insights.db`. |
+| `QWIK_INSIGHTS_DB_AUTH_TOKEN` | environment | The auth token for a remote database. |
+| `sampleRate` | `qwikInsights()` | The fraction of sessions that report; see [Sampling](#sampling). |
+
+When the build has a database but no `postUrl`, it leaves the tracker out, so beacons never reach the central service by accident.
+
+### The collector route
+
+Record the beacons in a Qwik Router endpoint. Client errors are posted to `postUrl` + `error/`, so use a catch-all route that handles both:
 
 ```typescript
 // src/routes/insights-collect/[...path]/index.ts
@@ -154,10 +165,97 @@ export const onPost: RequestHandler = async ({ request, json }) => {
 };
 ```
 
-`handleInsightsBeacon()` validates each beacon, records it, and never throws, so a broken beacon can't fail the response. Passing `publicApiKey` makes the public endpoint ignore beacons from other apps.
+`handleInsightsBeacon()` validates each beacon, records it, and never throws, so a broken beacon can't fail the response. Passing `publicApiKey` makes the endpoint ignore beacons from other apps. It reads the database from `QWIK_INSIGHTS_DB_URL`, or from the `dbUrl` and `authToken` options.
 
-- **In dev**, you don't need the route: without `postUrl`, the dev server records beacons into `db` itself. You can inspect them in the devtools Insights tab.
-- **In a production build**, `postUrl` is required. Without it the tracker is left out, so beacons never go to the central service by accident.
-- **The server** that runs the collector route reads the database from the `QWIK_INSIGHTS_DB_URL` environment variable (default `file:.qwik/insights.db`). Set the same variable instead of `db` to configure everything in one place. For a remote Turso database, put its auth token in `QWIK_INSIGHTS_DB_AUTH_TOKEN`.
+<Note>The collector route must be on the same origin as your pages: Qwik Router rejects cross-origin beacons in its CSRF check. The endpoint is public, so consider rate limiting it at your proxy or platform.</Note>
 
-<Note>Local files use Node's built-in `node:sqlite` (Node 22.5+). On older Node, and for remote Turso URLs, install the optional `@libsql/client` package. The collector needs a Node server, so it doesn't work on edge runtimes such as Cloudflare Workers.</Note>
+In dev you don't need the route. Without `postUrl`, the dev server records beacons into `db` itself, and you can inspect them in the devtools Insights tab.
+
+<Note>Local database files need Node: its built-in `node:sqlite` (Node 22.5+), or the optional `@libsql/client` package on older Node. Remote databases always use `@libsql/client`, which also runs on edge runtimes.</Note>
+
+## Choosing a setup
+
+If you don't want to run anything yourself, use the central service as described in [Vite integration](#vite-integration). It works with any deployment, including static sites. The setups below keep the data in your own database.
+
+### Solo developer, static site
+
+Your site is built to static files (for example with the static site adapter) and served from a static host. There is no server to receive beacons, so collect your own sessions while you develop, and build from those.
+
+```typescript
+// vite.config.ts
+qwikInsights({
+  publicApiKey: 'my-site',
+  db: 'file:.qwik/insights.db',
+}),
+```
+
+1. Run the dev server and click through the flows that matter. Dev records every session. Running your end-to-end tests against the dev server records their sessions too.
+2. Run `vite build` locally. It computes the strategy and writes it to `q-insights.json` in the project root.
+3. Commit `q-insights.json`, and keep `.qwik/` out of git. Your CI has no database, so its build uses the committed `q-insights.json` instead.
+
+The built pages ship without the tracker, and the build prints a warning saying so. The strategy reflects the flows you exercised rather than real visitors, so refresh it whenever your app's main flows change.
+
+### Team with its own server
+
+You deploy to a Node server you control (for example with the Node adapter, or in a container). The server runs the [collector route](#the-collector-route), and the build reads the same database.
+
+```typescript
+// vite.config.ts
+qwikInsights({
+  publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY, // e.g. 'acme-shop'
+  postUrl: '/insights-collect/',
+}),
+```
+
+Point `QWIK_INSIGHTS_DB_URL` at the database on the server, and wherever you build:
+
+- **One server that also builds**: use a file outside the deploy directory so redeploys keep it, e.g. `QWIK_INSIGHTS_DB_URL=file:/var/lib/acme/insights.db`.
+- **Builds in CI, or several server instances**: use one database they can all reach, such as a self-hosted [libSQL server](https://github.com/tursodatabase/libsql) or Turso. Set `QWIK_INSIGHTS_DB_URL=libsql://…` and `QWIK_INSIGHTS_DB_AUTH_TOKEN` on the servers and in CI, and install `@libsql/client`. A separate file per instance would only see part of the traffic.
+
+In dev, the same route records into a local `.qwik/insights.db` unless you set the variable, so your own clicking doesn't end up in the production data.
+
+### Serverless and edge, with Turso
+
+You deploy to Vercel, Netlify or Cloudflare (Qwik's edge adapters), or to a serverless Node platform such as AWS Lambda. There is no disk that survives between requests, so the collector writes to a remote libSQL database such as Turso.
+
+1. Create the database and a token with the Turso CLI:
+
+   ```shell
+   turso db create qwik-insights
+   turso db show qwik-insights --url
+   turso db tokens create qwik-insights
+   ```
+
+2. Install the client: `npm install @libsql/client`.
+3. Set `QWIK_INSIGHTS_DB_URL` and `QWIK_INSIGHTS_DB_AUTH_TOKEN` in your platform's environment settings and in your CI, so both the collector and the build can reach the database.
+4. Add the collector route. Edge runtimes don't all have `process.env`, so read the settings from the request's `env`, which works on every adapter:
+
+   ```typescript
+   // src/routes/insights-collect/[...path]/index.ts
+   import { handleInsightsBeacon } from '@qwik.dev/core/insights/collector';
+   import type { RequestHandler } from '@qwik.dev/router';
+
+   export const onPost: RequestHandler = async ({ request, env, json }) => {
+     json(200, {
+       ok: await handleInsightsBeacon(request, {
+         dbUrl: env.get('QWIK_INSIGHTS_DB_URL'),
+         authToken: env.get('QWIK_INSIGHTS_DB_AUTH_TOKEN'),
+         publicApiKey: import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY,
+       }),
+     });
+   };
+   ```
+
+5. Configure the plugin with `postUrl`. The build reads the database from the environment:
+
+   ```typescript
+   // vite.config.ts
+   qwikInsights({
+     publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
+     postUrl: '/insights-collect/',
+   }),
+   ```
+
+### Preview and production environments
+
+Preview deployments get traffic that doesn't look like real usage, such as testers clicking around on throttled connections. Keep that out of the production strategy. Give each environment its own `publicApiKey` (for example `acme-shop` and `acme-shop-preview`), or its own database. The collector stores the key with every beacon, and the build only reads data for its own key.

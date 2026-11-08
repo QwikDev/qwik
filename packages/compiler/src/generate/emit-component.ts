@@ -4,6 +4,7 @@ import {
   DeclarationKind,
   HandlerKind,
   OpKind,
+  ProgramBodyKind,
   PropKind,
   ProjectionKind,
   QrlPayloadKind,
@@ -17,7 +18,7 @@ import {
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
-import { readSource } from './emit-setup';
+import { mayBe, readSource } from './emit-setup';
 import { rootArgs } from './captures';
 import { inlineValueJs, valueIrJs } from './print-js';
 import { allocateGeneratedName } from '../names';
@@ -383,6 +384,21 @@ function componentTargetJs(
     expression: `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx}${namespace})`,
     statements: isDynamic ? [`const ${tag} = ${valueIrJs(module, target.value)};`] : [],
   };
+}
+
+/** A lone branch or content root carries its component's `useOn*` events across commits. */
+export function useOnRootOps(module: LinkedModule): ReadonlySet<LinkedOp> {
+  const roots = new Set<LinkedOp>();
+  for (const program of module.programs) {
+    if (program.body.kind !== ProgramBodyKind.Ops || !mayBe(program.facts.registersEvents)) {
+      continue;
+    }
+    const ops = program.body.ops;
+    if (ops.length === 1 && (ops[0].op === OpKind.Branch || ops[0].op === OpKind.Content)) {
+      roots.add(ops[0]);
+    }
+  }
+  return roots;
 }
 
 /** Generated parameter names dodge every binding the module declares. */

@@ -201,6 +201,17 @@ export function applyUseOnToCsrOutput(
   return result;
 }
 
+/** A branch or content root applies the component's events on each commit, so it claims them. */
+export function claimUseOnRoot(
+  invokeContext: RuntimeInvokeContext | null,
+  useOnRoot: boolean
+): RuntimeInvokeContext | null {
+  if (useOnRoot && invokeContext !== null) {
+    invokeContext.hasUseOnRoot = true;
+  }
+  return invokeContext;
+}
+
 export function reapplyUseOnContexts(
   output: MaybeNodeOutput,
   invokeContext: RuntimeInvokeContext | null,

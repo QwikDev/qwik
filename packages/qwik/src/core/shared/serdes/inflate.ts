@@ -897,8 +897,7 @@ async function restoreContentSubscription(
     invokeContext,
     container,
     useOnScopes != null,
-    contextArg,
-    true
+    contextArg
   );
   if (isCatchBoundary(subscription)) {
     if (

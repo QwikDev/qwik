@@ -21,6 +21,8 @@ export interface RuntimeInvokeContext<C extends RuntimeContainerContext = Runtim
   slotScope: SlotScope | null;
   useOnEvents?: UseOnMap;
   inheritedUseOnEvents?: readonly UseOnMap[];
+  /** The render's root is a branch or content block that applies its events on each commit. */
+  hasUseOnRoot?: boolean;
   /** Visible tasks per trigger event; one handler starts a whole group together. */
   visibleTaskGroups?: Record<string, VisibleTaskSubscription[]>;
   styleScopes?: string[];

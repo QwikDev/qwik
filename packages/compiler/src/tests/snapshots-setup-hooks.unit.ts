@@ -615,6 +615,23 @@ export default () => {
     expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
   });
 
+  test('should hand useOn events to a branch or content root', async () => {
+    await testInput(mode, 'use-on-structural-root', {
+      code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+export const Toggle = () => {
+  const button = useSignal(true);
+  useOn('click', $(() => { button.value = !button.value; }));
+  return <>{button.value ? <button>button</button> : <a>link</a>}</>;
+};
+export const Later = () => {
+  const label = useSignal('empty');
+  useOn('click', $(() => { label.value = 'run'; }));
+  return <>{Promise.resolve(<div>{label.value}</div>)}</>;
+};
+`,
+    });
+  });
+
   test('should ship function references and plain values as QRL factories', async () => {
     const output = await testInput(mode, 'qrl-value-arguments', {
       code: `import { component$, $, useTask$, useSignal } from '@qwik.dev/core';

@@ -250,6 +250,9 @@ function finalizeOutput(
       eventAttr
     ) as ComponentOutput;
   }
+  if (invokeContext.hasUseOnRoot) {
+    return normalized;
+  }
   return applyUseOnToCsrOutput(
     normalized as NodeOutput,
     useOnEvents,

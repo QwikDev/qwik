@@ -575,15 +575,15 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
       Done so far: headless `useOnDocument`/`useOnWindow`/`useVisibleTask$` on a projecting
       component, document events through a component root, `qvisible` marked on CSR elements.
-      Open, with skipped specs in `use-on.spec.tsx`:
-  - `useOn` on a dynamic root (promise root, signal-held root, one event across task rerenders):
-    the runtime has a `useOnRoot` slot on content blocks and branches, but both emitters pass
-    `false`, the CSR block only reapplies after a second commit, and the SSR content runtime
-    ignores the flag; the content segment's first element must also keep its open-tag record.
+      A lone branch or content root of a component with `useOn*` carries its events: both
+      emitters pass `useOnRoot`, the CSR block applies them on every commit and claims them from
+      the component, and SSR segments under such a root keep their first open-tag record.
+      Open, with failing specs in `use-on.spec.tsx`:
   - A document event fired from a task during the render that removes its component: v2 skipped
     it through scheduler ordering; v3's loader skips disconnected carriers at dispatch and after
     the QRL resolves, so decide whether the mid-render window matters.
-  - The structural `useOn` root replaced by a branch (`moves the carrier` spec).
+  - A structural root next to other root nodes, and events a parent passes through a child whose
+    root is structural, still find no carrier.
   - main's `use-visible-task` corpus is ported (`visible-task.spec.tsx`, 26 specs, all green).
     A `key` on a static component is not an identity: remount through branch arms instead.
   - A `const` derived from a signal by an expression (`const text = \`v${on.value}\``) is a

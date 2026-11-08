@@ -76,6 +76,7 @@ import {
   type ComponentEmission,
   type GeneratedNames,
   inlineComponentText,
+  useOnRootOps,
 } from './emit-component';
 import { createNameAllocator } from '../names';
 import { generateForeignModule } from './foreign';
@@ -176,7 +177,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   constructor(
     private readonly module: LinkedModule,
-    private readonly options: PresentationOptions
+    private readonly options: PresentationOptions,
+    private readonly useOnRoots = useOnRootOps(module)
   ) {
     this.resolveQrlUse = createQrlResolver(module);
   }
@@ -797,7 +799,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const content = pass.next(QwikGenWord.Content);
     this.imports.add(QwikWord.CreateContentBlock);
     statements.push(
-      `const ${content} = ${QwikWord.CreateContentBlock}(${pass.names.ctx}, ${start}, ${end}, [], ${render}, false, true);`,
+      `const ${content} = ${QwikWord.CreateContentBlock}(${pass.names.ctx}, ${start}, ${end}, [], ${render}, ${this.useOnRoots.has(op)}, true);`,
       `${pass.names.ctx}.scheduler.notify(${content});`
     );
   }
@@ -820,8 +822,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const elseRef =
       op.else === null ? 'undefined' : this.lazyRenderReference(op.else, pass.names.props);
     const branch = pass.next(QwikGenWord.Branch);
+    const useOnRoot = this.useOnRoots.has(op) ? ', true' : '';
     statements.push(
-      `const ${branch} = ${QwikWord.CreateBranch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef});`
+      `const ${branch} = ${QwikWord.CreateBranch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef}${useOnRoot});`
     );
     statements.push(`${pass.names.ctx}.scheduler.notify(${branch});`);
   }
@@ -952,7 +955,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           return this.rowFunction(qrl);
         }
         // A fresh emitter keeps the render's imports/hoists out of the main module.
-        const emitter = new CsrModuleEmitter(this.module, this.options);
+        const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
         const names = {
           props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
           ctx: allocateGeneratedNames(this.module).ctx,
@@ -1002,7 +1005,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const root = body.ops[0];
     const elementRoot = body.ops.length === 1 && root.op === OpKind.Element;
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
-    const emitter = new CsrModuleEmitter(this.module, this.options);
+    const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
     const next = createNameAllocator(this.module);
     const pass: RenderPass = {
       batches: new Map(

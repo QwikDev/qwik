@@ -46,7 +46,7 @@ import { getFunctionOrResolve } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
 import { ownSsrOutput, resolveSsrOutput, type SsrOutput } from '../../ssr/output';
 import { replaceContent, prepareProjectionRanges } from '../range/range';
-import { reapplyUseOnContexts } from '../../runtime/use-on';
+import { claimUseOnRoot, reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
@@ -149,7 +149,6 @@ function normalizeContentOutput(document: Document, output: ContentOutput): Mayb
 
 export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null = null;
-  private committed: boolean;
   private generation = 0;
   private pendingContext: RuntimeInvokeContext | null = null;
 
@@ -162,11 +161,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container?: ContainerContext,
     readonly useOnRoot = false,
-    readonly contextArg = false,
-    committed = false
-  ) {
-    this.committed = committed;
-  }
+    readonly contextArg = false
+  ) {}
 
   run(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
     const generation = this.generation;
@@ -267,12 +263,9 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     // Expression segments may return primitives; SSR emits them as text.
     output = normalizeContentOutput(this.document, output);
     const nodes = toNodes(
-      this.useOnRoot && this.committed
-        ? reapplyUseOnContexts(output, this.invokeContext, this.document)
-        : output
+      this.useOnRoot ? reapplyUseOnContexts(output, this.invokeContext, this.document) : output
     );
     replaceContent(this, nodes, previousOwner, true);
-    this.committed = true;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = getOrCreateContextOwner(invokeContext);
     return nodes;
@@ -333,7 +326,7 @@ export function createContentBlock<TArgs extends unknown[]>(
     end,
     args,
     fn,
-    getActiveInvokeContextOrNull(),
+    claimUseOnRoot(getActiveInvokeContextOrNull(), useOnRoot),
     ctx,
     useOnRoot,
     contextArg

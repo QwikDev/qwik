@@ -82,6 +82,7 @@ import {
   type ComponentEmission,
   type GeneratedNames,
   inlineComponentText,
+  useOnRootOps,
 } from './emit-component';
 import { createNameAllocator } from '../names';
 import { generateForeignModule } from './foreign';
@@ -227,13 +228,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     private readonly module: LinkedModule,
     private readonly options: PresentationOptions,
     private readonly keyedRowQrls = keyedCollectionRows(module),
-    private readonly catchEventLifetimes = new Set(
+    private readonly useOnRoots = useOnRootOps(module),
+    /** Segments under a Catch or structural `useOn` root keep a first open-tag record. */
+    private readonly useOnRootLifetimes = new Set(
       module.programs
         .filter(
           (program) =>
             program.body.kind === ProgramBodyKind.Ops &&
-            program.body.ops[0]?.op === OpKind.Catch &&
-            mayBe(program.facts.registersEvents)
+            ((program.body.ops[0]?.op === OpKind.Catch && mayBe(program.facts.registersEvents)) ||
+              useOnRoots.has(program.body.ops[0]))
         )
         .map((program) => program.lifetime)
     )
@@ -405,7 +408,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // The runtime splices `useOn*` registrations into the first open-tag record after the render.
     let lifetime: number | null = program.lifetime;
-    while (lifetime !== null && !this.catchEventLifetimes.has(lifetime)) {
+    while (lifetime !== null && !this.useOnRootLifetimes.has(lifetime)) {
       lifetime = this.module.lifetimes[lifetime].parent;
     }
     const hookEvents =
@@ -558,7 +561,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       this.module,
       this.options,
       this.keyedRowQrls,
-      this.catchEventLifetimes
+      this.useOnRoots,
+      this.useOnRootLifetimes
     );
     const names = {
       props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
@@ -1021,7 +1025,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pass,
       content,
       rootArgs(render.qrl, render.args),
-      `${QwikWord.RenderSsrContent}(${pass.names.ctx}, ${id}, [], ${render.ref}, false, true)`,
+      `${QwikWord.RenderSsrContent}(${pass.names.ctx}, ${id}, [], ${render.ref}, ${this.useOnRoots.has(op)}, true)`,
       [],
       true
     );
@@ -1193,7 +1197,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pass,
       step,
       [...args, ...thenArm.args, ...(elseArm?.args ?? [])],
-      `${QwikWord.RenderSsrBranch}(${pass.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'})`,
+      `${QwikWord.RenderSsrBranch}(${pass.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'}${this.useOnRoots.has(op) ? ', true' : ''})`,
       [],
       true
     );

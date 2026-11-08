@@ -38,7 +38,7 @@ import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { prepareProjectionRanges, parkProjections, replaceRange } from '../range/range';
 import { ownSsrOutput, type SsrContentContext, type SsrOutput } from '../../ssr/output';
-import { reapplyUseOnContexts } from '../../runtime/use-on';
+import { claimUseOnRoot, reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 import { handleError } from '../content/catch-boundary';
 
@@ -100,7 +100,7 @@ export class Branch {
   ): void {
     const previousOwner = this.currentOwner;
     const nodes = toNodes(
-      this.useOnRoot && this.currentBranch !== null
+      this.useOnRoot
         ? reapplyUseOnContexts(output, this.invokeContext, this.range.document)
         : output
     );
@@ -240,7 +240,7 @@ export function createBranch(
     then,
     elseFn,
     null,
-    getActiveInvokeContextOrNull(),
+    claimUseOnRoot(getActiveInvokeContextOrNull(), useOnRoot),
     ctx,
     useOnRoot
   );

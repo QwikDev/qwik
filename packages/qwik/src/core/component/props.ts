@@ -1,5 +1,5 @@
 import { Brand, brandClass } from '../shared/utils/brand';
-import { isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { Computed } from '../reactive/computed';
 import { Signal } from '../reactive/signal';
 import { getStoreSource, isStore, StorePropSource } from '../reactive/store';
@@ -8,6 +8,7 @@ import { isQrl } from '../shared/qrl/qrl-utils';
 import { track } from '../reactive/tracking';
 import { qError, QError } from '../shared/error/error';
 import { registerSingleton } from '../shared/singletons';
+import { logWarn } from '../shared/utils/log';
 
 type PropsProxyState<T extends object> =
   | { source: Source<T> | null; excluded: null }
@@ -140,19 +141,28 @@ export function restorePropsProxyState(proxy: object, restored: PropsProxyState<
 }
 
 function createPropsProxyState<T extends object>(state: PropsProxyState<T>): T {
+  let isThenPropReported = false;
   const readProps = (): T => {
     if (state.source === null) {
       throw qError(QError.uninitializedPropsProxy);
     }
+    let props: T;
     if (state.excluded !== null) {
-      return state.source;
+      props = state.source;
+    } else {
+      track(state.source);
+      props = readSourceValue(state.source);
     }
-    track(state.source);
-    return readSourceValue(state.source);
+    if (isDev && !isThenPropReported && Object.prototype.hasOwnProperty.call(props, 'then')) {
+      isThenPropReported = true;
+      logWarn('A prop named "then" always reads as undefined: props are never thenables.');
+    }
+    return props;
   };
   const proxy = new Proxy(Object.create(null), {
     get: (_target, property) => {
-      if (state.source === null && property === 'then') {
+      // a props record is never a thenable; Promise.resolve must not read its source
+      if (property === 'then') {
         return undefined;
       }
       const props = readProps();

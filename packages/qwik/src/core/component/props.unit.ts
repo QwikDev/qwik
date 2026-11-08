@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
 import { useComputed, useSignal } from '../reactive/public-api';
 import {
@@ -99,6 +99,33 @@ describe('component props', () => {
 
     expect(count.value).toBe(2);
     expect(props.value).toBe('next value');
+  });
+
+  it('is never a thenable, so resolving it as a state root never reads its source', async () => {
+    const owner = createOwner(null);
+    const source = runWithOwner(owner, () =>
+      useComputed<{ count: number }>(() => {
+        throw new Error('read');
+      })
+    );
+    const props = createPropsProxy(source);
+
+    expect((props as { then?: unknown }).then).toBeUndefined();
+    await expect(Promise.resolve(props)).resolves.toBe(props);
+  });
+
+  it('warns once in dev that a prop named then is unreadable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const props = createPropsProxy(useSignal({ then: 'next', label: 'a' }));
+
+      expect((props as { label: string }).label).toBe('a');
+      expect((props as { label: string }).label).toBe('a');
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0])).toContain('then');
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('reflects the current own property shape', () => {

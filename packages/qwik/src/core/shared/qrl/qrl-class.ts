@@ -16,6 +16,7 @@ import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { withCaptures } from './qrl-captures';
+import { getActiveCollector, runWithCollector } from '../../reactive/tracking';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, rememberQrlOfBody, recordQrlImportError } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
@@ -284,8 +285,21 @@ const qrlCallFn = function <TYPE>(
 
   // grab the context while we are sync
   const ctx = getActiveInvokeContextOrNull();
+  const collector = getActiveCollector();
 
-  return qrlResolve.call(qrl).then(() => invokeQrlApply(withThis, ctx, qrl.resolved as any, args));
+  return qrlResolve
+    .call(qrl)
+    .then(
+      () =>
+        runWithCollector(
+          collector,
+          invokeQrlApply,
+          withThis,
+          ctx,
+          qrl.resolved as any,
+          args
+        ) as QrlReturn<TYPE>
+    );
 };
 
 const qrlWithCaptures = function <TYPE>(

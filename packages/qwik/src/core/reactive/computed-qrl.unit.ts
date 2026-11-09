@@ -6,7 +6,7 @@ import { disposeSubscriber } from './cleanup';
 import { useAsyncQrl, useComputedQrl, useSignal } from './public-api';
 import type { ComputeCtx } from './public-types';
 import type { Signal } from './signal';
-import { _await } from './tracking';
+import { _await, runWithCollector } from './tracking';
 import { Computed, isAsyncComputed } from './computed';
 import { ComputedQrl } from './computed-qrl';
 
@@ -420,6 +420,17 @@ describe.each([
 });
 
 describe('computed body loading', () => {
+  it('tracks reads of a QRL body that loads during the call', async () => {
+    const source = useSignal(1);
+    const read = () => source.value;
+    const qrl = createQRL<typeof read>('chunk', 'read', null, async () => ({ read }), null);
+    const collector = new Computed<number>(null, () => 0);
+
+    await runWithCollector(collector, () => qrl());
+    expect(collector.deps).toContain(source);
+    disposeSubscriber(collector);
+  });
+
   it('keeps a sync computed sync while its body loads', async () => {
     const source = useSignal(2);
     const double = () => source.value * 2;

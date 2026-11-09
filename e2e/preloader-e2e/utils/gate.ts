@@ -115,15 +115,19 @@ export const releaseAll = async (gate: Gate, ongoing: Route[] = []) => {
 export const waitForQwikloader = (page: Page) =>
   page.waitForFunction(() => (window as any)._qwikEv?.roots, null, { timeout: 15_000 });
 
-const hasVisibleTaskInView = (page: Page, fixtureId: string) => {
-  const root = `[data-fixture="${fixtureId}"]`;
-  return page.locator(`${root}[q-e\\:qvisible], ${root} [q-e\\:qvisible]`).evaluateAll((elements) =>
-    elements.some((element) => {
-      const rect = element.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
-    })
+const fixturesWithVisibleTaskInView = async (page: Page) =>
+  new Set(
+    await page.locator('[q-e\\:qvisible]').evaluateAll((elements) =>
+      elements
+        .filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return (
+            rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth
+          );
+        })
+        .map((element) => element.closest<HTMLElement>('[data-fixture]')?.dataset.fixture)
+    )
   );
-};
 
 const takeRoutes = (routes: Route[], shouldTake: (route: Route) => boolean) => {
   const taken = routes.filter(shouldTake);
@@ -133,16 +137,24 @@ const takeRoutes = (routes: Route[], shouldTake: (route: Route) => boolean) => {
 
 const urlsOf = (routes: Route[]) => routes.map((route) => route.request().url());
 
-export const openCold = async (page: Page, gate: Gate, fixture: Fixture) => {
+export const openCold = (page: Page, gate: Gate, fixture: Fixture) =>
+  openColdPage(page, gate, fixture.path, [fixture]);
+
+export const openColdPage = async (page: Page, gate: Gate, path: string, fixtures: Fixture[]) => {
   page.once('load', () => {
     gate.mode = 'hold';
   });
-  await page.goto(fixture.path);
+  await page.goto(path);
   await waitForQwikloader(page);
-  const runsVisibleTasksAtLoad = await hasVisibleTaskInView(page, fixture.id);
+  const inView = await fixturesWithVisibleTaskInView(page);
+  const ownSources = fixtures.flatMap((fixture) => fixture.sources);
+  const runAtLoadSources = fixtures
+    .filter((fixture) => inView.has(fixture.id))
+    .flatMap((fixture) => fixture.sources);
   const isOngoingCandidate = (url: string) =>
     chunkComesFrom(url, [FILLER]) ||
-    (chunkComesFrom(url, fixture.sources) && !(runsVisibleTasksAtLoad && chunkHasVisibleTask(url)));
+    (chunkComesFrom(url, ownSources) &&
+      !(chunkHasVisibleTask(url) && chunkComesFrom(url, runAtLoadSources)));
   let idleMs = 0;
   for (;;) {
     await settle(page, gate, ARMING_QUIET_MS);
@@ -267,6 +279,16 @@ export const collectUntilQuiet = async (page: Page, gate: Gate, action: () => Pr
     urls.push(...routes.map((route) => route.request().url()));
     await release(routes);
   }
+};
+
+export const speculativeOrder = async (page: Page) => {
+  const order: string[] = [];
+  for (const link of await preloaderLinks(page)) {
+    if (link.speculative && order[order.length - 1] !== ownerOf(link.href)) {
+      order.push(ownerOf(link.href));
+    }
+  }
+  return order.join('\n') + '\n';
 };
 
 const ownerOf = (url: string) =>

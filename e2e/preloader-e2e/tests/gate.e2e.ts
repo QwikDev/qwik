@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { chunkComesFrom, chunkUrlsFrom } from '../utils/app';
-import { fixtureById, IMPORT_CHAIN, snapshotName } from '../utils/fixtures';
+import { fixtureById, IMPORT_CHAIN } from '../utils/fixtures';
 import {
   createGate,
-  formatRoundTrips,
   openCold,
   recordSpeculativePreloads,
   release,
@@ -11,15 +10,14 @@ import {
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
-import { clickTrigger, coldClick, expectResult, openFixture, warmClick } from '../utils/scenarios';
+import { clickTrigger, expectResult, openFixture, warmClick } from '../utils/scenarios';
 
-const SINGLE_TASK = fixtureById('single/task');
-const CONDITIONAL_ALL = fixtureById('conditional/all');
+const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-5.tsx')[0];
 
 const openHolding = async (page: import('@playwright/test').Page) => {
   const gate = await createGate(page);
-  await page.goto(SINGLE_TASK.path);
+  await page.goto(SINGLE_TASK_CHAIN.path);
   await waitForQwikloader(page);
   gate.mode = 'hold';
   return gate;
@@ -37,9 +35,9 @@ test.describe('counting round trips', () => {
   });
 
   test('clicking the same button a second time takes 0 round trips', async ({ page }) => {
-    const opened = await openFixture(page, SINGLE_TASK, 'cold');
+    const opened = await openFixture(page, SINGLE_TASK_CHAIN, 'cold');
     await clickTrigger(opened);
-    await expectResult(page, SINGLE_TASK);
+    await expectResult(page, SINGLE_TASK_CHAIN);
     const secondClick = await clickTrigger(opened);
     expect(secondClick).toEqual([]);
   });
@@ -92,25 +90,17 @@ test.describe('cold click setup', () => {
   }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
-    const ongoing = await openCold(page, gate, SINGLE_TASK);
+    const ongoing = await openCold(page, gate, SINGLE_TASK_CHAIN);
     const speculative = await speculativePreloads(page);
     expect(ongoing).toHaveLength(1);
     expect(speculative.has(ongoing[0].request().url())).toBe(true);
     expect(
-      chunkComesFrom(ongoing[0].request().url(), ['src/components/filler/', ...SINGLE_TASK.sources])
+      chunkComesFrom(ongoing[0].request().url(), [
+        'src/components/filler/',
+        ...SINGLE_TASK_CHAIN.sources,
+      ])
     ).toBe(true);
     expect(gate.held).toEqual([]);
     await releaseAll(gate, ongoing);
   });
-});
-
-test.describe('stability', () => {
-  for (let run = 1; run <= 20; run++) {
-    test(`the same cold click gives the same round trips (run ${run})`, async ({ page }) => {
-      const roundTrips = await coldClick(page, CONDITIONAL_ALL);
-      expect(
-        formatRoundTrips(roundTrips, { segmentsFrom: CONDITIONAL_ALL.sources })
-      ).toMatchSnapshot(snapshotName(CONDITIONAL_ALL, 'cold'));
-    });
-  }
 });

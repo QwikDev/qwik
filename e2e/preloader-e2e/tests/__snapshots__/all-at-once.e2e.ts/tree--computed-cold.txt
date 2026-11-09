@@ -1,5 +1,0 @@
-round trip 1:
-  tree/computed/index.tsx_computed_component_out_useComputed
-  tree/computed/index.tsx_computed_component_section_button_q_e_click
-  tree/computed/level-2.tsx_level_2_component_out_useComputed
-  tree/computed/level-3.tsx_level_3_component_out_useComputed

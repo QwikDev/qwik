@@ -1,3 +1,0 @@
-round trip 1:
-  single/computed/index.tsx_computed_component_out_useComputed
-  single/computed/index.tsx_computed_component_section_button_q_e_click

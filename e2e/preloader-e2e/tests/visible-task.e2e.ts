@@ -75,19 +75,14 @@ test.describe('visible task in view at load', () => {
 });
 
 test.describe('visible task below the fold', () => {
-  test('nothing runs before the user scrolls to it', async ({ page }) => {
-    const opened = await openFixture(page, VISIBLE_BELOW, 'warm');
-    await expect(fixtureResult(page, VISIBLE_BELOW)).toHaveText('0');
-    await expect(fixtureResult(page, VISIBLE_BELOW)).not.toHaveAttribute('data-done');
-    await releaseAll(opened.gate);
-  });
-
-  test('before the scroll, its chunks are only fetched as speculative preloads', async ({
+  test('before the scroll, nothing runs and its chunks are only fetched as speculative preloads', async ({
     page,
   }) => {
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
     const opened = await openFixture(page, VISIBLE_BELOW, 'warm');
+    await expect(fixtureResult(page, VISIBLE_BELOW)).toHaveText('0');
+    await expect(fixtureResult(page, VISIBLE_BELOW)).not.toHaveAttribute('data-done');
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
@@ -98,7 +93,9 @@ test.describe('visible task below the fold', () => {
     await releaseAll(opened.gate);
   });
 
-  test('after the scroll, the result shows within 2 round trips', async ({ page }) => {
+  test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows within 2 round trips', async ({
+    page,
+  }) => {
     const opened = await openFixture(page, VISIBLE_BELOW, 'cold');
     const roundTrips = await countFixtureRoundTrips(
       opened,
@@ -110,24 +107,13 @@ test.describe('visible task below the fold', () => {
     expect(formatRoundTrips(roundTrips, { segmentsFrom: VISIBLE_BELOW.sources })).toMatchSnapshot(
       snapshotName(VISIBLE_BELOW, 'scroll')
     );
-    expect(roundTrips.length).toBeLessThanOrEqual(2);
-  });
-
-  test('after the scroll, its chunks are requested even while a speculative preload is ongoing', async ({
-    page,
-  }) => {
-    const opened = await openFixture(page, VISIBLE_BELOW, 'cold');
-    const [firstRoundTrip] = await countFixtureRoundTrips(
-      opened,
-      () => fixtureRoot(page, VISIBLE_BELOW).scrollIntoViewIfNeeded(),
-      resultIsDone(fixtureResult(page, VISIBLE_BELOW))
-    );
-    await releaseAll(opened.gate, opened.ongoing);
+    const [firstRoundTrip] = roundTrips;
     const requestedByTheScroll = firstRoundTrip.urls.filter(
       (url) => !firstRoundTrip.ongoingUrls.includes(url)
     );
     expect(requestedByTheScroll.some((url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]))).toBe(
       true
     );
+    expect(roundTrips.length).toBeLessThanOrEqual(2);
   });
 });

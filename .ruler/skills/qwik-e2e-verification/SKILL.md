@@ -104,8 +104,9 @@ HTTPS (HTTP/2).
   exact on localhost, where timing would show no waterfall.
 - Fixtures come from the app's `scripts/generate.ts` (`pnpm generate` in the app). Edit the script,
   not the generated files.
-- Expected failures on main live in `KNOWN_FAILURES` (`utils/fixtures.ts`) and run as `test.fail()`.
-  Remove an entry when its fix lands.
+- Expected failures on main live in `utils/fixtures.ts`: `NEVER_SHOWS_RESULT` runs as `test.fail()`;
+  `OVER_THE_CAP` and `NOT_READY_WHEN_WARM` pin the round trips main takes, so a fix fails the test
+  until its entry is removed.
 - After an intended preloader or chunking change, run `pnpm test.e2e.preloader.update` and review
   the snapshot diff.
 - Snapshots assume a production core build, as in CI. `build.core.dev` splits core into other

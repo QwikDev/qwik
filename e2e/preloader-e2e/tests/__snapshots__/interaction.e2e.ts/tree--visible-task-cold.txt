@@ -1,2 +1,0 @@
-round trip 1:
-  tree/visible-task/index.tsx_visible_task_component_section_button_q_e_click

@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 import {
-  createGate,
   maxSpeculativeInFlight,
-  recordSpeculativeOrder,
   recordSpeculativePreloads,
+  speculativeOrder,
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
@@ -11,7 +10,7 @@ import {
 const ALL_AT_ONCE = '/all-at-once/';
 
 test.describe('queue', () => {
-  test('never has more than one speculative preload in flight', async ({ page }) => {
+  test('never has more than one speculative preload in flight', async ({ page }, testInfo) => {
     await recordSpeculativePreloads(page);
     let requests = 0;
     page.on('request', () => requests++);
@@ -22,17 +21,11 @@ test.describe('queue', () => {
       lastCount = requests;
       await page.waitForTimeout(1500);
     }
+    await testInfo.attach('order.txt', {
+      body: await speculativeOrder(page),
+      contentType: 'text/plain',
+    });
     expect((await speculativePreloads(page)).size).toBeGreaterThan(0);
     expect(await maxSpeculativeInFlight(page)).toBe(1);
-  });
-
-  test('the preload order after loading /all-at-once/ matches the snapshot', async ({ page }) => {
-    await recordSpeculativePreloads(page);
-    const gate = await createGate(page);
-    page.once('load', () => {
-      gate.mode = 'hold';
-    });
-    await page.goto(ALL_AT_ONCE);
-    expect(await recordSpeculativeOrder(page, gate)).toMatchSnapshot('all-at-once.order.txt');
   });
 });

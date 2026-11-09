@@ -1,5 +1,0 @@
-round trip 1:
-  tree-context/visible-task/index.tsx_visible_task_component_section_button_q_e_click
-  tree-context/visible-task/index.tsx_visible_task_component_useVisibleTask
-  tree-context/visible-task/level-2.tsx_level_2_component_useVisibleTask
-  tree-context/visible-task/level-3.tsx_level_3_component_useVisibleTask

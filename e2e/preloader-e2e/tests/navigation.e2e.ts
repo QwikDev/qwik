@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom } from '../utils/app';
+import { expectWithinTheCap } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
@@ -72,20 +73,15 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test('the round trips match the snapshot', async ({ page }) => {
+  test('the new page shows within 2 round trips, as in the snapshot', async ({ page }) => {
     const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate, ongoing);
     expect(formatRoundTrips(roundTrips)).toMatchSnapshot('to-tree.cold.txt');
-  });
-
-  test('the new page shows after at most 2 round trips', async ({ page }) => {
-    test.fail(
-      true,
-      "on main, the Link handler, the router's navigation code and the route module each cost a round trip before the render chunks"
-    );
-    const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
-    await releaseAll(gate, ongoing);
-    expect(roundTrips.length).toBeLessThanOrEqual(2);
+    expectWithinTheCap(roundTrips, {
+      roundTrips: 3,
+      reason:
+        "over the cap on main: the Link handler, the router's navigation code and the route module each cost a round trip before the render chunks",
+    });
   });
 });
 
@@ -161,14 +157,12 @@ const submitAction = async (page: Page) => {
 };
 
 test.describe('form action', () => {
-  test('the round trips match the snapshot', async ({ page }) => {
+  test("the action's result shows within 2 round trips, as in the snapshot", async ({ page }) => {
     const roundTrips = await submitAction(page);
     expect(formatRoundTrips(roundTrips)).toMatchSnapshot('action.cold.txt');
-  });
-
-  test("the action's result shows after at most 2 round trips", async ({ page }) => {
-    test.fail(true, 'on main, the action request waits for 3 round trips of router code');
-    const roundTrips = await submitAction(page);
-    expect(roundTrips.length).toBeLessThanOrEqual(2);
+    expectWithinTheCap(roundTrips, {
+      roundTrips: 4,
+      reason: 'over the cap on main: the action request waits for 3 round trips of router code',
+    });
   });
 });

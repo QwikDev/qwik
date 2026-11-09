@@ -1,8 +1,0 @@
-round trip 1:
-  tree-context/task/index.tsx_task_component_section_button_q_e_click
-round trip 2:
-  tree-context/task/index.tsx_task_component + tree-context/task/index.tsx_task_component_useTask
-  tree-context/task/level-2.tsx
-  tree-context/task/level-2.tsx_level_2_component + tree-context/task/level-2.tsx_level_2_component_useTask
-  tree-context/task/level-3.tsx
-  tree-context/task/level-3.tsx_level_3_component + tree-context/task/level-3.tsx_level_3_component_useTask

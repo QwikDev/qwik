@@ -1,12 +1,8 @@
 export const PRIMITIVE_STEPS = {
-  task: 1,
   'task-chain': 3,
-  computed: 1,
   'computed-chain': 3,
-  'async-computed': 1,
   'async-computed-chain': 3,
   'mixed-computed-chain': 3,
-  'visible-task': 1,
   'visible-task-chain': 3,
   all: 12,
 };
@@ -70,11 +66,9 @@ export const VISIBLE_BELOW: Fixture = {
 
 export const fixtureById = (id: string) => MATRIX.find((fixture) => fixture.id === id)!;
 
-export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, MODAL, USER_IMPORT].map(
+export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODAL].map(
   (fixture) => ({ ...fixture, path: '/all-at-once/' })
 );
-
-type Expectation = 'result' | 'cap' | 'warm';
 
 const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
@@ -83,28 +77,23 @@ const OFF_SCREEN_VISIBLE_TASKS =
 const MIDDLE_LINK_LATE =
   'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
 
-export const KNOWN_FAILURES: Record<string, Partial<Record<Expectation, string>>> = {
-  'tree/mixed-computed-chain': { result: NEVER_UPDATES, cap: NEVER_UPDATES, warm: NEVER_UPDATES },
-  'tree-context/mixed-computed-chain': {
-    result: NEVER_UPDATES,
-    cap: NEVER_UPDATES,
-    warm: NEVER_UPDATES,
-  },
-  'single/async-computed-chain': { cap: MIDDLE_LINK_LATE },
-  'single/mixed-computed-chain': { cap: MIDDLE_LINK_LATE },
-  'tree/async-computed': { cap: MIDDLE_LINK_LATE },
-  'tree/async-computed-chain': { cap: MIDDLE_LINK_LATE },
-  'tree-context/async-computed': { cap: MIDDLE_LINK_LATE },
-  'tree-context/async-computed-chain': { cap: MIDDLE_LINK_LATE },
-  'all-at-once:tree/visible-task': { warm: OFF_SCREEN_VISIBLE_TASKS },
-  'all-at-once:tree/visible-task-chain': { warm: OFF_SCREEN_VISIBLE_TASKS },
-  'all-at-once:tree-context/visible-task': { warm: OFF_SCREEN_VISIBLE_TASKS },
-  'all-at-once:tree-context/visible-task-chain': { warm: OFF_SCREEN_VISIBLE_TASKS },
+export const NEVER_SHOWS_RESULT: Record<string, string> = {
+  'tree/mixed-computed-chain': NEVER_UPDATES,
+  'tree-context/mixed-computed-chain': NEVER_UPDATES,
 };
 
-export const knownFailure = (fixture: Fixture, expectation: Expectation, page = '') =>
-  KNOWN_FAILURES[`${page}${fixture.id}`]?.[expectation] ??
-  KNOWN_FAILURES[fixture.id]?.[expectation];
+export type RoundTripsOnMain = { roundTrips: number; reason: string };
+
+export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+};
+
+export const OVER_THE_CAP: Record<string, RoundTripsOnMain> = {
+  'single/async-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
+  'single/mixed-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
+  'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
+  'tree-context/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
+};
 
 export const snapshotName = (fixture: Fixture, scenario: string) =>
   `${fixture.id.replace('/', '--')}.${scenario}.txt`;

@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { defineClickTests } from '../utils/click-tests';
+import { defineColdClickTest } from '../utils/click-tests';
 import { MATRIX, MODAL, snapshotName, USER_IMPORT } from '../utils/fixtures';
 import { formatRoundTrips } from '../utils/gate';
 import { coldClick } from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
-  defineClickTests(fixture);
+  defineColdClickTest(fixture);
 }
 
 test.describe('user import()', () => {

@@ -1,5 +1,0 @@
-round trip 1:
-  modal/index.tsx_modal_component_section_button_q_e_click
-  modal/modal.tsx_Modal_component_dialog_button_q_e_click
-round trip 2:
-  modal/modal.tsx_Modal_component + modal/modal.tsx_Modal_component_useTask

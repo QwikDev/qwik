@@ -1,13 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom } from '../utils/app';
+import { chunkComesFrom, chunkHoldsSegmentsFrom } from '../utils/app';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
+  preloaderLinks,
   recordSpeculativeOrder,
   releaseAll,
   resultIsDone,
+  waitForNetworkIdle,
 } from '../utils/gate';
 import {
   countFixtureRoundTrips,
@@ -42,6 +44,14 @@ const ACTION: Fixture = {
   sources: NAVIGATION_SOURCES,
   expected: '42',
 };
+const OLD_PAGE_SOURCES = [
+  'src/routes/navigation/from/',
+  'src/components/fixtures/navigation/old-page-work.tsx',
+  'src/components/fixtures/single/all/',
+  'src/components/fixtures/tree/all/',
+  'src/components/fixtures/conditional/all/',
+];
+
 const TO_TREE_SOURCES = [
   'src/routes/navigation/to-tree/',
   'src/components/fixtures/navigation/nav-tree',
@@ -100,6 +110,35 @@ test.describe('warm SPA navigation', () => {
   });
 });
 
+const TO_DATA: Fixture = {
+  id: 'navigation/to-data',
+  path: '/navigation/to-data/',
+  sources: ['src/routes/navigation/to-data/'],
+  expected: 'loaded',
+};
+
+test.describe('navigation to a page with a routeLoader$', () => {
+  test("the loader's data goes out in the same round trip as the new page's render chunks", async ({
+    page,
+  }) => {
+    const opened = await openFixture(page, FROM.off, 'cold');
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => fixtureRoot(page, FROM.off).locator('[data-testid=link-data]').click(),
+      resultIsDone(fixtureResult(page, TO_DATA))
+    );
+    await releaseAll(opened.gate, opened.ongoing);
+    await expectResult(page, TO_DATA);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    const roundTripOf = (isWanted: (url: string) => boolean) =>
+      roundTrips.findIndex((roundTrip) => roundTrip.urls.some(isWanted));
+    const dataRoundTrip = roundTripOf((url) => new URL(url).pathname.includes('/q-loader-'));
+    const renderRoundTrip = roundTripOf((url) => chunkHoldsSegmentsFrom(url, TO_DATA.sources));
+    expect(dataRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(dataRoundTrip).toBe(renderRoundTrip);
+  });
+});
+
 test.describe('hover, then click', () => {
   test("the new route's chunks are requested on hover", async ({ page }) => {
     const { gate, ongoing } = await openFixture(page, FROM.intent, 'cold');
@@ -116,6 +155,26 @@ test.describe('after a navigation', () => {
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
     expect(order.trim()).not.toBe('');
+  });
+
+  test("the old page's queued speculative preloads aren't sent", async ({ page }) => {
+    test.fail(
+      true,
+      "on main, the preloader keeps sending the old page's queue after a SPA navigation"
+    );
+    const opened = await openFixture(page, FROM.off, 'cold');
+    const linksBeforeTheClick = (await preloaderLinks(page)).length;
+    await countFixtureRoundTrips(
+      opened,
+      () => treeLink(page, FROM.off).click(),
+      resultIsDone(fixtureResult(page, TO_TREE))
+    );
+    await waitForNetworkIdle(page, () => releaseAll(opened.gate, opened.ongoing), 1500);
+    const oldPagePreloads = (await preloaderLinks(page))
+      .slice(linksBeforeTheClick)
+      .filter((link) => link.speculative && chunkComesFrom(link.href, OLD_PAGE_SOURCES))
+      .map((link) => link.href);
+    expect(oldPagePreloads).toEqual([]);
   });
 });
 

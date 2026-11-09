@@ -1,4 +1,7 @@
 export const PRIMITIVE_STEPS = {
+  'jsx-binding': 0,
+  render: 1,
+  'store-chain': 3,
   'task-chain': 3,
   'computed-chain': 3,
   'async-computed-chain': 3,
@@ -50,6 +53,19 @@ export const SHARED_HELPER: Fixture = {
   expected: '1 clicks',
 };
 
+const handWritten = (name: string, expected: string): Fixture => ({
+  id: `${name}/${name}`,
+  path: `/${name}/`,
+  sources: [`src/components/fixtures/${name}/`, `src/routes/${name}/`],
+  expected,
+});
+
+export const SLOT = handWritten('slot', '1');
+export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
+export const QRL_PROP = handWritten('qrl-prop', '42');
+export const SYNC = handWritten('sync', 'done');
+export const BARREL = handWritten('barrel', 'alpha 1.0');
+
 export const IMPORT_CHAIN: Fixture = {
   id: 'harness/import-chain',
   path: '/harness/import-chain/',
@@ -71,6 +87,16 @@ export const VISIBLE_BELOW: Fixture = {
   expected: '8',
 };
 
+const visibleStrategy = (strategy: string): Fixture => ({
+  id: `visible/${strategy}`,
+  path: `/visible/${strategy}/`,
+  sources: [`src/components/fixtures/visible/${strategy}.tsx`, `src/routes/visible/${strategy}/`],
+  expected: '8',
+});
+
+export const VISIBLE_DOCUMENT_READY = visibleStrategy('document-ready');
+export const VISIBLE_DOCUMENT_IDLE = visibleStrategy('document-idle');
+
 export const fixtureById = (id: string) => MATRIX.find((fixture) => fixture.id === id)!;
 
 export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODAL].map(
@@ -81,6 +107,8 @@ const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
 const OFF_SCREEN_VISIBLE_TASKS =
   'needs a round trip on main: off-screen visible task chunks are never preloaded, so scrolling to them fetches them';
+const JSX_ONLY =
+  'one round trip on main: the signal is only read in JSX, so the click only needs its handler';
 const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
 const VISIBLE_TASKS_LOADED =
@@ -96,10 +124,14 @@ export const NEVER_SHOWS_RESULT: Record<string, string> = {
 export type RoundTripsOnMain = { roundTrips: number; reason: string };
 
 export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
+  'tree/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
   'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
 };
 
 export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
+  'single/jsx-binding': { roundTrips: 1, reason: JSX_ONLY },
+  'tree/jsx-binding': { roundTrips: 1, reason: JSX_ONLY },
+  'tree-context/jsx-binding': { roundTrips: 1, reason: JSX_ONLY },
   'single/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree-context/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },

@@ -138,3 +138,24 @@ test.describe('navigation click before the preloader loaded', () => {
     await expectResult(page, TO_TREE);
   });
 });
+
+const failTheBundleGraph = (page: Page) =>
+  page.route(/-bundle-graph\.json$/, (route) => route.fulfill({ status: 404, body: '' }));
+
+test.describe('bundle graph fails to load', () => {
+  test('clicks still show their result', async ({ page }) => {
+    await failTheBundleGraph(page);
+    await page.goto(CONDITIONAL_ALL.path);
+    await waitForQwikloader(page);
+    await fixtureRoot(page, CONDITIONAL_ALL).locator('[data-testid=trigger]').click();
+    await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test('navigations still show the new page', async ({ page }) => {
+    await failTheBundleGraph(page);
+    await page.goto(FROM_OFF.path);
+    await waitForQwikloader(page);
+    await fixtureRoot(page, FROM_OFF).locator('[data-testid=link-tree]').click();
+    await expectResult(page, TO_TREE);
+  });
+});

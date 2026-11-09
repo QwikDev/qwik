@@ -1,9 +1,12 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { getManifest, ORIGIN } from '../utils/app';
+import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
+  createGate,
   preloaderLinks,
   recordSpeculativePreloads,
+  release,
+  resultIsDone,
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
@@ -13,7 +16,7 @@ import {
   traceLongTasks,
   type LongTask,
 } from '../utils/long-tasks';
-import { expectResult, fixtureRoot } from '../utils/scenarios';
+import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
 const CONDITIONAL_ALL = fixtureById('conditional/all');
 const FROM_OFF: Fixture = {
@@ -77,14 +80,24 @@ test.describe('during a cold click', () => {
     test.setTimeout(180_000);
     await recordSpeculativePreloads(page);
     const cpuRate = await throttleLikeAMidTierPhone(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => chunkComesFrom(url, CONDITIONAL_ALL.sources);
     await page.goto(CONDITIONAL_ALL.path);
     await waitForQwikloader(page);
     await waitForPreloader(page);
+    let releasedDuringTheTrace = 0;
+    const isDone = resultIsDone(fixtureResult(page, CONDITIONAL_ALL));
     const tasks = await traceLongTasks(
       browser,
       page,
       async () => {
         await fixtureRoot(page, CONDITIONAL_ALL).locator('[data-testid=trigger]').click();
+        while (!(await isDone())) {
+          const held = gate.held.splice(0);
+          releasedDuringTheTrace += held.length;
+          await release(held);
+          await page.waitForTimeout(100);
+        }
         await expectResult(page, CONDITIONAL_ALL);
         await page.waitForTimeout(1000);
       },
@@ -92,6 +105,7 @@ test.describe('during a cold click', () => {
       preloadedUrls(page)
     );
     await report(testInfo, cpuRate, tasks);
+    expect(releasedDuringTheTrace).toBeGreaterThan(0);
     expect(longTasksFromThePreloader(tasks)).toEqual([]);
   });
 });

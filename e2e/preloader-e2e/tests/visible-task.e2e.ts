@@ -1,7 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
-import { VISIBLE_ABOVE, VISIBLE_BELOW } from '../utils/fixtures';
+import {
+  VISIBLE_ABOVE,
+  VISIBLE_BELOW,
+  VISIBLE_DOCUMENT_IDLE,
+  VISIBLE_DOCUMENT_READY,
+  type Fixture,
+} from '../utils/fixtures';
 import {
   countRoundTrips,
   createGate,
@@ -106,5 +112,52 @@ test.describe('visible task below the fold', () => {
       true
     );
     expect(roundTrips).toHaveLength(1);
+  });
+});
+
+const LOAD_EVENT = 'load';
+
+const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
+  await recordSpeculativePreloads(page);
+  const events: string[] = [];
+  page.on('request', (request) => events.push(request.url()));
+  page.on('load', () => events.push(LOAD_EVENT));
+  await page.goto(fixture.path);
+  await expectResult(page, fixture);
+  const speculative = new Set(
+    (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
+  );
+  return {
+    firstChunk: events.findIndex(
+      (url) => url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && !speculative.has(url)
+    ),
+    firstSpeculativePreload: events.findIndex((url) => speculative.has(url)),
+    load: events.indexOf(LOAD_EVENT),
+  };
+};
+
+test.describe('other visible task strategies', () => {
+  test("document-ready: its chunks go out with the page's load work", async ({ page }) => {
+    test.fail(
+      true,
+      'on main, document-ready visible task chunks wait for core, so they go out after load'
+    );
+    const { firstChunk, load } = await loadAndRecordRequests(page, VISIBLE_DOCUMENT_READY);
+    expect(firstChunk).toBeGreaterThanOrEqual(0);
+    expect(firstChunk).toBeLessThan(load);
+  });
+
+  test('document-idle: its chunks go out after load, before any speculative preload', async ({
+    page,
+  }) => {
+    test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
+    const { firstChunk, firstSpeculativePreload, load } = await loadAndRecordRequests(
+      page,
+      VISIBLE_DOCUMENT_IDLE
+    );
+    expect(firstChunk).toBeGreaterThan(load);
+    if (firstSpeculativePreload >= 0) {
+      expect(firstChunk).toBeLessThan(firstSpeculativePreload);
+    }
   });
 });

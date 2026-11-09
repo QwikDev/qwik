@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { chunkComesFrom } from '../utils/app';
 import { expectRoundTrips } from '../utils/click-tests';
 import {
   CLICKABLE_ON_ALL_AT_ONCE,
@@ -16,8 +17,9 @@ import {
   recordSpeculativePreloads,
   releaseAll,
   resultIsDone,
+  settle,
 } from '../utils/gate';
-import { fixtureResult, fixtureRoot } from '../utils/scenarios';
+import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CLICKABLE = CLICKABLE_ON_ALL_AT_ONCE.filter((fixture) => !NEVER_SHOWS_RESULT[fixture.id]);
@@ -81,5 +83,30 @@ test.describe('all at once', () => {
       await expectExpectedText(page, fixture);
     }
     await releaseAll(gate);
+  });
+
+  test("two quick clicks: the second click's chunks go out without waiting for the first click's", async ({
+    page,
+  }) => {
+    const [first, second] = ['single/task-chain', 'tree/task-chain'].map(
+      (id) => CLICKABLE.find((fixture) => fixture.id === id)!
+    );
+    await recordSpeculativePreloads(page);
+    const gate = await createGate(page);
+    const ongoing = await openColdPage(page, gate, ALL_AT_ONCE, [first, second]);
+    gate.mode = 'hold';
+    await clickFixture(page, first)();
+    await settle(page, gate);
+    const heldForTheFirstClick = gate.held.length;
+    await clickFixture(page, second)();
+    await settle(page, gate);
+    const secondClickChunks = gate.held
+      .slice(heldForTheFirstClick)
+      .map((route) => route.request().url())
+      .filter((url) => chunkComesFrom(url, second.sources));
+    await releaseAll(gate, ongoing);
+    await expectResult(page, first);
+    await expectResult(page, second);
+    expect(secondClickChunks.length).toBeGreaterThan(0);
   });
 });

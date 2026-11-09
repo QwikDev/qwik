@@ -56,12 +56,16 @@ export const chunkComesFrom = (url: string, paths: string[]) => {
 export const chunkHoldsSegmentsFrom = (url: string, paths: string[]) =>
   chunkComesFrom(url, paths) && !!getManifest().bundles[bundleFile(url)]?.symbols?.length;
 
-export const chunkHasVisibleTask = (url: string) => {
+const chunkHasSymbolOf = (url: string, ctxName: string) => {
   const manifest = getManifest();
   return (manifest.bundles[bundleFile(url)]?.symbols ?? []).some(
-    (symbol) => manifest.symbols[symbol]?.ctxName === 'useVisibleTask$'
+    (symbol) => manifest.symbols[symbol]?.ctxName === ctxName
   );
 };
+
+export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
+
+export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
 export const isPreloaderChunk = (url: string) =>
   new URL(url).pathname === `/build/${getManifest().preloader}`;

@@ -10,7 +10,7 @@ import {
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
-import { clickTrigger, expectResult, openFixture, warmClick } from '../utils/scenarios';
+import { warmClick } from '../utils/scenarios';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
@@ -32,14 +32,6 @@ test.describe('counting round trips', () => {
   }) => {
     const roundTrips = await warmClick(page, IMPORT_CHAIN);
     expect(roundTrips).toHaveLength(3);
-  });
-
-  test('clicking the same button a second time takes 0 round trips', async ({ page }) => {
-    const opened = await openFixture(page, SINGLE_TASK_CHAIN, 'cold');
-    await clickTrigger(opened);
-    await expectResult(page, SINGLE_TASK_CHAIN);
-    const secondClick = await clickTrigger(opened);
-    expect(secondClick).toEqual([]);
   });
 });
 

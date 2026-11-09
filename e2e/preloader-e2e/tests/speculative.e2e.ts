@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { labelRequest } from '../utils/app';
+import { fixtureById } from '../utils/fixtures';
 import {
   maxSpeculativeInFlight,
+  preloaderLinks,
   recordSpeculativePreloads,
   speculativeOrder,
   speculativePreloads,
@@ -27,5 +30,35 @@ test.describe('queue', () => {
     });
     expect((await speculativePreloads(page)).size).toBeGreaterThan(0);
     expect(await maxSpeculativeInFlight(page)).toBe(1);
+  });
+
+  test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {
+    test.fail(
+      true,
+      'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
+    );
+    await recordSpeculativePreloads(page);
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        await page.goto(fixtureById('single/task-chain').path);
+        await waitForQwikloader(page);
+      },
+      1500
+    );
+    const fillerHandlers = (await preloaderLinks(page))
+      .filter((link) => link.speculative)
+      .map((link) => labelRequest(link.href).match(/collapsible-(\d+)\.tsx_.*_q_e_click/))
+      .filter((match) => match !== null)
+      .map((match) => Number(match[1]));
+    const inViewCount = 20;
+    const lastInView = Math.max(
+      -1,
+      ...fillerHandlers.map((n, index) => (n <= inViewCount ? index : -1))
+    );
+    const firstOffScreen = fillerHandlers.findIndex((n) => n > inViewCount);
+    expect(lastInView).toBeGreaterThanOrEqual(0);
+    expect(firstOffScreen).toBeGreaterThanOrEqual(0);
+    expect(lastInView).toBeLessThan(firstOffScreen);
   });
 });

@@ -1,0 +1,87 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.app {
+  display: flex;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 240px;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 12px;
+  border-right: 1px solid #ddd;
+}
+
+.sidebar h3 {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.sidebar ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.main {
+  flex: 1;
+  padding: 12px;
+  min-width: 0;
+}
+
+.filler {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.toggle {
+  padding: 4px;
+  font-size: 12px;
+}
+
+.toggle[aria-pressed='true'] {
+  background: #ffd54f;
+}
+
+.spacer {
+  height: 200vh;
+}
+
+.fixture {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+.fixture h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.level,
+.step {
+  display: inline-flex;
+  gap: 8px;
+}
+
+output[data-done] {
+  font-weight: bold;
+  color: green;
+}

@@ -15,9 +15,10 @@ import Root from './root';
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     preloader: {
-      ssrPreloads: 5,
+      ssrPreloads: 0,
       maxIdlePreloads: 1,
     },
+    qwikLoader: 'inline',
     ...opts,
     // Use container attributes to set attributes on the html tag.
     containerAttributes: {

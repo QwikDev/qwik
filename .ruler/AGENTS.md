@@ -135,8 +135,22 @@ pnpm vitest packages/qwik/src/qwikloader.unit.ts -u
 
 If any of those fail, fix and push your changes.
 
-For optimizer PRs, include a code example in the description: the smallest input that shows the
-change, and the relevant output before and after it.
+PR descriptions also show, when they apply (always for optimizer PRs):
+
+- a minimal code example of the change: the smallest input, and the relevant output or behavior
+  before and after it;
+- the tests that cover the change, as a tree per test file in a code block, grouped by `describe`
+  block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests keep their real names,
+  unless rewriting an `it` name in plain English makes it clearer on a first read; that rename is a
+  refactor, marked `~`. New tests get plain-English names. For example:
+
+  ```text
+  packages/qwik/src/core/tests/use-task.spec.tsx
+  └─ useTask$
+     ├─ ✓ runs once on the server
+     ├─ + reruns on the client when a tracked signal changes
+     └─ - warns when tracking a plain value
+  ```
 
 ## Rules
 

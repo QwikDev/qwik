@@ -627,8 +627,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const resolvedPathId = normalizePath(parsedId.pathId);
-    const ext = getPath().extname(resolvedPathId).toLowerCase();
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(resolvedPathId)) {
+    if (isQwikTransformedPath(resolvedPathId)) {
       return resolvedPathId;
     }
   };
@@ -1026,7 +1025,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
-    const ext = parsedPathId.ext.toLowerCase();
     let map;
     let meta;
 
@@ -1050,7 +1048,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       });
     }
 
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
+    if (isQwikTransformedPath(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       debug(
@@ -1312,6 +1310,16 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const getOptions = () => opts;
 
+  /** Whether a module's output depends on in-memory state that a transform cache would skip. */
+  const isCompiledModule = (id: string) => {
+    const { pathId } = parseId(id);
+    return (
+      isQwikTransformedPath(pathId) ||
+      clientTransformedOutputs.has(pathId) ||
+      serverTransformedOutputs.has(pathId)
+    );
+  };
+
   const getTransformedOutputs = () => {
     return Array.from(clientTransformedOutputs.values()).map((t) => {
       return t[0];
@@ -1568,6 +1576,7 @@ export const isDev = ${JSON.stringify(isDev)};
     hotUpdate,
     codeSplitting,
     generateManifest,
+    isCompiledModule,
   };
 }
 
@@ -1615,6 +1624,10 @@ const TRANSFORM_EXTS = {
  * @internal
  */
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
+
+const isQwikTransformedPath = (pathId: string) =>
+  pathId.slice(pathId.lastIndexOf('.')).toLowerCase() in TRANSFORM_EXTS ||
+  TRANSFORM_REGEX.test(pathId);
 
 export const QWIK_CORE_ID = '@qwik.dev/core';
 

@@ -1154,15 +1154,24 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     if (prop.effect !== null) {
       const value = this.batchValue(prop.value, statements, pass, prop.effect);
-      this.imports.add(QwikWord.PatchAttrValue);
+      this.imports.add(QwikWord.PatchCachedAttr);
+      const scope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
+      // What was written lives beside the batch: in the closure, or on a shared row's effect.
+      const patch = (element: string, written: string) =>
+        `${written} = ${QwikWord.PatchCachedAttr}(${element}, ${JSON.stringify(prop.name)}, ${value}, ${written}${scope});`;
+      const written = pass.next('written');
+      const declaration = `let ${written};`;
+      statements.push(declaration);
+      const shared = pass.batches.get(prop.effect)!.shared;
+      shared?.declarations.push(declaration);
       this.batchPatch(
         prop.effect,
-        `${QwikWord.PatchAttrValue}(${el}, ${JSON.stringify(prop.name)}, ${value}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`});`,
+        patch(el, written),
         statements,
         pass,
-        pass.row?.root === undefined
+        shared === undefined || pass.row?.root === undefined
           ? undefined
-          : `${QwikWord.PatchAttrValue}(${rowPath(el, pass, prop.effect)}, ${JSON.stringify(prop.name)}, ${value}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`});`
+          : patch(rowPath(el, pass, prop.effect), `${shared.effect}.attr${shared.patches.length}`)
       );
       return;
     }

@@ -396,6 +396,7 @@ export {
   ForBlockSubscription,
   PropsEffect,
   createDomBatchEffect,
+  patchCachedAttr,
   createAttrEffect,
   createAttrExpressionEffect,
   createEventEffect,

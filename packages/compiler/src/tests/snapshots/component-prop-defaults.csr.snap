@@ -11,7 +11,7 @@ export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = 
 
 import {
   untrack,
-  patchAttrValue,
+  patchCachedAttr,
   setEvent,
   _first,
   patchTextValue,
@@ -31,6 +31,7 @@ export const default_component_3rg6kq1so9aio = (
   defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
 ) => {
   const el0 = default_tmpl0(ctx.document);
+  let written0;
   setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [
     props,
     defaultValue0,
@@ -38,7 +39,12 @@ export const default_component_3rg6kq1so9aio = (
   ]);
   const text0 = _first(el0);
   createDomBatchEffect(() => {
-    patchAttrValue(el0, 'title', component_title_segment_0_2f0r0xivypjmx(props, defaultValue));
+    written0 = patchCachedAttr(
+      el0,
+      'title',
+      component_title_segment_0_2f0r0xivypjmx(props, defaultValue),
+      written0
+    );
     patchTextValue(text0, component_text_segment_2_1fh117dstcoge(props, defaultValue));
   }, ctx.scheduler);
   return el0;

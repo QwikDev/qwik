@@ -17,7 +17,7 @@ import {
   propSource,
   readTrackedValue,
   patchTextValue,
-  patchAttrValue,
+  patchCachedAttr,
   createDomBatchEffect,
   _textValue,
   _createElementTemplate,
@@ -31,9 +31,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const text0 = _first(_first(el0));
   const prop0 = propSource(props, 'code');
   const el1 = _last(el0);
+  let written0;
   createDomBatchEffect(() => {
     patchTextValue(text0, readTrackedValue(prop0));
-    patchAttrValue(el1, 'value', readTrackedValue(prop0));
+    written0 = patchCachedAttr(el1, 'value', readTrackedValue(prop0), written0);
   }, ctx.scheduler);
   _first(el1).data = _textValue(props.code);
   return el0;

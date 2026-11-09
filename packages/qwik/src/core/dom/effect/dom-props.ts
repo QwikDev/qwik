@@ -353,15 +353,6 @@ export function patchAttrValue(
     setInnerHtml(element, value);
     return;
   }
-  if (name === ClassAttr) {
-    const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
-    if (serialized === null) {
-      element.removeAttribute?.(name);
-    } else {
-      element.className = serialized;
-    }
-    return;
-  }
   if (name === ValueAttr && name in element) {
     (element as Element & { value: string }).value =
       serializeAttrExpressionValue(name, value) ?? '';
@@ -371,7 +362,14 @@ export function patchAttrValue(
     (element as Element & { checked: boolean }).checked = !!value;
     return;
   }
-  const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
+  writeSerializedAttr(element, name, serializeAttrExpressionValue(name, value, styleScopedId));
+}
+
+export function writeSerializedAttr(element: Element, name: string, serialized: string | null) {
+  if (name === ClassAttr && serialized !== null) {
+    element.className = serialized;
+    return;
+  }
   const namespace = attributeNamespace(name);
   if (serialized === null) {
     if (namespace === null) {

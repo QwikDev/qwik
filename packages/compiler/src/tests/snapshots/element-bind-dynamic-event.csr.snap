@@ -31,7 +31,7 @@ import {
   _val,
   createEventEffect,
   readTrackedValue,
-  patchAttrValue,
+  patchCachedAttr,
   createDomBatchEffect,
   _chk,
   _createElementTemplate,
@@ -66,10 +66,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [inlinedQrl(_val, '_val', [text])]
   );
   ctx.scheduler.run(effect0);
+  let written0;
   const el2 = _next(_first(el0));
+  let written1;
   createDomBatchEffect(() => {
-    patchAttrValue(el1, 'value', readTrackedValue(text));
-    patchAttrValue(el2, 'value', readTrackedValue(text));
+    written0 = patchCachedAttr(el1, 'value', readTrackedValue(text), written0);
+    written1 = patchCachedAttr(el2, 'value', readTrackedValue(text), written1);
   }, ctx.scheduler);
   const effect1 = createEventEffect(
     el2,
@@ -92,10 +94,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [inlinedQrl(_chk, '_chk', [checked])]
   );
   ctx.scheduler.run(effect2);
+  let written2;
   const el4 = _last(el0);
+  let written3;
   createDomBatchEffect(() => {
-    patchAttrValue(el3, 'checked', readTrackedValue(checked));
-    patchAttrValue(el4, 'checked', readTrackedValue(checked));
+    written2 = patchCachedAttr(el3, 'checked', readTrackedValue(checked), written2);
+    written3 = patchCachedAttr(el4, 'checked', readTrackedValue(checked), written3);
   }, ctx.scheduler);
   const effect3 = createEventEffect(
     el4,

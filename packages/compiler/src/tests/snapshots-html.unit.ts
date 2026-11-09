@@ -305,8 +305,8 @@ export default component$(() => {
     const code = output.modules.map((module) => module.code).join('\n');
     // Arrays and objects serialize in the runtime helpers; the scoped style id rides along.
     if (mode === 'csr') {
-      expect(code).toMatch(/patchAttrValue\(el0, "class", [^(]+\(active\), "⚡️/);
-      expect(code).toMatch(/patchAttrValue\(el0, "style", [^(]+\(active\)\)/);
+      expect(code).toMatch(/patchCachedAttr\(el0, "class", [^(]+\(active\), written\d+, "⚡️/);
+      expect(code).toMatch(/patchCachedAttr\(el0, "style", [^(]+\(active\), written\d+\)/);
     } else {
       expect(code).toMatch(/"class", \[active\], [^,]+, [^,]+, "⚡️/);
       expect(code).toContain('"style", [active]');

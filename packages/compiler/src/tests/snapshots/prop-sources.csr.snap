@@ -24,7 +24,7 @@ export default component$(() => {
 import {
   propSource,
   readTrackedValue,
-  patchAttrValue,
+  patchCachedAttr,
   _first,
   _next,
   _last,
@@ -54,10 +54,11 @@ import { Badge } from './badge';
 export const Card = (props, ctx) => {
   const el0 = Card_tmpl0(ctx.document);
   const prop0 = propSource(props, 'title');
+  let written0;
   const el1 = _last(el0);
   const text0 = _first(_first(el0));
   createDomBatchEffect(() => {
-    patchAttrValue(el0, 'class', readTrackedValue(prop0));
+    written0 = patchCachedAttr(el0, 'class', readTrackedValue(prop0), written0);
     patchTextValue(text0, readTrackedValue(prop0));
   }, ctx.scheduler);
   const component0 = createComponent(

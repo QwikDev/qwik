@@ -44,7 +44,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
-  patchAttrValue,
+  patchCachedAttr,
   _first,
   patchTextValue,
   _textValue,
@@ -58,7 +58,12 @@ function locateTextParent0(root) {
 }
 function updateRow0(effect0, initialParent0) {
   const item = effect0.source;
-  patchAttrValue(effect0.root, 'class', component_class_segment_2_3htuz8wkv4ypl(item));
+  effect0.attr0 = patchCachedAttr(
+    effect0.root,
+    'class',
+    component_class_segment_2_3htuz8wkv4ypl(item),
+    effect0.attr0
+  );
   const nextValue0 = component_text_segment_3_1fh11lewq6qgx(item);
   if (initialParent0 !== undefined && (nextValue0 === null || typeof nextValue0 !== 'object')) {
     const cachedValue0 =

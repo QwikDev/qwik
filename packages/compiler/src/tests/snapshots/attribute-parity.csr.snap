@@ -19,7 +19,7 @@ import {
   useSignal,
   _last,
   readTrackedValue,
-  patchAttrValue,
+  patchCachedAttr,
   createDomBatchEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -30,11 +30,15 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const on = useSignal(false);
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
+  let written0;
+  let written1;
+  let written2;
+  let written3;
   createDomBatchEffect(() => {
-    patchAttrValue(el1, 'required', readTrackedValue(on));
-    patchAttrValue(el1, 'aria-hidden', readTrackedValue(on));
-    patchAttrValue(el1, 'draggable', readTrackedValue(on));
-    patchAttrValue(el1, 'spellcheck', readTrackedValue(on));
+    written0 = patchCachedAttr(el1, 'required', readTrackedValue(on), written0);
+    written1 = patchCachedAttr(el1, 'aria-hidden', readTrackedValue(on), written1);
+    written2 = patchCachedAttr(el1, 'draggable', readTrackedValue(on), written2);
+    written3 = patchCachedAttr(el1, 'spellcheck', readTrackedValue(on), written3);
   }, ctx.scheduler);
   return el0;
 };

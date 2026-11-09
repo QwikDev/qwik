@@ -200,7 +200,7 @@ describe.each(['source', 'expression'] as const)('%s attribute cache', (kind) =>
 
 describe('DOM effects', () => {
   it.each(['source', 'expression'] as const)(
-    'caches string classes but refreshes mutable and async classes: %s',
+    'caches classes by what they write and refreshes mutable and async classes: %s',
     async (kind) => {
       const scheduler = new Scheduler(noopSchedule);
       const classes = useSignal<unknown>('active');
@@ -225,12 +225,13 @@ describe('DOM effects', () => {
       const mutable = { active: true };
       classes.value = mutable;
       await scheduler.flushInteraction();
-      expect(writes).toBe(2);
+      // the object serializes to the class already written
+      expect(writes).toBe(1);
       mutable.active = false;
       scheduler.notify(effect);
       await scheduler.flushInteraction();
       expect(className).toBe('');
-      expect(writes).toBe(3);
+      expect(writes).toBe(2);
       classes.value = 'active';
       await scheduler.flushInteraction();
       classes.value = Promise.resolve('pending');
@@ -241,7 +242,7 @@ describe('DOM effects', () => {
       expect(className).toBe('active');
       scheduler.notify(effect);
       await scheduler.flushInteraction();
-      expect(writes).toBe(6);
+      expect(writes).toBe(5);
     }
   );
 

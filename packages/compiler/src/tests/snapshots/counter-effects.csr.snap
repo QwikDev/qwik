@@ -446,7 +446,7 @@ export const root_q_e_click_segment_5_2xend64o8gm1m = () => {
 ============================= src/root.tsx_root_for_render_segment_6_142sxd5ip3f7n.js (ENTRY POINT)==
 
 import {
-  patchAttrValue,
+  patchCachedAttr,
   _first,
   _next,
   _last,
@@ -472,7 +472,12 @@ function locateTextParent1(root) {
 }
 function updateRow0(effect0, initialParent0, initialParent1) {
   const row = effect0.source;
-  patchAttrValue(effect0.root, 'class', root_class_segment_8_2mmckolp85icd(row));
+  effect0.attr0 = patchCachedAttr(
+    effect0.root,
+    'class',
+    root_class_segment_8_2mmckolp85icd(row),
+    effect0.attr0
+  );
   const nextValue0 = root_text_segment_9_s05sg8no1g19(row);
   if (initialParent0 !== undefined && (nextValue0 === null || typeof nextValue0 !== 'object')) {
     const cachedValue0 =

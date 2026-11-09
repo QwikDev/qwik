@@ -51,6 +51,7 @@ export const enum QwikWord {
   CreatePropsEffect = 'createPropsEffect',
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   PatchAttrValue = 'patchAttrValue',
+  PatchCachedAttr = 'patchCachedAttr',
   SetRef = 'setRef',
   InlinedQrl = 'inlinedQrl',
   BindValueHandler = '_val',

@@ -6,14 +6,27 @@ import type { Source } from '../../reactive/source';
 import { runWithCollector, runWithCollector0 } from '../../reactive/tracking';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
-import { applyDomProps, ownedDomProps, patchAttrValue } from './dom-props';
+import {
+  applyDomProps,
+  ownedDomProps,
+  patchAttrValue,
+  serializeAttrExpressionValue,
+  writeSerializedAttr,
+} from './dom-props';
 import { DomEffect, registerDomEffect } from './dom-effect';
 import { readTrackedValue, type TextExpressionValue } from './text-effect';
 import { fastFirstChild } from '../../runtime/fast-getters';
 import { _textValue } from '../../shared/utils/character-escaping';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
-import { CheckedAttr, DangerousInnerHTMLAttr, EMPTY_ARRAY, ValueAttr } from '../../utils/consts';
+import {
+  CheckedAttr,
+  ClassAttr,
+  DangerousInnerHTMLAttr,
+  EMPTY_ARRAY,
+  StyleAttr,
+  ValueAttr,
+} from '../../utils/consts';
 import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 import { isPromise, safeCall } from '../../shared/utils/promises';
 import { handleError } from '../content/catch-boundary';
@@ -41,17 +54,48 @@ function getAttributeCacheValue(name: string, value: unknown): unknown {
   return value === undefined ? CACHED_UNDEFINED : value;
 }
 
+function isClassOrStyleObject(name: string, value: unknown): boolean {
+  return (
+    (name === ClassAttr || name === StyleAttr) &&
+    value !== null &&
+    typeof value === 'object' &&
+    !isPromise(value)
+  );
+}
+
+/** Writes the attribute unless `written` records the same value; returns the next record. */
+export function patchCachedAttr(
+  element: Element,
+  name: string,
+  value: unknown,
+  written: unknown,
+  styleScopedId?: string
+): unknown {
+  if (isClassOrStyleObject(name, value)) {
+    // A new object often serializes to what is already written: compare that, not the object.
+    const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
+    const next = serialized ?? CACHED_UNDEFINED;
+    if (next !== written) {
+      writeSerializedAttr(element, name, serialized);
+    }
+    return next;
+  }
+  const next = getAttributeCacheValue(name, value);
+  if (next === undefined || !Object.is(next, written)) {
+    patchAttrValue(element, name, value, styleScopedId);
+  }
+  return next;
+}
+
 abstract class AttributeEffect extends DomEffect {
   declare private previousValue: unknown;
 
   protected patchAttribute(element: Element, name: string, value: unknown, styleScopedId?: string) {
-    const cachedValue = getAttributeCacheValue(name, value);
-    if (cachedValue !== undefined && Object.is(cachedValue, this.previousValue)) {
-      return;
+    if (isPromise(value)) {
+      this.previousValue = undefined;
+      return patchAttrValue(element, name, value, styleScopedId);
     }
-    const pending = patchAttrValue(element, name, value, styleScopedId);
-    this.previousValue = cachedValue;
-    return pending;
+    this.previousValue = patchCachedAttr(element, name, value, this.previousValue, styleScopedId);
   }
 }
 
@@ -175,6 +219,7 @@ export class DomBatchEffect<T = unknown> extends DomEffect {
   declare readonly source: T;
   [key: `text${number}`]: Text | undefined;
   [key: `value${number}`]: string | number | bigint | undefined;
+  [key: `attr${number}`]: unknown;
 
   constructor(
     readonly fn: (effect: DomBatchEffect<T>, ...initialParents: Element[]) => ValueOrPromise<void>,

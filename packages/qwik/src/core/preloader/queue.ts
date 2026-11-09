@@ -23,6 +23,7 @@ let isProcessingAdjustments = false;
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
+  $isReplay$?: boolean;
   $seen$?: Set<BundleImport>;
   $deps$?: ImportProbability[];
   $index$?: number;
@@ -90,13 +91,13 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
-  seen?: Set<BundleImport>
+  isReplay?: boolean
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
-    $seen$: seen,
+    $isReplay$: isReplay,
   });
 };
 
@@ -149,8 +150,8 @@ const processAdjustmentFrame = () => {
 
   const previousInverseProbability = bundle.$inverseProbability$;
   bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Don't propagate tiny changes
-  if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
+  // Replay newly attached dependencies even without a priority change.
+  if (!frame.$isReplay$ && previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
     adjustmentStack.pop();
     return false;
   }
@@ -241,21 +242,9 @@ const preloadOne = (bundle: BundleImport) => {
   doc.head.appendChild(link);
 };
 
-/**
- * Adjust the probability of a bundle based on the probability of its dependent bundles, and queue
- * it if it's likely enough to be preloaded.
- *
- * Note that if the probability is 100%, we treat the dynamic imports as 99% sure, and both will be
- * preloaded without limit.
- *
- * We also limit "organic" probability to 98% so they don't get unlimited preloads.
- */
-export const adjustProbabilities = (
-  bundle: BundleImport,
-  newInverseProbability: number,
-  seen?: Set<BundleImport>
-) => {
-  enqueueAdjustment(bundle, newInverseProbability, seen);
+/** Replay a buffered hint after its dependencies become available. */
+export const replayBundle = (bundle: BundleImport) => {
+  enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
   if (isBrowser) {
     nextAdjustmentMacroTask();
   } else {

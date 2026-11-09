@@ -1,6 +1,6 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { adjustProbabilities, bundles, nextTriggerMacroTask } from './queue';
+import { bundles, nextTriggerMacroTask, replayBundle } from './queue';
 import type { BundleGraph, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
@@ -96,9 +96,7 @@ export const loadBundleGraph = (
             if (deps) {
               bundle.$deps$ = deps;
               if (bundle.$inverseProbability$ < 1) {
-                const probability = bundle.$inverseProbability$;
-                bundle.$inverseProbability$ = 1;
-                adjustProbabilities(bundle, probability);
+                replayBundle(bundle);
               }
             }
             if (nextIndex < pendingBundles.length && performance.now() >= deadline) {

@@ -708,7 +708,8 @@ jobs:
       !cancelled() && (
         needs.changes.outputs.build-e2e == 'true' ||
         needs.changes.outputs.build-cli-e2e == 'true' ||
-        needs.changes.outputs.build-docs-e2e == 'true'
+        needs.changes.outputs.build-docs-e2e == 'true' ||
+        needs.changes.outputs.build-preloader-e2e == 'true'
       )
     needs:
       - changes

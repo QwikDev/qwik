@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { getManifest, ORIGIN } from '../utils/app';
+import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
@@ -10,6 +10,7 @@ import {
   releaseAll,
   resultIsDone,
   settle,
+  waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
 import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
@@ -157,5 +158,37 @@ test.describe('bundle graph fails to load', () => {
     await waitForQwikloader(page);
     await fixtureRoot(page, FROM_OFF).locator('[data-testid=link-tree]').click();
     await expectResult(page, TO_TREE);
+  });
+});
+
+const failTheFirstRequestOf = async (page: Page, isWanted: (url: string) => boolean) => {
+  const failed: string[] = [];
+  await page.route(`${ORIGIN}/build/**`, (route) => {
+    const url = route.request().url();
+    if (!isWanted(url) || failed.includes(url)) {
+      return route.continue();
+    }
+    failed.push(url);
+    return route.abort();
+  });
+  return failed;
+};
+
+test.describe('chunk preload fails', () => {
+  test('a click still shows its result after its preload failed', async ({ page }) => {
+    const failedPreloads = await failTheFirstRequestOf(page, (url) =>
+      chunkComesFrom(url, CONDITIONAL_ALL.sources)
+    );
+    await waitForNetworkIdle(page, async () => {
+      await page.goto(CONDITIONAL_ALL.path);
+      await waitForQwikloader(page);
+    });
+    expect(failedPreloads.length).toBeGreaterThan(0);
+    await fixtureRoot(page, CONDITIONAL_ALL).locator('[data-testid=trigger]').click();
+    test.fail(
+      true,
+      'on main, a chunk whose preload failed is never requested again: import() of the same URL fails with no request'
+    );
+    await expectResult(page, CONDITIONAL_ALL);
   });
 });

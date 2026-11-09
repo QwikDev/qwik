@@ -1,0 +1,7 @@
+round trip 1:
+  single/all/index.tsx_all_component_a1_useComputed
+  single/all/index.tsx_all_component_section_button_q_e_click
+round trip 2:
+  single/all/index.tsx_all_component + single/all/index.tsx_all_component_useTask + single/all/index.tsx_all_component_useTask_1 + single/all/index.tsx_all_component_useTask_2
+  single/all/index.tsx_all_component_a2_useComputed
+  single/all/index.tsx_all_component_out_useComputed

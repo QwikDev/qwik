@@ -1,0 +1,4 @@
+round trip 1:
+  single/async-computed/index.tsx_async_computed_component_section_button_q_e_click
+round trip 2:
+  single/async-computed/index.tsx_async_computed_component_out_useComputed

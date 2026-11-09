@@ -1,0 +1,5 @@
+round trip 1:
+  single/computed-chain/index.tsx_computed_chain_component_a_useComputed
+  single/computed-chain/index.tsx_computed_chain_component_b_useComputed
+  single/computed-chain/index.tsx_computed_chain_component_out_useComputed
+  single/computed-chain/index.tsx_computed_chain_component_section_button_q_e_click

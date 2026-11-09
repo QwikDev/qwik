@@ -1,0 +1,11 @@
+round trip 1:
+  tree/computed-chain/index.tsx_computed_chain_component_a_useComputed
+  tree/computed-chain/index.tsx_computed_chain_component_b_useComputed
+  tree/computed-chain/index.tsx_computed_chain_component_out_useComputed
+  tree/computed-chain/index.tsx_computed_chain_component_section_button_q_e_click
+  tree/computed-chain/level-2.tsx_level_2_component_a_useComputed
+  tree/computed-chain/level-2.tsx_level_2_component_b_useComputed
+  tree/computed-chain/level-2.tsx_level_2_component_out_useComputed
+  tree/computed-chain/level-3.tsx_level_3_component_a_useComputed
+  tree/computed-chain/level-3.tsx_level_3_component_b_useComputed
+  tree/computed-chain/level-3.tsx_level_3_component_out_useComputed

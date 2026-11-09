@@ -112,7 +112,7 @@ export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODA
 const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
 const OFF_SCREEN_VISIBLE_TASKS =
-  'needs a round trip on main: off-screen visible task chunks are never preloaded, so scrolling to them fetches them';
+  'needs a round trip on main: off-screen visible task chunks are never preloaded, so the scroll to the first visible-task-chain fixture fetches them all';
 const JSX_ONLY =
   'one round trip on main: the signal is only read in JSX, so the click only needs its handler';
 const COMPUTEDS_WITH_HANDLER =
@@ -130,8 +130,7 @@ export const NEVER_SHOWS_RESULT: Record<string, string> = {
 export type RoundTripsOnMain = { roundTrips: number; reason: string };
 
 export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
-  'tree/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
-  'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+  'single/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
 };
 
 export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {

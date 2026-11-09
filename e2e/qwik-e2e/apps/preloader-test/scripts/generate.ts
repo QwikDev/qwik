@@ -474,14 +474,22 @@ const HAND_WRITTEN = [
 
 const ALL_AT_ONCE = { group: 'all at once', href: '/all-at-once/', label: 'all at once' };
 
+const runsVisibleTasksOnceInView = (setup: Setup, primitive: string) =>
+  setup !== 'conditional' && PRIMITIVES[primitive].imports.includes('useVisibleTask$');
+
 const writeAllAtOnce = () => {
   let imports = '';
   let items = '';
+  let itemsBelowTheFold = '';
   for (const setup of SETUPS) {
     for (const primitive of Object.keys(PRIMITIVES)) {
       const name = pascal(`${setup}-${primitive}`);
       imports += `import ${name} from '~/components/fixtures/${setup}/${primitive}';\n`;
-      items += `      <${name} />\n`;
+      if (runsVisibleTasksOnceInView(setup, primitive)) {
+        itemsBelowTheFold += `      <${name} />\n`;
+      } else {
+        items += `      <${name} />\n`;
+      }
     }
   }
   write(
@@ -500,7 +508,7 @@ export default component$(() => {
 ${items}      <Modal />
       <UserImport />
       <div class="spacer" />
-      <VisibleBelow />
+${itemsBelowTheFold}      <VisibleBelow />
     </>
   );
 });

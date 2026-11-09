@@ -53,8 +53,6 @@ export default component$(() => {
       <SingleComputedChain />
       <SingleAsyncComputedChain />
       <SingleMixedComputedChain />
-      <SingleVisibleTaskChain />
-      <SingleAll />
       <TreeJsxBinding />
       <TreeRender />
       <TreeStoreChain />
@@ -62,8 +60,6 @@ export default component$(() => {
       <TreeComputedChain />
       <TreeAsyncComputedChain />
       <TreeMixedComputedChain />
-      <TreeVisibleTaskChain />
-      <TreeAll />
       <TreeContextJsxBinding />
       <TreeContextRender />
       <TreeContextStoreChain />
@@ -71,8 +67,6 @@ export default component$(() => {
       <TreeContextComputedChain />
       <TreeContextAsyncComputedChain />
       <TreeContextMixedComputedChain />
-      <TreeContextVisibleTaskChain />
-      <TreeContextAll />
       <ConditionalJsxBinding />
       <ConditionalRender />
       <ConditionalStoreChain />
@@ -85,6 +79,12 @@ export default component$(() => {
       <Modal />
       <UserImport />
       <div class="spacer" />
+      <SingleVisibleTaskChain />
+      <SingleAll />
+      <TreeVisibleTaskChain />
+      <TreeAll />
+      <TreeContextVisibleTaskChain />
+      <TreeContextAll />
       <VisibleBelow />
     </>
   );

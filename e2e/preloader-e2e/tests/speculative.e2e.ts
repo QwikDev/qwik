@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { labelRequest } from '../utils/app';
+import { chunkComesFrom, labelRequest } from '../utils/app';
 import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
+  countRoundTrips,
+  createGate,
+  FILLER,
   maxSpeculativeInFlight,
   preloaderLinks,
   recordSpeculativePreloads,
@@ -13,13 +16,14 @@ import {
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
-import { countFixtureRoundTrips, expectResult, fixtureRoot, openFixture } from '../utils/scenarios';
+import { expectResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CONDITIONAL_ALL = fixtureById('conditional/all');
+const MAX_IDLE_PRELOADS = 25;
 const WITH_25_IDLE_PRELOADS: Fixture = {
   ...CONDITIONAL_ALL,
-  path: `${CONDITIONAL_ALL.path}?maxIdlePreloads=25`,
+  path: `${CONDITIONAL_ALL.path}?maxIdlePreloads=${MAX_IDLE_PRELOADS}`,
 };
 
 test.describe('queue', () => {
@@ -44,8 +48,14 @@ test.describe('queue', () => {
   });
 
   test('no speculative preload starts while a needed preload is in flight', async ({ page }) => {
-    const opened = await openFixture(page, WITH_25_IDLE_PRELOADS, 'cold');
-    const { gate, ongoing } = opened;
+    await recordSpeculativePreloads(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => chunkComesFrom(url, [FILLER]);
+    await page.goto(WITH_25_IDLE_PRELOADS.path, { waitUntil: 'commit' });
+    await waitForQwikloader(page);
+    await expect.poll(() => gate.held.length, { timeout: 15_000 }).toBe(MAX_IDLE_PRELOADS);
+    const fillerPreloads = gate.held.splice(0);
+    gate.holdWhilePassing = undefined;
     const linksBeforeTheClick = (await preloaderLinks(page)).length;
     const linksSinceTheClick = async () => (await preloaderLinks(page)).slice(linksBeforeTheClick);
     const neededPreloadIsInFlight = async () => {
@@ -54,13 +64,13 @@ test.describe('queue', () => {
         .map((link) => link.href);
       return gate.held.some((route) => needed.includes(route.request().url()));
     };
-    await countFixtureRoundTrips(
-      opened,
+    await countRoundTrips(
+      page,
+      gate,
       () => fixtureRoot(page, WITH_25_IDLE_PRELOADS).locator('[data-testid=trigger]').click(),
       neededPreloadIsInFlight
     );
-    expect(ongoing.length).toBeGreaterThan(0);
-    await release(ongoing.splice(0));
+    await release(fillerPreloads);
     await settle(page, gate);
     const links = await linksSinceTheClick();
     const startedMeanwhile = links

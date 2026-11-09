@@ -8,7 +8,7 @@ import {
 } from './app';
 import type { Fixture } from './fixtures';
 
-const FILLER = 'src/components/filler/';
+export const FILLER = 'src/components/filler/';
 
 const QUIET_MS = 250;
 const ARMING_QUIET_MS = 50;

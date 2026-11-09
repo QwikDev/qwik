@@ -1857,6 +1857,7 @@ jobs:
       - test-unit
       - test-bench
       - test-e2e
+      - test-e2e-preloader
       - test-e2e-docs
       - test-cli-e2e
       - lint-package
@@ -1870,6 +1871,7 @@ jobs:
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-bench.result == 'success' || needs.test-bench.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
+            (needs.test-e2e-preloader.result == 'success' || needs.test-e2e-preloader.result == 'skipped') &&
             (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
             (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&

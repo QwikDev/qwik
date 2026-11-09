@@ -199,7 +199,7 @@ describe.each(['source', 'expression'] as const)('%s attribute cache', (kind) =>
 });
 
 describe('DOM effects', () => {
-  it.each(['source', 'expression'])(
+  it.each(['source', 'expression'] as const)(
     'caches string classes but refreshes mutable and async classes: %s',
     async (kind) => {
       const scheduler = new Scheduler(noopSchedule);

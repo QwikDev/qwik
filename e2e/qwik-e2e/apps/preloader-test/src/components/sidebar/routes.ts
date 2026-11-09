@@ -2,6 +2,21 @@
 export const routes = [
   {
     group: 'single',
+    href: '/single/jsx-binding/',
+    label: 'jsx-binding',
+  },
+  {
+    group: 'single',
+    href: '/single/render/',
+    label: 'render',
+  },
+  {
+    group: 'single',
+    href: '/single/store-chain/',
+    label: 'store-chain',
+  },
+  {
+    group: 'single',
     href: '/single/task-chain/',
     label: 'task-chain',
   },
@@ -29,6 +44,21 @@ export const routes = [
     group: 'single',
     href: '/single/all/',
     label: 'all',
+  },
+  {
+    group: 'tree',
+    href: '/tree/jsx-binding/',
+    label: 'jsx-binding',
+  },
+  {
+    group: 'tree',
+    href: '/tree/render/',
+    label: 'render',
+  },
+  {
+    group: 'tree',
+    href: '/tree/store-chain/',
+    label: 'store-chain',
   },
   {
     group: 'tree',
@@ -62,6 +92,21 @@ export const routes = [
   },
   {
     group: 'tree-context',
+    href: '/tree-context/jsx-binding/',
+    label: 'jsx-binding',
+  },
+  {
+    group: 'tree-context',
+    href: '/tree-context/render/',
+    label: 'render',
+  },
+  {
+    group: 'tree-context',
+    href: '/tree-context/store-chain/',
+    label: 'store-chain',
+  },
+  {
+    group: 'tree-context',
     href: '/tree-context/task-chain/',
     label: 'task-chain',
   },
@@ -89,6 +134,21 @@ export const routes = [
     group: 'tree-context',
     href: '/tree-context/all/',
     label: 'all',
+  },
+  {
+    group: 'conditional',
+    href: '/conditional/jsx-binding/',
+    label: 'jsx-binding',
+  },
+  {
+    group: 'conditional',
+    href: '/conditional/render/',
+    label: 'render',
+  },
+  {
+    group: 'conditional',
+    href: '/conditional/store-chain/',
+    label: 'store-chain',
   },
   {
     group: 'conditional',
@@ -136,6 +196,31 @@ export const routes = [
     label: 'shared helper',
   },
   {
+    group: 'other',
+    href: '/slot/',
+    label: 'slot',
+  },
+  {
+    group: 'other',
+    href: '/scoped-styles/',
+    label: 'scoped styles',
+  },
+  {
+    group: 'other',
+    href: '/qrl-prop/',
+    label: 'QRL prop',
+  },
+  {
+    group: 'other',
+    href: '/sync/',
+    label: 'sync$',
+  },
+  {
+    group: 'other',
+    href: '/barrel/',
+    label: 'barrel file',
+  },
+  {
     group: 'visible',
     href: '/visible/above/',
     label: 'above the fold',
@@ -144,6 +229,16 @@ export const routes = [
     group: 'visible',
     href: '/visible/below/',
     label: 'below the fold',
+  },
+  {
+    group: 'visible',
+    href: '/visible/document-ready/',
+    label: 'document-ready',
+  },
+  {
+    group: 'visible',
+    href: '/visible/document-idle/',
+    label: 'document-idle',
   },
   {
     group: 'speculative',

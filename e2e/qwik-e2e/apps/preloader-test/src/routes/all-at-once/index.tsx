@@ -5,24 +5,36 @@ import Modal from '~/components/fixtures/modal';
 import UserImport from '~/components/fixtures/user-import';
 import VisibleAbove from '~/components/fixtures/visible/above';
 import VisibleBelow from '~/components/fixtures/visible/below';
+import SingleJsxBinding from '~/components/fixtures/single/jsx-binding';
+import SingleRender from '~/components/fixtures/single/render';
+import SingleStoreChain from '~/components/fixtures/single/store-chain';
 import SingleTaskChain from '~/components/fixtures/single/task-chain';
 import SingleComputedChain from '~/components/fixtures/single/computed-chain';
 import SingleAsyncComputedChain from '~/components/fixtures/single/async-computed-chain';
 import SingleMixedComputedChain from '~/components/fixtures/single/mixed-computed-chain';
 import SingleVisibleTaskChain from '~/components/fixtures/single/visible-task-chain';
 import SingleAll from '~/components/fixtures/single/all';
+import TreeJsxBinding from '~/components/fixtures/tree/jsx-binding';
+import TreeRender from '~/components/fixtures/tree/render';
+import TreeStoreChain from '~/components/fixtures/tree/store-chain';
 import TreeTaskChain from '~/components/fixtures/tree/task-chain';
 import TreeComputedChain from '~/components/fixtures/tree/computed-chain';
 import TreeAsyncComputedChain from '~/components/fixtures/tree/async-computed-chain';
 import TreeMixedComputedChain from '~/components/fixtures/tree/mixed-computed-chain';
 import TreeVisibleTaskChain from '~/components/fixtures/tree/visible-task-chain';
 import TreeAll from '~/components/fixtures/tree/all';
+import TreeContextJsxBinding from '~/components/fixtures/tree-context/jsx-binding';
+import TreeContextRender from '~/components/fixtures/tree-context/render';
+import TreeContextStoreChain from '~/components/fixtures/tree-context/store-chain';
 import TreeContextTaskChain from '~/components/fixtures/tree-context/task-chain';
 import TreeContextComputedChain from '~/components/fixtures/tree-context/computed-chain';
 import TreeContextAsyncComputedChain from '~/components/fixtures/tree-context/async-computed-chain';
 import TreeContextMixedComputedChain from '~/components/fixtures/tree-context/mixed-computed-chain';
 import TreeContextVisibleTaskChain from '~/components/fixtures/tree-context/visible-task-chain';
 import TreeContextAll from '~/components/fixtures/tree-context/all';
+import ConditionalJsxBinding from '~/components/fixtures/conditional/jsx-binding';
+import ConditionalRender from '~/components/fixtures/conditional/render';
+import ConditionalStoreChain from '~/components/fixtures/conditional/store-chain';
 import ConditionalTaskChain from '~/components/fixtures/conditional/task-chain';
 import ConditionalComputedChain from '~/components/fixtures/conditional/computed-chain';
 import ConditionalAsyncComputedChain from '~/components/fixtures/conditional/async-computed-chain';
@@ -34,24 +46,36 @@ export default component$(() => {
   return (
     <>
       <VisibleAbove />
+      <SingleJsxBinding />
+      <SingleRender />
+      <SingleStoreChain />
       <SingleTaskChain />
       <SingleComputedChain />
       <SingleAsyncComputedChain />
       <SingleMixedComputedChain />
       <SingleVisibleTaskChain />
       <SingleAll />
+      <TreeJsxBinding />
+      <TreeRender />
+      <TreeStoreChain />
       <TreeTaskChain />
       <TreeComputedChain />
       <TreeAsyncComputedChain />
       <TreeMixedComputedChain />
       <TreeVisibleTaskChain />
       <TreeAll />
+      <TreeContextJsxBinding />
+      <TreeContextRender />
+      <TreeContextStoreChain />
       <TreeContextTaskChain />
       <TreeContextComputedChain />
       <TreeContextAsyncComputedChain />
       <TreeContextMixedComputedChain />
       <TreeContextVisibleTaskChain />
       <TreeContextAll />
+      <ConditionalJsxBinding />
+      <ConditionalRender />
+      <ConditionalStoreChain />
       <ConditionalTaskChain />
       <ConditionalComputedChain />
       <ConditionalAsyncComputedChain />

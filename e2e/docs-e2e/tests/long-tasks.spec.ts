@@ -7,6 +7,8 @@ import {
 } from '../../preloader-e2e/utils/long-tasks';
 
 test.describe('docs home page', () => {
+  test.describe.configure({ retries: 0 });
+
   test('no long task comes from the preloader', async ({ browser, page, baseURL }, testInfo) => {
     test.setTimeout(240_000);
     const manifest = await page.request.get('/q-manifest.json');

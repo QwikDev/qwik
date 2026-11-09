@@ -104,7 +104,7 @@ const PRIMITIVES: Record<string, Primitive> = {
 const SETUPS = ['single', 'tree', 'tree-context', 'conditional'] as const;
 type Setup = (typeof SETUPS)[number];
 
-const LEVELS: Record<Setup, number> = { single: 1, tree: 3, 'tree-context': 3, conditional: 5 };
+const LEVELS: Record<Setup, number> = { single: 1, tree: 3, 'tree-context': 3, conditional: 3 };
 
 const pascal = (value: string) =>
   value
@@ -275,68 +275,106 @@ export const head: DocumentHead = { title: '${title}' };
   );
 };
 
+const FILLER_COUNT = 40;
+
 const writeFiller = () => {
   rmSync(join(srcDir, 'components/filler'), { recursive: true, force: true });
-  for (let i = 1; i <= 100; i++) {
-    const n = String(i).padStart(3, '0');
+  for (let i = 1; i <= FILLER_COUNT; i++) {
+    const n = String(i).padStart(2, '0');
     write(
-      `components/filler/toggle-${n}.tsx`,
-      `import { $, component$, sync$, useSignal, useTask$, type PropsOf } from '@qwik.dev/core';
+      `components/filler/collapsible-${n}.tsx`,
+      `import {
+  component$,
+  createContextId,
+  Slot,
+  useComputed$,
+  useContext,
+  useContextProvider,
+  useSignal,
+  useTask$,
+  type QRL,
+  type Signal,
+} from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 
-export default component$<PropsOf<'button'> & { pressed?: boolean }>((props) => {
-  const { pressed: pressedProp, ...buttonProps } = props;
-  const pressed = useSignal(pressedProp ?? false);
+const CollapsibleContext = createContextId<{ isOpen: Signal<boolean> }>('collapsible-${n}');
 
-  const preventArrowScroll = sync$((event: KeyboardEvent) => {
-    if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
-      event.preventDefault();
-    }
-  });
+const Root = component$<{ open?: boolean; onOpenChange$?: QRL<(open: boolean) => void> }>(
+  (props) => {
+    const isOpen = useSignal(props.open ?? false);
+    const dataState = useComputed$(() => (isOpen.value ? 'open' : 'closed'));
+    useContextProvider(CollapsibleContext, { isOpen });
 
-  useTask$(({ track }) => {
-    if (pressedProp === undefined) {
-      return;
-    }
-    track(() => pressedProp);
-    pressed.value = pressedProp;
-  });
+    useTask$(({ track }) => {
+      const open = track(() => props.open);
+      if (open !== undefined) {
+        isOpen.value = open;
+      }
+    });
 
-  const toggle = $(() => {
-    if (!props.disabled) {
-      pressed.value = !pressed.value;
-    }
-  });
+    useTask$(({ track }) => {
+      const open = track(isOpen);
+      if (isServer) {
+        return;
+      }
+      props.onOpenChange$?.(open);
+    });
 
+    return (
+      <div class="collapsible" data-state={dataState.value}>
+        <Slot />
+      </div>
+    );
+  }
+);
+
+const Trigger = component$(() => {
+  const { isOpen } = useContext(CollapsibleContext);
+  const isExpanded = useComputed$(() => isOpen.value);
   return (
     <button
       type="button"
-      class="toggle"
-      aria-pressed={pressed.value}
-      data-disabled={props.disabled ? '' : undefined}
-      {...buttonProps}
-      onKeyDown$={preventArrowScroll}
-      onClick$={toggle}
+      aria-expanded={isExpanded.value}
+      onClick$={() => (isOpen.value = !isOpen.value)}
     >
-      Toggle ${n}
+      <Slot />
     </button>
   );
 });
+
+const Content = component$(() => {
+  const { isOpen } = useContext(CollapsibleContext);
+  const isHidden = useComputed$(() => !isOpen.value);
+  return (
+    <div class="collapsible-content" hidden={isHidden.value}>
+      <Slot />
+    </div>
+  );
+});
+
+export default component$(() => (
+  <Root>
+    <Trigger>Section ${n}</Trigger>
+    <Content>Details for section ${n}.</Content>
+  </Root>
+));
 `
     );
   }
-  for (const [name, from, to] of [
-    ['FillerAbove', 1, 50],
-    ['FillerBelow', 51, 100],
+  const half = FILLER_COUNT / 2;
+  for (const [name, file, from, to] of [
+    ['FillerAbove', 'filler-above', 1, half],
+    ['FillerBelow', 'filler-below', half + 1, FILLER_COUNT],
   ] as const) {
     let imports = '';
     let items = '';
     for (let i = from; i <= to; i++) {
-      const n = String(i).padStart(3, '0');
-      imports += `import Toggle${n} from './toggle-${n}';\n`;
-      items += `      <Toggle${n} />\n`;
+      const n = String(i).padStart(2, '0');
+      imports += `import Collapsible${n} from './collapsible-${n}';\n`;
+      items += `      <Collapsible${n} />\n`;
     }
     write(
-      `components/filler/${name === 'FillerAbove' ? 'filler-above' : 'filler-below'}.tsx`,
+      `components/filler/${file}.tsx`,
       `import { component$ } from '@qwik.dev/core';
 ${imports}
 export const ${name} = component$(() => {

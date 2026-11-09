@@ -78,9 +78,9 @@ test.describe('cold SPA navigation', () => {
     await releaseAll(gate, ongoing);
     expect(formatRoundTrips(roundTrips)).toMatchSnapshot('to-tree.cold.txt');
     expectWithinTheCap(roundTrips, {
-      roundTrips: 3,
+      roundTrips: 4,
       reason:
-        "over the cap on main: the Link handler, the router's navigation code and the route module each cost a round trip before the render chunks",
+        "over the cap on main: the Link handler, the router's navigation code, then the layout and route modules each cost a round trip before the render chunks",
     });
   });
 });

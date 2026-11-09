@@ -7,7 +7,6 @@ import {
   useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
-import Level4 from './level-4';
 
 export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
   const t1 = useSignal(0);
@@ -43,7 +42,9 @@ export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
   return (
     <div class="level">
       <span class="step">level 3: {out.value}</span>
-      <Level4 input={out} />
+      <output data-testid="result" data-done={out.value ? '' : undefined}>
+        {out.value}
+      </output>
     </div>
   );
 });

@@ -47,12 +47,13 @@ body {
   margin-bottom: 12px;
 }
 
-.toggle {
+.collapsible button {
+  width: 100%;
   padding: 4px;
   font-size: 12px;
 }
 
-.toggle[aria-pressed='true'] {
+.collapsible[data-state='open'] button {
   background: #ffd54f;
 }
 

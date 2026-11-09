@@ -10,15 +10,7 @@ round trip 2:
   conditional/visible-task-chain/level-2.tsx_level_2_component_useVisibleTask_1
   conditional/visible-task-chain/level-2.tsx_level_2_component_useVisibleTask_2
   conditional/visible-task-chain/level-3.tsx
+  conditional/visible-task-chain/level-3.tsx_level_3_component
   conditional/visible-task-chain/level-3.tsx_level_3_component_useVisibleTask
   conditional/visible-task-chain/level-3.tsx_level_3_component_useVisibleTask_1
   conditional/visible-task-chain/level-3.tsx_level_3_component_useVisibleTask_2
-  conditional/visible-task-chain/level-4.tsx
-  conditional/visible-task-chain/level-4.tsx_level_4_component_useVisibleTask
-  conditional/visible-task-chain/level-4.tsx_level_4_component_useVisibleTask_1
-  conditional/visible-task-chain/level-4.tsx_level_4_component_useVisibleTask_2
-  conditional/visible-task-chain/level-5.tsx
-  conditional/visible-task-chain/level-5.tsx_level_5_component
-  conditional/visible-task-chain/level-5.tsx_level_5_component_useVisibleTask
-  conditional/visible-task-chain/level-5.tsx_level_5_component_useVisibleTask_1
-  conditional/visible-task-chain/level-5.tsx_level_5_component_useVisibleTask_2

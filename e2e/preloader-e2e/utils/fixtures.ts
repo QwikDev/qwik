@@ -7,7 +7,7 @@ export const PRIMITIVE_STEPS = {
   all: 12,
 };
 
-export const SETUP_LEVELS = { single: 1, tree: 3, 'tree-context': 3, conditional: 5 };
+export const SETUP_LEVELS = { single: 1, tree: 3, 'tree-context': 3, conditional: 3 };
 
 export type Fixture = {
   id: string;

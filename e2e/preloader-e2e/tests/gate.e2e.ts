@@ -13,7 +13,7 @@ import {
 import { clickTrigger, expectResult, openFixture, warmClick } from '../utils/scenarios';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
-const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-5.tsx')[0];
+const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
 
 const openHolding = async (page: import('@playwright/test').Page) => {
   const gate = await createGate(page);

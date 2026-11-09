@@ -23,6 +23,7 @@ if (isBrowser) {
   document.addEventListener('qsymbol', (ev) => {
     const { symbol } = (ev as QwikSymbolEvent).detail;
     const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
-    preload(hash, 1);
+    // Usage reports speculate; QRL execution requests its chunk separately.
+    preload(hash, 0.8);
   });
 }

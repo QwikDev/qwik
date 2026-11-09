@@ -139,6 +139,7 @@
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
 - [GitHub Pages](deployments/github-pages/index.mdx)
+- [deed.page](deployments/deed-page/index.mdx)
 - [Azion](deployments/azion/index.mdx)
 
 ## Guides

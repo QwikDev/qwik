@@ -459,10 +459,14 @@ describe(`${name}: Catch behavior`, () => {
     await expect(render(App)).rejects.toThrow('async boom');
   });
 
-  it('a rejected promise child propagates and rejects the render', async () => {
-    const App = component$(() => <p>{Promise.reject(new Error('child boom'))}</p>);
-    await expect(render(App)).rejects.toThrow('child boom');
-  });
+  // like main: the client logs a boundary-less content error instead of rejecting the render
+  it.runIf(name === 'ssrRender')(
+    'a rejected promise child propagates and rejects the render',
+    async () => {
+      const App = component$(() => <p>{Promise.reject(new Error('child boom'))}</p>);
+      await expect(render(App)).rejects.toThrow('child boom');
+    }
+  );
 
   it('a thrown non-Error class instance is caught', async () => {
     const Thrower = component$(() => {

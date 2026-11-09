@@ -496,6 +496,73 @@ test.each([
 
 test.each([
   {
+    path: '(a)/[id]-old',
+    extraPaths: ['(b)/[slug]-new'],
+    url: '/42-old/',
+    route: '[id]-old/',
+    names: 0,
+    paramValue: '42',
+    params: { id: '42' },
+    appUrl: false,
+    neighbors: [['/43-new/', '[slug]-new/']],
+  },
+  {
+    path: '[c]/[d]/target',
+    extraPaths: ['[a]/one', '[b]/[a]/two'],
+    url: '/First/Second/target/',
+    route: '[c]/[d]/target/',
+    names: 0,
+    paramValue: 'First/Second',
+    params: { c: 'First', d: 'Second' },
+  },
+  {
+    path: 'foo/b',
+    extraPaths: ['Foo/a'],
+    base: '/(app)/',
+    url: '/(app)/foo/b/',
+    route: 'foo/b/',
+    names: 1,
+    paramValue: '',
+    params: {},
+  },
+  {
+    path: 'Product/a',
+    rewriteOptions: [{ paths: { product: 'legacy' } }],
+    url: '/legacy/a/',
+    route: 'legacy/a/',
+    names: 1,
+    paramValue: '',
+    params: {},
+  },
+  {
+    path: 'constructor',
+    rewriteOptions: [{ prefix: 'it', paths: {} }],
+    url: '/it/constructor/',
+    route: 'it/constructor/',
+    names: 0,
+    paramValue: '',
+    params: {},
+  },
+  {
+    path: '__proto__',
+    rewriteOptions: [{ prefix: 'it', paths: {} }],
+    url: '/it/__proto__/',
+    route: 'it/__proto__/',
+    names: 0,
+    paramValue: '',
+    params: {},
+  },
+  {
+    path: 'product/[itemid]/b',
+    extraPaths: ['Product/[ItemId]/a'],
+    layoutPaths: ['product/[itemid]'],
+    url: '/product/CaseSensitive/b/',
+    route: 'product/[itemid]/b/',
+    names: 1,
+    params: { itemid: 'CaseSensitive' },
+    loaderParams: { layout: { itemid: 'CaseSensitive' }, page: { itemid: 'CaseSensitive' } },
+  },
+  {
     path: 'product/[slug]/b',
     extraPaths: ['Product/[id]/a'],
     url: '/product/CaseSensitive/b/',
@@ -660,6 +727,9 @@ test.each([
     paramValue,
     params,
     neighbors = [],
+    layoutPaths = [],
+    loaderParams,
+    appUrl = true,
   }) => {
     const root = await mkdtemp(join(tmpdir(), 'qwik-route-case-'));
     const readDirectory = fs.promises.readdir.bind(fs.promises);
@@ -669,6 +739,13 @@ test.each([
         normalizePath(join(root, 'src/routes', routePath, 'index.tsx'))
       );
       for (const source of files) {
+        await mkdir(dirname(source), { recursive: true });
+        await writeFile(source, 'export default () => null;');
+      }
+      const layoutFiles = layoutPaths.map((layoutPath) =>
+        normalizePath(join(root, 'src/routes', layoutPath, 'layout.tsx'))
+      );
+      for (const source of layoutFiles) {
         await mkdir(dirname(source), { recursive: true });
         await writeFile(source, 'export default () => null;');
       }
@@ -683,6 +760,9 @@ test.each([
           entries.get(directory)!.add(segment);
           directory = normalizePath(join(directory, segment));
         }
+      }
+      for (const source of layoutFiles) {
+        entries.get(normalizePath(dirname(source)))!.add('layout.tsx');
       }
       readdir.mockImplementation(async (directory) => {
         const names = entries.get(normalizePath(String(directory)));
@@ -700,15 +780,23 @@ test.each([
       );
       await updateRoutingContext(ctx);
       const code: string[] = [];
-      createRoutes(ctx, mockQwikPlugin, code, [], false, new Map());
+      const hashes = new Map([
+        [files[0], ['page']],
+        ...layoutFiles.map((source) => [source, ['layout']] as [string, string[]]),
+      ]);
+      createRoutes(ctx, mockQwikPlugin, code, [], false, hashes);
       const expression = code.find((line) => line.startsWith('export const routes'))!;
+      const layoutIds = ctx.layouts.map((layout) => layout.id);
       // eslint-disable-next-line no-new-func
-      const routes = new Function(expression.replace('export const routes =', 'return'))();
+      const routes = new Function(
+        ...layoutIds,
+        expression.replace('export const routes =', 'return')
+      )(...layoutIds.map(() => () => Promise.resolve({})));
       assert.equal((expression.match(/_S:/g) ?? []).length, names);
       if (!params) {
         assert.equal((expression.match(/_C:/g) ?? []).length, exception ? 1 : 0);
         if (exception) {
-          assert.include(expression, `_C: ${JSON.stringify(exception)}`);
+          assert.include(expression, `_C: ${JSON.stringify(route.split('/').filter(Boolean))}`);
         }
       }
       const matched = matchRouteTree(routes, url);
@@ -719,8 +807,13 @@ test.each([
         paramValue ?? (path.includes('[...') ? 'Case/Sensitive' : 'CaseSensitive')
       );
       if (params) {
-        assert.equal(untypedAppUrl('/' + route, matched.params), url);
+        if (base === '/' && appUrl) {
+          assert.equal(untypedAppUrl('/' + route, matched.params), url);
+        }
         expect(matched.params).toEqual(params);
+      }
+      if (loaderParams) {
+        expect(matched.loaderParamsByHash).toEqual(loaderParams);
       }
       const imports = getRouteImports(ctx.routes, {
         bundles: Object.fromEntries(

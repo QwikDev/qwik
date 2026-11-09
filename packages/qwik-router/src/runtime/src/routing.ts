@@ -106,7 +106,7 @@ const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
 function walkTrieKeys(
   root: RouteData,
   keys: string[],
-  params: PathParams
+  paramValues: string[]
 ):
   | {
       node: RouteData;
@@ -118,6 +118,8 @@ function walkTrieKeys(
   let node = root;
   let pathname = '/';
   let pathParams: PathParams = {};
+  const routeParts: string[] = [];
+  let paramIndex = 0;
   const layouts: ModuleLoader[] = [];
   const loaderPaths: Record<string, string> = {};
   const loaderParams: Record<string, PathParams> = {};
@@ -127,7 +129,9 @@ function walkTrieKeys(
     }
     for (const hash of node._R ?? []) {
       loaderPaths[hash] = pathname;
-      loaderParams[hash] = pathParams;
+      loaderParams[hash] = node._C
+        ? restoreRouteSpelling([...routeParts], node._C, { ...pathParams }, paramValues)
+        : pathParams;
     }
   };
   collect(root);
@@ -140,14 +144,20 @@ function walkTrieKeys(
       collect(group);
     }
     node = match.value;
+    const value = node._P ? (paramValues[paramIndex++] ?? '') : '';
     const segment = node._P
-      ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}`
+      ? `${node._0 ?? ''}${value}${node._9 ?? ''}`
       : unescapeStaticTrieKey(key);
     const segments = key === '_A' ? segment.split('/') : [segment];
     pathname = ensureSlash(pathname + segments.map(encodeURIComponent).join('/'));
     if (node._P) {
-      pathParams = { ...pathParams, [node._P]: params[node._P] ?? '' };
+      pathParams = { ...pathParams, [node._P]: value };
     }
+    routeParts.push(
+      node._P
+        ? `${node._0 ?? ''}[${key === '_A' ? '...' : ''}${node._P}]${node._9 ?? ''}`
+        : (node._S ?? unescapeStaticTrieKey(key))
+    );
     collect(node);
   }
   if (!node._I && node._G == null) {
@@ -175,16 +185,16 @@ function resolveLoaders(
   root: RouteData,
   node: RouteData,
   gatheredLayouts: ModuleLoader[],
-  params: PathParams
+  paramValues: string[]
 ): ResolvedIndex | undefined {
   if (node._G != null) {
     // Rewrite: re-walk from root using _G's keys
     const keys = (node._G as string).split('/').filter((p) => p.length > 0);
-    const target = walkTrieKeys(root, keys, params);
+    const target = walkTrieKeys(root, keys, paramValues);
     if (!target) {
       return undefined;
     }
-    const resolved = resolveLoaders(root, target.node, target.layouts, params);
+    const resolved = resolveLoaders(root, target.node, target.layouts, paramValues);
     if (resolved && !resolved.loaderPaths) {
       resolved.loaderPaths = target.loaderPaths;
       resolved.loaderParams = target.loaderParams;
@@ -234,7 +244,9 @@ function collectNodeMeta(
   loaderPathsByHash?: Record<string, string>,
   matchedPathname = '/',
   loaderParamsByHash?: Record<string, PathParams>,
-  matchedParams: PathParams = {}
+  matchedParams: PathParams = {},
+  routeParts: string[] = [],
+  paramValues: string[] = []
 ) {
   for (let j = 0; j < groups.length; j++) {
     const g = groups[j];
@@ -245,7 +257,9 @@ function collectNodeMeta(
       for (const hash of g._R) {
         loaderPathsByHash[hash] = matchedPathname;
         if (loaderParamsByHash) {
-          loaderParamsByHash[hash] = matchedParams;
+          loaderParamsByHash[hash] = g._C
+            ? restoreRouteSpelling([...routeParts], g._C, { ...matchedParams }, paramValues)
+            : matchedParams;
         }
       }
     }
@@ -268,7 +282,9 @@ function collectNodeMeta(
     for (const hash of node._R) {
       loaderPathsByHash[hash] = matchedPathname;
       if (loaderParamsByHash) {
-        loaderParamsByHash[hash] = matchedParams;
+        loaderParamsByHash[hash] = node._C
+          ? restoreRouteSpelling([...routeParts], node._C, { ...matchedParams }, paramValues)
+          : matchedParams;
       }
     }
   }
@@ -649,20 +665,25 @@ function findGroupBoundary(
 const restoreRouteSpelling = (
   parts: string[],
   spellings: Record<number, string>,
-  params: PathParams
+  params: PathParams,
+  paramValues: string[]
 ) => {
-  const renamedParams: PathParams = {};
+  const canonicalParts = Array.isArray(spellings)
+    ? spellings
+    : parts.map((part, index) => spellings[index] ?? part);
   const parameter = /\[(?:\.\.\.)?([\w-]+)\]/;
-  for (const [index, spelling] of Object.entries(spellings)) {
-    const previousName = parameter.exec(parts[Number(index)])?.[1];
-    const canonicalName = parameter.exec(spelling)?.[1];
-    if (previousName && canonicalName && previousName !== canonicalName) {
-      renamedParams[canonicalName] = params[previousName];
-      delete params[previousName];
-    }
-    parts[Number(index)] = spelling;
+  for (const name in params) {
+    delete params[name];
   }
-  Object.assign(params, renamedParams);
+  let paramIndex = 0;
+  for (const spelling of canonicalParts) {
+    const name = parameter.exec(spelling)?.[1];
+    if (name) {
+      params[name] = paramValues[paramIndex++];
+    }
+  }
+  parts.splice(0, parts.length, ...canonicalParts);
+  return params;
 };
 
 /**
@@ -692,6 +713,7 @@ export function matchRouteTree(
 } {
   let node: RouteData = root;
   const params: PathParams = {};
+  const paramValues: string[] = [];
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
   const loaderPathsByHash: Record<string, string> = {};
@@ -734,6 +756,7 @@ export function matchRouteTree(
         restValue: string;
         routeParts: string[];
         params: PathParams;
+        paramValues: string[];
         layouts: ModuleLoader[];
         loaderPathsByHash: Record<string, string>;
         loaderParamsByHash: Record<string, PathParams>;
@@ -775,6 +798,7 @@ export function matchRouteTree(
         restValue: parts.slice(i).join('/'),
         routeParts: [...routeParts],
         params: { ...params },
+        paramValues: [...paramValues],
         layouts: [...layouts],
         loaderPathsByHash: { ...loaderPathsByHash },
         loaderParamsByHash: { ...loaderParamsByHash },
@@ -790,6 +814,7 @@ export function matchRouteTree(
     if (found.paramName) {
       params[found.paramName] =
         found.paramValue ?? parts.slice(i, found.done ? len : i + span).join('/');
+      paramValues.push(params[found.paramName]);
     }
 
     routeParts.push(found.routePart);
@@ -807,7 +832,9 @@ export function matchRouteTree(
       loaderPathsByHash,
       matchedPathname,
       loaderParamsByHash,
-      { ...params }
+      { ...params },
+      routeParts,
+      paramValues
     );
     if (node._M) {
       groupNodes.push({ node, depth: layouts.length });
@@ -834,7 +861,9 @@ export function matchRouteTree(
           loaderPathsByHash,
           pathname,
           loaderParamsByHash,
-          { ...params }
+          { ...params },
+          routeParts,
+          paramValues
         );
         node = indexResult.target;
       }
@@ -848,6 +877,7 @@ export function matchRouteTree(
         const next = restInfo.next;
         const paramName = next._P!;
         params[paramName as string] = '';
+        paramValues.push('');
         routeParts.push(`[...${paramName}]`);
         collectNodeMeta(
           next,
@@ -859,7 +889,9 @@ export function matchRouteTree(
           loaderPathsByHash,
           pathname,
           loaderParamsByHash,
-          { ...params }
+          { ...params },
+          routeParts,
+          paramValues
         );
         node = next;
       }
@@ -868,7 +900,7 @@ export function matchRouteTree(
 
   // Resolve loaders from _I or _G
   const resolved =
-    matched && (done || i >= len) ? resolveLoaders(root, node, layouts, params) : undefined;
+    matched && (done || i >= len) ? resolveLoaders(root, node, layouts, paramValues) : undefined;
   const loaders = resolved?.loaders;
 
   // If the primary match failed but we have a rest wildcard fallback, try it.
@@ -877,6 +909,7 @@ export function matchRouteTree(
   if (!loaders && restFallback) {
     const fb = restFallback;
     const fbParams = { ...fb.params, [fb.paramName]: fb.restValue };
+    const fbParamValues = [...fb.paramValues, fb.restValue];
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
     const fbLoaderPathsByHash = { ...fb.loaderPathsByHash };
@@ -895,13 +928,15 @@ export function matchRouteTree(
       fbLoaderPathsByHash,
       pathname,
       fbLoaderParamsByHash,
-      fbParams
+      fbParams,
+      fbRouteParts,
+      fbParamValues
     );
 
-    const fallback = resolveLoaders(root, fb.aNode, fbLayouts, fbParams);
+    const fallback = resolveLoaders(root, fb.aNode, fbLayouts, fbParamValues);
     if (fallback) {
       if (fb.aNode._C) {
-        restoreRouteSpelling(fbRouteParts, fb.aNode._C, fbParams);
+        restoreRouteSpelling(fbRouteParts, fb.aNode._C, fbParams, fbParamValues);
       }
       collectPageLoaders(fallback, fbLoaderPathsByHash, fbLoaderParamsByHash, pathname, fbParams);
       return {
@@ -975,7 +1010,7 @@ export function matchRouteTree(
   }
 
   if (node._C) {
-    restoreRouteSpelling(routeParts, node._C, params);
+    restoreRouteSpelling(routeParts, node._C, params, paramValues);
   }
   collectPageLoaders(resolved!, loaderPathsByHash, loaderParamsByHash, pathname, params);
 

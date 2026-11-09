@@ -1,6 +1,8 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
+import { dirname } from 'node:path';
 import {
   createFileId,
+  getPathnameFromDirPath,
   caughtErrorName,
   isModuleExt,
   isPageExt,
@@ -36,7 +38,13 @@ function toRuntimeTriePath(path: string, basePathname: string) {
 function getRouteTriePath(routeName: string) {
   return routeName
     .split('/')
-    .map((segment) => parseDirName(segment).key)
+    .map((segment) => {
+      const { key, paramName, prefix, suffix } = parseDirName(segment);
+      return paramName
+        ? `${prefix?.toLowerCase() ?? ''}[${key}]${suffix?.toLowerCase() ?? ''}`
+        : key;
+    })
+    .filter((key) => key != null)
     .join('/');
 }
 
@@ -66,7 +74,10 @@ export function createRoutes(
 ) {
   const routesByFilePath = new Map<string, BuiltRoute>();
   for (const route of ctx.routes) {
-    if (!routesByFilePath.has(route.filePath)) {
+    if (
+      !routesByFilePath.has(route.filePath) ||
+      route.pathname === getPathnameFromDirPath(ctx.opts, dirname(route.filePath))
+    ) {
       routesByFilePath.set(route.filePath, route);
     }
   }
@@ -247,6 +258,7 @@ function serializeBuildTrie(
 
   // Process _files at this node
   let layoutExpr: string | undefined;
+  let layoutFile: RouteSourceFile | undefined;
   let indexExpr: string | undefined;
   let errorExpr: string | undefined;
   let notFoundExpr: string | undefined;
@@ -265,6 +277,7 @@ function serializeBuildTrie(
       if (layoutId) {
         if (file.extlessName === 'layout' || file.extlessName === 'layout!') {
           layoutExpr = layoutId;
+          layoutFile = file;
         }
       }
     }
@@ -302,18 +315,15 @@ function serializeBuildTrie(
     lines.push(`${nextIndent}_L: ${layoutExpr},`);
   }
 
-  if (indexExpr || node._G != null) {
-    const canonicalName = routeNamesByTriePath.get(triePath);
-    if (canonicalName != null && canonicalName !== routeName) {
-      const canonicalParts = canonicalName.split('/');
-      const currentParts = routeName.split('/');
-      const spellings: Record<number, string> = {};
-      for (let index = 0; index < canonicalParts.length; index++) {
-        if (canonicalParts[index] !== currentParts[index]) {
-          spellings[index] = canonicalParts[index];
-        }
-      }
-      lines.push(`${nextIndent}_C: ${JSON.stringify(spellings)},`);
+  if (indexExpr || node._G != null || layoutFile) {
+    const canonicalName =
+      bundleRoute?.routeName ??
+      (layoutFile
+        ? getPathnameFromDirPath(ctx.opts, layoutFile.dirPath)
+        : routeNamesByTriePath.get(triePath));
+    const canonicalParts = canonicalName?.split('/').filter(Boolean);
+    if (canonicalParts && canonicalParts.join('/') !== routeName) {
+      lines.push(`${nextIndent}_C: ${JSON.stringify(canonicalParts)},`);
     }
   }
 
@@ -437,7 +447,7 @@ function serializeBuildTrie(
       isSSR,
       nextIndent,
       childRouteName,
-      triePath ? `${triePath}/${key}` : key,
+      triePath ? `${triePath}/${getRouteTriePath(segment)}` : getRouteTriePath(segment),
       routeNamesByTriePath,
       loadersByFile,
       routeLoaderSourceFiles

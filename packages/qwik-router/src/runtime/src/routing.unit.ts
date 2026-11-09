@@ -1429,3 +1429,55 @@ test('loadRoute — canonical parameters stay aligned after a failed rewrite fal
     page: { itemid: 'CaseSensitive', rest: 'Tail' },
   });
 });
+
+test('loadRoute — repeated trie names preserve positional values on rest fallback', async () => {
+  const routes: RouteData = {
+    _W: {
+      _P: 'a',
+      _W: { _P: 'a', _G: 'missing' },
+      _A: {
+        _P: 'a',
+        _C: ['[first]', '[...remaining]'],
+        _I: makeLoader(),
+        _D: ['page'],
+      },
+    },
+  };
+  const result = await loadRoute(routes, false, '/First/Second/Third/');
+  assert.isFalse(result.$notFound$);
+  assert.equal(result.$routeName$, '/[first]/[...remaining]');
+  assert.deepEqual(result.$params$, { first: 'First', remaining: 'Second/Third' });
+  assert.deepEqual(result.$loaderParams$?.page, result.$params$);
+});
+
+test('loadRoute — rewrites preserve repeated trie values for target layouts', async () => {
+  const routes: RouteData = {
+    original: {
+      _W: {
+        _P: 'a',
+        _C: ['original', '[first]'],
+        _R: ['layout'],
+        _L: makeLoader(),
+        _W: { _P: 'a', _I: makeLoader(), _D: ['page'] },
+      },
+    },
+    alias: {
+      _W: {
+        _P: 'a',
+        _W: {
+          _P: 'a',
+          _C: ['alias', '[first]', '[second]'],
+          _G: 'original/_W/_W',
+        },
+      },
+    },
+  };
+  const result = await loadRoute(routes, false, '/alias/First/Second/');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$params$, { first: 'First', second: 'Second' });
+  assert.equal(result.$loaderPaths$?.layout, '/original/First/');
+  assert.deepEqual(result.$loaderParams$, {
+    layout: { first: 'First' },
+    page: { first: 'First', second: 'Second' },
+  });
+});

@@ -470,8 +470,9 @@ const HAND_WRITTEN = [
   { group: 'navigation', href: '/navigation/from/intent/', label: 'from (prefetch intent)' },
   { group: 'navigation', href: '/navigation/action/', label: 'form action' },
   { group: 'harness', href: '/harness/import-chain/', label: 'import chain' },
-  { group: 'all at once', href: '/all-at-once/', label: 'all at once' },
 ];
+
+const ALL_AT_ONCE = { group: 'all at once', href: '/all-at-once/', label: 'all at once' };
 
 const writeAllAtOnce = () => {
   let imports = '';
@@ -512,7 +513,7 @@ export const head: DocumentHead = { title: 'all at once' };
 const writeRoutesList = () => {
   write(
     'components/sidebar/routes.ts',
-    `export const routes = ${JSON.stringify([...routes, ...HAND_WRITTEN], null, 2)};\n`
+    `export const routes = ${JSON.stringify([ALL_AT_ONCE, ...routes, ...HAND_WRITTEN], null, 2)};\n`
   );
 };
 

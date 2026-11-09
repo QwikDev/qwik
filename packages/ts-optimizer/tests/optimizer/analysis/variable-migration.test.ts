@@ -296,7 +296,7 @@ describe('collectModuleLevelDecls', () => {
     expect(decls[1].isPartOfSharedDestructuring).toBe(true);
   });
 
-  it('handles FunctionDeclaration', () => {
+  it('collects a function declaration as side-effect free', () => {
     const code = 'function greet(name) { return "hi " + name; }';
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);
@@ -335,7 +335,7 @@ describe('collectModuleLevelDecls', () => {
     expect(decls[0].hasSideEffects).toBe(true);
   });
 
-  it('collects single-binding destructuring as NOT shared', () => {
+  it('does not mark a single-binding destructuring as shared', () => {
     const code = 'const { a } = obj;';
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);

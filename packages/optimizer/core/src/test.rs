@@ -7559,7 +7559,7 @@ export const Counter = component$(() => {
 }
 
 #[test]
-fn should_move_component_marker_into_its_only_consumer() {
+fn should_move_component_qrl_into_its_only_consumer() {
 	test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
@@ -7585,7 +7585,7 @@ export const Outer = component$(() => (
 /// This reproduces the qwik-router bug where `currentScrollState` and `saveScrollHistory`
 /// were migrated to the useTask segment but also needed by the goto segment.
 #[test]
-fn should_move_dollar_marker_into_its_only_consumer() {
+fn should_move_qrl_into_its_only_consumer() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$ } from '@qwik.dev/core';

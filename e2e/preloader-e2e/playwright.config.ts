@@ -4,7 +4,6 @@ import { APP_DIR, ORIGIN, PORT } from './utils/app';
 export default defineConfig({
   testDir: './tests',
   testMatch: '*.e2e.ts',
-  snapshotPathTemplate: '{testDir}/__snapshots__/{testFileName}/{arg}{ext}',
   fullyParallel: true,
   workers: process.env.CI ? 2 : 4,
   retries: 0,

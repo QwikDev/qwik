@@ -313,7 +313,7 @@ pnpm test.e2e.chromium
 ```
 
 The preloader suite builds its own app and counts the network round trips each click waits for. Its
-snapshots assume a production core build, so run `pnpm build.core` first:
+round-trip counts assume a production core build, so run `pnpm build.core` first:
 
 ```shell
 pnpm build.core

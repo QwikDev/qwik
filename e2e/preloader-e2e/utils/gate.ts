@@ -1,4 +1,4 @@
-import type { Locator, Page, Route } from '@playwright/test';
+import type { Locator, Page, Request, Route } from '@playwright/test';
 import {
   chunkComesFrom,
   chunkHasVisibleTask,
@@ -103,8 +103,44 @@ export const settle = async (page: Page, gate: Gate, quietMs = QUIET_MS) => {
   }
 };
 
+const releaseUntilDownloaded = async (route: Route) => {
+  await route.continue().catch(() => {});
+  const response = await route
+    .request()
+    .response()
+    .catch(() => null);
+  await response?.finished().catch(() => {});
+};
+
 export const release = async (routes: Route[]) => {
-  await Promise.all(routes.map((route) => route.continue().catch(() => {})));
+  await Promise.all(routes.map(releaseUntilDownloaded));
+};
+
+export const waitForNetworkIdle = async (
+  page: Page,
+  action: () => Promise<unknown>,
+  quietMs = 1000
+) => {
+  const pending = new Set<Request>();
+  let lastActivity = Date.now();
+  const onRequest = (request: Request) => {
+    pending.add(request);
+    lastActivity = Date.now();
+  };
+  const onDone = (request: Request) => {
+    pending.delete(request);
+    lastActivity = Date.now();
+  };
+  page.on('request', onRequest);
+  page.on('requestfinished', onDone);
+  page.on('requestfailed', onDone);
+  await action();
+  while (pending.size || Date.now() - lastActivity < quietMs) {
+    await page.waitForTimeout(100);
+  }
+  page.off('request', onRequest);
+  page.off('requestfinished', onDone);
+  page.off('requestfailed', onDone);
 };
 
 export const releaseAll = async (gate: Gate, ongoing: Route[] = []) => {
@@ -184,20 +220,13 @@ export const openColdPage = async (page: Page, gate: Gate, path: string, fixture
 };
 
 export const openWarm = async (page: Page, gate: Gate, path: string) => {
-  await page.goto(path);
-  await waitForQwikloader(page);
-  await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
-    timeout: 15_000,
+  await waitForNetworkIdle(page, async () => {
+    await page.goto(path);
+    await waitForQwikloader(page);
+    await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
+      timeout: 15_000,
+    });
   });
-  let requests = 0;
-  const countRequest = () => requests++;
-  page.on('request', countRequest);
-  let lastCount = -1;
-  while (requests !== lastCount) {
-    lastCount = requests;
-    await page.waitForTimeout(1000);
-  }
-  page.off('request', countRequest);
   gate.mode = 'hold';
 };
 

@@ -131,7 +131,7 @@ export const findLongTasks = (
 ): LongTask[] => {
   const main = findRendererMainThread(events);
   if (!main) {
-    return [];
+    throw new Error('The trace has no renderer main thread to measure');
   }
   const onMain = events.filter(
     (event) => event.pid === main.pid && event.tid === main.tid && event.ph === 'X' && event.dur
@@ -162,7 +162,11 @@ export const findLongTasks = (
 };
 
 export const longTasksFromThePreloader = (tasks: LongTask[]) =>
-  tasks.filter((task) => task.preloaderMs > 0 && task.durationMs - task.preloaderMs < LONG_TASK_MS);
+  tasks.filter(
+    (task) =>
+      task.preloaderMs >= LONG_TASK_MS ||
+      (task.preloaderMs > 0 && task.durationMs - task.preloaderMs < LONG_TASK_MS)
+  );
 
 export const traceLongTasks = async (
   browser: Browser,

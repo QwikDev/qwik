@@ -111,11 +111,17 @@ for (const [name, heldUrl] of [
       await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
       await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
       const links = await firstPreloads(page, gate);
-      const firstSpeculative = links.findIndex((link) => link.speculative);
-      const neededBeforeIt = links
-        .slice(0, firstSpeculative < 0 ? links.length : firstSpeculative)
-        .filter((link) => clickChunks.has(link.href));
-      expect(neededBeforeIt.length).toBeGreaterThan(0);
+      const firstSpeculative = links.findIndex(
+        (link) => link.speculative && !clickChunks.has(link.href)
+      );
+      const clickLinks = links
+        .map((link, index) => ({ link, index }))
+        .filter(({ link }) => clickChunks.has(link.href));
+      const lowOrLate = clickLinks.filter(
+        ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
+      );
+      expect(clickLinks.length).toBeGreaterThan(0);
+      expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   });
 }

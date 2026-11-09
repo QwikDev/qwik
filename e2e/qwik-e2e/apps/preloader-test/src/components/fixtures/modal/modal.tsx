@@ -16,7 +16,7 @@ export const Modal = component$<{ open: Signal<boolean> }>(({ open }) => {
   });
 
   return (
-    <dialog ref={dialog} class="modal">
+    <dialog ref={dialog} class="modal" onClose$={() => (open.value = false)}>
       {open.value && <Slot />}
       <button onClick$={() => (open.value = false)}>Close</button>
     </dialog>

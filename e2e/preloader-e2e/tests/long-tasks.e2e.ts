@@ -1,7 +1,12 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
-import { preloaderLinks, recordSpeculativePreloads, waitForQwikloader } from '../utils/gate';
+import {
+  preloaderLinks,
+  recordSpeculativePreloads,
+  waitForNetworkIdle,
+  waitForQwikloader,
+} from '../utils/gate';
 import {
   longTasksFromThePreloader,
   throttleLikeAMidTierPhone,
@@ -28,18 +33,6 @@ const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const preloadedUrls = (page: Page) => async () =>
   new Set((await preloaderLinks(page)).map((link) => link.href));
 
-const waitForNetworkIdle = async (page: Page, quietMs = 2000) => {
-  let requests = 0;
-  const countRequest = () => requests++;
-  page.on('request', countRequest);
-  let lastCount = -1;
-  while (requests !== lastCount) {
-    lastCount = requests;
-    await page.waitForTimeout(quietMs);
-  }
-  page.off('request', countRequest);
-};
-
 const waitForPreloader = (page: Page) =>
   page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
     timeout: 30_000,
@@ -60,12 +53,16 @@ test.describe('from load until the preloader is idle, on /all-at-once/', () => {
     const tasks = await traceLongTasks(
       browser,
       page,
-      async () => {
-        await page.goto('/all-at-once/');
-        await waitForQwikloader(page);
-        await waitForPreloader(page);
-        await waitForNetworkIdle(page);
-      },
+      () =>
+        waitForNetworkIdle(
+          page,
+          async () => {
+            await page.goto('/all-at-once/');
+            await waitForQwikloader(page);
+            await waitForPreloader(page);
+          },
+          2000
+        ),
       preloaderUrl,
       preloadedUrls(page)
     );

@@ -22,6 +22,13 @@ import { fixtureResult, fixtureRoot } from '../utils/scenarios';
 const ALL_AT_ONCE = '/all-at-once/';
 const CLICKABLE = CLICKABLE_ON_ALL_AT_ONCE.filter((fixture) => !NEVER_SHOWS_RESULT[fixture.id]);
 
+const expectExpectedText = async (page: Page, fixture: Fixture) => {
+  if (!fixture.expected) {
+    return;
+  }
+  await expect.soft(fixtureResult(page, fixture), fixture.id).toHaveText(fixture.expected);
+};
+
 const clickFixture = (page: Page, fixture: Fixture) => () =>
   fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
 
@@ -48,6 +55,7 @@ test.describe('all at once', () => {
         `${fixture.id}\n${formatRoundTrips(roundTrips, { segmentsFrom: fixture.sources })}`
       );
       expectRoundTrips(roundTrips, ROUND_TRIPS_ON_MAIN[fixture.id], `${fixture.id}: `);
+      await expectExpectedText(page, fixture);
     }
     await releaseAll(gate, ongoing);
     await testInfo.attach('cold-clicks.txt', {
@@ -70,6 +78,7 @@ test.describe('all at once', () => {
       expect
         .soft(roundTrips, notReady ? `${fixture.id}: ${notReady.reason}` : fixture.id)
         .toHaveLength(notReady?.roundTrips ?? fixture.warmRoundTrips ?? 0);
+      await expectExpectedText(page, fixture);
     }
     await releaseAll(gate);
   });

@@ -13,7 +13,11 @@ test.describe('docs home page', () => {
     const preloader = manifest.ok()
       ? ((await manifest.json().catch(() => ({}))) as { preloader?: string }).preloader
       : undefined;
-    test.skip(!preloader, 'needs the built docs: the dev server has no q-manifest.json');
+    test.skip(
+      !preloader && !process.env.CI,
+      'needs the built docs: the dev server has no q-manifest.json'
+    );
+    expect(preloader, 'the built docs serve q-manifest.json naming the preloader').toBeTruthy();
     const preloaderUrl = new URL(`/build/${preloader}`, baseURL).href;
     await recordSpeculativePreloads(page);
     const cpuRate = await throttleLikeAMidTierPhone(page);

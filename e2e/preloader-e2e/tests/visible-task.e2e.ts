@@ -31,10 +31,6 @@ test.describe('visible task in view at load', () => {
   test('its chunks are requested as soon as qwikloader sees it, before any speculative preload', async ({
     page,
   }) => {
-    test.fail(
-      true,
-      'on main, visible task chunks wait for core to load, and speculative preloads start first'
-    );
     await recordSpeculativePreloads(page);
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
@@ -47,6 +43,10 @@ test.describe('visible task in view at load', () => {
       (url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && !speculative.has(url)
     );
     const firstSpeculativePreload = requests.findIndex((url) => speculative.has(url));
+    test.fail(
+      true,
+      'on main, visible task chunks wait for core to load, and speculative preloads start first'
+    );
     expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     if (firstSpeculativePreload >= 0) {
       expect(firstVisibleTaskChunk).toBeLessThan(firstSpeculativePreload);
@@ -138,11 +138,11 @@ const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
 
 test.describe('other visible task strategies', () => {
   test("document-ready: its chunks go out with the page's load work", async ({ page }) => {
+    const { firstChunk, load } = await loadAndRecordRequests(page, VISIBLE_DOCUMENT_READY);
     test.fail(
       true,
       'on main, document-ready visible task chunks wait for core, so they go out after load'
     );
-    const { firstChunk, load } = await loadAndRecordRequests(page, VISIBLE_DOCUMENT_READY);
     expect(firstChunk).toBeGreaterThanOrEqual(0);
     expect(firstChunk).toBeLessThan(load);
   });
@@ -150,11 +150,11 @@ test.describe('other visible task strategies', () => {
   test('document-idle: its chunks go out after load, before any speculative preload', async ({
     page,
   }) => {
-    test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
     const { firstChunk, firstSpeculativePreload, load } = await loadAndRecordRequests(
       page,
       VISIBLE_DOCUMENT_IDLE
     );
+    test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
     expect(firstChunk).toBeGreaterThan(load);
     if (firstSpeculativePreload >= 0) {
       expect(firstChunk).toBeLessThan(firstSpeculativePreload);

@@ -15,6 +15,8 @@ const ARMING_QUIET_MS = 50;
 const ARMING_IDLE_STEP_MS = 250;
 const ARMING_IDLE_LIMIT_MS = 2000;
 const MAX_ROUND_TRIPS = 20;
+const DOWNLOAD_LIMIT_MS = 30_000;
+const NETWORK_IDLE_LIMIT_MS = 60_000;
 
 export type Gate = {
   mode: 'pass' | 'hold';
@@ -103,13 +105,30 @@ export const settle = async (page: Page, gate: Gate, quietMs = QUIET_MS) => {
   }
 };
 
+const failAfter = (ms: number, message: string) => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const failure = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return { failure, cancel: () => clearTimeout(timer) };
+};
+
 const releaseUntilDownloaded = async (route: Route) => {
   await route.continue().catch(() => {});
-  const response = await route
-    .request()
-    .response()
-    .catch(() => null);
-  await response?.finished().catch(() => {});
+  const url = route.request().url();
+  const deadline = failAfter(DOWNLOAD_LIMIT_MS, `${url} did not finish downloading`);
+  try {
+    await Promise.race([
+      route
+        .request()
+        .response()
+        .then((response) => response?.finished())
+        .catch(() => {}),
+      deadline.failure,
+    ]);
+  } finally {
+    deadline.cancel();
+  }
 };
 
 export const release = async (routes: Route[]) => {
@@ -135,7 +154,12 @@ export const waitForNetworkIdle = async (
   page.on('requestfinished', onDone);
   page.on('requestfailed', onDone);
   await action();
+  const startedAt = Date.now();
   while (pending.size || Date.now() - lastActivity < quietMs) {
+    if (Date.now() - startedAt > NETWORK_IDLE_LIMIT_MS) {
+      const urls = [...pending].map((request) => request.url());
+      throw new Error(`The network never went idle; still pending: ${urls.join(', ')}`);
+    }
     await page.waitForTimeout(100);
   }
   page.off('request', onRequest);
@@ -282,13 +306,14 @@ export const formatRoundTrips = (
   { segmentsFrom }: { segmentsFrom?: string[] } = {}
 ) =>
   roundTrips
-    .map(({ urls }) =>
-      segmentsFrom ? urls.filter((url) => chunkHoldsSegmentsFrom(url, segmentsFrom)) : urls
-    )
-    .filter((urls) => urls.length)
-    .map((urls, index) => {
+    .map(({ urls }, index) => ({
+      number: index + 1,
+      urls: segmentsFrom ? urls.filter((url) => chunkHoldsSegmentsFrom(url, segmentsFrom)) : urls,
+    }))
+    .filter(({ urls }) => urls.length)
+    .map(({ number, urls }) => {
       const labels = [...new Set(urls.map(labelRequest))].sort();
-      return [`round trip ${index + 1}:`, ...labels.map((label) => `  ${label}`)].join('\n');
+      return [`round trip ${number}:`, ...labels.map((label) => `  ${label}`)].join('\n');
     })
     .join('\n') + '\n';
 

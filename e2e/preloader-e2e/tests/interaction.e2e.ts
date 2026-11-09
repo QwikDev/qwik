@@ -52,16 +52,16 @@ test('scoped-styles/scoped-styles: a component shown on click fetches its scoped
 test('qrl-prop/qrl-prop: a click calling a QRL passed down as a prop fetches it with the handler', async ({
   page,
 }) => {
-  test.fail(
-    true,
-    "on main, the QRL from the parent's file is only requested once the child's handler runs it, a round trip later"
-  );
   const roundTrips = await coldClick(page, QRL_PROP);
   const handlerRoundTrip = roundTripOf(roundTrips, (url) =>
     chunkComesFrom(url, ['src/components/fixtures/qrl-prop/action-button.tsx_'])
   );
   const qrlRoundTrip = roundTripOf(roundTrips, (url) =>
     chunkComesFrom(url, ['src/components/fixtures/qrl-prop/index.tsx_'])
+  );
+  test.fail(
+    true,
+    "on main, the QRL from the parent's file is only requested once the child's handler runs it, a round trip later"
   );
   expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
   expect(qrlRoundTrip).toBe(handlerRoundTrip);
@@ -90,16 +90,16 @@ test.describe("helper shared from another component's file", () => {
   test("a cold click fetches the helper's module but none of the other component's chunks", async ({
     page,
   }) => {
-    test.fail(
-      true,
-      "on main, the helper's module lists Card's segments as dynamic imports, so Card's render, its click handler and sparkline.ts go out as needed chunks"
-    );
     const roundTrips = await coldClick(page, SHARED_HELPER);
     const cardChunks = requestedUrls(roundTrips).filter((url) =>
       chunkComesFrom(url, [
         'src/components/fixtures/shared-helper/card.tsx_',
         'src/components/fixtures/shared-helper/sparkline.ts',
       ])
+    );
+    test.fail(
+      true,
+      "on main, the helper's module lists Card's segments as dynamic imports, so Card's render, its click handler and sparkline.ts go out as needed chunks"
     );
     expect(cardChunks).toEqual([]);
   });

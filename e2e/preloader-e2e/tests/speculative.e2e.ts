@@ -33,10 +33,6 @@ test.describe('queue', () => {
   });
 
   test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {
-    test.fail(
-      true,
-      'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
-    );
     await recordSpeculativePreloads(page);
     await waitForNetworkIdle(
       page,
@@ -57,6 +53,10 @@ test.describe('queue', () => {
       ...fillerHandlers.map((n, index) => (n <= inViewCount ? index : -1))
     );
     const firstOffScreen = fillerHandlers.findIndex((n) => n > inViewCount);
+    test.fail(
+      true,
+      'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
+    );
     expect(lastInView).toBeGreaterThanOrEqual(0);
     expect(firstOffScreen).toBeGreaterThanOrEqual(0);
     expect(lastInView).toBeLessThan(firstOffScreen);

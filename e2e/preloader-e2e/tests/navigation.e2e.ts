@@ -72,13 +72,13 @@ const navigateToTree = async (from: Fixture, state: 'cold' | 'warm', page: Page)
 
 test.describe('cold SPA navigation', () => {
   test('every render chunk of the new page goes out in the same round trip', async ({ page }) => {
-    test.fail(true, 'on main, the route module loads a round trip before its render chunks');
     const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate, ongoing);
     await expectResult(page, TO_TREE);
     const withNewPageChunks = roundTrips.filter((roundTrip) =>
       roundTrip.urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))
     );
+    test.fail(true, 'on main, the route module loads a round trip before its render chunks');
     expect(withNewPageChunks).toHaveLength(1);
   });
 
@@ -96,15 +96,15 @@ test.describe('cold SPA navigation', () => {
 
 test.describe('warm SPA navigation', () => {
   test('the new page shows with no JS request', async ({ page }) => {
-    test.fail(
-      true,
-      "on main, the router's navigation code (@qwik-router-config, useQwikRouter) is never preloaded"
-    );
     const { gate, roundTrips } = await navigateToTree(FROM.visible, 'warm', page);
     await releaseAll(gate);
     await expectResult(page, TO_TREE);
     const jsRequests = roundTrips.flatMap((roundTrip) =>
       roundTrip.urls.filter((url) => new URL(url).pathname.endsWith('.js'))
+    );
+    test.fail(
+      true,
+      "on main, the router's navigation code (@qwik-router-config, useQwikRouter) is never preloaded"
     );
     expect(jsRequests).toEqual([]);
   });
@@ -158,10 +158,6 @@ test.describe('after a navigation', () => {
   });
 
   test("the old page's queued speculative preloads aren't sent", async ({ page }) => {
-    test.fail(
-      true,
-      "on main, the preloader keeps sending the old page's queue after a SPA navigation"
-    );
     const opened = await openFixture(page, FROM.off, 'cold');
     const linksBeforeTheClick = (await preloaderLinks(page)).length;
     await countFixtureRoundTrips(
@@ -174,16 +170,16 @@ test.describe('after a navigation', () => {
       .slice(linksBeforeTheClick)
       .filter((link) => link.speculative && chunkComesFrom(link.href, OLD_PAGE_SOURCES))
       .map((link) => link.href);
+    test.fail(
+      true,
+      "on main, the preloader keeps sending the old page's queue after a SPA navigation"
+    );
     expect(oldPagePreloads).toEqual([]);
   });
 });
 
 test.describe('back button', () => {
   test('the previous page shows with no JS request', async ({ page }) => {
-    test.fail(
-      true,
-      'on main, going back renders the previous page on the client and finds its chunks one round trip at a time'
-    );
     const { gate } = await navigateToTree(FROM.visible, 'warm', page);
     await releaseAll(gate);
     await expectResult(page, TO_TREE);
@@ -197,6 +193,10 @@ test.describe('back button', () => {
     await releaseAll(gate);
     const jsRequests = roundTrips.flatMap((roundTrip) =>
       roundTrip.urls.filter((url) => new URL(url).pathname.endsWith('.js'))
+    );
+    test.fail(
+      true,
+      'on main, going back renders the previous page on the client and finds its chunks one round trip at a time'
     );
     expect(jsRequests).toEqual([]);
   });

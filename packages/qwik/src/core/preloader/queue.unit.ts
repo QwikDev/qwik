@@ -26,6 +26,19 @@ const installBrowserGlobals = () => {
   return document;
 };
 
+const installTestMessageChannels = () => {
+  const channels: TestMessageChannel[] = [];
+  class TestMessageChannel {
+    port1 = { onmessage: null as null | (() => void), close: vi.fn() };
+    port2 = { postMessage: vi.fn(), close: vi.fn() };
+    constructor() {
+      channels.push(this);
+    }
+  }
+  Object.assign(globalThis, { MessageChannel: TestMessageChannel });
+  return channels;
+};
+
 const installTestPlatform = async () => {
   const { setPlatform } = await import('../shared/platform/platform');
   const { getTestPlatform } = await import('../../testing/platform');
@@ -379,7 +392,7 @@ test('defers bundle graph re-adjustment to a later task', async () => {
   expect(headAppend).toHaveBeenCalled();
 });
 
-test('replays buffered hints without allocating unused bundle records', async () => {
+test('replays buffered hints without allocating unrelated BundleImport records', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -485,15 +498,7 @@ test('keeps newer required hints when buffered replay resumes after yielding', a
 
 test('keeps required links at needed priority between buffered replay slices', async () => {
   const document = installBrowserGlobals();
-  const channels: TestMessageChannel[] = [];
-  class TestMessageChannel {
-    port1 = { onmessage: null as null | (() => void), close: vi.fn() };
-    port2 = { postMessage: vi.fn(), close: vi.fn() };
-    constructor() {
-      channels.push(this);
-    }
-  }
-  Object.assign(globalThis, { MessageChannel: TestMessageChannel });
+  const channels = installTestMessageChannels();
   let now = 0;
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   vi.resetModules();
@@ -531,4 +536,37 @@ test('keeps required links at needed priority between buffered replay slices', a
   expect(leafLink).not.toBeNull();
   expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
   expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+});
+
+test('closes the replay MessageChannel after its final slice', async () => {
+  installBrowserGlobals();
+  const channels = installTestMessageChannels();
+  let now = 0;
+  vi.spyOn(performance, 'now').mockImplementation(() => (now += 11));
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  preload(['first/', 'second/'], 1);
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({ text: async () => JSON.stringify(['first/', 'second/']) } as Response)
+  );
+  await flushPromises();
+
+  const replay = channels[2];
+  expect(replay.port2.postMessage).toHaveBeenCalledTimes(1);
+  expect(replay.port1.close).not.toHaveBeenCalled();
+  expect(replay.port2.close).not.toHaveBeenCalled();
+
+  replay.port1.onmessage!();
+
+  expect(replay.port1.onmessage).toBeNull();
+  expect(replay.port1.close).toHaveBeenCalledTimes(1);
+  expect(replay.port2.close).toHaveBeenCalledTimes(1);
+  for (let i = 0; i < 2; i++) {
+    expect(channels[i].port1.close).not.toHaveBeenCalled();
+    expect(channels[i].port2.close).not.toHaveBeenCalled();
+  }
 });

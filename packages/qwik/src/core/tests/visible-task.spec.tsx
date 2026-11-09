@@ -630,10 +630,6 @@ describe(`${name}: useVisibleTask`, () => {
     vi.restoreAllMocks();
   });
 
-  describe(render.name + ': track', () => {});
-
-  describe(render.name + ': queue', () => {});
-
   describe(render.name + ': cleanup', () => {
     it('should run visible task once when invalidated by a signal and a ref it mounts', async () => {
       (globalThis as any).log = [] as string[];

@@ -76,16 +76,6 @@ export const resolveRequestHandlers = (
 
   if (route) {
     const routeName = route[0];
-    if (
-      checkOrigin &&
-      (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
-    ) {
-      if (checkOrigin === 'lax-proto') {
-        requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
-      } else {
-        requestHandlers.unshift(csrfCheckMiddleware);
-      }
-    }
     if (isPageRoute) {
       // `server$()` can only be called from existing page routes
       if (method === 'POST' || method === 'GET') {
@@ -116,6 +106,18 @@ export const resolveRequestHandlers = (
       });
       requestHandlers.push(actionsMiddleware(routeActions, routeLoaders) as any);
       requestHandlers.push(renderHandler);
+    }
+  }
+
+  if (
+    checkOrigin &&
+    (route || requestHandlers.length > 0) &&
+    (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
+  ) {
+    if (checkOrigin === 'lax-proto') {
+      requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
+    } else {
+      requestHandlers.unshift(csrfCheckMiddleware);
     }
   }
 
@@ -463,38 +465,25 @@ function csrfCheckMiddleware(requestEv: RequestEvent) {
   checkCSRF(requestEv);
 }
 export function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
-  const contentType = requestEv.request.headers.get('content-type');
+  const inputOrigin = requestEv.request.headers.get('origin');
+  const origin = requestEv.url.origin;
+  let forbidden = inputOrigin !== origin;
 
-  const isSimpleRequest =
-    !contentType ||
-    isContentType(
-      requestEv.request.headers,
-      'application/x-www-form-urlencoded',
-      'multipart/form-data',
-      'text/plain'
-    );
+  // fix https://github.com/QwikDev/qwik/issues/7688
+  if (
+    forbidden &&
+    laxProto &&
+    inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
+  ) {
+    forbidden = false;
+  }
 
-  if (isSimpleRequest) {
-    const inputOrigin = requestEv.request.headers.get('origin');
-    const origin = requestEv.url.origin;
-    let forbidden = inputOrigin !== origin;
-
-    // fix https://github.com/QwikDev/qwik/issues/7688
-    if (
-      forbidden &&
-      laxProto &&
-      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
-    ) {
-      forbidden = false;
-    }
-
-    if (forbidden) {
-      throw requestEv.error(
-        403,
-        `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+  if (forbidden) {
+    throw requestEv.error(
+      403,
+      `CSRF check failed. Cross-site ${requestEv.method} requests are forbidden.
 The request origin "${inputOrigin}" does not match the server origin "${origin}".`
-      );
-    }
+    );
   }
 }
 export function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {

@@ -61,6 +61,7 @@ jobs:
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
       hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
+      hash-preloader-e2e: ${{ steps.cache-preloader-e2e.outputs.cache-primary-key }}
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
       build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
@@ -71,6 +72,7 @@ jobs:
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
+      build-preloader-e2e: ${{ steps.cache-preloader-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
 
     steps:
@@ -211,6 +213,13 @@ jobs:
           lookup-only: true
           path: e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'starters/**/*', 'e2e/qwik-e2e/tests/**/*', 'e2e/qwik-e2e/dev-server.ts', 'e2e/qwik-e2e/playwright.config.ts') }}
+      - name: 'check cache: preloader e2e tests'
+        id: cache-preloader-e2e
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: preloader-e2e-tests-completed.txt
+          key: ${{ hashfiles('others-key.txt', 'e2e/preloader-e2e/**/*', 'e2e/qwik-e2e/apps/preloader-test/**/*') }}
       - name: 'check cache: cli e2e tests'
         id: cache-cli-e2e
         uses: actions/cache/restore@v5
@@ -1227,6 +1236,85 @@ jobs:
         run: tree -a e2e/qwik-e2e/apps/e2e/dist e2e/qwik-e2e/apps/e2e/server e2e/qwik-e2e/apps/qwikrouter-test/dist e2e/qwik-e2e/apps/qwikrouter-test/server
         if: failure()
 
+  test-e2e-preloader:
+    timeout-minutes: 45
+    name: E2E Preloader Tests (chromium)
+    if: ${{ !cancelled() && needs.changes.outputs.build-preloader-e2e == 'true' }}
+
+    needs:
+      - build-other-packages
+      - changes
+      - prepare-playwright
+
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+
+    steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.build-other-packages.result == 'success' &&
+            needs.prepare-playwright.result == 'success'
+          )
+        run: exit 1
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION_E2E }}
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-*.yaml
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download Package Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: 'artifact-{optimizer,qwik,qwikrouter}'
+          merge-multiple: false
+
+      - name: Move Distribution Artifacts
+        run: >
+          pnpm ci.restore-artifacts
+          artifact-optimizer
+          artifact-qwik
+          artifact-qwikrouter
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore Playwright browser cache
+        id: playwright-cache
+        uses: actions/cache/restore@v5
+        with:
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+          path: .cache/ms-playwright
+
+      - name: Install Playwright System Dependencies
+        timeout-minutes: 10
+        uses: ./.github/actions/install-playwright-deps
+        with:
+          browser: chromium
+
+      - name: Install Playwright Browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Playwright Preloader E2E Tests
+        run: pnpm test.e2e.preloader
+
+      - name: Upload Playwright Traces
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: failure()
+        with:
+          name: playwright-report-preloader
+          path: test-results/preloader/
+          retention-days: 30
+
   test-cli-e2e:
     timeout-minutes: 30
     name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
@@ -1485,6 +1573,32 @@ jobs:
         with:
           key: ${{ needs.changes.outputs.hash-e2e }}
           path: e2e-tests-completed.txt
+
+  save-preloader-e2e-tests-cache:
+    name: Save Preloader E2E Tests Cache
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - test-e2e-preloader
+    if: ${{ !cancelled() && needs.changes.outputs.build-preloader-e2e == 'true' && needs.test-e2e-preloader.result == 'success' }}
+
+    steps:
+      - name: Verify prerequisites
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.test-e2e-preloader.result == 'success'
+          )
+        run: exit 1
+
+      - name: Mark preloader e2e tests complete
+        run: echo ok > preloader-e2e-tests-completed.txt
+
+      - name: Save preloader e2e tests cache
+        uses: actions/cache/save@v5
+        with:
+          key: ${{ needs.changes.outputs.hash-preloader-e2e }}
+          path: preloader-e2e-tests-completed.txt
 
   save-cli-e2e-tests-cache:
     name: Save CLI E2E Tests Cache

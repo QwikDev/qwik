@@ -233,7 +233,7 @@ jobs:
         with:
           lookup-only: true
           path: docs-e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'e2e/docs-e2e/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'e2e/docs-e2e/**/*', 'e2e/preloader-e2e/utils/**/*') }}
 
 
   ############ BUILD PLATFORM BINDINGS ############

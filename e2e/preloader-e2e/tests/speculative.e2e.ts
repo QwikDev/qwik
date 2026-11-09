@@ -47,9 +47,9 @@ test.describe('queue', () => {
     const opened = await openFixture(page, WITH_25_IDLE_PRELOADS, 'cold');
     const { gate, ongoing } = opened;
     const linksBeforeTheClick = (await preloaderLinks(page)).length;
+    const linksSinceTheClick = async () => (await preloaderLinks(page)).slice(linksBeforeTheClick);
     const neededPreloadIsInFlight = async () => {
-      const needed = (await preloaderLinks(page))
-        .slice(linksBeforeTheClick)
+      const needed = (await linksSinceTheClick())
         .filter((link) => !link.speculative)
         .map((link) => link.href);
       return gate.held.some((route) => needed.includes(route.request().url()));
@@ -60,11 +60,11 @@ test.describe('queue', () => {
       neededPreloadIsInFlight
     );
     expect(ongoing.length).toBeGreaterThan(0);
-    const linksBeforeTheRelease = (await preloaderLinks(page)).length;
     await release(ongoing.splice(0));
     await settle(page, gate);
-    const startedMeanwhile = (await preloaderLinks(page))
-      .slice(linksBeforeTheRelease)
+    const links = await linksSinceTheClick();
+    const startedMeanwhile = links
+      .slice(links.findIndex((link) => !link.speculative))
       .filter((link) => link.speculative)
       .map((link) => link.href);
     await releaseAll(gate);

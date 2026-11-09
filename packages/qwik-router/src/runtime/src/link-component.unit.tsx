@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, createSignal } from '@qwik.dev/core';
 import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { Link, type PrefetchStrategy } from './link-component';
+import { Link, type LinkProps, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => ({
-  prefetchRouteMock: vi.fn(),
-  getClientNavPathMock: vi.fn(),
-  gotoMock: vi.fn(),
-}));
+const { prefetchRouteMock, getClientNavPathMock, gotoMock, findRouterConfigMock } = vi.hoisted(
+  () => ({
+    prefetchRouteMock: vi.fn(),
+    getClientNavPathMock: vi.fn(),
+    gotoMock: vi.fn(),
+    findRouterConfigMock: vi.fn(),
+  })
+);
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
@@ -17,9 +20,7 @@ vi.mock('./prefetch-route', () => ({
 const page = () => Promise.resolve({});
 vi.mock('./router-config', async (importOriginal) => ({
   ...((await importOriginal()) as object),
-  findRouterConfig: () => ({
-    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
-  }),
+  findRouterConfig: findRouterConfigMock,
 }));
 
 vi.mock('./utils.ts', async (importOriginal) => {
@@ -37,6 +38,7 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 type LinkPrefetchProps = {
+  ref?: LinkProps['ref'];
   prefetch?: boolean | 'js';
   prefetchBundles?: PrefetchStrategy;
   prefetchData?: PrefetchStrategy;
@@ -47,6 +49,7 @@ const Root = component$((props: LinkPrefetchProps) => {
     <QwikRouterMockProvider>
       <Link
         href="/test"
+        ref={props.ref}
         prefetch={props.prefetch}
         prefetchBundles={props.prefetchBundles}
         prefetchData={props.prefetchData}
@@ -96,6 +99,9 @@ describe.each([
   { render: domRender }, //
 ])('$render.name: link component', ({ render }) => {
   beforeEach(() => {
+    findRouterConfigMock.mockReturnValue({
+      routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+    });
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
@@ -466,5 +472,28 @@ describe.each([
 
     expect(onPointerEnterMock).toHaveBeenCalledTimes(1);
     expect(onMouseOverMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('client links before the router config loads', () => {
+  beforeEach(() => {
+    findRouterConfigMock.mockReturnValue(undefined);
+    getClientNavPathMock.mockReturnValue('http://localhost/product/hoodie-01/');
+    prefetchRouteMock.mockClear();
+  });
+
+  it.each(['callback', 'signal'])('keeps the normal click fallback and %s ref', async (kind) => {
+    const ref = kind === 'callback' ? vi.fn() : createSignal<Element>();
+    const { document, anchor } = await renderLink(domRender, { prefetchBundles: 'off', ref });
+    expect(anchor.hasAttribute('data-q-route')).toBe(false);
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+    if (typeof ref === 'function') {
+      expect(ref).toHaveBeenCalledWith(anchor);
+    } else {
+      expect(ref.value).toBe(anchor);
+    }
+    await trigger(document.body, anchor, 'click');
+    expect(prefetchRouteMock).toHaveBeenCalledOnce();
+    expectPrefetchRouteCall(0, '/product/hoodie-01/', false, 1);
   });
 });

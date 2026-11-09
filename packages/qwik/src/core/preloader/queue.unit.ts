@@ -482,3 +482,53 @@ test('keeps newer required hints when buffered replay resumes after yielding', a
   expect(bundles.get('third/')!.$inverseProbability$).toBe(0);
   expect(bundles.get('last.js')!.$inverseProbability$).toBe(0);
 });
+
+test('keeps required links at needed priority between buffered replay slices', async () => {
+  const document = installBrowserGlobals();
+  const channels: TestMessageChannel[] = [];
+  class TestMessageChannel {
+    port1 = { onmessage: null as null | (() => void), close: vi.fn() };
+    port2 = { postMessage: vi.fn(), close: vi.fn() };
+    constructor() {
+      channels.push(this);
+    }
+  }
+  Object.assign(globalThis, { MessageChannel: TestMessageChannel });
+  let now = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  const [trigger, adjust] = channels;
+
+  preload('route/', 1);
+  preload('needed.js', 0.8);
+  adjust.port1.onmessage!();
+  clock.mockImplementation(() => (now += 11));
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({
+      text: async () => JSON.stringify(['route/', 2, 'needed.js', 4, 'leaf.js']),
+    } as Response)
+  );
+  await flushPromises();
+  const replay = channels[2];
+  clock.mockImplementation(() => now);
+  adjust.port1.onmessage!();
+  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+
+  replay.port1.onmessage!();
+  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+  trigger.port1.onmessage!();
+  const neededLink = document.head.querySelector('link[href$="needed.js"]');
+  expect(neededLink).not.toBeNull();
+  expect(neededLink!.getAttribute('fetchpriority')).not.toBe('low');
+
+  adjust.port1.onmessage!();
+  trigger.port1.onmessage!();
+  const leafLink = document.head.querySelector('link[href$="leaf.js"]');
+  expect(leafLink).not.toBeNull();
+  expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
+  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+});

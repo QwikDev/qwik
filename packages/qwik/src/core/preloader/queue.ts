@@ -149,7 +149,7 @@ const processAdjustmentFrame = () => {
   }
 
   const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = frame.$inverseProbability$;
+  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
   // Don't propagate tiny changes
   if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
     adjustmentStack.pop();

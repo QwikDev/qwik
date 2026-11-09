@@ -195,6 +195,47 @@ test('asks the browser for low priority on speculative preloads only', async () 
   expect(spec.getAttribute('fetchpriority')).toBe('low');
 });
 
+test('keeps a bundle needed when a later hint gives it a lower probability', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['needed.js']);
+  preload('needed.js', 1);
+  preload('needed.js', 0.6);
+  vi.runAllTimers();
+
+  const needed = document.head.querySelector('link') as HTMLLinkElement;
+  expect(needed.getAttribute('fetchpriority')).toBe(null);
+});
+
+test('keeps a needed dependency needed when another importer is hinted at a lower probability', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['needed.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
+  preload('needed.js', 1);
+  preload('other.js', 0.6);
+  vi.runAllTimers();
+
+  const links = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+  const shared = links.find((link) => link.href.endsWith('shared.js'))!;
+  expect(shared.getAttribute('fetchpriority')).toBe(null);
+});
+
 test('applies hints buffered before the preloader chunk loaded', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

@@ -97,7 +97,13 @@ const visibleStrategy = (strategy: string): Fixture => ({
 export const VISIBLE_DOCUMENT_READY = visibleStrategy('document-ready');
 export const VISIBLE_DOCUMENT_IDLE = visibleStrategy('document-idle');
 
-export const fixtureById = (id: string) => MATRIX.find((fixture) => fixture.id === id)!;
+export const fixtureById = (id: string) => {
+  const fixture = MATRIX.find((candidate) => candidate.id === id);
+  if (!fixture) {
+    throw new Error(`No fixture has the id ${id}`);
+  }
+  return fixture;
+};
 
 export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODAL].map(
   (fixture) => ({ ...fixture, path: '/all-at-once/' })

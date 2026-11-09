@@ -153,18 +153,21 @@ export const waitForNetworkIdle = async (
   page.on('request', onRequest);
   page.on('requestfinished', onDone);
   page.on('requestfailed', onDone);
-  await action();
-  const startedAt = Date.now();
-  while (pending.size || Date.now() - lastActivity < quietMs) {
-    if (Date.now() - startedAt > NETWORK_IDLE_LIMIT_MS) {
-      const urls = [...pending].map((request) => request.url());
-      throw new Error(`The network never went idle; still pending: ${urls.join(', ')}`);
+  try {
+    await action();
+    const startedAt = Date.now();
+    while (pending.size || Date.now() - lastActivity < quietMs) {
+      if (Date.now() - startedAt > NETWORK_IDLE_LIMIT_MS) {
+        const urls = [...pending].map((request) => request.url());
+        throw new Error(`The network never went idle; still pending: ${urls.join(', ')}`);
+      }
+      await page.waitForTimeout(100);
     }
-    await page.waitForTimeout(100);
+  } finally {
+    page.off('request', onRequest);
+    page.off('requestfinished', onDone);
+    page.off('requestfailed', onDone);
   }
-  page.off('request', onRequest);
-  page.off('requestfinished', onDone);
-  page.off('requestfailed', onDone);
 };
 
 export const releaseAll = async (gate: Gate, ongoing: Route[] = []) => {
@@ -288,11 +291,11 @@ export const countRoundTrips = async (
     if (!routes.length) {
       throw new Error(`Not done and nothing requested after ${roundTrips.length} round trips`);
     }
-    roundTrips.push({ urls: urlsOf(routes), ongoingUrls: urlsOf(ongoingRoutes) });
-    await release(routes);
-    if (roundTrips.length > MAX_ROUND_TRIPS) {
+    if (roundTrips.length === MAX_ROUND_TRIPS) {
       throw new Error(`More than ${MAX_ROUND_TRIPS} round trips`);
     }
+    roundTrips.push({ urls: urlsOf(routes), ongoingUrls: urlsOf(ongoingRoutes) });
+    await release(routes);
   }
 };
 

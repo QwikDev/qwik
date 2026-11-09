@@ -348,6 +348,48 @@ describe('loaderHandler', () => {
       expect(layoutLoader.__qrl.call).toHaveBeenCalledTimes(1);
       expect(pageLoader.__qrl.call).toHaveBeenCalledTimes(1);
     });
+
+    it('still runs a plugin guard a descendant page re-exports for a layout loader request', async () => {
+      const requestEv = createRequestEv();
+      const pluginGuard = makeLoader('plugin-guard', () => 'guard');
+      const layoutLoader = makeLoader('loader-id', () => 'layout-data');
+      const pageLoader = makeLoader('page-loader', () => {
+        throw new Error('page loader should not run');
+      });
+      const plugins = [{ useGuard: pluginGuard }];
+      const mods = [{ useLayout: layoutLoader }, { usePage: pageLoader, useGuard: pluginGuard }];
+
+      await loaderHandler(
+        [pluginGuard, layoutLoader, pageLoader] as any,
+        { $mods$: mods } as any,
+        plugins as any
+      )(requestEv as any);
+
+      expect(pluginGuard.__qrl.call).toHaveBeenCalledTimes(1);
+      expect(pageLoader.__qrl.call).not.toHaveBeenCalled();
+      expect(layoutLoader.__qrl.call).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs every guard when the requested loader is only exported by a plugin', async () => {
+      const requestEv = createRequestEv();
+      const pluginTarget = makeLoader('loader-id', () => 'plugin-data');
+      const pluginGuard = makeLoader('plugin-guard', () => 'guard');
+      const layoutGuard = makeLoader('layout-guard', () => 'layout');
+      const pageGuard = makeLoader('page-guard', () => 'page');
+      const plugins = [{ useTarget: pluginTarget, useGuard: pluginGuard }];
+      const mods = [{ useLayout: layoutGuard }, { usePage: pageGuard }];
+
+      await loaderHandler(
+        [pluginTarget, pluginGuard, layoutGuard, pageGuard] as any,
+        { $mods$: mods } as any,
+        plugins as any
+      )(requestEv as any);
+
+      expect(pluginGuard.__qrl.call).toHaveBeenCalledTimes(1);
+      expect(layoutGuard.__qrl.call).toHaveBeenCalledTimes(1);
+      expect(pageGuard.__qrl.call).toHaveBeenCalledTimes(1);
+      expect(pluginTarget.__qrl.call).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('sends a ServerError from the loader with Cache-Control: no-store over the loader option', async () => {

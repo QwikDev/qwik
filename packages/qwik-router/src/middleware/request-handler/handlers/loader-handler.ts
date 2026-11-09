@@ -32,7 +32,8 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
-  route?: RouteLoaderData
+  route?: RouteLoaderData,
+  serverPlugins?: RouteModule[]
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
@@ -54,7 +55,7 @@ export function loaderHandler(
     }
 
     setRouteLoaderData(requestEv, routeLoaders, route);
-    await runRouteGuards(routeLoaders, loader, requestEv, route?.$mods$);
+    await runRouteGuards(routeLoaders, loader, requestEv, serverPlugins, route?.$mods$);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
@@ -153,52 +154,74 @@ function resolveLoaderCacheControl(
 }
 
 /**
- * Blocking loaders guard the route, so they all run whatever the export order. Loaders of modules
- * below the requested loader's module do not: a layout's loader request is matched to the page at
- * the layout's path, and that page's loaders must not run (or redirect) for it.
+ * Blocking loaders guard the route, so they all run whatever the export order. Only modules after
+ * the one exporting the requested loader are skipped: a layout's loader request is matched to the
+ * page at the layout's path, and that page's loaders must not run (or redirect) for it.
+ *
+ * Server plugins run first. A loader both a plugin and a route module export runs once,
+ * `loadRouteLoader` is cached per request.
  */
 async function runRouteGuards(
   routeLoaders: LoaderInternal[],
   targetLoader: LoaderInternal,
   requestEv: RequestEventInternal,
+  serverPlugins: RouteModule[] | undefined,
   routeModules: RouteModule[] | undefined
 ) {
-  const below = getLoadersBelow(routeModules, targetLoader);
-  for (const loader of routeLoaders) {
-    if (loader !== targetLoader && loader.__blockSSR && !below.has(loader)) {
-      await loadRouteLoader(loader, requestEv);
+  let targetIndex = -1;
+  if (routeModules) {
+    for (let i = 0; i < routeModules.length; i++) {
+      if (exportsLoader(routeModules[i], targetLoader)) {
+        targetIndex = i;
+        break;
+      }
     }
+  }
+  if (targetIndex < 0) {
+    // not in a route module (plugin-only target): every blocking loader guards it
+    for (let i = 0; i < routeLoaders.length; i++) {
+      const loader = routeLoaders[i];
+      if (loader !== targetLoader && loader.__blockSSR) {
+        await loadRouteLoader(loader, requestEv);
+      }
+    }
+    return;
+  }
+  if (serverPlugins) {
+    for (let i = 0; i < serverPlugins.length; i++) {
+      await runModuleGuards(serverPlugins[i], targetLoader, requestEv);
+    }
+  }
+  for (let i = 0; i <= targetIndex; i++) {
+    await runModuleGuards(routeModules![i], targetLoader, requestEv);
   }
 }
 
-/** Loaders only exported by route modules after the one that exports the target. */
-function getLoadersBelow(routeModules: RouteModule[] | undefined, targetLoader: LoaderInternal) {
-  const below = new Set<LoaderInternal>();
-  if (!routeModules) {
-    return below;
-  }
-  const loadersOf = (routeModule: RouteModule) =>
-    Object.values(routeModule).filter(
-      (value) => typeof value === 'function' && (value as any).__brand === 'server_loader'
-    ) as LoaderInternal[];
-  const targetIndex = routeModules.findIndex((routeModule) =>
-    loadersOf(routeModule).includes(targetLoader)
-  );
-  if (targetIndex < 0) {
-    return below;
-  }
-  for (let i = routeModules.length - 1; i > targetIndex; i--) {
-    for (const loader of loadersOf(routeModules[i])) {
-      below.add(loader);
+function exportsLoader(routeModule: RouteModule, loader: LoaderInternal) {
+  for (const key in routeModule) {
+    if ((routeModule as Record<string, unknown>)[key] === loader) {
+      return true;
     }
   }
-  // a loader the target's module or a module above also exports is still a guard
-  for (let i = 0; i <= targetIndex; i++) {
-    for (const loader of loadersOf(routeModules[i])) {
-      below.delete(loader);
+  return false;
+}
+
+async function runModuleGuards(
+  routeModule: RouteModule,
+  targetLoader: LoaderInternal,
+  requestEv: RequestEventInternal
+) {
+  for (const key in routeModule) {
+    const value = (routeModule as Record<string, unknown>)[key] as LoaderInternal;
+    if (
+      typeof value === 'function' &&
+      value.__brand === 'server_loader' &&
+      value !== targetLoader &&
+      value.__blockSSR
+    ) {
+      await loadRouteLoader(value, requestEv);
     }
   }
-  return below;
 }
 
 type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'> &

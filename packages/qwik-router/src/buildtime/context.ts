@@ -8,7 +8,8 @@ export function createBuildContext(
   viteBasePath: string,
   userOpts?: PluginOptions,
   target?: 'ssr' | 'client',
-  dynamicImports?: boolean
+  dynamicImports?: boolean,
+  isDevServer?: boolean
 ) {
   const ctx: RoutingContext = {
     rootDir: normalizePath(rootDir),
@@ -21,6 +22,10 @@ export function createBuildContext(
     serviceWorkers: [],
     menus: [],
     diagnostics: [],
+    ignoredRoutePaths: [],
+    ignoredRouteFiles: [],
+    isDevServer: !!isDevServer,
+    hasLoggedIgnoredRoutes: false,
     frontmatter: new Map(),
     target: target || 'ssr',
     dynamicImports: target === 'client' || !!dynamicImports,
@@ -37,6 +42,8 @@ export function resetBuildContext(ctx: RoutingContext | null) {
     ctx.entries.length = 0;
     ctx.menus.length = 0;
     ctx.diagnostics.length = 0;
+    ctx.ignoredRoutePaths.length = 0;
+    ctx.ignoredRouteFiles.length = 0;
     ctx.frontmatter.clear();
     ctx.isDirty = true;
   }
@@ -105,6 +112,7 @@ function normalizeOptions(
   }
   opts.basePathname = resolveBasePathname(userOpts, viteBasePath);
 
+  opts.ignoreRoutes = opts.ignoreRoutes || [];
   opts.mdx = opts.mdx || {};
   opts.platform = opts.platform || {};
   if (opts.strictLoaders === undefined) {

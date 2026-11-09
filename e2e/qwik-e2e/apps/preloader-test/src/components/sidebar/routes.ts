@@ -131,6 +131,11 @@ export const routes = [
     label: 'user import',
   },
   {
+    group: 'other',
+    href: '/shared-helper/',
+    label: 'shared helper',
+  },
+  {
     group: 'visible',
     href: '/visible/above/',
     label: 'above the fold',

@@ -426,6 +426,7 @@ const writeMatrix = () => {
 const HAND_WRITTEN = [
   { group: 'other', href: '/modal/', label: 'modal' },
   { group: 'other', href: '/user-import/', label: 'user import' },
+  { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'visible', href: '/visible/above/', label: 'above the fold' },
   { group: 'visible', href: '/visible/below/', label: 'below the fold' },
   { group: 'speculative', href: '/speculative/heavy/', label: 'heavy chunk' },

@@ -43,6 +43,13 @@ export const USER_IMPORT: Fixture = {
   warmRoundTrips: 1,
 };
 
+export const SHARED_HELPER: Fixture = {
+  id: 'shared-helper/shared-helper',
+  path: '/shared-helper/',
+  sources: ['src/components/fixtures/shared-helper/', 'src/routes/shared-helper/'],
+  expected: '1 clicks',
+};
+
 export const IMPORT_CHAIN: Fixture = {
   id: 'harness/import-chain',
   path: '/harness/import-chain/',

@@ -148,10 +148,15 @@ const processAdjustmentFrame = () => {
     return false;
   }
 
+  const wasNeeded = isNeeded(bundle);
   const previousInverseProbability = bundle.$inverseProbability$;
   bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Replay newly attached dependencies even without a priority change.
-  if (!frame.$isReplay$ && previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
+  // Replay and needed transitions must reach dependencies.
+  if (
+    !frame.$isReplay$ &&
+    wasNeeded === isNeeded(bundle) &&
+    previousInverseProbability - bundle.$inverseProbability$ < 0.01
+  ) {
     adjustmentStack.pop();
     return false;
   }

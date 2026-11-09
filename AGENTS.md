@@ -241,6 +241,9 @@ When a change affects published packages, add a changeset under `.changeset/`.
 - Avoid vague names like `data`, `item`, `temp`, `handle`, `process`, or `doWork` unless the local
   scope makes the meaning obvious.
 - Keep existing public API names unless the task is intentionally changing the API.
+- Name tests in their reader's words. End-feature tests use product terms, the ones the product's
+  users would say. DX and code tests use the terms a typical developer and the codebase use (for
+  QRLs: `qrl` or `component qrl`, not `marker`).
 
 #### Control Flow
 

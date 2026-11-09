@@ -570,3 +570,65 @@ test('closes the replay MessageChannel after its final slice', async () => {
     expect(channels[i].port2.close).not.toHaveBeenCalled();
   }
 });
+
+test.each([true, false])(
+  'propagates needed priority to static descendants (buffered hints=%s)',
+  async (buffered) => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload, bundles } = await import('./queue');
+    const loadGraph = () =>
+      loadBundleGraph(
+        '/build/',
+        Promise.resolve({
+          text: async () =>
+            JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js', 8, 'static-child.js']),
+        } as Response)
+      );
+
+    if (!buffered) {
+      loadGraph();
+      await vi.runAllTimersAsync();
+    }
+    preload('c.js', 0.988);
+    preload('b.js', 0.995);
+    preload('a.js', 1);
+    if (buffered) {
+      vi.runAllTimers();
+      loadGraph();
+    }
+    await vi.runAllTimersAsync();
+
+    expect(bundles.get('c.js')!.$inverseProbability$).toBe(0.01);
+    expect(bundles.get('static-child.js')!.$inverseProbability$).toBe(0);
+    const childLink = document.head.querySelector('link[href$="/static-child.js"]');
+    expect(childLink).not.toBeNull();
+    expect(childLink!.getAttribute('fetchpriority')).not.toBe('low');
+  }
+);
+
+test('keeps the small-change cutoff for speculative hints', async () => {
+  installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+  const { bundles } = await import('./queue');
+  initPreloader(['entry.js', 2, 'child.js']);
+
+  preload('entry.js', 0.8);
+  await vi.runAllTimersAsync();
+  const childInverseProbability = bundles.get('child.js')!.$inverseProbability$;
+  expect(childInverseProbability).toBeCloseTo(0.2);
+
+  preload('entry.js', 0.805);
+  await vi.runAllTimersAsync();
+
+  expect(bundles.get('entry.js')!.$inverseProbability$).toBeCloseTo(0.195);
+  expect(bundles.get('child.js')!.$inverseProbability$).toBe(childInverseProbability);
+});

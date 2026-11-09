@@ -137,6 +137,7 @@ test.describe("server$", () => {
       "/qwikcity-test.prod/?qfunc=ThisDoesNotExist",
       {
         headers: {
+          Origin: "http://localhost:3301",
           "X-Qrl": "ThisDoesNotExist",
           "Content-Type": "application/qwik-json",
         },

@@ -1,6 +1,5 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 import { fileSize, type BuildConfig } from './util.ts';
 
 /** Builds the stand-alone preloader module, minified by the bundler. */
@@ -20,14 +19,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         output: { comments: false },
         experimental: { attachDebugInfo: 'none' },
       },
-      minify: 'terser',
-      // Preloader state is private to this independently bundled module.
-      terserOptions: {
-        mangle:
-          config.mangle === false
-            ? false
-            : { properties: { regex: new RegExp(MANGLE_PROPS_REGEX) } },
-      },
+      minify: true,
       outDir: config.distQwikPkgDir,
     },
     define: {

@@ -28,10 +28,6 @@ afterAll(async () => {
   }
 });
 
-test('mangles private properties in the built preloader', () => {
-  expect(preloaderCode).not.toMatch(/\$[A-Za-z_]\w*\$/);
-});
-
 test('runs independently of core and replays buffered hints', async () => {
   const { code } = await transform(preloaderCode, { format: 'cjs' });
   try {

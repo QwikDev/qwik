@@ -1,5 +1,17 @@
 # @builder.io/qwik
 
+## 1.20.4
+
+### Patch Changes
+
+- 🐞🩹 run client build without fetching an unrelated package (by [@github-actions](https://github.com/apps/github-actions) in [#9298](https://github.com/QwikDev/qwik/pull/9298))
+
+- 🐞🩹 bound deserialized bigint values to prevent server stalls (by [@github-actions](https://github.com/apps/github-actions) in [#9298](https://github.com/QwikDev/qwik/pull/9298))
+
+- 🐞🩹 `qwik migrate-v2` runs the latest migration published with `@qwik.dev/core`. (by [@wmertens](https://github.com/wmertens) in [#9179](https://github.com/QwikDev/qwik/pull/9179))
+
+- 🐞🩹 require dependency versions that address published security advisories (by [@wmertens](https://github.com/wmertens) in [#9297](https://github.com/QwikDev/qwik/pull/9297))
+
 ## 1.20.3
 
 ## 1.20.2

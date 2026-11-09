@@ -1,5 +1,13 @@
 # @builder.io/qwik-city
 
+## 1.20.4
+
+### Patch Changes
+
+- 🐞🩹 require dependency versions that address published security advisories (by [@wmertens](https://github.com/wmertens) in [#9297](https://github.com/QwikDev/qwik/pull/9297))
+
+- 🐞🩹 check the origin of POST, PUT, PATCH, and DELETE requests, including browser hyperlink pings, to prevent CSRF bypasses (by [@github-actions](https://github.com/apps/github-actions) in [#9298](https://github.com/QwikDev/qwik/pull/9298))
+
 ## 1.20.3
 
 ### Patch Changes

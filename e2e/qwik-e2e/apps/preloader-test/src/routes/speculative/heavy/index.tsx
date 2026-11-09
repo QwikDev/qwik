@@ -1,12 +1,12 @@
 import { component$ } from '@qwik.dev/core';
 import type { DocumentHead } from '@qwik.dev/router';
 import { Heavy } from '~/components/fixtures/speculative/heavy';
-import SingleTask from '~/components/fixtures/single/task';
+import SingleTaskChain from '~/components/fixtures/single/task-chain';
 
 export default component$(() => (
   <>
     <Heavy />
-    <SingleTask />
+    <SingleTaskChain />
   </>
 ));
 

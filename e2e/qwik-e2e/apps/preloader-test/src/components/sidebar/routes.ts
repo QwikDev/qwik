@@ -2,28 +2,13 @@
 export const routes = [
   {
     group: 'single',
-    href: '/single/task/',
-    label: 'task',
-  },
-  {
-    group: 'single',
     href: '/single/task-chain/',
     label: 'task-chain',
   },
   {
     group: 'single',
-    href: '/single/computed/',
-    label: 'computed',
-  },
-  {
-    group: 'single',
     href: '/single/computed-chain/',
     label: 'computed-chain',
-  },
-  {
-    group: 'single',
-    href: '/single/async-computed/',
-    label: 'async-computed',
   },
   {
     group: 'single',
@@ -37,11 +22,6 @@ export const routes = [
   },
   {
     group: 'single',
-    href: '/single/visible-task/',
-    label: 'visible-task',
-  },
-  {
-    group: 'single',
     href: '/single/visible-task-chain/',
     label: 'visible-task-chain',
   },
@@ -52,28 +32,13 @@ export const routes = [
   },
   {
     group: 'tree',
-    href: '/tree/task/',
-    label: 'task',
-  },
-  {
-    group: 'tree',
     href: '/tree/task-chain/',
     label: 'task-chain',
   },
   {
     group: 'tree',
-    href: '/tree/computed/',
-    label: 'computed',
-  },
-  {
-    group: 'tree',
     href: '/tree/computed-chain/',
     label: 'computed-chain',
-  },
-  {
-    group: 'tree',
-    href: '/tree/async-computed/',
-    label: 'async-computed',
   },
   {
     group: 'tree',
@@ -87,11 +52,6 @@ export const routes = [
   },
   {
     group: 'tree',
-    href: '/tree/visible-task/',
-    label: 'visible-task',
-  },
-  {
-    group: 'tree',
     href: '/tree/visible-task-chain/',
     label: 'visible-task-chain',
   },
@@ -102,28 +62,13 @@ export const routes = [
   },
   {
     group: 'tree-context',
-    href: '/tree-context/task/',
-    label: 'task',
-  },
-  {
-    group: 'tree-context',
     href: '/tree-context/task-chain/',
     label: 'task-chain',
   },
   {
     group: 'tree-context',
-    href: '/tree-context/computed/',
-    label: 'computed',
-  },
-  {
-    group: 'tree-context',
     href: '/tree-context/computed-chain/',
     label: 'computed-chain',
-  },
-  {
-    group: 'tree-context',
-    href: '/tree-context/async-computed/',
-    label: 'async-computed',
   },
   {
     group: 'tree-context',
@@ -137,11 +82,6 @@ export const routes = [
   },
   {
     group: 'tree-context',
-    href: '/tree-context/visible-task/',
-    label: 'visible-task',
-  },
-  {
-    group: 'tree-context',
     href: '/tree-context/visible-task-chain/',
     label: 'visible-task-chain',
   },
@@ -152,28 +92,13 @@ export const routes = [
   },
   {
     group: 'conditional',
-    href: '/conditional/task/',
-    label: 'task',
-  },
-  {
-    group: 'conditional',
     href: '/conditional/task-chain/',
     label: 'task-chain',
   },
   {
     group: 'conditional',
-    href: '/conditional/computed/',
-    label: 'computed',
-  },
-  {
-    group: 'conditional',
     href: '/conditional/computed-chain/',
     label: 'computed-chain',
-  },
-  {
-    group: 'conditional',
-    href: '/conditional/async-computed/',
-    label: 'async-computed',
   },
   {
     group: 'conditional',
@@ -184,11 +109,6 @@ export const routes = [
     group: 'conditional',
     href: '/conditional/mixed-computed-chain/',
     label: 'mixed-computed-chain',
-  },
-  {
-    group: 'conditional',
-    href: '/conditional/visible-task/',
-    label: 'visible-task',
   },
   {
     group: 'conditional',

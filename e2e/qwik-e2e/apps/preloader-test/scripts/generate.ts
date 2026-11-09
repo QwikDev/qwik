@@ -12,14 +12,6 @@ type Primitive = {
 };
 
 const PRIMITIVES: Record<string, Primitive> = {
-  task: {
-    imports: ['useSignal', 'useTask$'],
-    code: (input) => `
-  const out = useSignal(0);
-  useTask$(({ track }) => {
-    out.value = track(${input}) * 2;
-  });`,
-  },
   'task-chain': {
     imports: ['useSignal', 'useTask$'],
     code: (input) => `
@@ -36,22 +28,12 @@ const PRIMITIVES: Record<string, Primitive> = {
     out.value = track(b) * 2;
   });`,
   },
-  computed: {
-    imports: ['useComputed$'],
-    code: (input) => `
-  const out = useComputed$(() => ${input}.value * 2);`,
-  },
   'computed-chain': {
     imports: ['useComputed$'],
     code: (input) => `
   const a = useComputed$(() => ${input}.value * 2);
   const b = useComputed$(() => a.value * 2);
   const out = useComputed$(() => b.value * 2);`,
-  },
-  'async-computed': {
-    imports: ['useComputed$'],
-    code: (input) => `
-  const out = useComputed$(async ({ track }) => track(${input}) * 2);`,
   },
   'async-computed-chain': {
     imports: ['useComputed$'],
@@ -66,14 +48,6 @@ const PRIMITIVES: Record<string, Primitive> = {
   const a = useComputed$(() => ${input}.value * 2);
   const b = useComputed$(async ({ track }) => track(a) * 2);
   const out = useComputed$(async ({ track }) => track(b) * 2);`,
-  },
-  'visible-task': {
-    imports: ['useSignal', 'useVisibleTask$'],
-    code: (input) => `
-  const out = useSignal(0);
-  useVisibleTask$(({ track }) => {
-    out.value = track(${input}) * 2;
-  });`,
   },
   'visible-task-chain': {
     imports: ['useSignal', 'useVisibleTask$'],

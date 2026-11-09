@@ -5,44 +5,28 @@ import Modal from '~/components/fixtures/modal';
 import UserImport from '~/components/fixtures/user-import';
 import VisibleAbove from '~/components/fixtures/visible/above';
 import VisibleBelow from '~/components/fixtures/visible/below';
-import SingleTask from '~/components/fixtures/single/task';
 import SingleTaskChain from '~/components/fixtures/single/task-chain';
-import SingleComputed from '~/components/fixtures/single/computed';
 import SingleComputedChain from '~/components/fixtures/single/computed-chain';
-import SingleAsyncComputed from '~/components/fixtures/single/async-computed';
 import SingleAsyncComputedChain from '~/components/fixtures/single/async-computed-chain';
 import SingleMixedComputedChain from '~/components/fixtures/single/mixed-computed-chain';
-import SingleVisibleTask from '~/components/fixtures/single/visible-task';
 import SingleVisibleTaskChain from '~/components/fixtures/single/visible-task-chain';
 import SingleAll from '~/components/fixtures/single/all';
-import TreeTask from '~/components/fixtures/tree/task';
 import TreeTaskChain from '~/components/fixtures/tree/task-chain';
-import TreeComputed from '~/components/fixtures/tree/computed';
 import TreeComputedChain from '~/components/fixtures/tree/computed-chain';
-import TreeAsyncComputed from '~/components/fixtures/tree/async-computed';
 import TreeAsyncComputedChain from '~/components/fixtures/tree/async-computed-chain';
 import TreeMixedComputedChain from '~/components/fixtures/tree/mixed-computed-chain';
-import TreeVisibleTask from '~/components/fixtures/tree/visible-task';
 import TreeVisibleTaskChain from '~/components/fixtures/tree/visible-task-chain';
 import TreeAll from '~/components/fixtures/tree/all';
-import TreeContextTask from '~/components/fixtures/tree-context/task';
 import TreeContextTaskChain from '~/components/fixtures/tree-context/task-chain';
-import TreeContextComputed from '~/components/fixtures/tree-context/computed';
 import TreeContextComputedChain from '~/components/fixtures/tree-context/computed-chain';
-import TreeContextAsyncComputed from '~/components/fixtures/tree-context/async-computed';
 import TreeContextAsyncComputedChain from '~/components/fixtures/tree-context/async-computed-chain';
 import TreeContextMixedComputedChain from '~/components/fixtures/tree-context/mixed-computed-chain';
-import TreeContextVisibleTask from '~/components/fixtures/tree-context/visible-task';
 import TreeContextVisibleTaskChain from '~/components/fixtures/tree-context/visible-task-chain';
 import TreeContextAll from '~/components/fixtures/tree-context/all';
-import ConditionalTask from '~/components/fixtures/conditional/task';
 import ConditionalTaskChain from '~/components/fixtures/conditional/task-chain';
-import ConditionalComputed from '~/components/fixtures/conditional/computed';
 import ConditionalComputedChain from '~/components/fixtures/conditional/computed-chain';
-import ConditionalAsyncComputed from '~/components/fixtures/conditional/async-computed';
 import ConditionalAsyncComputedChain from '~/components/fixtures/conditional/async-computed-chain';
 import ConditionalMixedComputedChain from '~/components/fixtures/conditional/mixed-computed-chain';
-import ConditionalVisibleTask from '~/components/fixtures/conditional/visible-task';
 import ConditionalVisibleTaskChain from '~/components/fixtures/conditional/visible-task-chain';
 import ConditionalAll from '~/components/fixtures/conditional/all';
 
@@ -50,44 +34,28 @@ export default component$(() => {
   return (
     <>
       <VisibleAbove />
-      <SingleTask />
       <SingleTaskChain />
-      <SingleComputed />
       <SingleComputedChain />
-      <SingleAsyncComputed />
       <SingleAsyncComputedChain />
       <SingleMixedComputedChain />
-      <SingleVisibleTask />
       <SingleVisibleTaskChain />
       <SingleAll />
-      <TreeTask />
       <TreeTaskChain />
-      <TreeComputed />
       <TreeComputedChain />
-      <TreeAsyncComputed />
       <TreeAsyncComputedChain />
       <TreeMixedComputedChain />
-      <TreeVisibleTask />
       <TreeVisibleTaskChain />
       <TreeAll />
-      <TreeContextTask />
       <TreeContextTaskChain />
-      <TreeContextComputed />
       <TreeContextComputedChain />
-      <TreeContextAsyncComputed />
       <TreeContextAsyncComputedChain />
       <TreeContextMixedComputedChain />
-      <TreeContextVisibleTask />
       <TreeContextVisibleTaskChain />
       <TreeContextAll />
-      <ConditionalTask />
       <ConditionalTaskChain />
-      <ConditionalComputed />
       <ConditionalComputedChain />
-      <ConditionalAsyncComputed />
       <ConditionalAsyncComputedChain />
       <ConditionalMixedComputedChain />
-      <ConditionalVisibleTask />
       <ConditionalVisibleTaskChain />
       <ConditionalAll />
       <Modal />

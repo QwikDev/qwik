@@ -21,6 +21,13 @@ export const attachRoundTrips = (name: string, roundTrips: RoundTrip[], segments
     contentType: 'text/plain',
   });
 
+const describeRoundTrips = (count: number) => {
+  const noun = count === 1 ? 'round trip' : 'round trips';
+  const overTheCap =
+    count > ROUND_TRIPS_PER_CLICK ? `, over the cap of ${ROUND_TRIPS_PER_CLICK}` : '';
+  return `${count} ${noun}${overTheCap}`;
+};
+
 const defineNeverShowsResultTest = (fixture: Fixture, reason: string) => {
   test(`${fixture.id}: a cold click shows the result`, async ({ page }) => {
     const opened = await openFixture(page, fixture, 'cold');
@@ -37,9 +44,11 @@ export const defineColdClickTest = (fixture: Fixture) => {
     defineNeverShowsResultTest(fixture, neverShowsResult);
     return;
   }
-  test(`${fixture.id}: a cold click shows the result in 2 round trips`, async ({ page }) => {
+  const onMain = ROUND_TRIPS_ON_MAIN[fixture.id];
+  const pinned = describeRoundTrips(onMain?.roundTrips ?? ROUND_TRIPS_PER_CLICK);
+  test(`${fixture.id}: a cold click shows the result in ${pinned}`, async ({ page }) => {
     const roundTrips = await coldClick(page, fixture);
     await attachRoundTrips('round-trips.txt', roundTrips, fixture.sources);
-    expectRoundTrips(roundTrips, ROUND_TRIPS_ON_MAIN[fixture.id]);
+    expectRoundTrips(roundTrips, onMain);
   });
 };

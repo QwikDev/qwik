@@ -83,7 +83,7 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test('the new page shows in 2 round trips', async ({ page }) => {
+  test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
     const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate, ongoing);
     await attachRoundTrips('round-trips.txt', roundTrips);
@@ -216,7 +216,7 @@ const submitAction = async (page: Page) => {
 };
 
 test.describe('form action', () => {
-  test("the action's result shows in 2 round trips", async ({ page }) => {
+  test("the action's result shows in 4 round trips, over the cap of 2", async ({ page }) => {
     const roundTrips = await submitAction(page);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {

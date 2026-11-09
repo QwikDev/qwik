@@ -37,7 +37,7 @@ const clickFixture = (page: Page, fixture: Fixture) => () =>
 test.describe('all at once', () => {
   test.setTimeout(300_000);
 
-  test('sequential cold clicks: each click shows its result in 2 round trips', async ({
+  test('sequential cold clicks: each click shows its result in as many round trips as on its own page', async ({
     page,
   }, testInfo) => {
     await recordSpeculativePreloads(page);

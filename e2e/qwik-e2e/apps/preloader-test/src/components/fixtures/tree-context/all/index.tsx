@@ -16,32 +16,47 @@ export default component$(() => {
   const t2 = useSignal(0);
   const t3 = useSignal(0);
   useTask$(({ track }) => {
-    t1.value = track(input) * 2;
+    const n = track(input);
+    t1.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    t2.value = track(t1) * 2;
+    const n = track(t1);
+    t2.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    t3.value = track(t2) * 2;
+    const n = track(t2);
+    t3.value = n && n + 1;
   });
-  const c1 = useComputed$(() => t3.value * 2);
-  const c2 = useComputed$(() => c1.value * 2);
-  const c3 = useComputed$(() => c2.value * 2);
+  const c1 = useComputed$(() => t3.value && t3.value + 1);
+  const c2 = useComputed$(() => c1.value && c1.value + 1);
+  const c3 = useComputed$(() => c2.value && c2.value + 1);
   const v1 = useSignal(0);
   const v2 = useSignal(0);
   const v3 = useSignal(0);
   useVisibleTask$(({ track }) => {
-    v1.value = track(c3) * 2;
+    const n = track(c3);
+    v1.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    v2.value = track(v1) * 2;
+    const n = track(v1);
+    v2.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    v3.value = track(v2) * 2;
+    const n = track(v2);
+    v3.value = n && n + 1;
   });
-  const a1 = useComputed$(async ({ track }) => track(v3) * 2);
-  const a2 = useComputed$(async ({ track }) => track(a1) * 2);
-  const out = useComputed$(async ({ track }) => track(a2) * 2);
+  const a1 = useComputed$(async ({ track }) => {
+    const n = track(v3);
+    return n && n + 1;
+  });
+  const a2 = useComputed$(async ({ track }) => {
+    const n = track(a1);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(a2);
+    return n && n + 1;
+  });
   useContextProvider(Level1Output, out);
 
   return (

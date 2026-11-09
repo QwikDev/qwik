@@ -5,13 +5,16 @@ import Level3 from './level-3';
 export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
   const store = useStore({ a: 0, nested: { b: 0, out: 0 } });
   useTask$(({ track }) => {
-    store.a = track(input) * 2;
+    const n = track(input);
+    store.a = n && n + 1;
   });
   useTask$(({ track }) => {
-    store.nested.b = track(() => store.a) * 2;
+    const n = track(() => store.a);
+    store.nested.b = n && n + 1;
   });
   useTask$(({ track }) => {
-    store.nested.out = track(() => store.nested.b) * 2;
+    const n = track(() => store.nested.b);
+    store.nested.out = n && n + 1;
   });
   const out = useComputed$(() => store.nested.out);
   return (

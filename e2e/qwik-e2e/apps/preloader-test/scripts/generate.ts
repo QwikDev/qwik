@@ -21,22 +21,25 @@ const PRIMITIVES: Record<string, Primitive> = {
   render: {
     imports: ['useComputed$'],
     code: (input) => `
-  const doubled = ${input}.value * 2;
-  const out = useComputed$(() => ${input}.value * 2);`,
-    step: '{doubled}',
+  const incremented = ${input}.value && ${input}.value + 1;
+  const out = useComputed$(() => ${input}.value && ${input}.value + 1);`,
+    step: '{incremented}',
   },
   'store-chain': {
     imports: ['useComputed$', 'useStore', 'useTask$'],
     code: (input) => `
   const store = useStore({ a: 0, nested: { b: 0, out: 0 } });
   useTask$(({ track }) => {
-    store.a = track(${input}) * 2;
+    const n = track(${input});
+    store.a = n && n + 1;
   });
   useTask$(({ track }) => {
-    store.nested.b = track(() => store.a) * 2;
+    const n = track(() => store.a);
+    store.nested.b = n && n + 1;
   });
   useTask$(({ track }) => {
-    store.nested.out = track(() => store.nested.b) * 2;
+    const n = track(() => store.nested.b);
+    store.nested.out = n && n + 1;
   });
   const out = useComputed$(() => store.nested.out);`,
   },
@@ -47,35 +50,53 @@ const PRIMITIVES: Record<string, Primitive> = {
   const b = useSignal(0);
   const out = useSignal(0);
   useTask$(({ track }) => {
-    a.value = track(${input}) * 2;
+    const n = track(${input});
+    a.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    b.value = track(a) * 2;
+    const n = track(a);
+    b.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    out.value = track(b) * 2;
+    const n = track(b);
+    out.value = n && n + 1;
   });`,
   },
   'computed-chain': {
     imports: ['useComputed$'],
     code: (input) => `
-  const a = useComputed$(() => ${input}.value * 2);
-  const b = useComputed$(() => a.value * 2);
-  const out = useComputed$(() => b.value * 2);`,
+  const a = useComputed$(() => ${input}.value && ${input}.value + 1);
+  const b = useComputed$(() => a.value && a.value + 1);
+  const out = useComputed$(() => b.value && b.value + 1);`,
   },
   'async-computed-chain': {
     imports: ['useComputed$'],
     code: (input) => `
-  const a = useComputed$(async ({ track }) => track(${input}) * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);`,
+  const a = useComputed$(async ({ track }) => {
+    const n = track(${input});
+    return n && n + 1;
+  });
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });`,
   },
   'mixed-computed-chain': {
     imports: ['useComputed$'],
     code: (input) => `
-  const a = useComputed$(() => ${input}.value * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);`,
+  const a = useComputed$(() => ${input}.value && ${input}.value + 1);
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });`,
   },
   'visible-task-chain': {
     imports: ['useSignal', 'useVisibleTask$'],
@@ -84,13 +105,16 @@ const PRIMITIVES: Record<string, Primitive> = {
   const b = useSignal(0);
   const out = useSignal(0);
   useVisibleTask$(({ track }) => {
-    a.value = track(${input}) * 2;
+    const n = track(${input});
+    a.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    b.value = track(a) * 2;
+    const n = track(a);
+    b.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    out.value = track(b) * 2;
+    const n = track(b);
+    out.value = n && n + 1;
   });`,
   },
   all: {
@@ -100,32 +124,47 @@ const PRIMITIVES: Record<string, Primitive> = {
   const t2 = useSignal(0);
   const t3 = useSignal(0);
   useTask$(({ track }) => {
-    t1.value = track(${input}) * 2;
+    const n = track(${input});
+    t1.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    t2.value = track(t1) * 2;
+    const n = track(t1);
+    t2.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    t3.value = track(t2) * 2;
+    const n = track(t2);
+    t3.value = n && n + 1;
   });
-  const c1 = useComputed$(() => t3.value * 2);
-  const c2 = useComputed$(() => c1.value * 2);
-  const c3 = useComputed$(() => c2.value * 2);
+  const c1 = useComputed$(() => t3.value && t3.value + 1);
+  const c2 = useComputed$(() => c1.value && c1.value + 1);
+  const c3 = useComputed$(() => c2.value && c2.value + 1);
   const v1 = useSignal(0);
   const v2 = useSignal(0);
   const v3 = useSignal(0);
   useVisibleTask$(({ track }) => {
-    v1.value = track(c3) * 2;
+    const n = track(c3);
+    v1.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    v2.value = track(v1) * 2;
+    const n = track(v1);
+    v2.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    v3.value = track(v2) * 2;
+    const n = track(v2);
+    v3.value = n && n + 1;
   });
-  const a1 = useComputed$(async ({ track }) => track(v3) * 2);
-  const a2 = useComputed$(async ({ track }) => track(a1) * 2);
-  const out = useComputed$(async ({ track }) => track(a2) * 2);`,
+  const a1 = useComputed$(async ({ track }) => {
+    const n = track(v3);
+    return n && n + 1;
+  });
+  const a2 = useComputed$(async ({ track }) => {
+    const n = track(a1);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(a2);
+    return n && n + 1;
+  });`,
   },
 };
 

@@ -28,7 +28,7 @@ const TO_TREE: Fixture = {
   id: 'navigation/to-tree',
   path: '/navigation/to-tree/',
   sources: NAVIGATION_SOURCES,
-  expected: '16',
+  expected: '5',
 };
 
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;

@@ -3,9 +3,15 @@ import { component$, type ReadonlySignal, useComputed$ } from '@qwik.dev/core';
 import Level3 from './level-3';
 
 export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
-  const a = useComputed$(() => input.value * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);
+  const a = useComputed$(() => input.value && input.value + 1);
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });
 
   return (
     <div class="level">

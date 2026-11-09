@@ -9,13 +9,16 @@ export default component$(() => {
   const b = useSignal(0);
   const out = useSignal(0);
   useTask$(({ track }) => {
-    a.value = track(input) * 2;
+    const n = track(input);
+    a.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    b.value = track(a) * 2;
+    const n = track(a);
+    b.value = n && n + 1;
   });
   useTask$(({ track }) => {
-    out.value = track(b) * 2;
+    const n = track(b);
+    out.value = n && n + 1;
   });
   useContextProvider(Level1Output, out);
 

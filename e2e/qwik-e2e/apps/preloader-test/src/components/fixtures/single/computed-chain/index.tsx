@@ -3,9 +3,9 @@ import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const input = useSignal(0);
-  const a = useComputed$(() => input.value * 2);
-  const b = useComputed$(() => a.value * 2);
-  const out = useComputed$(() => b.value * 2);
+  const a = useComputed$(() => input.value && input.value + 1);
+  const b = useComputed$(() => a.value && a.value + 1);
+  const out = useComputed$(() => b.value && b.value + 1);
   return (
     <section class="fixture" data-fixture="single/computed-chain">
       <h2>single/computed-chain</h2>

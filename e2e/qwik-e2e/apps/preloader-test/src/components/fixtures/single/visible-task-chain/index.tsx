@@ -7,13 +7,16 @@ export default component$(() => {
   const b = useSignal(0);
   const out = useSignal(0);
   useVisibleTask$(({ track }) => {
-    a.value = track(input) * 2;
+    const n = track(input);
+    a.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    b.value = track(a) * 2;
+    const n = track(a);
+    b.value = n && n + 1;
   });
   useVisibleTask$(({ track }) => {
-    out.value = track(b) * 2;
+    const n = track(b);
+    out.value = n && n + 1;
   });
   return (
     <section class="fixture" data-fixture="single/visible-task-chain">

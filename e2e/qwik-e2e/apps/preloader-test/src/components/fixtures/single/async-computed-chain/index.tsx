@@ -3,9 +3,18 @@ import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const input = useSignal(0);
-  const a = useComputed$(async ({ track }) => track(input) * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);
+  const a = useComputed$(async ({ track }) => {
+    const n = track(input);
+    return n && n + 1;
+  });
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });
   return (
     <section class="fixture" data-fixture="single/async-computed-chain">
       <h2>single/async-computed-chain</h2>

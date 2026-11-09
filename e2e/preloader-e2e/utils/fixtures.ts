@@ -28,7 +28,7 @@ export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, l
       `src/components/fixtures/${setup}/${primitive}/`,
       `src/routes/${setup}/${primitive}/`,
     ],
-    expected: String(2 ** (levels * steps)),
+    expected: String(1 + levels * steps),
   }))
 );
 
@@ -36,7 +36,7 @@ export const MODAL: Fixture = {
   id: 'modal/modal',
   path: '/modal/',
   sources: ['src/components/fixtures/modal/', 'src/routes/modal/'],
-  expected: '4',
+  expected: '3',
 };
 
 export const USER_IMPORT: Fixture = {
@@ -77,21 +77,21 @@ export const VISIBLE_ABOVE: Fixture = {
   id: 'visible/above',
   path: '/visible/above/',
   sources: ['src/components/fixtures/visible/above.tsx', 'src/routes/visible/above/'],
-  expected: '8',
+  expected: '4',
 };
 
 export const VISIBLE_BELOW: Fixture = {
   id: 'visible/below',
   path: '/visible/below/',
   sources: ['src/components/fixtures/visible/below.tsx', 'src/routes/visible/below/'],
-  expected: '8',
+  expected: '4',
 };
 
 const visibleStrategy = (strategy: string): Fixture => ({
   id: `visible/${strategy}`,
   path: `/visible/${strategy}/`,
   sources: [`src/components/fixtures/visible/${strategy}.tsx`, `src/routes/visible/${strategy}/`],
-  expected: '8',
+  expected: '4',
 });
 
 export const VISIBLE_DOCUMENT_READY = visibleStrategy('document-ready');

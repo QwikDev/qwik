@@ -5,13 +5,13 @@ import Level3 from './level-3';
 
 export default component$(() => {
   const input = useContext(Level1Output);
-  const doubled = input.value * 2;
-  const out = useComputed$(() => input.value * 2);
+  const incremented = input.value && input.value + 1;
+  const out = useComputed$(() => input.value && input.value + 1);
   useContextProvider(Level2Output, out);
 
   return (
     <div class="level">
-      <span class="step">level 2: {doubled}</span>
+      <span class="step">level 2: {incremented}</span>
       <Level3 />
     </div>
   );

@@ -3,15 +3,15 @@ import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const input = useSignal(0);
-  const doubled = input.value * 2;
-  const out = useComputed$(() => input.value * 2);
+  const incremented = input.value && input.value + 1;
+  const out = useComputed$(() => input.value && input.value + 1);
   return (
     <section class="fixture" data-fixture="single/render">
       <h2>single/render</h2>
       <button data-testid="trigger" onClick$={() => (input.value = 1)}>
         Run
       </button>
-      <span class="step">{doubled}</span>
+      <span class="step">{incremented}</span>
       <output data-testid="result" data-done={out.value ? '' : undefined}>
         {out.value}
       </output>

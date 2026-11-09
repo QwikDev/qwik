@@ -8,19 +8,22 @@ export default component$(() => {
 
   useVisibleTask$(
     ({ track }) => {
-      a.value = track(input) * 2;
+      const n = track(input);
+      a.value = n && n + 1;
     },
     { strategy: 'document-idle' }
   );
   useVisibleTask$(
     ({ track }) => {
-      b.value = track(a) * 2;
+      const n = track(a);
+      b.value = n && n + 1;
     },
     { strategy: 'document-idle' }
   );
   useVisibleTask$(
     ({ track }) => {
-      out.value = track(b) * 2;
+      const n = track(b);
+      out.value = n && n + 1;
     },
     { strategy: 'document-idle' }
   );

@@ -4,9 +4,18 @@ import { Level2Output } from './contexts';
 
 export default component$(() => {
   const input = useContext(Level2Output);
-  const a = useComputed$(async ({ track }) => track(input) * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);
+  const a = useComputed$(async ({ track }) => {
+    const n = track(input);
+    return n && n + 1;
+  });
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });
 
   return (
     <div class="level">

@@ -4,12 +4,12 @@ import { Level2Output } from './contexts';
 
 export default component$(() => {
   const input = useContext(Level2Output);
-  const doubled = input.value * 2;
-  const out = useComputed$(() => input.value * 2);
+  const incremented = input.value && input.value + 1;
+  const out = useComputed$(() => input.value && input.value + 1);
 
   return (
     <div class="level">
-      <span class="step">level 3: {doubled}</span>
+      <span class="step">level 3: {incremented}</span>
       <output data-testid="result" data-done={out.value ? '' : undefined}>
         {out.value}
       </output>

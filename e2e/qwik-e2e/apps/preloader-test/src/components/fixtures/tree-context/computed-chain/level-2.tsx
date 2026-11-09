@@ -5,9 +5,9 @@ import Level3 from './level-3';
 
 export default component$(() => {
   const input = useContext(Level1Output);
-  const a = useComputed$(() => input.value * 2);
-  const b = useComputed$(() => a.value * 2);
-  const out = useComputed$(() => b.value * 2);
+  const a = useComputed$(() => input.value && input.value + 1);
+  const b = useComputed$(() => a.value && a.value + 1);
+  const out = useComputed$(() => b.value && b.value + 1);
   useContextProvider(Level2Output, out);
 
   return (

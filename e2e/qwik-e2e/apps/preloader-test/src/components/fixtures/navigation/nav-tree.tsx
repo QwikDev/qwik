@@ -5,13 +5,14 @@ export const NavTree = component$(() => {
   const input = useSignal(1);
   const out = useSignal(0);
   useTask$(({ track }) => {
-    out.value = track(input) * 2;
+    const n = track(input);
+    out.value = n && n + 1;
   });
-  const doubled = useComputed$(() => out.value * 2);
+  const incremented = useComputed$(() => out.value && out.value + 1);
   return (
     <div class="level">
-      <span class="step">level 1: {doubled.value}</span>
-      <NavTreeChild input={doubled} />
+      <span class="step">level 1: {incremented.value}</span>
+      <NavTreeChild input={incremented} />
     </div>
   );
 });

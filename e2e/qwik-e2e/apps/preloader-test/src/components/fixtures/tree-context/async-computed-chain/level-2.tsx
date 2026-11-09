@@ -5,9 +5,18 @@ import Level3 from './level-3';
 
 export default component$(() => {
   const input = useContext(Level1Output);
-  const a = useComputed$(async ({ track }) => track(input) * 2);
-  const b = useComputed$(async ({ track }) => track(a) * 2);
-  const out = useComputed$(async ({ track }) => track(b) * 2);
+  const a = useComputed$(async ({ track }) => {
+    const n = track(input);
+    return n && n + 1;
+  });
+  const b = useComputed$(async ({ track }) => {
+    const n = track(a);
+    return n && n + 1;
+  });
+  const out = useComputed$(async ({ track }) => {
+    const n = track(b);
+    return n && n + 1;
+  });
   useContextProvider(Level2Output, out);
 
   return (

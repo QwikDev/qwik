@@ -4,8 +4,8 @@ import Level2 from './level-2';
 
 export default component$(() => {
   const input = useSignal(0);
-  const doubled = input.value * 2;
-  const out = useComputed$(() => input.value * 2);
+  const incremented = input.value && input.value + 1;
+  const out = useComputed$(() => input.value && input.value + 1);
 
   return (
     <section class="fixture" data-fixture="tree/render">
@@ -13,7 +13,7 @@ export default component$(() => {
       <button data-testid="trigger" onClick$={() => (input.value = 1)}>
         Run
       </button>
-      <span class="step">level 1: {doubled}</span>
+      <span class="step">level 1: {incremented}</span>
       <Level2 input={out} />
     </section>
   );

@@ -35,6 +35,19 @@ export const Wrapper = () => <Card>{(value: number) => <b>{value}</b>}</Card>;`,
     expect(output.diagnostics).toMatchObject([{ code }]);
   });
 
+  test('should rebind a body component used in projected content', async () => {
+    await testInput(mode, 'projection-local-component', {
+      code: `import { component$, useSignal, Slot } from '@qwik.dev/core';
+const Link = component$(() => <a><Slot /></a>);
+export default component$(() => {
+  const on = useSignal(false);
+  const Label = (props) => <b>{String(props.on.value)}</b>;
+  return <Link><Label on={on} /></Link>;
+});
+`,
+    });
+  });
+
   test('should describe a q:type fragment as one child', async () => {
     const output = await testInput(mode, 'children-descriptor-fragment', {
       code: `import { component$, Fragment, Slot, useChildrenInfo } from '@qwik.dev/core';

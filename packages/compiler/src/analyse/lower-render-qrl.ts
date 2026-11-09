@@ -30,7 +30,7 @@ export function lowerRenderQrl(
   lowerBody: (ctx: LowerContext) => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
-  const { captures, args } = lowerCaptures(children, ctx, subject);
+  const { captures, args, functions } = lowerCaptures(children, ctx, subject);
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
     body: { kind: ProgramBodyKind.Ops, ops: [] },
@@ -50,6 +50,7 @@ export function lowerRenderQrl(
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
       captures,
+      functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,

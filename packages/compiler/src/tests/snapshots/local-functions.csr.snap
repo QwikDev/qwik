@@ -148,13 +148,16 @@ import {
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
+  _withCaptures,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
+import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
 const component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   const [count] = _capturesObj._;
+  const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
   const el0 = component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
   const text0 = _first(el0);
@@ -268,6 +271,7 @@ import {
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_6_2fzrg2njel5c3 } from './component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3';
+import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
 const component_slot_render_segment_5_3b0t9atn1pfsx_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_branch_then_segment_7_24n7ce0yehh58',
@@ -277,6 +281,7 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _qrlWithCh
 
 export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
   const [show] = _capturesObj._;
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
   const fragment0 = component_slot_render_segment_5_3b0t9atn1pfsx_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -443,8 +448,10 @@ export const component_load_segment_9_3myl24trdze9k = async (key) => {
 
 import { createTextExpressionEffect } from '@qwik.dev/core';
 import { component_text_segment_11_2cdl3n7fbecf2 } from './component.tsx_component_text_segment_11_2cdl3n7fbecf2';
+import { component_load_segment_9_3myl24trdze9k } from './component.tsx_component_load_segment_9_3myl24trdze9k';
 
 export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx) => {
+  const load = component_load_segment_9_3myl24trdze9k;
   const text0 = ctx.document.createTextNode('');
   const effect0 = createTextExpressionEffect(
     text0,

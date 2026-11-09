@@ -1,0 +1,161 @@
+==INPUT==
+
+import { component$, useSignal, Slot } from '@qwik.dev/core';
+const Link = component$(() => <a><Slot /></a>);
+export default component$(() => {
+  const on = useSignal(false);
+  const Label = (props) => <b>{String(props.on.value)}</b>;
+  return <Link><Label on={on} /></Link>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_Label_segment_1_2vosupxtbn33m } from './component.tsx_component_Label_segment_1_2vosupxtbn33m';
+
+const Link_tmpl0 = _createElementTemplate('<a><!></a>');
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+const Link = (props0, ctx) => {
+  const el0 = Link_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const on = useSignal(false);
+  const Label = component_Label_segment_1_2vosupxtbn33m;
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([on]));
+  const component0 = createComponent(Link, null, ctx, { slotScope: slotScope0 });
+  return component0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Link as __qwik_Link };
+
+export { Link as Link_component_3fobl8j4gp0c3 };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return String(props.on.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    206,
+    228
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_Label_segment_1_2vosupxtbn33m.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const component_Label_segment_1_2vosupxtbn33m_tmpl0 = _createElementTemplate('<b> </b>');
+
+export const component_Label_segment_1_2vosupxtbn33m = (props, ctx) => {
+  const el0 = component_Label_segment_1_2vosupxtbn33m_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Label_segment_1_2vosupxtbn33m",
+  "entry": null,
+  "displayName": "component_Label_segment_1",
+  "hash": "2vosupxtbn33m",
+  "canonicalFilename": "component.tsx_component_Label_segment_1_2vosupxtbn33m",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Label",
+  "captures": false,
+  "loc": [
+    177,
+    234
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { _capturesObj, createDynamicTag, createComponent } from '@qwik.dev/core';
+import { component_Label_segment_1_2vosupxtbn33m } from './component.tsx_component_Label_segment_1_2vosupxtbn33m';
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
+  const [on] = _capturesObj._;
+  const Label = component_Label_segment_1_2vosupxtbn33m;
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Label, props0, ctx),
+    { on: on },
+    ctx
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    250,
+    267
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "on"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

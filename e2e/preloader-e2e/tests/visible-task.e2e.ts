@@ -27,7 +27,7 @@ test.describe('visible task in view at load', () => {
   }) => {
     test.fail(
       true,
-      "on main, visible task chunks wait for core and core's static import, and speculative preloads start first"
+      'on main, visible task chunks wait for core to load, and speculative preloads start first'
     );
     await recordSpeculativePreloads(page);
     const requests: string[] = [];

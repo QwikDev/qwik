@@ -85,13 +85,13 @@ export const preloaderPre = (
     container.closeElement();
 
     const start =
-      `{let b=fetch("${bundleGraphPath}");` +
+      `{let b=fetch("${bundleGraphPath}");b.catch(()=>{});` +
       `import("${preloaderBundle}").then(({l})=>` +
       `l(${JSON.stringify(base)},b${optsStr})` +
-      `)}`;
+      `).catch(()=>{p=-1;globalThis.qPreloadQueue=[]})}`;
     const script =
-      `{let s=()=>{s=()=>{};${start}};` +
-      `globalThis.qPreload??=((...a)=>{` +
+      `{let p=0,s=()=>{if(p>0)return;p=1;${start}};` +
+      `globalThis.qPreload??=((...a)=>{if(p<0&&!(a[1]>=.99))return;` +
       `(globalThis.qPreloadQueue||=[]).push(a);if(a[1]>=.99)s()});` +
       afterPagePaint('s()') +
       `}`;

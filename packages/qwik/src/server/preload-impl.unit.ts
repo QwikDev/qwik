@@ -41,7 +41,7 @@ const expectDeferredUntilAfterPaint = (
   shouldFetch: boolean,
   supportsIdleCallback = true
 ) => {
-  const fetch = vi.fn();
+  const fetch = vi.fn(() => Promise.resolve({ text: async () => '[]' }));
   const importModule = vi.fn(() => Promise.resolve({ l: vi.fn(), p: vi.fn() }));
   const idleCallbacks: (() => void)[] = [];
   const requestIdleCallback = vi.fn((callback: () => void) => {
@@ -118,6 +118,24 @@ const expectDeferredUntilAfterPaint = (
   expect(fetch).toHaveBeenCalledTimes(shouldFetch ? 1 : 0);
 };
 
+const runBootstrap = (script: string, importModule: ReturnType<typeof vi.fn>) => {
+  const scope = {
+    addEventListener: vi.fn(),
+    qPreload: undefined as any,
+    qPreloadQueue: [] as any[],
+  };
+  const fetch = vi.fn(() => Promise.resolve({ text: async () => '[]' }));
+  // eslint-disable-next-line no-new-func
+  new Function(
+    'window',
+    'globalThis',
+    'fetch',
+    'importModule',
+    script.replaceAll('import(', 'importModule(')
+  )(scope, scope, fetch, importModule);
+  return { scope, fetch };
+};
+
 describe('preloader', () => {
   afterEach(() => {
     vi.doUnmock('./qwik-copy');
@@ -184,21 +202,8 @@ describe('preloader', () => {
     const { container, getScriptContent } = createContainer();
     const { preloaderPre } = await import('./preload-impl');
     preloaderPre(container, {});
-    const fetch = vi.fn();
     const importModule = vi.fn(() => Promise.resolve({ l: vi.fn() }));
-    const scope = {
-      addEventListener: vi.fn(),
-      qPreload: undefined as any,
-      qPreloadQueue: [] as any[],
-    };
-    // eslint-disable-next-line no-new-func
-    new Function(
-      'window',
-      'globalThis',
-      'fetch',
-      'importModule',
-      getScriptContent().replaceAll('import(', 'importModule(')
-    )(scope, scope, fetch, importModule);
+    const { scope, fetch } = runBootstrap(getScriptContent(), importModule);
     expect(scope.qPreload).toBeTypeOf('function');
     expect(scope.addEventListener).toHaveBeenCalledWith('load', expect.any(Function));
     scope.qPreload('other/', 0.8);
@@ -210,6 +215,42 @@ describe('preloader', () => {
     expect(fetch).toHaveBeenCalledOnce();
     expect(importModule).toHaveBeenCalledOnce();
     expect(scope.qPreloadQueue).toContainEqual(['product/[id]/', 1]);
+  });
+
+  it('clears failed bootstrap hints and retries only on a later demand', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+    preloaderPre(container, {});
+    const loadGraph = vi.fn();
+    const failed = {
+      then(onLoad: (module: { l: typeof loadGraph }) => unknown) {
+        const next = Promise.reject<{ l: typeof loadGraph }>(new Error('chunk unavailable')).then(
+          onLoad
+        );
+        void next.catch(() => {});
+        return next;
+      },
+    };
+    const importModule = vi.fn().mockReturnValueOnce(failed).mockResolvedValue({ l: loadGraph });
+    const { scope, fetch } = runBootstrap(getScriptContent(), importModule);
+    scope.qPreload('first/', 1);
+    for (let index = 0; index < 100; index++) {
+      scope.qPreload(`pending-${index}/`, 0.8);
+    }
+    expect(scope.qPreloadQueue).toHaveLength(101);
+    await Promise.resolve();
+    await Promise.resolve();
+    for (let index = 0; index < 100; index++) {
+      scope.qPreload(`failed-${index}/`, index % 2 ? 0.8 : undefined);
+    }
+    expect(scope.qPreloadQueue).toEqual([]);
+    expect(importModule).toHaveBeenCalledOnce();
+    scope.qPreload('second/', 1);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(importModule).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(loadGraph).toHaveBeenCalledOnce();
   });
 
   it('falls back to the next paint without a fixed delay', async () => {

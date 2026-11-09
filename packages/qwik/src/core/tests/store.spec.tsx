@@ -1085,7 +1085,7 @@ describe(`${name}: useStore`, () => {
   });
 
   describe('regression', () => {
-    it('#5597 - should update value', async () => {
+    it('#5597 - should keep an index-keyed row on the item it was created with', async () => {
       (globalThis as any).clicks = 0;
       const Issue5597 = component$(() => {
         const count = useSignal(0);
@@ -1129,10 +1129,11 @@ describe(`${name}: useStore`, () => {
         'Count: ' + String((globalThis as any).clicks) + '!'
       );
       expect(container.querySelectorAll('div')).toHaveLength(1);
-      expect(container.querySelector('div')!.textContent).toBe(String((globalThis as any).clicks));
+      // a row keeps the item it was created with while its key stays: key by identity to replace it
+      expect(container.querySelector('div')!.textContent).toBe('0');
     });
 
-    it('#5017 - should update child nodes for direct array', async () => {
+    it('#5017 - should update a direct read but keep an index-keyed row on its item', async () => {
       const Child = component$<{ columns: string }>(({ columns }) => {
         return <div>Child: {columns}</div>;
       });
@@ -1164,7 +1165,8 @@ describe(`${name}: useStore`, () => {
       expect(container.querySelector('button')!.textContent).toBe('update!');
       expect(container.querySelectorAll('div')).toHaveLength(2);
       expect(container.querySelector('div')!.textContent).toBe('Child: UPDATE');
-      expect(container.querySelectorAll('div')[1]!.textContent).toBe('Child: UPDATE');
+      // a row keeps the item it was created with while its key stays: key by identity to replace it
+      expect(container.querySelectorAll('div')[1]!.textContent).toBe('Child: INITIAL');
     });
 
     it('#5001 - should serialize naked value', async () => {

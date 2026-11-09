@@ -138,12 +138,7 @@ describe(`${name}: QRL captures`, () => {
   });
 
   describe('regression', () => {
-    it('#5662 - should update value in the list', async () => {
-      /**
-       * ROOT CAUSE ANALYSIS: This is a bug in Optimizer. The optimizer incorrectly marks the
-       * `onClick` listener as 'const'/'immutable'. Because it is const, the QRL associated with the
-       * click handler always points to the original object, and it is not updated.
-       */
+    it('#5662 - should keep an index-keyed row and its handler on the item it was created with', async () => {
       const Cmp = component$(() => {
         const store = useStore<{ users: { name: string }[] }>({ users: [{ name: 'Giorgio' }] });
 
@@ -181,9 +176,10 @@ describe(`${name}: QRL captures`, () => {
       await triggerAll(container, 'span', 'click');
       await flush();
       expect(container.querySelectorAll('div')).toHaveLength(1);
-      expect(container.querySelector('div')!.textContent).toBe('Giorgio!!!!!');
+      // a row keeps the item it was created with while its key stays: key by identity to replace it
+      expect(container.querySelector('div')!.textContent).toBe('Giorgio');
       expect(container.querySelectorAll('span')).toHaveLength(1);
-      expect(container.querySelector('span')!.textContent).toBe('Giorgio!!!!!');
+      expect(container.querySelector('span')!.textContent).toBe('Giorgio');
     });
   });
 });

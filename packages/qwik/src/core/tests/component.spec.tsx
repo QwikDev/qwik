@@ -3486,7 +3486,7 @@ describe(`${name}: inline component`, () => {
     expect(container.querySelector('div')!.textContent).toBe('Id: 1');
   });
 
-  it('should render array of inline components inside normal component', async () => {
+  it('should keep index-keyed inline components on their items when the array is sorted', async () => {
     const Cmp = component$(() => {
       const items = useStore(['qwik', 'foo', 'bar']);
 
@@ -3520,13 +3520,14 @@ describe(`${name}: inline component`, () => {
     await flush();
 
     expect(container.querySelectorAll('footer')).toHaveLength(1);
-    expect(container.querySelector('footer')!.textContent).toBe('barfooqwik');
+    // a row keeps the item it was created with while its key stays: key by identity to replace it
+    expect(container.querySelector('footer')!.textContent).toBe('qwikfoobar');
     expect(container.querySelectorAll('button')).toHaveLength(1);
     expect(container.querySelector('button')!.textContent).toBe('');
     expect(container.querySelectorAll('div')).toHaveLength(3);
-    expect(container.querySelector('div')!.textContent).toBe('bar');
+    expect(container.querySelector('div')!.textContent).toBe('qwik');
     expect(container.querySelectorAll('div')[1]!.textContent).toBe('foo');
-    expect(container.querySelectorAll('div')[2]!.textContent).toBe('qwik');
+    expect(container.querySelectorAll('div')[2]!.textContent).toBe('bar');
   });
 
   it('should conditionally render different inline component', async () => {

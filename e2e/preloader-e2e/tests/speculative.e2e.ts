@@ -53,12 +53,12 @@ test.describe('queue', () => {
       ...fillerHandlers.map((n, index) => (n <= inViewCount ? index : -1))
     );
     const firstOffScreen = fillerHandlers.findIndex((n) => n > inViewCount);
+    expect(lastInView).toBeGreaterThanOrEqual(0);
+    expect(firstOffScreen).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
       'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
     );
-    expect(lastInView).toBeGreaterThanOrEqual(0);
-    expect(firstOffScreen).toBeGreaterThanOrEqual(0);
     expect(lastInView).toBeLessThan(firstOffScreen);
   });
 });

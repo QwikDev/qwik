@@ -78,6 +78,7 @@ test.describe('cold SPA navigation', () => {
     const withNewPageChunks = roundTrips.filter((roundTrip) =>
       roundTrip.urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))
     );
+    expect(withNewPageChunks.length).toBeGreaterThan(0);
     test.fail(true, 'on main, the route module loads a round trip before its render chunks');
     expect(withNewPageChunks).toHaveLength(1);
   });

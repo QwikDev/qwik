@@ -43,11 +43,11 @@ test.describe('visible task in view at load', () => {
       (url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && !speculative.has(url)
     );
     const firstSpeculativePreload = requests.findIndex((url) => speculative.has(url));
+    expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
       'on main, visible task chunks wait for core to load, and speculative preloads start first'
     );
-    expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     if (firstSpeculativePreload >= 0) {
       expect(firstVisibleTaskChunk).toBeLessThan(firstSpeculativePreload);
     }
@@ -104,6 +104,7 @@ test.describe('visible task below the fold', () => {
     await releaseAll(opened.gate, opened.ongoing);
     await expectResult(page, VISIBLE_BELOW);
     await attachRoundTrips('round-trips.txt', roundTrips, VISIBLE_BELOW.sources);
+    expect(roundTrips).toHaveLength(1);
     const [firstRoundTrip] = roundTrips;
     const requestedByTheScroll = firstRoundTrip.urls.filter(
       (url) => !firstRoundTrip.ongoingUrls.includes(url)
@@ -111,7 +112,6 @@ test.describe('visible task below the fold', () => {
     expect(requestedByTheScroll.some((url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]))).toBe(
       true
     );
-    expect(roundTrips).toHaveLength(1);
   });
 });
 
@@ -139,11 +139,11 @@ const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
 test.describe('other visible task strategies', () => {
   test("document-ready: its chunks go out with the page's load work", async ({ page }) => {
     const { firstChunk, load } = await loadAndRecordRequests(page, VISIBLE_DOCUMENT_READY);
+    expect(firstChunk).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
       'on main, document-ready visible task chunks wait for core, so they go out after load'
     );
-    expect(firstChunk).toBeGreaterThanOrEqual(0);
     expect(firstChunk).toBeLessThan(load);
   });
 
@@ -154,8 +154,8 @@ test.describe('other visible task strategies', () => {
       page,
       VISIBLE_DOCUMENT_IDLE
     );
-    test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
     expect(firstChunk).toBeGreaterThan(load);
+    test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
     if (firstSpeculativePreload >= 0) {
       expect(firstChunk).toBeLessThan(firstSpeculativePreload);
     }

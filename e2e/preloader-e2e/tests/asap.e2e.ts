@@ -116,11 +116,11 @@ for (const [name, heldUrl] of [
       const lowOrLate = clickLinks.filter(
         ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
       );
+      expect(clickLinks.length).toBeGreaterThan(0);
       test.fail(
         true,
         'on main, hints sent before the preloader runs come out as speculative: a later 0.6 hint overwrites their probability'
       );
-      expect(clickLinks.length).toBeGreaterThan(0);
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   });

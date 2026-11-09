@@ -59,11 +59,12 @@ test('qrl-prop/qrl-prop: a click calling a QRL passed down as a prop fetches it 
   const qrlRoundTrip = roundTripOf(roundTrips, (url) =>
     chunkComesFrom(url, ['src/components/fixtures/qrl-prop/index.tsx_'])
   );
+  expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
+  expect(qrlRoundTrip).toBeGreaterThanOrEqual(0);
   test.fail(
     true,
     "on main, the QRL from the parent's file is only requested once the child's handler runs it, a round trip later"
   );
-  expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
   expect(qrlRoundTrip).toBe(handlerRoundTrip);
 });
 

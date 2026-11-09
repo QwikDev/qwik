@@ -896,6 +896,29 @@ export default component$(() => <button onClick$={() => {
   });
 });
 
+test.each([
+  ['on', true, 'client', true],
+  ['off', false, 'client', false],
+  // a library ships its output, so it never carries the author's paths
+  ['on in a library', true, 'lib', false],
+] as const)(
+  'stamps elements for the inspector when it is %s',
+  async (_name, isOn, target, stamps) => {
+    const root = normalizePath(resolve(cwd, 'inspector-test'));
+    const plugin = await mockPlugin(process.platform, false);
+    await plugin.normalizeOptions({ rootDir: root, target });
+    plugin.setInspector(isOn);
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <p>hi</p>);
+`,
+      `${root}/src/app.tsx`
+    );
+    expect(result!.code.includes('data-qwik-inspector')).toBe(stamps);
+  }
+);
+
 test('load bootstraps a cold QRL segment whose parent is not in the module graph', async () => {
   const root = normalizePath(resolve(cwd, 'cold-test'));
   const parentId = `${root}/src/cold.tsx`;

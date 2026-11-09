@@ -3,6 +3,38 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should stamp elements with their source location for the inspector', async () => {
+    const output = await testInput(
+      mode,
+      'inspector-attribute',
+      {
+        devPath: '/src/routes/index.tsx',
+        code: `import { useSignal } from '@qwik.dev/core';
+type Props = { label: string };
+export default (props: Props) => {
+  const isOpen = useSignal(false);
+  return (
+    <section>
+      <head />
+      <p data-qwik-inspector="custom.tsx:1:1">{props.label}</p>
+      {isOpen.value && <span>opened</span>}
+    </section>
+  );
+};
+`,
+      },
+      { inspector: true }
+    );
+    const code = output.modules.map((module) => module.code).join('\n');
+    // positions are the authored ones, not those of the code TypeScript stripping left
+    expect(code).toContain('/src/routes/index.tsx:6:5');
+    expect(code).toContain('/src/routes/index.tsx:9:24');
+    // an authored attribute wins, and <head> takes none
+    expect(code).toContain('custom.tsx:1:1');
+    expect(code).not.toContain('/src/routes/index.tsx:8:');
+    expect(code).not.toContain('/src/routes/index.tsx:7:');
+  });
+
   test('should let the runtime own the scoped class when a spread owns the attributes', async () => {
     const output = await testInput(mode, 'element-spread-scoped-class', {
       code: `import { component$, useStylesScoped$ } from '@qwik.dev/core';

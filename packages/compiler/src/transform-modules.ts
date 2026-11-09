@@ -38,6 +38,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
           rootDir: options.rootDir,
           scope: options.scope,
           decorator: options.decorator,
+          inspector: options.inspector,
         }
       )
     )

@@ -62,6 +62,8 @@ export interface TransformOptions {
   isServer?: boolean;
   /** Decorator lowering applied while stripping TypeScript, mirroring tsconfig. */
   decorator?: DecoratorOptions;
+  /** Stamp every element with `data-qwik-inspector`, its authored `file:line:column`, for dev tools. */
+  inspector?: boolean;
   /** Boolean values the host defines, keyed by `import.meta.env` name. */
   buildConstants?: Readonly<Record<string, boolean>>;
   /** `native` warns about every server body the plan carries as JavaScript text. */

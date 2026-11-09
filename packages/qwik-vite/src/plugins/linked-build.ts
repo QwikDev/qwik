@@ -323,7 +323,7 @@ export function createLinkedBuild() {
   async function transform(
     code: string,
     id: string,
-    decorator?: DecoratorOptions
+    source: { decorator?: DecoratorOptions; inspector?: boolean } = {}
   ): Promise<Rolldown.SourceDescription | null> {
     if (
       options === undefined ||
@@ -337,7 +337,7 @@ export function createLinkedBuild() {
     const path = planPath(id);
     const plan = await analyseModule(
       { path, code },
-      { transpileTs: true, rootDir: options.rootDir, scope: options.scope, decorator }
+      { transpileTs: true, rootDir: options.rootDir, scope: options.scope, ...source }
     );
     if (isLinkSealed) {
       // Reached only after the link sealed, as through a plugin's virtual entry

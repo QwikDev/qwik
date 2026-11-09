@@ -22,7 +22,7 @@ import { isFunctionLike, jsxAttributeName, readReturnedBody, unwrapExpression } 
 import { lowerInlineExpressionValue } from './lower-expr';
 import type { LowerContext, RevealScope } from './lower-context';
 import { collectCaptures } from './ast/capture-analysis';
-import { QwikDirective, SegmentContext } from '../words';
+import { QwikAttr, QwikDirective, SegmentContext } from '../words';
 import { lowerContentChildren, lowerJsxChildren, lowerRenderExpression } from './lower-children';
 import {
   aliasTagTarget,
@@ -117,6 +117,17 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
       event.handlers.push(...prop.handlers);
       props.splice(i, 1);
     }
+  }
+  const isInspected =
+    ctx.inspectorLocation !== null &&
+    tag !== 'head' &&
+    !expanded.some((attribute) => jsxAttributeName(attribute) === QwikAttr.Inspector);
+  if (isInspected) {
+    props.push({
+      k: PropKind.Static,
+      name: QwikAttr.Inspector,
+      value: ctx.inspectorLocation!(element.start),
+    });
   }
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   // With a spread the runtime props object writes `class`, scope included; a static one would print twice.

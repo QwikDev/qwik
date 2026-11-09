@@ -189,6 +189,8 @@ export const enum QwikDirective {
 export const enum QwikAttr {
   Id = 'q:id',
   Row = 'q:row',
+  /** Dev tools read the element's authored `file:line:column` from it. */
+  Inspector = 'data-qwik-inspector',
 }
 
 export const enum SegmentContext {

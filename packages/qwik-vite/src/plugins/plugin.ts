@@ -111,6 +111,9 @@ export function createQwikPlugin(
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
   let buildConstants: Readonly<Record<string, boolean>> = {};
+  let isInspectorEnabled = false;
+  // a library ships its output: locations would point into the author's machine
+  const stampsInspector = () => isInspectorEnabled && opts.target !== 'lib';
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
@@ -1172,11 +1175,10 @@ export function createQwikPlugin(
         undefined,
         getIsServer(ctx, transformOpts)
       );
-      const linked = await linkedBuild.transform(
-        code,
-        normalizePath(id),
-        await resolveDecoratorOptions(ctx, parseId(id).pathId, code)
-      );
+      const linked = await linkedBuild.transform(code, normalizePath(id), {
+        decorator: await resolveDecoratorOptions(ctx, parseId(id).pathId, code),
+        inspector: stampsInspector(),
+      });
       if (linked !== null) {
         return linked;
       }
@@ -1273,6 +1275,7 @@ export function createQwikPlugin(
         scope: opts.scope || undefined,
         isServer,
         decorator: await resolveDecoratorOptions(ctx, pathId, code),
+        inspector: stampsInspector(),
       };
 
       if (strip) {
@@ -1606,6 +1609,11 @@ export const isDev = ${JSON.stringify(isDev)};
     opts.sourcemap = sourcemap;
   }
 
+  /** Follows the `globalThis.qInspector` define, which the dev tools read at runtime. */
+  function setInspector(isEnabled: boolean) {
+    isInspectorEnabled = isEnabled;
+  }
+
   /** Boolean values the host defines, so the linker can decide a branch the bundler cannot. */
   function setBuildConstants(constants: Readonly<Record<string, boolean>>) {
     buildConstants = constants;
@@ -1766,6 +1774,7 @@ export const isDev = ${JSON.stringify(isDev)};
     validateSource,
     setSourceMapSupport,
     setBuildConstants,
+    setInspector,
     configureServer,
     hotUpdate,
     codeSplitting,

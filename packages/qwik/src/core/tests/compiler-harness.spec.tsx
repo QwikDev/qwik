@@ -1,5 +1,5 @@
 import { component$, useSignal, useStore } from '@qwik.dev/core';
-import { describe, expect, it, onTestFinished, vi } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
 import { triggerAll } from './test-hooks';
 import { trigger } from '@qwik.dev/core/testing';
@@ -36,49 +36,8 @@ describe(`${name}: compiler harness`, () => {
   });
 });
 
-vi.mock('../shared/utils/qdev', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../shared/utils/qdev')>()),
-  qInspector: true,
-}));
-
-const SOURCE_LOCATION = /compiler-harness\.spec\.tsx:\d+:\d+$/;
-
 describe.runIf(name === 'csrRender')('inspector', () => {
-  it('should point client-created elements to their source', async () => {
-    const App = component$(() => (
-      <section>
-        <p>text</p>
-      </section>
-    ));
-    const { container, cleanup } = await render(App);
-    onTestFinished(cleanup);
-    const section = container.querySelector('section')!;
-    const paragraph = container.querySelector('p')!;
-    expect(section.getAttribute('data-qwik-inspector')).toMatch(SOURCE_LOCATION);
-    expect(paragraph.getAttribute('data-qwik-inspector')).toMatch(SOURCE_LOCATION);
-    expect(paragraph.getAttribute('data-qwik-inspector')).not.toBe(
-      section.getAttribute('data-qwik-inspector')
-    );
-  });
-
-  it('should point elements created after a state change to their source', async () => {
-    const App = component$(() => {
-      const isOpen = useSignal(false);
-      return (
-        <div>
-          <button onClick$={() => (isOpen.value = true)}>Open</button>
-          {isOpen.value && <span>opened</span>}
-        </div>
-      );
-    });
-    const { container, cleanup, qwikLoader } = await render(App);
-    onTestFinished(cleanup);
-    await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
-    expect(container.querySelector('span')?.getAttribute('data-qwik-inspector')).toMatch(
-      SOURCE_LOCATION
-    );
-  });
-
+  // the compiler stamps the locations: see its `inspector-attribute` golden
   it('should keep an explicit data-qwik-inspector prop', async () => {
     const App = component$(() => <div data-qwik-inspector="custom.tsx:1:1" />);
     const { container, cleanup } = await render(App);

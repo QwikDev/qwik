@@ -473,6 +473,7 @@ export interface TransformOptions {
     entryStrategy?: EntryStrategy;
     // (undocumented)
     explicitExtensions?: boolean;
+    inspector?: boolean;
     // (undocumented)
     isServer?: boolean;
     // (undocumented)

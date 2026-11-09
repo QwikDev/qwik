@@ -46,6 +46,8 @@ export interface LowerContext {
   elementStack: string[];
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
+  /** Set when dev tools want each element stamped with its authored `file:line:column`. */
+  inspectorLocation: ((offset: number) => string) | null;
   bindings: BindingGraph;
   jsx: JsxAnalysis;
   /** Local binding -> imported name for `@qwik.dev/core` imports. */
@@ -89,6 +91,7 @@ export function createLowerContext(
     styleCounter: { next: 0 },
     styleScopes: [],
     inlineParams: null,
+    inspectorLocation: null,
     bindings,
     jsx,
     coreBindings,

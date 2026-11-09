@@ -20,6 +20,7 @@ export interface TestOptions {
   stripExports?: string[];
   explicitExtensions?: boolean;
   mode?: 'dev' | 'lib';
+  inspector?: boolean;
 }
 
 export async function testInput(

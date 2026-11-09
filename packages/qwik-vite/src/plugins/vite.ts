@@ -498,6 +498,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async configResolved(config) {
       qwikPlugin.setBuildConstants(readBuildConstants(config));
+      qwikPlugin.setInspector(String(config.define?.['globalThis.qInspector']) === 'true');
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
         throw new Error(`vite's config.base must begin and end with /`);

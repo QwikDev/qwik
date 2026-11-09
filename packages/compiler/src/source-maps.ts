@@ -17,6 +17,22 @@ export function createOriginalRangeMapper(
   ];
 }
 
+/** Reads a normalized offset as the authored `line:column`, both 1-based. */
+export function createOriginalPositionReader(
+  normalizedSource: string,
+  originalSource: string,
+  map: SourceMap | null
+): (offset: number) => string {
+  const originalLines = lineStarts(originalSource);
+  const mapRange =
+    map === null ? null : createOriginalRangeMapper(normalizedSource, originalSource, map);
+  return (offset) => {
+    const original = mapRange === null ? offset : mapRange([offset, offset])[0];
+    const { line, column } = offsetToPosition(originalLines, original);
+    return `${line}:${column + 1}`;
+  };
+}
+
 export function createNodeSourceMap(map: SourceMap): NodeSourceMap {
   return new NodeSourceMap({
     file: map.file ?? '',

@@ -25,7 +25,7 @@ import { finalizeLocalFunctions } from './lower-setup';
 import { createLowerContext, pushPayload, QrlIdentityKind } from './lower-context';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
-import { createOriginalRangeMapper } from '../source-maps';
+import { createOriginalPositionReader, createOriginalRangeMapper } from '../source-maps';
 
 import { isFunctionLike } from './ast/utils';
 import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';
@@ -42,6 +42,8 @@ export interface AnalyseOptions {
   /** Identity-affecting: feeds QRL naming/hashing. */
   scope?: string;
   decorator?: DecoratorOptions;
+  /** Stamp every element with `data-qwik-inspector` for dev tools. */
+  inspector?: boolean;
 }
 
 export interface AnalyseInput {
@@ -98,6 +100,11 @@ export async function analyseModule(
       : [];
   });
   const lowerContext = createLowerContext(plan, input.path, options, bindings, coreBindings, jsx);
+  if (options.inspector) {
+    const file = (input.devPath ?? input.path).replace(/\\/g, '/');
+    const readPosition = createOriginalPositionReader(normalized.code, input.code, normalized.map);
+    lowerContext.inspectorLocation = (offset) => `${file}:${readPosition(offset)}`;
+  }
   let loweredHooks: Set<Node>;
   try {
     const runtimeJsxCall = findRuntimeJsxCall(parsed.program, bindings, coreBindings);

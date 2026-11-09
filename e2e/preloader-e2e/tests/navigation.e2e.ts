@@ -1,11 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom } from '../utils/app';
-import { expectWithinTheCap } from '../utils/click-tests';
+import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
-  formatRoundTrips,
   recordSpeculativeOrder,
   releaseAll,
   resultIsDone,
@@ -73,11 +72,11 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test('the new page shows within 2 round trips, as in the snapshot', async ({ page }) => {
+  test('the new page shows in 2 round trips', async ({ page }) => {
     const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate, ongoing);
-    expect(formatRoundTrips(roundTrips)).toMatchSnapshot('to-tree.cold.txt');
-    expectWithinTheCap(roundTrips, {
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips, {
       roundTrips: 4,
       reason:
         "over the cap on main: the Link handler, the router's navigation code, then the layout and route modules each cost a round trip before the render chunks",
@@ -157,10 +156,10 @@ const submitAction = async (page: Page) => {
 };
 
 test.describe('form action', () => {
-  test("the action's result shows within 2 round trips, as in the snapshot", async ({ page }) => {
+  test("the action's result shows in 2 round trips", async ({ page }) => {
     const roundTrips = await submitAction(page);
-    expect(formatRoundTrips(roundTrips)).toMatchSnapshot('action.cold.txt');
-    expectWithinTheCap(roundTrips, {
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips, {
       roundTrips: 4,
       reason: 'over the cap on main: the action request waits for 3 round trips of router code',
     });

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { defineColdClickTest } from '../utils/click-tests';
-import { MATRIX, MODAL, snapshotName, USER_IMPORT } from '../utils/fixtures';
-import { formatRoundTrips } from '../utils/gate';
+import { chunkComesFrom } from '../utils/app';
+import { MATRIX, MODAL, USER_IMPORT } from '../utils/fixtures';
 import { coldClick } from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
@@ -14,8 +14,8 @@ test.describe('user import()', () => {
   }) => {
     const roundTrips = await coldClick(page, USER_IMPORT);
     expect(roundTrips).toHaveLength(2);
-    expect(formatRoundTrips(roundTrips, { segmentsFrom: USER_IMPORT.sources })).toMatchSnapshot(
-      snapshotName(USER_IMPORT, 'cold')
-    );
+    const ownChunks = roundTrips[1].urls.filter((url) => chunkComesFrom(url, USER_IMPORT.sources));
+    expect(ownChunks.length).toBeGreaterThan(0);
+    expect(ownChunks.every((url) => chunkComesFrom(url, ['src/vendor-lib/']))).toBe(true);
   });
 });

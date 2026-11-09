@@ -74,6 +74,10 @@ const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
 const OFF_SCREEN_VISIBLE_TASKS =
   'needs a round trip on main: off-screen visible task chunks are never preloaded, so scrolling to them fetches them';
+const COMPUTEDS_WITH_HANDLER =
+  'one round trip on main: the computed chunks go out with the click handler';
+const VISIBLE_TASKS_LOADED =
+  'one round trip on main: the visible task chunks loaded with the page, so the click only needs its handler';
 const MIDDLE_LINK_LATE =
   'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
 
@@ -88,14 +92,17 @@ export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
   'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
 };
 
-export const OVER_THE_CAP: Record<string, RoundTripsOnMain> = {
+export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
+  'single/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
+  'tree/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
+  'tree-context/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
+  'single/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
+  'tree/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
   'single/async-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
   'single/mixed-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
   'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
   'tree-context/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
 };
-
-export const snapshotName = (fixture: Fixture, scenario: string) =>
-  `${fixture.id.replace('/', '--')}.${scenario}.txt`;
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

@@ -279,7 +279,6 @@
     "test.e2e.integrations.deno.webkit": "playwright test e2e/adapters-e2e/tests --project=webkit --config e2e/adapters-e2e/playwright.deno.config.ts",
     "test.e2e.integrations.webkit": "playwright test e2e/adapters-e2e/tests --project=webkit --config e2e/adapters-e2e/playwright.config.ts",
     "test.e2e.preloader": "playwright test --config e2e/preloader-e2e/playwright.config.ts",
-    "test.e2e.preloader.update": "playwright test --config e2e/preloader-e2e/playwright.config.ts --update-snapshots",
     "test.e2e.qwik-react.chromium": "playwright test e2e/qwik-react-e2e/tests --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts",
     "test.e2e.qwik-react.webkit": "playwright test e2e/qwik-react-e2e/tests --project=webkit --config e2e/qwik-react-e2e/playwright.config.ts",
     "test.e2e.router": "playwright test e2e/qwik-e2e/tests/qwikrouter --browser=chromium --config e2e/qwik-e2e/playwright.config.ts",

@@ -104,12 +104,11 @@ HTTPS (HTTP/2).
   exact on localhost, where timing would show no waterfall.
 - Fixtures come from the app's `scripts/generate.ts` (`pnpm generate` in the app). Edit the script,
   not the generated files.
-- Expected failures on main live in `utils/fixtures.ts`: `NEVER_SHOWS_RESULT` runs as `test.fail()`;
-  `OVER_THE_CAP` and `NOT_READY_WHEN_WARM` pin the round trips main takes, so a fix fails the test
-  until its entry is removed.
-- After an intended preloader or chunking change, run `pnpm test.e2e.preloader.update` and review
-  the snapshot diff.
-- Snapshots assume a production core build, as in CI. `build.core.dev` splits core into other
+- Every click expects exactly 2 round trips (none when warm). `ROUND_TRIPS_ON_MAIN` and
+  `NOT_READY_WHEN_WARM` in `utils/fixtures.ts` list the clicks main does differently, each with a
+  reason; a fix fails the test until its entry is updated. `NEVER_SHOWS_RESULT` runs as `test.fail()`.
+  Each click's chunks are attached to the report.
+- The counts assume a production core build, as in CI. `build.core.dev` splits core into other
   chunks and changes the round trips, so build with `pnpm build.core` first.
 
 ```bash

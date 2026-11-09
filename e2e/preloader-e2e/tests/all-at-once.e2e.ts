@@ -1,10 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectWithinTheCap } from '../utils/click-tests';
+import { expectRoundTrips } from '../utils/click-tests';
 import {
   CLICKABLE_ON_ALL_AT_ONCE,
   NEVER_SHOWS_RESULT,
   NOT_READY_WHEN_WARM,
-  OVER_THE_CAP,
+  ROUND_TRIPS_ON_MAIN,
   type Fixture,
 } from '../utils/fixtures';
 import {
@@ -28,7 +28,7 @@ const clickFixture = (page: Page, fixture: Fixture) => () =>
 test.describe('all at once', () => {
   test.setTimeout(300_000);
 
-  test('sequential cold clicks: each click shows its result within 2 round trips', async ({
+  test('sequential cold clicks: each click shows its result in 2 round trips', async ({
     page,
   }, testInfo) => {
     await recordSpeculativePreloads(page);
@@ -47,7 +47,7 @@ test.describe('all at once', () => {
       report.push(
         `${fixture.id}\n${formatRoundTrips(roundTrips, { segmentsFrom: fixture.sources })}`
       );
-      expectWithinTheCap(roundTrips, OVER_THE_CAP[fixture.id], `${fixture.id}: `);
+      expectRoundTrips(roundTrips, ROUND_TRIPS_ON_MAIN[fixture.id], `${fixture.id}: `);
     }
     await releaseAll(gate, ongoing);
     await testInfo.attach('cold-clicks.txt', {

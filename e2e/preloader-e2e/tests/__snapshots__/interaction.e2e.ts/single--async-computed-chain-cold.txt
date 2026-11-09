@@ -1,7 +1,0 @@
-round trip 1:
-  single/async-computed-chain/index.tsx_async_computed_chain_component_section_button_q_e_click
-round trip 2:
-  single/async-computed-chain/index.tsx_async_computed_chain_component_a_useComputed
-  single/async-computed-chain/index.tsx_async_computed_chain_component_out_useComputed
-round trip 3:
-  single/async-computed-chain/index.tsx_async_computed_chain_component_b_useComputed

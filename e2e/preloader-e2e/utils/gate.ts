@@ -250,16 +250,13 @@ export const resultIsDone = (result: Locator) => () =>
 
 export const formatRoundTrips = (
   roundTrips: RoundTrip[],
-  {
-    segmentsFrom,
-    keepEmptyRoundTrips = false,
-  }: { segmentsFrom?: string[]; keepEmptyRoundTrips?: boolean } = {}
+  { segmentsFrom }: { segmentsFrom?: string[] } = {}
 ) =>
   roundTrips
     .map(({ urls }) =>
       segmentsFrom ? urls.filter((url) => chunkHoldsSegmentsFrom(url, segmentsFrom)) : urls
     )
-    .filter((urls) => keepEmptyRoundTrips || urls.length)
+    .filter((urls) => urls.length)
     .map((urls, index) => {
       const labels = [...new Set(urls.map(labelRequest))].sort();
       return [`round trip ${index + 1}:`, ...labels.map((label) => `  ${label}`)].join('\n');

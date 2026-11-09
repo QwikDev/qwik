@@ -1,7 +1,0 @@
-round trip 1:
-  single/mixed-computed-chain/index.tsx_mixed_computed_chain_component_a_useComputed
-  single/mixed-computed-chain/index.tsx_mixed_computed_chain_component_section_button_q_e_click
-round trip 2:
-  single/mixed-computed-chain/index.tsx_mixed_computed_chain_component_out_useComputed
-round trip 3:
-  single/mixed-computed-chain/index.tsx_mixed_computed_chain_component_b_useComputed

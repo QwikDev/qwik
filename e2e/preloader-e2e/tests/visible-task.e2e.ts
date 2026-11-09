@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { chunkComesFrom } from '../utils/app';
-import { snapshotName, VISIBLE_ABOVE, VISIBLE_BELOW } from '../utils/fixtures';
+import { attachRoundTrips } from '../utils/click-tests';
+import { VISIBLE_ABOVE, VISIBLE_BELOW } from '../utils/fixtures';
 import {
   countRoundTrips,
   createGate,
-  formatRoundTrips,
   preloaderLinks,
   recordSpeculativePreloads,
   releaseAll,
@@ -47,9 +47,7 @@ test.describe('visible task in view at load', () => {
     }
   });
 
-  test('its chain shows the result within 2 round trips of that first request', async ({
-    page,
-  }) => {
+  test('its whole chain goes out in that first round trip', async ({ page }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
     const roundTrips = await countRoundTrips(
@@ -60,17 +58,12 @@ test.describe('visible task in view at load', () => {
     );
     await releaseAll(gate);
     await expectResult(page, VISIBLE_ABOVE);
-    expect(
-      formatRoundTrips(roundTrips, {
-        segmentsFrom: VISIBLE_ABOVE.sources,
-        keepEmptyRoundTrips: true,
-      })
-    ).toMatchSnapshot(snapshotName(VISIBLE_ABOVE, 'load'));
+    await attachRoundTrips('round-trips.txt', roundTrips, VISIBLE_ABOVE.sources);
     const first = roundTrips.findIndex((roundTrip) =>
       roundTrip.urls.some((url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]))
     );
     expect(first).toBeGreaterThanOrEqual(0);
-    expect(roundTrips.length - first).toBeLessThanOrEqual(2);
+    expect(roundTrips.slice(first)).toHaveLength(1);
   });
 });
 
@@ -93,7 +86,7 @@ test.describe('visible task below the fold', () => {
     await releaseAll(opened.gate);
   });
 
-  test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows within 2 round trips', async ({
+  test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows in that one round trip', async ({
     page,
   }) => {
     const opened = await openFixture(page, VISIBLE_BELOW, 'cold');
@@ -104,9 +97,7 @@ test.describe('visible task below the fold', () => {
     );
     await releaseAll(opened.gate, opened.ongoing);
     await expectResult(page, VISIBLE_BELOW);
-    expect(formatRoundTrips(roundTrips, { segmentsFrom: VISIBLE_BELOW.sources })).toMatchSnapshot(
-      snapshotName(VISIBLE_BELOW, 'scroll')
-    );
+    await attachRoundTrips('round-trips.txt', roundTrips, VISIBLE_BELOW.sources);
     const [firstRoundTrip] = roundTrips;
     const requestedByTheScroll = firstRoundTrip.urls.filter(
       (url) => !firstRoundTrip.ongoingUrls.includes(url)
@@ -114,6 +105,6 @@ test.describe('visible task below the fold', () => {
     expect(requestedByTheScroll.some((url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]))).toBe(
       true
     );
-    expect(roundTrips.length).toBeLessThanOrEqual(2);
+    expect(roundTrips).toHaveLength(1);
   });
 });

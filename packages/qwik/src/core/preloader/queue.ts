@@ -232,16 +232,18 @@ const preloadOne = (bundle: BundleImport) => {
     link.setAttribute('fetchpriority', 'low');
   }
   // Handle completion of the preload
-  link.onload = link.onerror = () => {
+  const onSettled = (state: number) => {
     inFlight.delete(bundle);
     const end = performance.now();
     bundle.$loadedMs$ = end - start;
-    bundle.$state$ = BundleImportState_Loaded;
+    bundle.$state$ = state;
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload
     nextTriggerMacroTask();
   };
+  link.onload = () => onSettled(BundleImportState_Loaded);
+  link.onerror = () => onSettled(BundleImportState_None);
 
   doc.head.appendChild(link);
 };

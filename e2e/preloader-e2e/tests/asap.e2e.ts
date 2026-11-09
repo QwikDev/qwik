@@ -166,7 +166,7 @@ const failTheFirstRequestOf = async (page: Page, isWanted: (url: string) => bool
   await page.route(`${ORIGIN}/build/**`, (route) => {
     const url = route.request().url();
     if (!isWanted(url) || failed.includes(url)) {
-      return route.continue();
+      return route.fallback();
     }
     failed.push(url);
     return route.abort();
@@ -176,6 +176,8 @@ const failTheFirstRequestOf = async (page: Page, isWanted: (url: string) => bool
 
 const keepsFailedModuleFetches = (browser: Browser) =>
   Number(browser.version().split('.')[0]) < 156;
+const KEEPS_FAILED_MODULE_FETCHES =
+  'before Chromium 156, a failed module fetch is kept for the life of the page: import() of the same URL fails with no request';
 
 test.describe('chunk preload fails', () => {
   test('a click still shows its result after its preload failed', async ({ page, browser }) => {
@@ -188,10 +190,32 @@ test.describe('chunk preload fails', () => {
     });
     expect(failedPreloads.length).toBeGreaterThan(0);
     await fixtureRoot(page, CONDITIONAL_ALL).locator('[data-testid=trigger]').click();
-    test.fail(
-      keepsFailedModuleFetches(browser),
-      'before Chromium 156, a failed module fetch is kept for the life of the page: import() of the same URL fails with no request'
-    );
+    test.fail(keepsFailedModuleFetches(browser), KEEPS_FAILED_MODULE_FETCHES);
     await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test('a click after its preloads failed still shows its result in 2 round trips', async ({
+    page,
+    browser,
+  }) => {
+    test.skip(keepsFailedModuleFetches(browser), KEEPS_FAILED_MODULE_FETCHES);
+    const gate = await createGate(page);
+    const failedPreloads = await failTheFirstRequestOf(page, (url) =>
+      chunkComesFrom(url, CONDITIONAL_ALL.sources)
+    );
+    await waitForNetworkIdle(page, async () => {
+      await page.goto(CONDITIONAL_ALL.path);
+      await waitForQwikloader(page);
+    });
+    expect(failedPreloads.length).toBeGreaterThan(0);
+    const roundTrips = await countRoundTrips(
+      page,
+      gate,
+      clickConditional(page),
+      resultIsDone(fixtureResult(page, CONDITIONAL_ALL))
+    );
+    await releaseAll(gate);
+    await expectResult(page, CONDITIONAL_ALL);
+    expect(roundTrips).toHaveLength(2);
   });
 });

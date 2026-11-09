@@ -1,5 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import { Alpha } from './lib';
+import { Alpha } from './ui';
 
 export default component$(() => {
   const isShown = useSignal(false);

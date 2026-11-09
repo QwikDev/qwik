@@ -112,8 +112,8 @@ test.describe('component re-exported by a barrel file', () => {
     const roundTrips = await coldClick(page, BARREL);
     const otherComponents = requestedUrls(roundTrips).filter((url) =>
       chunkComesFrom(url, [
-        'src/components/fixtures/barrel/lib/beta',
-        'src/components/fixtures/barrel/lib/gamma',
+        'src/components/fixtures/barrel/ui/beta',
+        'src/components/fixtures/barrel/ui/gamma',
       ])
     );
     expect(otherComponents).toEqual([]);

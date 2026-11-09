@@ -47,6 +47,12 @@ export function scanModuleSurface(
         : takeNormalizedImport(normalizedImports.get(statement.source.value), statement);
     scanImport(statement, normalized, plan, bindings, coreBindings);
   }
+  // What is left was added by normalization, such as a decorator helper.
+  for (const injected of normalizedImports.values()) {
+    for (const statement of authoredProgram === null ? [] : injected) {
+      scanImport(statement, statement, plan, bindings, coreBindings);
+    }
+  }
 
   for (const statement of program.body) {
     switch (statement.type) {

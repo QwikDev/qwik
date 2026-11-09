@@ -8,6 +8,7 @@ import {
   LifetimeCommit,
   LifetimeOwner,
   ModuleKind,
+  type DecoratorOptions,
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
@@ -40,6 +41,7 @@ export interface AnalyseOptions {
   rootDir?: string;
   /** Identity-affecting: feeds QRL naming/hashing. */
   scope?: string;
+  decorator?: DecoratorOptions;
 }
 
 export interface AnalyseInput {
@@ -55,6 +57,9 @@ export async function analyseModule(
   const plan = emptyPlan(input.path, input.code);
   if (input.devPath !== undefined) {
     plan.source.devPath = input.devPath;
+  }
+  if (options.decorator !== undefined) {
+    plan.source.decorator = options.decorator;
   }
   const normalized = await normalizeSource(input.path, input.code, options);
   plan.source.normalizationMap = normalized.map as ModulePlan['source']['normalizationMap'];
@@ -169,6 +174,9 @@ export async function analyseModule(
         createLowerContext(foreignPlan, input.path, options, surfaceBindings, foreignCore)
       );
       foreignPlan.kind = ModuleKind.Foreign;
+      if (plan.source.decorator !== undefined) {
+        foreignPlan.source.decorator = plan.source.decorator;
+      }
       return foreignPlan;
     }
     plan.kind = ModuleKind.Foreign;

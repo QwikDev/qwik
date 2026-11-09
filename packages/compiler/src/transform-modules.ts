@@ -33,7 +33,12 @@ export async function transformModules(options: TransformModulesOptions): Promis
     options.input.map((input) =>
       analyseModule(
         { path: input.path, code: input.code, devPath: input.devPath ?? undefined },
-        { transpileTs: options.transpileTs, rootDir: options.rootDir, scope: options.scope }
+        {
+          transpileTs: options.transpileTs,
+          rootDir: options.rootDir,
+          scope: options.scope,
+          decorator: options.decorator,
+        }
       )
     )
   );

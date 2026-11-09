@@ -164,6 +164,63 @@ _(Optional)_
 
 Promise&lt;[Optimizer](#optimizer)&gt;
 
+<h2 id="decoratoroptions">DecoratorOptions</h2>
+
+Mirrors tsconfig's `experimentalDecorators` and `emitDecoratorMetadata`.
+
+```typescript
+export interface DecoratorOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+emitDecoratorMetadata?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+legacy?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
 <h2 id="diagnostic">Diagnostic</h2>
 
 ```typescript
@@ -3506,6 +3563,21 @@ Readonly&lt;Record&lt;string, boolean&gt;&gt;
 </td><td>
 
 _(Optional)_ Boolean values the host defines, keyed by `import.meta.env` name.
+
+</td></tr>
+<tr><td>
+
+decorator?
+
+</td><td>
+
+</td><td>
+
+[DecoratorOptions](#decoratoroptions)
+
+</td><td>
+
+_(Optional)_ Decorator lowering applied while stripping TypeScript, mirroring tsconfig.
 
 </td></tr>
 <tr><td>

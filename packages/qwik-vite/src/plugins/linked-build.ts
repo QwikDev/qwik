@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { Rolldown } from 'vite';
-import type { SegmentAnalysis } from '../types';
+import type { DecoratorOptions, SegmentAnalysis } from '../types';
 import {
   BuildMode,
   DeliveryKind,
@@ -320,7 +320,11 @@ export function createLinkedBuild() {
     config.onOutput(output);
   }
 
-  async function transform(code: string, id: string): Promise<Rolldown.SourceDescription | null> {
+  async function transform(
+    code: string,
+    id: string,
+    decorator?: DecoratorOptions
+  ): Promise<Rolldown.SourceDescription | null> {
     if (
       options === undefined ||
       id.startsWith('\0') ||
@@ -333,7 +337,7 @@ export function createLinkedBuild() {
     const path = planPath(id);
     const plan = await analyseModule(
       { path, code },
-      { transpileTs: true, rootDir: options.rootDir, scope: options.scope }
+      { transpileTs: true, rootDir: options.rootDir, scope: options.scope, decorator }
     );
     if (isLinkSealed) {
       // Reached only after the link sealed, as through a plugin's virtual entry

@@ -167,6 +167,14 @@ export interface ModuleSource {
   normalizationMap: JsonSourceMap | null;
   /** Dev-server URL of the authored module; dev server QRL stand-ins name it as their parent. */
   devPath?: string;
+  /** How the authored TypeScript lowers its decorators; a foreign module transpiles with it. */
+  decorator?: DecoratorOptions;
+}
+
+/** Mirrors tsconfig's `experimentalDecorators` and `emitDecoratorMetadata`. */
+export interface DecoratorOptions {
+  legacy?: boolean;
+  emitDecoratorMetadata?: boolean;
 }
 
 export const enum DiagnosticCategory {

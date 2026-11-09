@@ -23,6 +23,14 @@ export interface ComponentEntryStrategy {
 // @public (undocumented)
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
+// @public
+export interface DecoratorOptions {
+    // (undocumented)
+    emitDecoratorMetadata?: boolean;
+    // (undocumented)
+    legacy?: boolean;
+}
+
 // @public (undocumented)
 export interface Diagnostic {
     // (undocumented)
@@ -459,6 +467,7 @@ export interface TransformModulesOptions extends TransformOptions {
 // @public (undocumented)
 export interface TransformOptions {
     buildConstants?: Readonly<Record<string, boolean>>;
+    decorator?: DecoratorOptions;
     engine?: 'js' | 'native';
     // (undocumented)
     entryStrategy?: EntryStrategy;

@@ -23,6 +23,7 @@ export async function normalizeSource(
     cwd: options.rootDir,
     sourcemap: true,
     jsx: isJsxPath(path) ? 'preserve' : undefined,
+    decorator: options.decorator,
   });
   return { code: normalized.code, map: normalized.map ?? null, errors: normalized.errors };
 }

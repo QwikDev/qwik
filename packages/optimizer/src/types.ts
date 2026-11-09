@@ -60,10 +60,22 @@ export interface TransformOptions {
   stripCtxName?: string[];
   stripEventHandlers?: boolean;
   isServer?: boolean;
+  /** Decorator lowering applied while stripping TypeScript, mirroring tsconfig. */
+  decorator?: DecoratorOptions;
   /** Boolean values the host defines, keyed by `import.meta.env` name. */
   buildConstants?: Readonly<Record<string, boolean>>;
   /** `native` warns about every server body the plan carries as JavaScript text. */
   engine?: 'js' | 'native';
+}
+
+/**
+ * Mirrors tsconfig's `experimentalDecorators` and `emitDecoratorMetadata`.
+ *
+ * @public
+ */
+export interface DecoratorOptions {
+  legacy?: boolean;
+  emitDecoratorMetadata?: boolean;
 }
 
 /** @public */

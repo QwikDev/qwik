@@ -1,0 +1,9 @@
+round trip 1:
+  packages-qwik-router-lib-index.qwik.mjs_entry_useQwikRouter.js
+round trip 2:
+  @qwik-router-config.js
+round trip 3:
+  routes/layout.tsx
+  routes/navigation/action/index.tsx
+round trip 4:
+  /navigation/action/?qaction=rY0EmVan0TQ

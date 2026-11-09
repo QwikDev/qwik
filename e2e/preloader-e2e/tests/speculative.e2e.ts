@@ -1,20 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { labelRequest } from '../utils/app';
-import { fixtureById } from '../utils/fixtures';
+import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   maxSpeculativeInFlight,
   preloaderLinks,
   recordSpeculativePreloads,
+  release,
+  releaseAll,
+  settle,
   speculativeOrder,
   speculativePreloads,
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
+import { countFixtureRoundTrips, expectResult, fixtureRoot, openFixture } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
+const CONDITIONAL_ALL = fixtureById('conditional/all');
+const WITH_25_IDLE_PRELOADS: Fixture = {
+  ...CONDITIONAL_ALL,
+  path: `${CONDITIONAL_ALL.path}?maxIdlePreloads=25`,
+};
 
 test.describe('queue', () => {
-  test('never has more than one speculative preload in flight', async ({ page }, testInfo) => {
+  test('never has more speculative preloads in flight than maxIdlePreloads allows', async ({
+    page,
+  }, testInfo) => {
     await recordSpeculativePreloads(page);
     await waitForNetworkIdle(
       page,
@@ -30,6 +41,35 @@ test.describe('queue', () => {
     });
     expect((await speculativePreloads(page)).size).toBeGreaterThan(0);
     expect(await maxSpeculativeInFlight(page)).toBe(1);
+  });
+
+  test('no speculative preload starts while a needed preload is in flight', async ({ page }) => {
+    const opened = await openFixture(page, WITH_25_IDLE_PRELOADS, 'cold');
+    const { gate, ongoing } = opened;
+    const linksBeforeTheClick = (await preloaderLinks(page)).length;
+    const neededPreloadIsInFlight = async () => {
+      const needed = (await preloaderLinks(page))
+        .slice(linksBeforeTheClick)
+        .filter((link) => !link.speculative)
+        .map((link) => link.href);
+      return gate.held.some((route) => needed.includes(route.request().url()));
+    };
+    await countFixtureRoundTrips(
+      opened,
+      () => fixtureRoot(page, WITH_25_IDLE_PRELOADS).locator('[data-testid=trigger]').click(),
+      neededPreloadIsInFlight
+    );
+    expect(ongoing.length).toBeGreaterThan(0);
+    const linksBeforeTheRelease = (await preloaderLinks(page)).length;
+    await release(ongoing.splice(0));
+    await settle(page, gate);
+    const startedMeanwhile = (await preloaderLinks(page))
+      .slice(linksBeforeTheRelease)
+      .filter((link) => link.speculative)
+      .map((link) => link.href);
+    await releaseAll(gate);
+    await expectResult(page, WITH_25_IDLE_PRELOADS);
+    expect(startedMeanwhile).toEqual([]);
   });
 
   test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {

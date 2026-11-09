@@ -312,6 +312,14 @@ To run the Playwright tests headless, from start to finish, run:
 pnpm test.e2e.chromium
 ```
 
+The preloader suite builds its own app and counts the network round trips each click waits for. Its
+snapshots assume a production core build, so run `pnpm build.core` first:
+
+```shell
+pnpm build.core
+pnpm test.e2e.preloader
+```
+
 Finally, you can use `pnpm --filter` command to run packages' commands, for example:
 
 ```shell

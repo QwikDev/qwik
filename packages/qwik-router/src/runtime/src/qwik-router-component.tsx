@@ -127,7 +127,7 @@ import type {
 } from './types';
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isPromise, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
+import { isPromise, isSameOrigin, isSamePath, toPath, toSafeRedirectUrl, toUrl } from './utils';
 import {
   shouldStartViewTransition,
   startViewTransition,
@@ -840,10 +840,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
 
         if (result.redirect) {
+          const redirectUrl = toSafeRedirectUrl(result.redirect, routeLocation.url);
           if (result.redirect instanceof URL) {
-            location.href = result.redirect.href;
+            location.href = redirectUrl.href;
           } else {
-            startNavigation(result.redirect, { replaceState: true });
+            startNavigation(redirectUrl, { replaceState: true });
           }
           return;
         }

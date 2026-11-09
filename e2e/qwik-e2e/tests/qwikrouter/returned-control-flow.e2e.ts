@@ -1,6 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const base = '/qwikrouter-test/returned-control-flow';
+const actionRedirectTarget = `${base}/target/`;
+
+async function replaceActionRedirect(page: Page, target: string) {
+  await page.route(
+    (url) => url.searchParams.has('qaction'),
+    async (route) => {
+      const response = await route.fetch();
+      const body = await response.text();
+      expect(body).toContain(actionRedirectTarget);
+      await route.fulfill({ response, body: body.replace(actionRedirectTarget, target) });
+    }
+  );
+}
 
 // Returning ev.redirect()/ev.error() must behave the same as throwing them.
 test.describe('returned control-flow signals', () => {
@@ -68,5 +81,51 @@ test.describe('returned control-flow signals', () => {
     ]);
     expect(response.headers()['location']).toBeUndefined();
     await expect(page.locator('#returned-control-flow-target')).toBeVisible();
+  });
+
+  test('JSON action redirect rejects executable URLs', async ({ page }) => {
+    await page.goto(`${base}/action-redirect/`);
+    await replaceActionRedirect(page, 'javascript:window.__unsafeRedirectExecuted=true');
+
+    const error = page.waitForEvent('pageerror');
+    await page.locator('button[type="submit"]').click();
+    expect((await error).message).toContain('Unsupported redirect protocol: javascript:');
+    expect(await page.evaluate(() => (window as any).__unsafeRedirectExecuted)).toBeUndefined();
+    await expect(page).toHaveURL(new RegExp(`${base}/action-redirect/$`));
+  });
+
+  test('JSON action redirect permits external HTTPS URLs', async ({ page }) => {
+    await page.goto(`${base}/action-redirect/`);
+    await replaceActionRedirect(page, 'https://external.example/landing');
+    await page.route('https://external.example/landing', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>External</h1>' });
+    });
+
+    await page.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL('https://external.example/landing');
+    await expect(page.locator('h1')).toHaveText('External');
+  });
+
+  test('JSON loader redirect rejects executable URLs', async ({ page }) => {
+    await page.goto('/qwikrouter-test/loader-redirect/');
+    await page.route('**/q-loader-*', async (route) => {
+      const response = await route.fetch();
+      const body = await response.text();
+      const target = '/qwikrouter-test/loader-redirect/target/?done=true';
+      if (!body.includes(target)) {
+        await route.fulfill({ response });
+        return;
+      }
+      await route.fulfill({
+        response,
+        body: body.replace(target, 'javascript:window.__unsafeRedirectExecuted=true'),
+      });
+    });
+
+    const error = page.waitForEvent('pageerror');
+    await page.locator('#loader-redirect-btn').click();
+    expect((await error).message).toContain('Unsupported redirect protocol: javascript:');
+    expect(await page.evaluate(() => (window as any).__unsafeRedirectExecuted)).toBeUndefined();
+    expect(new URL(page.url()).origin).toBe('http://localhost:3301');
   });
 });

@@ -6,7 +6,27 @@ import {
   isSameOriginDifferentPathname,
   isSamePath,
   toPath,
+  toSafeRedirectUrl,
 } from './utils';
+
+test.each([
+  ['/dashboard', 'https://qwik.dev/dashboard'],
+  ['https://example.com/after-login', 'https://example.com/after-login'],
+  ['http://example.com/after-login', 'http://example.com/after-login'],
+])('toSafeRedirectUrl allows %s', (target, expected) => {
+  assert.equal(toSafeRedirectUrl(target, new URL('https://qwik.dev/')).href, expected);
+});
+
+test.each([
+  'javascript:globalThis.pwned=1',
+  'JaVaScRiPt:globalThis.pwned=1',
+  'java\tscript:globalThis.pwned=1',
+  'data:text/html,malicious',
+  'file:///tmp/malicious',
+  'mailto:attacker@example.com',
+])('toSafeRedirectUrl rejects %s', (target) => {
+  assert.throws(() => toSafeRedirectUrl(target, new URL('https://qwik.dev/')));
+});
 
 [
   {

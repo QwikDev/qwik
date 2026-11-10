@@ -35,6 +35,15 @@ jobs:
           node-version: 24.x
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify Cloudflare access
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSIGHTS_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Set CLOUDFLARE_INSIGHTS_API_TOKEN to a token with Workers Editor access in the QwikDev account."
+            exit 1
+          fi
+          pnpm -C packages/insights exec wrangler deployments list
       - name: Build workspace dependencies
         run: pnpm build --qwik --qwikcity --qwiklabs --eslint --tsc --platform-binding-wasm-copy --set-dist-tag release
       - name: Verify histogram aggregation
@@ -43,6 +52,5 @@ jobs:
         run: pnpm -C packages/insights build
       - name: Deploy Insights to Cloudflare Workers
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSIGHTS_API_TOKEN }}
         run: pnpm -C packages/insights run deploy

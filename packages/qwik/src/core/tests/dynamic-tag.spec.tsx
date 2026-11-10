@@ -96,4 +96,31 @@ describe(`${name}: dynamic tags`, () => {
       cleanup();
     }
   });
+
+  it('keeps the children of a component out of an empty string tag', async () => {
+    const Card = component$((props: { as: string }) => {
+      const Tag = props.as as 'section';
+      return (
+        <div>
+          <Tag id="empty" />
+          <p>
+            <Slot />
+          </p>
+        </div>
+      );
+    });
+    const App = component$(() => (
+      <Card as="section">
+        <b>inside</b>
+      </Card>
+    ));
+    const { container, cleanup } = await render(App);
+    try {
+      expect(container.querySelector('#empty')).toBeTruthy();
+      expect(container.querySelector('#empty b')).toBeFalsy();
+      expect(container.querySelector('p b')?.textContent).toBe('inside');
+    } finally {
+      cleanup();
+    }
+  });
 });

@@ -291,7 +291,7 @@ describe('components and invoke contexts', () => {
     expect(activeContext.container).toBe(container);
     expect(activeContext.contextScope).toBe(contextScope);
     expect(activeContext.localContextScope).toBeNull();
-    expect(activeContext.slotScope).toBe(slotScope);
+    expect(activeContext.slotScope).toBeNull();
   });
 
   it('creates child invoke contexts with inherited fields and lazy owner', () => {

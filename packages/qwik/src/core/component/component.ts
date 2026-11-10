@@ -190,7 +190,8 @@ function createComponentInvokeContext(
   const invokeContext = newChildInvokeContext(parentInvokeContext, {
     ownerHost,
     container: options?.container,
-    slotScope: options?.slotScope,
+    // a component is a slot boundary: without children it has no scope
+    slotScope: options?.slotScope ?? null,
   });
   if (
     parentInvokeContext !== null &&

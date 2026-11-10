@@ -153,7 +153,7 @@ describe('branches', () => {
     expect(conditionContext).toBe(branchContext);
     expect(componentContext.owner).toBeNull();
     expect(componentContext.contextScope).toBe(contextScope);
-    expect(componentContext.slotScope).toBe(slotScope);
+    expect(componentContext.slotScope).toBeNull();
     expect(replacements).toEqual([[componentNode]]);
   });
 

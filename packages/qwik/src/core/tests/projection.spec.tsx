@@ -52,6 +52,24 @@ describe(`${name}: projection`, () => {
     cleanup();
   });
 
+  it('keeps the children of a component out of a child rendered without children', async () => {
+    const Inner = component$(() => (
+      <i>
+        <Slot />
+      </i>
+    ));
+    const Outer = component$(() => <Inner />);
+    const Parent = component$(() => (
+      <Outer>
+        <b>parent-content</b>
+      </Outer>
+    ));
+    const { container, cleanup } = await render(Parent);
+    expect(container.querySelector('i')).toBeTruthy();
+    expect(container.querySelector('b')).toBeFalsy();
+    cleanup();
+  });
+
   it('renders nested projection', async () => {
     const Child = component$(() => (
       <div>

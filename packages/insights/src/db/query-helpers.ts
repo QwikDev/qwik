@@ -454,7 +454,9 @@ export const latencyColumnSums = {
   sumLatencyCount49: sql<number>`sum(${edgeTable.latencyCount49}) as sumLatencyCount49`,
 };
 
-export const latencyColumnSumList = sql<string>`
+// Group the concatenations so 50 buckets fit Turso's expression-depth limit of 100.
+export const latencyColumnSumList = sql<string>`(
+  (
   CAST(sum(${edgeTable.latencyCount00}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount01}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount02}) as VARCHAR) || ';' ||
@@ -479,7 +481,7 @@ export const latencyColumnSumList = sql<string>`
   CAST(sum(${edgeTable.latencyCount21}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount22}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount23}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount24}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.latencyCount24}) as VARCHAR)) || ';' || (
   CAST(sum(${edgeTable.latencyCount25}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount26}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount27}) as VARCHAR) || ';' ||
@@ -504,9 +506,11 @@ export const latencyColumnSumList = sql<string>`
   CAST(sum(${edgeTable.latencyCount46}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount47}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.latencyCount48}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount49}) as VARCHAR)`;
+  CAST(sum(${edgeTable.latencyCount49}) as VARCHAR))
+)`;
 
-export const delayColumnSumList = sql<string>`
+export const delayColumnSumList = sql<string>`(
+  (
   CAST(sum(${edgeTable.delayCount00}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount01}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount02}) as VARCHAR) || ';' ||
@@ -531,7 +535,7 @@ export const delayColumnSumList = sql<string>`
   CAST(sum(${edgeTable.delayCount21}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount22}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount23}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount24}) as VARCHAR) || ';' ||
+  CAST(sum(${edgeTable.delayCount24}) as VARCHAR)) || ';' || (
   CAST(sum(${edgeTable.delayCount25}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount26}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount27}) as VARCHAR) || ';' ||
@@ -556,7 +560,8 @@ export const delayColumnSumList = sql<string>`
   CAST(sum(${edgeTable.delayCount46}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount47}) as VARCHAR) || ';' ||
   CAST(sum(${edgeTable.delayCount48}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount49}) as VARCHAR)`;
+  CAST(sum(${edgeTable.delayCount49}) as VARCHAR))
+)`;
 
 export const latencyCount = {
   latencyCount: sql<number>`
@@ -666,6 +671,7 @@ export const delayColumnSums = {
 };
 
 export const timelineDelayAsList = sql<string>`(
+  (
   CAST(SUM(${routesTable.timeline00}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline01}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline02}) as VARCHAR) || ';' ||
@@ -690,7 +696,7 @@ export const timelineDelayAsList = sql<string>`(
   CAST(SUM(${routesTable.timeline21}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline22}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline23}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline24}) as VARCHAR) || ';' ||
+  CAST(SUM(${routesTable.timeline24}) as VARCHAR)) || ';' || (
   CAST(SUM(${routesTable.timeline25}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline26}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline27}) as VARCHAR) || ';' ||
@@ -715,7 +721,7 @@ export const timelineDelayAsList = sql<string>`(
   CAST(SUM(${routesTable.timeline46}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline47}) as VARCHAR) || ';' ||
   CAST(SUM(${routesTable.timeline48}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline49}) as VARCHAR)
+  CAST(SUM(${routesTable.timeline49}) as VARCHAR))
 )`;
 
 export const timelineDelays = {

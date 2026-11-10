@@ -10,6 +10,15 @@
     "syncpack": {
       "versionGroups": [
         {
+          "label": "Insights Workers deployment uses Wrangler 4 independently of the docs Pages deployment",
+          "packages": [
+            "insights"
+          ],
+          "dependencies": [
+            "wrangler"
+          ]
+        },
+        {
           "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
           "dependencyTypes": [
             "prod",

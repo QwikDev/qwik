@@ -1,0 +1,89 @@
+==INPUT==
+
+import { useComputed$, useSignal } from '@qwik.dev/core';
+import { useComputed as createComputed } from './reactive';
+export const createDouble = (count) => createComputed(() => count.value * 2);
+export default () => {
+  const count = useSignal(1);
+  const double = useComputed$(() => count.value * 2);
+  return <b>{double.value}</b>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useComputedQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { useComputed as createComputed } from './reactive';
+export const createDouble = (count) => createComputed(() => count.value * 2);
+const component_double_segment_0_oorkh4t0y6ca = () => {
+  const [count] = _capturesObj._;
+  return count.value * 2;
+};
+const q_component_double_segment_0_oorkh4t0y6ca = /*#__PURE__*/ _noopQrl(
+  'component_double_segment_0_oorkh4t0y6ca'
+);
+q_component_double_segment_0_oorkh4t0y6ca.s(component_double_segment_0_oorkh4t0y6ca);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    const double = useComputedQrl(q_component_double_segment_0_oorkh4t0y6ca.w([count]));
+    const id0 = ctx.nextId();
+    ctx.addRoot(double);
+    const text0 = renderSsrTextNode(id0, null, double);
+    return maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</b>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_double_segment_0_oorkh4t0y6ca.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_double_segment_0_oorkh4t0y6ca = () => {
+  const [count] = _capturesObj._;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_double_segment_0_oorkh4t0y6ca",
+  "entry": null,
+  "displayName": "component_double_segment_0",
+  "hash": "oorkh4t0y6ca",
+  "canonicalFilename": "component.tsx_component_double_segment_0_oorkh4t0y6ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    266,
+    301
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

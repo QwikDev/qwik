@@ -471,6 +471,22 @@ export default () => {
     );
   });
 
+  test('should call the core hook when another module exports the same name', async () => {
+    const output = await testInput(mode, 'setup-hook-name-from-other-module', {
+      code: `import { useComputed$, useSignal } from '@qwik.dev/core';
+import { useComputed as createComputed } from './reactive';
+export const createDouble = (count) => createComputed(() => count.value * 2);
+export default () => {
+  const count = useSignal(1);
+  const double = useComputed$(() => count.value * 2);
+  return <b>{double.value}</b>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toMatch(/import \{[^}]*\buseComputed(Qrl)?\b[^}]*\} from "@qwik\.dev\/core"/);
+  });
+
   test('should compile local implicit hooks and task setup', async () => {
     await testInput(mode, 'setup-task-hook', {
       code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';

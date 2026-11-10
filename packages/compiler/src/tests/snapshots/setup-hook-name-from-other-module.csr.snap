@@ -1,0 +1,72 @@
+==INPUT==
+
+import { useComputed$, useSignal } from '@qwik.dev/core';
+import { useComputed as createComputed } from './reactive';
+export const createDouble = (count) => createComputed(() => count.value * 2);
+export default () => {
+  const count = useSignal(1);
+  const double = useComputed$(() => count.value * 2);
+  return <b>{double.value}</b>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useComputed,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_double_segment_0_oorkh4t0y6ca } from './component.tsx_component_double_segment_0_oorkh4t0y6ca';
+
+const default_tmpl0 = _createElementTemplate('<b> </b>');
+import { useComputed as createComputed } from './reactive';
+export const createDouble = (count) => createComputed(() => count.value * 2);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const count = useSignal(1);
+  const double = useComputed(_withCaptures(component_double_segment_0_oorkh4t0y6ca, [count]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, double, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_double_segment_0_oorkh4t0y6ca.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_double_segment_0_oorkh4t0y6ca = () => {
+  const [count] = _capturesObj._;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_double_segment_0_oorkh4t0y6ca",
+  "entry": null,
+  "displayName": "component_double_segment_0",
+  "hash": "oorkh4t0y6ca",
+  "canonicalFilename": "component.tsx_component_double_segment_0_oorkh4t0y6ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    266,
+    301
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

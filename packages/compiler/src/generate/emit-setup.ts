@@ -294,7 +294,7 @@ function hookCalleeJs(
         ({ source }) =>
           !source.typeOnly &&
           source.imported === name &&
-          module.edges[source.edge].specifier !== QWIK_CORE_IMPORT
+          module.edges[source.edge].specifier.startsWith(`${QWIK_CORE_IMPORT}/`)
       );
       if (subpathImport !== undefined) {
         return module.bindings[subpathImport.source.binding].name;

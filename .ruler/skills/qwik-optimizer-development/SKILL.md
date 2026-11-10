@@ -63,6 +63,12 @@ pnpm build.core.dev
 pnpm vitest run packages/qwik-vite/src/plugins/linked-build.unit.ts
 ```
 
+Vitest's `fsModuleCache` replays cached modules without calling `transform` or `load`, and its key
+ignores plugin options, so the `csr` and `resume` projects collide. Any module the plugin compiles
+or serves from memory must make `isCompiledModule` (in `plugin.ts`) return true, which opts it out of
+the cache through `configureVitest`. A cold run hides a miss: run the render projects twice and keep
+`node_modules/.vitest-cache` between the runs.
+
 ## V2 TypeScript optimizer parity
 
 The following workflow applies to v2 parity work in `packages/ts-optimizer`, not the v3 compiler.

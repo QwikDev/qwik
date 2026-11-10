@@ -1503,6 +1503,7 @@ export function createQwikPlugin(
     const { pathId } = parseId(id);
     return (
       isQwikTransformedPath(pathId) ||
+      !!testResume?.hasOutput(pathId) ||
       clientTransformedOutputs.has(pathId) ||
       serverTransformedOutputs.has(pathId)
     );

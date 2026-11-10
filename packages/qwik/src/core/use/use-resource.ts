@@ -104,7 +104,7 @@ export const _rsc = async <T>(arg: ResourceCtx<T>) => {
     if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
       syncResourceStore(current, result);
     } else {
-      // Copy so later results do not mutate the caller, and keep this store reference.
+      // Copy so later results never mutate the caller's object.
       ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
       DEBUG && log('store created', ref.r);
     }

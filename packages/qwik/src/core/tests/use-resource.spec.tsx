@@ -536,53 +536,79 @@ describe.each([
     );
   });
 
-  it('should not mutate the returned resource object', async () => {
+  it('should not mutate the cached object when the resource starts from null', async () => {
     const caseA = { name: 'Case A', items: ['knife', 'gloves'], featured: true };
     const caseB = { name: 'Case B', items: ['sticker'] };
     (global as any).resourceCache = { a: caseA, b: caseB };
 
     const ResourceCmp = component$(() => {
-      const selected = useSignal('a');
+      const selected = useSignal<null | 'a' | 'b'>(null);
       const resource = useResource$(async ({ track }) => {
         const key = track(selected);
+        if (!key) {
+          return null;
+        }
         return (global as any).resourceCache[key];
       });
       return (
-        <button onClick$={() => (selected.value = 'b')}>
+        <button
+          onClick$={() => {
+            selected.value = selected.value === null ? 'a' : selected.value === 'a' ? 'b' : 'a';
+          }}
+        >
           <Resource value={resource} onResolved={(value) => <span>{JSON.stringify(value)}</span>} />
         </button>
       );
     });
 
     const { vNode, container } = await render(<ResourceCmp />, { debug });
+    const settle = async () => {
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+    };
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
           <InlineComponent ssr-required>
-            <span>{JSON.stringify(caseA)}</span>
+            <span>null</span>
           </InlineComponent>
         </button>
       </Component>
     );
 
     await trigger(container.element, 'button', 'click');
-    await waitForDrain(container);
-    await waitForDrain(container);
-    await waitForDrain(container);
-    await waitForDrain(container);
+    await settle();
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>{'{"name":"Case A","items":["knife","gloves"],"featured":true}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
 
-    const rendered = JSON.parse(container.element.querySelector('span')!.textContent!);
-    expect(rendered.name).toBe('Case B');
-    expect(rendered.items).toEqual(['sticker']);
+    await trigger(container.element, 'button', 'click');
+    await settle();
     expect((global as any).resourceCache.a).toEqual({
       name: 'Case A',
       items: ['knife', 'gloves'],
       featured: true,
     });
-    expect((global as any).resourceCache.b).toEqual({
-      name: 'Case B',
-      items: ['sticker'],
-    });
+
+    await trigger(container.element, 'button', 'click');
+    await settle();
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>{'{"name":"Case A","items":["knife","gloves"],"featured":true}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
     (global as any).resourceCache = undefined;
   });
 
@@ -667,6 +693,65 @@ describe.each([
         <button>
           <InlineComponent ssr-required>
             <span>[1]</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should switch a resource result between an array and an object', async () => {
+    const ResourceCmp = component$(() => {
+      const step = useSignal(0);
+      const resource = useResource$(async ({ track }) => {
+        const current = track(step);
+        if (current === 1) {
+          return { x: 1 };
+        }
+        return [1, 2, 3];
+      });
+      return (
+        <button onClick$={() => step.value++}>
+          <Resource value={resource} onResolved={(value) => <span>{JSON.stringify(value)}</span>} />
+        </button>
+      );
+    });
+
+    const { vNode, container } = await render(<ResourceCmp />, { debug });
+    const settle = async () => {
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+    };
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>[1,2,3]</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+
+    await trigger(container.element, 'button', 'click');
+    await settle();
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>{'{"x":1}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+
+    await trigger(container.element, 'button', 'click');
+    await settle();
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>[1,2,3]</span>
           </InlineComponent>
         </button>
       </Component>

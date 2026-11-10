@@ -9,7 +9,6 @@ import {
   release,
   releaseAll,
   resultIsDone,
-  settle,
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
@@ -73,11 +72,6 @@ test.describe('click before core loaded', () => {
   });
 });
 
-const firstPreloads = async (page: Page, gate: Awaited<ReturnType<typeof createGate>>) => {
-  await settle(page, gate);
-  return preloaderLinks(page);
-};
-
 for (const [name, heldUrl] of [
   ['the preloader', preloaderUrl],
   ['the bundle graph', bundleGraphUrl],
@@ -105,9 +99,11 @@ for (const [name, heldUrl] of [
       );
       const clickChunks = new Set(roundTrips.flatMap((roundTrip) => roundTrip.urls));
       gate.mode = 'pass';
-      await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
-      await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
-      const links = await firstPreloads(page, gate);
+      await waitForNetworkIdle(page, async () => {
+        await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
+        await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
+      });
+      const links = await preloaderLinks(page);
       const firstSpeculative = links.findIndex(
         (link) => link.speculative && !clickChunks.has(link.href)
       );

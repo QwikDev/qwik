@@ -26,7 +26,11 @@ const visibleText = (container: Element) =>
     node.nodeName === 'SCRIPT' || node.nodeType === 8 ? '' : (node.textContent ?? '')
   ).join('');
 
-const InlineDefaultSlot = () => <Slot />;
+const InlineDefaultSlot = () => (
+  <b id="inline-default-slot">
+    <Slot />
+  </b>
+);
 
 describe(`${name}: projection`, () => {
   it('renders basic projection over the slot fallback', async () => {
@@ -184,7 +188,7 @@ describe(`${name}: projection`, () => {
     cleanup();
   });
 
-  it('should render nested Slots in the owner of default content', async () => {
+  it("should keep the owner's children out of a component in default content", async () => {
     const Child = component$(() => (
       <section id="slot-default-owner">
         <Slot name="fallback">
@@ -198,9 +202,8 @@ describe(`${name}: projection`, () => {
       </Child>
     ));
     const { container, cleanup } = await render(Parent);
-    expect(container.querySelector('#slot-default-owner #slot-owned-content')?.textContent).toBe(
-      'owned'
-    );
+    expect(container.querySelector('#slot-default-owner #inline-default-slot')).toBeTruthy();
+    expect(container.querySelector('#slot-owned-content')).toBeFalsy();
     cleanup();
   });
 

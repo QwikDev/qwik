@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qwik-insights",
+  "account_id": "1deff5204b2644a7a301da3467316319",
+  "main": "./dist/_worker.js",
+  "compatibility_date": "2026-11-09",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "insights.qwik.dev",
+      "custom_domain": true,
+      "zone_name": "qwik.dev",
+    },
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "PRIVATE_LIBSQL_DB_URL": "libsql://qwik-bundalyzer-mhevery.aws-us-west-2.turso.io",
+    "PRIVATE_AUTH_BASE_API": "/auth",
+    "PRIVATE_GITHUB_ID": "0a2c93802deff0d3bd3c",
+  },
+}

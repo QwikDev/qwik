@@ -44,5 +44,9 @@ lerna-debug.log*
 .netlify
 .env.local
 
+# Cloudflare local credentials and build state
+.dev.vars*
+.wrangler
+
 # Panda CSS
 src/styled-system

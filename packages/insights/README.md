@@ -1,5 +1,55 @@
 # Qwik Insights
 
+## Cloudflare deployment
+
+The Qwik monorepo deploys two independent applications in the QwikDev Cloudflare account:
+
+| Application   | Cloudflare project      | Source directory    | Domain              |
+| ------------- | ----------------------- | ------------------- | ------------------- |
+| Documentation | Pages: `qwik-docs`      | `packages/docs`     | `qwik.dev`          |
+| Insights      | Worker: `qwik-insights` | `packages/insights` | `insights.qwik.dev` |
+
+Each application has its own deployment workflow. `deploy-insights.yml` builds and deploys
+Insights when its code or shared dependencies change on the production `v1` branch.
+The docs deployment remains independent. The Insights workflow becomes active once merged.
+
+The repository secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` authenticate
+deployments. The token needs Workers Scripts Edit for the QwikDev account and Workers
+Routes Edit plus Zone Read for `qwik.dev`; verify these permissions before enabling CI.
+Runtime secrets belong to the Worker, not GitHub or the checked-in configuration:
+
+- `PRIVATE_LIBSQL_DB_API_TOKEN`: Turso database token.
+- `PRIVATE_AUTH_SECRET`: Auth.js session encryption secret.
+- `PRIVATE_GITHUB_SECRET`: the QwikDev-owned Qwik Insights OAuth application's client secret.
+
+The OAuth application's existing production callback is under
+`https://insights.qwik.dev/auth/callback/github`. Do not use production OAuth credentials
+with untrusted preview deployments. A `workers.dev` preview can verify rendering and the
+OAuth redirect, but completing sign-in requires the registered production callback.
+
+For a clean local deployment, from the repository root:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm build --qwik --qwikcity --qwiklabs --eslint --tsc --platform-binding-wasm-copy --set-dist-tag release
+pnpm -C packages/insights build
+pnpm -C packages/insights run deploy.dry-run
+pnpm -C packages/insights run deploy
+```
+
+For local Workers testing, put runtime secrets in the ignored `.dev.vars` file and run
+`pnpm -C packages/insights serve.cloudflare`. Never commit that file.
+
+The Workers adapter uses Qwik City's Cloudflare Pages middleware, which requires the
+`entry.cloudflare-pages.tsx` filename and the `ASSETS` binding. `.assetsignore` keeps
+the Worker entry and Pages control files out of the public static assets.
+
+`insights.qwik.dev` is a Worker Custom Domain. Cloudflare manages its DNS record and TLS.
+To roll back hosting, remove that Custom Domain and restore the original proxied CNAME
+`insights.qwik.dev` → `insights-qwik.netlify.app` with automatic TTL. Also remove the Custom
+Domain from `wrangler.jsonc` before deploying again. The former Netlify deployment requires
+separate access to restore its login configuration.
+
 ## Local Development
 
 Ensure you have `.env.local` set up like so:

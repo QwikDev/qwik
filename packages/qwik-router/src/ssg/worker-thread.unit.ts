@@ -10,6 +10,7 @@ import type { ErrorCodes, RequestEvent } from '../middleware/request-handler/typ
 import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { routeLoaderQrl } from '../runtime/src/route-loaders';
 import { loadRoute } from '../runtime/src/routing';
+import type { LoaderOptions } from '../runtime/src/types';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
 import { workerRender } from './worker-thread';
 
@@ -80,11 +81,7 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-const createLoader = (
-  id: string,
-  load: () => unknown,
-  options: Parameters<typeof routeLoaderQrl>[1] = {}
-) =>
+const createLoader = (id: string, load: () => unknown, options: LoaderOptions = {}) =>
   routeLoaderQrl(
     { call: async () => load(), getHash: () => id, getSymbol: () => id } as any,
     options

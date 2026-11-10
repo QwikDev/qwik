@@ -89,17 +89,19 @@ const ResumedChildCounter = component$((props: { label?: string }) => {
 
 const ResumedChildParent = component$((props: { mode: PropChange }) => {
   const tick = useSignal(0);
-  const t = tick.value;
-  const childProps: { label?: string } = {};
-  if (props.mode === 'same' || (t === 0 && props.mode !== 'add')) {
-    childProps.label = 'one';
-  } else if (props.mode === 'change' || props.mode === 'add') {
-    childProps.label = 'big';
-  }
+  const childProps = useComputed$((): { label?: string } => {
+    if (props.mode === 'same' || (tick.value === 0 && props.mode !== 'add')) {
+      return { label: 'one' };
+    }
+    if (props.mode === 'change' || props.mode === 'add') {
+      return { label: 'big' };
+    }
+    return {};
+  });
   return (
     <div>
-      <p>{t}</p>
-      <ResumedChildCounter {...childProps} />
+      <p>{tick.value}</p>
+      <ResumedChildCounter {...childProps.value} />
       <button id="tick" onClick$={() => tick.value++}>
         tick
       </button>

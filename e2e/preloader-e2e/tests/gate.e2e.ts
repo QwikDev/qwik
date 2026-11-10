@@ -27,7 +27,7 @@ const heldFor = (gate: Awaited<ReturnType<typeof openHolding>>, url: string) =>
   gate.held.filter((route) => route.request().url() === url);
 
 test.describe('counting round trips', () => {
-  test('a warm click whose handler awaits 3 chained import()s takes exactly 3 round trips', async ({
+  test('counts one round trip per chained user import(): 3 for a handler that awaits 3', async ({
     page,
   }) => {
     const roundTrips = await warmClick(page, IMPORT_CHAIN);

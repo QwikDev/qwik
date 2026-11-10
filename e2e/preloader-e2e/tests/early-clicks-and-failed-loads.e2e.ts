@@ -115,9 +115,11 @@ for (const [name, heldUrl] of [
 
     test(`once ${name} arrives, the click's chunks are preloaded as needed`, async ({ page }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrl());
-      const clickLinks = links.filter((link) => clickChunks.has(link.href));
-      expect(clickLinks.length).toBeGreaterThan(0);
-      expect(clickLinks.filter((link) => link.speculative).map((link) => link.href)).toEqual([]);
+      const preloadedAsNeeded = new Set(
+        links.filter((link) => !link.speculative).map((link) => link.href)
+      );
+      expect(clickChunks.size).toBeGreaterThan(0);
+      expect([...clickChunks].filter((url) => !preloadedAsNeeded.has(url))).toEqual([]);
     });
 
     test(`once ${name} arrives, the needed preloads go out before any speculative preload`, async ({

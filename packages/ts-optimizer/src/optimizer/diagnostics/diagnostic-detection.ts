@@ -12,6 +12,7 @@ import { collectExportNames } from '../extraction/marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 import type { ModuleGatherFacts, PassiveConflict } from '../analysis/module-gather-walk.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
+import { processJsxTag } from '../jsx/jsx.js';
 import { plainQrlName } from '../qwik/qrl-naming.js';
 import { computeLineColFromOffset } from './source-loc.js';
 import { mkByteOffset, mkColumnNumber, mkLineNumber } from '../types/brands.js';
@@ -205,7 +206,7 @@ export function detectPassivePreventdefaultConflicts(
 ): void {
   walk(program, {
     enter(node: AstNode, parent: AstNode | null) {
-      if (node.type !== 'JSXOpeningElement') {
+      if (node.type !== 'JSXOpeningElement' || !processJsxTag(node.name).startsWith('"')) {
         return;
       }
 

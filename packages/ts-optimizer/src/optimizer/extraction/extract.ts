@@ -29,6 +29,7 @@ import {
   isEventProp,
   transformEventPropName,
   collectPassiveDirectives,
+  jsxPropKeyName,
 } from '../jsx/event-handlers.js';
 import { collectJsxFunctionNamesFromIterable } from '../jsx/jsx-call-transform.js';
 import { getBasename, getDirectory, getExtension, getFileStem } from '../../paths.js';
@@ -776,14 +777,18 @@ export function createExtractionCollector(
         pushCount++;
       }
 
-      if (node.type === 'Property' && node.key?.type === 'Identifier') {
+      if (
+        node.type === 'Property' &&
+        (node.key?.type === 'Identifier' || jsxPropKeyName(node) !== null)
+      ) {
         // When the surrounding ObjectExpression was tagged as a peer-tool JSX
         // props bag (see the JSX-runtime CallExpression arm below), apply the
         // same naming rules JSX syntax uses for `<tag onProp$=...>` —
         // `q_e_<event>` for HTML tags, `<key without $>` for components.
+        // String keys like `'window:onScroll$'` name the segment too, as in Rust.
         const jsxKind =
           parent?.type === 'ObjectExpression' ? ctx.jsxPropObjects.get(parent) : undefined;
-        const rawKey = node.key.name;
+        const rawKey = node.key.type === 'Identifier' ? node.key.name : jsxPropKeyName(node)!;
         // Skip the `children` key when naming a JSX props bag, so a handler
         // nested under `{ children: _jsxDEV("button", …) }` is named
         // `…_button_…`, not `…_children_button_…`. Plain object literals don't
@@ -1395,14 +1400,13 @@ export function createExtractionCollector(
       // function values.
       if (
         node.type === 'Property' &&
-        !node.computed &&
         !hasNonQwikJsxImportSource &&
         parent?.type === 'ObjectExpression' &&
         ctx.jsxPropObjects.has(parent) &&
         (node.value?.type === 'ArrowFunctionExpression' ||
           node.value?.type === 'FunctionExpression')
       ) {
-        const rawKey = getObjectPropertyKeyName(node.key);
+        const rawKey = jsxPropKeyName(node);
 
         if (rawKey !== null && rawKey.endsWith('$')) {
           const propKey = rawKey;

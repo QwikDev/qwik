@@ -308,13 +308,15 @@ export function processProps(
       continue;
     }
 
-    if (isPassiveDirective(propName)) {
+    // Only HTML tags consume passive:* here. A component or dynamic tag keeps it, so _jsxSplit can
+    // still create a passive listener when the tag turns out to be a string at runtime.
+    if (isPassiveDirective(propName) && tagIsHtml) {
       continue;
     }
 
     if (propName.startsWith('preventdefault:')) {
       const eventName = propName.slice('preventdefault:'.length);
-      if (!passiveEvents.has(eventName)) {
+      if (!tagIsHtml || !passiveEvents.has(eventName)) {
         pushNamed(constEntries, `"${propName}": true`, 'const', attr.start);
       }
       continue;

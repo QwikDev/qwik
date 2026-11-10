@@ -135,6 +135,12 @@ describe('body-transforms', () => {
       );
     });
 
+    it('keeps both directives on a member component tag', () => {
+      const body =
+        '<ui.Button passive:touchstart preventdefault:touchstart onTouchStart$={q_h}>x</ui.Button>';
+      expect(stripDiagnosticsAndDirectives(body)).toBe(body);
+    });
+
     it('leaves directive-shaped text inside a string literal alone', () => {
       const body = 'const s = "/* @qwik-disable-next-line foo */";';
       expect(stripDiagnosticsAndDirectives(body)).toBe(body);

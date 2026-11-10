@@ -1,7 +1,7 @@
 import { isDev, useComputed$ } from '@qwik.dev/core';
 import { createOwner, disposeOwner, runWithOwner } from '@qwik.dev/core/internal';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   abortRouteLoaderNavigation,
   prepareRouteLoaders,
@@ -49,9 +49,7 @@ describe('route loader execution', () => {
       1
     );
     commitRouteLoaders(state, ctx, 1);
-    expect(
-      Object.keys(state).filter((id) => !id.startsWith('__qwik_route_loader_value__'))
-    ).toEqual(['target-page']);
+    expect(Object.keys(state)).toEqual(['target-page']);
   });
 
   it('refreshes a resumed loader whose module export is still lazy', () => {
@@ -272,7 +270,7 @@ describe('route loader execution', () => {
     expect(signal.value).toBe('injected');
   });
 
-  it('stores an uninitialized resume marker for never loaders', () => {
+  it('keeps only loader signals in the state', () => {
     const state = {} as RouteLoaderState;
     const routeLoaderCtx = { loaderPaths: {} };
     const neverLoader = createLoader('never-loader', async () => undefined);
@@ -283,11 +281,7 @@ describe('route loader execution', () => {
     ensureRouteLoaderSignal(neverLoader, state, routeLoaderCtx);
     ensureRouteLoaderSignal(alwaysLoader, state, routeLoaderCtx);
 
-    expect(state['never-loader']).toBeDefined();
-    expect(state['always-loader']).toBeDefined();
-    expect(
-      Object.entries(state).filter(([key]) => key.startsWith('__qwik_route_loader_value__'))
-    ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
+    expect(Object.keys(state)).toEqual(['never-loader', 'always-loader']);
   });
 
   it('keeps a loader signal alive after the component that first used it is disposed', async () => {

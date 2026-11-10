@@ -593,11 +593,11 @@
   Array [
     RootRef [omitted]
     StoreProp [
-      {number} 145
+      {number} 144
       {string} "selected"
     ]
     StoreProp [
-      {number} 146
+      {number} 145
       RootRef [omitted]
     ]
     RootRef [omitted]
@@ -638,11 +638,11 @@
     RootRef [omitted]
     RootRef [omitted]
     StoreProp [
-      {number} 146
+      {number} 145
       {string} "0"
     ]
     StoreProp [
-      {number} 146
+      {number} 145
       {string} "1"
     ]
     RootRef [omitted]
@@ -731,8 +731,6 @@
 25 Object [
   RootRef [omitted]
   RootRef [omitted]
-  RootRef [omitted]
-  Constant _UNINITIALIZED
 ]
 26 Signal [
   Object [
@@ -1075,30 +1073,29 @@
   RootRef [omitted]
   {number} 1
 ]
-126 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
-127 Object [
+126 Object [
   {string} "raw"
 ]
-128 RootRef [omitted]
-129 {string} "ssg-snapshot-loader"
-130 Array []
-131 {string} "q-xxxxxxxx.js"
-132 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
-133 {string} "q-xxxxxxxx.js"
-134 {string} "index_text_segment_3_1ipipo7fa3bh6"
-135 Owner [
+127 RootRef [omitted]
+128 {string} "ssg-snapshot-loader"
+129 Array []
+130 {string} "q-xxxxxxxx.js"
+131 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
+132 {string} "q-xxxxxxxx.js"
+133 {string} "index_text_segment_3_1ipipo7fa3bh6"
+134 Owner [
   RootRef [omitted]
   {number} 0
 ]
-136 {string} "q-xxxxxxxx.js"
-137 {string} "index_text_segment_4_1ipinq1vpx1ej"
-138 {string} "q-xxxxxxxx.js"
-139 {string} "index_text_segment_5_1ipinc0rt2ze0"
-140 Owner [
+135 {string} "q-xxxxxxxx.js"
+136 {string} "index_text_segment_4_1ipinq1vpx1ej"
+137 {string} "q-xxxxxxxx.js"
+138 {string} "index_text_segment_5_1ipinc0rt2ze0"
+139 Owner [
   Constant null
   {number} 0
 ]
-141 Store [
+140 Store [
   RootRef [omitted]
   Array [
     Array [
@@ -1131,14 +1128,14 @@
     ]
   ]
 ]
-142 Signal [
+141 Signal [
   {number} 2
   RootRef [omitted]
   RootRef [omitted]
 ]
-143 {string} "q-xxxxxxxx.js"
-144 {string} "index_summary_segment_1_423pfnt4yf49"
-145 Object [
+142 {string} "q-xxxxxxxx.js"
+143 {string} "index_summary_segment_1_423pfnt4yf49"
+144 Object [
   {string} "expanded"
   Constant true
   RootRef [omitted]
@@ -1151,41 +1148,41 @@
     {string} "ssg"
   ]
 ]
-146 Array [
+145 Array [
   RootRef [omitted]
   RootRef [omitted]
 ]
-147 {string} "q-xxxxxxxx.js"
-148 {string} "index_text_segment_6_1ipioi43jl5fl"
-149 {string} "q-xxxxxxxx.js"
-150 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
+146 {string} "q-xxxxxxxx.js"
+147 {string} "index_text_segment_6_1ipioi43jl5fl"
+148 {string} "q-xxxxxxxx.js"
+149 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
+150 RootRef [omitted]
 151 RootRef [omitted]
 152 RootRef [omitted]
 153 RootRef [omitted]
-154 RootRef [omitted]
-155 {string} "q-xxxxxxxx.js"
-156 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
-157 {string} "q-xxxxxxxx.js"
-158 {string} "index_branch_then_segment_8_3rgw1hir8l68"
-159 Owner [
+154 {string} "q-xxxxxxxx.js"
+155 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
+156 {string} "q-xxxxxxxx.js"
+157 {string} "index_branch_then_segment_8_3rgw1hir8l68"
+158 Owner [
   RootRef [omitted]
   {number} 7
 ]
-160 {string} "q-xxxxxxxx.js"
-161 {string} "index_text_segment_9_1ipilrwc5qrbw"
-162 {string} "q-xxxxxxxx.js"
-163 {string} "router_outlet_component_q_d_qrouterpopstate_segment_8_3rkqclzffqhqj"
+159 {string} "q-xxxxxxxx.js"
+160 {string} "index_text_segment_9_1ipilrwc5qrbw"
+161 {string} "q-xxxxxxxx.js"
+162 {string} "router_outlet_component_q_d_qrouterpopstate_segment_8_3rkqclzffqhqj"
+163 RootRef [omitted]
 164 RootRef [omitted]
-165 RootRef [omitted]
-166 Owner [
+165 Owner [
   Constant null
   {number} 0
 ]
+166 RootRef [omitted]
 167 RootRef [omitted]
-168 RootRef [omitted]
-169 Owner [
+168 Owner [
   RootRef [omitted]
   {number} 5
 ]
+169 RootRef [omitted]
 170 RootRef [omitted]
-171 RootRef [omitted]

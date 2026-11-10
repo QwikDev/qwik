@@ -433,9 +433,7 @@ function renderSsrProjections(
   context: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
   if (projections.length === 0) {
-    return fallback === undefined
-      ? EMPTY_STRING
-      : renderSsrProjection(ctx, fallback, null, context);
+    return fallback === undefined ? EMPTY_STRING : renderSsrProjection(ctx, fallback, context);
   }
   if (projections.length === 1) {
     const projection = projections[0];
@@ -680,7 +678,6 @@ function renderRegisteredSsrProjection(
 function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
-  slotScope: SlotScope | null,
   base: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
   const rangeId = ctx.nextId();
@@ -690,10 +687,8 @@ function renderSsrProjection(
     ctx as any
   );
   return maybeThen(render, (render) => {
-    const invokeContext = newChildInvokeContext(base, {
-      ownerHost: renderParent,
-      slotScope,
-    });
+    // default content keeps the owner's slot scope for nested Slots
+    const invokeContext = newChildInvokeContext(base, { ownerHost: renderParent });
     return safeCall(
       () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId),
       (output) => ownSsrOutput(output, invokeContext),

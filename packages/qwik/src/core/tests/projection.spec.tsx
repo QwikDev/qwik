@@ -164,6 +164,26 @@ describe(`${name}: projection`, () => {
     cleanup();
   });
 
+  it("should project the owner's children through a Slot in default content", async () => {
+    const Child = component$(() => (
+      <section id="slot-default-owner">
+        <Slot name="fallback">
+          <Slot />
+        </Slot>
+      </section>
+    ));
+    const Parent = component$(() => (
+      <Child>
+        <span id="slot-owned-content">owned</span>
+      </Child>
+    ));
+    const { container, cleanup } = await render(Parent);
+    expect(container.querySelector('#slot-default-owner #slot-owned-content')?.textContent).toBe(
+      'owned'
+    );
+    cleanup();
+  });
+
   it('should render nested Slots in the owner of default content', async () => {
     const Child = component$(() => (
       <section id="slot-default-owner">

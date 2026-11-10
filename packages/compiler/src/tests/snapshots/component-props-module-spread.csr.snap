@@ -1,0 +1,112 @@
+==INPUT==
+
+export const Child = (props) => <span>{props.label}</span>;
+const base = { label: 'base' };
+export default () => <Child {...base} {...{ title: 'literal' }} />;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  propSource,
+  createTextNodeEffect,
+  _createElementTemplate,
+  _qrlWithChunk,
+  computedProp,
+  readTrackedValue,
+  mergeProps,
+  createComponent,
+} from '@qwik.dev/core';
+
+const Child_tmpl0 = _createElementTemplate('<span> </span>');
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1_208o0sfi1se76',
+  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+  'component_props_segment_1_208o0sfi1se76'
+);
+export const Child = (props, ctx) => {
+  const el0 = Child_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const prop0 = propSource(props, 'label');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+const base = { label: 'base' };
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p);
+  const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76);
+  const component0 = createComponent(
+    Child,
+    mergeProps(readTrackedValue(prop0), readTrackedValue(prop1)),
+    ctx
+  );
+  return component0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { base as __qwik_base };
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+import { __qwik_base as base } from './component.tsx';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  return base;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": false,
+  "loc": [
+    124,
+    128
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = () => {
+  return { title: 'literal' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": false,
+  "loc": [
+    134,
+    154
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -37,7 +37,6 @@ import {
   lowerInlineExpressionValue,
   recordPayloadJsx,
   recordPayloadReads,
-  trySignalReadValue,
 } from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
@@ -191,11 +190,7 @@ function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: Lower
   if (
     attributes.some(
       (attribute) =>
-        attribute.type === 'JSXSpreadAttribute' &&
-        (trySignalReadValue(attribute.argument, ctx) !== null ||
-          ctx.bindings
-            .freeReferences(attribute.argument)
-            .some(({ binding }) => ctx.locals.get(binding)?.kind === LocalKind.PropRest))
+        attribute.type === 'JSXSpreadAttribute' && readsComponentState(attribute.argument, ctx)
     )
   ) {
     return lowerComponentPropsProxy(attributes, ctx);
@@ -204,6 +199,17 @@ function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: Lower
     .map((attribute) => lowerAttribute(attribute, ctx, 'component'))
     .filter((prop) => prop !== null);
   return { c: ComponentPropsKind.Entries as const, props };
+}
+
+/** A spread over props or setup locals can change, so the child reads it through a proxy. */
+function readsComponentState(expression: Expression, ctx: LowerContext): boolean {
+  // the props record itself is live, so merging it keeps its getters
+  const binding = ctx.bindings.reference(unwrapExpression(expression));
+  if (binding !== null && binding === ctx.propsBinding) {
+    return false;
+  }
+  const captures = collectCaptures(expression, ctx, new Set());
+  return captures.propsReads.length > 0 || captures.locals.length > 0;
 }
 
 function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {

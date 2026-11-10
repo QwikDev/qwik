@@ -15,9 +15,8 @@ import {
   createTextNodeEffect,
   _createElementTemplate,
   _qrlWithChunk,
-  computedProp,
-  readTrackedValue,
-  mergeProps,
+  createPropsProxy,
+  useComputedQrl,
   createComponent,
 } from '@qwik.dev/core';
 
@@ -26,11 +25,6 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_0_208o16glymg7p',
   () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
   'component_props_segment_0_208o16glymg7p'
-);
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1_208o0sfi1se76',
-  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
-  'component_props_segment_1_208o0sfi1se76'
 );
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
@@ -41,17 +35,9 @@ export const Child = (props, ctx) => {
   return el0;
 };
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props]));
-  const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76.w([props]));
   const component0 = createComponent(
     Child,
-    mergeProps(
-      { label: 'before' },
-      readTrackedValue(prop0),
-      { middle: 'middle' },
-      readTrackedValue(prop1),
-      { label: 'after' }
-    ),
+    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([props]))),
     ctx
   );
   return component0;
@@ -65,7 +51,7 @@ import { _capturesObj } from '@qwik.dev/core';
 
 export const component_props_segment_0_208o16glymg7p = () => {
   const [props] = _capturesObj._;
-  return props.base;
+  return { label: 'before', ...props.base, middle: 'middle', ...props.overrides, label: 'after' };
 };
 /*
 {
@@ -81,39 +67,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    120,
-    130
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
-
-import { _capturesObj } from '@qwik.dev/core';
-
-export const component_props_segment_1_208o0sfi1se76 = () => {
-  const [props] = _capturesObj._;
-  return props.overrides;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_props_segment_1_208o0sfi1se76",
-  "entry": null,
-  "displayName": "component_props_segment_1",
-  "hash": "208o0sfi1se76",
-  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "props",
-  "captures": true,
-  "loc": [
-    152,
-    167
+    101,
+    182
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,0 +1,131 @@
+==INPUT==
+
+export const Child = (props) => <span>{props.label}</span>;
+const base = { label: 'base' };
+export default () => <Child {...base} {...{ title: 'literal' }} />;
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+  computedProp,
+  readTrackedValue,
+  mergeProps,
+  createComponent,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_props_segment_0_208o16glymg7p = () => {
+  return base;
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_0_208o16glymg7p'
+);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const component_props_segment_1_208o0sfi1se76 = () => {
+  return { title: 'literal' };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'label');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<span q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</span>',
+    ]);
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+const base = { label: 'base' };
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p);
+    const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76);
+    ctx.addRoot(prop0);
+    ctx.addRoot(prop1);
+    const component0 = ctx.observeError(
+      createComponent(Child, mergeProps(readTrackedValue(prop0), readTrackedValue(prop1)), ctx)
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { base as __qwik_base };
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+import { __qwik_base as base } from './component.tsx';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  return base;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": false,
+  "loc": [
+    124,
+    128
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = () => {
+  return { title: 'literal' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": false,
+  "loc": [
+    134,
+    154
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -518,6 +518,31 @@ export default () => {
     });
   });
 
+  test('should proxy a component prop spread that reads a signal in an expression', async () => {
+    const output = await testInput(mode, 'component-props-conditional-spread', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <span>{props.label ?? 'none'}</span>;
+export default () => {
+  const count = useSignal(0);
+  return <Child {...(count.value === 0 ? { label: 'initial' } : {})} />;
+};
+`,
+    });
+    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    expect(code).toContain('createPropsProxy(');
+  });
+
+  test('should merge a component prop spread of module values without a proxy', async () => {
+    const output = await testInput(mode, 'component-props-module-spread', {
+      code: `export const Child = (props) => <span>{props.label}</span>;
+const base = { label: 'base' };
+export default () => <Child {...base} {...{ title: 'literal' }} />;
+`,
+    });
+    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    expect(code).not.toContain('createPropsProxy(');
+  });
+
   test('should proxy mixed reactive component props in authored order', async () => {
     await testInput(mode, 'component-props-reactive-spread-mixed', {
       code: `import { useSignal } from '@qwik.dev/core';

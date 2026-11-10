@@ -33,7 +33,7 @@ export const QManifestOptions = z.object({
 });
 
 export const QManifestPlatform = z.object({
-  qwik: z.string(),
+  qwik: z.string().optional(),
   vite: z.string(),
   rollup: z.string(),
   env: z.string(),

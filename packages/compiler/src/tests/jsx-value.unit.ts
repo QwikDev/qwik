@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, renderCode } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 
@@ -120,7 +120,7 @@ test.each([
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -153,7 +153,7 @@ test('preserves native object evaluation order and evaluates each spread once', 
   expect(output.diagnostics).toEqual([]);
   const calls: string[] = [];
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -187,5 +187,5 @@ test('lifts a local component crossing a JSX value boundary', async () => {
   expect(output.modules.map((module) => module.path)).toContain(
     'src/value.tsx_value_Child_segment_0_2sapydfapyod.js'
   );
-  expect(output.modules[0].code).not.toContain('function Child() {\n  return <p>');
+  expect(renderCode(output)).not.toContain('function Child() {\n  return <p>');
 });

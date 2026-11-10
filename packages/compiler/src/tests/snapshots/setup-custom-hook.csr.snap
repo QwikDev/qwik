@@ -13,47 +13,9 @@ export default (props: { title: string; options: object; args: unknown[] }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _withCaptures,
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
-import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
-import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
-
-const default_tmpl0 = _createElementTemplate('<span> </span>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ as custom } from './hooks';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(1);
-  const _destructured = useCustom(
-    _withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]),
-    props.options
-  );
-  useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [props]), ...props.args);
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      const text0 = _first(el0);
-      const effect0 = createTextExpressionEffect(
-        text0,
-        [_destructured],
-        component_text_segment_2_1fh117dstcoge,
-        ctx.scheduler
-      );
-      ctx.scheduler.notify(effect0);
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -141,6 +103,70 @@ export const component_text_segment_2_1fh117dstcoge = (_destructured) => {
   "paramNames": [],
   "captureNames": [
     "_destructured"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _withCaptures,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { useCustom } from './hooks';
+import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
+import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+import { useCustom$ as custom } from './hooks';
+const default_tmpl0 = _createElementTemplate('<span> </span>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  const _destructured = useCustom(
+    _withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]),
+    props.options
+  );
+  useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [props]), ...props.args);
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextExpressionEffect(
+        text0,
+        [_destructured],
+        component_text_segment_2_1fh117dstcoge,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    92,
+    331
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

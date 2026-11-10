@@ -14,92 +14,10 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-  useSignal,
-  _capturesObj,
-  renderSsrBranch,
-  createComponent,
-} from '@qwik.dev/core';
-const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.count.value;
-};
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
-  const [show] = _capturesObj._;
-  return show.value;
-};
-const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_1_2fzri0t2yrfeq'
-);
-q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
-  component_branch_condition_segment_1_2fzri0t2yrfeq
-);
-const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  const [count, label] = _capturesObj._;
-  const component0 = ctx.observeError(createComponent(Child, { count: count, label: label }, ctx));
-  return component0;
-};
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_2_24n7b7xmnzb3n'
-);
-q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
-export const Child = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [props],
-      q_component_text_segment_0_1fh10fbkzokfc
-    );
-    return maybeThen(text0, (text0) => [
-      '<strong q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</strong>',
-    ]);
-  },
-  'Child_component_syc3erfxihm7',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const show = useSignal(true);
-    const count = useSignal(0);
-    let label = 'a';
-    label = 'b';
-    const branchId0 = ctx.nextId();
-    ctx.addRoot(show);
-    ctx.addRoot(count);
-    ctx.addRoot(label);
-    const branch0 = ctx.observeError(
-      renderSsrBranch(
-        ctx,
-        branchId0,
-        q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
-        q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
-        undefined
-      )
-    );
-    return ['<div><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></div>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -124,6 +42,65 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count.value;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const q_Child_component_syc3erfxihm7 = /*#__PURE__*/ _noopQrl('Child_component_syc3erfxihm7');
+_markComponent(Child_component_syc3erfxihm7, q_Child_component_syc3erfxihm7);
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<strong q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</strong>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    113
+  ],
+  "paramNames": [
     "props"
   ]
 }
@@ -162,7 +139,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
 import { _capturesObj, createComponent } from '@qwik.dev/core';
-import { Child } from './component.tsx';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   const [count, label] = _capturesObj._;
@@ -191,6 +168,80 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
     "count",
     "label"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  renderSsrBranch,
+  createSsrNodeId,
+  _noopQrl,
+  createComponent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
+  const [show] = _capturesObj._;
+  return show.value;
+};
+const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_1_2fzri0t2yrfeq'
+);
+q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
+  component_branch_condition_segment_1_2fzri0t2yrfeq
+);
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
+  const [count, label] = _capturesObj._;
+  const component0 = ctx.observeError(createComponent(Child, { count: count, label: label }, ctx));
+  return component0;
+};
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_2_24n7b7xmnzb3n'
+);
+q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const show = useSignal(true);
+  const count = useSignal(0);
+  let label = 'a';
+  label = 'b';
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  ctx.addRoot(count);
+  ctx.addRoot(label);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
+      q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
+      undefined
+    )
+  );
+  return ['<div><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></div>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    114,
+    236
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

@@ -194,7 +194,10 @@ describe('duplicate core copies', async () => {
   });
 
   test('recognize foreign component markers and resolved QRL bodies', () => {
-    const component = second._markComponent(() => null, 'component', 'chunk');
+    const component = second._markComponent(
+      () => null,
+      second.createQRL('chunk', 'component', () => null)
+    );
     expect(first.isQwikComponent(component)).toBe(true);
     const body = () => 1;
     const qrl = second.createQRL('chunk', 'body', body);

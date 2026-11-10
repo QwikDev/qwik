@@ -19,87 +19,13 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  implicit$FirstArg,
-  useSignal,
-  _capturesObj,
-  useTaskQrl,
-  useComputedQrl,
-  createSsrNodeId,
-  createSsrOpenTag,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-import { useCustomQrl } from './hooks';
+import { implicit$FirstArg } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ } from './hooks';
 export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-const component_read_segment_0_1zbzildyw5vrf = () => {
-  const [count] = _capturesObj._;
-  return count.value;
-};
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
-  'component_read_segment_0_1zbzildyw5vrf'
-);
-q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
-const component_total_segment_1_33cb9ycgfz3ta = () => {
-  const [count] = _capturesObj._;
-  return count.value * 2;
-};
-const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ _noopQrl(
-  'component_total_segment_1_33cb9ycgfz3ta'
-);
-q_component_total_segment_1_33cb9ycgfz3ta.s(component_total_segment_1_33cb9ycgfz3ta);
-const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
-  const [count] = _capturesObj._;
-  return count.value;
-};
-const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
-  'component_useCustomqrl_segment_2_heiedc4h1woo'
-);
-q_component_useCustomqrl_segment_2_heiedc4h1woo.s(component_useCustomqrl_segment_2_heiedc4h1woo);
-const component_useLocalqrl_segment_3_34296ojkgual = () => {
-  const [count] = _capturesObj._;
-  return count.value;
-};
-const q_component_useLocalqrl_segment_3_34296ojkgual = /*#__PURE__*/ _noopQrl(
-  'component_useLocalqrl_segment_3_34296ojkgual'
-);
-q_component_useLocalqrl_segment_3_34296ojkgual.s(component_useLocalqrl_segment_3_34296ojkgual);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const count = useSignal(1);
-    const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
-    useTaskQrl(read);
-    const total = useComputedQrl(q_component_total_segment_1_33cb9ycgfz3ta.w([count]), {
-      initial: 0,
-    });
-    useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
-    useLocalQrl(q_component_useLocalqrl_segment_3_34296ojkgual.w([count]));
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        const id0 = ctx.nextId();
-        ctx.addRoot(total);
-        const text0 = renderSsrTextNode(id0, null, total);
-        return maybeThen(text0, (text0) => [
-          createSsrOpenTag('<span q:id="', createSsrNodeId(id0), '"', '>'),
-          escapeHTML(text0),
-          '</span>',
-        ]);
-      })
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -222,6 +148,104 @@ export const component_useLocalqrl_segment_3_34296ojkgual = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  useTaskQrl,
+  useComputedQrl,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
+import { useCustom$ } from './hooks';
+import { useLocal$ } from './component.tsx';
+const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _capturesObj._;
+  return count.value;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const component_total_segment_1_33cb9ycgfz3ta = () => {
+  const [count] = _capturesObj._;
+  return count.value * 2;
+};
+const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ _noopQrl(
+  'component_total_segment_1_33cb9ycgfz3ta'
+);
+q_component_total_segment_1_33cb9ycgfz3ta.s(component_total_segment_1_33cb9ycgfz3ta);
+const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
+  const [count] = _capturesObj._;
+  return count.value;
+};
+const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
+  'component_useCustomqrl_segment_2_heiedc4h1woo'
+);
+q_component_useCustomqrl_segment_2_heiedc4h1woo.s(component_useCustomqrl_segment_2_heiedc4h1woo);
+const component_useLocalqrl_segment_3_34296ojkgual = () => {
+  const [count] = _capturesObj._;
+  return count.value;
+};
+const q_component_useLocalqrl_segment_3_34296ojkgual = /*#__PURE__*/ _noopQrl(
+  'component_useLocalqrl_segment_3_34296ojkgual'
+);
+q_component_useLocalqrl_segment_3_34296ojkgual.s(component_useLocalqrl_segment_3_34296ojkgual);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
+  useTaskQrl(read);
+  const total = useComputedQrl(q_component_total_segment_1_33cb9ycgfz3ta.w([count]), {
+    initial: 0,
+  });
+  useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
+  useLocalQrl(q_component_useLocalqrl_segment_3_34296ojkgual.w([count]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(total);
+      const text0 = renderSsrTextNode(id0, null, total);
+      return maybeThen(text0, (text0) => [
+        createSsrOpenTag('<span q:id="', createSsrNodeId(id0), '"', '>'),
+        escapeHTML(text0),
+        '</span>',
+      ]);
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    262,
+    507
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

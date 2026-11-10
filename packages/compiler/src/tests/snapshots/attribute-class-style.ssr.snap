@@ -17,78 +17,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useStylesScoped,
-  useSignal,
-  createSsrNodeId,
-  createSsrDomBatchEffect,
-  renderSsrAttrExpression,
-  escapeHTML,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_class_segment_0_3htuygud1guoj = (active) => {
-  return [
-    'base',
-    {
-      active: active.value,
-      disabled: !active.value,
-    },
-  ];
-};
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
-  'component_class_segment_0_3htuygud1guoj'
-);
-q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
-const component_style_segment_1_cgm3c4qw0vql = (active) => {
-  return { opacity: active.value ? 1 : 0.5 };
-};
-const q_component_style_segment_1_cgm3c4qw0vql = /*#__PURE__*/ _noopQrl(
-  'component_style_segment_1_cgm3c4qw0vql'
-);
-q_component_style_segment_1_cgm3c4qw0vql.s(component_style_segment_1_cgm3c4qw0vql);
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
-    const active = useSignal(true);
-    const id0 = ctx.nextId();
-    const effect0 = createSsrDomBatchEffect();
-    ctx.addRoot(active);
-    const attr0 = renderSsrAttrExpression(
-      id0,
-      'class',
-      [active],
-      q_component_class_segment_0_3htuygud1guoj,
-      effect0,
-      '⚡️f5nwzpjzm8yb-0'
-    );
-    const attr1 = renderSsrAttrExpression(
-      id0,
-      'style',
-      [active],
-      q_component_style_segment_1_cgm3c4qw0vql,
-      effect0
-    );
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) => [
-        '<button q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
-        '></button>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (active) => {
@@ -180,6 +110,98 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "captureNames": [
     "active"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStylesScoped,
+  useSignal,
+  createSsrNodeId,
+  createSsrDomBatchEffect,
+  renderSsrAttrExpression,
+  escapeHTML,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_class_segment_0_3htuygud1guoj = (active) => {
+  return [
+    'base',
+    {
+      active: active.value,
+      disabled: !active.value,
+    },
+  ];
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const component_style_segment_1_cgm3c4qw0vql = (active) => {
+  return { opacity: active.value ? 1 : 0.5 };
+};
+const q_component_style_segment_1_cgm3c4qw0vql = /*#__PURE__*/ _noopQrl(
+  'component_style_segment_1_cgm3c4qw0vql'
+);
+q_component_style_segment_1_cgm3c4qw0vql.s(component_style_segment_1_cgm3c4qw0vql);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
+  const active = useSignal(true);
+  const id0 = ctx.nextId();
+  const effect0 = createSsrDomBatchEffect();
+  ctx.addRoot(active);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'class',
+    [active],
+    q_component_class_segment_0_3htuygud1guoj,
+    effect0,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  const attr1 = renderSsrAttrExpression(
+    id0,
+    'style',
+    [active],
+    q_component_style_segment_1_cgm3c4qw0vql,
+    effect0
+  );
+  return maybeThen(attr0, (attr0) =>
+    maybeThen(attr1, (attr1) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+      '></button>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    402
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

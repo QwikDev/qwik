@@ -15,41 +15,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  createAttrExpressionEffect,
-  setEvent,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_data_clicks_segment_0_203c7budwklj } from './component.tsx_component_data_clicks_segment_0_203c7budwklj';
-import { component_id_segment_1_2jskr910mfni5 } from './component.tsx_component_id_segment_1_2jskr910mfni5';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-
-const default_tmpl0 = _createElementTemplate('<div title="fixed" class="box">x</div>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const clicks = useSignal(0);
-  const id = 'main';
-  const el0 = default_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'data-clicks',
-    [clicks],
-    component_data_clicks_segment_0_203c7budwklj,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const effect1 = createAttrExpressionEffect(
-    el0,
-    'id',
-    [id],
-    component_id_segment_1_2jskr910mfni5,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [clicks]);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_data_clicks_segment_0_203c7budwklj.js (ENTRY POINT)==
 
 export const component_data_clicks_segment_0_203c7budwklj = (clicks) => {
@@ -135,6 +102,62 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "captureNames": [
     "clicks"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createAttrExpressionEffect,
+  setEvent,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_data_clicks_segment_0_203c7budwklj } from './component.tsx_component_data_clicks_segment_0_203c7budwklj';
+import { component_id_segment_1_2jskr910mfni5 } from './component.tsx_component_id_segment_1_2jskr910mfni5';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const default_tmpl0 = _createElementTemplate('<div title="fixed" class="box">x</div>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const clicks = useSignal(0);
+  const id = 'main';
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'data-clicks',
+    [clicks],
+    component_data_clicks_segment_0_203c7budwklj,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const effect1 = createAttrExpressionEffect(
+    el0,
+    'id',
+    [id],
+    component_id_segment_1_2jskr910mfni5,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [clicks]);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    299
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

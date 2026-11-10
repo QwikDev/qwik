@@ -23,6 +23,10 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
   useSignal,
   _first,
@@ -36,7 +40,8 @@ import {
 const default_tmpl0 = _createElementTemplate(
   '<form><textarea> </textarea><textarea>fixed</textarea><select><option value="one">one</option><option value="two">two</option></select><select><option value="one">one</option><option value="two" selected>two</option></select></form>'
 );
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const text = useSignal('one');
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
@@ -51,8 +56,27 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el4 = _last(el2);
   patchAttrValue(el4, 'selected', text.value === 'two');
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    493
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

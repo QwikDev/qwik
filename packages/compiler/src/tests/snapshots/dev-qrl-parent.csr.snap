@@ -12,44 +12,9 @@ export default component$(() => {
 
 ============================= src/routes/index.tsx ==
 
-import {
-  useSignal,
-  _noopQrlDEV,
-  setEvent,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { serverQrl } from '@qwik.dev/router';
-import { index_q_e_click_segment_1_1h3g2urbi46jt } from './index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt';
-
-const default_tmpl0 = _createElementTemplate('<button> </button>');
+import { default_component_tv8h7w8tm3v2 } from './index.tsx_default_component_tv8h7w8tm3v2';
 import { server$ } from '@qwik.dev/router';
-export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(0);
-  const read = serverQrl(
-    _noopQrlDEV(
-      'index_read_segment_0_gkv5256dxvxo',
-      { file: '/src/routes/index.tsx', lo: 177, hi: 203 },
-      [count]
-    )
-  );
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', index_q_e_click_segment_1_1h3g2urbi46jt, [count]);
-      const text0 = _first(el0);
-      const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
-      ctx.scheduler.notify(effect0);
-      return el0;
-    })
-  );
-};
-export default default_component_tv8h7w8tm3v2;
+export { default_component_tv8h7w8tm3v2 as default };
 ============================= src/routes/index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -79,6 +44,65 @@ export const index_q_e_click_segment_1_1h3g2urbi46jt = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/routes/index.tsx_default_component_tv8h7w8tm3v2.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _noopQrlDEV,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { index_q_e_click_segment_1_1h3g2urbi46jt } from './index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt';
+import { server$ } from '@qwik.dev/router';
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function default_component_tv8h7w8tm3v2(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const read = serverQrl(
+    _noopQrlDEV(
+      'index_read_segment_0_gkv5256dxvxo',
+      { file: '/src/routes/index.tsx', lo: 177, hi: 203 },
+      [count]
+    )
+  );
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', index_q_e_click_segment_1_1h3g2urbi46jt, [count]);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "index.tsx",
+  "name": "default_component_tv8h7w8tm3v2",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "tv8h7w8tm3v2",
+  "canonicalFilename": "index.tsx_default_component_tv8h7w8tm3v2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    100,
+    282
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

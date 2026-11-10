@@ -19,46 +19,15 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-const default_tmpl0 = _createElementTemplate('<button> </button>');
-import {
-  _withCaptures,
-  useSignal,
-  setEvent,
-  createAttrExpressionEffect,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { _withCaptures } from '@qwik.dev/core';
 import { useCustom } from './hooks';
 import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
-import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
-import { component_data_n_segment_4_brpn0aqdy9ay } from './component.tsx_component_data_n_segment_4_brpn0aqdy9ay';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ } from './hooks';
 export function make(count) {
   return useCustom(_withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]));
 }
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(0);
-  const handles = [
-    useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [count])),
-  ];
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'data-n',
-    [handles],
-    component_data_n_segment_4_brpn0aqdy9ay,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const text0 = _first(el0);
-  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -215,6 +184,63 @@ export const component_data_n_segment_4_brpn0aqdy9ay = (handles) => {
   "captureNames": [
     "handles"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _withCaptures,
+  setEvent,
+  createAttrExpressionEffect,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { useCustom } from './hooks';
+import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
+import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { component_data_n_segment_4_brpn0aqdy9ay } from './component.tsx_component_data_n_segment_4_brpn0aqdy9ay';
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const handles = [
+    useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [count])),
+  ];
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'data-n',
+    [handles],
+    component_data_n_segment_4_brpn0aqdy9ay,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const text0 = _first(el0);
+  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    154,
+    384
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

@@ -1,6 +1,7 @@
 /** Golden snapshots: component targets, props and children. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should forward an event-named component prop as an ordinary prop', async () => {
@@ -111,11 +112,11 @@ export default ({ a = side('a'), b = a, label = fallback }) => {
 };`,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Defaults are generated parameters: JS evaluates them left to right in the parameter scope,
     // so \`b = a\` sees the resolved prop and a body-local \`fallback\` cannot shadow the default.
     expect(main).toMatch(
-      /\(props, ctx, defaultValue = untrack\(\(\) => props\.a === void 0\) \? \(side\("a"\)\) : void 0, defaultValue0 = untrack\(\(\) => props\.b === void 0\) \? \(\(props\.a === void 0 \? defaultValue : props\.a\)\) : void 0, defaultValue1 = untrack\(\(\) => props\.label === void 0\) \? \(fallback\) : void 0\) => \{/
+      /\(props, ctx, defaultValue = untrack\(\(\) => props\.a === void 0\) \? \(side\("a"\)\) : void 0, defaultValue0 = untrack\(\(\) => props\.b === void 0\) \? \(\(props\.a === void 0 \? defaultValue : props\.a\)\) : void 0, defaultValue1 = untrack\(\(\) => props\.label === void 0\) \? \(fallback\) : void 0\) \{/
     );
   });
 
@@ -187,12 +188,13 @@ export default () => <main><Child label="child" /></main>;
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toContain(
-      mode === 'ssr'
-        ? 'const Child = _markComponent((props, ctx) =>'
-        : 'const Child = (props, ctx) =>'
-    );
-    expect(output.modules[0].code).not.toContain('export const Child');
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const child = output.modules.find((module) =>
+      module.segment?.name.startsWith('Child_component_')
+    )!;
+    expect(main).toContain(`import { ${child.segment!.name} as Child } from`);
+    expect(child.code).toContain(`export function ${child.segment!.name}(props, ctx)`);
+    expect(main).not.toMatch(/export (const|\{) Child/);
   });
 
   test('should compile a named const-export component', async () => {
@@ -362,12 +364,11 @@ export const direct = () => plain({ x: 'a' });
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // A component already: the link aliases it instead of compiling a second copy.
     expect(main).toContain('export const App = Body;');
-    expect(main).toContain(
-      `export const Marked = ${mode === 'ssr' ? '_markComponent((props, ctx) =>' : '(props, ctx) =>'}`
-    );
+    expect(main).toContain('export { Marked };');
+    expect(main).toMatch(/export function Marked_component_\w+\(props, ctx\)/);
     // The referenced function keeps its own meaning for every other use.
     expect(main).toContain('const plain = (props) =>');
     // An import cannot be compiled here, so the runtime marker call stays an identity.
@@ -398,7 +399,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     expect(main).toMatch(/return \[\(props, ctx\) => \{[^]*?\}, Fn\(\)\];/);
     expect(main).toContain('export const makePlain = () => (props, ctx) =>');
     expect(main).toContain('const Cmp = (props, ctx) =>');
@@ -453,7 +454,7 @@ export function make(label: string) {
 export default () => <Child />;
 `,
     });
-    expect(output.modules[0].code).toContain('createComponent(Child, null, ctx)');
+    expect(renderCode(output)).toContain('createComponent(Child, null, ctx)');
   });
 
   test('should pass static and signal props to a component', async () => {
@@ -528,7 +529,7 @@ export default () => {
 };
 `,
     });
-    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const code = renderCode(output);
     expect(code).toContain('createPropsProxy(');
   });
 
@@ -539,7 +540,7 @@ const base = { label: 'base' };
 export default () => <Child {...base} {...{ title: 'literal' }} />;
 `,
     });
-    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const code = renderCode(output);
     expect(code).not.toContain('createPropsProxy(');
   });
 
@@ -699,19 +700,61 @@ export default component$(() => <Picker />);
     });
     expect(output.diagnostics).toEqual([]);
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
-    // Every component, private or not, is exported under its hashed symbol for resume to import.
-    expect(main).toMatch(
-      /export \{ Body as Body_component_\w+, App as App_component_\w+, Hidden as Hidden_component_\w+, Picker as Picker_component_\w+ \};/
-    );
-    expect(main).toMatch(/export const default_component_\w+ = /);
-    expect(main).toMatch(/export default default_component_\w+;/);
+    // Every component, private or not, is a segment the parent imports under its authored name.
+    for (const name of ['Body', 'Hidden', 'Picker', 'default']) {
+      const chunk = output.modules.find((module) =>
+        module.segment?.name.startsWith(`${name}_component_`)
+      )!;
+      const symbol = chunk.segment!.name;
+      expect(chunk.path).toBe(`src/component.tsx_${symbol}.js`);
+      expect(chunk.segment!.ctxName).toBe('component$');
+      // A function declaration is initialized before a module cycle evaluates the parent.
+      expect(chunk.code).toContain(`export function ${symbol}(`);
+      expect(main).toContain(
+        name === 'default'
+          ? `import { ${symbol} } from "./component.tsx_${symbol}";`
+          : `import { ${symbol} as ${name} } from "./component.tsx_${symbol}";`
+      );
+      if (mode === 'ssr') {
+        // Only the server serializes: the component carries the QRL of its own segment.
+        expect(chunk.code).toContain(`_noopQrl("${symbol}")`);
+        expect(chunk.code).toContain(`_markComponent(${symbol}, q_${symbol});`);
+      } else {
+        expect(chunk.code).not.toContain('_markComponent');
+      }
+    }
+    expect(main).not.toContain('_markComponent');
+    expect(main).not.toMatch(/as \w+_component_\w+/);
+    expect(main).toMatch(/export \{ default_component_\w+ as default \};/);
     expect(main).toContain('export const App = Body;');
-    if (mode === 'ssr') {
-      // Only the server serializes: it marks the function with symbol and chunk.
-      expect(main).toMatch(/const Hidden = _markComponent\(\(props0, ctx\) => \{/);
-      expect(main).toMatch(/_markComponent\(Body, "Body_component_\w+", "\.\/component\.tsx"\);/);
-    } else {
-      expect(main).not.toContain('_markComponent');
+  });
+
+  test('should let a recursive component render itself from its own segment', async () => {
+    const output = await testInput(mode, 'component-recursive-segment', {
+      code: `export function Level(props: { items: number[] }) {
+  return (
+    <ul>
+      {props.items.map((item) => (
+        <li>{item > 0 ? <Level items={[item - 1]} /> : 'leaf'}</li>
+      ))}
+    </ul>
+  );
+}
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const level = output.modules.find((module) => module.segment?.ctxName === 'component$')!;
+    const references = output.modules.filter((module) =>
+      module.code.includes('createComponent(Level')
+    );
+    expect(references.length).toBeGreaterThan(0);
+    for (const module of references) {
+      // Every placement of the recursive call can name the component it renders.
+      expect(
+        module === level
+          ? module.code.includes(`const Level = ${level.segment!.name};`)
+          : module.code.includes(`import { ${level.segment!.name} as Level } from`)
+      ).toBe(true);
     }
   });
 
@@ -765,7 +808,7 @@ export default (props: { as: string; component: any }) => {
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     const dynamic = mode === 'ssr' ? 'renderSsrDynamicTag' : 'createDynamicTag';
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     expect(main.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(mode === 'ssr' ? 4 : 2);
     expect(main).toContain(`${dynamic}(Heading, `);
     expect(main).toContain('const tag0 = UI.Button;');

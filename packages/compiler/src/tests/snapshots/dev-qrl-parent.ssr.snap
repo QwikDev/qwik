@@ -12,57 +12,9 @@ export default component$(() => {
 
 ============================= src/routes/index.tsx ==
 
-import {
-  useSignal,
-  _capturesObj,
-  createSsrNodeId,
-  createSsrOpenTag,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-  _noopQrlDEV,
-  _markComponent,
-} from '@qwik.dev/core';
-import { serverQrl } from '@qwik.dev/router';
+import { default_component_tv8h7w8tm3v2 } from './index.tsx_default_component_tv8h7w8tm3v2';
 import { server$ } from '@qwik.dev/router';
-const q_index_read_segment_0_gkv5256dxvxo = /*#__PURE__*/ _noopQrlDEV(
-  'index_read_segment_0_gkv5256dxvxo',
-  { file: '/src/routes/index.tsx', lo: 177, hi: 203 }
-);
-const q_index_q_e_click_segment_1_1h3g2urbi46jt = /*#__PURE__*/ _noopQrlDEV(
-  'index_q_e_click_segment_1_1h3g2urbi46jt',
-  { file: '/src/routes/index.tsx', lo: 221, hi: 251 }
-);
-export const default_component_tv8h7w8tm3v2 = _markComponent(
-  (props, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const count = useSignal(0);
-    const read = serverQrl(q_index_read_segment_0_gkv5256dxvxo.w([count]));
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        const id0 = ctx.nextId();
-        ctx.addRoot(count);
-        const text0 = renderSsrTextNode(id0, null, count);
-        return maybeThen(text0, (text0) => [
-          createSsrOpenTag(
-            '<button q:id="',
-            createSsrNodeId(id0),
-            '"',
-            ctx.eventAttr('q-e:click', q_index_q_e_click_segment_1_1h3g2urbi46jt.w([count])),
-            '>'
-          ),
-          escapeHTML(text0),
-          '</button>',
-        ]);
-      })
-    );
-  },
-  'default_component_tv8h7w8tm3v2',
-  './index.tsx'
-);
-export default default_component_tv8h7w8tm3v2;
+export { default_component_tv8h7w8tm3v2 as default };
 ============================= src/routes/index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -92,6 +44,80 @@ export const index_q_e_click_segment_1_1h3g2urbi46jt = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/routes/index.tsx_default_component_tv8h7w8tm3v2.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrlDEV,
+  _markComponent,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { server$ } from '@qwik.dev/router';
+const q_index_read_segment_0_gkv5256dxvxo = /*#__PURE__*/ _noopQrlDEV(
+  'index_read_segment_0_gkv5256dxvxo',
+  { file: '/src/routes/index.tsx', lo: 177, hi: 203 }
+);
+const q_index_q_e_click_segment_1_1h3g2urbi46jt = /*#__PURE__*/ _noopQrlDEV(
+  'index_q_e_click_segment_1_1h3g2urbi46jt',
+  { file: '/src/routes/index.tsx', lo: 221, hi: 251 }
+);
+const q_default_component_tv8h7w8tm3v2 = /*#__PURE__*/ _noopQrlDEV(
+  'default_component_tv8h7w8tm3v2',
+  { file: '/src/routes/index.tsx', lo: 100, hi: 279 }
+);
+_markComponent(default_component_tv8h7w8tm3v2, q_default_component_tv8h7w8tm3v2);
+
+export function default_component_tv8h7w8tm3v2(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const read = serverQrl(q_index_read_segment_0_gkv5256dxvxo.w([count]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(count);
+      const text0 = renderSsrTextNode(id0, null, count);
+      return maybeThen(text0, (text0) => [
+        createSsrOpenTag(
+          '<button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          ctx.eventAttr('q-e:click', q_index_q_e_click_segment_1_1h3g2urbi46jt.w([count])),
+          '>'
+        ),
+        escapeHTML(text0),
+        '</button>',
+      ]);
+    })
+  );
+}
+/*
+{
+  "origin": "index.tsx",
+  "name": "default_component_tv8h7w8tm3v2",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "tv8h7w8tm3v2",
+  "canonicalFilename": "index.tsx_default_component_tv8h7w8tm3v2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    100,
+    282
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

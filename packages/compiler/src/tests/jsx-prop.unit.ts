@@ -31,7 +31,7 @@ export default function App() { ${body} }`,
   expect(output.diagnostics).toEqual([]);
   const values: unknown[] = [];
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {

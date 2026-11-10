@@ -18,7 +18,7 @@ import {
 import type { Argument, BindingPattern, CallExpression, Expression } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
+import { QRL_SUFFIX, QWIK_CORE_IMPORT, QwikHook, QwikMarker } from '../words';
 import { createSegmentSourceIdentity, createStyleId } from '../segment-identity';
 import { coreSetupCalls, type SetupCallContract } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
@@ -325,7 +325,13 @@ function lowerCallTarget(
     return { kind: CallTargetKind.Marker, binding, stem };
   }
   if (contract !== undefined) {
-    return { kind: CallTargetKind.Core, operation: contract.operation };
+    const source = ctx.plan.imports.find((entry) => entry.binding === binding && !entry.typeOnly);
+    const isSubpath =
+      source !== undefined &&
+      ctx.plan.edges[source.edge].specifier.startsWith(`${QWIK_CORE_IMPORT}/`);
+    return isSubpath
+      ? { kind: CallTargetKind.Core, operation: contract.operation, subpathBinding: binding }
+      : { kind: CallTargetKind.Core, operation: contract.operation };
   }
   const value = tryLowerExprIr(expression, ctx);
   return value === null

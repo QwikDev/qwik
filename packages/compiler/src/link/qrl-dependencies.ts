@@ -157,6 +157,8 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
           bindings.add(entry.target.binding);
         } else if (entry.target.kind === CallTargetKind.Value) {
           visitExpressionIr(entry.target.value);
+        } else if (entry.target.subpathBinding !== undefined) {
+          bindings.add(entry.target.subpathBinding);
         }
         entry.args.forEach(visitArgument);
         visitPattern(entry.result);

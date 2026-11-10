@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../index';
+import { renderCode, qrlChunks } from './fixtures';
 
 test.each([true, false])('module bindings are shared through ESM (SSR: %s)', async (isServer) => {
   const output = await transformModules({
@@ -24,7 +25,7 @@ export const App = () => {
   expect(output.diagnostics).toEqual([]);
   const main = output.modules[0];
   expect(main.code).toContain('export { format as __qwik_format, settings as __qwik_settings };');
-  const chunks = output.modules.filter((module) => module.segment !== null);
+  const chunks = qrlChunks(output);
   const computed = chunks.find((module) => module.segment?.ctxName === 'useComputed$')!;
   const task = chunks.find((module) => module.segment?.ctxName === 'useTask$')!;
   const event = chunks.find((module) => module.segment?.ctxKind === 'eventHandler')!;
@@ -58,7 +59,7 @@ export const App = () => <button onClick$={() => console.log(value)}>save</butto
     ],
     isServer: false,
   });
-  expect(output.modules[0].code).not.toContain('__qwik_');
+  expect(renderCode(output)).not.toContain('__qwik_');
   expect(output.modules[1].code).toContain(`import { ${specifier} } from "./app.tsx";`);
   expect(output.modules[1].segment?.captures).toBe(false);
 });
@@ -77,7 +78,7 @@ export const App = () => <button onClick$={() => value}>save</button>;`,
     ],
     isServer: false,
   });
-  expect(output.modules[0].code).toContain('export { value as __qwik_value };');
+  expect(renderCode(output)).toContain('export { value as __qwik_value };');
   expect(output.modules[1].code).toContain('import { __qwik_value as value } from "./app.tsx";');
 });
 
@@ -97,7 +98,7 @@ export default () => <button onClick$={() => { ${expression}; }}>save</button>;`
       isServer: false,
     });
 
-    expect(output.modules[0].code).toContain('export { value as __qwik_value');
+    expect(renderCode(output)).toContain('export { value as __qwik_value');
     expect(output.modules[1].code).toContain('__qwik_value as value');
     expect(output.modules[1].code).toContain(`${expression};`);
   }
@@ -118,7 +119,7 @@ export default () => <button onClick$={() => console.log(other)}>save</button>;`
     ],
     isServer: false,
   });
-  expect(output.modules[0].code).toContain('export { other as __qwik_other0 };');
+  expect(renderCode(output)).toContain('export { other as __qwik_other0 };');
   expect(output.modules[1].code).toContain('import { __qwik_other0 as other } from "./app.tsx";');
 });
 
@@ -134,7 +135,7 @@ export default () => <button onClick$={(value) => console.log(value)}>save</butt
     ],
     isServer: false,
   });
-  expect(output.modules[0].code).not.toContain('__qwik_');
+  expect(renderCode(output)).not.toContain('__qwik_');
   expect(output.modules[1].code).not.toContain('./app.tsx');
 });
 
@@ -152,7 +153,7 @@ export default () => { const title = format(); return <p>{title}</p>; };`,
   });
   expect(output.diagnostics).toEqual([]);
   // the route module scan relies on this for an unexported `routeLoader$` a component calls
-  expect(output.modules[0].code).toContain('export { format as __qwik_format };');
+  expect(renderCode(output)).toContain('export { format as __qwik_format };');
 });
 
 test('a segment may write a module binding through the same alias it reads', async () => {
@@ -170,7 +171,7 @@ export const bump = $(() => ++runCount);`,
   });
 
   // an imported alias is how a chunk reaches the one declaration, reads and writes alike
-  expect(output.modules[0].code).toContain('export { runCount as __qwik_runCount };');
+  expect(renderCode(output)).toContain('export { runCount as __qwik_runCount };');
   expect(output.modules[1].code).toContain(
     'import { __qwik_runCount as runCount } from "./app.tsx";'
   );

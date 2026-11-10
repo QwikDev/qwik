@@ -6,6 +6,7 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 import { testInput, testInputs } from './snapshot-runner';
+import { qrlChunks, renderCode } from './fixtures';
 
 const SERVER_CTX_NAMES = ['route', 'server', 'action$', 'loader$', 'globalAction$'];
 const SERVER_EXPORTS = ['onGet', 'onPost', 'onRequest'];
@@ -47,8 +48,8 @@ async function compile(
   });
   return {
     output,
-    main: output.modules.find((module) => module.path === 'src/routes/index.tsx')!.code,
-    chunks: output.modules.filter((module) => module.segment !== null).map((module) => module.path),
+    main: renderCode(output),
+    chunks: qrlChunks(output).map((module) => module.path),
   };
 }
 

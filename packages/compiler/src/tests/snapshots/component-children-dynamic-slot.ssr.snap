@@ -8,96 +8,10 @@ export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:
 
 ============================= src/component.tsx ==
 
-import {
-  _capturesObj,
-  renderSsrContent,
-  createSsrNodeId,
-  renderSsrSlot,
-  _noopQrl,
-  _markComponent,
-  propSource,
-  isSource,
-  readTrackedValue,
-  _props,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-  _createSsrSlotMarker,
-} from '@qwik.dev/core';
-const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
-  const [props] = _capturesObj._;
-  const slotName0 = props.name;
-  const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
-  return slot0;
-};
-const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
-  'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
-);
-q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.s(component_slot_dynamic_segment_0_2ikf7n1jp8rfp);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<i>Alpha</i><!/s>'];
-};
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<b>Bravo</b><!/s>'];
-};
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-export const Switch = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    const content0 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id0,
-        [],
-        q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
-        false,
-        true
-      )
-    );
-    return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
-  },
-  'Switch_component_1uyn3u3j9umgv',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const slotScope0 = createSlotScope();
-    const prop0 = propSource(props, 'pick');
-    isSource(prop0) && ctx.addRoot(prop0);
-    registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-    registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(
-        Switch,
-        _props(
-          {
-            get name() {
-              return readTrackedValue(prop0);
-            },
-          },
-          { name: prop0 }
-        ),
-        ctx,
-        { slotScope: slotScope0 }
-      )
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
-
-export { Switch as Switch_component_1uyn3u3j9umgv };
+import { Switch_component_1uyn3u3j9umgv as Switch } from './component.tsx_Switch_component_1uyn3u3j9umgv';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Switch };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
 import { _capturesObj, renderSsrSlot } from '@qwik.dev/core';
@@ -127,6 +41,66 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Switch_component_1uyn3u3j9umgv.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  renderSsrContent,
+  createSsrNodeId,
+  renderSsrSlot,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
+  const [props] = _capturesObj._;
+  const slotName0 = props.name;
+  const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
+  return slot0;
+};
+const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
+  'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
+);
+q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.s(component_slot_dynamic_segment_0_2ikf7n1jp8rfp);
+const q_Switch_component_1uyn3u3j9umgv = /*#__PURE__*/ _noopQrl('Switch_component_1uyn3u3j9umgv');
+_markComponent(Switch_component_1uyn3u3j9umgv, q_Switch_component_1uyn3u3j9umgv);
+
+export function Switch_component_1uyn3u3j9umgv(props, ctx) {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
+      false,
+      true
+    )
+  );
+  return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Switch_component_1uyn3u3j9umgv",
+  "entry": null,
+  "displayName": "Switch_component",
+  "hash": "1uyn3u3j9umgv",
+  "canonicalFilename": "component.tsx_Switch_component_1uyn3u3j9umgv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    99
+  ],
+  "paramNames": [
     "props"
   ]
 }
@@ -191,6 +165,84 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (
     198
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  propSource,
+  isSource,
+  readTrackedValue,
+  _props,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _createSsrSlotMarker,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Switch_component_1uyn3u3j9umgv as Switch } from './component.tsx_Switch_component_1uyn3u3j9umgv';
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<i>Alpha</i><!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<b>Bravo</b><!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const slotScope0 = createSlotScope();
+  const prop0 = propSource(props, 'pick');
+  isSource(prop0) && ctx.addRoot(prop0);
+  registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(
+    createComponent(
+      Switch,
+      _props(
+        {
+          get name() {
+            return readTrackedValue(prop0);
+          },
+        },
+        { name: prop0 }
+      ),
+      ctx,
+      { slotScope: slotScope0 }
+    )
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    100,
+    208
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==

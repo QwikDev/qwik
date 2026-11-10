@@ -1,6 +1,7 @@
 /** Golden snapshots: elements, attributes, text and namespaces. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should stamp elements with their source location for the inspector', async () => {
@@ -52,7 +53,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const code = output.modules[0].code;
+    const code = renderCode(output);
     // a spread makes the runtime props object the one writer of `class`; only the spread-free
     // element keeps a static scope class, so the scope must not print a second time on the others
     expect(code.match(/class=\\?"⚡️/g)).toHaveLength(1);
@@ -168,7 +169,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // A literal spread is ordinary attributes: no props effect, static parts stay flat.
     expect(main).not.toMatch(/createPropsEffect|renderSsrProps/);
     expect(main).toMatch(/title=\\?"fixed\\?"/);
@@ -193,7 +194,7 @@ export default component$((props: { title: string }) => {
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The whole attribute list is one props object in authored order, so a later key wins.
     expect(code).toMatch(
       /\.\.\.props, "?class"?: "middle", \.\.\.attrs\.value, "?ref"?: box, "?onClick\$"?: q_/
@@ -223,7 +224,7 @@ export default component$((props: { dangerouslySetInnerHTML: string }) => (
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     if (mode === 'ssr') {
       // Non-void elements emit the props content even with no authored children.
       expect(main.match(/\.innerHTML \?\? \[\]/g)).toHaveLength(3);
@@ -249,7 +250,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Static markup is element content, never an attribute and never escaped.
     expect(main).toContain('<div><span>raw</span></div>');
     expect(main).not.toMatch(/dangerouslySetInnerHTML=/i);
@@ -273,7 +274,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Static literals fold to the bytes the runtime would serialize for the same values.
     expect(main).toMatch(
       /<input aria-hidden=\\?"false\\?" draggable=\\?"false\\?" spellcheck=\\?"false\\?" tabIndex=\\?"-1\\?" data-n=\\?"2\\?" hidden>/
@@ -332,7 +333,7 @@ export default component$(() => {
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // A ref is applied once when its element exists, never as an attribute or an effect.
     expect(main).not.toMatch(/ ref=|"ref": |'ref', /);
     if (mode === 'csr') {
@@ -359,7 +360,7 @@ export default component$(() => (
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // JSX text is authored HTML: entities pass through untouched, never escaped a second time.
     expect(main).toContain('<p>a &lt; b &amp;&amp; c</p>');
     expect(main).not.toContain('&amp;lt;');
@@ -544,7 +545,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The qualified name reaches the attribute helpers, which pick the namespace from it.
     expect(main).toContain('"xlink:href", icon');
     expect(main).toMatch(/xml:lang=\\?"en\\?"/);

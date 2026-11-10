@@ -21,46 +21,17 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const Body_tmpl0 = _createElementTemplate('<p> </p>');
-const Marked_tmpl0 = _createElementTemplate('<i> </i>');
-import {
-  _qrlWithChunk,
-  component$,
-  componentQrl,
-  qrl,
-  _first,
-  propSource,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { _qrlWithChunk, component$, componentQrl, qrl } from '@qwik.dev/core';
+import { Body_component_3fvssuocvtjmf as Body } from './component.tsx_Body_component_3fvssuocvtjmf';
+import { Marked_component_3gj4wfqq43v17 as Marked } from './component.tsx_Marked_component_3gj4wfqq43v17';
 import { Imported } from './imported';
-function Body(props, ctx) {
-  const el0 = Body_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const prop0 = propSource(props, 'x');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-}
+
 const plain = (props) => q_component_jsx_segment_0_38vnjku9rukc6.w([props]);
 export const App = Body;
-export const Marked = (props, ctx) => {
-  const el0 = Marked_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const prop0 = propSource(props, 'x');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
+export { Marked };
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
 export const direct = () => plain({ x: 'a' });
-
-export {
-  Body as Body_component_3fvssuocvtjmf,
-  App as App_component_d9hqa5uju2ca,
-  Marked as Marked_component_3gj4wfqq43v17,
-};
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -132,6 +103,76 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Body_component_3fvssuocvtjmf.js (ENTRY POINT)==
+
+import { _first, propSource, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
+const Body_tmpl0 = _createElementTemplate('<p> </p>');
+
+export function Body_component_3fvssuocvtjmf(props, ctx) {
+  const el0 = Body_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const prop0 = propSource(props, 'x');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Body_component_3fvssuocvtjmf",
+  "entry": null,
+  "displayName": "Body_component",
+  "hash": "3fvssuocvtjmf",
+  "canonicalFilename": "component.tsx_Body_component_3fvssuocvtjmf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    103,
+    143
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Marked_component_3gj4wfqq43v17.js (ENTRY POINT)==
+
+import { _first, propSource, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
+const Marked_tmpl0 = _createElementTemplate('<i> </i>');
+
+export function Marked_component_3gj4wfqq43v17(props, ctx) {
+  const el0 = Marked_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const prop0 = propSource(props, 'x');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Marked_component_3gj4wfqq43v17",
+  "entry": null,
+  "displayName": "Marked_component",
+  "hash": "3gj4wfqq43v17",
+  "canonicalFilename": "component.tsx_Marked_component_3gj4wfqq43v17",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    265,
+    305
+  ],
+  "paramNames": [
     "props"
   ]
 }

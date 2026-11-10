@@ -10,36 +10,20 @@ export default () => <_Layout><_createContent text="hi" /></_Layout>;
 
 ============================= src/component.tsx ==
 
-import {
-  _qrlWithChunk,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  createComponent,
-} from '@qwik.dev/core';
+import { _qrlWithChunk } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
-  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
 import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
   return q_component_jsx_segment_0_38vnjku9rukc6.w([props]);
 }
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-  const component0 = createComponent(_Layout, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { _createContent as __qwik__createContent, _Layout as __qwik__Layout };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
@@ -159,6 +143,48 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "loc": [
     150,
     178
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { __qwik__Layout as _Layout } from './component.tsx';
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  const component0 = createComponent(_Layout, null, ctx, { slotScope: slotScope0 });
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    120,
+    189
   ],
   "paramNames": []
 }

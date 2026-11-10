@@ -1,6 +1,7 @@
 /** Golden snapshots: component setup, hooks and `$` boundaries. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode, qrlChunks } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should share module bindings with QRL chunks', async () => {
@@ -284,7 +285,7 @@ export default (props) => {
 `,
     });
     expect(
-      output.modules.filter((module) => module.segment && module.segment.ctxName !== 'content')
+      qrlChunks(output).filter((module) => module.segment!.ctxName !== 'content')
     ).toHaveLength(1);
     expect(output.modules.filter((module) => module.segment?.ctxName === 'content')).toHaveLength(
       0
@@ -536,7 +537,7 @@ export default (props: { initial: number }) => {
     });
     expect(output.diagnostics).toEqual([]);
     expect(
-      output.modules.filter((module) => module.segment && module.segment.ctxName !== 'content')
+      qrlChunks(output).filter((module) => module.segment!.ctxName !== 'content')
     ).toHaveLength(2);
     expect(output.modules.filter((module) => module.segment?.ctxName === 'content')).toHaveLength(
       0
@@ -746,7 +747,7 @@ export const Maybe = component$((props: { flag: boolean }) => {
     ]);
     expect(output.diagnostics).toEqual([]);
     const hooks = output.modules.find((module) => module.path === 'src/hooks.ts')!.code;
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Hook bodies compile like component setup: their $ calls become QRLs or static callbacks.
     expect(hooks).toContain(mode === 'ssr' ? 'useTaskQrl(q_' : 'useTask(_withCaptures(');
     expect(hooks).not.toContain('useTask$(');
@@ -782,7 +783,7 @@ export default () => {
       },
     ]);
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     const headless = output.modules.find((module) => module.path === 'src/headless.tsx')!.code;
     if (mode === 'ssr') {
       // The open tag is a record so the runtime joins the hook's registrations with the JSX handler.
@@ -813,7 +814,7 @@ export default () => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const code = renderCode(output);
     if (mode === 'ssr') {
       expect(code).toContain('createSsrOpenTag("<i", ">")');
     } else {
@@ -894,7 +895,7 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     expect(code).not.toContain('useCustom$(');
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Setup and module helpers take the client fast path; a chunk body keeps the qrl twin.
     const twin = mode === 'ssr' ? 'useCustomQrl(q_' : 'useCustom(_withCaptures(';
     expect(main.match(new RegExp(twin.replace(/[$()]/g, '\\$&'), 'g'))).toHaveLength(2);
@@ -948,7 +949,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     const code = output.modules.map((module) => module.code).join('\n');
     // The body binds each function to its statically imported segment with its captures.
     expect(main).toMatch(

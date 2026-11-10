@@ -8,6 +8,8 @@ import {
   deepFreeze,
   loadChunkFunction,
   serverSpecialization,
+  renderCode,
+  qrlChunks,
 } from './fixtures';
 import { parseModule } from '../analyse/ast/parse';
 import { lowerEventAttribute } from '../analyse/lower-event';
@@ -665,8 +667,8 @@ import { linkPrefetchInit } from './link-prefetch';
       ],
     });
     return {
-      code: output.modules.find((module) => module.path === 'src/component.tsx')!.code,
-      chunks: output.modules.filter((module) => module.segment !== null).length,
+      code: renderCode(output),
+      chunks: qrlChunks(output).length,
     };
   }
 
@@ -737,7 +739,7 @@ export default () => {
           ],
         });
         expect(output.diagnostics).toEqual([]);
-        const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+        const main = renderCode(output);
         const handler = binding === 'checked' ? '_chk' : '_val';
         expect(main).toContain(`, [], [inlinedQrl(${handler}, '${handler}', [value])])`);
         expect(

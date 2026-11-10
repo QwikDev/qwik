@@ -17,21 +17,18 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { Label_component_wb6mvjz2qh8n as Label } from './component.tsx_Label_component_wb6mvjz2qh8n';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Label };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Label_component_wb6mvjz2qh8n.js (ENTRY POINT)==
+
 import {
   _first,
   _next,
   _qrlWithChunk,
   createContentBlock,
   _createElementTemplate,
-  useStore,
-  _last,
-  computedProp,
-  readTrackedValue,
-  _props,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  createTemplate,
 } from '@qwik.dev/core';
 const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_linked_content_0_3641q2pvcvlmq',
@@ -39,18 +36,8 @@ const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
   'linked_content_0_3641q2pvcvlmq'
 );
 const Label_tmpl0 = _createElementTemplate('<b><!><!></b>');
-const q_component_label_segment_0_871tb4lt4479 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_label_segment_0_871tb4lt4479',
-  () => import('./component.tsx_component_label_segment_0_871tb4lt4479'),
-  'component_label_segment_0_871tb4lt4479'
-);
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
-  'component_text_segment_1_1fh10tcowimfv'
-);
-const default_tmpl0 = createTemplate('<!><span><!><!></span>');
-export const Label = (props, ctx) => {
+
+export function Label_component_wb6mvjz2qh8n(props, ctx) {
   const el0 = Label_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -65,44 +52,29 @@ export const Label = (props, ctx) => {
   );
   ctx.scheduler.notify(content0);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const store = useStore({ label: 'a' });
-  const item = { meta: store };
-  const fragment0 = default_tmpl0(ctx.document);
-  const el0 = _last(fragment0);
-  const prop0 = computedProp(q_component_label_segment_0_871tb4lt4479.w([item]));
-  const component0 = createComponent(
-    Label,
-    _props(
-      {
-        get label() {
-          return readTrackedValue(prop0);
-        },
-      },
-      { label: prop0 }
-    ),
-    ctx
-  );
-  const marker0 = _first(fragment0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_text_segment_1_1fh10tcowimfv.w([item]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return [...fragment0.childNodes];
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Label as Label_component_wb6mvjz2qh8n };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Label_component_wb6mvjz2qh8n",
+  "entry": null,
+  "displayName": "Label_component",
+  "hash": "wb6mvjz2qh8n",
+  "canonicalFilename": "component.tsx_Label_component_wb6mvjz2qh8n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    43,
+    96
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_label_segment_0_871tb4lt4479.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -163,6 +135,90 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
   "captureNames": [
     "item"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStore,
+  _first,
+  _last,
+  _qrlWithChunk,
+  computedProp,
+  readTrackedValue,
+  _props,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _next,
+  createContentBlock,
+  createTemplate,
+} from '@qwik.dev/core';
+import { Label_component_wb6mvjz2qh8n as Label } from './component.tsx_Label_component_wb6mvjz2qh8n';
+const q_component_label_segment_0_871tb4lt4479 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_label_segment_0_871tb4lt4479',
+  () => import('./component.tsx_component_label_segment_0_871tb4lt4479'),
+  'component_label_segment_0_871tb4lt4479'
+);
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+  'component_text_segment_1_1fh10tcowimfv'
+);
+const default_tmpl0 = createTemplate('<!><span><!><!></span>');
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const store = useStore({ label: 'a' });
+  const item = { meta: store };
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _last(fragment0);
+  const prop0 = computedProp(q_component_label_segment_0_871tb4lt4479.w([item]));
+  const component0 = createComponent(
+    Label,
+    _props(
+      {
+        get label() {
+          return readTrackedValue(prop0);
+        },
+      },
+      { label: prop0 }
+    ),
+    ctx
+  );
+  const marker0 = _first(fragment0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_1_1fh10tcowimfv.w([item]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [...fragment0.childNodes];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    97,
+    291
+  ],
+  "paramNames": []
 }
 */
 ============================= src/component.tsx_linked_content_0_3641q2pvcvlmq.js (ENTRY POINT)==

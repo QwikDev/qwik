@@ -1,6 +1,7 @@
 /** Golden snapshots: JSX as a value, branches and dynamic content. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should hand a module-level JSX value to renderToStream as a JSX value', async () => {
@@ -13,7 +14,7 @@ export default function (opts) {
 }`,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toMatch(/renderToStream\(q_component_jsx_segment_0_\w+, opts\)/);
+    expect(renderCode(output)).toMatch(/renderToStream\(q_component_jsx_segment_0_\w+, opts\)/);
   });
 
   test('should keep a $() inside a conditional JSX value with its own render program', async () => {
@@ -26,7 +27,7 @@ export const form = ({ action, onSubmit$, ...rest }) =>
     : <form {...rest} onSubmit$={onSubmit$} />;`,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toMatch(
+    expect(renderCode(output)).toMatch(
       /action \? q_\w+\.w\(\[[^\]]*\]\) : q_\w+\.w\(\[[^\]]*\]\);/
     );
   });

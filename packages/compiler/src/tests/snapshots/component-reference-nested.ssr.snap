@@ -71,10 +71,8 @@ import {
   maybeThen,
   _capturesObj,
   component$,
-  createComponent,
-  renderSsrDynamicTag,
-  _markComponent,
 } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Imported } from './imported';
 const plain = () => q_component_jsx_segment_0_38vnjku9rukc6;
 export function make(label) {
@@ -104,25 +102,7 @@ export const makePlain = () => (props, ctx) => {
   return '<i>x</i>';
 };
 export const wrap = (Param) => component$(Param);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const Fn = (props, ctx) => {
-      return '<div></div>';
-    };
-    const Cmp = (props, ctx) => {
-      return '<div></div>';
-    };
-    const Wrapped = component$(Imported);
-    const component0 = ctx.observeError(createComponent(Cmp, null, ctx));
-    const component1 = ctx.observeError(
-      createComponent((props0) => renderSsrDynamicTag(Wrapped, props0, ctx), null, ctx)
-    );
-    return [component0, component1];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
@@ -259,6 +239,53 @@ export const component_text_segment_4_1fh11zg0n0shg = (label) => {
   "captureNames": [
     "label"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createComponent,
+  renderSsrDynamicTag,
+  _noopQrl,
+  _markComponent,
+  component$,
+} from '@qwik.dev/core';
+import { Imported } from './imported';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const Fn = (props, ctx) => {
+    return '<div></div>';
+  };
+  const Cmp = (props, ctx) => {
+    return '<div></div>';
+  };
+  const Wrapped = component$(Imported);
+  const component0 = ctx.observeError(createComponent(Cmp, null, ctx));
+  const component1 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Wrapped, props0, ctx), null, ctx)
+  );
+  return [component0, component1];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    331,
+    500
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

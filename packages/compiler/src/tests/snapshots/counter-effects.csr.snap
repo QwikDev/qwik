@@ -186,64 +186,10 @@ export const buildData = native$(
 
 ============================= src/root.tsx ==
 
-const Root_tmpl0 = _createElementTemplate(
-  '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="run">Create 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="runlots">Create 10,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="add">Append 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="update">Update every 10th row</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="clear">Clear</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="swaprows">Swap Rows</button></div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!><!></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>'
-);
-import {
-  useSignal,
-  _first,
-  _next,
-  _last,
-  _prev,
-  setEvent,
-  createCollection,
-  _withCaptures,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { root_q_e_click_segment_0_2xenc01chyg01 } from './root.tsx_root_q_e_click_segment_0_2xenc01chyg01';
-import { root_q_e_click_segment_1_2xenbm08l4dzi } from './root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi';
-import { root_q_e_click_segment_2_2xenb7z4oabyz } from './root.tsx_root_q_e_click_segment_2_2xenb7z4oabyz';
-import { root_q_e_click_segment_3_2xenaty0rg9yg } from './root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg';
-import { root_q_e_click_segment_4_2xendk5s5ao25 } from './root.tsx_root_q_e_click_segment_4_2xendk5s5ao25';
-import { root_q_e_click_segment_5_2xend64o8gm1m } from './root.tsx_root_q_e_click_segment_5_2xend64o8gm1m';
-import { root_for_render_segment_6_142sxd5ip3f7n } from './root.tsx_root_for_render_segment_6_142sxd5ip3f7n';
-import { root_for_key_segment_7_sh7qb8wgbo2z } from './root.tsx_root_for_key_segment_7_sh7qb8wgbo2z';
+import { Root_component_1wwbdvvn6s0lu as Root } from './root.tsx_Root_component_1wwbdvvn6s0lu';
 import { isServer } from '@qwik.dev/core/build';
 import { buildData } from './build-data/build-data';
-export function Root(props, ctx) {
-  const data = useSignal(false ? buildData(1e3) : []);
-  const selectedItem = useSignal(null);
-  const el0 = Root_tmpl0(ctx.document);
-  const el1 = _first(_first(_first(_last(_first(_first(el0))))));
-  setEvent(el1, 'q-e:click', root_q_e_click_segment_0_2xenc01chyg01, [data]);
-  const el2 = _first(_next(_first(_first(_last(_first(_first(el0)))))));
-  setEvent(el2, 'q-e:click', root_q_e_click_segment_1_2xenbm08l4dzi, [data]);
-  const el3 = _first(_next(_next(_first(_first(_last(_first(_first(el0))))))));
-  setEvent(el3, 'q-e:click', root_q_e_click_segment_2_2xenb7z4oabyz, [data]);
-  const el4 = _first(_prev(_prev(_last(_first(_last(_first(_first(el0))))))));
-  setEvent(el4, 'q-e:click', root_q_e_click_segment_3_2xenaty0rg9yg, [data]);
-  const el5 = _first(_prev(_last(_first(_last(_first(_first(el0)))))));
-  setEvent(el5, 'q-e:click', root_q_e_click_segment_4_2xendk5s5ao25, [data]);
-  const el6 = _first(_last(_first(_last(_first(_first(el0))))));
-  setEvent(el6, 'q-e:click', root_q_e_click_segment_5_2xend64o8gm1m, [data]);
-  const start0 = _first(_first(_next(_first(el0))));
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      data,
-      root_for_key_segment_7_sh7qb8wgbo2z,
-      _withCaptures(root_for_render_segment_6_142sxd5ip3f7n, [selectedItem, data]),
-      0,
-      0
-    )
-  );
-  return el0;
-}
-
-export { Root as Root_component_1wwbdvvn6s0lu };
+export { Root };
 ============================= src/root.tsx_root_q_e_click_segment_0_2xenc01chyg01.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -755,6 +701,84 @@ export const root_q_e_click_segment_12_1exobr2w5xdmc = (event0, element0, row) =
   "captureNames": [
     "data"
   ]
+}
+*/
+============================= src/root.tsx_Root_component_1wwbdvvn6s0lu.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  _last,
+  _prev,
+  setEvent,
+  createCollection,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { root_q_e_click_segment_0_2xenc01chyg01 } from './root.tsx_root_q_e_click_segment_0_2xenc01chyg01';
+import { root_q_e_click_segment_1_2xenbm08l4dzi } from './root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi';
+import { root_q_e_click_segment_2_2xenb7z4oabyz } from './root.tsx_root_q_e_click_segment_2_2xenb7z4oabyz';
+import { root_q_e_click_segment_3_2xenaty0rg9yg } from './root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg';
+import { root_q_e_click_segment_4_2xendk5s5ao25 } from './root.tsx_root_q_e_click_segment_4_2xendk5s5ao25';
+import { root_q_e_click_segment_5_2xend64o8gm1m } from './root.tsx_root_q_e_click_segment_5_2xend64o8gm1m';
+import { root_for_render_segment_6_142sxd5ip3f7n } from './root.tsx_root_for_render_segment_6_142sxd5ip3f7n';
+import { root_for_key_segment_7_sh7qb8wgbo2z } from './root.tsx_root_for_key_segment_7_sh7qb8wgbo2z';
+import { buildData } from './build-data/build-data';
+const Root_tmpl0 = _createElementTemplate(
+  '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="run">Create 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="runlots">Create 10,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="add">Append 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="update">Update every 10th row</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="clear">Clear</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="swaprows">Swap Rows</button></div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!><!></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>'
+);
+
+export function Root_component_1wwbdvvn6s0lu(props, ctx) {
+  const data = useSignal(false ? buildData(1e3) : []);
+  const selectedItem = useSignal(null);
+  const el0 = Root_tmpl0(ctx.document);
+  const el1 = _first(_first(_first(_last(_first(_first(el0))))));
+  setEvent(el1, 'q-e:click', root_q_e_click_segment_0_2xenc01chyg01, [data]);
+  const el2 = _first(_next(_first(_first(_last(_first(_first(el0)))))));
+  setEvent(el2, 'q-e:click', root_q_e_click_segment_1_2xenbm08l4dzi, [data]);
+  const el3 = _first(_next(_next(_first(_first(_last(_first(_first(el0))))))));
+  setEvent(el3, 'q-e:click', root_q_e_click_segment_2_2xenb7z4oabyz, [data]);
+  const el4 = _first(_prev(_prev(_last(_first(_last(_first(_first(el0))))))));
+  setEvent(el4, 'q-e:click', root_q_e_click_segment_3_2xenaty0rg9yg, [data]);
+  const el5 = _first(_prev(_last(_first(_last(_first(_first(el0)))))));
+  setEvent(el5, 'q-e:click', root_q_e_click_segment_4_2xendk5s5ao25, [data]);
+  const el6 = _first(_last(_first(_last(_first(_first(el0))))));
+  setEvent(el6, 'q-e:click', root_q_e_click_segment_5_2xend64o8gm1m, [data]);
+  const start0 = _first(_first(_next(_first(el0))));
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      data,
+      root_for_key_segment_7_sh7qb8wgbo2z,
+      _withCaptures(root_for_render_segment_6_142sxd5ip3f7n, [selectedItem, data]),
+      0,
+      0
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "root.tsx",
+  "name": "Root_component_1wwbdvvn6s0lu",
+  "entry": null,
+  "displayName": "Root_component",
+  "hash": "1wwbdvvn6s0lu",
+  "canonicalFilename": "root.tsx_Root_component_1wwbdvvn6s0lu",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    147,
+    4874
+  ],
+  "paramNames": []
 }
 */
 ============================= src/build-data/build-data.ts ==

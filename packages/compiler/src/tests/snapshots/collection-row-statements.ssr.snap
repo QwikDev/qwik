@@ -20,130 +20,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  renderSsrCollection,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, row) => {
-  let label = String(row);
-  if (row > 1) {
-    label += '!';
-  }
-  function wrap(value) {
-    return '[' + value + ']';
-  }
-  label = wrap(label);
-  const id0 = ctx.nextId();
-  ctx.addRoot(label);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [label],
-    q_component_text_segment_2_1fh117dstcoge
-  );
-  return maybeThen(text0, (text0) => [
-    '<li q:id="',
-    createSsrNodeId(id0),
-    '" q:row="',
-    escapeHTML(__rowId),
-    '">',
-    escapeHTML(text0),
-    '</li>',
-  ]);
-};
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
-  'component_for_render_segment_0_asyt89wzo2d3'
-);
-q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const component_for_key_segment_1_24ursak4wzpxf = (row) => {
-  return row;
-};
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
-  'component_for_key_segment_1_24ursak4wzpxf'
-);
-q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
-const component_text_segment_3_1fh11lewq6qgx = (doubled) => {
-  return doubled;
-};
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-const component_text_segment_2_1fh117dstcoge = (label) => {
-  return label;
-};
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_2_1fh117dstcoge'
-);
-q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const rows = useSignal([1]);
-    const collectionId0 = ctx.nextId();
-    ctx.addRoot(rows);
-    const collection0 = ctx.observeError(
-      renderSsrCollection(
-        ctx,
-        collectionId0,
-        rows,
-        q_component_for_key_segment_1_24ursak4wzpxf,
-        q_component_for_render_segment_0_asyt89wzo2d3,
-        0,
-        false,
-        0
-      )
-    );
-    function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, __rangeId, __rowId, n) {
-      let doubled = n * 2;
-      doubled += 1;
-      const id0 = ctx.nextId();
-      ctx.addRoot(doubled);
-      const text0 = renderSsrTextExpression(
-        id0,
-        null,
-        [doubled],
-        q_component_text_segment_3_1fh11lewq6qgx
-      );
-      return maybeThen(text0, (text0) => [
-        '<li q:id="',
-        createSsrNodeId(id0),
-        '">',
-        escapeHTML(text0),
-        '</li>',
-      ]);
-    }
-    const collection1 = ctx.observeError(
-      renderSsrCollection(
-        ctx,
-        undefined,
-        [1, 2],
-        undefined,
-        semantic_collectionRender_361_452_1ilm85gvuesnv,
-        0,
-        false,
-        0
-      )
-    );
-    return [
-      '<ul><!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-      collection1,
-      '</ul>',
-    ];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
@@ -289,6 +167,150 @@ export const component_text_segment_3_1fh11lewq6qgx = (doubled) => {
   "captureNames": [
     "doubled"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  renderSsrCollection,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, row) => {
+  let label = String(row);
+  if (row > 1) {
+    label += '!';
+  }
+  function wrap(value) {
+    return '[' + value + ']';
+  }
+  label = wrap(label);
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [label],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_0_asyt89wzo2d3'
+);
+q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
+const component_for_key_segment_1_24ursak4wzpxf = (row) => {
+  return row;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_1_24ursak4wzpxf'
+);
+q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
+const component_text_segment_3_1fh11lewq6qgx = (doubled) => {
+  return doubled;
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const component_text_segment_2_1fh117dstcoge = (label) => {
+  return label;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const rows = useSignal([1]);
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(rows);
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      rows,
+      q_component_for_key_segment_1_24ursak4wzpxf,
+      q_component_for_render_segment_0_asyt89wzo2d3,
+      0,
+      false,
+      0
+    )
+  );
+  function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, __rangeId, __rowId, n) {
+    let doubled = n * 2;
+    doubled += 1;
+    const id0 = ctx.nextId();
+    ctx.addRoot(doubled);
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [doubled],
+      q_component_text_segment_3_1fh11lewq6qgx
+    );
+    return maybeThen(text0, (text0) => [
+      '<li q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</li>',
+    ]);
+  }
+  const collection1 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [1, 2],
+      undefined,
+      semantic_collectionRender_361_452_1ilm85gvuesnv,
+      0,
+      false,
+      0
+    )
+  );
+  return [
+    '<ul><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f>',
+    collection1,
+    '</ul>',
+  ];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    506
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

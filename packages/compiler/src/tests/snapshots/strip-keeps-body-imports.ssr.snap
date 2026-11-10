@@ -20,52 +20,10 @@ export const formatLabel = (value: string) => value.toUpperCase();
 
 ============================= src/routes/index.tsx ==
 
-import {
-  useSignal,
-  useVisibleTaskQrl,
-  _capturesObj,
-  createSsrNodeId,
-  createSsrOpenTag,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_tv8h7w8tm3v2 } from './index.tsx_default_component_tv8h7w8tm3v2';
 import { ping } from '../shared/server-fn';
 import { formatLabel } from '../shared/label';
-const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ _noopQrl(
-  'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
-);
-const index_text_segment_1_1ipiow57gf7g4 = (result) => {
-  return formatLabel(result.value);
-};
-const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _noopQrl(
-  'index_text_segment_1_1ipiow57gf7g4'
-);
-q_index_text_segment_1_1ipiow57gf7g4.s(index_text_segment_1_1ipiow57gf7g4);
-export const default_component_tv8h7w8tm3v2 = _markComponent(
-  (props, ctx) => {
-    const result = useSignal('pending');
-    useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
-    const id0 = ctx.nextId();
-    ctx.addRoot(result);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [result],
-      q_index_text_segment_1_1ipiow57gf7g4
-    );
-    return maybeThen(text0, (text0) => [
-      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', '>'),
-      escapeHTML(text0),
-      '</div>',
-    ]);
-  },
-  'default_component_tv8h7w8tm3v2',
-  './index.tsx'
-);
-export default default_component_tv8h7w8tm3v2;
+export { default_component_tv8h7w8tm3v2 as default };
 /* stripped-body imports: ["../shared/server-fn"] */
 ============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
 
@@ -95,6 +53,66 @@ export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
   "captureNames": [
     "result"
   ]
+}
+*/
+============================= src/routes/index.tsx_default_component_tv8h7w8tm3v2.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useVisibleTaskQrl,
+  _capturesObj,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { formatLabel } from '../shared/label';
+const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ _noopQrl(
+  'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
+);
+const index_text_segment_1_1ipiow57gf7g4 = (result) => {
+  return formatLabel(result.value);
+};
+const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _noopQrl(
+  'index_text_segment_1_1ipiow57gf7g4'
+);
+q_index_text_segment_1_1ipiow57gf7g4.s(index_text_segment_1_1ipiow57gf7g4);
+const q_default_component_tv8h7w8tm3v2 = /*#__PURE__*/ _noopQrl('default_component_tv8h7w8tm3v2');
+_markComponent(default_component_tv8h7w8tm3v2, q_default_component_tv8h7w8tm3v2);
+
+export function default_component_tv8h7w8tm3v2(props, ctx) {
+  const result = useSignal('pending');
+  useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
+  const id0 = ctx.nextId();
+  ctx.addRoot(result);
+  const text0 = renderSsrTextExpression(id0, null, [result], q_index_text_segment_1_1ipiow57gf7g4);
+  return maybeThen(text0, (text0) => [
+    createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text0),
+    '</div>',
+  ]);
+}
+/*
+{
+  "origin": "index.tsx",
+  "name": "default_component_tv8h7w8tm3v2",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "tv8h7w8tm3v2",
+  "canonicalFilename": "index.tsx_default_component_tv8h7w8tm3v2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    164,
+    360
+  ],
+  "paramNames": []
 }
 */
 ============================= src/shared/server-fn.ts ==

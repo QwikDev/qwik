@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
 import { EntryKind, Environment, LinkResultKind, OpKind, ProgramBodyKind, Shape } from '../schema';
-import { deepFreeze, serverSpecialization } from './fixtures';
+import { deepFreeze, serverSpecialization, renderCode } from './fixtures';
 import { generateJsCsr, generateJsSsr, transformModules } from '../index';
 
 async function link(source: string, library?: string | { path: string; code: string }[]) {
@@ -487,7 +487,7 @@ describe('linked render results', () => {
     });
 
     expect(output.diagnostics).toEqual([]);
-    const code = output.modules[0].code;
+    const code = renderCode(output);
     expect(code).toContain('createSsrSection("head", "<head", ">")');
     expect(code).toContain('createSsrSection("/body", "</body>")');
   });

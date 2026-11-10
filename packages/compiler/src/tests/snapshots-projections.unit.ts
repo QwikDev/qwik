@@ -2,6 +2,7 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode, qrlChunks } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test.each([
@@ -64,7 +65,7 @@ export default component$(() => (
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Text alone cannot carry q:type, so a typed fragment groups its content as one entry.
     expect(main).toContain('createSlotScope(null, [{ "type": "group" }, { "type": "row" }])');
     expect(main.match(/registerProjection\(/g)).toHaveLength(2);
@@ -147,7 +148,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The parent describes the default projection only to a consumer that calls useChildrenInfo().
     expect(main).toContain(
       'createSlotScope(null, [{ "type": "bold" }, _EMPTY_OBJ, { "type": "card" }, _EMPTY_OBJ])'
@@ -352,7 +353,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The client reads the name through a bound static function; the server serializes a QRL.
     expect(main).toMatch(
       mode === 'ssr'
@@ -374,7 +375,7 @@ export const Wrapper = () => <Inner>{(<><Slot name="heading" q:slot="title"><><h
 export default () => <main><Wrapper><><h1 q:slot="heading">Provided</h1></></Wrapper><Wrapper><>{/* empty */}<></></></Wrapper></main>;
 `,
     });
-    expect(output.modules).toHaveLength(3);
+    expect(qrlChunks(output)).toHaveLength(2);
   });
 
   test('should switch component children through a dynamic slot name', async () => {
@@ -436,7 +437,7 @@ export const Wrapper = () => <Inner><Slot /></Inner>;
 export default () => <Wrapper><p>Forwarded</p></Wrapper>;
 `,
     });
-    expect(output.modules).toHaveLength(2);
+    expect(qrlChunks(output)).toHaveLength(1);
   });
 
   test('should forward a named projection under a different name', async () => {
@@ -447,7 +448,7 @@ export const Wrapper = () => <Inner><Slot name="heading" q:slot="title" /></Inne
 export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
 `,
     });
-    expect(output.modules).toHaveLength(2);
+    expect(qrlChunks(output)).toHaveLength(1);
   });
 
   test('should use a fallback when a forwarded named projection is absent', async () => {
@@ -458,6 +459,6 @@ export const Wrapper = () => <Inner><Slot name="heading" q:slot="title"><h2>Fall
 export default () => <main><Wrapper><h1 q:slot="heading">Provided</h1></Wrapper><Wrapper /></main>;
 `,
     });
-    expect(output.modules).toHaveLength(3);
+    expect(qrlChunks(output)).toHaveLength(2);
   });
 });

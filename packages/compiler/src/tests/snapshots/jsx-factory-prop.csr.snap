@@ -14,52 +14,9 @@ export default function App() {
 
 ============================= src/component.tsx ==
 
-const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_render_segment_3_1kxav1tcxzeqy',
-  () => import('./component.tsx_component_render_segment_3_1kxav1tcxzeqy'),
-  'component_render_segment_3_1kxav1tcxzeqy'
-);
-const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_7_208nyg8uks240',
-  () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
-  'component_props_segment_7_208nyg8uks240'
-);
-const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
-import {
-  useSignal,
-  _first,
-  _last,
-  _qrlWithChunk,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  createPropsProxy,
-  useComputedQrl,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio as App } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Display } from './display';
-export default function App(props, ctx) {
-  const count = useSignal(0);
-  const options = useSignal({ title: 'title' });
-  const el0 = default_tmpl0(ctx.document);
-  const marker0 = _last(el0);
-  const component0 = createComponent(
-    Display,
-    { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
-    ctx
-  );
-  const marker1 = _first(el0);
-  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
-  const component2 = createComponent(
-    Display,
-    createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
-    ctx
-  );
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
-  return el0;
-}
-
-export { App as default_component_3rg6kq1so9aio };
+export { App as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -353,6 +310,73 @@ export const component_props_segment_7_208nyg8uks240 = () => {
   "captureNames": [
     "options"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _last,
+  _qrlWithChunk,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createPropsProxy,
+  useComputedQrl,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { Display } from './display';
+const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_render_segment_3_1kxav1tcxzeqy',
+  () => import('./component.tsx_component_render_segment_3_1kxav1tcxzeqy'),
+  'component_render_segment_3_1kxav1tcxzeqy'
+);
+const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_7_208nyg8uks240',
+  () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
+  'component_props_segment_7_208nyg8uks240'
+);
+const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const options = useSignal({ title: 'title' });
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _last(el0);
+  const component0 = createComponent(
+    Display,
+    { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
+    ctx
+  );
+  const marker1 = _first(el0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent(
+    Display,
+    createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
+    ctx
+  );
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    444
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

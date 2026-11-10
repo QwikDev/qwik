@@ -12,6 +12,12 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
 import {
   _first,
   _last,
@@ -20,19 +26,10 @@ import {
   patchTextValue,
   createDomBatchEffect,
   _createElementTemplate,
-  useSignal,
-  _qrlWithChunk,
-  createPropsProxy,
-  useComputedQrl,
-  createComponent,
 } from '@qwik.dev/core';
 const Child_tmpl0 = _createElementTemplate('<strong><!>: <!></strong>');
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0_208o16glymg7p',
-  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
-  'component_props_segment_0_208o16glymg7p'
-);
-export const Child = (props, ctx) => {
+
+export function Child_component_syc3erfxihm7(props, ctx) {
   const el0 = Child_tmpl0(ctx.document);
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
@@ -47,22 +44,29 @@ export const Child = (props, ctx) => {
     patchTextValue(text1, readTrackedValue(prop1));
   }, ctx.scheduler);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const count = useSignal(1);
-  const attributes = useSignal({ title: 'spread' });
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(
-      useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes, count]))
-    ),
-    ctx
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    122
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -93,6 +97,54 @@ export const component_props_segment_0_208o16glymg7p = () => {
     "attributes",
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  createPropsProxy,
+  useComputedQrl,
+  createComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const count = useSignal(1);
+  const attributes = useSignal({ title: 'spread' });
+  const component0 = createComponent(
+    Child,
+    createPropsProxy(
+      useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes, count]))
+    ),
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    123,
+    232
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

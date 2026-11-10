@@ -16,6 +16,7 @@ import {
   Shape,
   ValueKind,
   type LinkedModule,
+  type LocalId,
   type LinkedPlan,
   type LinkedQrl,
   type LinkedOp,
@@ -57,7 +58,9 @@ import {
 } from './print-js';
 import {
   chunkImportSpecifier,
+  chunkSymbolName,
   createQrlResolver,
+  isComponentSegment,
   type QrlResolver,
   syncQrlHoists,
   isInlineComponent,
@@ -216,11 +219,12 @@ function keyedCollectionRows(module: LinkedModule): ReadonlySet<string> {
 }
 
 class SsrModuleEmitter implements QwikModuleEmitter {
-  readonly isServer = true;
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
   private readonly usedQrls = new Map<string, QrlUsage>();
+  /** Module bindings the mirrors read, for a chunk that hosts them to import. */
+  private readonly mirroredBindings = new Set<LocalId>();
 
   private readonly resolveQrlUse: QrlResolver;
 
@@ -541,9 +545,21 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** A body component lifted to its own chunk keeps the ordinary `(props, ctx)` render ABI. */
   private componentEmission(qrl: LinkedQrl): FunctionEmission {
-    const { emission, core, names } = this.renderEmission(qrl, {});
-    emission.params = [componentParamName(this.module, qrl), names.ctx, ...(core.params ?? [])];
+    const isSegment = isComponentSegment(qrl);
+    const { emission, core, names } = this.renderEmission(qrl, {}, isSegment);
+    emission.params = [names.props, names.ctx, ...(core.params ?? [])];
     emission.async = core.async === true;
+    if (isSegment) {
+      // Only the server serializes: the component carries the QRL of its own segment.
+      const symbol = chunkSymbolName(qrl);
+      const standIn = noopQrlJs(this.module, qrl);
+      emission.imports.add(standIn.word);
+      emission.imports.add(QwikWord.MarkComponent);
+      emission.hoists.push(
+        `const q_${symbol} = /*#__PURE__*/ ${standIn.code};`,
+        `${QwikWord.MarkComponent}(${symbol}, q_${symbol});`
+      );
+    }
     return emission;
   }
 
@@ -557,7 +573,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Fresh-emitter render + capture prelude + import/uses handoff — shared by every kind. */
   private renderEmission(
     qrl: LinkedQrl,
-    options: SsrRenderOptions
+    options: SsrRenderOptions,
+    /** A component segment renders its QRL uses in-chunk, as the main module did. */
+    mirrorUses = false
   ): { emission: FunctionEmission; core: SsrProgramEmission; names: GeneratedNames } {
     const emitter = new SsrModuleEmitter(
       this.module,
@@ -567,7 +585,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       this.useOnRootLifetimes
     );
     const names = {
-      props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
+      // A component reads its own parameter; other programs read the props they capture.
+      props:
+        programKind(qrl) === ProgramKind.Component
+          ? componentParamName(this.module, qrl)
+          : qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
       ctx: allocateGeneratedNames(this.module).ctx,
     };
     const core = emitter.renderProgram(qrl, names, options);
@@ -581,6 +603,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     emission.value = core.value;
     if (captures.length > 0) {
       emission.imports.add(QwikWord.Captures);
+    }
+    if (mirrorUses) {
+      emitter.flushQrlHoists();
+      emission.hoists.push(...emitter.hoists);
+      emission.chunkImports.push(...emitter.chunkImports);
+      emission.mirroredBindings = [...emitter.mirroredBindings];
     }
     for (const name of emitter.imports) {
       emission.imports.add(name);
@@ -1520,6 +1548,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         const emission = this.qrlFunction(qrl);
         for (const binding of qrl.dependencies.bindings) {
           requestBindingImport(this.module, binding, this.imports);
+          this.mirroredBindings.add(binding);
         }
         for (const name of emission.imports) {
           this.imports.add(name);

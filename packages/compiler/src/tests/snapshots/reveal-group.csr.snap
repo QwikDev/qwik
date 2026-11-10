@@ -25,66 +25,9 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  _last,
-  _prev,
-  BranchRange,
-  createPending,
-  createRevealGroup,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_suspense_content_segment_1_oznzhxo2l2hq } from './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq';
-import { component_suspense_fallback_segment_0_1i2rr5w5knxuo } from './component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo';
-import { component_suspense_content_segment_3_oznypvg8wygo } from './component.tsx_component_suspense_content_segment_3_oznypvg8wygo';
-import { component_suspense_fallback_segment_2_1i2rrxydec1vq } from './component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq';
-import { component_suspense_content_segment_5_ozo1223pxaju } from './component.tsx_component_suspense_content_segment_5_ozo1223pxaju';
-import { component_suspense_fallback_segment_4_1i2rsq0l805ws } from './component.tsx_component_suspense_fallback_segment_4_1i2rsq0l805ws';
-
-const default_tmpl0 = _createElementTemplate('<section><!><!><div><!><!></div><!><!></section>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Slow } from './slow';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const el1 = _next(_next(_first(el0)));
-  const marker0 = _prev(_last(el0));
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const reveal0 = createRevealGroup('sequential', true, 2);
-  createPending(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    component_suspense_content_segment_1_oznzhxo2l2hq,
-    component_suspense_fallback_segment_0_1i2rr5w5knxuo,
-    0,
-    reveal0,
-    0
-  );
-  const start1 = _first(el1);
-  const end1 = _next(start1);
-  createPending(
-    ctx,
-    new BranchRange(ctx.document, start1, end1),
-    component_suspense_content_segment_3_oznypvg8wygo,
-    component_suspense_fallback_segment_2_1i2rrxydec1vq,
-    10,
-    reveal0,
-    1
-  );
-  const end2 = _next(marker0);
-  const reveal1 = createRevealGroup(undefined, undefined, 1);
-  createPending(
-    ctx,
-    new BranchRange(ctx.document, marker0, end2),
-    component_suspense_content_segment_5_ozo1223pxaju,
-    component_suspense_fallback_segment_4_1i2rsq0l805ws,
-    0,
-    reveal1,
-    0
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -258,6 +201,86 @@ export const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
   "loc": [
     437,
     522
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _last,
+  _prev,
+  BranchRange,
+  createPending,
+  createRevealGroup,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_suspense_content_segment_1_oznzhxo2l2hq } from './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq';
+import { component_suspense_fallback_segment_0_1i2rr5w5knxuo } from './component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo';
+import { component_suspense_content_segment_3_oznypvg8wygo } from './component.tsx_component_suspense_content_segment_3_oznypvg8wygo';
+import { component_suspense_fallback_segment_2_1i2rrxydec1vq } from './component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq';
+import { component_suspense_content_segment_5_ozo1223pxaju } from './component.tsx_component_suspense_content_segment_5_ozo1223pxaju';
+import { component_suspense_fallback_segment_4_1i2rsq0l805ws } from './component.tsx_component_suspense_fallback_segment_4_1i2rsq0l805ws';
+const default_tmpl0 = _createElementTemplate('<section><!><!><div><!><!></div><!><!></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _next(_next(_first(el0)));
+  const marker0 = _prev(_last(el0));
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const reveal0 = createRevealGroup('sequential', true, 2);
+  createPending(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    component_suspense_content_segment_1_oznzhxo2l2hq,
+    component_suspense_fallback_segment_0_1i2rr5w5knxuo,
+    0,
+    reveal0,
+    0
+  );
+  const start1 = _first(el1);
+  const end1 = _next(start1);
+  createPending(
+    ctx,
+    new BranchRange(ctx.document, start1, end1),
+    component_suspense_content_segment_3_oznypvg8wygo,
+    component_suspense_fallback_segment_2_1i2rrxydec1vq,
+    10,
+    reveal0,
+    1
+  );
+  const end2 = _next(marker0);
+  const reveal1 = createRevealGroup(undefined, undefined, 1);
+  createPending(
+    ctx,
+    new BranchRange(ctx.document, marker0, end2),
+    component_suspense_content_segment_5_ozo1223pxaju,
+    component_suspense_fallback_segment_4_1i2rsq0l805ws,
+    0,
+    reveal1,
+    0
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    93,
+    553
   ],
   "paramNames": []
 }

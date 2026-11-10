@@ -27,69 +27,15 @@ const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
   'component_qrl_segment_1_2fpox8kpy8lvx'
 );
-const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_later_segment_3_3i4odul1ji17c',
-  () => import('./component.tsx_component_later_segment_3_3i4odul1ji17c'),
-  'component_later_segment_3_3i4odul1ji17c'
-);
-const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_snapshot_segment_4_98oramdy0zcr',
-  () => import('./component.tsx_component_snapshot_segment_4_98oramdy0zcr'),
-  'component_snapshot_segment_4_98oramdy0zcr'
-);
-const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_linked_content_0_3641q2pvcvlmq',
-  () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
-  'linked_content_0_3641q2pvcvlmq'
-);
-const default_tmpl0 = _createElementTemplate('<button><!><!></button>');
-import {
-  _qrlWithChunk,
-  useSignal,
-  useTask,
-  setEvent,
-  _first,
-  _next,
-  createContentBlock,
-  _createElementTemplate,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { component_useTaskqrl_segment_2_1og81asunhx6e } from './component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e';
+import { _qrlWithChunk } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { config } from './config';
 function tick() {
   console.log('tick');
 }
 export const greeting = q_component_qrl_segment_0_2fpowujm1ejve;
 export const settings = q_component_qrl_segment_1_2fpox8kpy8lvx;
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(1);
-  useTask(component_useTaskqrl_segment_2_1og81asunhx6e);
-  const later = q_component_later_segment_3_3i4odul1ji17c;
-  const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', later);
-      const start0 = _first(el0);
-      const end0 = _next(start0);
-      const content0 = createContentBlock(
-        ctx,
-        start0,
-        end0,
-        [],
-        q_linked_content_0_3641q2pvcvlmq.w([count]),
-        false,
-        true
-      );
-      ctx.scheduler.notify(content0);
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { tick as __qwik_tick };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
@@ -221,6 +167,85 @@ export const component_snapshot_segment_4_98oramdy0zcr = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useTask,
+  _qrlWithChunk,
+  setEvent,
+  _first,
+  _next,
+  createContentBlock,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_useTaskqrl_segment_2_1og81asunhx6e } from './component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e';
+const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_later_segment_3_3i4odul1ji17c',
+  () => import('./component.tsx_component_later_segment_3_3i4odul1ji17c'),
+  'component_later_segment_3_3i4odul1ji17c'
+);
+const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_snapshot_segment_4_98oramdy0zcr',
+  () => import('./component.tsx_component_snapshot_segment_4_98oramdy0zcr'),
+  'component_snapshot_segment_4_98oramdy0zcr'
+);
+const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_linked_content_0_3641q2pvcvlmq',
+  () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
+  'linked_content_0_3641q2pvcvlmq'
+);
+const default_tmpl0 = _createElementTemplate('<button><!><!></button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  useTask(component_useTaskqrl_segment_2_1og81asunhx6e);
+  const later = q_component_later_segment_3_3i4odul1ji17c;
+  const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', later);
+      const start0 = _first(el0);
+      const end0 = _next(start0);
+      const content0 = createContentBlock(
+        ctx,
+        start0,
+        end0,
+        [],
+        q_linked_content_0_3641q2pvcvlmq.w([count]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content0);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    216,
+    413
+  ],
+  "paramNames": []
 }
 */
 ============================= src/component.tsx_linked_content_0_3641q2pvcvlmq.js (ENTRY POINT)==

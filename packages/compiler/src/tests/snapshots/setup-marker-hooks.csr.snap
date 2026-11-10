@@ -19,56 +19,13 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  implicit$FirstArg,
-  useSignal,
-  _qrlWithChunk,
-  useTaskQrl,
-  useComputed,
-  _withCaptures,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { component_total_segment_1_33cb9ycgfz3ta } from './component.tsx_component_total_segment_1_33cb9ycgfz3ta';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_2_heiedc4h1woo } from './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo';
-import { component_useLocalqrl_segment_3_34296ojkgual } from './component.tsx_component_useLocalqrl_segment_3_34296ojkgual';
-
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
-  () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
-  'component_read_segment_0_1zbzildyw5vrf'
-);
-const default_tmpl0 = _createElementTemplate('<span> </span>');
+import { implicit$FirstArg } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ } from './hooks';
 export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(1);
-  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
-  useTaskQrl(read);
-  const total = useComputed(_withCaptures(component_total_segment_1_33cb9ycgfz3ta, [count]), {
-    initial: 0,
-  });
-  useCustom(_withCaptures(component_useCustomqrl_segment_2_heiedc4h1woo, [count]));
-  useLocal(_withCaptures(component_useLocalqrl_segment_3_34296ojkgual, [count]));
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      const text0 = _first(el0);
-      const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
-      ctx.scheduler.notify(effect0);
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -191,6 +148,74 @@ export const component_useLocalqrl_segment_3_34296ojkgual = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  useTaskQrl,
+  useComputed,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_total_segment_1_33cb9ycgfz3ta } from './component.tsx_component_total_segment_1_33cb9ycgfz3ta';
+import { useCustom } from './hooks';
+import { component_useCustomqrl_segment_2_heiedc4h1woo } from './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo';
+import { component_useLocalqrl_segment_3_34296ojkgual } from './component.tsx_component_useLocalqrl_segment_3_34296ojkgual';
+import { useCustom$ } from './hooks';
+import { useLocal$ } from './component.tsx';
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
+  () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+const default_tmpl0 = _createElementTemplate('<span> </span>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
+  useTaskQrl(read);
+  const total = useComputed(_withCaptures(component_total_segment_1_33cb9ycgfz3ta, [count]), {
+    initial: 0,
+  });
+  useCustom(_withCaptures(component_useCustomqrl_segment_2_heiedc4h1woo, [count]));
+  useLocal(_withCaptures(component_useLocalqrl_segment_3_34296ojkgual, [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    262,
+    507
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

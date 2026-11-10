@@ -10,6 +10,12 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
+import { Item_component_33lzeq7ebrquo as Item } from './component.tsx_Item_component_33lzeq7ebrquo';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Item_component_33lzeq7ebrquo.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   propSource,
@@ -17,70 +23,114 @@ import {
   renderSsrAttr,
   escapeHTML,
   maybeThen,
+  _noopQrl,
   _markComponent,
+} from '@qwik.dev/core';
+const q_Item_component_33lzeq7ebrquo = /*#__PURE__*/ _noopQrl('Item_component_33lzeq7ebrquo');
+_markComponent(Item_component_33lzeq7ebrquo, q_Item_component_33lzeq7ebrquo);
+
+export function Item_component_33lzeq7ebrquo(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'href');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const attr0 = renderSsrAttr(id0, 'href', prop0);
+  return maybeThen(attr0, (attr0) => [
+    '<a q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' href' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '></a>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Item_component_33lzeq7ebrquo",
+  "entry": null,
+  "displayName": "Item_component",
+  "hash": "33lzeq7ebrquo",
+  "canonicalFilename": "component.tsx_Item_component_33lzeq7ebrquo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    123
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
   serializeAttrExpressionValue,
+  escapeHTML,
   createComponent,
   renderSsrCollection,
+  _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
-const Item = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'href');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const attr0 = renderSsrAttr(id0, 'href', prop0);
-    return maybeThen(attr0, (attr0) => [
-      '<a q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' href' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '></a>',
-    ]);
-  },
-  'Item_component_33lzeq7ebrquo',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    function semantic_collectionRender_153_287_230tpyuuqn4ag(ctx, __rangeId, __rowId, item) {
-      const attr0 = serializeAttrExpressionValue('id', `row-${item.kind}`);
-      const component0 = ctx.observeError(
-        createComponent(Item, { href: `/list/${item.search}` }, ctx)
-      );
-      return [
-        '<li',
-        attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '>',
-        component0,
-        '</li>',
-      ];
-    }
-    const collection0 = ctx.observeError(
-      renderSsrCollection(
-        ctx,
-        undefined,
-        [
-          {
-            kind: 'a',
-            search: '?a',
-          },
-        ],
-        undefined,
-        semantic_collectionRender_153_287_230tpyuuqn4ag,
-        0,
-        false,
-        0
-      )
+import { Item_component_33lzeq7ebrquo as Item } from './component.tsx_Item_component_33lzeq7ebrquo';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  function semantic_collectionRender_153_287_230tpyuuqn4ag(ctx, __rangeId, __rowId, item) {
+    const attr0 = serializeAttrExpressionValue('id', `row-${item.kind}`);
+    const component0 = ctx.observeError(
+      createComponent(Item, { href: `/list/${item.search}` }, ctx)
     );
-    return ['<ul>', collection0, '</ul>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
-
-export { Item as __qwik_Item };
-
-export { Item as Item_component_33lzeq7ebrquo };
+    return [
+      '<li',
+      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>',
+      component0,
+      '</li>',
+    ];
+  }
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [
+        {
+          kind: 'a',
+          search: '?a',
+        },
+      ],
+      undefined,
+      semantic_collectionRender_153_287_230tpyuuqn4ag,
+      0,
+      false,
+      0
+    )
+  );
+  return ['<ul>', collection0, '</ul>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    124,
+    312
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

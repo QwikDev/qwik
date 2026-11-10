@@ -20,55 +20,40 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import { _createElementTemplate, useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
-import { component_pick_segment_0_3dnf2wesexw1y } from './component.tsx_component_pick_segment_0_3dnf2wesexw1y';
-
-const Fallback_tmpl0 = _createElementTemplate('<p>loading</p>');
-const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_pick_segment_0_3dnf2wesexw1y',
-  () => import('./component.tsx_component_pick_segment_0_3dnf2wesexw1y'),
-  'component_pick_segment_0_3dnf2wesexw1y'
-);
-const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb',
-  () => import('./component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb'),
-  'component_fallbackqrl_segment_1_3grqawftcqexb'
-);
-const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6',
-  () => import('./component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6'),
-  'component_renderqrl_segment_4_5bp3q9cb45d6'
-);
-const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_dataqrl_segment_5_2mjc43lmu203l',
-  () => import('./component.tsx_component_dataqrl_segment_5_2mjc43lmu203l'),
-  'component_dataqrl_segment_5_2mjc43lmu203l'
-);
+import { Fallback_component_meb6nrkqtu05 as Fallback } from './component.tsx_Fallback_component_meb6nrkqtu05';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Child } from './child';
-const Fallback = (props, ctx) => {
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Fallback_component_meb6nrkqtu05.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const Fallback_tmpl0 = _createElementTemplate('<p>loading</p>');
+
+export function Fallback_component_meb6nrkqtu05(props, ctx) {
   const el0 = Fallback_tmpl0(ctx.document);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const pick = component_pick_segment_0_3dnf2wesexw1y;
-  const component0 = createComponent(
-    Child,
-    {
-      then$: q_component_pick_segment_0_3dnf2wesexw1y,
-      fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
-      render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
-      data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
-    },
-    ctx
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Fallback as __qwik_Fallback };
-
-export { Fallback as Fallback_component_meb6nrkqtu05 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Fallback_component_meb6nrkqtu05",
+  "entry": null,
+  "displayName": "Fallback_component",
+  "hash": "meb6nrkqtu05",
+  "canonicalFilename": "component.tsx_Fallback_component_meb6nrkqtu05",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    89,
+    127
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_pick_segment_0_3dnf2wesexw1y.js (ENTRY POINT)==
 
 export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
@@ -98,7 +83,7 @@ export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
 */
 ============================= src/component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb.js (ENTRY POINT)==
 
-import { __qwik_Fallback as Fallback } from './component.tsx';
+import { Fallback_component_meb6nrkqtu05 as Fallback } from './component.tsx_Fallback_component_meb6nrkqtu05';
 
 export const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
 /*
@@ -265,6 +250,67 @@ export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { component_pick_segment_0_3dnf2wesexw1y } from './component.tsx_component_pick_segment_0_3dnf2wesexw1y';
+import { Child } from './child';
+const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_pick_segment_0_3dnf2wesexw1y',
+  () => import('./component.tsx_component_pick_segment_0_3dnf2wesexw1y'),
+  'component_pick_segment_0_3dnf2wesexw1y'
+);
+const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb',
+  () => import('./component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb'),
+  'component_fallbackqrl_segment_1_3grqawftcqexb'
+);
+const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6',
+  () => import('./component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6'),
+  'component_renderqrl_segment_4_5bp3q9cb45d6'
+);
+const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_dataqrl_segment_5_2mjc43lmu203l',
+  () => import('./component.tsx_component_dataqrl_segment_5_2mjc43lmu203l'),
+  'component_dataqrl_segment_5_2mjc43lmu203l'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const pick = component_pick_segment_0_3dnf2wesexw1y;
+  const component0 = createComponent(
+    Child,
+    {
+      then$: q_component_pick_segment_0_3dnf2wesexw1y,
+      fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
+      render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
+      data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
+    },
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    128,
+    383
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

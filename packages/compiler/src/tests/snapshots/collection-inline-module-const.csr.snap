@@ -9,6 +9,14 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+const prefix = 'p-';
+export { default_component_3rg6kq1so9aio as default };
+
+export { prefix as __qwik_prefix };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
   _first,
   _next,
@@ -16,11 +24,11 @@ import {
   _textValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
+import { __qwik_prefix as prefix } from './component.tsx';
 const semantic_collectionRender_57_107_1hgwyeb4bdu2g_tmpl0 = _createElementTemplate('<li> </li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-const prefix = 'p-';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -41,10 +49,27 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     true
   );
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { prefix as __qwik_prefix };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    21,
+    47
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

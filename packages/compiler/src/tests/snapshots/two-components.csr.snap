@@ -11,21 +11,69 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { _createElementTemplate } from '@qwik.dev/core';
+import { Header_component_1us3atxk5xjhy as Header } from './component.tsx_Header_component_1us3atxk5xjhy';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
+export { Header };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Header_component_1us3atxk5xjhy.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
 const Header_tmpl0 = _createElementTemplate('<h1>Hi</h1>');
-const default_tmpl0 = _createElementTemplate('<p>Hello Qwik</p>');
-export const Header = (props, ctx) => {
+
+export function Header_component_1us3atxk5xjhy(props, ctx) {
   const el0 = Header_tmpl0(ctx.document);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Header_component_1us3atxk5xjhy",
+  "entry": null,
+  "displayName": "Header_component",
+  "hash": "1us3atxk5xjhy",
+  "canonicalFilename": "component.tsx_Header_component_1us3atxk5xjhy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    33
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const default_tmpl0 = _createElementTemplate('<p>Hello Qwik</p>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Header as Header_component_1us3atxk5xjhy };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    55,
+    81
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

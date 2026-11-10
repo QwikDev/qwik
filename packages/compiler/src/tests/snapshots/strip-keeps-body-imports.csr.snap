@@ -20,35 +20,10 @@ export const formatLabel = (value: string) => value.toUpperCase();
 
 ============================= src/routes/index.tsx ==
 
-import {
-  useSignal,
-  useVisibleTask,
-  _withCaptures,
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { index_useVisibleTaskqrl_segment_0_xu37ccow27t1 } from './index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1';
-import { index_text_segment_1_1ipiow57gf7g4 } from './index.tsx_index_text_segment_1_1ipiow57gf7g4';
-
-const default_tmpl0 = _createElementTemplate('<div> </div>');
+import { default_component_tv8h7w8tm3v2 } from './index.tsx_default_component_tv8h7w8tm3v2';
 import { ping } from '../shared/server-fn';
 import { formatLabel } from '../shared/label';
-export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
-  const result = useSignal('pending');
-  useVisibleTask(_withCaptures(index_useVisibleTaskqrl_segment_0_xu37ccow27t1, [result]));
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [result],
-    index_text_segment_1_1ipiow57gf7g4,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_tv8h7w8tm3v2;
+export { default_component_tv8h7w8tm3v2 as default };
 ============================= src/routes/index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.js (ENTRY POINT)==
 
 import { _capturesObj, _await } from '@qwik.dev/core';
@@ -109,6 +84,54 @@ export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
   "captureNames": [
     "result"
   ]
+}
+*/
+============================= src/routes/index.tsx_default_component_tv8h7w8tm3v2.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useVisibleTask,
+  _withCaptures,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { index_useVisibleTaskqrl_segment_0_xu37ccow27t1 } from './index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1';
+import { index_text_segment_1_1ipiow57gf7g4 } from './index.tsx_index_text_segment_1_1ipiow57gf7g4';
+const default_tmpl0 = _createElementTemplate('<div> </div>');
+
+export function default_component_tv8h7w8tm3v2(props, ctx) {
+  const result = useSignal('pending');
+  useVisibleTask(_withCaptures(index_useVisibleTaskqrl_segment_0_xu37ccow27t1, [result]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [result],
+    index_text_segment_1_1ipiow57gf7g4,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "index.tsx",
+  "name": "default_component_tv8h7w8tm3v2",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "tv8h7w8tm3v2",
+  "canonicalFilename": "index.tsx_default_component_tv8h7w8tm3v2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    164,
+    360
+  ],
+  "paramNames": []
 }
 */
 ============================= src/shared/server-fn.ts ==

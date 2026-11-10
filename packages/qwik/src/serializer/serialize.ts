@@ -617,12 +617,12 @@ export class Serializer {
           }
           break;
         case 'function': {
-          // a marked component serializes as the QRL of its own export
-          const marker = (value as { [SERIALIZABLE_STATE]?: [string, string] })[SERIALIZABLE_STATE];
+          // a marked component serializes as the QRL of its own segment
+          const marker = (value as { [SERIALIZABLE_STATE]?: [QRLInternal] })[SERIALIZABLE_STATE];
           const qrlValue = isQrl(value)
             ? value
             : marker !== undefined
-              ? createQRL(marker[1], marker[0], null, null, null)
+              ? marker[0]
               : (qrlOfBody(value) ?? null);
           if (qrlValue !== null) {
             if (this.getSeenRefOrOutput(value, index)) {

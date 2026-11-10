@@ -8,56 +8,10 @@ export default () => <main><Card /><Card><p>Projected</p></Card></main>;
 
 ============================= src/component.tsx ==
 
-import {
-  renderSsrSlot,
-  _createSsrSlotMarker,
-  _noopQrl,
-  _markComponent,
-  createComponent,
-  createSlotScope,
-  registerProjection,
-} from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Empty</p><!/s>'];
-};
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Projected</p><!/s>'];
-};
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-export const Card = _markComponent(
-  (props, ctx) => {
-    const slot0 = ctx.observeError(
-      renderSsrSlot(ctx, '', q_component_slot_render_segment_0_3b0tagwys7lui)
-    );
-    return ['<section>', slot0, '</section>'];
-  },
-  'Card_component_1j4wd08arm0n5',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const component0 = ctx.observeError(createComponent(Card, null, ctx));
-    const slotScope0 = createSlotScope();
-    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-    ctx.addRoot(slotScope0);
-    const component1 = ctx.observeError(
-      createComponent(Card, null, ctx, { slotScope: slotScope0 })
-    );
-    return ['<main>', component0, component1, '</main>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
-
-export { Card as Card_component_1j4wd08arm0n5 };
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Card };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _createSsrSlotMarker } from '@qwik.dev/core';
@@ -89,6 +43,45 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (
   "paramNames": []
 }
 */
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
+
+import { renderSsrSlot, _createSsrSlotMarker, _noopQrl, _markComponent } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Empty</p><!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const q_Card_component_1j4wd08arm0n5 = /*#__PURE__*/ _noopQrl('Card_component_1j4wd08arm0n5');
+_markComponent(Card_component_1j4wd08arm0n5, q_Card_component_1j4wd08arm0n5);
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
+  const slot0 = ctx.observeError(
+    renderSsrSlot(ctx, '', q_component_slot_render_segment_0_3b0tagwys7lui)
+  );
+  return ['<section>', slot0, '</section>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Card_component_1j4wd08arm0n5",
+  "entry": null,
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    110
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import { _createSsrSlotMarker } from '@qwik.dev/core';
@@ -116,6 +109,55 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
   "loc": [
     152,
     168
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createComponent,
+  createSlotScope,
+  registerProjection,
+  _createSsrSlotMarker,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Projected</p><!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const component0 = ctx.observeError(createComponent(Card, null, ctx));
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  ctx.addRoot(slotScope0);
+  const component1 = ctx.observeError(createComponent(Card, null, ctx, { slotScope: slotScope0 }));
+  return ['<main>', component0, component1, '</main>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    111,
+    183
   ],
   "paramNames": []
 }

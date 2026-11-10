@@ -29,7 +29,7 @@ test.each([
   });
   expect(output.diagnostics).toEqual([]);
   const factory = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -54,7 +54,7 @@ test.each(helpers)('renders independent module helper results: %s', async (helpe
   });
   expect(output.diagnostics).toEqual([]);
   const factory = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -95,7 +95,7 @@ ${scope === 'module' ? helper : ''}`,
     expect(output.diagnostics).toEqual([]);
     const values: unknown[] = [];
     const render = loadDefaultFunction(
-      output.modules.find((module) => !module.segment)!,
+      output.modules,
       {
         ...core,
         get _capturesObj() {
@@ -127,7 +127,7 @@ export default () => value;`,
   });
   expect(output.diagnostics).toEqual([]);
   const read = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {

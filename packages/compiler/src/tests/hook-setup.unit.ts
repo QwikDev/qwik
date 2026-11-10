@@ -17,6 +17,8 @@ import {
   loadDefaultFunction,
   serverSpecialization,
   setupOnlyContext,
+  qrlChunks,
+  renderCode,
 } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { defaultScheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -47,7 +49,7 @@ export default (props) => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  expect(output.modules.filter((module) => module.segment)).toHaveLength(0);
+  expect(qrlChunks(output)).toHaveLength(0);
   const calls: unknown[][] = [];
   const order: string[] = [];
   const hook = (...args: unknown[]) => {
@@ -55,7 +57,7 @@ export default (props) => {
     order.push('hook');
     return { label: 'result' };
   };
-  const render = loadDefaultFunction(output.modules[0], {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     [callee]: hook,
     globalHook: hook,
@@ -93,7 +95,7 @@ export default () => {
   });
   expect(output.diagnostics).toEqual([]);
   const callbacks: QRL<() => number>[] = [];
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     useCustomQrl: (callback: QRL<() => number>) => callbacks.push(callback),
     get _capturesObj() {
@@ -121,7 +123,7 @@ export default (props) => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, core);
+  const render = loadDefaultFunction(output.modules, core);
   for (const values of [[], ['value']]) {
     const result = await renderToStringCompiled(render, { props: { values } });
     expect(result.html.includes('<!c=')).toBe(values.length > 0);
@@ -181,7 +183,7 @@ export default () => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     useSignal: (value: number) => ({ value }),
   });
@@ -258,8 +260,7 @@ export default (props) => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const component = output.modules.find((module) => module.path === 'src/component.tsx');
-  expect(component?.code).toContain('optionalContextScopeRef()');
+  expect(renderCode(output)).toContain('optionalContextScopeRef()');
 });
 
 test.each([
@@ -364,7 +365,7 @@ export default () => {
     order.push('hook');
     return { label: 'result' };
   };
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     useCustomQrl,
     get _capturesObj() {
@@ -417,12 +418,11 @@ export default () => {
       },
     ],
   });
-  const component = output.modules.find((module) => !module.segment)!;
-  expect(component.code).toMatch(/import\s*\{[^}]*implicit\$FirstArg[^}]*\}\s*from/);
-  expect(component.code).toMatch(/import\s*\{[^}]*useTaskQrl[^}]*\}\s*from/);
+  expect(renderCode(output)).toMatch(/import\s*\{[^}]*implicit\$FirstArg[^}]*\}\s*from/);
+  expect(renderCode(output)).toMatch(/import\s*\{[^}]*useTaskQrl[^}]*\}\s*from/);
   const signals: core.Signal<number>[] = [];
   const logs: unknown[][] = [];
-  const render = loadDefaultFunction(component, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     task: core.useTask$,
     get _capturesObj() {
@@ -517,11 +517,11 @@ export default () => {
       },
     ],
   });
-  expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+  expect(qrlChunks(output)).toHaveLength(1);
   const callbacks: QRL<() => number>[] = [];
   const signals: core.Signal<number>[] = [];
   const computeds: ReturnType<typeof core.useComputedQrl>[] = [];
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     get _capturesObj() {
       return core._capturesObj;

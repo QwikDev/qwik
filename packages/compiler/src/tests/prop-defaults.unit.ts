@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadChunkFunction, loadDefaultFunction } from './fixtures';
+import { loadChunkFunction, loadDefaultFunction, renderCode } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { getActiveCollector } from '../../../qwik/src/core/reactive/tracking';
 import { createDocument } from '../../../qwik/src/testing/document';
@@ -78,7 +78,7 @@ test.each([true, false])(
       globals.renderSsrTextExpression = (
         ...args: Parameters<typeof core.renderSsrTextExpression>
       ) => core.renderSsrTextExpression(args[0], args[1], Array.from(args[2]), args[3]);
-      const render = loadDefaultFunction(output.modules[0], globals);
+      const render = loadDefaultFunction(output.modules, globals);
       const result = await renderToStringCompiled(render, { props: {} });
       expect(result.html).toContain('&lt;fallback&gt;!');
       expect(result.html).toContain('title="&lt;fallback&gt;"');
@@ -86,7 +86,7 @@ test.each([true, false])(
       return;
     }
     const document = createDocument();
-    const renderComponent = loadDefaultFunction(output.modules[0], globals);
+    const renderComponent = loadDefaultFunction(output.modules, globals);
     const scheduler = new Scheduler(() => {});
     const owner = core.createOwner(null);
     const source = core.useSignal<string | null | undefined>(undefined);
@@ -137,7 +137,7 @@ test('non-literal defaults retain the same object across reads and captures', as
   });
   const metadata = { label: 'fallback' };
   let captures: unknown[] = [];
-  const renderComponent = loadDefaultFunction(output.modules[0], {
+  const renderComponent = loadDefaultFunction(output.modules, {
     ...core,
     createMetadata: () => metadata,
     renderSsrContent: () => '',
@@ -186,7 +186,7 @@ export default ({ title: heading = createTitle() }) => <button onClick$={() => (
     };
     let calls = 0;
     const captured: unknown[][] = [];
-    const renderComponent = loadDefaultFunction(output.modules[0], {
+    const renderComponent = loadDefaultFunction(output.modules, {
       ...core,
       createTitle() {
         calls++;
@@ -286,9 +286,9 @@ export default ({ title = createTitle() }) => {
       ],
       isServer: true,
     });
-    const component = output.modules.find((module) => !module.segment)!.code;
+    const component = renderCode(output);
     expect(component).toMatch(
-      /\(props, ctx, defaultValue = untrack\(\(\) => props\.title === void 0\) \? \(createTitle\(\)\) : void 0\) => \{/
+      /\(props, ctx, defaultValue = untrack\(\(\) => props\.title === void 0\) \? \(createTitle\(\)\) : void 0\) \{/
     );
     expect(component).toContain(`const createTitle = () => 'local';`);
   }
@@ -307,7 +307,7 @@ test('only the initial prop check is untracked', async () => {
   const fallback = core.useSignal('fallback');
   let calls = 0;
   let renders = 0;
-  const renderComponent = loadDefaultFunction(output.modules[0], {
+  const renderComponent = loadDefaultFunction(output.modules, {
     ...core,
     createTitle() {
       calls++;

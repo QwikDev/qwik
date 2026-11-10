@@ -7,6 +7,7 @@ import {
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
+  type LocalId,
   type Range,
   type QrlUse,
   Shape,
@@ -205,6 +206,8 @@ export interface FunctionEmission {
   generator: boolean;
   /** QRLs the function's body references — the placement satisfies them. */
   uses: { qrl: LinkedQrl; invoked: boolean }[];
+  /** Module bindings the in-chunk mirrors of its QRL uses read. */
+  mirroredBindings?: readonly LocalId[];
 }
 
 export function emptyFunctionEmission(): FunctionEmission {

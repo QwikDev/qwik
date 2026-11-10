@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, renderCode } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 
@@ -12,7 +12,7 @@ async function renderSource(code: string) {
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -70,9 +70,7 @@ test.each(['Fragment', 'F'])('preserves unrelated imports named %s', async (name
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  expect(output.modules.find((module) => !module.segment)!.code).toContain(
-    `createComponent(${name},`
-  );
+  expect(renderCode(output)).toContain(`createComponent(${name},`);
 });
 
 test('retains an explicit fragment collection key', async () => {

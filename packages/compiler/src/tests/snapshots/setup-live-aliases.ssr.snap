@@ -23,233 +23,9 @@ export default (props: { label: string; title: string; as: string }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useStore,
-  _capturesObj,
-  renderSsrContent,
-  createSsrNodeId,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  renderSsrDynamicTag,
-  createComponent,
-  _noopQrl,
-  _createSsrSlotMarker,
-  escapeHTML,
-  propSource,
-  isSource,
-  renderSsrTextNode,
-  maybeThen,
-  renderSsrTextExpression,
-  renderSsrDynamicContent,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Child } from './child';
-const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [props, store, count] = _capturesObj._;
-  const slotScope0 = createSlotScope(null, [
-    _EMPTY_OBJ,
-    _EMPTY_OBJ,
-    _EMPTY_OBJ,
-    _EMPTY_OBJ,
-    _EMPTY_OBJ,
-    _EMPTY_OBJ,
-  ]);
-  const tag0 = props.as;
-  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([props]));
-  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
-  registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
-  registerProjection(slotScope0, '', q_component_slot_render_segment_6_3b0t84qbb79rc.w([store]));
-  registerProjection(slotScope0, '', q_component_slot_render_segment_8_3b0t7co3hj5qa.w([store]));
-  registerProjection(slotScope0, '', q_component_slot_render_segment_10_3m3ztgqtay7c7.w([store]));
-  ctx.addRoot(store);
-  ctx.addRoot(count);
-  ctx.addRoot(props);
-  ctx.addRoot(slotScope0);
-  const component0 = ctx.observeError(
-    createComponent(
-      (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-      { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
-      ctx,
-      { slotScope: slotScope0 }
-    )
-  );
-  return component0;
-};
-const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _noopQrl(
-  'component_tag_dynamic_segment_0_331xea01t87eh'
-);
-q_component_tag_dynamic_segment_0_331xea01t87eh.s(component_tag_dynamic_segment_0_331xea01t87eh);
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_1_2xwyfnber1kpg'
-);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
-  const [props] = _capturesObj._;
-  const rangeId0 = ctx.nextId();
-  const prop0 = propSource(props, 'label');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return maybeThen(text0, (text0) => [
-    '<!b=',
-    createSsrNodeId(rangeId0),
-    '>',
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!t>',
-    escapeHTML(text0),
-    '<!/t><!/s><!/b>',
-  ]);
-};
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId, __projectionRootId) => {
-  const [props] = _capturesObj._;
-  const rangeId0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return maybeThen(text0, (text0) => [
-    '<!b=',
-    createSsrNodeId(rangeId0),
-    '>',
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!t>',
-    escapeHTML(text0),
-    '<!/t><!/s><!/b>',
-  ]);
-};
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_3_3b0ta2vuvdjtz'
-);
-q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
-const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId, __projectionRootId) => {
-  const [count] = _capturesObj._;
-  const rangeId0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextExpression(
-    rangeId0,
-    0,
-    [count],
-    q_component_text_segment_5_1fh12dh4juuhz
-  );
-  return maybeThen(text0, (text0) => [
-    '<!b=',
-    createSsrNodeId(rangeId0),
-    '>',
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!t>',
-    escapeHTML(text0),
-    '<!/t><!/s><!/b>',
-  ]);
-};
-const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_4_3b0t8wsj4vdse'
-);
-q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
-const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId, __projectionRootId) => {
-  const [store] = _capturesObj._;
-  const id0 = ctx.nextId();
-  ctx.addRoot(store);
-  const content0 = ctx.observeError(
-    renderSsrContent(ctx, id0, [], q_component_text_segment_7_1fh135jcdiyj1.w([store]), false, true)
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!d=',
-    createSsrNodeId(id0),
-    '>',
-    content0,
-    '<!/d><!/s>',
-  ];
-};
-const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_6_3b0t84qbb79rc'
-);
-q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
-const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx, __rangeId, __projectionRootId) => {
-  const [store] = _capturesObj._;
-  const rangeId0 = ctx.nextId();
-  ctx.addRoot(store);
-  const text0 = renderSsrTextExpression(
-    rangeId0,
-    0,
-    [store],
-    q_component_text_segment_9_1fh0xp3tlu6bn
-  );
-  return maybeThen(text0, (text0) => [
-    '<!b=',
-    createSsrNodeId(rangeId0),
-    '>',
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!t>',
-    escapeHTML(text0),
-    '<!/t><!/s><!/b>',
-  ]);
-};
-const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_8_3b0t7co3hj5qa'
-);
-q_component_slot_render_segment_8_3b0t7co3hj5qa.s(component_slot_render_segment_8_3b0t7co3hj5qa);
-const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId, __projectionRootId) => {
-  const [store] = _capturesObj._;
-  const component0 = ctx.observeError(createComponent(Child, { state: store }, ctx));
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
-};
-const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_10_3m3ztgqtay7c7'
-);
-q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment_10_3m3ztgqtay7c7);
-const component_text_segment_5_1fh12dh4juuhz = (count) => {
-  return count.value;
-};
-const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_5_1fh12dh4juuhz'
-);
-q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
-const component_text_segment_7_1fh135jcdiyj1 = (ctx0) => {
-  const [store] = _capturesObj._;
-  return renderSsrDynamicContent(store.item.label, ctx0);
-};
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_7_1fh135jcdiyj1'
-);
-q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
-const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
-  return (store.nested.flip === void 0 ? false : store.nested.flip) ? 'y' : 'n';
-};
-const q_component_text_segment_9_1fh0xp3tlu6bn = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_9_1fh0xp3tlu6bn'
-);
-q_component_text_segment_9_1fh0xp3tlu6bn.s(component_text_segment_9_1fh0xp3tlu6bn);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(0);
-    const store = useStore({
-      item: { label: 'first' },
-      nested: { flip: false },
-    });
-    const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    ctx.addRoot(store);
-    ctx.addRoot(count);
-    const content0 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id0,
-        [],
-        q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
-        false,
-        true
-      )
-    );
-    return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {
@@ -803,6 +579,255 @@ export const component_slot_render_segment_10_3m3ztgqtay7c7 = (
   "paramNames": [],
   "captureNames": [
     "store"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useStore,
+  _capturesObj,
+  renderSsrContent,
+  createSsrNodeId,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  renderSsrDynamicTag,
+  createComponent,
+  _noopQrl,
+  _createSsrSlotMarker,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  renderSsrTextExpression,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Child } from './child';
+const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [props, store, count] = _capturesObj._;
+  const slotScope0 = createSlotScope(null, [
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+  ]);
+  const tag0 = props.as;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([props]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_6_3b0t84qbb79rc.w([store]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_8_3b0t7co3hj5qa.w([store]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_10_3m3ztgqtay7c7.w([store]));
+  ctx.addRoot(store);
+  ctx.addRoot(count);
+  ctx.addRoot(props);
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(
+    createComponent(
+      (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+      { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
+      ctx,
+      { slotScope: slotScope0 }
+    )
+  );
+  return component0;
+};
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+q_component_tag_dynamic_segment_0_331xea01t87eh.s(component_tag_dynamic_segment_0_331xea01t87eh);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
+  const [props] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  const prop0 = propSource(props, 'label');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(rangeId0, 0, prop0);
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId, __projectionRootId) => {
+  const [props] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(rangeId0, 0, prop0);
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId, __projectionRootId) => {
+  const [count] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    rangeId0,
+    0,
+    [count],
+    q_component_text_segment_5_1fh12dh4juuhz
+  );
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
+};
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_4_3b0t8wsj4vdse'
+);
+q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
+const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId, __projectionRootId) => {
+  const [store] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(store);
+  const content0 = ctx.observeError(
+    renderSsrContent(ctx, id0, [], q_component_text_segment_7_1fh135jcdiyj1.w([store]), false, true)
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d><!/s>',
+  ];
+};
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_6_3b0t84qbb79rc'
+);
+q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
+const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx, __rangeId, __projectionRootId) => {
+  const [store] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(store);
+  const text0 = renderSsrTextExpression(
+    rangeId0,
+    0,
+    [store],
+    q_component_text_segment_9_1fh0xp3tlu6bn
+  );
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
+};
+const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_8_3b0t7co3hj5qa'
+);
+q_component_slot_render_segment_8_3b0t7co3hj5qa.s(component_slot_render_segment_8_3b0t7co3hj5qa);
+const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId, __projectionRootId) => {
+  const [store] = _capturesObj._;
+  const component0 = ctx.observeError(createComponent(Child, { state: store }, ctx));
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
+};
+const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_10_3m3ztgqtay7c7'
+);
+q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment_10_3m3ztgqtay7c7);
+const component_text_segment_5_1fh12dh4juuhz = (count) => {
+  return count.value;
+};
+const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_5_1fh12dh4juuhz'
+);
+q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
+const component_text_segment_7_1fh135jcdiyj1 = (ctx0) => {
+  const [store] = _capturesObj._;
+  return renderSsrDynamicContent(store.item.label, ctx0);
+};
+const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_7_1fh135jcdiyj1'
+);
+q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
+const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
+  return (store.nested.flip === void 0 ? false : store.nested.flip) ? 'y' : 'n';
+};
+const q_component_text_segment_9_1fh0xp3tlu6bn = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_9_1fh0xp3tlu6bn'
+);
+q_component_text_segment_9_1fh0xp3tlu6bn.s(component_text_segment_9_1fh0xp3tlu6bn);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const store = useStore({
+    item: { label: 'first' },
+    nested: { flip: false },
+  });
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(store);
+  ctx.addRoot(count);
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
+      false,
+      true
+    )
+  );
+  return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    87,
+    604
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

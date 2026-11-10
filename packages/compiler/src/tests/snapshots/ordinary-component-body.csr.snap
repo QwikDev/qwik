@@ -30,98 +30,15 @@ export default component$((props: { title: string; hidden?: boolean; failed?: bo
 ============================= src/component.tsx ==
 
 const Header_tmpl0 = _createElementTemplate('<h1>Title</h1>');
-const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_increment_segment_0_sk08s17xutli',
-  () => import('./component.tsx_component_increment_segment_0_sk08s17xutli'),
-  'component_increment_segment_0_sk08s17xutli'
-);
-const default_5_tmpl0 = _createElementTemplate('<p> </p>');
-const default_2_tmpl0 = _createElementTemplate(
-  '<section><!><!><button>increment</button><button> </button></section>'
-);
-import {
-  _createElementTemplate,
-  useSignal,
-  _qrlWithChunk,
-  _first,
-  createTextExpressionEffect,
-  _next,
-  _last,
-  _prev,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  setEvent,
-  createTextNodeEffect,
-  createContextId,
-  getLocale,
-} from '@qwik.dev/core';
-import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { _createElementTemplate } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const before = observe('before'),
   Header = (props0, ctx) => {
     const el0 = Header_tmpl0(ctx.document);
     return el0;
   },
   after = observe('after');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  let count = useSignal(1);
-  var suffix = '!';
-  const context = createContextId('body');
-  const locale = getLocale();
-  const label = useSignal('ready');
-  const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
-  count.value = 4;
-  function format(value) {
-    return String(value);
-  }
-  label.value = format(count.value);
-  suffix += '!';
-  function Child(props0, ctx) {
-    const el0 = default_5_tmpl0(ctx.document);
-    const text0 = _first(el0);
-    const effect0 = createTextExpressionEffect(
-      text0,
-      [props],
-      component_text_segment_2_1fh117dstcoge,
-      ctx.scheduler
-    );
-    ctx.scheduler.notify(effect0);
-    return el0;
-  }
-  if (props.hidden) return [];
-  try {
-    if (props.failed) throw new Error('failed');
-    return (() => {
-      const el0 = default_2_tmpl0(ctx.document);
-      const marker0 = _next(_first(el0));
-      const el1 = _prev(_last(el0));
-      const el2 = _last(el0);
-      const component0 = createComponent(Header, null, ctx);
-      const marker1 = _first(el0);
-      maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
-      const component2 = createComponent(Child, null, ctx);
-      maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
-      setEvent(el1, 'q-e:click', increment);
-      setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [
-        label,
-        count,
-        suffix,
-      ]);
-      const text0 = _first(el2);
-      const effect0 = createTextNodeEffect(text0, label, ctx.scheduler);
-      ctx.scheduler.notify(effect0);
-      return el0;
-    })();
-  } catch (error) {
-    observe(error);
-    return [];
-  } finally {
-    observe(context, locale);
-  }
-  return [];
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { Header as __qwik_Header };
 ============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
@@ -185,6 +102,117 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
     "label",
     "count",
     "suffix"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  _next,
+  _last,
+  _prev,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  setEvent,
+  createTextNodeEffect,
+  createContextId,
+  getLocale,
+} from '@qwik.dev/core';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { __qwik_Header as Header } from './component.tsx';
+const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_increment_segment_0_sk08s17xutli',
+  () => import('./component.tsx_component_increment_segment_0_sk08s17xutli'),
+  'component_increment_segment_0_sk08s17xutli'
+);
+const default_5_tmpl0 = _createElementTemplate('<p> </p>');
+const default_2_tmpl0 = _createElementTemplate(
+  '<section><!><!><button>increment</button><button> </button></section>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
+  count.value = 4;
+  function format(value) {
+    return String(value);
+  }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child(props0, ctx) {
+    const el0 = default_5_tmpl0(ctx.document);
+    const text0 = _first(el0);
+    const effect0 = createTextExpressionEffect(
+      text0,
+      [props],
+      component_text_segment_2_1fh117dstcoge,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    return el0;
+  }
+  if (props.hidden) return [];
+  try {
+    if (props.failed) throw new Error('failed');
+    return (() => {
+      const el0 = default_2_tmpl0(ctx.document);
+      const marker0 = _next(_first(el0));
+      const el1 = _prev(_last(el0));
+      const el2 = _last(el0);
+      const component0 = createComponent(Header, null, ctx);
+      const marker1 = _first(el0);
+      maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+      const component2 = createComponent(Child, null, ctx);
+      maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+      setEvent(el1, 'q-e:click', increment);
+      setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [
+        label,
+        count,
+        suffix,
+      ]);
+      const text0 = _first(el2);
+      const effect0 = createTextNodeEffect(text0, label, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })();
+  } catch (error) {
+    observe(error);
+    return [];
+  } finally {
+    observe(context, locale);
+  }
+  return [];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    178,
+    1032
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

@@ -9,38 +9,8 @@ export default (props: { label?: string; content?: any }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_1_185248kf949cp',
-  () => import('./component.tsx_component_content_segment_1_185248kf949cp'),
-  'component_content_segment_1_185248kf949cp'
-);
-const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_content_segment_1_185248kf949cp,
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -100,6 +70,62 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
     190
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_content_segment_1_185248kf949cp',
+  () => import('./component.tsx_component_content_segment_1_185248kf949cp'),
+  'component_content_segment_1_185248kf949cp'
+);
+const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_content_segment_1_185248kf949cp,
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    54,
+    150
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

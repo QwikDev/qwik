@@ -11,64 +11,40 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  renderSsrSlot,
-  _markComponent,
-  useSignal,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-  _capturesObj,
-  _createSsrSlotMarker,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _noopQrl,
-} from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
-  const [count] = _capturesObj._;
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(id0, null, count);
-  return maybeThen(text0, (text0) => [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</p><!/s>',
-  ]);
-};
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-export const Wrapper = _markComponent(
-  (props, ctx) => {
-    const slot0 = ctx.observeError(renderSsrSlot(ctx));
-    return ['<section>', slot0, '</section>'];
-  },
-  'Wrapper_component_1yrb0pezcavja',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(1);
-    const slotScope0 = createSlotScope();
-    registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(Wrapper, null, ctx, { slotScope: slotScope0 })
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Wrapper };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
 
-export { Wrapper as Wrapper_component_1yrb0pezcavja };
+import { renderSsrSlot, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Wrapper_component_1yrb0pezcavja = /*#__PURE__*/ _noopQrl('Wrapper_component_1yrb0pezcavja');
+_markComponent(Wrapper_component_1yrb0pezcavja, q_Wrapper_component_1yrb0pezcavja);
+
+export function Wrapper_component_1yrb0pezcavja(props, ctx) {
+  const slot0 = ctx.observeError(renderSsrSlot(ctx));
+  return ['<section>', slot0, '</section>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Wrapper_component_1yrb0pezcavja",
+  "entry": null,
+  "displayName": "Wrapper_component",
+  "hash": "1yrb0pezcavja",
+  "canonicalFilename": "component.tsx_Wrapper_component_1yrb0pezcavja",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    50,
+    107
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
@@ -119,6 +95,74 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _capturesObj,
+  _createSsrSlotMarker,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  const [count] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</p><!/s>',
+  ]);
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(
+    createComponent(Wrapper, null, ctx, { slotScope: slotScope0 })
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    108,
+    164
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

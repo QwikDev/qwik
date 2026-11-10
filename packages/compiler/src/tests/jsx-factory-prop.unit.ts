@@ -50,7 +50,7 @@ export default function App() {
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {

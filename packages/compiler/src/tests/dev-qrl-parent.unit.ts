@@ -6,6 +6,7 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 import { testInput } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 const SOURCE = `import { component$, useSignal } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
@@ -29,7 +30,7 @@ async function serverModule(devPath?: string) {
     isServer: true,
     input: [{ ...INPUT, devPath }],
   });
-  return output.modules.find((module) => module.path === INPUT.path)!.code;
+  return renderCode(output);
 }
 
 describe('dev server QRL stand-ins', () => {

@@ -15,132 +15,9 @@ function side(value) {
   console.log(value);
   return value;
 }
-import {
-  createSsrNodeId,
-  renderSsrAttrExpression,
-  escapeHTML,
-  _capturesObj,
-  renderSsrContent,
-  maybeThen,
-  untrack,
-  _noopQrl,
-  renderSsrDynamicContent,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
-  return fallback;
-};
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_0_2f0r0xivypjmx'
-);
-q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
-const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props, defaultValue] = _capturesObj._;
-  return renderSsrDynamicContent(props.a === void 0 ? defaultValue : props.a, ctx0);
-};
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
-);
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [props, defaultValue0] = _capturesObj._;
-  return renderSsrDynamicContent(props.b === void 0 ? defaultValue0 : props.b, ctx0);
-};
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_2_1fh117dstcoge'
-);
-q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
-const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
-  const [props, defaultValue1] = _capturesObj._;
-  return renderSsrDynamicContent(props.label === void 0 ? defaultValue1 : props.label, ctx0);
-};
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (
-    props,
-    ctx,
-    defaultValue = untrack(() => props.a === void 0) ? side('a') : void 0,
-    defaultValue0 = untrack(() => props.b === void 0)
-      ? props.a === void 0
-        ? defaultValue
-        : props.a
-      : void 0,
-    defaultValue1 = untrack(() => props.label === void 0) ? fallback : void 0
-  ) => {
-    const fallback = 'inner';
-    const id0 = ctx.nextId();
-    ctx.addRoot(fallback);
-    const attr0 = renderSsrAttrExpression(
-      id0,
-      'title',
-      [fallback],
-      q_component_title_segment_0_2f0r0xivypjmx
-    );
-    const id1 = ctx.nextId();
-    ctx.addRoot(props);
-    ctx.addRoot(defaultValue);
-    const content0 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id1,
-        [],
-        q_component_text_segment_1_1fh10tcowimfv.w([props, defaultValue]),
-        false,
-        true
-      )
-    );
-    const id2 = ctx.nextId();
-    ctx.addRoot(defaultValue0);
-    const content1 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id2,
-        [],
-        q_component_text_segment_2_1fh117dstcoge.w([props, defaultValue0]),
-        false,
-        true
-      )
-    );
-    const id3 = ctx.nextId();
-    ctx.addRoot(defaultValue1);
-    const content2 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id3,
-        [],
-        q_component_text_segment_3_1fh11lewq6qgx.w([props, defaultValue1]),
-        false,
-        true
-      )
-    );
-    return maybeThen(attr0, (attr0) => [
-      '<p q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '><!d=',
-      createSsrNodeId(id1),
-      '>',
-      content0,
-      '<!/d><!d=',
-      createSsrNodeId(id2),
-      '>',
-      content1,
-      '<!/d><!d=',
-      createSsrNodeId(id3),
-      '>',
-      content2,
-      '<!/d></p>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { side as __qwik_side, fallback as __qwik_fallback };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
@@ -264,6 +141,154 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "captureNames": [
     "props",
     "defaultValue1"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  renderSsrAttrExpression,
+  escapeHTML,
+  _capturesObj,
+  renderSsrContent,
+  maybeThen,
+  untrack,
+  _noopQrl,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { __qwik_side as side, __qwik_fallback as fallback } from './component.tsx';
+const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
+  return fallback;
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
+  'component_title_segment_0_2f0r0xivypjmx'
+);
+q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
+const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [props, defaultValue] = _capturesObj._;
+  return renderSsrDynamicContent(props.a === void 0 ? defaultValue : props.a, ctx0);
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const component_text_segment_2_1fh117dstcoge = (ctx0) => {
+  const [props, defaultValue0] = _capturesObj._;
+  return renderSsrDynamicContent(props.b === void 0 ? defaultValue0 : props.b, ctx0);
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
+  const [props, defaultValue1] = _capturesObj._;
+  return renderSsrDynamicContent(props.label === void 0 ? defaultValue1 : props.label, ctx0);
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(
+  props,
+  ctx,
+  defaultValue = untrack(() => props.a === void 0) ? side('a') : void 0,
+  defaultValue0 = untrack(() => props.b === void 0)
+    ? props.a === void 0
+      ? defaultValue
+      : props.a
+    : void 0,
+  defaultValue1 = untrack(() => props.label === void 0) ? fallback : void 0
+) {
+  const fallback = 'inner';
+  const id0 = ctx.nextId();
+  ctx.addRoot(fallback);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'title',
+    [fallback],
+    q_component_title_segment_0_2f0r0xivypjmx
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(defaultValue);
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_text_segment_1_1fh10tcowimfv.w([props, defaultValue]),
+      false,
+      true
+    )
+  );
+  const id2 = ctx.nextId();
+  ctx.addRoot(defaultValue0);
+  const content1 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id2,
+      [],
+      q_component_text_segment_2_1fh117dstcoge.w([props, defaultValue0]),
+      false,
+      true
+    )
+  );
+  const id3 = ctx.nextId();
+  ctx.addRoot(defaultValue1);
+  const content2 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id3,
+      [],
+      q_component_text_segment_3_1fh11lewq6qgx.w([props, defaultValue1]),
+      false,
+      true
+    )
+  );
+  return maybeThen(attr0, (attr0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '><!d=',
+    createSsrNodeId(id1),
+    '>',
+    content0,
+    '<!/d><!d=',
+    createSsrNodeId(id2),
+    '>',
+    content1,
+    '<!/d><!d=',
+    createSsrNodeId(id3),
+    '>',
+    content2,
+    '<!/d></p>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    181
+  ],
+  "paramNames": [
+    "{ a = side(\"a\"), b = a, label = fallback }"
   ]
 }
 */

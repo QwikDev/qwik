@@ -16,20 +16,21 @@ export default component$(() => <Picker />);
 
 ============================= src/component.tsx ==
 
+import { Body_component_3fvssuocvtjmf as Body } from './component.tsx_Body_component_3fvssuocvtjmf';
+import { Hidden_component_3u75huwji431r as Hidden } from './component.tsx_Hidden_component_3u75huwji431r';
+import { Picker_component_ryjmp663wqq5 as Picker } from './component.tsx_Picker_component_ryjmp663wqq5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export const App = Body;
+
+export { Picker };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Body_component_3fvssuocvtjmf.js (ENTRY POINT)==
+
+import { _first, propSource, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 const Body_tmpl0 = _createElementTemplate('<p> </p>');
-const Hidden_tmpl0 = _createElementTemplate('<i>hidden</i>');
-const Picker_tmpl0 = _createElementTemplate('<b> </b>');
-import {
-  _first,
-  propSource,
-  createTextNodeEffect,
-  _createElementTemplate,
-  useSignal,
-  createTextExpressionEffect,
-  createComponent,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-function Body(props, ctx) {
+
+export function Body_component_3fvssuocvtjmf(props, ctx) {
   const el0 = Body_tmpl0(ctx.document);
   const text0 = _first(el0);
   const prop0 = propSource(props, 'x');
@@ -37,38 +38,57 @@ function Body(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-export const App = Body;
-const Hidden = (props0, ctx) => {
+/*
+{
+  "origin": "component.tsx",
+  "name": "Body_component_3fvssuocvtjmf",
+  "entry": null,
+  "displayName": "Body_component",
+  "hash": "3fvssuocvtjmf",
+  "canonicalFilename": "component.tsx_Body_component_3fvssuocvtjmf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    96
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Hidden_component_3u75huwji431r.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const Hidden_tmpl0 = _createElementTemplate('<i>hidden</i>');
+
+export function Hidden_component_3u75huwji431r(props0, ctx) {
   const el0 = Hidden_tmpl0(ctx.document);
   return el0;
-};
-export const Picker = (props0, ctx) => {
-  const chosen = useSignal([Hidden]);
-  const el0 = Picker_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [chosen],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const component0 = createComponent(Picker, null, ctx);
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Hidden as __qwik_Hidden };
-
-export {
-  Body as Body_component_3fvssuocvtjmf,
-  App as App_component_d9hqa5uju2ca,
-  Hidden as Hidden_component_3u75huwji431r,
-  Picker as Picker_component_ryjmp663wqq5,
-};
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Hidden_component_3u75huwji431r",
+  "entry": null,
+  "displayName": "Hidden_component",
+  "hash": "3u75huwji431r",
+  "canonicalFilename": "component.tsx_Hidden_component_3u75huwji431r",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    160,
+    207
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
@@ -95,6 +115,80 @@ export const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
   "captureNames": [
     "chosen"
   ]
+}
+*/
+============================= src/component.tsx_Picker_component_ryjmp663wqq5.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { Hidden_component_3u75huwji431r as Hidden } from './component.tsx_Hidden_component_3u75huwji431r';
+const Picker_tmpl0 = _createElementTemplate('<b> </b>');
+
+export function Picker_component_ryjmp663wqq5(props0, ctx) {
+  const chosen = useSignal([Hidden]);
+  const el0 = Picker_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [chosen],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Picker_component_ryjmp663wqq5",
+  "entry": null,
+  "displayName": "Picker_component",
+  "hash": "ryjmp663wqq5",
+  "canonicalFilename": "component.tsx_Picker_component_ryjmp663wqq5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    208,
+    329
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Picker_component_ryjmp663wqq5 as Picker } from './component.tsx_Picker_component_ryjmp663wqq5';
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const component0 = createComponent(Picker, null, ctx);
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    330,
+    374
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

@@ -12,157 +12,40 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
 
 ============================= src/component.tsx ==
 
-import {
-  _markComponent,
-  propSource,
-  isSource,
-  _capturesObj,
-  renderSsrCollection,
-  createSsrNodeId,
-  renderSsrBranch,
-  _noopQrl,
-  createComponent,
-} from '@qwik.dev/core';
+import { Primary_component_3sl9ajjkdr62n as Primary } from './component.tsx_Primary_component_3sl9ajjkdr62n';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
-  const [props] = _capturesObj._;
-  const key = props.prefix + item.id;
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(item);
-  ctx.addRoot(key);
-  ctx.addRoot(index);
-  const branch0 = ctx.observeError(
-    renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([item]),
-      q_component_branch_then_segment_3_24n7atwir5934.w([key]),
-      q_component_branch_else_segment_4_19dvrvh6znjhf.w([item, index])
-    )
-  );
-  return [
-    '<!r=',
-    createSsrNodeId(__rowId),
-    '><!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b><!/r>',
-  ];
-};
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
-  'component_for_render_segment_0_asyt89wzo2d3'
-);
-q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
-  const [props] = _capturesObj._;
-  const { id, primary, secondary } = item;
-  const prefix = props.prefix;
-  const key = prefix + id;
-  return primary ? key : secondary ? id : index;
-};
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
-  'component_for_key_segment_1_24ursak4wzpxf'
-);
-q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
-const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
-  const [item] = _capturesObj._;
-  return item.primary;
-};
-const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_2_2fzrhmrz1xde7'
-);
-q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
-  component_branch_condition_segment_2_2fzrhmrz1xde7
-);
-const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [key] = _capturesObj._;
-  const component0 = ctx.observeError(createComponent(Primary, null, ctx));
-  return component0;
-};
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_3_24n7atwir5934'
-);
-q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
-const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
-  const [item, index] = _capturesObj._;
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(item);
-  ctx.addRoot(index);
-  const branch0 = ctx.observeError(
-    renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_5_2fzrggonbf7cm.w([item]),
-      q_component_branch_then_segment_6_24n7cs22bbj5r.w([item]),
-      q_component_branch_else_segment_7_19dvs9iawhlhy.w([index])
-    )
-  );
-  return ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>'];
-};
-const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_4_19dvrvh6znjhf'
-);
-q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
-const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
-  const [item] = _capturesObj._;
-  return item.secondary;
-};
-const q_component_branch_condition_segment_5_2fzrggonbf7cm = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_5_2fzrggonbf7cm'
-);
-q_component_branch_condition_segment_5_2fzrggonbf7cm.s(
-  component_branch_condition_segment_5_2fzrggonbf7cm
-);
-const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
-  const [item] = _capturesObj._;
-  return '<li>Secondary</li>';
-};
-const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_6_24n7cs22bbj5r'
-);
-q_component_branch_then_segment_6_24n7cs22bbj5r.s(component_branch_then_segment_6_24n7cs22bbj5r);
-const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
-  const [index] = _capturesObj._;
-  return '<li>Other</li>';
-};
-const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_7_19dvs9iawhlhy'
-);
-q_component_branch_else_segment_7_19dvs9iawhlhy.s(component_branch_else_segment_7_19dvs9iawhlhy);
-export const Primary = _markComponent(
-  (props0, ctx) => {
-    return '<b>Primary</b>';
-  },
-  'Primary_component_3sl9ajjkdr62n',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const prop0 = propSource(props, 'items');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const collectionId0 = ctx.nextId();
-    ctx.addRoot(props);
-    const collection0 = ctx.observeError(
-      renderSsrCollection(
-        ctx,
-        collectionId0,
-        prop0,
-        q_component_for_key_segment_1_24ursak4wzpxf.w([props]),
-        q_component_for_render_segment_0_asyt89wzo2d3.w([props]),
-        2,
-        true,
-        3
-      )
-    );
-    return ['<ul><!f=', createSsrNodeId(collectionId0), '>', collection0, '<!/f></ul>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { Primary };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Primary_component_3sl9ajjkdr62n.js (ENTRY POINT)==
 
-export { Primary as Primary_component_3sl9ajjkdr62n };
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Primary_component_3sl9ajjkdr62n = /*#__PURE__*/ _noopQrl('Primary_component_3sl9ajjkdr62n');
+_markComponent(Primary_component_3sl9ajjkdr62n, q_Primary_component_3sl9ajjkdr62n);
+
+export function Primary_component_3sl9ajjkdr62n(props0, ctx) {
+  return '<b>Primary</b>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Primary_component_3sl9ajjkdr62n",
+  "entry": null,
+  "displayName": "Primary_component",
+  "hash": "3sl9ajjkdr62n",
+  "canonicalFilename": "component.tsx_Primary_component_3sl9ajjkdr62n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    44
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
@@ -313,7 +196,7 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
 import { _capturesObj, createComponent } from '@qwik.dev/core';
-import { Primary } from './component.tsx';
+import { Primary_component_3sl9ajjkdr62n as Primary } from './component.tsx_Primary_component_3sl9ajjkdr62n';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [key] = _capturesObj._;
@@ -494,6 +377,170 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
   "paramNames": [],
   "captureNames": [
     "index"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  propSource,
+  isSource,
+  _capturesObj,
+  renderSsrCollection,
+  createSsrNodeId,
+  renderSsrBranch,
+  _noopQrl,
+  createComponent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Primary_component_3sl9ajjkdr62n as Primary } from './component.tsx_Primary_component_3sl9ajjkdr62n';
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
+  const [props] = _capturesObj._;
+  const key = props.prefix + item.id;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(item);
+  ctx.addRoot(key);
+  ctx.addRoot(index);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([item]),
+      q_component_branch_then_segment_3_24n7atwir5934.w([key]),
+      q_component_branch_else_segment_4_19dvrvh6znjhf.w([item, index])
+    )
+  );
+  return [
+    '<!r=',
+    createSsrNodeId(__rowId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/r>',
+  ];
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_0_asyt89wzo2d3'
+);
+q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
+const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
+  const [props] = _capturesObj._;
+  const { id, primary, secondary } = item;
+  const prefix = props.prefix;
+  const key = prefix + id;
+  return primary ? key : secondary ? id : index;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_1_24ursak4wzpxf'
+);
+q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
+const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
+  const [item] = _capturesObj._;
+  return item.primary;
+};
+const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_2_2fzrhmrz1xde7'
+);
+q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
+  component_branch_condition_segment_2_2fzrhmrz1xde7
+);
+const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
+  const [key] = _capturesObj._;
+  const component0 = ctx.observeError(createComponent(Primary, null, ctx));
+  return component0;
+};
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_3_24n7atwir5934'
+);
+q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
+  const [item, index] = _capturesObj._;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(item);
+  ctx.addRoot(index);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_5_2fzrggonbf7cm.w([item]),
+      q_component_branch_then_segment_6_24n7cs22bbj5r.w([item]),
+      q_component_branch_else_segment_7_19dvs9iawhlhy.w([index])
+    )
+  );
+  return ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>'];
+};
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_4_19dvrvh6znjhf'
+);
+q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
+const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
+  const [item] = _capturesObj._;
+  return item.secondary;
+};
+const q_component_branch_condition_segment_5_2fzrggonbf7cm = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_5_2fzrggonbf7cm'
+);
+q_component_branch_condition_segment_5_2fzrggonbf7cm.s(
+  component_branch_condition_segment_5_2fzrggonbf7cm
+);
+const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
+  const [item] = _capturesObj._;
+  return '<li>Secondary</li>';
+};
+const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_6_24n7cs22bbj5r'
+);
+q_component_branch_then_segment_6_24n7cs22bbj5r.s(component_branch_then_segment_6_24n7cs22bbj5r);
+const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
+  const [index] = _capturesObj._;
+  return '<li>Other</li>';
+};
+const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_7_19dvs9iawhlhy'
+);
+q_component_branch_else_segment_7_19dvs9iawhlhy.s(component_branch_else_segment_7_19dvs9iawhlhy);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const prop0 = propSource(props, 'items');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(props);
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      prop0,
+      q_component_for_key_segment_1_24ursak4wzpxf.w([props]),
+      q_component_for_render_segment_0_asyt89wzo2d3.w([props]),
+      2,
+      true,
+      3
+    )
+  );
+  return ['<ul><!f=', createSsrNodeId(collectionId0), '>', collection0, '<!/f></ul>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    323
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

@@ -46,7 +46,7 @@ export default function App() { const factory = ${callback}; register(factory); 
   const pending: (() => void)[] = [];
   let results: Promise<unknown>[] = [];
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -92,7 +92,7 @@ test('keeps rejection identity and catch/finally order in async JSX callbacks', 
   const calls: unknown[] = [];
   let result: Promise<unknown> | undefined;
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       register: (factory: () => Promise<unknown>) => {

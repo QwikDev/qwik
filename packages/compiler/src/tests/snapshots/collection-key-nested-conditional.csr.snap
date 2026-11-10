@@ -12,45 +12,40 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
 
 ============================= src/component.tsx ==
 
-import {
-  _createElementTemplate,
-  _first,
-  _next,
-  propSource,
-  createCollection,
-  _withCaptures,
-} from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+import { Primary_component_3sl9ajjkdr62n as Primary } from './component.tsx_Primary_component_3sl9ajjkdr62n';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
+export { Primary };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Primary_component_3sl9ajjkdr62n.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
 const Primary_tmpl0 = _createElementTemplate('<b>Primary</b>');
-const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const Primary = (props0, ctx) => {
+
+export function Primary_component_3sl9ajjkdr62n(props0, ctx) {
   const el0 = Primary_tmpl0(ctx.document);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const prop0 = propSource(props, 'items');
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      prop0,
-      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [props]),
-      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [props]),
-      2,
-      3
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Primary as Primary_component_3sl9ajjkdr62n };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Primary_component_3sl9ajjkdr62n",
+  "entry": null,
+  "displayName": "Primary_component",
+  "hash": "3sl9ajjkdr62n",
+  "canonicalFilename": "component.tsx_Primary_component_3sl9ajjkdr62n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    44
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
@@ -189,7 +184,7 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
 import { _capturesObj, createComponent } from '@qwik.dev/core';
-import { Primary } from './component.tsx';
+import { Primary_component_3sl9ajjkdr62n as Primary } from './component.tsx_Primary_component_3sl9ajjkdr62n';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [key] = _capturesObj._;
@@ -379,6 +374,61 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
   "paramNames": [],
   "captureNames": [
     "index"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  propSource,
+  createCollection,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const prop0 = propSource(props, 'items');
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      prop0,
+      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [props]),
+      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [props]),
+      2,
+      3
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    323
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

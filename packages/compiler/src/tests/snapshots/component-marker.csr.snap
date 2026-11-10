@@ -10,33 +10,10 @@ export default component(() => <Counter initial={1} />);
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  setEvent,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-  createComponent,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-
-const Counter_tmpl0 = _createElementTemplate('<button> </button>');
-export const Counter = (props, ctx) => {
-  const count = useSignal(props.initial === void 0 ? 0 : props.initial);
-  const el0 = Counter_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const component0 = createComponent(Counter, { initial: 1 }, ctx);
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Counter as Counter_component_3h2q15ekklxzt };
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Counter };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -66,6 +43,78 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_Counter_component_3h2q15ekklxzt.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+const Counter_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function Counter_component_3h2q15ekklxzt(props, ctx) {
+  const count = useSignal(props.initial === void 0 ? 0 : props.initial);
+  const el0 = Counter_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Counter_component_3h2q15ekklxzt",
+  "entry": null,
+  "displayName": "Counter_component",
+  "hash": "3h2q15ekklxzt",
+  "canonicalFilename": "component.tsx_Counter_component_3h2q15ekklxzt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    69,
+    236
+  ],
+  "paramNames": [
+    "{ initial = 0 }"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const component0 = createComponent(Counter, { initial: 1 }, ctx);
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    237,
+    293
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

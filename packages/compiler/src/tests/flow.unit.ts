@@ -15,7 +15,7 @@ import {
   ModuleKind,
   PlanFormat,
 } from '../schema';
-import { loadDefaultFunction, serverSpecialization } from './fixtures';
+import { loadDefaultFunction, serverSpecialization, renderCode } from './fixtures';
 
 describe('pipeline flow', () => {
   test('a binding named undefined is not empty render output', async () => {
@@ -96,8 +96,8 @@ describe('pipeline flow', () => {
         isServer: true,
       });
       expect(output.diagnostics).toEqual([]);
-      expect(output.modules[0].code).not.toContain('component$(');
-      expect(loadDefaultFunction(output.modules[0], {})()).toBe('');
+      expect(renderCode(output)).not.toContain('component$(');
+      expect(loadDefaultFunction(output.modules, {})()).toBe('');
     }
   );
 
@@ -123,8 +123,8 @@ export default () => {
       transpileJsx: true,
       isServer,
     });
-    expect(output.modules[0].code.match(/\bconst text0\b/g)).toHaveLength(1);
-    expect(output.modules[0].code).toContain('const text1 =');
+    expect(renderCode(output).match(/\bconst text0\b/g)).toHaveLength(1);
+    expect(renderCode(output)).toContain('const text1 =');
   });
 
   test('compat wrapper runs a passthrough module end to end', async () => {
@@ -243,7 +243,7 @@ ${prefix === 'export default ' ? '' : 'export default () => <main />;'}`,
       });
       expect(output.diagnostics).toEqual([]);
       const observed: unknown[] = [];
-      const render = loadDefaultFunction(output.modules[0], {
+      const render = loadDefaultFunction(output.modules, {
         observe: (value: unknown) => observed.push(value),
       });
       expect(observed).toEqual(['<p>child</p>']);
@@ -276,10 +276,13 @@ export default function App() {
         isServer,
       });
       expect(output.diagnostics).toEqual([]);
-      const code = output.modules[0].code;
-      const hoist = code.indexOf(isServer ? 'const q_' : 'const default_tmpl');
+      const main = output.modules.find((module) => module.path === 'src/app.tsx')!.code;
+      const segment = output.modules.find((module) => module.segment?.ctxName === 'component$')!;
+      // The imported segment evaluates first, its hoists ahead of the function they serve.
+      expect(main).toContain(`import { ${segment.segment!.name} as App } from`);
+      const hoist = segment.code.indexOf('const ');
       expect(hoist).toBeGreaterThanOrEqual(0);
-      expect(hoist).toBeLessThan(code.indexOf('observe(App)'));
+      expect(hoist).toBeLessThan(segment.code.indexOf('export function'));
     }
   );
 
@@ -294,10 +297,14 @@ export default function App() {
         isServer: true,
       });
       expect(output.diagnostics).toEqual([]);
-      expect(output.modules[0].code).toContain('const Child = _markComponent((props, ctx) =>');
-      expect(output.modules[0].code).not.toContain('export const Child');
+      const main = output.modules.find((module) => module.path === 'src/local.tsx')!.code;
+      const segment = output.modules.find((module) => module.segment?.ctxName === 'component$')!;
+      const symbol = segment.segment!.name;
+      expect(main).toContain(`import { ${symbol} as Child } from`);
+      expect(segment.code).toContain(`_markComponent(${symbol}, q_${symbol});`);
+      expect(main).not.toContain('export { Child }');
       if (exports !== '') {
-        expect(output.modules[0].code).toContain(exports);
+        expect(main).toContain(exports);
       }
     }
   );
@@ -387,7 +394,7 @@ export default function App() {
       transpileTs: true,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toContain('const x = props.compute();');
+    expect(renderCode(output)).toContain('const x = props.compute();');
   });
 
   test('JSX inside a const initializer lowers to a render QRL', async () => {

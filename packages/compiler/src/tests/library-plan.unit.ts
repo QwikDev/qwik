@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { createLibraryPlan, readLibraryPlan } from '../library-plan';
 import { EntryKind, Environment, MODULE_PLAN_VERSION, LinkResultKind } from '../schema';
-import { deepFreeze, serverSpecialization } from './fixtures';
+import { deepFreeze, serverSpecialization, renderCode } from './fixtures';
 import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
 import { generateJsCsr } from '../generate/js-csr';
 import { generateForeignModule } from '../generate/foreign';
@@ -48,7 +48,7 @@ test('keeps the authored extension so TypeScript-only syntax still transpiles', 
     throw new Error(JSON.stringify(linked));
   }
   const output = await generateJsCsr(linked.plan, {});
-  expect(output.modules[0].code).toContain('export const id = (x) => x;');
+  expect(renderCode(output)).toContain('export const id = (x) => x;');
 });
 
 test('fails loud when a foreign module does not parse in its language', async () => {

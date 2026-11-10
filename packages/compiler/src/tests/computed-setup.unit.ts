@@ -17,6 +17,8 @@ import {
   serverSpecialization,
   loadDefaultFunction,
   readRenderedText,
+  renderCode,
+  qrlChunks,
 } from './fixtures';
 import { UnsupportedError } from '../errors';
 import { ResolutionKind } from '../link/link-plans';
@@ -46,9 +48,8 @@ export default () => {
   const computeds: ComputedQrl<unknown>[] = [];
   const signals: core.Signal<number>[] = [];
   const reads = [0, 0];
-  const component = output.modules.find((module) => !module.segment)!;
   const render = loadDefaultFunction(
-    component,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -88,7 +89,7 @@ export default () => {
   }
   const result = await renderToString(
     loadDefaultFunction(
-      component,
+      output.modules,
       {
         ...core,
         get _capturesObj() {
@@ -126,7 +127,7 @@ export default () => {
   let doubled!: ComputedQrl<unknown>;
   let runs = 0;
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -194,7 +195,7 @@ export default () => {
   let runs = 0;
   let finished = false;
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {
@@ -244,12 +245,12 @@ export default (props) => {
         ],
       });
       expect(output.diagnostics).toEqual([]);
-      expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+      expect(qrlChunks(output)).toHaveLength(1);
       let computed!: ComputedQrl<unknown>;
       let optionReads = 0;
       const options = { initial: 7 };
       const render = loadDefaultFunction(
-        output.modules.find((module) => !module.segment)!,
+        output.modules,
         {
           ...core,
           get _capturesObj() {
@@ -367,10 +368,10 @@ export default () => {
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const chunks = output.modules.filter((module) => module.segment);
+    const chunks = qrlChunks(output);
     expect(chunks).toHaveLength(1);
     expect(chunks[0].segment!.captures).toBe(false);
-    const component = output.modules.find((module) => !module.segment)!.code;
+    const component = renderCode(output);
     expect(component).toContain(
       isServer
         ? `useComputedQrl(q_${chunks[0].segment!.name})`

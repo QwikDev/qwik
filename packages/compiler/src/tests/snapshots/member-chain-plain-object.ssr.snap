@@ -17,6 +17,12 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { Label_component_wb6mvjz2qh8n as Label } from './component.tsx_Label_component_wb6mvjz2qh8n';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Label };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Label_component_wb6mvjz2qh8n.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   escapeHTML,
@@ -24,45 +30,91 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _noopQrl,
   _markComponent,
+} from '@qwik.dev/core';
+const q_Label_component_wb6mvjz2qh8n = /*#__PURE__*/ _noopQrl('Label_component_wb6mvjz2qh8n');
+_markComponent(Label_component_wb6mvjz2qh8n, q_Label_component_wb6mvjz2qh8n);
+
+export function Label_component_wb6mvjz2qh8n(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'label');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Label_component_wb6mvjz2qh8n",
+  "entry": null,
+  "displayName": "Label_component",
+  "hash": "wb6mvjz2qh8n",
+  "canonicalFilename": "component.tsx_Label_component_wb6mvjz2qh8n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    43,
+    96
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
   useStore,
   createComponent,
+  escapeHTML,
   _textValue,
+  _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
-export const Label = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'label');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
-    return maybeThen(text0, (text0) => [
-      '<b q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</b>',
-    ]);
-  },
-  'Label_component_wb6mvjz2qh8n',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const store = useStore({ count: 0 });
-    const item = {
-      meta: { label: 'hello' },
-      format: () => 'x',
-      store,
-    };
-    const component0 = ctx.observeError(createComponent(Label, { label: item.meta.label }, ctx));
-    return [component0, '<span>', escapeHTML(_textValue(item.meta.label)), '</span>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Label_component_wb6mvjz2qh8n as Label } from './component.tsx_Label_component_wb6mvjz2qh8n';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 
-export { Label as Label_component_wb6mvjz2qh8n };
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const store = useStore({ count: 0 });
+  const item = {
+    meta: { label: 'hello' },
+    format: () => 'x',
+    store,
+  };
+  const component0 = ctx.observeError(createComponent(Label, { label: item.meta.label }, ctx));
+  return [component0, '<span>', escapeHTML(_textValue(item.meta.label)), '</span>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    97,
+    328
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

@@ -24,7 +24,7 @@ test.each([
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     get _capturesObj() {
       return core._capturesObj;
@@ -68,7 +68,7 @@ export default () => <><Child /><Child /></>;`,
   });
   expect(output.diagnostics).toEqual([]);
   const document = createDocument();
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+  const render = loadDefaultFunction(output.modules, {
     ...core,
     Child: () => [document.createTextNode('first'), document.createTextNode('second')],
   });
@@ -108,7 +108,7 @@ test.each(['props.visible.value ? <b>on</b> : null', 'props.visible.value && <b>
         );
       }
     }
-    const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, globals);
+    const render = loadDefaultFunction(output.modules, globals);
     const document = createDocument();
     const scheduler = new Scheduler(() => {});
     const owner = core.createOwner(null);

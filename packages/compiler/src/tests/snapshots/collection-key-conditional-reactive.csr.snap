@@ -18,52 +18,45 @@ export default (props: { items: { id: string; done: boolean }[]; prefix: string;
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  propSource,
-  createTextNodeEffect,
-  _createElementTemplate,
-  useSignal,
-  _next,
-  createCollection,
-  _withCaptures,
-} from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+import { Done_component_4ncehzxsp7d7 as Done } from './component.tsx_Done_component_4ncehzxsp7d7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Done };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Done_component_4ncehzxsp7d7.js (ENTRY POINT)==
 
+import { _first, propSource, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 const Done_tmpl0 = _createElementTemplate('<b> </b>');
-const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const Done = (props, ctx) => {
+
+export function Done_component_4ncehzxsp7d7(props, ctx) {
   const el0 = Done_tmpl0(ctx.document);
   const text0 = _first(el0);
   const prop0 = propSource(props, 'title');
   const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const items = useSignal([]);
-  const selected = useSignal(true);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      items,
-      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [selected, props]),
-      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [selected, props]),
-      2,
-      3
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Done as Done_component_4ncehzxsp7d7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Done_component_4ncehzxsp7d7",
+  "entry": null,
+  "displayName": "Done_component",
+  "hash": "4ncehzxsp7d7",
+  "canonicalFilename": "component.tsx_Done_component_4ncehzxsp7d7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    115
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
@@ -210,7 +203,7 @@ import {
   _props,
   createComponent,
 } from '@qwik.dev/core';
-import { Done } from './component.tsx';
+import { Done_component_4ncehzxsp7d7 as Done } from './component.tsx_Done_component_4ncehzxsp7d7';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [props, item] = _capturesObj._;
@@ -294,6 +287,62 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   "captureNames": [
     "index",
     "item",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createCollection,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const items = useSignal([]);
+  const selected = useSignal(true);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      items,
+      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [selected, props]),
+      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [selected, props]),
+      2,
+      3
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    116,
+    571
+  ],
+  "paramNames": [
     "props"
   ]
 }

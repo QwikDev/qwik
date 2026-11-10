@@ -24,81 +24,12 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_jsx_segment_11_2wo80qpf8geko = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_11_2wo80qpf8geko',
-  () => import('./component.tsx_component_jsx_segment_11_2wo80qpf8geko'),
-  'component_jsx_segment_11_2wo80qpf8geko'
-);
-const default_tmpl0 = _createElementTemplate(
-  '<div><ul><!><!></ul><ul><!><!></ul><ul><!><!></ul></div>'
-);
-import {
-  _qrlWithChunk,
-  useSignal,
-  _first,
-  _next,
-  _last,
-  createCollection,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_for_render_segment_2_asyu0c4tc6e5 } from './component.tsx_component_for_render_segment_2_asyu0c4tc6e5';
-import { component_for_key_segment_3_24urt2mcqntyh } from './component.tsx_component_for_key_segment_3_24urt2mcqntyh';
-import { component_for_render_segment_5_asyra4dfhsag } from './component.tsx_component_for_render_segment_5_asyra4dfhsag';
-import { component_for_key_segment_6_24uru8poh6002 } from './component.tsx_component_for_key_segment_6_24uru8poh6002';
-import { component_for_render_segment_8_asyq411ozm8v } from './component.tsx_component_for_render_segment_8_asyq411ozm8v';
-import { component_for_key_segment_9_24urvet07o61n } from './component.tsx_component_for_key_segment_9_24urvet07o61n';
+import { _qrlWithChunk } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 function renderDeclared(row) {
   return q_component_jsx_segment_0_38vnjku9rukc6.w([row]);
 }
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const rows = useSignal([1]);
-  const renderLocal = (row) => q_component_jsx_segment_11_2wo80qpf8geko.w([row]);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(_first(el0));
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      rows,
-      component_for_key_segment_3_24urt2mcqntyh,
-      component_for_render_segment_2_asyu0c4tc6e5,
-      0,
-      0
-    )
-  );
-  const start1 = _first(_next(_first(el0)));
-  const end1 = _next(start1);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start1,
-      end1,
-      rows,
-      component_for_key_segment_6_24uru8poh6002,
-      component_for_render_segment_5_asyra4dfhsag,
-      0,
-      0
-    )
-  );
-  const start2 = _first(_last(el0));
-  const end2 = _next(start2);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start2,
-      end2,
-      rows,
-      component_for_key_segment_9_24urvet07o61n,
-      component_for_render_segment_8_asyq411ozm8v,
-      0,
-      0
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -457,6 +388,100 @@ export const component_text_segment_10_2cdl418j88efl = (row) => {
   "captureNames": [
     "row"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  _first,
+  _next,
+  _last,
+  createCollection,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_2_asyu0c4tc6e5 } from './component.tsx_component_for_render_segment_2_asyu0c4tc6e5';
+import { component_for_key_segment_3_24urt2mcqntyh } from './component.tsx_component_for_key_segment_3_24urt2mcqntyh';
+import { component_for_render_segment_5_asyra4dfhsag } from './component.tsx_component_for_render_segment_5_asyra4dfhsag';
+import { component_for_key_segment_6_24uru8poh6002 } from './component.tsx_component_for_key_segment_6_24uru8poh6002';
+import { component_for_render_segment_8_asyq411ozm8v } from './component.tsx_component_for_render_segment_8_asyq411ozm8v';
+import { component_for_key_segment_9_24urvet07o61n } from './component.tsx_component_for_key_segment_9_24urvet07o61n';
+const q_component_jsx_segment_11_2wo80qpf8geko = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_11_2wo80qpf8geko',
+  () => import('./component.tsx_component_jsx_segment_11_2wo80qpf8geko'),
+  'component_jsx_segment_11_2wo80qpf8geko'
+);
+const default_tmpl0 = _createElementTemplate(
+  '<div><ul><!><!></ul><ul><!><!></ul><ul><!><!></ul></div>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const rows = useSignal([1]);
+  const renderLocal = (row) => q_component_jsx_segment_11_2wo80qpf8geko.w([row]);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(_first(el0));
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      rows,
+      component_for_key_segment_3_24urt2mcqntyh,
+      component_for_render_segment_2_asyu0c4tc6e5,
+      0,
+      0
+    )
+  );
+  const start1 = _first(_next(_first(el0)));
+  const end1 = _next(start1);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start1,
+      end1,
+      rows,
+      component_for_key_segment_6_24uru8poh6002,
+      component_for_render_segment_5_asyra4dfhsag,
+      0,
+      0
+    )
+  );
+  const start2 = _first(_last(el0));
+  const end2 = _next(start2);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start2,
+      end2,
+      rows,
+      component_for_key_segment_9_24urvet07o61n,
+      component_for_render_segment_8_asyq411ozm8v,
+      0,
+      0
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    132,
+    480
+  ],
+  "paramNames": []
 }
 */
 ============================= src/component.tsx_component_jsx_segment_11_2wo80qpf8geko.js (ENTRY POINT)==

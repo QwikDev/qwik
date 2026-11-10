@@ -25,117 +25,9 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import {
-  createRevealGroup,
-  createSsrPending,
-  createComponent,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Slow } from './slow';
-const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
-  return component0;
-};
-const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_1_oznzhxo2l2hq'
-);
-q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
-  component_suspense_content_segment_1_oznzhxo2l2hq
-);
-const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  return '<p>first</p>';
-};
-const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
-);
-q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
-  component_suspense_fallback_segment_0_1i2rr5w5knxuo
-);
-const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component0 = ctx.observeError(createComponent(Slow, { id: 'two' }, ctx));
-  return component0;
-};
-const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_3_oznypvg8wygo'
-);
-q_component_suspense_content_segment_3_oznypvg8wygo.s(
-  component_suspense_content_segment_3_oznypvg8wygo
-);
-const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
-  return '<p>second</p>';
-};
-const q_component_suspense_fallback_segment_2_1i2rrxydec1vq = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_2_1i2rrxydec1vq'
-);
-q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
-  component_suspense_fallback_segment_2_1i2rrxydec1vq
-);
-const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
-  const component0 = ctx.observeError(createComponent(Slow, { id: 'three' }, ctx));
-  return component0;
-};
-const q_component_suspense_content_segment_5_ozo1223pxaju = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_5_ozo1223pxaju'
-);
-q_component_suspense_content_segment_5_ozo1223pxaju.s(
-  component_suspense_content_segment_5_ozo1223pxaju
-);
-const component_suspense_fallback_segment_4_1i2rsq0l805ws = (ctx) => {
-  return '<p>third</p>';
-};
-const q_component_suspense_fallback_segment_4_1i2rsq0l805ws = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_4_1i2rsq0l805ws'
-);
-q_component_suspense_fallback_segment_4_1i2rsq0l805ws.s(
-  component_suspense_fallback_segment_4_1i2rsq0l805ws
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const reveal0 = createRevealGroup('sequential', true, 2);
-    const content0 = ctx.observeError(
-      createSsrPending(
-        ctx,
-        id0,
-        q_component_suspense_content_segment_1_oznzhxo2l2hq,
-        q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
-        0,
-        reveal0,
-        0
-      )
-    );
-    const id1 = ctx.nextId();
-    const content1 = ctx.observeError(
-      createSsrPending(
-        ctx,
-        id1,
-        q_component_suspense_content_segment_3_oznypvg8wygo,
-        q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
-        10,
-        reveal0,
-        1
-      )
-    );
-    const id2 = ctx.nextId();
-    const reveal1 = createRevealGroup(undefined, undefined, 1);
-    const content2 = ctx.observeError(
-      createSsrPending(
-        ctx,
-        id2,
-        q_component_suspense_content_segment_5_ozo1223pxaju,
-        q_component_suspense_fallback_segment_4_1i2rsq0l805ws,
-        0,
-        reveal1,
-        0
-      )
-    );
-    return ['<section>', content0, '<div>', content1, '</div>', content2, '</section>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
@@ -294,6 +186,137 @@ export const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
   "loc": [
     437,
     522
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createRevealGroup,
+  createSsrPending,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Slow } from './slow';
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
+  return component0;
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  return '<p>first</p>';
+};
+const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
+);
+q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
+  component_suspense_fallback_segment_0_1i2rr5w5knxuo
+);
+const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'two' }, ctx));
+  return component0;
+};
+const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_3_oznypvg8wygo'
+);
+q_component_suspense_content_segment_3_oznypvg8wygo.s(
+  component_suspense_content_segment_3_oznypvg8wygo
+);
+const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
+  return '<p>second</p>';
+};
+const q_component_suspense_fallback_segment_2_1i2rrxydec1vq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_2_1i2rrxydec1vq'
+);
+q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
+  component_suspense_fallback_segment_2_1i2rrxydec1vq
+);
+const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'three' }, ctx));
+  return component0;
+};
+const q_component_suspense_content_segment_5_ozo1223pxaju = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_5_ozo1223pxaju'
+);
+q_component_suspense_content_segment_5_ozo1223pxaju.s(
+  component_suspense_content_segment_5_ozo1223pxaju
+);
+const component_suspense_fallback_segment_4_1i2rsq0l805ws = (ctx) => {
+  return '<p>third</p>';
+};
+const q_component_suspense_fallback_segment_4_1i2rsq0l805ws = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_4_1i2rsq0l805ws'
+);
+q_component_suspense_fallback_segment_4_1i2rsq0l805ws.s(
+  component_suspense_fallback_segment_4_1i2rsq0l805ws
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id0 = ctx.nextId();
+  const reveal0 = createRevealGroup('sequential', true, 2);
+  const content0 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_1_oznzhxo2l2hq,
+      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
+      0,
+      reveal0,
+      0
+    )
+  );
+  const id1 = ctx.nextId();
+  const content1 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id1,
+      q_component_suspense_content_segment_3_oznypvg8wygo,
+      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
+      10,
+      reveal0,
+      1
+    )
+  );
+  const id2 = ctx.nextId();
+  const reveal1 = createRevealGroup(undefined, undefined, 1);
+  const content2 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id2,
+      q_component_suspense_content_segment_5_ozo1223pxaju,
+      q_component_suspense_fallback_segment_4_1i2rsq0l805ws,
+      0,
+      reveal1,
+      0
+    )
+  );
+  return ['<section>', content0, '<div>', content1, '</div>', content2, '</section>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    93,
+    553
   ],
   "paramNames": []
 }

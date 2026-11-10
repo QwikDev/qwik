@@ -15,56 +15,8 @@ export default component$((props: { title: string }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  renderSsrProps,
-  createSsrNodeId,
-  createSsrOpenTag,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_props_segment_1_208o0sfi1se76 = (attrs, box, props) => {
-  return {
-    ...props,
-    class: 'middle',
-    ...attrs.value,
-    ref: box,
-    onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([attrs]),
-  };
-};
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
-  'component_props_segment_1_208o0sfi1se76'
-);
-q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_0_2xwyg1cinvmpz'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const attrs = useSignal({ class: 'last' });
-    const box = useSignal();
-    const id0 = ctx.nextId();
-    ctx.addRoot(attrs);
-    ctx.addRoot(box);
-    ctx.addRoot(props);
-    const domProps0 = renderSsrProps(
-      id0,
-      [attrs, box, props],
-      q_component_props_segment_1_208o0sfi1se76,
-      ctx.eventAttr
-    );
-    return maybeThen(domProps0, (domProps0) => [
-      (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
-      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
-      domProps0.innerHTML ?? ['child'],
-      '</div>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -133,6 +85,78 @@ export const component_props_segment_1_208o0sfi1se76 = (attrs, box, props) => {
   "captureNames": [
     "attrs",
     "box",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_props_segment_1_208o0sfi1se76 = (attrs, box, props) => {
+  return {
+    ...props,
+    class: 'middle',
+    ...attrs.value,
+    ref: box,
+    onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([attrs]),
+  };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const attrs = useSignal({ class: 'last' });
+  const box = useSignal();
+  const id0 = ctx.nextId();
+  ctx.addRoot(attrs);
+  ctx.addRoot(box);
+  ctx.addRoot(props);
+  const domProps0 = renderSsrProps(
+    id0,
+    [attrs, box, props],
+    q_component_props_segment_1_208o0sfi1se76,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps0, (domProps0) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? ['child'],
+    '</div>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    362
+  ],
+  "paramNames": [
     "props"
   ]
 }

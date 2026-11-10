@@ -11,48 +11,10 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-  useSignal,
-  _qrlWithChunk,
-  createPropsProxy,
-  useComputedQrl,
-  createComponent,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const Child_tmpl0 = _createElementTemplate('<span> </span>');
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1_208o0sfi1se76',
-  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
-  'component_props_segment_1_208o0sfi1se76'
-);
-export const Child = (props, ctx) => {
-  const el0 = Child_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const count = useSignal(0);
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([count]))),
-    ctx
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -77,6 +39,46 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const Child_tmpl0 = _createElementTemplate('<span> </span>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const el0 = Child_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    113
+  ],
+  "paramNames": [
     "props"
   ]
 }
@@ -110,6 +112,51 @@ export const component_props_segment_1_208o0sfi1se76 = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  createPropsProxy,
+  useComputedQrl,
+  createComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_1_208o0sfi1se76',
+  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+  'component_props_segment_1_208o0sfi1se76'
+);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const count = useSignal(0);
+  const component0 = createComponent(
+    Child,
+    createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([count]))),
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    114,
+    171
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

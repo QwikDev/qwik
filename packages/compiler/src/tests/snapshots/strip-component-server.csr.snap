@@ -11,33 +11,9 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _noopQrl,
-  setEvent,
-  _createElementTemplate,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { serverQrl } from '@qwik.dev/router';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-
-const default_tmpl0 = _createElementTemplate('<button>go</button>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { server$ } from '@qwik.dev/router';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(0);
-  const read = serverQrl(_noopQrl('component_read_segment_0_1zbzildyw5vrf', [count]));
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count, read]);
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _capturesObj, _await } from '@qwik.dev/core';
@@ -68,6 +44,54 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = async () => {
     "count",
     "read"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _noopQrl,
+  setEvent,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { server$ } from '@qwik.dev/router';
+const default_tmpl0 = _createElementTemplate('<button>go</button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const read = serverQrl(_noopQrl('component_read_segment_0_1zbzildyw5vrf', [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count, read]);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    100,
+    292
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

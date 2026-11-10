@@ -21,6 +21,43 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+import { Defaulted_component_1i8py0zeuc5v5 as Defaulted } from './component.tsx_Defaulted_component_1i8py0zeuc5v5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+import { Badge } from './badge';
+export { Card };
+export { Defaulted };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count + 1;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    314,
+    329
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
+
 import {
   propSource,
   readTrackedValue,
@@ -36,22 +73,12 @@ import {
   maybeThen,
   createTextExpressionEffect,
   _createElementTemplate,
-  useSignal,
-  _qrlWithChunk,
-  computedProp,
 } from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-
-const Card_tmpl0 = _createElementTemplate('<section><h2> </h2><!><b> </b></section>');
-const Defaulted_tmpl0 = _createElementTemplate('<h3> </h3>');
-const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_2_2f0r05go51flv',
-  () => import('./component.tsx_component_title_segment_2_2f0r05go51flv'),
-  'component_title_segment_2_2f0r05go51flv'
-);
 import { Badge } from './badge';
-export const Card = (props, ctx) => {
+const Card_tmpl0 = _createElementTemplate('<section><h2> </h2><!><b> </b></section>');
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
   const el0 = Card_tmpl0(ctx.document);
   const prop0 = propSource(props, 'title');
   let written0;
@@ -84,66 +111,25 @@ export const Card = (props, ctx) => {
   );
   ctx.scheduler.notify(effect0);
   return el0;
-};
-export const Defaulted = (props0, ctx) => {
-  const el0 = Defaulted_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props0],
-    component_text_segment_1_1fh10tcowimfv,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props1, ctx) => {
-  const count = useSignal(1);
-  const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
-  const component0 = createComponent(
-    Card,
-    _props(
-      {
-        get title() {
-          return readTrackedValue(prop0);
-        },
-        get count() {
-          return readTrackedValue(count);
-        },
-      },
-      { title: prop0, count: count }
-    ),
-    ctx
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Card as Card_component_1j4wd08arm0n5, Defaulted as Defaulted_component_1i8py0zeuc5v5 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
-
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.count + 1;
-};
+}
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "name": "Card_component_1j4wd08arm0n5",
   "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
+  "ctxName": "component$",
+  "captures": false,
   "loc": [
-    314,
-    329
+    89,
+    358
   ],
-  "paramNames": [],
-  "captureNames": [
+  "paramNames": [
     "props"
   ]
 }
@@ -176,6 +162,46 @@ export const component_text_segment_1_1fh10tcowimfv = (props0) => {
   ]
 }
 */
+============================= src/component.tsx_Defaulted_component_1i8py0zeuc5v5.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const Defaulted_tmpl0 = _createElementTemplate('<h3> </h3>');
+
+export function Defaulted_component_1i8py0zeuc5v5(props0, ctx) {
+  const el0 = Defaulted_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props0],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Defaulted_component_1i8py0zeuc5v5",
+  "entry": null,
+  "displayName": "Defaulted_component",
+  "hash": "1i8py0zeuc5v5",
+  "canonicalFilename": "component.tsx_Defaulted_component_1i8py0zeuc5v5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    359,
+    461
+  ],
+  "paramNames": [
+    "{ title = \"Untitled\" }"
+  ]
+}
+*/
 ============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -205,6 +231,63 @@ export const component_title_segment_2_2f0r05go51flv = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  computedProp,
+  readTrackedValue,
+  _props,
+  createComponent,
+} from '@qwik.dev/core';
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_2_2f0r05go51flv',
+  () => import('./component.tsx_component_title_segment_2_2f0r05go51flv'),
+  'component_title_segment_2_2f0r05go51flv'
+);
+
+export function default_component_3rg6kq1so9aio(props1, ctx) {
+  const count = useSignal(1);
+  const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
+  const component0 = createComponent(
+    Card,
+    _props(
+      {
+        get title() {
+          return readTrackedValue(prop0);
+        },
+        get count() {
+          return readTrackedValue(count);
+        },
+      },
+      { title: prop0, count: count }
+    ),
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    462,
+    595
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

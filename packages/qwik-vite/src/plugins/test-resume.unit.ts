@@ -202,8 +202,9 @@ export const App = component$(() => (
     assert.equal(first.state.calls, 2);
     assert.equal(entry.readCalls(), 0);
     assert.deepEqual(
-      callbacks,
-      eventModules.map((module) => module.segment!.name)
+      // a segment both targets build reports once per target
+      [...new Set(callbacks)].sort(),
+      metadata.client.flatMap((module) => (module.segment ? [module.segment.name] : [])).sort()
     );
     assert.ok(metadata.server.length > 0);
     assert.equal(registry.get(path.join(srcDir, 'entry.tsx').replaceAll('\\', '/')), metadata);

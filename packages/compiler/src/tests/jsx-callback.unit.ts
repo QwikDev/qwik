@@ -36,7 +36,7 @@ export default function App() { ${body} return <Display />; }`,
   const values: unknown[] = [];
   const counts: number[] = [];
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {

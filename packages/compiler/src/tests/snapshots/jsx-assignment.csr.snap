@@ -11,66 +11,10 @@ export default function App() {
 
 ============================= src/component.tsx ==
 
-import {
-  _qrlWithChunk,
-  _first,
-  _last,
-  _prev,
-  _next,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio as App } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
-  () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
-  'component_jsx_segment_0_38vnjku9rukc6'
-);
-const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_1_185248kf949cp',
-  () => import('./component.tsx_component_content_segment_1_185248kf949cp'),
-  'component_content_segment_1_185248kf949cp'
-);
-const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_2_185232h3im3b4',
-  () => import('./component.tsx_component_content_segment_2_185232h3im3b4'),
-  'component_content_segment_2_185232h3im3b4'
-);
-const default_tmpl0 = _createElementTemplate('<main><!><!><!><!></main>');
 import { Box } from './box';
-export default function App(props, ctx) {
-  let content;
-  content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
-  const alias = content;
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_content_segment_1_185248kf949cp.w([content]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  const start1 = _prev(_last(el0));
-  const end1 = _next(start1);
-  const content1 = createContentBlock(
-    ctx,
-    start1,
-    end1,
-    [],
-    q_component_content_segment_2_185232h3im3b4.w([alias]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content1);
-  return el0;
-}
-
-export { App as default_component_3rg6kq1so9aio };
+export { App as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -160,6 +104,86 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
   "captureNames": [
     "alias"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _qrlWithChunk,
+  _first,
+  _last,
+  _prev,
+  _next,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { Box } from './box';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+  () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_content_segment_1_185248kf949cp',
+  () => import('./component.tsx_component_content_segment_1_185248kf949cp'),
+  'component_content_segment_1_185248kf949cp'
+);
+const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_content_segment_2_185232h3im3b4',
+  () => import('./component.tsx_component_content_segment_2_185232h3im3b4'),
+  'component_content_segment_2_185232h3im3b4'
+);
+const default_tmpl0 = _createElementTemplate('<main><!><!><!><!></main>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  let content;
+  content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
+  const alias = content;
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_content_segment_1_185248kf949cp.w([content]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  const start1 = _prev(_last(el0));
+  const end1 = _next(start1);
+  const content1 = createContentBlock(
+    ctx,
+    start1,
+    end1,
+    [],
+    q_component_content_segment_2_185232h3im3b4.w([alias]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    29,
+    147
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

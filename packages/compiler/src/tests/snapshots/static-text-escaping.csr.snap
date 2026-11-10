@@ -13,15 +13,39 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import { _createElementTemplate } from '@qwik.dev/core';
 const default_tmpl0 = _createElementTemplate(
   '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>'
 );
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    195
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

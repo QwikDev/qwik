@@ -531,8 +531,9 @@ and dynamic `Slot name`.
         projections, detached subtrees and the numbered regressions.
   - [x] Svg-only and MathML-only tags authored outside a namespace element infer it, so
         projected svg content and foreign fragments parse in the right namespace.
-  - [x] Components serialize as values: every component declaration is exported under a hashed
-        symbol the client manifest maps, the server marks the function with that symbol, and a
+  - [x] Components serialize as values: every component declaration is its own segment, exported
+        as a function declaration under its hashed symbol and imported statically by its module
+        and by sibling chunks; the server marks the function with that segment's QRL, and a
         local alias of a component is captured as a value or read live when it indexes a signal
         (`#3727`). `useConstant` calls every function; docs must say `useConstant(() => Cmp)`.
   - [x] A body function a boundary calls lifts to a segment its callers import statically; the

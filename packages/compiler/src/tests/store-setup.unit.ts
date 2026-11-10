@@ -25,7 +25,7 @@ export default (props) => {
     let state!: { count: number };
     const options = { deep: false };
     let initializations = 0;
-    const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    const render = loadDefaultFunction(output.modules, {
       ...core,
       renderSsrTextExpression(...args: Parameters<typeof core.renderSsrTextExpression>) {
         // VM capture arrays must enter the serializer's realm.

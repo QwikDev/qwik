@@ -16,68 +16,9 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _capturesObj,
-  createSsrPending,
-  createComponent,
-  _noopQrl,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Slow } from './slow';
-const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
-  return component0;
-};
-const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_1_oznzhxo2l2hq'
-);
-q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
-  component_suspense_content_segment_1_oznzhxo2l2hq
-);
-const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  const [label] = _capturesObj._;
-  const id0 = ctx.nextId();
-  ctx.addRoot(label);
-  const text0 = renderSsrTextNode(id0, null, label);
-  return maybeThen(text0, (text0) => [
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '" class="fallback">',
-    escapeHTML(text0),
-    '</p>',
-  ]);
-};
-const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
-);
-q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
-  component_suspense_fallback_segment_0_1i2rr5w5knxuo
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const label = useSignal('Loading');
-    const id0 = ctx.nextId();
-    ctx.addRoot(label);
-    const content0 = ctx.observeError(
-      createSsrPending(
-        ctx,
-        id0,
-        q_component_suspense_content_segment_1_oznzhxo2l2hq,
-        q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.w([label]),
-        50
-      )
-    );
-    return ['<section>', content0, '</section>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 import {
@@ -149,6 +90,88 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "loc": [
     199,
     318
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  createSsrPending,
+  createComponent,
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Slow } from './slow';
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
+  return component0;
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  const [label] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextNode(id0, null, label);
+  return maybeThen(text0, (text0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '" class="fallback">',
+    escapeHTML(text0),
+    '</p>',
+  ]);
+};
+const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
+);
+q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
+  component_suspense_fallback_segment_0_1i2rr5w5knxuo
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const label = useSignal('Loading');
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const content0 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_1_oznzhxo2l2hq,
+      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.w([label]),
+      50
+    )
+  );
+  return ['<section>', content0, '</section>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    96,
+    342
   ],
   "paramNames": []
 }

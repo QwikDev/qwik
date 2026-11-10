@@ -14,48 +14,8 @@ export default (props: { initial: number }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  _qrlWithChunk,
-  useComputed,
-  useComputedQrl,
-  _first,
-  _last,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_first_segment_1_bivl4x5fgl56 } from './component.tsx_component_first_segment_1_bivl4x5fgl56';
-
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
-  () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
-  'component_read_segment_0_1zbzildyw5vrf'
-);
-const default_tmpl0 = _createElementTemplate('<span><!>:<!></span>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const options = {
-    initial: props.initial,
-    timeout: 1e3,
-  };
-  const read = q_component_read_segment_0_1zbzildyw5vrf;
-  const first = useComputed(component_first_segment_1_bivl4x5fgl56, {
-    ...options,
-    initial: () => props.initial,
-  });
-  const second = useComputedQrl(read, ...[options]);
-  const el0 = default_tmpl0(ctx.document);
-  const marker0 = _first(el0);
-  const text0 = ctx.document.createTextNode('');
-  marker0.replaceWith(text0);
-  const effect0 = createTextNodeEffect(text0, first, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  const marker1 = _last(el0);
-  const text1 = ctx.document.createTextNode('');
-  marker1.replaceWith(text1);
-  const effect1 = createTextNodeEffect(text1, second, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 export const component_read_segment_0_1zbzildyw5vrf = async () => {
@@ -104,6 +64,71 @@ export const component_first_segment_1_bivl4x5fgl56 = async () => {
     304
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _qrlWithChunk,
+  useComputed,
+  useComputedQrl,
+  _first,
+  _last,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_first_segment_1_bivl4x5fgl56 } from './component.tsx_component_first_segment_1_bivl4x5fgl56';
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
+  () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+const default_tmpl0 = _createElementTemplate('<span><!>:<!></span>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const options = {
+    initial: props.initial,
+    timeout: 1e3,
+  };
+  const read = q_component_read_segment_0_1zbzildyw5vrf;
+  const first = useComputed(component_first_segment_1_bivl4x5fgl56, {
+    ...options,
+    initial: () => props.initial,
+  });
+  const second = useComputedQrl(read, ...[options]);
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextNodeEffect(text0, first, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect1 = createTextNodeEffect(text1, second, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    62,
+    375
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

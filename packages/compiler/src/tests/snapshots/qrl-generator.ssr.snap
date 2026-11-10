@@ -24,53 +24,11 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_0_2fpowujm1ejve'
 );
 q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
-const component_counted_segment_1_2a19h1ljxbgrm = function () {
-  const [step] = _capturesObj._;
-  return function* count() {
-    yield step.value;
-  }.apply(this, arguments);
-};
-const q_component_counted_segment_1_2a19h1ljxbgrm = /*#__PURE__*/ _noopQrl(
-  'component_counted_segment_1_2a19h1ljxbgrm'
-);
-q_component_counted_segment_1_2a19h1ljxbgrm.s(component_counted_segment_1_2a19h1ljxbgrm);
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
-);
-import {
-  _await,
-  _noopQrl,
-  useSignal,
-  _capturesObj,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _markComponent,
-} from '@qwik.dev/core';
+import { _await, _noopQrl } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 export const stream = q_component_qrl_segment_0_2fpowujm1ejve;
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const step = useSignal(1);
-    const counted = q_component_counted_segment_1_2a19h1ljxbgrm.w([step]);
-    const id0 = ctx.nextId();
-    ctx.addRoot(step);
-    const text0 = renderSsrTextNode(id0, null, step);
-    return maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([counted])),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { delay as __qwik_delay };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
@@ -166,6 +124,70 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "captureNames": [
     "counted"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_counted_segment_1_2a19h1ljxbgrm = function () {
+  const [step] = _capturesObj._;
+  return function* count() {
+    yield step.value;
+  }.apply(this, arguments);
+};
+const q_component_counted_segment_1_2a19h1ljxbgrm = /*#__PURE__*/ _noopQrl(
+  'component_counted_segment_1_2a19h1ljxbgrm'
+);
+q_component_counted_segment_1_2a19h1ljxbgrm.s(component_counted_segment_1_2a19h1ljxbgrm);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const step = useSignal(1);
+  const counted = q_component_counted_segment_1_2a19h1ljxbgrm.w([step]);
+  const id0 = ctx.nextId();
+  ctx.addRoot(step);
+  const text0 = renderSsrTextNode(id0, null, step);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([counted])),
+    '>',
+    escapeHTML(text0),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    217,
+    334
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

@@ -12,43 +12,8 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  createEventEffect,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_onClickqrl_segment_1_3rzjk4cwl942g } from './component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g';
-
-const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_action_segment_0_2k64kau1v2n45',
-  () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
-  'component_action_segment_0_2k64kau1v2n45'
-);
-const default_tmpl0 = _createElementTemplate('<button> </button>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(0);
-  let action = q_component_action_segment_0_2k64kau1v2n45.w([count]);
-  if (props.disabled) {
-    action = null;
-  }
-  const el0 = default_tmpl0(ctx.document);
-  const effect0 = createEventEffect(
-    el0,
-    'q-e:click',
-    [action],
-    component_onClickqrl_segment_1_3rzjk4cwl942g,
-    ctx.scheduler
-  );
-  ctx.scheduler.run(effect0);
-  const text0 = _first(el0);
-  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -105,6 +70,66 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (action) => {
   "paramNames": [],
   "captureNames": [
     "action"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  createEventEffect,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_onClickqrl_segment_1_3rzjk4cwl942g } from './component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g';
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_action_segment_0_2k64kau1v2n45',
+  () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
+  'component_action_segment_0_2k64kau1v2n45'
+);
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  let action = q_component_action_segment_0_2k64kau1v2n45.w([count]);
+  if (props.disabled) {
+    action = null;
+  }
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createEventEffect(
+    el0,
+    'q-e:click',
+    [action],
+    component_onClickqrl_segment_1_3rzjk4cwl942g,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect0);
+  const text0 = _first(el0);
+  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    47,
+    189
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

@@ -12,41 +12,69 @@ function Child() {
 
 ============================= src/component.tsx ==
 
-const Child_tmpl0 = _createElementTemplate('<button> </button>');
-import {
-  createComponent,
-  useSignal,
-  setEvent,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-export function Wrapper(props, ctx) {
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+import { default_component_3rg6kq1so9aio as App } from './component.tsx_default_component_3rg6kq1so9aio';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+export { Wrapper };
+export { App as default };
+============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio as App } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export function Wrapper_component_1yrb0pezcavja(props, ctx) {
   const component0 = createComponent(App, null, ctx);
   return component0;
 }
-export default function App(props, ctx) {
+/*
+{
+  "origin": "component.tsx",
+  "name": "Wrapper_component_1yrb0pezcavja",
+  "entry": null,
+  "displayName": "Wrapper_component",
+  "hash": "1yrb0pezcavja",
+  "canonicalFilename": "component.tsx_Wrapper_component_1yrb0pezcavja",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    72
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const component0 = createComponent(Child, null, ctx);
   return component0;
 }
-function Child(props, ctx) {
-  const count = useSignal(1);
-  const el0 = Child_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    122
+  ],
+  "paramNames": []
 }
-
-export { App as __qwik_App, Child as __qwik_Child };
-
-export {
-  Wrapper as Wrapper_component_1yrb0pezcavja,
-  App as default_component_3rg6kq1so9aio,
-  Child as Child_component_syc3erfxihm7,
-};
+*/
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -76,6 +104,47 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+const Child_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const count = useSignal(1);
+  const el0 = Child_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    142,
+    193
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

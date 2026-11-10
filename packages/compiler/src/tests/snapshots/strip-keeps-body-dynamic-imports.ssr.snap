@@ -17,6 +17,11 @@ export const ping = server$(async () => 'pong');
 
 ============================= src/routes/index.tsx ==
 
+import { default_component_tv8h7w8tm3v2 } from './index.tsx_default_component_tv8h7w8tm3v2';
+export { default_component_tv8h7w8tm3v2 as default };
+/* stripped-body imports: ["../shared/server-fn"] */
+============================= src/routes/index.tsx_default_component_tv8h7w8tm3v2.js (ENTRY POINT)==
+
 import {
   useSignal,
   useVisibleTaskQrl,
@@ -37,29 +42,46 @@ const linked_content_0_1mzevuukkeaia = (ctx0) => {
 };
 const q_linked_content_0_1mzevuukkeaia = /*#__PURE__*/ _noopQrl('linked_content_0_1mzevuukkeaia');
 q_linked_content_0_1mzevuukkeaia.s(linked_content_0_1mzevuukkeaia);
-export const default_component_tv8h7w8tm3v2 = _markComponent(
-  (props, ctx) => {
-    const result = useSignal('pending');
-    useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
-    const id0 = ctx.nextId();
-    ctx.addRoot(result);
-    const content0 = ctx.observeError(
-      renderSsrContent(ctx, id0, [], q_linked_content_0_1mzevuukkeaia.w([result]), false, true)
-    );
-    return [
-      createSsrOpenTag('<div', '>'),
-      '<!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d></div>',
-    ];
-  },
-  'default_component_tv8h7w8tm3v2',
-  './index.tsx'
-);
-export default default_component_tv8h7w8tm3v2;
-/* stripped-body imports: ["../shared/server-fn"] */
+const q_default_component_tv8h7w8tm3v2 = /*#__PURE__*/ _noopQrl('default_component_tv8h7w8tm3v2');
+_markComponent(default_component_tv8h7w8tm3v2, q_default_component_tv8h7w8tm3v2);
+
+export function default_component_tv8h7w8tm3v2(props, ctx) {
+  const result = useSignal('pending');
+  useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
+  const id0 = ctx.nextId();
+  ctx.addRoot(result);
+  const content0 = ctx.observeError(
+    renderSsrContent(ctx, id0, [], q_linked_content_0_1mzevuukkeaia.w([result]), false, true)
+  );
+  return [
+    createSsrOpenTag('<div', '>'),
+    '<!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d></div>',
+  ];
+}
+/*
+{
+  "origin": "index.tsx",
+  "name": "default_component_tv8h7w8tm3v2",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "tv8h7w8tm3v2",
+  "canonicalFilename": "index.tsx_default_component_tv8h7w8tm3v2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    73,
+    314
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/routes/index.tsx_linked_content_0_1mzevuukkeaia.js (ENTRY POINT)==
 
 import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';

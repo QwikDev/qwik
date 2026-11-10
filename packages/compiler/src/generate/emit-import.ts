@@ -13,7 +13,11 @@ import { moduleBasename } from './output';
  * Every module binding a QRL reads is exposed, in-module component bodies included, so a route
  * module scan sees an unexported `routeLoader$` the way the Rust optimizer's `_auto_` exports did.
  */
-export function planModuleBindingExports(module: LinkedModule) {
+export function planModuleBindingExports(
+  module: LinkedModule,
+  /** Component bindings chunks import from the component's own segment instead. */
+  segmentBindings: ReadonlySet<LocalId>
+) {
   const names = new Map<LocalId, string>();
   const reserved = module.exports.flatMap((entry) =>
     entry.e === ExportKind.Star ? [] : [entry.exported]
@@ -22,7 +26,11 @@ export function planModuleBindingExports(module: LinkedModule) {
   for (const qrl of module.qrls) {
     for (const binding of qrl.dependencies.bindings) {
       const source = module.bindings[binding];
-      if (source.scope !== BindingScope.Module || names.has(binding)) {
+      if (
+        source.scope !== BindingScope.Module ||
+        names.has(binding) ||
+        segmentBindings.has(binding)
+      ) {
         continue;
       }
       // Default expressions may snapshot bindings instead of exposing live exports.

@@ -13,46 +13,8 @@ export const Card = (props: { title?: string; suffix: string; start: number }) =
 
 ============================= src/component.tsx ==
 
-import {
-  createPropsProxy,
-  useSignal,
-  setEvent,
-  _first,
-  _last,
-  createTextExpressionEffect,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-
-const Card_tmpl0 = _createElementTemplate('<button><!>:<!></button>');
-export const Card = (props, ctx) => {
-  const rest = createPropsProxy(props, ['title']);
-  const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
-  const suffix = rest.suffix;
-  const count = useSignal(props.start);
-  const el0 = Card_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count, label]);
-  const marker0 = _first(el0);
-  const text0 = ctx.document.createTextNode('');
-  marker0.replaceWith(text0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [label, suffix, count],
-    component_text_segment_1_1fh10tcowimfv,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const marker1 = _last(el0);
-  const text1 = ctx.document.createTextNode('');
-  marker1.replaceWith(text1);
-  const effect1 = createTextNodeEffect(text1, count, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  return el0;
-};
-
-export { Card as Card_component_1j4wd08arm0n5 };
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+export { Card };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -112,6 +74,68 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => 
     "label",
     "suffix",
     "count"
+  ]
+}
+*/
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
+
+import {
+  createPropsProxy,
+  useSignal,
+  setEvent,
+  _first,
+  _last,
+  createTextExpressionEffect,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const Card_tmpl0 = _createElementTemplate('<button><!>:<!></button>');
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
+  const rest = createPropsProxy(props, ['title']);
+  const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
+  const suffix = rest.suffix;
+  const count = useSignal(props.start);
+  const el0 = Card_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count, label]);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [label, suffix, count],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect1 = createTextNodeEffect(text1, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Card_component_1j4wd08arm0n5",
+  "entry": null,
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    415
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

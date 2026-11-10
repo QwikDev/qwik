@@ -9,31 +9,8 @@ export default (props: { label?: string; content?: any }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useStore,
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const default_tmpl0 = _createElementTemplate('<div> </div>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const store = useStore({ v: 1 });
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [store],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (store) => {
@@ -59,6 +36,54 @@ export const component_text_segment_0_1fh10fbkzokfc = (store) => {
   "paramNames": [],
   "captureNames": [
     "store"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useStore,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const default_tmpl0 = _createElementTemplate('<div> </div>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const store = useStore({ v: 1 });
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [store],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    54,
+    184
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

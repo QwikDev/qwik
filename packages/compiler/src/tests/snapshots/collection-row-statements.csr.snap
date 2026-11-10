@@ -20,69 +20,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _last,
-  _prev,
-  _next,
-  createCollection,
-  createTextExpressionEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
-
-const semantic_collectionRender_361_452_1ilm85gvuesnv_tmpl0 = _createElementTemplate('<li> </li>');
-const default_tmpl0 = _createElementTemplate('<ul><!><!><!><!></ul>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const rows = useSignal([1]);
-  const el0 = default_tmpl0(ctx.document);
-  const marker0 = _prev(_last(el0));
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      rows,
-      component_for_key_segment_1_24ursak4wzpxf,
-      component_for_render_segment_0_asyt89wzo2d3,
-      0,
-      0
-    )
-  );
-  const end1 = _next(marker0);
-  function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, n) {
-    let doubled = n * 2;
-    doubled += 1;
-    const el0 = semantic_collectionRender_361_452_1ilm85gvuesnv_tmpl0(ctx.document);
-    const text0 = _first(el0);
-    const effect0 = createTextExpressionEffect(
-      text0,
-      [doubled],
-      component_text_segment_3_1fh11lewq6qgx,
-      ctx.scheduler
-    );
-    ctx.scheduler.notify(effect0);
-    return el0;
-  }
-  createCollection(
-    ctx,
-    marker0,
-    end1,
-    [1, 2],
-    null,
-    semantic_collectionRender_361_452_1ilm85gvuesnv,
-    0,
-    0,
-    true
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
@@ -212,6 +151,90 @@ export const component_text_segment_3_1fh11lewq6qgx = (doubled) => {
   "captureNames": [
     "doubled"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _last,
+  _prev,
+  _next,
+  createCollection,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
+const semantic_collectionRender_361_452_1ilm85gvuesnv_tmpl0 = _createElementTemplate('<li> </li>');
+const default_tmpl0 = _createElementTemplate('<ul><!><!><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const rows = useSignal([1]);
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _prev(_last(el0));
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      rows,
+      component_for_key_segment_1_24ursak4wzpxf,
+      component_for_render_segment_0_asyt89wzo2d3,
+      0,
+      0
+    )
+  );
+  const end1 = _next(marker0);
+  function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, n) {
+    let doubled = n * 2;
+    doubled += 1;
+    const el0 = semantic_collectionRender_361_452_1ilm85gvuesnv_tmpl0(ctx.document);
+    const text0 = _first(el0);
+    const effect0 = createTextExpressionEffect(
+      text0,
+      [doubled],
+      component_text_segment_3_1fh11lewq6qgx,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    return el0;
+  }
+  createCollection(
+    ctx,
+    marker0,
+    end1,
+    [1, 2],
+    null,
+    semantic_collectionRender_361_452_1ilm85gvuesnv,
+    0,
+    0,
+    true
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    506
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

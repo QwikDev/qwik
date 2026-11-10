@@ -133,13 +133,9 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 /** @internal */
 export const SERIALIZABLE_STATE: unique symbol = /*#__PURE__*/ qwikSymbol('serializable-data');
 
-/** @internal The server marks a compiled component with the export it serializes as. */
-export const _markComponent = <T extends { (...args: any[]): any }>(
-  fn: T,
-  symbol: string,
-  chunk: string
-): T => {
-  (fn as any)[SERIALIZABLE_STATE] = [symbol, chunk];
+/** @internal The server marks a compiled component with the QRL of its own segment. */
+export const _markComponent = <T extends { (...args: any[]): any }>(fn: T, qrl: QRL<T>): T => {
+  (fn as any)[SERIALIZABLE_STATE] = [qrl];
   return fn;
 };
 

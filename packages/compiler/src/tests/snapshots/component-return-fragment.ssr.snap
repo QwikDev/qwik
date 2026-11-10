@@ -6,28 +6,72 @@ export default (props) => { return <><Child /><b>tail</b></>; };
 
 ============================= src/component.tsx ==
 
-import { _markComponent, createComponent } from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const Child = _markComponent(
-  (props0, ctx) => {
-    return '<span>first</span><span>second</span>';
-  },
-  'Child_component_syc3erfxihm7',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const component0 = ctx.observeError(createComponent(Child, null, ctx));
-    return [component0, '<b>tail</b>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
 
-export { Child as __qwik_Child };
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Child_component_syc3erfxihm7 = /*#__PURE__*/ _noopQrl('Child_component_syc3erfxihm7');
+_markComponent(Child_component_syc3erfxihm7, q_Child_component_syc3erfxihm7);
 
-export { Child as Child_component_syc3erfxihm7 };
+export function Child_component_syc3erfxihm7(props0, ctx) {
+  return '<span>first</span><span>second</span>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    63
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  return [component0, '<b>tail</b>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    64,
+    93
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

@@ -20,164 +20,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _capturesObj,
-  createSsrNodeId,
-  inlinedQrl,
-  _val,
-  renderSsrEvent,
-  createSsrMarkup,
-  createSsrDomBatchEffect,
-  renderSsrAttr,
-  escapeHTML,
-  _chk,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_action_segment_0_2k64kau1v2n45 = () => {
-  const [text, checked] = _capturesObj._;
-  return console.log(text.value, checked.value);
-};
-const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _noopQrl(
-  'component_action_segment_0_2k64kau1v2n45'
-);
-q_component_action_segment_0_2k64kau1v2n45.s(component_action_segment_0_2k64kau1v2n45);
-const component_onInputqrl_segment_1_1og4fnsuxzixg = (enabled, action) => {
-  return enabled.value ? action : undefined;
-};
-const q_component_onInputqrl_segment_1_1og4fnsuxzixg = /*#__PURE__*/ _noopQrl(
-  'component_onInputqrl_segment_1_1og4fnsuxzixg'
-);
-q_component_onInputqrl_segment_1_1og4fnsuxzixg.s(component_onInputqrl_segment_1_1og4fnsuxzixg);
-const component_onInputqrl_segment_2_1og4gtw6ohoz1 = (enabled, action) => {
-  return enabled.value ? action : undefined;
-};
-const q_component_onInputqrl_segment_2_1og4gtw6ohoz1 = /*#__PURE__*/ _noopQrl(
-  'component_onInputqrl_segment_2_1og4gtw6ohoz1'
-);
-q_component_onInputqrl_segment_2_1og4gtw6ohoz1.s(component_onInputqrl_segment_2_1og4gtw6ohoz1);
-const component_onInputqrl_segment_3_1og4gfv2rnmyi = (enabled, action) => {
-  return enabled.value ? action : undefined;
-};
-const q_component_onInputqrl_segment_3_1og4gfv2rnmyi = /*#__PURE__*/ _noopQrl(
-  'component_onInputqrl_segment_3_1og4gfv2rnmyi'
-);
-q_component_onInputqrl_segment_3_1og4gfv2rnmyi.s(component_onInputqrl_segment_3_1og4gfv2rnmyi);
-const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) => {
-  return enabled.value ? action : undefined;
-};
-const q_component_onInputqrl_segment_4_1og4ehpj7hcvv = /*#__PURE__*/ _noopQrl(
-  'component_onInputqrl_segment_4_1og4ehpj7hcvv'
-);
-q_component_onInputqrl_segment_4_1og4ehpj7hcvv.s(component_onInputqrl_segment_4_1og4ehpj7hcvv);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const enabled = useSignal(false);
-    const text = useSignal('one');
-    const checked = useSignal(false);
-    const action = q_component_action_segment_0_2k64kau1v2n45.w([text, checked]);
-    const id0 = ctx.nextId();
-    ctx.addRoot(enabled);
-    ctx.addRoot(action);
-    const effect0 = renderSsrEvent(
-      id0,
-      'q-e:input',
-      [enabled, action],
-      q_component_onInputqrl_segment_1_1og4fnsuxzixg,
-      ctx.eventAttr,
-      [],
-      [inlinedQrl(_val, '_val', [text])]
-    );
-    const effect1 = createSsrDomBatchEffect();
-    ctx.addRoot(text);
-    const attr0 = renderSsrAttr(id0, 'value', text, effect1);
-    const id1 = ctx.nextId();
-    const attr1 = renderSsrAttr(id1, 'value', text, effect1);
-    const effect2 = renderSsrEvent(
-      id1,
-      'q-e:input',
-      [enabled, action],
-      q_component_onInputqrl_segment_2_1og4gtw6ohoz1,
-      ctx.eventAttr,
-      [],
-      [inlinedQrl(_val, '_val', [text])]
-    );
-    const id2 = ctx.nextId();
-    const effect3 = renderSsrEvent(
-      id2,
-      'q-e:input',
-      [enabled, action],
-      q_component_onInputqrl_segment_3_1og4gfv2rnmyi,
-      ctx.eventAttr,
-      [],
-      [inlinedQrl(_chk, '_chk', [checked])]
-    );
-    const effect4 = createSsrDomBatchEffect();
-    ctx.addRoot(checked);
-    const attr2 = renderSsrAttr(id2, 'checked', checked, effect4);
-    const id3 = ctx.nextId();
-    const attr3 = renderSsrAttr(id3, 'checked', checked, effect4);
-    const effect5 = renderSsrEvent(
-      id3,
-      'q-e:input',
-      [enabled, action],
-      q_component_onInputqrl_segment_4_1og4ehpj7hcvv,
-      ctx.eventAttr,
-      [],
-      [inlinedQrl(_chk, '_chk', [checked])]
-    );
-    return maybeThen(effect0, (effect0) =>
-      maybeThen(attr0, (attr0) =>
-        maybeThen(attr1, (attr1) =>
-          maybeThen(effect2, (effect2) =>
-            maybeThen(effect3, (effect3) =>
-              maybeThen(attr2, (attr2) =>
-                maybeThen(attr3, (attr3) =>
-                  maybeThen(effect5, (effect5) => [
-                    '<form><input q:id="',
-                    createSsrNodeId(id0),
-                    '"',
-                    createSsrMarkup(effect0),
-                    attr0 === null
-                      ? ''
-                      : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-                    '><input q:id="',
-                    createSsrNodeId(id1),
-                    '"',
-                    attr1 === null
-                      ? ''
-                      : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-                    createSsrMarkup(effect2),
-                    '><input q:id="',
-                    createSsrNodeId(id2),
-                    '" type="checkbox"',
-                    createSsrMarkup(effect3),
-                    attr2 === null
-                      ? ''
-                      : ' checked' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
-                    '><input q:id="',
-                    createSsrNodeId(id3),
-                    '" type="checkbox"',
-                    attr3 === null
-                      ? ''
-                      : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
-                    createSsrMarkup(effect5),
-                    '></form>',
-                  ])
-                )
-              )
-            )
-          )
-        )
-      )
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -324,6 +168,184 @@ export const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) =>
     "enabled",
     "action"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  createSsrNodeId,
+  inlinedQrl,
+  _val,
+  renderSsrEvent,
+  createSsrMarkup,
+  createSsrDomBatchEffect,
+  renderSsrAttr,
+  escapeHTML,
+  _chk,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_action_segment_0_2k64kau1v2n45 = () => {
+  const [text, checked] = _capturesObj._;
+  return console.log(text.value, checked.value);
+};
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _noopQrl(
+  'component_action_segment_0_2k64kau1v2n45'
+);
+q_component_action_segment_0_2k64kau1v2n45.s(component_action_segment_0_2k64kau1v2n45);
+const component_onInputqrl_segment_1_1og4fnsuxzixg = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+const q_component_onInputqrl_segment_1_1og4fnsuxzixg = /*#__PURE__*/ _noopQrl(
+  'component_onInputqrl_segment_1_1og4fnsuxzixg'
+);
+q_component_onInputqrl_segment_1_1og4fnsuxzixg.s(component_onInputqrl_segment_1_1og4fnsuxzixg);
+const component_onInputqrl_segment_2_1og4gtw6ohoz1 = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+const q_component_onInputqrl_segment_2_1og4gtw6ohoz1 = /*#__PURE__*/ _noopQrl(
+  'component_onInputqrl_segment_2_1og4gtw6ohoz1'
+);
+q_component_onInputqrl_segment_2_1og4gtw6ohoz1.s(component_onInputqrl_segment_2_1og4gtw6ohoz1);
+const component_onInputqrl_segment_3_1og4gfv2rnmyi = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+const q_component_onInputqrl_segment_3_1og4gfv2rnmyi = /*#__PURE__*/ _noopQrl(
+  'component_onInputqrl_segment_3_1og4gfv2rnmyi'
+);
+q_component_onInputqrl_segment_3_1og4gfv2rnmyi.s(component_onInputqrl_segment_3_1og4gfv2rnmyi);
+const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+const q_component_onInputqrl_segment_4_1og4ehpj7hcvv = /*#__PURE__*/ _noopQrl(
+  'component_onInputqrl_segment_4_1og4ehpj7hcvv'
+);
+q_component_onInputqrl_segment_4_1og4ehpj7hcvv.s(component_onInputqrl_segment_4_1og4ehpj7hcvv);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const enabled = useSignal(false);
+  const text = useSignal('one');
+  const checked = useSignal(false);
+  const action = q_component_action_segment_0_2k64kau1v2n45.w([text, checked]);
+  const id0 = ctx.nextId();
+  ctx.addRoot(enabled);
+  ctx.addRoot(action);
+  const effect0 = renderSsrEvent(
+    id0,
+    'q-e:input',
+    [enabled, action],
+    q_component_onInputqrl_segment_1_1og4fnsuxzixg,
+    ctx.eventAttr,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  const effect1 = createSsrDomBatchEffect();
+  ctx.addRoot(text);
+  const attr0 = renderSsrAttr(id0, 'value', text, effect1);
+  const id1 = ctx.nextId();
+  const attr1 = renderSsrAttr(id1, 'value', text, effect1);
+  const effect2 = renderSsrEvent(
+    id1,
+    'q-e:input',
+    [enabled, action],
+    q_component_onInputqrl_segment_2_1og4gtw6ohoz1,
+    ctx.eventAttr,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  const id2 = ctx.nextId();
+  const effect3 = renderSsrEvent(
+    id2,
+    'q-e:input',
+    [enabled, action],
+    q_component_onInputqrl_segment_3_1og4gfv2rnmyi,
+    ctx.eventAttr,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  const effect4 = createSsrDomBatchEffect();
+  ctx.addRoot(checked);
+  const attr2 = renderSsrAttr(id2, 'checked', checked, effect4);
+  const id3 = ctx.nextId();
+  const attr3 = renderSsrAttr(id3, 'checked', checked, effect4);
+  const effect5 = renderSsrEvent(
+    id3,
+    'q-e:input',
+    [enabled, action],
+    q_component_onInputqrl_segment_4_1og4ehpj7hcvv,
+    ctx.eventAttr,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  return maybeThen(effect0, (effect0) =>
+    maybeThen(attr0, (attr0) =>
+      maybeThen(attr1, (attr1) =>
+        maybeThen(effect2, (effect2) =>
+          maybeThen(effect3, (effect3) =>
+            maybeThen(attr2, (attr2) =>
+              maybeThen(attr3, (attr3) =>
+                maybeThen(effect5, (effect5) => [
+                  '<form><input q:id="',
+                  createSsrNodeId(id0),
+                  '"',
+                  createSsrMarkup(effect0),
+                  attr0 === null
+                    ? ''
+                    : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+                  '><input q:id="',
+                  createSsrNodeId(id1),
+                  '"',
+                  attr1 === null
+                    ? ''
+                    : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+                  createSsrMarkup(effect2),
+                  '><input q:id="',
+                  createSsrNodeId(id2),
+                  '" type="checkbox"',
+                  createSsrMarkup(effect3),
+                  attr2 === null
+                    ? ''
+                    : ' checked' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+                  '><input q:id="',
+                  createSsrNodeId(id3),
+                  '" type="checkbox"',
+                  attr3 === null
+                    ? ''
+                    : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+                  createSsrMarkup(effect5),
+                  '></form>',
+                ])
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    59,
+    668
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

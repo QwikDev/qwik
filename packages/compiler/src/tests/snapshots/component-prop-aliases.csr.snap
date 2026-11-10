@@ -9,58 +9,10 @@ export default () => <Card title="Title" data-label="Label"><p>Projected</p></Ca
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  _last,
-  propSource,
-  readTrackedValue,
-  patchTextValue,
-  setEvent,
-  createDomBatchEffect,
-  maybeThen,
-  createSlot,
-  _createElementTemplate,
-  createSlotScope,
-  registerProjection,
-  _qrlWithChunk,
-  createComponent,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-
-const Card_tmpl0 = _createElementTemplate('<section><h2> </h2><button> </button><!></section>');
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-export const Card = (props, ctx) => {
-  const el0 = Card_tmpl0(ctx.document);
-  const text0 = _first(_first(el0));
-  const prop0 = propSource(props, 'title');
-  const el1 = _next(_first(el0));
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [props]);
-  const text1 = _first(el1);
-  const prop1 = propSource(props, 'data-label');
-  createDomBatchEffect(() => {
-    patchTextValue(text0, readTrackedValue(prop0));
-    patchTextValue(text1, readTrackedValue(prop1));
-  }, ctx.scheduler);
-  const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component0 = createComponent(Card, { title: 'Title', 'data-label': 'Label' }, ctx, {
-    slotScope: slotScope0,
-  });
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Card as Card_component_1j4wd08arm0n5 };
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Card };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -92,6 +44,62 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   ]
 }
 */
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _last,
+  propSource,
+  readTrackedValue,
+  patchTextValue,
+  setEvent,
+  createDomBatchEffect,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+const Card_tmpl0 = _createElementTemplate('<section><h2> </h2><button> </button><!></section>');
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
+  const el0 = Card_tmpl0(ctx.document);
+  const text0 = _first(_first(el0));
+  const prop0 = propSource(props, 'title');
+  const el1 = _next(_first(el0));
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [props]);
+  const text1 = _first(el1);
+  const prop1 = propSource(props, 'data-label');
+  createDomBatchEffect(() => {
+    patchTextValue(text0, readTrackedValue(prop0));
+    patchTextValue(text1, readTrackedValue(prop1));
+  }, ctx.scheduler);
+  const marker0 = _last(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Card_component_1j4wd08arm0n5",
+  "entry": null,
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    226
+  ],
+  "paramNames": [
+    "{ title: heading, \"data-label\": label, onSave$: save }"
+  ]
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -118,6 +126,49 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   "loc": [
     289,
     305
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component0 = createComponent(Card, { title: 'Title', 'data-label': 'Label' }, ctx, {
+    slotScope: slotScope0,
+  });
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    229,
+    313
   ],
   "paramNames": []
 }

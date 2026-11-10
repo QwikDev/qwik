@@ -9,37 +9,9 @@ export default (props: { shape: string }) => (
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
-  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
-  'component_tag_dynamic_segment_0_331xea01t87eh'
-);
-const default_tmpl0 = _createElementTemplate('<svg viewBox="0 0 10 10"><!><!></svg>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import { _capturesObj, createDynamicTag, createComponent } from '@qwik.dev/core';
@@ -73,6 +45,60 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+const default_tmpl0 = _createElementTemplate('<svg viewBox="0 0 10 10"><!><!></svg>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    110
+  ],
+  "paramNames": [
     "props"
   ]
 }

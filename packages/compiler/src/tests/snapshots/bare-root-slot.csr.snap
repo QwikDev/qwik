@@ -10,27 +10,57 @@ export const Shell = component$((props: { id: string }) => (
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  maybeThen,
-  createSlot,
-  createTemplate,
-  propSource,
-  createAttrEffect,
-  _next,
-  _last,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+import { Shell_component_kl94bsx1hn6b as Shell } from './component.tsx_Shell_component_kl94bsx1hn6b';
+export { Wrapper };
+export { Shell };
+============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
+
+import { _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';
 const Wrapper_tmpl0 = createTemplate('<!>');
-const Shell_tmpl0 = _createElementTemplate('<div><!><!><b> </b></div>');
-export const Wrapper = (props0, ctx) => {
+
+export function Wrapper_component_1yrb0pezcavja(props0, ctx) {
   const fragment0 = Wrapper_tmpl0(ctx.document);
   const marker0 = _first(fragment0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return [...fragment0.childNodes];
-};
-export const Shell = (props, ctx) => {
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Wrapper_component_1yrb0pezcavja",
+  "entry": null,
+  "displayName": "Wrapper_component",
+  "hash": "1yrb0pezcavja",
+  "canonicalFilename": "component.tsx_Wrapper_component_1yrb0pezcavja",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    101
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Shell_component_kl94bsx1hn6b.js (ENTRY POINT)==
+
+import {
+  propSource,
+  createAttrEffect,
+  _first,
+  _next,
+  _last,
+  maybeThen,
+  createSlot,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const Shell_tmpl0 = _createElementTemplate('<div><!><!><b> </b></div>');
+
+export function Shell_component_kl94bsx1hn6b(props, ctx) {
   const el0 = Shell_tmpl0(ctx.document);
   const prop0 = propSource(props, 'id');
   const effect0 = createAttrEffect(el0, 'id', prop0, ctx.scheduler);
@@ -44,9 +74,29 @@ export const Shell = (props, ctx) => {
   const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   return el0;
-};
-
-export { Wrapper as Wrapper_component_1yrb0pezcavja, Shell as Shell_component_kl94bsx1hn6b };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Shell_component_kl94bsx1hn6b",
+  "entry": null,
+  "displayName": "Shell_component",
+  "hash": "kl94bsx1hn6b",
+  "canonicalFilename": "component.tsx_Shell_component_kl94bsx1hn6b",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    102,
+    240
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

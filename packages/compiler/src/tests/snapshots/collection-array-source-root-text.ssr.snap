@@ -8,38 +8,61 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   escapeHTML,
   _textValue,
   renderSsrCollection,
+  _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    function semantic_collectionRender_36_84_37i7lefdfeijx(ctx, __rangeId, __rowId, label) {
-      const rangeId0 = ctx.nextId();
-      return ['<!b=', createSsrNodeId(rangeId0), '>', escapeHTML(_textValue(label)), '<!/b>'];
-    }
-    const collection0 = ctx.observeError(
-      renderSsrCollection(
-        ctx,
-        undefined,
-        ['first', 'second'],
-        undefined,
-        semantic_collectionRender_36_84_37i7lefdfeijx,
-        0,
-        false,
-        1
-      )
-    );
-    return ['<ul>', collection0, '</ul>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  function semantic_collectionRender_36_84_37i7lefdfeijx(ctx, __rangeId, __rowId, label) {
+    const rangeId0 = ctx.nextId();
+    return ['<!b=', createSsrNodeId(rangeId0), '>', escapeHTML(_textValue(label)), '<!/b>'];
+  }
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      ['first', 'second'],
+      undefined,
+      semantic_collectionRender_36_84_37i7lefdfeijx,
+      0,
+      false,
+      1
+    )
+  );
+  return ['<ul>', collection0, '</ul>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    26
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

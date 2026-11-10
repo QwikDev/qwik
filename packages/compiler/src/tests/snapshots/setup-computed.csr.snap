@@ -11,27 +11,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useComputed,
-  _withCaptures,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
-
-const default_tmpl0 = _createElementTemplate('<span> </span>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, doubled, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -61,6 +42,48 @@ export const component_doubled_segment_0_2yvob8vshk72o = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useComputed,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
+const default_tmpl0 = _createElementTemplate('<span> </span>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, doubled, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    58,
+    169
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

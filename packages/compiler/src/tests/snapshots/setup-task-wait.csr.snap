@@ -15,48 +15,39 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  _createElementTemplate,
-  useSignal,
-  useTask,
-  _withCaptures,
-  _first,
-  _last,
-  createTextNodeEffect,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-} from '@qwik.dev/core';
-import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
 
+import { _createElementTemplate } from '@qwik.dev/core';
 const Child_tmpl0 = _createElementTemplate('<b>child</b>');
-const default_tmpl0 = _createElementTemplate('<section><span> </span><!></section>');
-export const Child = (props, ctx) => {
+
+export function Child_component_syc3erfxihm7(props, ctx) {
   const el0 = Child_tmpl0(ctx.document);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const ready = useSignal('pending');
-  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [ready]));
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      const text0 = _first(_first(el0));
-      const effect0 = createTextNodeEffect(text0, ready, ctx.scheduler);
-      ctx.scheduler.notify(effect0);
-      const component0 = createComponent(Child, null, ctx);
-      const marker0 = _last(el0);
-      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    54,
+    94
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
 import { _capturesObj, _await } from '@qwik.dev/core';
@@ -87,6 +78,63 @@ export const component_useTaskqrl_segment_0_1og80iqmttt5c = async () => {
   "captureNames": [
     "ready"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useTask,
+  _withCaptures,
+  _first,
+  _last,
+  createTextNodeEffect,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  invoke,
+} from '@qwik.dev/core';
+import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const default_tmpl0 = _createElementTemplate('<section><span> </span><!></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const ready = useSignal('pending');
+  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [ready]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const text0 = _first(_first(el0));
+      const effect0 = createTextNodeEffect(text0, ready, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      const component0 = createComponent(Child, null, ctx);
+      const marker0 = _last(el0);
+      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    95,
+    245
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

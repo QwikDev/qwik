@@ -100,115 +100,13 @@ export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
 */
 ============================= src/component.tsx ==
 
-import {
-  createSsrOpenTag,
-  _noopQrl,
-  _markComponent,
-  createSsrNodeId,
-  renderSsrEvent,
-  createSsrMarkup,
-  _capturesObj,
-  renderSsrContent,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-  renderSsrDynamicContent,
-} from '@qwik.dev/core';
+import { Clicker_component_11xdpjgo2tylm as Clicker } from './component.tsx_Clicker_component_11xdpjgo2tylm';
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+import { Maybe_component_azuodhr1u2pp as Maybe } from './component.tsx_Maybe_component_azuodhr1u2pp';
 import { useClick, useCounter, useMaybeClick } from './hooks';
-const component_qrl_segment_0_2fpowujm1ejve = () => {
-  return console.log('click');
-};
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
-  'component_qrl_segment_0_2fpowujm1ejve'
-);
-q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
-const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
-  return _counter.bump;
-};
-const q_component_onClickqrl_segment_1_3rzjk4cwl942g = /*#__PURE__*/ _noopQrl(
-  'component_onClickqrl_segment_1_3rzjk4cwl942g'
-);
-q_component_onClickqrl_segment_1_3rzjk4cwl942g.s(component_onClickqrl_segment_1_3rzjk4cwl942g);
-const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_counter] = _capturesObj._;
-  return renderSsrDynamicContent(_counter.count.value, ctx0);
-};
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_2_1fh117dstcoge'
-);
-q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
-const component_qrl_segment_3_2fpowgii4khuv = () => {
-  return 1;
-};
-const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
-  'component_qrl_segment_3_2fpowgii4khuv'
-);
-q_component_qrl_segment_3_2fpowgii4khuv.s(component_qrl_segment_3_2fpowgii4khuv);
-export const Clicker = _markComponent(
-  (props0, ctx) => {
-    useClick(q_component_qrl_segment_0_2fpowujm1ejve);
-    return [createSsrOpenTag('<button', '>'), 'click</button>'];
-  },
-  'Clicker_component_11xdpjgo2tylm',
-  './component.tsx'
-);
-export const Counter = _markComponent(
-  (props0, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const _counter = useCounter(1);
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        const id0 = ctx.nextId();
-        ctx.addRoot(_counter);
-        const effect0 = renderSsrEvent(
-          id0,
-          'q-e:click',
-          [_counter],
-          q_component_onClickqrl_segment_1_3rzjk4cwl942g,
-          ctx.eventAttr
-        );
-        const id1 = ctx.nextId();
-        const content0 = ctx.observeError(
-          renderSsrContent(
-            ctx,
-            id1,
-            [],
-            q_component_text_segment_2_1fh117dstcoge.w([_counter]),
-            false,
-            true
-          )
-        );
-        return maybeThen(effect0, (effect0) => [
-          '<button q:id="',
-          createSsrNodeId(id0),
-          '"',
-          createSsrMarkup(effect0),
-          '><!d=',
-          createSsrNodeId(id1),
-          '>',
-          content0,
-          '<!/d></button>',
-        ]);
-      })
-    );
-  },
-  'Counter_component_3h2q15ekklxzt',
-  './component.tsx'
-);
-export const Maybe = _markComponent(
-  (props, ctx) => {
-    useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
-    return [createSsrOpenTag('<div', '>'), 'maybe</div>'];
-  },
-  'Maybe_component_azuodhr1u2pp',
-  './component.tsx'
-);
-
-export {
-  Clicker as Clicker_component_11xdpjgo2tylm,
-  Counter as Counter_component_3h2q15ekklxzt,
-  Maybe as Maybe_component_azuodhr1u2pp,
-};
+export { Clicker };
+export { Counter };
+export { Maybe };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 export const component_qrl_segment_0_2fpowujm1ejve = () => {
@@ -230,6 +128,44 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
   "loc": [
     164,
     193
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Clicker_component_11xdpjgo2tylm.js (ENTRY POINT)==
+
+import { createSsrOpenTag, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { useClick } from './hooks';
+const component_qrl_segment_0_2fpowujm1ejve = () => {
+  return console.log('click');
+};
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
+const q_Clicker_component_11xdpjgo2tylm = /*#__PURE__*/ _noopQrl('Clicker_component_11xdpjgo2tylm');
+_markComponent(Clicker_component_11xdpjgo2tylm, q_Clicker_component_11xdpjgo2tylm);
+
+export function Clicker_component_11xdpjgo2tylm(props0, ctx) {
+  useClick(q_component_qrl_segment_0_2fpowujm1ejve);
+  return [createSsrOpenTag('<button', '>'), 'click</button>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Clicker_component_11xdpjgo2tylm",
+  "entry": null,
+  "displayName": "Clicker_component",
+  "hash": "11xdpjgo2tylm",
+  "canonicalFilename": "component.tsx_Clicker_component_11xdpjgo2tylm",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    111,
+    232
   ],
   "paramNames": []
 }
@@ -293,6 +229,99 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   ]
 }
 */
+============================= src/component.tsx_Counter_component_3h2q15ekklxzt.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  renderSsrEvent,
+  createSsrMarkup,
+  _capturesObj,
+  renderSsrContent,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { useCounter } from './hooks';
+const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
+  return _counter.bump;
+};
+const q_component_onClickqrl_segment_1_3rzjk4cwl942g = /*#__PURE__*/ _noopQrl(
+  'component_onClickqrl_segment_1_3rzjk4cwl942g'
+);
+q_component_onClickqrl_segment_1_3rzjk4cwl942g.s(component_onClickqrl_segment_1_3rzjk4cwl942g);
+const component_text_segment_2_1fh117dstcoge = (ctx0) => {
+  const [_counter] = _capturesObj._;
+  return renderSsrDynamicContent(_counter.count.value, ctx0);
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const q_Counter_component_3h2q15ekklxzt = /*#__PURE__*/ _noopQrl('Counter_component_3h2q15ekklxzt');
+_markComponent(Counter_component_3h2q15ekklxzt, q_Counter_component_3h2q15ekklxzt);
+
+export function Counter_component_3h2q15ekklxzt(props0, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const _counter = useCounter(1);
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(_counter);
+      const effect0 = renderSsrEvent(
+        id0,
+        'q-e:click',
+        [_counter],
+        q_component_onClickqrl_segment_1_3rzjk4cwl942g,
+        ctx.eventAttr
+      );
+      const id1 = ctx.nextId();
+      const content0 = ctx.observeError(
+        renderSsrContent(
+          ctx,
+          id1,
+          [],
+          q_component_text_segment_2_1fh117dstcoge.w([_counter]),
+          false,
+          true
+        )
+      );
+      return maybeThen(effect0, (effect0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        createSsrMarkup(effect0),
+        '><!d=',
+        createSsrNodeId(id1),
+        '>',
+        content0,
+        '<!/d></button>',
+      ]);
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Counter_component_3h2q15ekklxzt",
+  "entry": null,
+  "displayName": "Counter_component",
+  "hash": "3h2q15ekklxzt",
+  "canonicalFilename": "component.tsx_Counter_component_3h2q15ekklxzt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    233,
+    376
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_qrl_segment_3_2fpowgii4khuv.js (ENTRY POINT)==
 
 export const component_qrl_segment_3_2fpowgii4khuv = () => {
@@ -316,6 +345,46 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
     479
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_Maybe_component_azuodhr1u2pp.js (ENTRY POINT)==
+
+import { createSsrOpenTag, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { useMaybeClick } from './hooks';
+const component_qrl_segment_3_2fpowgii4khuv = () => {
+  return 1;
+};
+const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_3_2fpowgii4khuv'
+);
+q_component_qrl_segment_3_2fpowgii4khuv.s(component_qrl_segment_3_2fpowgii4khuv);
+const q_Maybe_component_azuodhr1u2pp = /*#__PURE__*/ _noopQrl('Maybe_component_azuodhr1u2pp');
+_markComponent(Maybe_component_azuodhr1u2pp, q_Maybe_component_azuodhr1u2pp);
+
+export function Maybe_component_azuodhr1u2pp(props, ctx) {
+  useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
+  return [createSsrOpenTag('<div', '>'), 'maybe</div>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Maybe_component_azuodhr1u2pp",
+  "entry": null,
+  "displayName": "Maybe_component",
+  "hash": "azuodhr1u2pp",
+  "canonicalFilename": "component.tsx_Maybe_component_azuodhr1u2pp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    377,
+    512
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==

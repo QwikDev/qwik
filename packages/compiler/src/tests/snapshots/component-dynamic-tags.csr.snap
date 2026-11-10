@@ -19,92 +19,10 @@ export default (props: { as: string; component: any }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  _last,
-  _prev,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  _qrlWithChunk,
-  createDynamicTag,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
-  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy',
-  () => import('./component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy'),
-  'component_tag_dynamic_segment_1_331xdvyxwe5dy'
-);
-const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw',
-  () => import('./component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw'),
-  'component_tag_dynamic_segment_3_331xd3wq2q1cw'
-);
-const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!><!><!></section>');
 import { Badge, UI } from './ui';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const Heading = 'h2';
-  const Alias = Badge;
-  const el0 = default_tmpl0(ctx.document);
-  const marker0 = _next(_first(el0));
-  const marker1 = _next(_next(_first(el0)));
-  const marker2 = _prev(_prev(_last(el0)));
-  const marker3 = _prev(_last(el0));
-  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
-  const component0 = createComponent(
-    (props0) => createDynamicTag(Heading, props0, ctx),
-    { class: 'title' },
-    ctx,
-    { slotScope: slotScope0 }
-  );
-  const marker4 = _first(el0);
-  maybeThen(component0, (component1) => marker4.replaceWith(..._toNodes(component1)));
-  const component2 = createComponent(Alias, null, ctx);
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
-  const end0 = _next(marker1);
-  const content0 = createContentBlock(
-    ctx,
-    marker1,
-    end0,
-    [],
-    q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  const tag0 = UI.Button;
-  const component4 = createComponent(
-    (props1) => createDynamicTag(tag0, props1, ctx),
-    { label: 'x' },
-    ctx
-  );
-  maybeThen(component4, (component5) => marker2.replaceWith(..._toNodes(component5)));
-  const end1 = _next(marker3);
-  const content1 = createContentBlock(
-    ctx,
-    marker3,
-    end1,
-    [],
-    q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content1);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _first, createTemplate } from '@qwik.dev/core';
@@ -244,6 +162,115 @@ export const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _last,
+  _prev,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  _qrlWithChunk,
+  createDynamicTag,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { Badge, UI } from './ui';
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy',
+  () => import('./component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy'),
+  'component_tag_dynamic_segment_1_331xdvyxwe5dy'
+);
+const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw',
+  () => import('./component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw'),
+  'component_tag_dynamic_segment_3_331xd3wq2q1cw'
+);
+const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!><!><!></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _next(_first(el0));
+  const marker1 = _next(_next(_first(el0)));
+  const marker2 = _prev(_prev(_last(el0)));
+  const marker3 = _prev(_last(el0));
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Heading, props0, ctx),
+    { class: 'title' },
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  const marker4 = _first(el0);
+  maybeThen(component0, (component1) => marker4.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent(Alias, null, ctx);
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  const end0 = _next(marker1);
+  const content0 = createContentBlock(
+    ctx,
+    marker1,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  const tag0 = UI.Button;
+  const component4 = createComponent(
+    (props1) => createDynamicTag(tag0, props1, ctx),
+    { label: 'x' },
+    ctx
+  );
+  maybeThen(component4, (component5) => marker2.replaceWith(..._toNodes(component5)));
+  const end1 = _next(marker3);
+  const content1 = createContentBlock(
+    ctx,
+    marker3,
+    end1,
+    [],
+    q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    34,
+    343
+  ],
+  "paramNames": [
     "props"
   ]
 }

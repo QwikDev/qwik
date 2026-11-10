@@ -16,35 +16,9 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  BranchRange,
-  createPending,
-  _withCaptures,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_suspense_content_segment_1_oznzhxo2l2hq } from './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq';
-import { component_suspense_fallback_segment_0_1i2rr5w5knxuo } from './component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo';
-
-const default_tmpl0 = _createElementTemplate('<section><!><!></section>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Slow } from './slow';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const label = useSignal('Loading');
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  createPending(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    component_suspense_content_segment_1_oznzhxo2l2hq,
-    _withCaptures(component_suspense_fallback_segment_0_1i2rr5w5knxuo, [label]),
-    50
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 import { _capturesObj, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
@@ -108,6 +82,55 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "loc": [
     199,
     318
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createPending,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_suspense_content_segment_1_oznzhxo2l2hq } from './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq';
+import { component_suspense_fallback_segment_0_1i2rr5w5knxuo } from './component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo';
+const default_tmpl0 = _createElementTemplate('<section><!><!></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const label = useSignal('Loading');
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  createPending(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    component_suspense_content_segment_1_oznzhxo2l2hq,
+    _withCaptures(component_suspense_fallback_segment_0_1i2rr5w5knxuo, [label]),
+    50
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    96,
+    342
   ],
   "paramNames": []
 }

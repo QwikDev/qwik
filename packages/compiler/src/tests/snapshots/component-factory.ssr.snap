@@ -28,8 +28,9 @@ import {
   createComponent,
   _capturesObj,
   _noopQrl,
-  _markComponent,
 } from '@qwik.dev/core';
+import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 export function factory(Component) {
   return (props0, ctx) => {
     const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props0]));
@@ -44,27 +45,9 @@ export function factory(Component) {
     return ['<div class="wrapped">', component0, '</div>'];
   };
 }
-export const Plain = _markComponent(
-  (props0, ctx) => {
-    return '<b>plain</b>';
-  },
-  'Plain_component_25y3k1m6p49gx',
-  './component.tsx'
-);
+export { Plain };
 export const Wrapped = factory(Plain);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const component0 = ctx.observeError(
-      createComponent((props0) => renderSsrDynamicTag(Wrapped, props0, ctx), { label: 'x' }, ctx)
-    );
-    return ['<main>', component0, '</main>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
-
-export { Plain as Plain_component_25y3k1m6p49gx };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -94,6 +77,68 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "captureNames": [
     "props"
   ]
+}
+*/
+============================= src/component.tsx_Plain_component_25y3k1m6p49gx.js (ENTRY POINT)==
+
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Plain_component_25y3k1m6p49gx = /*#__PURE__*/ _noopQrl('Plain_component_25y3k1m6p49gx');
+_markComponent(Plain_component_25y3k1m6p49gx, q_Plain_component_25y3k1m6p49gx);
+
+export function Plain_component_25y3k1m6p49gx(props0, ctx) {
+  return '<b>plain</b>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Plain_component_25y3k1m6p49gx",
+  "entry": null,
+  "displayName": "Plain_component",
+  "hash": "25y3k1m6p49gx",
+  "canonicalFilename": "component.tsx_Plain_component_25y3k1m6p49gx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    187,
+    239
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { renderSsrDynamicTag, createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { Wrapped } from './component.tsx';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Wrapped, props0, ctx), { label: 'x' }, ctx)
+  );
+  return ['<main>', component0, '</main>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    279,
+    347
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

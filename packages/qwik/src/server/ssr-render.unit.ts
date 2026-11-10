@@ -1785,7 +1785,8 @@ describe('SSR context markers', () => {
       (ctx: { nextId(): number }) => ['<p q:id="', createSsrNodeId(ctx.nextId()), '">jsx-root</p>'],
       'jsx_root'
     );
-    const component = _markComponent(() => '<p>component-root</p>', 'sym', './x');
+    const render = () => '<p>component-root</p>';
+    const component = _markComponent(render, inlinedQrl(render, 'sym'));
 
     expect((await publicRenderToString(jsxRoot as never)).html).toMatch(
       /<p q:id="[^"]+">jsx-root<\/p>/

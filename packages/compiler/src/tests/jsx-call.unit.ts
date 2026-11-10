@@ -12,7 +12,7 @@ async function renderBody(body: string, globals: Record<string, unknown> = {}) {
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
+    output.modules,
     {
       ...core,
       get _capturesObj() {

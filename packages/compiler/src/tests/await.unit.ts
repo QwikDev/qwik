@@ -110,7 +110,7 @@ export default () => {
     const logs: unknown[] = [];
     const owners: unknown[] = [];
     let count!: core.Signal<number>;
-    const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    const render = loadDefaultFunction(output.modules, {
       ...core,
       get _capturesObj() {
         return core._capturesObj;

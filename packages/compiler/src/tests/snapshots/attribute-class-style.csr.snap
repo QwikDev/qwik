@@ -17,44 +17,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useStylesScoped,
-  useSignal,
-  patchCachedAttr,
-  createDomBatchEffect,
-  setEvent,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
-import { component_style_segment_1_cgm3c4qw0vql } from './component.tsx_component_style_segment_1_cgm3c4qw0vql';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-
-const default_tmpl0 = _createElementTemplate('<button></button>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
-  const active = useSignal(true);
-  const el0 = default_tmpl0(ctx.document);
-  let written0;
-  let written1;
-  createDomBatchEffect(() => {
-    written0 = patchCachedAttr(
-      el0,
-      'class',
-      component_class_segment_0_3htuygud1guoj(active),
-      written0,
-      '⚡️f5nwzpjzm8yb-0'
-    );
-    written1 = patchCachedAttr(
-      el0,
-      'style',
-      component_style_segment_1_cgm3c4qw0vql(active),
-      written1
-    );
-  }, ctx.scheduler);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (active) => {
@@ -146,6 +110,65 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "captureNames": [
     "active"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStylesScoped,
+  useSignal,
+  patchCachedAttr,
+  createDomBatchEffect,
+  setEvent,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_style_segment_1_cgm3c4qw0vql } from './component.tsx_component_style_segment_1_cgm3c4qw0vql';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const default_tmpl0 = _createElementTemplate('<button></button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
+  const active = useSignal(true);
+  const el0 = default_tmpl0(ctx.document);
+  let written0;
+  let written1;
+  createDomBatchEffect(() => {
+    written0 = patchCachedAttr(
+      el0,
+      'class',
+      component_class_segment_0_3htuygud1guoj(active),
+      written0,
+      '⚡️f5nwzpjzm8yb-0'
+    );
+    written1 = patchCachedAttr(
+      el0,
+      'style',
+      component_style_segment_1_cgm3c4qw0vql(active),
+      written1
+    );
+  }, ctx.scheduler);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    402
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

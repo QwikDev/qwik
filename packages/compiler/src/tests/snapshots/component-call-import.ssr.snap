@@ -12,30 +12,74 @@ export const Child = () => <strong>child</strong>;
 ============================= src/app.tsx ==
 
 import { Child as RenamedChild } from './child';
-import { createComponent, _markComponent } from '@qwik.dev/core';
+import { default_component_31wgqjs4jy6fg } from './app.tsx_default_component_31wgqjs4jy6fg';
 
-export const default_component_31wgqjs4jy6fg = _markComponent(
-  (props, ctx) => {
-    const component0 = ctx.observeError(createComponent(RenamedChild, null, ctx));
-    return ['<main>', component0, '</main>'];
-  },
-  'default_component_31wgqjs4jy6fg',
-  './app.tsx'
-);
-export default default_component_31wgqjs4jy6fg;
+export { default_component_31wgqjs4jy6fg as default };
+============================= src/app.tsx_default_component_31wgqjs4jy6fg.js (ENTRY POINT)==
+
+import { createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { Child as RenamedChild } from './child';
+const q_default_component_31wgqjs4jy6fg = /*#__PURE__*/ _noopQrl('default_component_31wgqjs4jy6fg');
+_markComponent(default_component_31wgqjs4jy6fg, q_default_component_31wgqjs4jy6fg);
+
+export function default_component_31wgqjs4jy6fg(props, ctx) {
+  const component0 = ctx.observeError(createComponent(RenamedChild, null, ctx));
+  return ['<main>', component0, '</main>'];
+}
+/*
+{
+  "origin": "app.tsx",
+  "name": "default_component_31wgqjs4jy6fg",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "31wgqjs4jy6fg",
+  "canonicalFilename": "app.tsx_default_component_31wgqjs4jy6fg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    49,
+    100
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/child.tsx ==
 
-import { _markComponent } from '@qwik.dev/core';
+import { Child_component_21vinhoq90ufu as Child } from './child.tsx_Child_component_21vinhoq90ufu';
 
-export const Child = _markComponent(
-  (props, ctx) => {
-    return '<strong>child</strong>';
-  },
-  'Child_component_21vinhoq90ufu',
-  './child.tsx'
-);
+export { Child };
+============================= src/child.tsx_Child_component_21vinhoq90ufu.js (ENTRY POINT)==
 
-export { Child as Child_component_21vinhoq90ufu };
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Child_component_21vinhoq90ufu = /*#__PURE__*/ _noopQrl('Child_component_21vinhoq90ufu');
+_markComponent(Child_component_21vinhoq90ufu, q_Child_component_21vinhoq90ufu);
+
+export function Child_component_21vinhoq90ufu(props, ctx) {
+  return '<strong>child</strong>';
+}
+/*
+{
+  "origin": "child.tsx",
+  "name": "Child_component_21vinhoq90ufu",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "21vinhoq90ufu",
+  "canonicalFilename": "child.tsx_Child_component_21vinhoq90ufu",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    50
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

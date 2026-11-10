@@ -28,26 +28,27 @@ export function emitQrlChunks(
   module: LinkedModule,
   qrlFunction: (qrl: LinkedQrl) => FunctionEmission,
   options: PresentationOptions,
-  moduleExports: ReadonlyMap<LocalId, string>
+  moduleExports: ReadonlyMap<LocalId, string>,
+  segments: ReadonlyMap<LocalId, LinkedQrl>
 ): GenerateOutput['modules'] {
-  // Declared QRLs (components) splice over their authored range — no chunk file (yet); a nested
-  // component prints inline where its `component$` call stood.
+  // A declaration without a symbol splices over its authored range; a nested component prints
+  // inline where its `component$` call stood.
   return module.qrls
     .filter(
       (qrl) =>
-        qrl.declaration === undefined &&
+        (qrl.declaration === undefined || isComponentSegment(qrl)) &&
         qrl.boundary.kind !== BoundaryKind.Sync &&
         !isInlineComponent(qrl) &&
         qrl.delivery.d !== DeliveryKind.Stripped &&
         qrl.delivery.d !== DeliveryKind.Omit
     )
     .map((qrl) => {
-      const path = `${module.path}_${qrl.name}.js`;
+      const path = `${module.path}_${chunkSymbolName(qrl)}.js`;
       const assembled = assembleGeneratedModule(
         module.source.code,
         module.source.originalPath,
         path,
-        chunkModuleCode(module, qrl, qrlFunction(qrl), moduleExports),
+        chunkModuleCode(module, qrl, qrlFunction(qrl), moduleExports, segments, options),
         qrl.origin.range,
         options.outputSourceMaps === true,
         module.source.normalizationMap as SourceMap | null
@@ -76,12 +77,13 @@ export function getSegmentAnalysis(
           module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
           module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
         );
+  const name = chunkSymbolName(qrl);
   return {
     origin: moduleBasename(module),
-    name: qrl.name,
+    name,
     entry: null,
-    displayName: getSegmentDisplayName(qrl.name),
-    hash: getSegmentSymbolHash(qrl.name),
+    displayName: getSegmentDisplayName(name),
+    hash: getSegmentSymbolHash(name),
     canonicalFilename: chunkCanonicalFilename(module, qrl),
     extension: 'js',
     parent: null,
@@ -123,7 +125,46 @@ function minifyFunction(source: string): string {
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {
-  return `${moduleBasename(module)}_${qrl.name}`;
+  return `${moduleBasename(module)}_${chunkSymbolName(qrl)}`;
+}
+
+/** A declared component exports its hashed symbol; every other chunk exports the QRL name. */
+export function chunkSymbolName(qrl: LinkedQrl): string {
+  return qrl.declaration?.symbol ?? qrl.name;
+}
+
+/** Component segments by the binding their declaration names. */
+export function componentSegmentsByBinding(module: LinkedModule): Map<LocalId, LinkedQrl> {
+  const segments = new Map<LocalId, LinkedQrl>();
+  for (const qrl of module.qrls) {
+    const binding = qrl.declaration?.binding;
+    if (binding != null && isComponentSegment(qrl)) {
+      segments.set(binding, qrl);
+    }
+  }
+  return segments;
+}
+
+/** `import { Symbol as name }` of a component segment. */
+export function componentSegmentImport(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  localName: string,
+  options: PresentationOptions
+): string {
+  const symbol = chunkSymbolName(qrl);
+  const specifier = localName === symbol ? symbol : `${symbol} as ${localName}`;
+  return `import { ${specifier} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
+}
+
+/** A component declaration with a symbol lives in its own segment, like every `$` body. */
+export function isComponentSegment(qrl: LinkedQrl): boolean {
+  const declaration = qrl.declaration;
+  return (
+    declaration?.symbol !== undefined &&
+    declaration.expressionOnly !== true &&
+    qrl.aliasOf === undefined
+  );
 }
 
 /** Dev servers resolve segments by their emitted `.js` path, so they ask for the extension. */
@@ -140,14 +181,28 @@ function chunkModuleCode(
   module: LinkedModule,
   qrl: LinkedQrl,
   emission: FunctionEmission,
-  moduleExports: ReadonlyMap<LocalId, string>
+  moduleExports: ReadonlyMap<LocalId, string>,
+  segments: ReadonlyMap<LocalId, LinkedQrl>,
+  options: PresentationOptions
 ): string {
-  const bindingImports = emitBindingImports(
-    module,
-    qrl.dependencies.bindings,
-    emission.imports,
-    moduleExports
-  );
+  const bindings = [
+    ...new Set([...qrl.dependencies.bindings, ...(emission.mirroredBindings ?? [])]),
+  ];
+  const bindingImports = emitBindingImports(module, bindings, emission.imports, moduleExports);
+  // A sibling component comes from its own segment, so the chunk skips the parent module.
+  const selfAliases: string[] = [];
+  for (const binding of bindings) {
+    const component = segments.get(binding);
+    const name = module.bindings[binding].name;
+    if (component === qrl) {
+      // A recursive component names itself; the declaration below is that binding.
+      if (name !== chunkSymbolName(qrl)) {
+        selfAliases.push(`const ${name} = ${chunkSymbolName(qrl)};`);
+      }
+    } else if (component !== undefined) {
+      bindingImports.push(componentSegmentImport(module, component, name, options));
+    }
+  }
   const importLines = [
     ...(emission.imports.size === 0
       ? []
@@ -158,9 +213,15 @@ function chunkModuleCode(
     ...bindingImports,
   ];
   const header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n`;
-  const hoists = emission.hoists.length === 0 ? '' : `${emission.hoists.join('\n')}\n`;
+  const allHoists = [...selfAliases, ...emission.hoists];
+  const hoists = allHoists.length === 0 ? '' : `${allHoists.join('\n')}\n`;
   const separator = header === '' && hoists === '' ? '' : '\n';
-  return `${header}${hoists}${separator}export const ${qrl.name} = ${functionText(emission)};\n`;
+  const name = chunkSymbolName(qrl);
+  // A function declaration is initialized before a module cycle evaluates the parent.
+  const declaration = isComponentSegment(qrl)
+    ? `export ${functionText({ ...emission, functionName: name })}`
+    : `export const ${name} = ${functionText(emission)};`;
+  return `${header}${hoists}${separator}${declaration}\n`;
 }
 
 export type QrlResolver = ReturnType<typeof createQrlResolver>;

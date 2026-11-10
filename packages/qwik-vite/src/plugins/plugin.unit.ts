@@ -827,7 +827,11 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   );
 
   expect(result).toBeTruthy();
-  expect(result!.code).toContain('createPropsEffect');
+  const component = (await plugin.load(
+    {} as any,
+    result!.meta!.qwikdeps.find((id: string) => id.includes('_component_'))
+  )) as { code: string };
+  expect(component.code).toContain('createPropsEffect');
   expect(result!.code).not.toContain('_jsxSplit');
   expect(result!.map).toBeNull();
 });
@@ -1028,7 +1032,11 @@ export const App = component$(() => <p>hi</p>);
 `,
       `${root}/src/app.tsx`
     );
-    expect(result!.code.includes('data-qwik-inspector')).toBe(stamps);
+    const component = (await plugin.load(
+      {} as any,
+      result!.meta!.qwikdeps.find((id: string) => id.includes('_component_'))
+    )) as { code: string };
+    expect(component.code.includes('data-qwik-inspector')).toBe(stamps);
   }
 );
 

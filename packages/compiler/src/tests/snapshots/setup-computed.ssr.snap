@@ -11,44 +11,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useComputedQrl,
-  _capturesObj,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_doubled_segment_0_2yvob8vshk72o = () => {
-  const [count] = _capturesObj._;
-  return count.value * 2;
-};
-const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _noopQrl(
-  'component_doubled_segment_0_2yvob8vshk72o'
-);
-q_component_doubled_segment_0_2yvob8vshk72o.s(component_doubled_segment_0_2yvob8vshk72o);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(1);
-    const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
-    const id0 = ctx.nextId();
-    ctx.addRoot(doubled);
-    const text0 = renderSsrTextNode(id0, null, doubled);
-    return maybeThen(text0, (text0) => [
-      '<span q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</span>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -78,6 +42,64 @@ export const component_doubled_segment_0_2yvob8vshk72o = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useComputedQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_doubled_segment_0_2yvob8vshk72o = () => {
+  const [count] = _capturesObj._;
+  return count.value * 2;
+};
+const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _noopQrl(
+  'component_doubled_segment_0_2yvob8vshk72o'
+);
+q_component_doubled_segment_0_2yvob8vshk72o.s(component_doubled_segment_0_2yvob8vshk72o);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
+  const id0 = ctx.nextId();
+  ctx.addRoot(doubled);
+  const text0 = renderSsrTextNode(id0, null, doubled);
+  return maybeThen(text0, (text0) => [
+    '<span q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</span>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    58,
+    169
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

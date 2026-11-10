@@ -13,35 +13,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useVisibleTask,
-  _withCaptures,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_useVisibleTaskqrl_segment_0_rykj3v0khy38 } from './component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38';
-import { component_useVisibleTaskqrl_segment_1_rykjhw4hc03r } from './component.tsx_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r';
-import { component_useVisibleTaskqrl_segment_2_rykjvx8e624a } from './component.tsx_component_useVisibleTaskqrl_segment_2_rykjvx8e624a';
-
-const default_tmpl0 = _createElementTemplate('<output> </output>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const status = useSignal('waiting');
-  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_0_rykj3v0khy38, [status]));
-  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_1_rykjhw4hc03r, [status]), {
-    strategy: 'document-ready',
-  });
-  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_2_rykjvx8e624a, [status]), {
-    strategy: 'document-idle',
-  });
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, status, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -135,6 +108,56 @@ export const component_useVisibleTaskqrl_segment_2_rykjvx8e624a = () => {
   "captureNames": [
     "status"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useVisibleTask,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_useVisibleTaskqrl_segment_0_rykj3v0khy38 } from './component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38';
+import { component_useVisibleTaskqrl_segment_1_rykjhw4hc03r } from './component.tsx_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r';
+import { component_useVisibleTaskqrl_segment_2_rykjvx8e624a } from './component.tsx_component_useVisibleTaskqrl_segment_2_rykjvx8e624a';
+const default_tmpl0 = _createElementTemplate('<output> </output>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const status = useSignal('waiting');
+  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_0_rykj3v0khy38, [status]));
+  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_1_rykjhw4hc03r, [status]), {
+    strategy: 'document-ready',
+  });
+  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_2_rykjvx8e624a, [status]), {
+    strategy: 'document-idle',
+  });
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, status, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    61,
+    380
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

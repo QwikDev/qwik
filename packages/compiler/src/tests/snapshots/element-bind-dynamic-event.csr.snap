@@ -20,100 +20,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  _first,
-  _next,
-  _last,
-  _prev,
-  inlinedQrl,
-  _val,
-  createEventEffect,
-  readTrackedValue,
-  patchCachedAttr,
-  createDomBatchEffect,
-  _chk,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_onInputqrl_segment_1_1og4fnsuxzixg } from './component.tsx_component_onInputqrl_segment_1_1og4fnsuxzixg';
-import { component_onInputqrl_segment_2_1og4gtw6ohoz1 } from './component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1';
-import { component_onInputqrl_segment_3_1og4gfv2rnmyi } from './component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi';
-import { component_onInputqrl_segment_4_1og4ehpj7hcvv } from './component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv';
-
-const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_action_segment_0_2k64kau1v2n45',
-  () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
-  'component_action_segment_0_2k64kau1v2n45'
-);
-const default_tmpl0 = _createElementTemplate(
-  '<form><input><input><input type="checkbox"><input type="checkbox"></form>'
-);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const enabled = useSignal(false);
-  const text = useSignal('one');
-  const checked = useSignal(false);
-  const action = q_component_action_segment_0_2k64kau1v2n45.w([text, checked]);
-  const el0 = default_tmpl0(ctx.document);
-  const el1 = _first(el0);
-  const effect0 = createEventEffect(
-    el1,
-    'q-e:input',
-    [enabled, action],
-    component_onInputqrl_segment_1_1og4fnsuxzixg,
-    ctx.scheduler,
-    [],
-    [inlinedQrl(_val, '_val', [text])]
-  );
-  ctx.scheduler.run(effect0);
-  let written0;
-  const el2 = _next(_first(el0));
-  let written1;
-  createDomBatchEffect(() => {
-    written0 = patchCachedAttr(el1, 'value', readTrackedValue(text), written0);
-    written1 = patchCachedAttr(el2, 'value', readTrackedValue(text), written1);
-  }, ctx.scheduler);
-  const effect1 = createEventEffect(
-    el2,
-    'q-e:input',
-    [enabled, action],
-    component_onInputqrl_segment_2_1og4gtw6ohoz1,
-    ctx.scheduler,
-    [],
-    [inlinedQrl(_val, '_val', [text])]
-  );
-  ctx.scheduler.run(effect1);
-  const el3 = _prev(_last(el0));
-  const effect2 = createEventEffect(
-    el3,
-    'q-e:input',
-    [enabled, action],
-    component_onInputqrl_segment_3_1og4gfv2rnmyi,
-    ctx.scheduler,
-    [],
-    [inlinedQrl(_chk, '_chk', [checked])]
-  );
-  ctx.scheduler.run(effect2);
-  let written2;
-  const el4 = _last(el0);
-  let written3;
-  createDomBatchEffect(() => {
-    written2 = patchCachedAttr(el3, 'checked', readTrackedValue(checked), written2);
-    written3 = patchCachedAttr(el4, 'checked', readTrackedValue(checked), written3);
-  }, ctx.scheduler);
-  const effect3 = createEventEffect(
-    el4,
-    'q-e:input',
-    [enabled, action],
-    component_onInputqrl_segment_4_1og4ehpj7hcvv,
-    ctx.scheduler,
-    [],
-    [inlinedQrl(_chk, '_chk', [checked])]
-  );
-  ctx.scheduler.run(effect3);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -260,6 +168,121 @@ export const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) =>
     "enabled",
     "action"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  _first,
+  _next,
+  _last,
+  _prev,
+  inlinedQrl,
+  _val,
+  createEventEffect,
+  readTrackedValue,
+  patchCachedAttr,
+  createDomBatchEffect,
+  _chk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_onInputqrl_segment_1_1og4fnsuxzixg } from './component.tsx_component_onInputqrl_segment_1_1og4fnsuxzixg';
+import { component_onInputqrl_segment_2_1og4gtw6ohoz1 } from './component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1';
+import { component_onInputqrl_segment_3_1og4gfv2rnmyi } from './component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi';
+import { component_onInputqrl_segment_4_1og4ehpj7hcvv } from './component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv';
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_action_segment_0_2k64kau1v2n45',
+  () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
+  'component_action_segment_0_2k64kau1v2n45'
+);
+const default_tmpl0 = _createElementTemplate(
+  '<form><input><input><input type="checkbox"><input type="checkbox"></form>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const enabled = useSignal(false);
+  const text = useSignal('one');
+  const checked = useSignal(false);
+  const action = q_component_action_segment_0_2k64kau1v2n45.w([text, checked]);
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createEventEffect(
+    el1,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_1_1og4fnsuxzixg,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  ctx.scheduler.run(effect0);
+  let written0;
+  const el2 = _next(_first(el0));
+  let written1;
+  createDomBatchEffect(() => {
+    written0 = patchCachedAttr(el1, 'value', readTrackedValue(text), written0);
+    written1 = patchCachedAttr(el2, 'value', readTrackedValue(text), written1);
+  }, ctx.scheduler);
+  const effect1 = createEventEffect(
+    el2,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_2_1og4gtw6ohoz1,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  ctx.scheduler.run(effect1);
+  const el3 = _prev(_last(el0));
+  const effect2 = createEventEffect(
+    el3,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_3_1og4gfv2rnmyi,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  ctx.scheduler.run(effect2);
+  let written2;
+  const el4 = _last(el0);
+  let written3;
+  createDomBatchEffect(() => {
+    written2 = patchCachedAttr(el3, 'checked', readTrackedValue(checked), written2);
+    written3 = patchCachedAttr(el4, 'checked', readTrackedValue(checked), written3);
+  }, ctx.scheduler);
+  const effect3 = createEventEffect(
+    el4,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_4_1og4ehpj7hcvv,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  ctx.scheduler.run(effect3);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    59,
+    668
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

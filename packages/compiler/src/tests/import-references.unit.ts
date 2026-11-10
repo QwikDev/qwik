@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { analyseModule, linkPlans, transformModules } from '../index';
 import { EntryKind, LinkResultKind } from '../schema';
 import { ResolutionKind } from '../link/link-plans';
-import { deepFreeze, serverSpecialization } from './fixtures';
+import { deepFreeze, serverSpecialization, renderCode, qrlChunks } from './fixtures';
 
 const code = `import { useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import fallback, { calculate as price, save, unused } from './pricing';
@@ -24,7 +24,7 @@ test.each([true, false])(
       transpileTs: true,
     });
     expect(output.diagnostics).toEqual([]);
-    const chunks = output.modules.filter((module) => module.segment !== null);
+    const chunks = qrlChunks(output);
     const computed = chunks.find((module) => module.code.includes('price(count.value'))!;
     const task = chunks.find((module) => module.code.includes('logger.write('))!;
     const event = chunks.find((module) => module.code.includes('save(count.value)'))!;
@@ -86,7 +86,7 @@ export default () => { const lang = useComputed$(() => locale()); return <p>{lan
     expect(chunk.code).toContain('getLocale as locale');
     expect(chunk.segment?.captures).toBe(false);
     if (isServer) {
-      expect(output.modules[0].code).toContain('getLocale as locale');
+      expect(renderCode(output)).toContain('getLocale as locale');
     }
   }
 );
@@ -143,7 +143,7 @@ export default () => <Card><Label /><button onClick$={() => save()}>save</button
       isServer,
     });
     expect(output.diagnostics).toEqual([]);
-    const chunks = output.modules.filter((module) => module.segment !== null);
+    const chunks = qrlChunks(output);
     const projection = chunks.find((module) => module.code.includes('createComponent(Label'))!;
     expect(projection.code).toContain('import { Label } from "./components";');
     expect(projection.code).not.toContain('from "./api"');
@@ -166,7 +166,7 @@ export default () => { const languages = [locale()]; return <p>{languages[0]}</p
     isServer: false,
   });
   expect(output.diagnostics).toEqual([]);
-  expect(output.modules[0].code).toContain('getLocale as locale');
+  expect(renderCode(output)).toContain('getLocale as locale');
 });
 
 test.each([true, false])('merges retained core imports (SSR: %s)', async (isServer) => {
@@ -189,6 +189,7 @@ export const App = component$(() => {
   });
 
   expect(output.diagnostics).toEqual([]);
-  expect(output.modules[0].code.match(/from ["']@qwik\.dev\/core["']/g)).toHaveLength(1);
-  expect(output.modules[0].code).toContain('getLocale as locale');
+  const main = output.modules.find((module) => !module.segment)!.code;
+  expect(main.match(/from ["']@qwik\.dev\/core["']/g)).toHaveLength(1);
+  expect(main).toContain('getLocale as locale');
 });

@@ -16,65 +16,10 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import {
-  useChildrenInfo,
-  _first,
-  _last,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  maybeThen,
-  createSlot,
-  _createElementTemplate,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-} from '@qwik.dev/core';
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-const List_tmpl0 = _createElementTemplate('<ul><!><!><!></ul>');
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
-  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-export const List = (props, ctx) => {
-  const children = useChildrenInfo();
-  const el0 = List_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_text_segment_0_1fh10fbkzokfc.w([children]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const slotScope0 = createSlotScope(null, [{ type: 'group' }, { type: 'row' }]);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-  const component0 = createComponent(List, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { List as List_component_3heyy58kmhk1z };
+import { List_component_3heyy58kmhk1z as List } from './component.tsx_List_component_3heyy58kmhk1z';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { List };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
@@ -104,6 +49,65 @@ export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
   "captureNames": [
     "children"
   ]
+}
+*/
+============================= src/component.tsx_List_component_3heyy58kmhk1z.js (ENTRY POINT)==
+
+import {
+  useChildrenInfo,
+  _first,
+  _last,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+const List_tmpl0 = _createElementTemplate('<ul><!><!><!></ul>');
+
+export function List_component_3heyy58kmhk1z(props, ctx) {
+  const children = useChildrenInfo();
+  const el0 = List_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  const marker0 = _last(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "List_component_3heyy58kmhk1z",
+  "entry": null,
+  "displayName": "List_component",
+  "hash": "3heyy58kmhk1z",
+  "canonicalFilename": "component.tsx_List_component_3heyy58kmhk1z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    203
+  ],
+  "paramNames": []
 }
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
@@ -160,6 +164,53 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "loc": [
     304,
     327
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { List_component_3heyy58kmhk1z as List } from './component.tsx_List_component_3heyy58kmhk1z';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const slotScope0 = createSlotScope(null, [{ type: 'group' }, { type: 'row' }]);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  const component0 = createComponent(List, null, ctx, { slotScope: slotScope0 });
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    204,
+    341
   ],
   "paramNames": []
 }

@@ -7,33 +7,82 @@ export default () => <main><span>before</span><Child /><span>after</span></main>
 
 ============================= src/component.tsx ==
 
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const el0 = Child_tmpl0(ctx.document);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    50
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
-  _createElementTemplate,
   _first,
   _next,
   createComponent,
   _toNodes,
   maybeThen,
+  _createElementTemplate,
 } from '@qwik.dev/core';
-
-const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
 const default_tmpl0 = _createElementTemplate(
   '<main><span>before</span><!><span>after</span></main>'
 );
-export const Child = (props, ctx) => {
-  const el0 = Child_tmpl0(ctx.document);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(Child, null, ctx);
   const marker0 = _next(_first(el0));
   maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    132
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

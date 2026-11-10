@@ -20,41 +20,9 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  createTemplate,
-  _qrlWithChunk,
-  createContentBlock,
-} from '@qwik.dev/core';
-const default_tmpl0 = createTemplate('<!><!>');
-const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
-  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
-  'component_tag_dynamic_segment_0_331xea01t87eh'
-);
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { A, B, choose } from './parts';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const content = useSignal([A, B]);
-  const show = useSignal(true);
-  const Picked = choose(content.value);
-  const fragment0 = default_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_tag_dynamic_segment_0_331xea01t87eh.w([content, show, Picked]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return [start0, end0];
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {
@@ -327,6 +295,63 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
   "captureNames": [
     "Picked"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createTemplate,
+  _qrlWithChunk,
+  createContentBlock,
+} from '@qwik.dev/core';
+import { A, B, choose } from './parts';
+const default_tmpl0 = createTemplate('<!><!>');
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const content = useSignal([A, B]);
+  const show = useSignal(true);
+  const Picked = choose(content.value);
+  const fragment0 = default_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_0_331xea01t87eh.w([content, show, Picked]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [start0, end0];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    96,
+    407
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

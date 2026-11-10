@@ -50,18 +50,10 @@ import {
   renderSsrTextExpression,
   maybeThen,
   _noopQrl,
-  _markComponent,
 } from '@qwik.dev/core';
-export const Declared = _markComponent(
-  (props0, ctx) => {
-    return '<b>hi</b>';
-  },
-  'Declared_component_2m8wav44xl533',
-  './helpers.tsx'
-);
+import { Declared_component_2m8wav44xl533 as Declared } from './helpers.tsx_Declared_component_2m8wav44xl533';
+export { Declared };
 export const plain = (props) => q_helpers_jsx_segment_0_32g7syw1xnsrq.w([props]);
-
-export { Declared as Declared_component_2m8wav44xl533 };
 ============================= src/helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq.js (ENTRY POINT)==
 
 import {
@@ -140,6 +132,37 @@ export const helpers_text_segment_1_2gnwsr5013erv = (props) => {
   "captureNames": [
     "props"
   ]
+}
+*/
+============================= src/helpers.tsx_Declared_component_2m8wav44xl533.js (ENTRY POINT)==
+
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Declared_component_2m8wav44xl533 = /*#__PURE__*/ _noopQrl(
+  'Declared_component_2m8wav44xl533'
+);
+_markComponent(Declared_component_2m8wav44xl533, q_Declared_component_2m8wav44xl533);
+
+export function Declared_component_2m8wav44xl533(props0, ctx) {
+  return '<b>hi</b>';
+}
+/*
+{
+  "origin": "helpers.tsx",
+  "name": "Declared_component_2m8wav44xl533",
+  "entry": null,
+  "displayName": "Declared_component",
+  "hash": "2m8wav44xl533",
+  "canonicalFilename": "helpers.tsx_Declared_component_2m8wav44xl533",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    97
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

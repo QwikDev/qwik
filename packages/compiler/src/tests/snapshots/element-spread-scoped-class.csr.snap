@@ -17,38 +17,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import { useStylesScoped, _first, _next, createPropsEffect, createTemplate } from '@qwik.dev/core';
-import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
-import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
-
-const default_tmpl0 = createTemplate(
-  '<div>a</div><div>b</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>'
-);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  useStylesScoped('.from-static { color: red } .from-attr { color: blue }', 'f5nwzpjzm8yb-0', true);
-  const attr = { class: 'from-attr' };
-  const fragment0 = default_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  const effect0 = createPropsEffect(
-    el0,
-    [attr],
-    component_props_segment_0_208o16glymg7p,
-    ctx.scheduler,
-    '⚡️f5nwzpjzm8yb-0'
-  );
-  ctx.scheduler.run(effect0);
-  const el1 = _next(_first(fragment0));
-  const effect1 = createPropsEffect(
-    el1,
-    [attr],
-    component_props_segment_1_208o0sfi1se76,
-    ctx.scheduler,
-    '⚡️f5nwzpjzm8yb-0'
-  );
-  ctx.scheduler.run(effect1);
-  return [...fragment0.childNodes];
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 export const component_props_segment_0_208o16glymg7p = (attr) => {
@@ -103,6 +73,59 @@ export const component_props_segment_1_208o0sfi1se76 = (attr) => {
   "captureNames": [
     "attr"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { useStylesScoped, _first, _next, createPropsEffect, createTemplate } from '@qwik.dev/core';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+const default_tmpl0 = createTemplate(
+  '<div>a</div><div>b</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  useStylesScoped('.from-static { color: red } .from-attr { color: blue }', 'f5nwzpjzm8yb-0', true);
+  const attr = { class: 'from-attr' };
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(
+    el0,
+    [attr],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  ctx.scheduler.run(effect0);
+  const el1 = _next(_first(fragment0));
+  const effect1 = createPropsEffect(
+    el1,
+    [attr],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  ctx.scheduler.run(effect1);
+  return [...fragment0.childNodes];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    63,
+    433
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

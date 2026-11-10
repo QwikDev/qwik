@@ -14,62 +14,8 @@ export default (props: { initial: number }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useComputedQrl,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_read_segment_0_1zbzildyw5vrf = async () => {
-  return 42;
-};
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
-  'component_read_segment_0_1zbzildyw5vrf'
-);
-q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
-const component_first_segment_1_bivl4x5fgl56 = async () => {
-  return 42;
-};
-const q_component_first_segment_1_bivl4x5fgl56 = /*#__PURE__*/ _noopQrl(
-  'component_first_segment_1_bivl4x5fgl56'
-);
-q_component_first_segment_1_bivl4x5fgl56.s(component_first_segment_1_bivl4x5fgl56);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const options = {
-      initial: props.initial,
-      timeout: 1e3,
-    };
-    const read = q_component_read_segment_0_1zbzildyw5vrf;
-    const first = useComputedQrl(q_component_first_segment_1_bivl4x5fgl56, {
-      ...options,
-      initial: () => props.initial,
-    });
-    const second = useComputedQrl(read, ...[options]);
-    const id0 = ctx.nextId();
-    ctx.addRoot(first);
-    const text0 = renderSsrTextNode(id0, 0, first);
-    ctx.addRoot(second);
-    const text1 = renderSsrTextNode(id0, 1, second);
-    return maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<span q:id="',
-        createSsrNodeId(id0),
-        '"><!t>',
-        escapeHTML(text0),
-        '<!/t>:<!t>',
-        escapeHTML(text1),
-        '<!/t></span>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 export const component_read_segment_0_1zbzildyw5vrf = async () => {
@@ -118,6 +64,84 @@ export const component_first_segment_1_bivl4x5fgl56 = async () => {
     304
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useComputedQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_read_segment_0_1zbzildyw5vrf = async () => {
+  return 42;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const component_first_segment_1_bivl4x5fgl56 = async () => {
+  return 42;
+};
+const q_component_first_segment_1_bivl4x5fgl56 = /*#__PURE__*/ _noopQrl(
+  'component_first_segment_1_bivl4x5fgl56'
+);
+q_component_first_segment_1_bivl4x5fgl56.s(component_first_segment_1_bivl4x5fgl56);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const options = {
+    initial: props.initial,
+    timeout: 1e3,
+  };
+  const read = q_component_read_segment_0_1zbzildyw5vrf;
+  const first = useComputedQrl(q_component_first_segment_1_bivl4x5fgl56, {
+    ...options,
+    initial: () => props.initial,
+  });
+  const second = useComputedQrl(read, ...[options]);
+  const id0 = ctx.nextId();
+  ctx.addRoot(first);
+  const text0 = renderSsrTextNode(id0, 0, first);
+  ctx.addRoot(second);
+  const text1 = renderSsrTextNode(id0, 1, second);
+  return maybeThen(text0, (text0) =>
+    maybeThen(text1, (text1) => [
+      '<span q:id="',
+      createSsrNodeId(id0),
+      '"><!t>',
+      escapeHTML(text0),
+      '<!/t>:<!t>',
+      escapeHTML(text1),
+      '<!/t></span>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    62,
+    375
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==

@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadDefaultFunction, readRenderedText } from './fixtures';
+import { loadDefaultFunction, readRenderedText, renderCode } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
+import { createDocument } from '../../../qwik/src/testing/document';
+import { Scheduler } from '../../../qwik/src/core/runtime/scheduler';
 
 const bodies = [
   [
@@ -131,7 +133,7 @@ export default component$(() => { let count = 0; const action = $(() => { ${muta
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const source = output.modules.find((module) => !module.segment)!.code;
+    const source = renderCode(output);
     expect(source).toContain('let count;');
     expect(source).toContain('var other;');
     expect(source).not.toContain('_cell');
@@ -168,7 +170,7 @@ export default component$((props) => { ${body} });`,
     expect(output.diagnostics).toEqual([]);
     const calls: unknown[][] = [];
     const render = loadDefaultFunction(
-      output.modules.find((module) => !module.segment)!,
+      output.modules,
       {
         ...core,
         Error,
@@ -208,7 +210,7 @@ export default component$((props) => { ${body} });`,
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, core);
+    const render = loadDefaultFunction(output.modules, core);
     if (body.startsWith('throw')) {
       expect(() => render({}, {})).toThrow('stop');
     } else {
@@ -229,10 +231,49 @@ export default component$((props) => { ${body} });`,
     });
     expect(output.diagnostics).toEqual([]);
     const calls: string[] = [];
-    loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    loadDefaultFunction(output.modules, {
       ...core,
       record: (value: string) => calls.push(value),
     });
     expect(calls).toEqual(['before', 'after']);
   });
+
+  test.each([true, false])(
+    'reads props through a parameter not named props (SSR: %s)',
+    async (isServer) => {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        input: [{ path: 'src/body.tsx', code: 'export default (p) => <b title={p.title} />;' }],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const render = loadDefaultFunction(
+        output.modules,
+        {
+          ...core,
+          get _capturesObj() {
+            return core._capturesObj;
+          },
+        },
+        true
+      );
+      if (isServer) {
+        const result = await renderToStringCompiled((_, ctx) => render({ title: 'ok' }, ctx));
+        expect(result.html).toContain('title="ok"');
+        return;
+      }
+      const document = createDocument();
+      const scheduler = new Scheduler(() => {});
+      const owner = core.createOwner(null);
+      try {
+        const node: Element = core.runWithOwner(owner, () =>
+          render({ title: 'ok' }, { document, scheduler })
+        );
+        await scheduler.flushInteraction();
+        expect(node.getAttribute('title')).toBe('ok');
+      } finally {
+        await core.disposeOwner(owner);
+      }
+    }
+  );
 });

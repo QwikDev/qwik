@@ -10,100 +10,14 @@ export default ({ a = side('a'), b = a, label = fallback }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  untrack,
-  createAttrExpressionEffect,
-  _first,
-  _next,
-  _last,
-  _prev,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
-  'component_text_segment_1_1fh10tcowimfv'
-);
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
-  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
-  'component_text_segment_2_1fh117dstcoge'
-);
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
-  () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-const default_tmpl0 = _createElementTemplate('<p><!><!><!><!><!><!></p>');
 const fallback = 'outer';
 function side(value) {
   console.log(value);
   return value;
 }
-export const default_component_3rg6kq1so9aio = (
-  props,
-  ctx,
-  defaultValue = untrack(() => props.a === void 0) ? side('a') : void 0,
-  defaultValue0 = untrack(() => props.b === void 0)
-    ? props.a === void 0
-      ? defaultValue
-      : props.a
-    : void 0,
-  defaultValue1 = untrack(() => props.label === void 0) ? fallback : void 0
-) => {
-  const fallback = 'inner';
-  const el0 = default_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'title',
-    [fallback],
-    component_title_segment_0_2f0r0xivypjmx,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_text_segment_1_1fh10tcowimfv.w([props, defaultValue]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  const start1 = _next(_next(_first(el0)));
-  const end1 = _next(start1);
-  const content1 = createContentBlock(
-    ctx,
-    start1,
-    end1,
-    [],
-    q_component_text_segment_2_1fh117dstcoge.w([props, defaultValue0]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content1);
-  const start2 = _prev(_last(el0));
-  const end2 = _next(start2);
-  const content2 = createContentBlock(
-    ctx,
-    start2,
-    end2,
-    [],
-    q_component_text_segment_3_1fh11lewq6qgx.w([props, defaultValue1]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content2);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 
 export { side as __qwik_side, fallback as __qwik_fallback };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
@@ -227,6 +141,119 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "captureNames": [
     "props",
     "defaultValue1"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  untrack,
+  createAttrExpressionEffect,
+  _first,
+  _next,
+  _last,
+  _prev,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { __qwik_side as side, __qwik_fallback as fallback } from './component.tsx';
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+  'component_text_segment_1_1fh10tcowimfv'
+);
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_2_1fh117dstcoge',
+  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+  'component_text_segment_2_1fh117dstcoge'
+);
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
+  () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+const default_tmpl0 = _createElementTemplate('<p><!><!><!><!><!><!></p>');
+
+export function default_component_3rg6kq1so9aio(
+  props,
+  ctx,
+  defaultValue = untrack(() => props.a === void 0) ? side('a') : void 0,
+  defaultValue0 = untrack(() => props.b === void 0)
+    ? props.a === void 0
+      ? defaultValue
+      : props.a
+    : void 0,
+  defaultValue1 = untrack(() => props.label === void 0) ? fallback : void 0
+) {
+  const fallback = 'inner';
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'title',
+    [fallback],
+    component_title_segment_0_2f0r0xivypjmx,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_1_1fh10tcowimfv.w([props, defaultValue]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  const start1 = _next(_next(_first(el0)));
+  const end1 = _next(start1);
+  const content1 = createContentBlock(
+    ctx,
+    start1,
+    end1,
+    [],
+    q_component_text_segment_2_1fh117dstcoge.w([props, defaultValue0]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content1);
+  const start2 = _prev(_last(el0));
+  const end2 = _next(start2);
+  const content2 = createContentBlock(
+    ctx,
+    start2,
+    end2,
+    [],
+    q_component_text_segment_3_1fh11lewq6qgx.w([props, defaultValue1]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content2);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    181
+  ],
+  "paramNames": [
+    "{ a = side(\"a\"), b = a, label = fallback }"
   ]
 }
 */

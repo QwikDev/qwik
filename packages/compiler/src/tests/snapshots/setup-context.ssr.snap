@@ -21,95 +21,16 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  createContextId,
-  useContext as read,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-  useSignal,
-  useContextProvider as provide,
-  createComponent,
-} from '@qwik.dev/core';
+import { createContextId } from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { Nested_component_2kgczrffrnn78 as Nested } from './component.tsx_Nested_component_2kgczrffrnn78';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const Counter = createContextId('counter');
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_0_2xwyg1cinvmpz'
-);
-const component_text_segment_1_1fh10tcowimfv = (count) => {
-  return count.value;
-};
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
-);
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-export const Child = _markComponent(
-  (props, ctx) => {
-    const count = read(Counter);
-    const id0 = ctx.nextId();
-    ctx.addRoot(count);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [count],
-      q_component_text_segment_1_1fh10tcowimfv
-    );
-    return maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ]);
-  },
-  'Child_component_syc3erfxihm7',
-  './component.tsx'
-);
-export const Nested = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(10);
-    provide(Counter, count);
-    const contextScope0 = ctx.optionalContextScopeRef();
-    const component0 = ctx.observeError(createComponent(Child, null, ctx));
-    return [
-      ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
-      component0,
-      ...(contextScope0 ? ['<!/c>'] : []),
-    ];
-  },
-  'Nested_component_2kgczrffrnn78',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(1);
-    provide(Counter, count);
-    const contextScope0 = ctx.optionalContextScopeRef();
-    const component0 = ctx.observeError(createComponent(Child, null, ctx));
-    const component1 = ctx.observeError(createComponent(Nested, null, ctx));
-    const component2 = ctx.observeError(createComponent(Child, null, ctx));
-    return [
-      ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
-      '<main>',
-      component0,
-      component1,
-      component2,
-      '</main>',
-      ...(contextScope0 ? ['<!/c>'] : []),
-    ];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { Child };
+export { Nested };
+export { default_component_3rg6kq1so9aio as default };
 
 export { Counter as __qwik_Counter };
-
-export { Child as Child_component_syc3erfxihm7, Nested as Nested_component_2kgczrffrnn78 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -167,6 +88,168 @@ export const component_text_segment_1_1fh10tcowimfv = (count) => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import {
+  useContext as read,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { __qwik_Counter as Counter } from './component.tsx';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_text_segment_1_1fh10tcowimfv = (count) => {
+  return count.value;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_Child_component_syc3erfxihm7 = /*#__PURE__*/ _noopQrl('Child_component_syc3erfxihm7');
+_markComponent(Child_component_syc3erfxihm7, q_Child_component_syc3erfxihm7);
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const count = read(Counter);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [count],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
+    '>',
+    escapeHTML(text0),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    156,
+    238
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Nested_component_2kgczrffrnn78.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useContextProvider as provide,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { __qwik_Counter as Counter } from './component.tsx';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_Nested_component_2kgczrffrnn78 = /*#__PURE__*/ _noopQrl('Nested_component_2kgczrffrnn78');
+_markComponent(Nested_component_2kgczrffrnn78, q_Nested_component_2kgczrffrnn78);
+
+export function Nested_component_2kgczrffrnn78(props, ctx) {
+  const count = useSignal(10);
+  provide(Counter, count);
+  const contextScope0 = ctx.optionalContextScopeRef();
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  return [
+    ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
+    component0,
+    ...(contextScope0 ? ['<!/c>'] : []),
+  ];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Nested_component_2kgczrffrnn78",
+  "entry": null,
+  "displayName": "Nested_component",
+  "hash": "2kgczrffrnn78",
+  "canonicalFilename": "component.tsx_Nested_component_2kgczrffrnn78",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    310,
+    401
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useContextProvider as provide,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { __qwik_Counter as Counter } from './component.tsx';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { Nested_component_2kgczrffrnn78 as Nested } from './component.tsx_Nested_component_2kgczrffrnn78';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  provide(Counter, count);
+  const contextScope0 = ctx.optionalContextScopeRef();
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  const component1 = ctx.observeError(createComponent(Nested, null, ctx));
+  const component2 = ctx.observeError(createComponent(Child, null, ctx));
+  return [
+    ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
+    '<main>',
+    component0,
+    component1,
+    component2,
+    '</main>',
+    ...(contextScope0 ? ['<!/c>'] : []),
+  ];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    421,
+    504
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

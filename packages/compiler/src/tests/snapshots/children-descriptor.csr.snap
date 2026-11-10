@@ -22,119 +22,13 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useChildrenInfo,
-  _first,
-  _last,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  maybeThen,
-  createSlot,
-  _createElementTemplate,
-  useSignal,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  createComponent,
-  _toNodes,
-  createTemplate,
-} from '@qwik.dev/core';
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-const Counter_tmpl0 = _createElementTemplate('<p><!><!><!></p>');
-const Plain_tmpl0 = _createElementTemplate('<p><!></p>');
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
-  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
-  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
-  'component_slot_render_segment_3_3b0ta2vuvdjtz'
-);
-const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse',
-  () => import('./component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse'),
-  'component_slot_render_segment_4_3b0t8wsj4vdse'
-);
-const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx',
-  () => import('./component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx'),
-  'component_slot_render_segment_5_3b0t9atn1pfsx'
-);
-const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_6_3b0t84qbb79rc',
-  () => import('./component.tsx_component_slot_render_segment_6_3b0t84qbb79rc'),
-  'component_slot_render_segment_6_3b0t84qbb79rc'
-);
-const default_tmpl0 = createTemplate('<!><!><!>');
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Card } from './card';
-export const Counter = (props, ctx) => {
-  const children = useChildrenInfo();
-  const el0 = Counter_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_text_segment_0_1fh10fbkzokfc.w([children]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
-  return el0;
-};
-export const Plain = (props, ctx) => {
-  const el0 = Plain_tmpl0(ctx.document);
-  const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const fragment0 = default_tmpl0(ctx.document);
-  const marker0 = _next(_first(fragment0));
-  const marker1 = _last(fragment0);
-  const slotScope0 = createSlotScope(null, [
-    { type: 'bold' },
-    _EMPTY_OBJ,
-    { type: 'card' },
-    _EMPTY_OBJ,
-  ]);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
-  const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
-  const marker2 = _first(fragment0);
-  maybeThen(component0, (component1) => marker2.replaceWith(..._toNodes(component1)));
-  const slotScope1 = createSlotScope();
-  registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
-  const component2 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
-  const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
-  registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
-  const component4 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
-  maybeThen(component4, (component5) => marker1.replaceWith(..._toNodes(component5)));
-  return [...fragment0.childNodes];
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
+export { Counter };
+export { Plain };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
@@ -164,6 +58,96 @@ export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
   "captureNames": [
     "children"
   ]
+}
+*/
+============================= src/component.tsx_Counter_component_3h2q15ekklxzt.js (ENTRY POINT)==
+
+import {
+  useChildrenInfo,
+  _first,
+  _last,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+const Counter_tmpl0 = _createElementTemplate('<p><!><!><!></p>');
+
+export function Counter_component_3h2q15ekklxzt(props, ctx) {
+  const children = useChildrenInfo();
+  const el0 = Counter_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  const marker0 = _last(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Counter_component_3h2q15ekklxzt",
+  "entry": null,
+  "displayName": "Counter_component",
+  "hash": "3h2q15ekklxzt",
+  "canonicalFilename": "component.tsx_Counter_component_3h2q15ekklxzt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    110,
+    236
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Plain_component_25y3k1m6p49gx.js (ENTRY POINT)==
+
+import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+const Plain_tmpl0 = _createElementTemplate('<p><!></p>');
+
+export function Plain_component_25y3k1m6p49gx(props, ctx) {
+  const el0 = Plain_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Plain_component_25y3k1m6p49gx",
+  "entry": null,
+  "displayName": "Plain_component",
+  "hash": "25y3k1m6p49gx",
+  "canonicalFilename": "component.tsx_Plain_component_25y3k1m6p49gx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    237,
+    292
+  ],
+  "paramNames": []
 }
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
@@ -342,6 +326,105 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
   "loc": [
     504,
     512
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  _last,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createTemplate,
+} from '@qwik.dev/core';
+import { Card } from './card';
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse',
+  () => import('./component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse'),
+  'component_slot_render_segment_4_3b0t8wsj4vdse'
+);
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx',
+  () => import('./component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx'),
+  'component_slot_render_segment_5_3b0t9atn1pfsx'
+);
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_6_3b0t84qbb79rc',
+  () => import('./component.tsx_component_slot_render_segment_6_3b0t84qbb79rc'),
+  'component_slot_render_segment_6_3b0t84qbb79rc'
+);
+const default_tmpl0 = createTemplate('<!><!><!>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const fragment0 = default_tmpl0(ctx.document);
+  const marker0 = _next(_first(fragment0));
+  const marker1 = _last(fragment0);
+  const slotScope0 = createSlotScope(null, [
+    { type: 'bold' },
+    _EMPTY_OBJ,
+    { type: 'card' },
+    _EMPTY_OBJ,
+  ]);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
+  const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
+  const marker2 = _first(fragment0);
+  maybeThen(component0, (component1) => marker2.replaceWith(..._toNodes(component1)));
+  const slotScope1 = createSlotScope();
+  registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
+  const component2 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
+  registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
+  const component4 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
+  maybeThen(component4, (component5) => marker1.replaceWith(..._toNodes(component5)));
+  return [...fragment0.childNodes];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    293,
+    536
   ],
   "paramNames": []
 }

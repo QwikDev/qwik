@@ -11,6 +11,11 @@ export default (props: { code: string }) => (
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   createSsrDomBatchEffect,
@@ -21,38 +26,58 @@ import {
   renderSsrAttr,
   _textValue,
   maybeThen,
+  _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const effect0 = createSsrDomBatchEffect();
-    const prop0 = propSource(props, 'code');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0, effect0);
-    const id1 = ctx.nextId();
-    const attr0 = renderSsrAttr(id1, 'value', prop0, effect0);
-    return maybeThen(text0, (text0) =>
-      maybeThen(attr0, (attr0) => [
-        '<div><pre q:id="',
-        createSsrNodeId(id0),
-        '">',
-        escapeHTML(text0.replace(/^\n/, '\n\n')),
-        '</pre><pre>\n\nfixed</pre><textarea q:id="',
-        createSsrNodeId(id1),
-        '"',
-        attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '>',
-        escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
-        '</textarea></div>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id0 = ctx.nextId();
+  const effect0 = createSsrDomBatchEffect();
+  const prop0 = propSource(props, 'code');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0, effect0);
+  const id1 = ctx.nextId();
+  const attr0 = renderSsrAttr(id1, 'value', prop0, effect0);
+  return maybeThen(text0, (text0) =>
+    maybeThen(attr0, (attr0) => [
+      '<div><pre q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0.replace(/^\n/, '\n\n')),
+      '</pre><pre>\n\nfixed</pre><textarea q:id="',
+      createSsrNodeId(id1),
+      '"',
+      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>',
+      escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
+      '</textarea></div>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    154
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

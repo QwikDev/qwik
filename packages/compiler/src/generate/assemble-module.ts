@@ -9,19 +9,24 @@ import {
   StripValueForm,
 } from '../schema';
 import { EsmEdgeKind } from '../schema';
-import { QWIK_CORE_IMPORT, QwikWord } from '../words';
+import { QWIK_CORE_IMPORT } from '../words';
 import { assembleModule, type AssembledModule } from './source-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { type FunctionEmission } from './emit-function';
-import { emitQrlChunks } from './qrl-chunks';
+import {
+  chunkSymbolName,
+  componentSegmentImport,
+  componentSegmentsByBinding,
+  emitQrlChunks,
+  isComponentSegment,
+} from './qrl-chunks';
 import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
-import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
+import { type GenerateOutput, type PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
   emitComponentAlias,
   emitComponentFunction,
   type ComponentEmission,
-  type ComponentMarker,
   type GeneratedNames,
 } from './emit-component';
 
@@ -37,8 +42,6 @@ export function strippedValueJs(form: StripValueForm): string {
 
 /** Insertion order IS the emitted import order. */
 export interface QwikModuleEmitter {
-  /** Only the server serializes, so only it marks components with their symbol. */
-  isServer: boolean;
   imports: Set<string>;
   chunkImports: string[];
   hoists: string[];
@@ -59,7 +62,8 @@ export function generateQwikModule(
   options: PresentationOptions,
   placement: 'component' | 'module-top' = 'component'
 ): GenerateOutput['modules'] {
-  const bindingExports = planModuleBindingExports(module);
+  const segments = componentSegmentsByBinding(module);
+  const bindingExports = planModuleBindingExports(module, new Set(segments.keys()));
   const assembled = assembleQwikModule(module, emitter, options, placement, bindingExports.code);
   const main = {
     path: module.path,
@@ -76,7 +80,8 @@ export function generateQwikModule(
       module,
       (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl)),
       options,
-      bindingExports.names
+      bindingExports.names,
+      segments
     ),
   ];
 }
@@ -122,7 +127,6 @@ export function assembleQwikModule(
   const edits: { range: [number, number]; text: string }[] = [];
   let firstComponentEdit: { range: [number, number]; text: string } | null = null;
   let needsModulePrelude = false;
-  const componentAliases: string[] = [];
   for (const intent of module.assembly) {
     switch (intent.a) {
       case AssemblyKind.Payload:
@@ -167,6 +171,14 @@ export function assembleQwikModule(
         if (declaration === undefined) {
           throw new Error(`pipeline: a splice intent on the undeclared qrl "${qrl.id}"`);
         }
+        if (isComponentSegment(qrl)) {
+          const { importLine, text } = componentSegmentReference(module, qrl, options);
+          parts.chunkImports.push(importLine);
+          const edit = { range: declaration.replacementRange, text };
+          edits.push(edit);
+          firstComponentEdit ??= edit;
+          break;
+        }
         needsModulePrelude ||=
           declaration.expressionOnly === true ||
           declaration.declarationKind === DeclarationKind.Function ||
@@ -175,18 +187,10 @@ export function assembleQwikModule(
           ...names,
           props: componentPropsName(module, declaration) ?? names.props,
         };
-        const { text, alias } =
+        const text =
           qrl.aliasOf === undefined
-            ? emitComponentFunction(
-                qrl,
-                parts.emitProgram(qrl, componentNames),
-                componentNames,
-                componentMarker(module, qrl, parts)
-              )
+            ? emitComponentFunction(qrl, parts.emitProgram(qrl, componentNames), componentNames)
             : emitComponentAlias(qrl, module.bindings[qrl.aliasOf].name);
-        if (alias !== null) {
-          componentAliases.push(alias);
-        }
         const edit = { range: declaration.replacementRange, text };
         for (const binding of qrl.aliasOf === undefined ? qrl.dependencies.bindings : []) {
           requestBindingImport(module, binding, parts.imports);
@@ -215,7 +219,7 @@ export function assembleQwikModule(
     const coreEdges = replacedCoreImports(module);
     const coreEdge = coreEdges[0];
     let hoists = parts.hoists;
-    if (coreEdge !== undefined && parts.imports.size > 0) {
+    if (coreEdge !== undefined) {
       // Module-top hoists follow the replaced import, keeping the authored statement order.
       const inlineHoists = placement === 'module-top' && !needsModulePrelude ? hoists : [];
       // A chunk-import block ends with a blank line before the hoists; a lone core import does not.
@@ -248,9 +252,6 @@ export function assembleQwikModule(
   if (prefix !== '') {
     edits.push({ range: [0, 0], text: prefix });
   }
-  if (componentAliases.length > 0) {
-    bindingExports += `\nexport { ${componentAliases.join(', ')} };\n`;
-  }
   if (bindingExports !== '') {
     const end = module.source.code.length;
     edits.push({ range: [end, end], text: bindingExports });
@@ -265,20 +266,31 @@ export function assembleQwikModule(
   );
 }
 
-/** The server serializes a component as its hashed symbol inside this module's chunk. */
-function componentMarker(
+/** The parent imports a component segment under its authored name and keeps its export. */
+function componentSegmentReference(
   module: LinkedModule,
   qrl: LinkedQrl,
-  parts: QwikModuleEmitter
-): ComponentMarker | null {
-  const symbol = qrl.declaration!.symbol;
-  if (symbol === undefined) {
-    return null;
-  }
-  if (parts.isServer) {
-    parts.imports.add(QwikWord.MarkComponent);
-  }
-  return { symbol, chunk: parts.isServer ? `./${moduleBasename(module)}` : null };
+  options: PresentationOptions
+): { importLine: string; text: string } {
+  const declaration = qrl.declaration!;
+  const symbol = chunkSymbolName(qrl);
+  const isDefault =
+    declaration.declarationKind === DeclarationKind.DefaultArrow ||
+    declaration.declarationKind === DeclarationKind.DefaultFunction;
+  const name =
+    declaration.declarationKind === DeclarationKind.DefaultArrow
+      ? symbol
+      : declaration.declarationKind === DeclarationKind.DefaultFunction
+        ? (declaration.localName ?? symbol)
+        : declaration.name;
+  return {
+    importLine: componentSegmentImport(module, qrl, name, options),
+    text: isDefault
+      ? `export { ${name} as default };`
+      : declaration.isExported
+        ? `export { ${name} };`
+        : '',
+  };
 }
 
 function componentPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {

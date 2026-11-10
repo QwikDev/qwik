@@ -15,82 +15,9 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import {
-  createRevealGroup,
-  createSsrPending,
-  _noopQrl,
-  createComponent,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Slow } from './slow';
-const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const id0 = ctx.nextId();
-  const content0 = ctx.observeError(
-    createSsrPending(
-      ctx,
-      id0,
-      q_component_suspense_content_segment_3_oznypvg8wygo,
-      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
-      0
-    )
-  );
-  return content0;
-};
-const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_1_oznzhxo2l2hq'
-);
-q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
-  component_suspense_content_segment_1_oznzhxo2l2hq
-);
-const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  return '<p>outer</p>';
-};
-const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
-);
-q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
-  component_suspense_fallback_segment_0_1i2rr5w5knxuo
-);
-const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component0 = ctx.observeError(createComponent(Slow, { id: 'inner' }, ctx));
-  return component0;
-};
-const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
-  'component_suspense_content_segment_3_oznypvg8wygo'
-);
-q_component_suspense_content_segment_3_oznypvg8wygo.s(
-  component_suspense_content_segment_3_oznypvg8wygo
-);
-const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
-  return '<p>inner</p>';
-};
-const q_component_suspense_fallback_segment_2_1i2rrxydec1vq = /*#__PURE__*/ _noopQrl(
-  'component_suspense_fallback_segment_2_1i2rrxydec1vq'
-);
-q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
-  component_suspense_fallback_segment_2_1i2rrxydec1vq
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const reveal0 = createRevealGroup('together', undefined, 1);
-    const content0 = ctx.observeError(
-      createSsrPending(
-        ctx,
-        id0,
-        q_component_suspense_content_segment_1_oznzhxo2l2hq,
-        q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
-        0,
-        reveal0,
-        0
-      )
-    );
-    return content0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
@@ -217,6 +144,102 @@ export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
   "loc": [
     206,
     291
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createRevealGroup,
+  createSsrPending,
+  _noopQrl,
+  createComponent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Slow } from './slow';
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const id0 = ctx.nextId();
+  const content0 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_3_oznypvg8wygo,
+      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
+      0
+    )
+  );
+  return content0;
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  return '<p>outer</p>';
+};
+const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
+);
+q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
+  component_suspense_fallback_segment_0_1i2rr5w5knxuo
+);
+const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'inner' }, ctx));
+  return component0;
+};
+const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_3_oznypvg8wygo'
+);
+q_component_suspense_content_segment_3_oznypvg8wygo.s(
+  component_suspense_content_segment_3_oznypvg8wygo
+);
+const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
+  return '<p>inner</p>';
+};
+const q_component_suspense_fallback_segment_2_1i2rrxydec1vq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_2_1i2rrxydec1vq'
+);
+q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
+  component_suspense_fallback_segment_2_1i2rrxydec1vq
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id0 = ctx.nextId();
+  const reveal0 = createRevealGroup('together', undefined, 1);
+  const content0 = ctx.observeError(
+    createSsrPending(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_1_oznzhxo2l2hq,
+      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
+      0,
+      reveal0,
+      0
+    )
+  );
+  return content0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    93,
+    322
   ],
   "paramNames": []
 }

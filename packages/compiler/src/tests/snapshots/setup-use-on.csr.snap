@@ -20,34 +20,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useOn,
-  _qrlWithChunk,
-  setEvent,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
-  () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
-  'component_qrl_segment_0_2fpowujm1ejve'
-);
-const default_tmpl0 = _createElementTemplate('<button> </button>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(0);
-  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -110,22 +84,59 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useOn,
+  _qrlWithChunk,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+  () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    207
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _qrlWithChunk, _first, createTemplate } from '@qwik.dev/core';
-const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _qrlWithChunk(
-  './headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2',
-  () => import('./headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2'),
-  'headless_qrl_segment_0_1g1rt7jroxou2'
-);
-const default_tmpl0 = createTemplate('headless');
-export const default_component_35p4jjiq8gazo = (props, ctx) => {
-  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
-  const fragment0 = default_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  return el0;
-};
-export default default_component_35p4jjiq8gazo;
+import { default_component_35p4jjiq8gazo } from './headless.tsx_default_component_35p4jjiq8gazo';
+export { default_component_35p4jjiq8gazo as default };
 ============================= src/headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2.js (ENTRY POINT)==
 
 export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
@@ -147,6 +158,42 @@ export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   "loc": [
     100,
     110
+  ],
+  "paramNames": []
+}
+*/
+============================= src/headless.tsx_default_component_35p4jjiq8gazo.js (ENTRY POINT)==
+
+import { useOnDocument, _qrlWithChunk, _first, createTemplate } from '@qwik.dev/core';
+const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _qrlWithChunk(
+  './headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2',
+  () => import('./headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2'),
+  'headless_qrl_segment_0_1g1rt7jroxou2'
+);
+const default_tmpl0 = createTemplate('headless');
+
+export function default_component_35p4jjiq8gazo(props, ctx) {
+  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+/*
+{
+  "origin": "headless.tsx",
+  "name": "default_component_35p4jjiq8gazo",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "35p4jjiq8gazo",
+  "canonicalFilename": "headless.tsx_default_component_35p4jjiq8gazo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    116
   ],
   "paramNames": []
 }

@@ -67,11 +67,7 @@ test.each([
       );
     }
   }
-  const renderComponent = loadDefaultFunction(
-    output.modules.find((module) => !module.segment)!,
-    globals,
-    true
-  );
+  const renderComponent = loadDefaultFunction(output.modules, globals, true);
   const save = loadChunkFunction(event, [props]);
   const document = createDocument();
   const scheduler = new Scheduler(() => {});
@@ -112,7 +108,7 @@ export default ({ ${JSON.stringify(key)}: props }) => {
     });
     expect(output.diagnostics).toEqual([]);
     const renderComponent = loadDefaultFunction(
-      output.modules.find((module) => !module.segment)!,
+      output.modules,
       {
         ...core,
         get _capturesObj() {
@@ -144,7 +140,7 @@ test.each(['format', 'useFormat'])('calls the prop alias %s in setup', async (al
   expect(output.diagnostics).toEqual([]);
   let receiver: unknown = 'not called';
   let argument: unknown;
-  const renderComponent = loadDefaultFunction(output.modules[0], core, true);
+  const renderComponent = loadDefaultFunction(output.modules, core, true);
   renderComponent(
     {
       format(this: unknown, value: unknown) {

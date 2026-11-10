@@ -9,6 +9,7 @@ import { parseModule } from '../analyse/ast/parse';
 import { analyseModule } from '../analyse/analyse-module';
 import { transformModules } from '../transform-modules';
 import { ModuleKind } from '../schema';
+import { renderCode } from './fixtures';
 
 test('a derived source without a key is keyed by position', async () => {
   const plan = await analyseModule(
@@ -41,7 +42,7 @@ export default () => {
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code.match(/_wrapArray\(/g)).toHaveLength(1);
+    expect(renderCode(output).match(/_wrapArray\(/g)).toHaveLength(1);
     const chunk = output.modules.find((module) => module.segment?.ctxName === 'collection:source')!;
     const declaration = parseModule(chunk.path, chunk.code).program.body.find(
       (statement) => statement.type === 'ExportNamedDeclaration'
@@ -117,6 +118,6 @@ export default () => {
     const row = output.modules.find((module) => module.segment?.ctxName === 'for:render');
     expect(row).toBeDefined();
     expect(row!.code).toContain('escapeHTML(__rowId)');
-    expect(output.modules[0].code).toContain('escapeHTML(__rowId)');
+    expect(renderCode(output)).toContain('escapeHTML(__rowId)');
   }
 );

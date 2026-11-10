@@ -10,56 +10,9 @@ export default (props: { init: string; rules: string }) => (
 
 ============================= src/component.tsx ==
 
-import {
-  createSsrNodeId,
-  propSource,
-  isSource,
-  renderSsrAttr,
-  renderSsrAttrExpression,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `.a{${props.rules}}`;
-};
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'init');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', prop0);
-    const id1 = ctx.nextId();
-    ctx.addRoot(props);
-    const attr1 = renderSsrAttrExpression(
-      id1,
-      'dangerouslySetInnerHTML',
-      [props],
-      q_component_text_segment_0_1fh10fbkzokfc
-    );
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) => [
-        '<div><script q:id="',
-        createSsrNodeId(id0),
-        '">',
-        attr0 ?? '',
-        '</script><style q:id="',
-        createSsrNodeId(id1),
-        '">',
-        attr1 ?? '',
-        '</style></div>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -84,6 +37,77 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  propSource,
+  isSource,
+  renderSsrAttr,
+  renderSsrAttrExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return `.a{${props.rules}}`;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'init');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', prop0);
+  const id1 = ctx.nextId();
+  ctx.addRoot(props);
+  const attr1 = renderSsrAttrExpression(
+    id1,
+    'dangerouslySetInnerHTML',
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(attr0, (attr0) =>
+    maybeThen(attr1, (attr1) => [
+      '<div><script q:id="',
+      createSsrNodeId(id0),
+      '">',
+      attr0 ?? '',
+      '</script><style q:id="',
+      createSsrNodeId(id1),
+      '">',
+      attr1 ?? '',
+      '</style></div>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    157
+  ],
+  "paramNames": [
     "props"
   ]
 }

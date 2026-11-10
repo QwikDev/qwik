@@ -11,6 +11,12 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   escapeHTML,
@@ -18,58 +24,47 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
-  _markComponent,
-  useSignal,
-  createPropsProxy,
-  useComputedQrl,
-  createComponent,
-  _capturesObj,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
-const component_props_segment_0_208o16glymg7p = () => {
-  const [attributes] = _capturesObj._;
-  return { ...attributes.value };
-};
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
-  'component_props_segment_0_208o16glymg7p'
-);
-q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
-export const Child = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'title');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
-    return maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</button>',
-    ]);
-  },
-  'Child_component_syc3erfxihm7',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const attributes = useSignal({ title: 'save' });
-    ctx.addRoot(attributes);
-    const component0 = ctx.observeError(
-      createComponent(
-        Child,
-        createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
-        ctx
-      )
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+const q_Child_component_syc3erfxihm7 = /*#__PURE__*/ _noopQrl('Child_component_syc3erfxihm7');
+_markComponent(Child_component_syc3erfxihm7, q_Child_component_syc3erfxihm7);
 
-export { Child as Child_component_syc3erfxihm7 };
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    116
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -99,6 +94,61 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "captureNames": [
     "attributes"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createPropsProxy,
+  useComputedQrl,
+  createComponent,
+  _capturesObj,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const component_props_segment_0_208o16glymg7p = () => {
+  const [attributes] = _capturesObj._;
+  return { ...attributes.value };
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_0_208o16glymg7p'
+);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const attributes = useSignal({ title: 'save' });
+  ctx.addRoot(attributes);
+  const component0 = ctx.observeError(
+    createComponent(
+      Child,
+      createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
+      ctx
+    )
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    117,
+    194
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

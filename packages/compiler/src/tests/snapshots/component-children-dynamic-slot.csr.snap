@@ -8,74 +8,10 @@ export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  createTemplate,
-  _qrlWithChunk,
-  createContentBlock,
-  propSource,
-  readTrackedValue,
-  _props,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-} from '@qwik.dev/core';
-const Switch_tmpl0 = createTemplate('<!><!>');
-const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp',
-  () => import('./component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp'),
-  'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
-);
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
-  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-export const Switch = (props, ctx) => {
-  const fragment0 = Switch_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return [start0, end0];
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  const prop0 = propSource(props, 'pick');
-  registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-  const component0 = createComponent(
-    Switch,
-    _props(
-      {
-        get name() {
-          return readTrackedValue(prop0);
-        },
-      },
-      { name: prop0 }
-    ),
-    ctx,
-    { slotScope: slotScope0 }
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Switch as Switch_component_1uyn3u3j9umgv };
+import { Switch_component_1uyn3u3j9umgv as Switch } from './component.tsx_Switch_component_1uyn3u3j9umgv';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Switch };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
 import { _capturesObj, _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';
@@ -108,6 +44,54 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Switch_component_1uyn3u3j9umgv.js (ENTRY POINT)==
+
+import { _first, _next, createTemplate, _qrlWithChunk, createContentBlock } from '@qwik.dev/core';
+const Switch_tmpl0 = createTemplate('<!><!>');
+const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp',
+  () => import('./component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp'),
+  'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
+);
+
+export function Switch_component_1uyn3u3j9umgv(props, ctx) {
+  const fragment0 = Switch_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [start0, end0];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Switch_component_1uyn3u3j9umgv",
+  "entry": null,
+  "displayName": "Switch_component",
+  "hash": "1uyn3u3j9umgv",
+  "canonicalFilename": "component.tsx_Switch_component_1uyn3u3j9umgv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    99
+  ],
+  "paramNames": [
     "props"
   ]
 }
@@ -168,6 +152,71 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
     198
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  propSource,
+  readTrackedValue,
+  _props,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { Switch_component_1uyn3u3j9umgv as Switch } from './component.tsx_Switch_component_1uyn3u3j9umgv';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const slotScope0 = createSlotScope();
+  const prop0 = propSource(props, 'pick');
+  registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  const component0 = createComponent(
+    Switch,
+    _props(
+      {
+        get name() {
+          return readTrackedValue(prop0);
+        },
+      },
+      { name: prop0 }
+    ),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    100,
+    208
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

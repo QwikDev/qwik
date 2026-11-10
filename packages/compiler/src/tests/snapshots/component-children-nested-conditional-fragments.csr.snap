@@ -8,50 +8,43 @@ export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _last,
-  maybeThen,
-  createSlot,
-  _createElementTemplate,
-  createSlotScope,
-  registerProjection,
-  _qrlWithChunk,
-  createComponent,
-} from '@qwik.dev/core';
+import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Panel };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Panel_component_5q1hs6sb6j5z.js (ENTRY POINT)==
+
+import { _first, _last, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Panel_tmpl0 = _createElementTemplate('<main><!><!></main>');
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
-  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
-  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
-  'component_slot_render_segment_3_3b0ta2vuvdjtz'
-);
-export const Panel = (props0, ctx) => {
+
+export function Panel_component_5q1hs6sb6j5z(props0, ctx) {
   const el0 = Panel_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const marker1 = _first(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker1.replaceWith(...slot0)));
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  registerProjection(
-    slotScope0,
-    'header',
-    q_component_slot_render_segment_0_3b0tagwys7lui.w([props])
-  );
-  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
-  const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Panel as Panel_component_5q1hs6sb6j5z };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Panel_component_5q1hs6sb6j5z",
+  "entry": null,
+  "displayName": "Panel_component",
+  "hash": "5q1hs6sb6j5z",
+  "canonicalFilename": "component.tsx_Panel_component_5q1hs6sb6j5z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    110
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
@@ -382,6 +375,59 @@ export const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
     238
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const slotScope0 = createSlotScope();
+  registerProjection(
+    slotScope0,
+    'header',
+    q_component_slot_render_segment_0_3b0tagwys7lui.w([props])
+  );
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
+  const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    111,
+    259
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

@@ -11,39 +11,62 @@ export default () => {
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
   useSignal,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(0);
-    const name = useSignal('Qwik');
-    const id0 = ctx.nextId();
-    ctx.addRoot(name);
-    const text0 = renderSsrTextNode(id0, 0, name);
-    ctx.addRoot(count);
-    const text1 = renderSsrTextNode(id0, 1, count);
-    return maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<p q:id="',
-        createSsrNodeId(id0),
-        '"><!t>',
-        escapeHTML(text0),
-        '<!/t> count: <!t>',
-        escapeHTML(text1),
-        '<!/t>!</p>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const name = useSignal('Qwik');
+  const id0 = ctx.nextId();
+  ctx.addRoot(name);
+  const text0 = renderSsrTextNode(id0, 0, name);
+  ctx.addRoot(count);
+  const text1 = renderSsrTextNode(id0, 1, count);
+  return maybeThen(text0, (text0) =>
+    maybeThen(text1, (text1) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '"><!t>',
+      escapeHTML(text0),
+      '<!/t> count: <!t>',
+      escapeHTML(text1),
+      '<!/t>!</p>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    134
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

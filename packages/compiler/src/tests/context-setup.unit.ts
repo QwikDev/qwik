@@ -34,7 +34,7 @@ export default () => {
     });
     expect(output.diagnostics).toEqual([]);
     const received: core.Signal<number>[] = [];
-    const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    const render = loadDefaultFunction(output.modules, {
       ...core,
       useContext(context: core.ContextId<core.Signal<number>>) {
         const count = core.useContext(context);

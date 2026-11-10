@@ -11,39 +11,41 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  maybeThen,
-  createSlot,
-  _createElementTemplate,
-  useSignal,
-  createSlotScope,
-  registerProjection,
-  _qrlWithChunk,
-  createComponent,
-} from '@qwik.dev/core';
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Wrapper };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
+
+import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Wrapper_tmpl0 = _createElementTemplate('<section><!></section>');
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
-  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-export const Wrapper = (props, ctx) => {
+
+export function Wrapper_component_1yrb0pezcavja(props, ctx) {
   const el0 = Wrapper_tmpl0(ctx.document);
   const marker0 = _first(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
-  const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Wrapper as Wrapper_component_1yrb0pezcavja };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Wrapper_component_1yrb0pezcavja",
+  "entry": null,
+  "displayName": "Wrapper_component",
+  "hash": "1yrb0pezcavja",
+  "canonicalFilename": "component.tsx_Wrapper_component_1yrb0pezcavja",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    50,
+    107
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _capturesObj, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
@@ -78,6 +80,49 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
+  const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    108,
+    164
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

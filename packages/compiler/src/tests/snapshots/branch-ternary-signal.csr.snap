@@ -10,45 +10,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  BranchRange,
-  createBranch,
-  _withCaptures,
-  _qrlWithChunk,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
-  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
-  'component_branch_then_segment_1_24n7blyqktd46'
-);
-const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_2_19dvu7nugnvkl',
-  () => import('./component.tsx_component_branch_else_segment_2_19dvu7nugnvkl'),
-  'component_branch_else_segment_2_19dvu7nugnvkl'
-);
-const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const show = useSignal(false);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const branch0 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [show]),
-    q_component_branch_then_segment_1_24n7blyqktd46,
-    q_component_branch_else_segment_2_19dvu7nugnvkl
-  );
-  ctx.scheduler.notify(branch0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -134,6 +97,66 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   "loc": [
     140,
     150
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
+  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+  'component_branch_then_segment_1_24n7blyqktd46'
+);
+const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_else_segment_2_19dvu7nugnvkl',
+  () => import('./component.tsx_component_branch_else_segment_2_19dvu7nugnvkl'),
+  'component_branch_else_segment_2_19dvu7nugnvkl'
+);
+const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const show = useSignal(false);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [show]),
+    q_component_branch_then_segment_1_24n7blyqktd46,
+    q_component_branch_else_segment_2_19dvu7nugnvkl
+  );
+  ctx.scheduler.notify(branch0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    103
   ],
   "paramNames": []
 }

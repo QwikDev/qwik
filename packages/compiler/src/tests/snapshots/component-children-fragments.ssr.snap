@@ -11,73 +11,41 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  renderSsrSlot,
-  _markComponent,
-  useSignal,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-  _createSsrSlotMarker,
-  _noopQrl,
-  _capturesObj,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-} from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
-};
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
-  const [count] = _capturesObj._;
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(id0, 0, count);
-  return maybeThen(text0, (text0) => [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">Count: <!t>',
-    escapeHTML(text0),
-    '<!/t><i></i><b></b><em></em></p><!/s>',
-  ]);
-};
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-export const Card = _markComponent(
-  (props, ctx) => {
-    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
-    const slot1 = ctx.observeError(renderSsrSlot(ctx));
-    return ['<article><header>', slot0, '</header>', slot1, '</article>'];
-  },
-  'Card_component_1j4wd08arm0n5',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(1);
-    const slotScope0 = createSlotScope();
-    registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
-    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([count]));
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(Card, null, ctx, { slotScope: slotScope0 })
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Card };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
 
-export { Card as Card_component_1j4wd08arm0n5 };
+import { renderSsrSlot, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Card_component_1j4wd08arm0n5 = /*#__PURE__*/ _noopQrl('Card_component_1j4wd08arm0n5');
+_markComponent(Card_component_1j4wd08arm0n5, q_Card_component_1j4wd08arm0n5);
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
+  const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
+  const slot1 = ctx.observeError(renderSsrSlot(ctx));
+  return ['<article><header>', slot0, '</header>', slot1, '</article>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Card_component_1j4wd08arm0n5",
+  "entry": null,
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    50,
+    143
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _createSsrSlotMarker } from '@qwik.dev/core';
@@ -159,6 +127,80 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _createSsrSlotMarker,
+  _noopQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  const [count] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, 0, count);
+  return maybeThen(text0, (text0) => [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '">Count: <!t>',
+    escapeHTML(text0),
+    '<!/t><i></i><b></b><em></em></p><!/s>',
+  ]);
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([count]));
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(createComponent(Card, null, ctx, { slotScope: slotScope0 }));
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    144,
+    200
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

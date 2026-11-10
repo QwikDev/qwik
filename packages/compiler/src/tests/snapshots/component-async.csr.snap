@@ -11,53 +11,11 @@ export default component$(() => <div><h1 id="prefix">Prefix</h1><AsyncCmp id="a"
 
 ============================= src/component.tsx ==
 
-import {
-  _await,
-  _first,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-  _last,
-  createComponent,
-  _toNodes,
-  maybeThen,
-} from '@qwik.dev/core';
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-const AsyncCmp_tmpl0 = _createElementTemplate('<span id="async-result"><!><!></span>');
-const default_tmpl0 = _createElementTemplate('<div><h1 id="prefix">Prefix</h1><!></div>');
+import { AsyncCmp_component_gw3thccjtr8j as AsyncCmp } from './component.tsx_AsyncCmp_component_gw3thccjtr8j';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { load } from './load';
-export const AsyncCmp = async (props, ctx) => {
-  const value = (await _await(load(props.id)))();
-  const el0 = AsyncCmp_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const content0 = createContentBlock(
-    ctx,
-    start0,
-    end0,
-    [],
-    q_component_text_segment_0_1fh10fbkzokfc.w([value]),
-    false,
-    true
-  );
-  ctx.scheduler.notify(content0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
-  const marker0 = _last(el0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { AsyncCmp as AsyncCmp_component_gw3thccjtr8j };
+export { AsyncCmp };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
@@ -87,6 +45,102 @@ export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
   "captureNames": [
     "value"
   ]
+}
+*/
+============================= src/component.tsx_AsyncCmp_component_gw3thccjtr8j.js (ENTRY POINT)==
+
+import {
+  _await,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { load } from './load';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+const AsyncCmp_tmpl0 = _createElementTemplate('<span id="async-result"><!><!></span>');
+
+export async function AsyncCmp_component_gw3thccjtr8j(props, ctx) {
+  const value = (await _await(load(props.id)))();
+  const el0 = AsyncCmp_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_0_1fh10fbkzokfc.w([value]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "AsyncCmp_component_gw3thccjtr8j",
+  "entry": null,
+  "displayName": "AsyncCmp_component",
+  "hash": "gw3thccjtr8j",
+  "canonicalFilename": "component.tsx_AsyncCmp_component_gw3thccjtr8j",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    76,
+    220
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _last,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { AsyncCmp_component_gw3thccjtr8j as AsyncCmp } from './component.tsx_AsyncCmp_component_gw3thccjtr8j';
+const default_tmpl0 = _createElementTemplate('<div><h1 id="prefix">Prefix</h1><!></div>');
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
+  const marker0 = _last(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    221,
+    312
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

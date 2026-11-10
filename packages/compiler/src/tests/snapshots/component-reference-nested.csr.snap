@@ -32,23 +32,15 @@ const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _qrlWithChunk(
   'component_jsx_segment_3_38vnj6t5v0ibn'
 );
 const component_component_segment_5_1wtrfxzfacjnr_tmpl0 = _createElementTemplate('<i>x</i>');
-const default_5_tmpl0 = _createElementTemplate('<div></div>');
-const default_6_tmpl0 = _createElementTemplate('<div></div>');
-const default_tmpl0 = createTemplate('<!><!>');
 import {
   _qrlWithChunk,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
   component$,
-  _last,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  createDynamicTag,
-  createTemplate,
 } from '@qwik.dev/core';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { Imported } from './imported';
 const plain = () => q_component_jsx_segment_0_38vnjku9rukc6;
 export function make(label) {
@@ -74,26 +66,7 @@ export const makePlain = () => (props, ctx) => {
   return el0;
 };
 export const wrap = (Param) => component$(Param);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const Fn = (props, ctx) => {
-    const el0 = default_5_tmpl0(ctx.document);
-    return el0;
-  };
-  const Cmp = (props, ctx) => {
-    const el0 = default_6_tmpl0(ctx.document);
-    return el0;
-  };
-  const Wrapped = component$(Imported);
-  const fragment0 = default_tmpl0(ctx.document);
-  const marker0 = _last(fragment0);
-  const component0 = createComponent(Cmp, null, ctx);
-  const marker1 = _first(fragment0);
-  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
-  const component2 = createComponent((props0) => createDynamicTag(Wrapped, props0, ctx), null, ctx);
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
-  return [...fragment0.childNodes];
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -224,6 +197,63 @@ export const component_text_segment_4_1fh11zg0n0shg = (label) => {
   "captureNames": [
     "label"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _createElementTemplate,
+  _first,
+  _last,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createDynamicTag,
+  createTemplate,
+  component$,
+} from '@qwik.dev/core';
+import { Imported } from './imported';
+const default_5_tmpl0 = _createElementTemplate('<div></div>');
+const default_6_tmpl0 = _createElementTemplate('<div></div>');
+const default_tmpl0 = createTemplate('<!><!>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const Fn = (props, ctx) => {
+    const el0 = default_5_tmpl0(ctx.document);
+    return el0;
+  };
+  const Cmp = (props, ctx) => {
+    const el0 = default_6_tmpl0(ctx.document);
+    return el0;
+  };
+  const Wrapped = component$(Imported);
+  const fragment0 = default_tmpl0(ctx.document);
+  const marker0 = _last(fragment0);
+  const component0 = createComponent(Cmp, null, ctx);
+  const marker1 = _first(fragment0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent((props0) => createDynamicTag(Wrapped, props0, ctx), null, ctx);
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  return [...fragment0.childNodes];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    331,
+    500
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

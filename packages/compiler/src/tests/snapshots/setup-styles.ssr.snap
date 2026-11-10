@@ -24,128 +24,44 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useStylesScoped,
-  _markComponent,
-  useStyles,
-  useSignal,
-  createSsrNodeId,
-  renderSsrAttrExpression,
-  escapeHTML,
-  _capturesObj,
-  renderSsrBranch,
-  createComponent,
-  maybeThen,
-  _noopQrl,
-} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const STYLE = `.container { color: red; }`;
-const component_class_segment_0_3htuygud1guoj = (scope) => {
-  return scope;
-};
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
-  'component_class_segment_0_3htuygud1guoj'
-);
-q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
-const component_class_segment_1_3htuy2t94mso0 = (active) => {
-  return { active: active.value };
-};
-const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _noopQrl(
-  'component_class_segment_1_3htuy2t94mso0'
-);
-q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94mso0);
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
-);
-const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
-  const [active] = _capturesObj._;
-  return active.value;
-};
-const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_3_2fzrh8qv53bdo'
-);
-q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
-  component_branch_condition_segment_3_2fzrh8qv53bdo
-);
-const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  return '<b class="⚡️f5nxrrrtaczd-2 on">on</b>';
-};
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_4_24n7dk4a4zn6t'
-);
-q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-export const Child = _markComponent(
-  (props, ctx) => {
-    useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
-    return '<div class="⚡️f5nwzpjzm8yb-0 container">child</div>';
-  },
-  'Child_component_syc3erfxihm7',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    useStyles('.global { color: blue; }', '1th7qqj6qe004-0');
-    const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
-    const active = useSignal(false);
-    const id0 = ctx.nextId();
-    ctx.addRoot(scope);
-    const attr0 = renderSsrAttrExpression(
-      id0,
-      'class',
-      [scope],
-      q_component_class_segment_0_3htuygud1guoj,
-      undefined,
-      '⚡️f5nxrrrtaczd-2'
-    );
-    const id1 = ctx.nextId();
-    ctx.addRoot(active);
-    const attr1 = renderSsrAttrExpression(
-      id1,
-      'class',
-      [active],
-      q_component_class_segment_1_3htuy2t94mso0,
-      undefined,
-      '⚡️f5nxrrrtaczd-2'
-    );
-    const branchId0 = ctx.nextId();
-    const branch0 = ctx.observeError(
-      renderSsrBranch(
-        ctx,
-        branchId0,
-        q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
-        q_component_branch_then_segment_4_24n7dk4a4zn6t,
-        undefined
-      )
-    );
-    const component0 = ctx.observeError(createComponent(Child, null, ctx));
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) => [
-        '<section q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
-        createSsrNodeId(id1),
-        '"',
-        attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
-        '>go</button><!b=',
-        createSsrNodeId(branchId0),
-        '>',
-        branch0,
-        '<!/b>',
-        component0,
-        '</section>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
 
 export { STYLE as __qwik_STYLE };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
 
-export { Child as Child_component_syc3erfxihm7 };
+import { useStylesScoped, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { __qwik_STYLE as STYLE } from './component.tsx';
+const q_Child_component_syc3erfxihm7 = /*#__PURE__*/ _noopQrl('Child_component_syc3erfxihm7');
+_markComponent(Child_component_syc3erfxihm7, q_Child_component_syc3erfxihm7);
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
+  return '<div class="⚡️f5nwzpjzm8yb-0 container">child</div>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    118,
+    177
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (scope) => {
@@ -285,6 +201,136 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   "loc": [
     568,
     588
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStyles,
+  useStylesScoped,
+  useSignal,
+  createSsrNodeId,
+  renderSsrAttrExpression,
+  escapeHTML,
+  _capturesObj,
+  renderSsrBranch,
+  createComponent,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const component_class_segment_0_3htuygud1guoj = (scope) => {
+  return scope;
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const component_class_segment_1_3htuy2t94mso0 = (active) => {
+  return { active: active.value };
+};
+const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_1_3htuy2t94mso0'
+);
+q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94mso0);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
+  const [active] = _capturesObj._;
+  return active.value;
+};
+const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_3_2fzrh8qv53bdo'
+);
+q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
+  component_branch_condition_segment_3_2fzrh8qv53bdo
+);
+const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
+  return '<b class="⚡️f5nxrrrtaczd-2 on">on</b>';
+};
+const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_4_24n7dk4a4zn6t'
+);
+q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  useStyles('.global { color: blue; }', '1th7qqj6qe004-0');
+  const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
+  const active = useSignal(false);
+  const id0 = ctx.nextId();
+  ctx.addRoot(scope);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'class',
+    [scope],
+    q_component_class_segment_0_3htuygud1guoj,
+    undefined,
+    '⚡️f5nxrrrtaczd-2'
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(active);
+  const attr1 = renderSsrAttrExpression(
+    id1,
+    'class',
+    [active],
+    q_component_class_segment_1_3htuy2t94mso0,
+    undefined,
+    '⚡️f5nxrrrtaczd-2'
+  );
+  const branchId0 = ctx.nextId();
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
+      q_component_branch_then_segment_4_24n7dk4a4zn6t,
+      undefined
+    )
+  );
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  return maybeThen(attr0, (attr0) =>
+    maybeThen(attr1, (attr1) => [
+      '<section q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
+      createSsrNodeId(id1),
+      '"',
+      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+      '>go</button><!b=',
+      createSsrNodeId(branchId0),
+      '>',
+      branch0,
+      '<!/b>',
+      component0,
+      '</section>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    222,
+    615
   ],
   "paramNames": []
 }

@@ -13,55 +13,11 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-  useStore,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const Child_tmpl0 = _createElementTemplate('<b> </b>');
-const default_tmpl0 = _createElementTemplate('<section><!></section>');
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { _waitOn } from '@qwik.dev/core/internal';
-export const Child = (props, ctx) => {
-  const el0 = Child_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const state = useStore({ ready: false });
-  _waitOn(
-    Promise.resolve().then(() => {
-      state.ready = true;
-    })
-  );
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = default_tmpl0(ctx.document);
-      const component0 = createComponent(Child, { state: state }, ctx);
-      const marker0 = _first(el0);
-      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-      return el0;
-    })
-  );
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -88,6 +44,100 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "captureNames": [
     "props"
   ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const Child_tmpl0 = _createElementTemplate('<b> </b>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const el0 = Child_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    94,
+    175
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStore,
+  _first,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  invoke,
+} from '@qwik.dev/core';
+import { _waitOn } from '@qwik.dev/core/internal';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const default_tmpl0 = _createElementTemplate('<section><!></section>');
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const state = useStore({ ready: false });
+  _waitOn(
+    Promise.resolve().then(() => {
+      state.ready = true;
+    })
+  );
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const component0 = createComponent(Child, { state: state }, ctx);
+      const marker0 = _first(el0);
+      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    176,
+    312
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

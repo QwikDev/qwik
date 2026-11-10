@@ -13,15 +13,37 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import { _markComponent } from '@qwik.dev/core';
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    return '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>';
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  return '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    195
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

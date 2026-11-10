@@ -10,30 +10,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _first, _next, createCollection, _createElementTemplate } from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-
-const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const items = useSignal([{ label: 'Alpha' }]);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      items,
-      null,
-      component_for_render_segment_0_asyt89wzo2d3,
-      0,
-      0
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
@@ -100,6 +78,51 @@ export const component_text_segment_1_1fh10tcowimfv = (item) => {
   "captureNames": [
     "item"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { useSignal, _first, _next, createCollection, _createElementTemplate } from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const items = useSignal([{ label: 'Alpha' }]);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      items,
+      null,
+      component_for_render_segment_0_asyt89wzo2d3,
+      0,
+      0
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    119
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

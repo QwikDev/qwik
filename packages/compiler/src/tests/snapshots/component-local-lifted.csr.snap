@@ -13,45 +13,8 @@ export const Footer = component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _withCaptures,
-  _first,
-  _next,
-  BranchRange,
-  createBranch,
-  _qrlWithChunk,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
-  () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
-  'component_branch_then_segment_3_24n7atwir5934'
-);
-const Footer_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const Footer = (props0, ctx) => {
-  const n = useSignal(0);
-  function Filter() {
-    return _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]).apply(this, arguments);
-  }
-  const el0 = Footer_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const branch0 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [n]),
-    q_component_branch_then_segment_3_24n7atwir5934.w([n]),
-    undefined
-  );
-  ctx.scheduler.notify(branch0);
-  return el0;
-};
-
-export { Footer as Footer_component_d3m2s4mpch0k };
+import { Footer_component_d3m2s4mpch0k as Footer } from './component.tsx_Footer_component_d3m2s4mpch0k';
+export { Footer };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -198,6 +161,65 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "captureNames": [
     "n"
   ]
+}
+*/
+============================= src/component.tsx_Footer_component_d3m2s4mpch0k.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _withCaptures,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _qrlWithChunk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
+import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+  () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
+  'component_branch_then_segment_3_24n7atwir5934'
+);
+const Footer_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function Footer_component_d3m2s4mpch0k(props0, ctx) {
+  const n = useSignal(0);
+  function Filter() {
+    return _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]).apply(this, arguments);
+  }
+  const el0 = Footer_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [n]),
+    q_component_branch_then_segment_3_24n7atwir5934.w([n]),
+    undefined
+  );
+  ctx.scheduler.notify(branch0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Footer_component_d3m2s4mpch0k",
+  "entry": null,
+  "displayName": "Footer_component",
+  "hash": "d3m2s4mpch0k",
+  "canonicalFilename": "component.tsx_Footer_component_d3m2s4mpch0k",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    303
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

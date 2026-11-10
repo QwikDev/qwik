@@ -18,57 +18,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useTaskQrl,
-  _capturesObj,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
-  const [count] = _capturesObj._;
-  if (true) {
-    count.value = 1;
-  }
-  if (true) {
-    count.value = 2;
-  }
-  observe(import.meta.env.BASE_URL);
-};
-const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ _noopQrl(
-  'component_useTaskqrl_segment_0_1og80iqmttt5c'
-);
-q_component_useTaskqrl_segment_0_1og80iqmttt5c.s(component_useTaskqrl_segment_0_1og80iqmttt5c);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const count = useSignal(0);
-    useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c.w([count]));
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        const id0 = ctx.nextId();
-        ctx.addRoot(count);
-        const text0 = renderSsrTextNode(id0, null, count);
-        return maybeThen(text0, (text0) => [
-          '<button q:id="',
-          createSsrNodeId(id0),
-          '">',
-          escapeHTML(text0),
-          '</button>',
-        ]);
-      })
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -104,6 +55,77 @@ export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useTaskQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
+  const [count] = _capturesObj._;
+  if (true) {
+    count.value = 1;
+  }
+  if (true) {
+    count.value = 2;
+  }
+  observe(import.meta.env.BASE_URL);
+};
+const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ _noopQrl(
+  'component_useTaskqrl_segment_0_1og80iqmttt5c'
+);
+q_component_useTaskqrl_segment_0_1og80iqmttt5c.s(component_useTaskqrl_segment_0_1og80iqmttt5c);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c.w([count]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(count);
+      const text0 = renderSsrTextNode(id0, null, count);
+      return maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</button>',
+      ]);
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    66,
+    359
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

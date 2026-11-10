@@ -339,7 +339,12 @@ export type HookTwin =
 
 export type CallTarget =
   | { kind: CallTargetKind.Binding; binding: LocalId }
-  | { kind: CallTargetKind.Core; operation: CoreOperation }
+  | {
+      kind: CallTargetKind.Core;
+      operation: CoreOperation;
+      /** Authored from a core subpath (`_waitOn` from core/internal): that import stays the callee. */
+      subpathBinding?: LocalId;
+    }
   /** Value calls do not supply a receiver. */
   | { kind: CallTargetKind.Value; value: ValueIR }
   /** A custom `$` hook; the linker resolves its `Qrl` and function twins from the same source. */

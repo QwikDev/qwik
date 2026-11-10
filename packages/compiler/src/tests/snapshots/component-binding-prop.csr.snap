@@ -14,60 +14,10 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-  useSignal,
-  _next,
-  BranchRange,
-  createBranch,
-  _withCaptures,
-  _qrlWithChunk,
-} from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-
-const Child_tmpl0 = _createElementTemplate('<strong> </strong>');
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
-  () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
-  'component_branch_then_segment_2_24n7b7xmnzb3n'
-);
-const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
-export const Child = (props, ctx) => {
-  const el0 = Child_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const show = useSignal(true);
-  const count = useSignal(0);
-  let label = 'a';
-  label = 'b';
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const branch0 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [show]),
-    q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
-    undefined
-  );
-  ctx.scheduler.notify(branch0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -92,6 +42,46 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const Child_tmpl0 = _createElementTemplate('<strong> </strong>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
+  const el0 = Child_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    113
+  ],
+  "paramNames": [
     "props"
   ]
 }
@@ -130,7 +120,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
 import { _capturesObj, createComponent } from '@qwik.dev/core';
-import { Child } from './component.tsx';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   const [count, label] = _capturesObj._;
@@ -159,6 +149,64 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
     "count",
     "label"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
+  () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
+  'component_branch_then_segment_2_24n7b7xmnzb3n'
+);
+const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const show = useSignal(true);
+  const count = useSignal(0);
+  let label = 'a';
+  label = 'b';
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [show]),
+    q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
+    undefined
+  );
+  ctx.scheduler.notify(branch0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    114,
+    236
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

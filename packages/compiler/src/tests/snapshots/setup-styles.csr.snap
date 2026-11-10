@@ -24,89 +24,44 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useStylesScoped,
-  _createElementTemplate,
-  useStyles,
-  useSignal,
-  createAttrExpressionEffect,
-  _first,
-  _next,
-  _last,
-  setEvent,
-  BranchRange,
-  createBranch,
-  _withCaptures,
-  _qrlWithChunk,
-  createComponent,
-  _toNodes,
-  maybeThen,
-} from '@qwik.dev/core';
-import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
-import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-import { component_branch_condition_segment_3_2fzrh8qv53bdo } from './component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo';
-
-const Child_tmpl0 = _createElementTemplate('<div class="⚡️f5nwzpjzm8yb-0 container">child</div>');
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t',
-  () => import('./component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t'),
-  'component_branch_then_segment_4_24n7dk4a4zn6t'
-);
-const default_tmpl0 = _createElementTemplate(
-  '<section><span class="⚡️f5nxrrrtaczd-2">plain</span><button>go</button><!><!><!></section>'
-);
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const STYLE = `.container { color: red; }`;
-export const Child = (props, ctx) => {
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+
+export { STYLE as __qwik_STYLE };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
+import { useStylesScoped, _createElementTemplate } from '@qwik.dev/core';
+import { __qwik_STYLE as STYLE } from './component.tsx';
+const Child_tmpl0 = _createElementTemplate('<div class="⚡️f5nwzpjzm8yb-0 container">child</div>');
+
+export function Child_component_syc3erfxihm7(props, ctx) {
   useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
   const el0 = Child_tmpl0(ctx.document);
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  useStyles('.global { color: blue; }', '1th7qqj6qe004-0');
-  const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
-  const active = useSignal(false);
-  const el0 = default_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'class',
-    [scope],
-    component_class_segment_0_3htuygud1guoj,
-    ctx.scheduler,
-    '⚡️f5nxrrrtaczd-2'
-  );
-  ctx.scheduler.notify(effect0);
-  const el1 = _next(_first(el0));
-  const effect1 = createAttrExpressionEffect(
-    el1,
-    'class',
-    [active],
-    component_class_segment_1_3htuy2t94mso0,
-    ctx.scheduler,
-    '⚡️f5nxrrrtaczd-2'
-  );
-  ctx.scheduler.notify(effect1);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
-  const start0 = _next(_next(_first(el0)));
-  const end0 = _next(start0);
-  const branch0 = createBranch(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_3_2fzrh8qv53bdo, [active]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t,
-    undefined
-  );
-  ctx.scheduler.notify(branch0);
-  const component0 = createComponent(Child, null, ctx);
-  const marker0 = _last(el0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { STYLE as __qwik_STYLE };
-
-export { Child as Child_component_syc3erfxihm7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    118,
+    177
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (scope) => {
@@ -252,6 +207,100 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   "loc": [
     568,
     588
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useStyles,
+  useStylesScoped,
+  useSignal,
+  createAttrExpressionEffect,
+  _first,
+  _next,
+  _last,
+  setEvent,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+import { component_branch_condition_segment_3_2fzrh8qv53bdo } from './component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t',
+  () => import('./component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t'),
+  'component_branch_then_segment_4_24n7dk4a4zn6t'
+);
+const default_tmpl0 = _createElementTemplate(
+  '<section><span class="⚡️f5nxrrrtaczd-2">plain</span><button>go</button><!><!><!></section>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  useStyles('.global { color: blue; }', '1th7qqj6qe004-0');
+  const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
+  const active = useSignal(false);
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [scope],
+    component_class_segment_0_3htuygud1guoj,
+    ctx.scheduler,
+    '⚡️f5nxrrrtaczd-2'
+  );
+  ctx.scheduler.notify(effect0);
+  const el1 = _next(_first(el0));
+  const effect1 = createAttrExpressionEffect(
+    el1,
+    'class',
+    [active],
+    component_class_segment_1_3htuy2t94mso0,
+    ctx.scheduler,
+    '⚡️f5nxrrrtaczd-2'
+  );
+  ctx.scheduler.notify(effect1);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
+  const start0 = _next(_next(_first(el0)));
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_3_2fzrh8qv53bdo, [active]),
+    q_component_branch_then_segment_4_24n7dk4a4zn6t,
+    undefined
+  );
+  ctx.scheduler.notify(branch0);
+  const component0 = createComponent(Child, null, ctx);
+  const marker0 = _last(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    222,
+    615
   ],
   "paramNames": []
 }

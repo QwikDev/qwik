@@ -238,15 +238,9 @@ test('the default client build maps linked text and event QRLs into its manifest
         Object.values(manifest.symbols)
           .map((symbol) => symbol.ctxName)
           .sort()
-      ).toEqual(['onClick$', 'text']);
-      // Components map by their hashed export too, so a serialized component resolves its bundle.
-      const componentSymbols = Object.keys(manifest.mapping).filter((symbol) =>
-        /_component_\w+$/.test(symbol)
-      );
-      expect(componentSymbols).toHaveLength(2);
-      expect(Object.keys(manifest.mapping).sort()).toEqual(
-        [...Object.keys(manifest.symbols), ...componentSymbols].sort()
-      );
+      ).toEqual(['component$', 'component$', 'onClick$', 'text']);
+      // Components are segments, so a serialized component resolves its bundle like any QRL.
+      expect(Object.keys(manifest.mapping).sort()).toEqual(Object.keys(manifest.symbols).sort());
       for (const file of Object.values(manifest.mapping)) {
         expect(chunks.some((chunk) => chunk.fileName === join('build', String(file)))).toBe(true);
       }

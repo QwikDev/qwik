@@ -10,10 +10,47 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
+import { Item_component_33lzeq7ebrquo as Item } from './component.tsx_Item_component_33lzeq7ebrquo';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Item_component_33lzeq7ebrquo.js (ENTRY POINT)==
+
+import { propSource, createAttrEffect, _createElementTemplate } from '@qwik.dev/core';
+const Item_tmpl0 = _createElementTemplate('<a></a>');
+
+export function Item_component_33lzeq7ebrquo(props, ctx) {
+  const el0 = Item_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'href');
+  const effect0 = createAttrEffect(el0, 'href', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Item_component_33lzeq7ebrquo",
+  "entry": null,
+  "displayName": "Item_component",
+  "hash": "33lzeq7ebrquo",
+  "canonicalFilename": "component.tsx_Item_component_33lzeq7ebrquo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    123
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
 import {
-  propSource,
-  createAttrEffect,
-  _createElementTemplate,
   _first,
   _next,
   createCollection,
@@ -21,19 +58,14 @@ import {
   createComponent,
   _toNodes,
   maybeThen,
+  _createElementTemplate,
 } from '@qwik.dev/core';
-const Item_tmpl0 = _createElementTemplate('<a></a>');
+import { Item_component_33lzeq7ebrquo as Item } from './component.tsx_Item_component_33lzeq7ebrquo';
 const semantic_collectionRender_153_287_230tpyuuqn4ag_tmpl0 =
   _createElementTemplate('<li><!></li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-const Item = (props, ctx) => {
-  const el0 = Item_tmpl0(ctx.document);
-  const prop0 = propSource(props, 'href');
-  const effect0 = createAttrEffect(el0, 'href', prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -62,12 +94,27 @@ export const default_component_3rg6kq1so9aio = (props0, ctx) => {
     true
   );
   return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Item as __qwik_Item };
-
-export { Item as Item_component_33lzeq7ebrquo };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    124,
+    312
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

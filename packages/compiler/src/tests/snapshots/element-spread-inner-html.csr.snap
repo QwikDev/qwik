@@ -14,59 +14,8 @@ export default component$((props: { dangerouslySetInnerHTML: string }) => (
 
 ============================= src/component.tsx ==
 
-import {
-  _first,
-  _next,
-  _last,
-  _prev,
-  createPropsEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
-import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
-import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
-import { component_props_segment_3_208o00da84a64 } from './component.tsx_component_props_segment_3_208o00da84a64';
-
-const default_tmpl0 = _createElementTemplate(
-  '<section><div></div><style></style><script></script><input></section>'
-);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const el1 = _first(el0);
-  const effect0 = createPropsEffect(
-    el1,
-    [props],
-    component_props_segment_0_208o16glymg7p,
-    ctx.scheduler
-  );
-  ctx.scheduler.run(effect0);
-  const el2 = _next(_first(el0));
-  const effect1 = createPropsEffect(
-    el2,
-    [props],
-    component_props_segment_1_208o0sfi1se76,
-    ctx.scheduler
-  );
-  ctx.scheduler.run(effect1);
-  const el3 = _prev(_last(el0));
-  const effect2 = createPropsEffect(
-    el3,
-    [props],
-    component_props_segment_2_208o0eee4yc6n,
-    ctx.scheduler
-  );
-  ctx.scheduler.run(effect2);
-  const el4 = _last(el0);
-  const effect3 = createPropsEffect(
-    el4,
-    [props],
-    component_props_segment_3_208o00da84a64,
-    ctx.scheduler
-  );
-  ctx.scheduler.run(effect3);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 export const component_props_segment_0_208o16glymg7p = (props) => {
@@ -175,6 +124,82 @@ export const component_props_segment_3_208o00da84a64 = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _last,
+  _prev,
+  createPropsEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
+import { component_props_segment_3_208o00da84a64 } from './component.tsx_component_props_segment_3_208o00da84a64';
+const default_tmpl0 = _createElementTemplate(
+  '<section><div></div><style></style><script></script><input></section>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createPropsEffect(
+    el1,
+    [props],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect0);
+  const el2 = _next(_first(el0));
+  const effect1 = createPropsEffect(
+    el2,
+    [props],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect1);
+  const el3 = _prev(_last(el0));
+  const effect2 = createPropsEffect(
+    el3,
+    [props],
+    component_props_segment_2_208o0eee4yc6n,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect2);
+  const el4 = _last(el0);
+  const effect3 = createPropsEffect(
+    el4,
+    [props],
+    component_props_segment_3_208o00da84a64,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect3);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    300
+  ],
+  "paramNames": [
     "props"
   ]
 }

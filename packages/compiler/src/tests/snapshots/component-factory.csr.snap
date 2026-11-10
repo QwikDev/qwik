@@ -21,8 +21,6 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
 const component_component_segment_1_1wtreduzn0bln_tmpl0 = _createElementTemplate(
   '<div class="wrapped"><!></div>'
 );
-const Plain_tmpl0 = _createElementTemplate('<b>plain</b>');
-const default_tmpl0 = _createElementTemplate('<main><!></main>');
 import {
   _first,
   _qrlWithChunk,
@@ -34,6 +32,8 @@ import {
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
+import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 export function factory(Component) {
   return (props0, ctx) => {
     const el0 = component_component_segment_1_1wtreduzn0bln_tmpl0(ctx.document);
@@ -48,25 +48,9 @@ export function factory(Component) {
     return el0;
   };
 }
-export const Plain = (props0, ctx) => {
-  const el0 = Plain_tmpl0(ctx.document);
-  return el0;
-};
+export { Plain };
 export const Wrapped = factory(Plain);
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const component0 = createComponent(
-    (props0) => createDynamicTag(Wrapped, props0, ctx),
-    { label: 'x' },
-    ctx
-  );
-  const marker0 = _first(el0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Plain as Plain_component_25y3k1m6p49gx };
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -96,6 +80,79 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "captureNames": [
     "props"
   ]
+}
+*/
+============================= src/component.tsx_Plain_component_25y3k1m6p49gx.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const Plain_tmpl0 = _createElementTemplate('<b>plain</b>');
+
+export function Plain_component_25y3k1m6p49gx(props0, ctx) {
+  const el0 = Plain_tmpl0(ctx.document);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Plain_component_25y3k1m6p49gx",
+  "entry": null,
+  "displayName": "Plain_component",
+  "hash": "25y3k1m6p49gx",
+  "canonicalFilename": "component.tsx_Plain_component_25y3k1m6p49gx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    187,
+    239
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  createDynamicTag,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { Wrapped } from './component.tsx';
+const default_tmpl0 = _createElementTemplate('<main><!></main>');
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Wrapped, props0, ctx),
+    { label: 'x' },
+    ctx
+  );
+  const marker0 = _first(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    279,
+    347
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

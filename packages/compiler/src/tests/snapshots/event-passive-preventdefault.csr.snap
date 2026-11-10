@@ -14,30 +14,8 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import { _first, _next, _last, _prev, setEvent, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_ep_click_segment_0_1d1haenu4olet } from './component.tsx_component_q_ep_click_segment_0_1d1haenu4olet';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-import { component_q_ep_scroll_segment_2_nlfghcwaub86 } from './component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
-import { component_q_ep_dblclick_segment_4_3rnzp5juf9e0n } from './component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n';
-
-const default_tmpl0 = _createElementTemplate(
-  '<div><button stoppropagation:click capture:click></button><button preventdefault:click></button><button preventdefault:click></button><button></button></div>'
-);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const el0 = default_tmpl0(ctx.document);
-  const el1 = _first(el0);
-  setEvent(el1, 'q-ep:click', component_q_ep_click_segment_0_1d1haenu4olet);
-  const el2 = _next(_first(el0));
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
-  setEvent(el2, 'q-ep:scroll', component_q_ep_scroll_segment_2_nlfghcwaub86);
-  const el3 = _prev(_last(el0));
-  setEvent(el3, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi);
-  const el4 = _last(el0);
-  setEvent(el4, 'q-ep:dblclick', component_q_ep_dblclick_segment_4_3rnzp5juf9e0n);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_ep_click_segment_0_1d1haenu4olet.js (ENTRY POINT)==
 
 export const component_q_ep_click_segment_0_1d1haenu4olet = () => {
@@ -159,6 +137,51 @@ export const component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = () => {
   "loc": [
     518,
     563
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { _first, _next, _last, _prev, setEvent, _createElementTemplate } from '@qwik.dev/core';
+import { component_q_ep_click_segment_0_1d1haenu4olet } from './component.tsx_component_q_ep_click_segment_0_1d1haenu4olet';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { component_q_ep_scroll_segment_2_nlfghcwaub86 } from './component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86';
+import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { component_q_ep_dblclick_segment_4_3rnzp5juf9e0n } from './component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n';
+const default_tmpl0 = _createElementTemplate(
+  '<div><button stoppropagation:click capture:click></button><button preventdefault:click></button><button preventdefault:click></button><button></button></div>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  setEvent(el1, 'q-ep:click', component_q_ep_click_segment_0_1d1haenu4olet);
+  const el2 = _next(_first(el0));
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
+  setEvent(el2, 'q-ep:scroll', component_q_ep_scroll_segment_2_nlfghcwaub86);
+  const el3 = _prev(_last(el0));
+  setEvent(el3, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi);
+  const el4 = _last(el0);
+  setEvent(el4, 'q-ep:dblclick', component_q_ep_dblclick_segment_4_3rnzp5juf9e0n);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    579
   ],
   "paramNames": []
 }

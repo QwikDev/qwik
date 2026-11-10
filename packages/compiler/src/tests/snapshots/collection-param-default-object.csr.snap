@@ -10,39 +10,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  createCollection,
-  _withCaptures,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-
-const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const items = useSignal([]);
-  const fallback = useSignal(null);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      items,
-      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [fallback]),
-      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [fallback]),
-      0,
-      0
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
@@ -187,6 +156,60 @@ export const component_text_segment_3_1fh11lewq6qgx = (title) => {
   "captureNames": [
     "title"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createCollection,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const items = useSignal([]);
+  const fallback = useSignal(null);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      items,
+      _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [fallback]),
+      _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [fallback]),
+      0,
+      0
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    137
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

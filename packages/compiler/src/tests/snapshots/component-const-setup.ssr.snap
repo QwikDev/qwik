@@ -13,66 +13,8 @@ export const Card = (props: { title?: string; suffix: string; start: number }) =
 
 ============================= src/component.tsx ==
 
-import {
-  createPropsProxy,
-  useSignal,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  renderSsrTextNode,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_0_2xwyg1cinvmpz'
-);
-const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => {
-  return label + suffix + count.value;
-};
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
-);
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-export const Card = _markComponent(
-  (props, ctx) => {
-    const rest = createPropsProxy(props, ['title']);
-    const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
-    const suffix = rest.suffix;
-    const count = useSignal(props.start);
-    const id0 = ctx.nextId();
-    ctx.addRoot(label);
-    ctx.addRoot(suffix);
-    ctx.addRoot(count);
-    const text0 = renderSsrTextExpression(
-      id0,
-      0,
-      [label, suffix, count],
-      q_component_text_segment_1_1fh10tcowimfv
-    );
-    const text1 = renderSsrTextNode(id0, 1, count);
-    return maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<button q:id="',
-        createSsrNodeId(id0),
-        '"',
-        ctx.eventAttrParts(
-          'q-e:click',
-          q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count, label])
-        ),
-        '><!t>',
-        escapeHTML(text0),
-        '<!/t>:<!t>',
-        escapeHTML(text1),
-        '<!/t></button>',
-      ])
-    );
-  },
-  'Card_component_1j4wd08arm0n5',
-  './component.tsx'
-);
-
-export { Card as Card_component_1j4wd08arm0n5 };
+import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
+export { Card };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -132,6 +74,87 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => 
     "label",
     "suffix",
     "count"
+  ]
+}
+*/
+============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
+
+import {
+  createPropsProxy,
+  useSignal,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => {
+  return label + suffix + count.value;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_Card_component_1j4wd08arm0n5 = /*#__PURE__*/ _noopQrl('Card_component_1j4wd08arm0n5');
+_markComponent(Card_component_1j4wd08arm0n5, q_Card_component_1j4wd08arm0n5);
+
+export function Card_component_1j4wd08arm0n5(props, ctx) {
+  const rest = createPropsProxy(props, ['title']);
+  const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
+  const suffix = rest.suffix;
+  const count = useSignal(props.start);
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  ctx.addRoot(suffix);
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    0,
+    [label, suffix, count],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  const text1 = renderSsrTextNode(id0, 1, count);
+  return maybeThen(text0, (text0) =>
+    maybeThen(text1, (text1) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts(
+        'q-e:click',
+        q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count, label])
+      ),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t>:<!t>',
+      escapeHTML(text1),
+      '<!/t></button>',
+    ])
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Card_component_1j4wd08arm0n5",
+  "entry": null,
+  "displayName": "Card_component",
+  "hash": "1j4wd08arm0n5",
+  "canonicalFilename": "component.tsx_Card_component_1j4wd08arm0n5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    44,
+    415
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

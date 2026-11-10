@@ -30,6 +30,7 @@ import { createOriginalPositionReader, createOriginalRangeMapper } from '../sour
 import { isFunctionLike } from './ast/utils';
 import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
+import { QwikMarker } from '../words';
 import { recordEnvConstants } from './build-env';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
@@ -270,7 +271,7 @@ export async function analyseModule(
           id: `${input.path}#${component.name}`,
           name: component.name,
         },
-        ctxName: component.name,
+        ctxName: QwikMarker.Component,
         captures: [],
         declaration: (parameter) => ({
           name: component.name,

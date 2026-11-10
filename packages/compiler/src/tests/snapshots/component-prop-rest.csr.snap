@@ -9,6 +9,12 @@ export default ({ title: heading = 'heading', ...rest }) => (
 
 ============================= src/component.tsx ==
 
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Child };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Child_component_syc3erfxihm7.js (ENTRY POINT)==
+
 import {
   propSource,
   createAttrEffect,
@@ -16,20 +22,10 @@ import {
   maybeThen,
   createSlot,
   _createElementTemplate,
-  createPropsProxy,
-  _qrlWithChunk,
-  useComputedQrl,
-  createSlotScope,
-  forwardSlot,
-  createComponent,
 } from '@qwik.dev/core';
 const Child_tmpl0 = _createElementTemplate('<section><!></section>');
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0_208o16glymg7p',
-  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
-  'component_props_segment_0_208o16glymg7p'
-);
-export const Child = (props, ctx) => {
+
+export function Child_component_syc3erfxihm7(props, ctx) {
   const el0 = Child_tmpl0(ctx.document);
   const prop0 = propSource(props, 'label');
   const effect0 = createAttrEffect(el0, 'title', prop0, ctx.scheduler);
@@ -37,22 +33,29 @@ export const Child = (props, ctx) => {
   const marker0 = _first(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
-};
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const rest = createPropsProxy(props0, ['title']);
-  const slotScope0 = createSlotScope();
-  forwardSlot(slotScope0);
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props0]))),
-    ctx,
-    { slotScope: slotScope0 }
-  );
-  return component0;
-};
-export default default_component_3rg6kq1so9aio;
-
-export { Child as Child_component_syc3erfxihm7 };
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Child_component_syc3erfxihm7",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "syc3erfxihm7",
+  "canonicalFilename": "component.tsx_Child_component_syc3erfxihm7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    39,
+    117
+  ],
+  "paramNames": [
+    "{ label }"
+  ]
+}
+*/
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -82,6 +85,57 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "captureNames": [
     "rest",
     "props0"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createPropsProxy,
+  _qrlWithChunk,
+  useComputedQrl,
+  createSlotScope,
+  forwardSlot,
+  createComponent,
+} from '@qwik.dev/core';
+import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const rest = createPropsProxy(props0, ['title']);
+  const slotScope0 = createSlotScope();
+  forwardSlot(slotScope0);
+  const component0 = createComponent(
+    Child,
+    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props0]))),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    118,
+    232
+  ],
+  "paramNames": [
+    "{ title: heading = \"heading\", ...rest }"
   ]
 }
 */

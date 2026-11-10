@@ -166,7 +166,6 @@ interface RenderPass {
 }
 
 class CsrModuleEmitter implements QwikModuleEmitter {
-  readonly isServer = false;
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
@@ -954,8 +953,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         // A fresh emitter keeps the render's imports/hoists out of the main module.
         const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
+        const isComponent = programKind(qrl) === ProgramKind.Component;
         const names = {
-          props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
+          // A component reads its own parameter; other programs read the props they capture.
+          props: isComponent
+            ? componentParamName(this.module, qrl)
+            : qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
           ctx: allocateGeneratedNames(this.module).ctx,
         };
         const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
@@ -976,13 +979,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           chunkImports: emitter.chunkImports,
           hoists: emitter.hoists,
           // Declare what the caller passes, used or not: a missing parameter shifts every later one.
-          params:
-            programKind(qrl) === ProgramKind.Component
-              ? [componentParamName(this.module, qrl), names.ctx]
-              : [names.ctx],
+          params: isComponent ? [names.props, names.ctx, ...(emission.params ?? [])] : [names.ctx],
           statements,
           value: emission.value,
-          async: false,
+          async: emission.async === true,
           generator: false,
           uses: [],
         };

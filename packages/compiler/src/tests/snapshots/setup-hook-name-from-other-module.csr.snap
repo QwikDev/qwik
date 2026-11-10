@@ -13,29 +13,10 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useComputed,
-  _withCaptures,
-  _first,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_double_segment_0_oorkh4t0y6ca } from './component.tsx_component_double_segment_0_oorkh4t0y6ca';
-
-const default_tmpl0 = _createElementTemplate('<b> </b>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useComputed as createComputed } from './reactive';
 export const createDouble = (count) => createComputed(() => count.value * 2);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const double = useComputed(_withCaptures(component_double_segment_0_oorkh4t0y6ca, [count]));
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, double, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_double_segment_0_oorkh4t0y6ca.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -65,6 +46,48 @@ export const component_double_segment_0_oorkh4t0y6ca = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useComputed,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_double_segment_0_oorkh4t0y6ca } from './component.tsx_component_double_segment_0_oorkh4t0y6ca';
+const default_tmpl0 = _createElementTemplate('<b> </b>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const double = useComputed(_withCaptures(component_double_segment_0_oorkh4t0y6ca, [count]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, double, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    196,
+    306
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

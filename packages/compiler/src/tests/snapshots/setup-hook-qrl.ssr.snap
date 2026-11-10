@@ -15,62 +15,9 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _capturesObj,
-  useTaskQrl,
-  useComputedQrl,
-  createSsrNodeId,
-  createSsrOpenTag,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  getActiveInvokeContextOrNull,
-  invoke,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-import { useCustomQrl } from './hooks';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ as custom } from './hooks';
-const component_read_segment_0_1zbzildyw5vrf = () => {
-  const [count] = _capturesObj._;
-  return count.value;
-};
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
-  'component_read_segment_0_1zbzildyw5vrf'
-);
-q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const count = useSignal(1);
-    const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
-    useTaskQrl(read);
-    useCustomQrl(read, props.options);
-    const total = useComputedQrl(read);
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        const id0 = ctx.nextId();
-        ctx.addRoot(total);
-        const text0 = renderSsrTextNode(id0, null, total);
-        return maybeThen(text0, (text0) => [
-          createSsrOpenTag(
-            '<button q:id="',
-            createSsrNodeId(id0),
-            '"',
-            ctx.eventAttr('q-e:click', read),
-            '>'
-          ),
-          escapeHTML(text0),
-          '</button>',
-        ]);
-      })
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -99,6 +46,84 @@ export const component_read_segment_0_1zbzildyw5vrf = () => {
   "paramNames": [],
   "captureNames": [
     "count"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  useTaskQrl,
+  useComputedQrl,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
+import { useCustom$ as custom } from './hooks';
+const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _capturesObj._;
+  return count.value;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
+  useTaskQrl(read);
+  useCustomQrl(read, props.options);
+  const total = useComputedQrl(read);
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(total);
+      const text0 = renderSsrTextNode(id0, null, total);
+      return maybeThen(text0, (text0) => [
+        createSsrOpenTag(
+          '<button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          ctx.eventAttr('q-e:click', read),
+          '>'
+        ),
+        escapeHTML(text0),
+        '</button>',
+      ]);
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    119,
+    323
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

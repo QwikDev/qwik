@@ -11,6 +11,12 @@ export const Child = () => <strong>child</strong>;
 
 ============================= src/app.tsx ==
 
+import { default_component_31wgqjs4jy6fg } from './app.tsx_default_component_31wgqjs4jy6fg';
+
+import { Child as RenamedChild } from './child';
+export { default_component_31wgqjs4jy6fg as default };
+============================= src/app.tsx_default_component_31wgqjs4jy6fg.js (ENTRY POINT)==
+
 import {
   _first,
   createComponent,
@@ -18,28 +24,70 @@ import {
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
-const default_tmpl0 = _createElementTemplate('<main><!></main>');
 import { Child as RenamedChild } from './child';
-export const default_component_31wgqjs4jy6fg = (props, ctx) => {
+const default_tmpl0 = _createElementTemplate('<main><!></main>');
+
+export function default_component_31wgqjs4jy6fg(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(RenamedChild, null, ctx);
   const marker0 = _first(el0);
   maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
-};
-export default default_component_31wgqjs4jy6fg;
+}
+/*
+{
+  "origin": "app.tsx",
+  "name": "default_component_31wgqjs4jy6fg",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "31wgqjs4jy6fg",
+  "canonicalFilename": "app.tsx_default_component_31wgqjs4jy6fg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    49,
+    100
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/child.tsx ==
 
-import { _createElementTemplate } from '@qwik.dev/core';
+import { Child_component_21vinhoq90ufu as Child } from './child.tsx_Child_component_21vinhoq90ufu';
 
+export { Child };
+============================= src/child.tsx_Child_component_21vinhoq90ufu.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
 const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
-export const Child = (props, ctx) => {
+
+export function Child_component_21vinhoq90ufu(props, ctx) {
   const el0 = Child_tmpl0(ctx.document);
   return el0;
-};
-
-export { Child as Child_component_21vinhoq90ufu };
+}
+/*
+{
+  "origin": "child.tsx",
+  "name": "Child_component_21vinhoq90ufu",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "21vinhoq90ufu",
+  "canonicalFilename": "child.tsx_Child_component_21vinhoq90ufu",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    50
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

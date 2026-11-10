@@ -17,28 +17,8 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _last,
-  createAttrEffect,
-  setEvent,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-
-const default_tmpl0 = _createElementTemplate(
-  '<section><div><span>raw</span></div><p></p></section>'
-);
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const markup = useSignal('<i>live</i>');
-  const el0 = default_tmpl0(ctx.document);
-  const el1 = _last(el0);
-  const effect0 = createAttrEffect(el1, 'dangerouslySetInnerHTML', markup, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [markup]);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -68,6 +48,49 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "captureNames": [
     "markup"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _last,
+  createAttrEffect,
+  setEvent,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+const default_tmpl0 = _createElementTemplate(
+  '<section><div><span>raw</span></div><p></p></section>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const markup = useSignal('<i>live</i>');
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _last(el0);
+  const effect0 = createAttrEffect(el1, 'dangerouslySetInnerHTML', markup, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [markup]);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    362
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

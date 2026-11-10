@@ -20,203 +20,40 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  renderSsrSlot,
-  _markComponent,
-  useSignal,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-  _capturesObj,
-  renderSsrBranch,
-  createSsrNodeId,
-  _createSsrSlotMarker,
-  _noopQrl,
-} from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
-  const [show] = _capturesObj._;
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  const branch0 = ctx.observeError(
-    renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
-      q_component_branch_then_segment_2_24n7b7xmnzb3n,
-      undefined
-    )
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b><!/s>',
-  ];
-};
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId, __projectionRootId) => {
-  const [show] = _capturesObj._;
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  const branch0 = ctx.observeError(
-    renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_4_2fzrgupr899d5.w([show]),
-      q_component_branch_then_segment_5_24n7d63685l6a,
-      undefined
-    )
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b><!/s>',
-  ];
-};
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_3_3b0ta2vuvdjtz'
-);
-q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
-const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId, __projectionRootId) => {
-  const [show] = _capturesObj._;
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  const branch0 = ctx.observeError(
-    renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([show]),
-      q_component_branch_then_segment_8_24n7f48psbv8x,
-      undefined
-    )
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b><!/s>',
-  ];
-};
-const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_6_3b0t84qbb79rc'
-);
-q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
-const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
-  const [show] = _capturesObj._;
-  return show.value;
-};
-const q_component_branch_condition_segment_9_2fzrl51y9fviy = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_9_2fzrl51y9fviy'
-);
-q_component_branch_condition_segment_9_2fzrl51y9fviy.s(
-  component_branch_condition_segment_9_2fzrl51y9fviy
-);
-const component_branch_then_segment_10_1yfeetw8az0ma = (ctx) => {
-  return '<rect></rect><circle></circle>';
-};
-const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_10_1yfeetw8az0ma'
-);
-q_component_branch_then_segment_10_1yfeetw8az0ma.s(component_branch_then_segment_10_1yfeetw8az0ma);
-const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
-  const [show] = _capturesObj._;
-  return show.value;
-};
-const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_1_2fzri0t2yrfeq'
-);
-q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
-  component_branch_condition_segment_1_2fzri0t2yrfeq
-);
-const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  return '<path d="a"></path>';
-};
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_2_24n7b7xmnzb3n'
-);
-q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
-const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [show] = _capturesObj._;
-  return show.value;
-};
-const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_4_2fzrgupr899d5'
-);
-q_component_branch_condition_segment_4_2fzrgupr899d5.s(
-  component_branch_condition_segment_4_2fzrgupr899d5
-);
-const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
-  return '<circle r="1"></circle><mi>x</mi>';
-};
-const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_5_24n7d63685l6a'
-);
-q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
-const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [show] = _capturesObj._;
-  return show.value;
-};
-const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_7_2fzrfomfhr3bk'
-);
-q_component_branch_condition_segment_7_2fzrfomfhr3bk.s(
-  component_branch_condition_segment_7_2fzrfomfhr3bk
-);
-const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
-  return '<title>t</title>';
-};
-const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_8_24n7f48psbv8x'
-);
-q_component_branch_then_segment_8_24n7f48psbv8x.s(component_branch_then_segment_8_24n7f48psbv8x);
-export const Host = _markComponent(
-  (props, ctx) => {
-    const slot0 = ctx.observeError(renderSsrSlot(ctx));
-    return ['<svg>', slot0, '</svg>'];
-  },
-  'Host_component_omsd8g3aigfl',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const show = useSignal(false);
-    const slotScope0 = createSlotScope();
-    registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([show]));
-    registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([show]));
-    registerProjection(slotScope0, '', q_component_slot_render_segment_6_3b0t84qbb79rc.w([show]));
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(Host, null, ctx, { slotScope: slotScope0 })
-    );
-    const branchId0 = ctx.nextId();
-    ctx.addRoot(show);
-    const branch0 = ctx.observeError(
-      renderSsrBranch(
-        ctx,
-        branchId0,
-        q_component_branch_condition_segment_9_2fzrl51y9fviy.w([show]),
-        q_component_branch_then_segment_10_1yfeetw8az0ma,
-        undefined
-      )
-    );
-    return [component0, '<svg><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></svg>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Host_component_omsd8g3aigfl as Host } from './component.tsx_Host_component_omsd8g3aigfl';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Host };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Host_component_omsd8g3aigfl.js (ENTRY POINT)==
 
-export { Host as Host_component_omsd8g3aigfl };
+import { renderSsrSlot, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Host_component_omsd8g3aigfl = /*#__PURE__*/ _noopQrl('Host_component_omsd8g3aigfl');
+_markComponent(Host_component_omsd8g3aigfl, q_Host_component_omsd8g3aigfl);
+
+export function Host_component_omsd8g3aigfl(props, ctx) {
+  const slot0 = ctx.observeError(renderSsrSlot(ctx));
+  return ['<svg>', slot0, '</svg>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Host_component_omsd8g3aigfl",
+  "entry": null,
+  "displayName": "Host_component",
+  "hash": "omsd8g3aigfl",
+  "canonicalFilename": "component.tsx_Host_component_omsd8g3aigfl",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    62,
+    120
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
@@ -650,6 +487,211 @@ export const component_branch_then_segment_10_1yfeetw8az0ma = (ctx) => {
   "loc": [
     395,
     418
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _capturesObj,
+  renderSsrBranch,
+  createSsrNodeId,
+  _createSsrSlotMarker,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Host_component_omsd8g3aigfl as Host } from './component.tsx_Host_component_omsd8g3aigfl';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  const [show] = _capturesObj._;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
+      q_component_branch_then_segment_2_24n7b7xmnzb3n,
+      undefined
+    )
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId, __projectionRootId) => {
+  const [show] = _capturesObj._;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_4_2fzrgupr899d5.w([show]),
+      q_component_branch_then_segment_5_24n7d63685l6a,
+      undefined
+    )
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ];
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId, __projectionRootId) => {
+  const [show] = _capturesObj._;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([show]),
+      q_component_branch_then_segment_8_24n7f48psbv8x,
+      undefined
+    )
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ];
+};
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_6_3b0t84qbb79rc'
+);
+q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
+const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
+  const [show] = _capturesObj._;
+  return show.value;
+};
+const q_component_branch_condition_segment_9_2fzrl51y9fviy = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_9_2fzrl51y9fviy'
+);
+q_component_branch_condition_segment_9_2fzrl51y9fviy.s(
+  component_branch_condition_segment_9_2fzrl51y9fviy
+);
+const component_branch_then_segment_10_1yfeetw8az0ma = (ctx) => {
+  return '<rect></rect><circle></circle>';
+};
+const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_10_1yfeetw8az0ma'
+);
+q_component_branch_then_segment_10_1yfeetw8az0ma.s(component_branch_then_segment_10_1yfeetw8az0ma);
+const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
+  const [show] = _capturesObj._;
+  return show.value;
+};
+const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_1_2fzri0t2yrfeq'
+);
+q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
+  component_branch_condition_segment_1_2fzri0t2yrfeq
+);
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
+  return '<path d="a"></path>';
+};
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_2_24n7b7xmnzb3n'
+);
+q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
+const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
+  const [show] = _capturesObj._;
+  return show.value;
+};
+const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_4_2fzrgupr899d5'
+);
+q_component_branch_condition_segment_4_2fzrgupr899d5.s(
+  component_branch_condition_segment_4_2fzrgupr899d5
+);
+const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
+  return '<circle r="1"></circle><mi>x</mi>';
+};
+const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_5_24n7d63685l6a'
+);
+q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
+const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
+  const [show] = _capturesObj._;
+  return show.value;
+};
+const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_7_2fzrfomfhr3bk'
+);
+q_component_branch_condition_segment_7_2fzrfomfhr3bk.s(
+  component_branch_condition_segment_7_2fzrfomfhr3bk
+);
+const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
+  return '<title>t</title>';
+};
+const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_8_24n7f48psbv8x'
+);
+q_component_branch_then_segment_8_24n7f48psbv8x.s(component_branch_then_segment_8_24n7f48psbv8x);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const show = useSignal(false);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([show]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([show]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_6_3b0t84qbb79rc.w([show]));
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(createComponent(Host, null, ctx, { slotScope: slotScope0 }));
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_9_2fzrl51y9fviy.w([show]),
+      q_component_branch_then_segment_10_1yfeetw8az0ma,
+      undefined
+    )
+  );
+  return [component0, '<svg><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></svg>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    121,
+    442
   ],
   "paramNames": []
 }

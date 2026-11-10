@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadChunkFunction, loadDefaultFunction } from './fixtures';
+import { loadChunkFunction, loadDefaultFunction, renderCode, qrlChunks } from './fixtures';
 import { analyseModule } from '../index';
 import { BoundaryKind, SetupKind, ValueKind, QrlPayloadKind, ArgPass } from '../schema';
 import { UnsupportedError } from '../errors';
@@ -87,10 +87,10 @@ export default (props) => {
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const chunks = output.modules.filter((module) => module.segment);
+    const chunks = qrlChunks(output);
     expect(chunks.filter((module) => module.segment!.ctxName === '$')).toHaveLength(1);
     expect(chunks).toHaveLength(2);
-    const component = output.modules.find((module) => !module.segment)!.code;
+    const component = renderCode(output);
     expect(component).toContain('"onSave$": onSave');
     const proxy = chunks.find((module) => module.segment!.ctxName !== '$')!;
     expect(proxy.code).toContain('"onSave$": onSave');
@@ -160,7 +160,7 @@ export default (props) => {
     ],
   });
   const component = output.modules.find((module) => !module.segment)!;
-  const render = loadDefaultFunction(component, {
+  const render = loadDefaultFunction(output.modules, {
     _noopQrl,
     get _capturesObj() {
       return _capturesObj;
@@ -210,7 +210,7 @@ export default (props) => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const chunks = output.modules.filter((module) => module.segment);
+  const chunks = qrlChunks(output);
   expect(chunks).toHaveLength(1);
   expect(chunks[0].segment!.captureNames).toEqual(['count', 'props']);
   expect(chunks[0].segment!.ctxKind).toBe('function');
@@ -224,7 +224,7 @@ export default (props) => {
   const handler = loadChunkFunction(chunks[0], [count, props]);
   expect(handler({ type: 'click' })).toBe('saved:click');
   expect(count.value).toBe(1);
-  const component = output.modules.find((module) => !module.segment)!.code;
+  const component = renderCode(output);
   expect(component.match(/const onSave = /g)).toHaveLength(1);
   expect(component).not.toMatch(/createEventEffect|renderSsrEvent|lazy\(/);
   expect(

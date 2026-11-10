@@ -18,23 +18,45 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { createSsrSection, _markComponent } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    return [
-      createSsrSection('head', '<head', '>'),
-      '<meta charset="utf-8"><title>Document</title>',
-      createSsrSection('/head', '</head>'),
-      createSsrSection('body', '<body', '>'),
-      '<main>content</main>',
-      createSsrSection('/body', '</body>'),
-    ];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createSsrSection, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  return [
+    createSsrSection('head', '<head', '>'),
+    '<meta charset="utf-8"><title>Document</title>',
+    createSsrSection('/head', '</head>'),
+    createSsrSection('body', '<body', '>'),
+    '<main>content</main>',
+    createSsrSection('/body', '</body>'),
+  ];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    191
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

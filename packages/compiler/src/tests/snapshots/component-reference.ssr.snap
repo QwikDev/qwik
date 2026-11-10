@@ -55,54 +55,17 @@ import {
   component$,
   componentQrl,
   qrl,
-  propSource,
-  isSource,
-  renderSsrTextNode,
-  _markComponent,
 } from '@qwik.dev/core';
+import { Body_component_3fvssuocvtjmf as Body } from './component.tsx_Body_component_3fvssuocvtjmf';
+import { Marked_component_3gj4wfqq43v17 as Marked } from './component.tsx_Marked_component_3gj4wfqq43v17';
 import { Imported } from './imported';
-function Body(props, ctx) {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'x');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</p>',
-  ]);
-}
-_markComponent(Body, 'Body_component_3fvssuocvtjmf', './component.tsx');
+
 const plain = (props) => q_component_jsx_segment_0_38vnjku9rukc6.w([props]);
 export const App = Body;
-export const Marked = _markComponent(
-  (props, ctx) => {
-    const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'x');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
-    return maybeThen(text0, (text0) => [
-      '<i q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</i>',
-    ]);
-  },
-  'Marked_component_3gj4wfqq43v17',
-  './component.tsx'
-);
+export { Marked };
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
 export const direct = () => plain({ x: 'a' });
-
-export {
-  Body as Body_component_3fvssuocvtjmf,
-  App as App_component_d9hqa5uju2ca,
-  Marked as Marked_component_3gj4wfqq43v17,
-};
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -184,6 +147,106 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Body_component_3fvssuocvtjmf.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_Body_component_3fvssuocvtjmf = /*#__PURE__*/ _noopQrl('Body_component_3fvssuocvtjmf');
+_markComponent(Body_component_3fvssuocvtjmf, q_Body_component_3fvssuocvtjmf);
+
+export function Body_component_3fvssuocvtjmf(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'x');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</p>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Body_component_3fvssuocvtjmf",
+  "entry": null,
+  "displayName": "Body_component",
+  "hash": "3fvssuocvtjmf",
+  "canonicalFilename": "component.tsx_Body_component_3fvssuocvtjmf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    103,
+    143
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Marked_component_3gj4wfqq43v17.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_Marked_component_3gj4wfqq43v17 = /*#__PURE__*/ _noopQrl('Marked_component_3gj4wfqq43v17');
+_markComponent(Marked_component_3gj4wfqq43v17, q_Marked_component_3gj4wfqq43v17);
+
+export function Marked_component_3gj4wfqq43v17(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'x');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<i q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</i>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Marked_component_3gj4wfqq43v17",
+  "entry": null,
+  "displayName": "Marked_component",
+  "hash": "3gj4wfqq43v17",
+  "canonicalFilename": "component.tsx_Marked_component_3gj4wfqq43v17",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    265,
+    305
+  ],
+  "paramNames": [
     "props"
   ]
 }

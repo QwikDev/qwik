@@ -1,6 +1,7 @@
 /** Golden snapshots: collections and their rows. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should pass through a foreign TypeScript module', async () => {
@@ -26,7 +27,7 @@ export default component$((props: { items: string[] }) => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // No key chunk: the runtime keys rows by index.
     expect(main).toMatch(
       mode === 'csr' ? /createCollection\([^;]*, null, / : /renderSsrCollection\([^;]*, undefined, /
@@ -184,8 +185,8 @@ export default component$(() => {
 `,
     });
     // The row function only names `item`, so spliced expressions must read through it.
-    expect(output.modules[0].code).toContain('`row-${item.kind}`');
-    expect(output.modules[0].code).toContain('`/list/${item.search}`');
+    expect(renderCode(output)).toContain('`row-${item.kind}`');
+    expect(renderCode(output)).toContain('`/list/${item.search}`');
   });
 
   test('should renumber rows through a reactive index param', async () => {
@@ -294,7 +295,7 @@ export default () => {
 };
 `,
     });
-    const main = output.modules.find((module) => module.segment === null)!.code;
+    const main = renderCode(output);
     // the source is a tracked derived segment, never an inline static array
     expect(main).toContain('collection_source_segment');
   });
@@ -358,7 +359,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Literal values fold: textarea content and the matching option's `selected`.
     expect(main).toContain('<textarea>fixed</textarea>');
     expect(main).toMatch(/<option value=\\?"two\\?" selected>two<\/option>/);

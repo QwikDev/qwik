@@ -16,13 +16,17 @@ export default component$(() => <Picker />);
 
 ============================= src/component.tsx ==
 
-const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
-  return chosen.value.length;
-};
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+import { Body_component_3fvssuocvtjmf as Body } from './component.tsx_Body_component_3fvssuocvtjmf';
+import { Hidden_component_3u75huwji431r as Hidden } from './component.tsx_Hidden_component_3u75huwji431r';
+import { Picker_component_ryjmp663wqq5 as Picker } from './component.tsx_Picker_component_ryjmp663wqq5';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export const App = Body;
+
+export { Picker };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Body_component_3fvssuocvtjmf.js (ENTRY POINT)==
+
 import {
   createSsrNodeId,
   escapeHTML,
@@ -30,13 +34,13 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
-  _markComponent,
-  useSignal,
-  renderSsrTextExpression,
   _noopQrl,
-  createComponent,
+  _markComponent,
 } from '@qwik.dev/core';
-function Body(props, ctx) {
+const q_Body_component_3fvssuocvtjmf = /*#__PURE__*/ _noopQrl('Body_component_3fvssuocvtjmf');
+_markComponent(Body_component_3fvssuocvtjmf, q_Body_component_3fvssuocvtjmf);
+
+export function Body_component_3fvssuocvtjmf(props, ctx) {
   const id0 = ctx.nextId();
   const prop0 = propSource(props, 'x');
   isSource(prop0) && ctx.addRoot(prop0);
@@ -49,55 +53,57 @@ function Body(props, ctx) {
     '</p>',
   ]);
 }
-_markComponent(Body, 'Body_component_3fvssuocvtjmf', './component.tsx');
-export const App = Body;
-const Hidden = _markComponent(
-  (props0, ctx) => {
-    return '<i>hidden</i>';
-  },
-  'Hidden_component_3u75huwji431r',
-  './component.tsx'
-);
-export const Picker = _markComponent(
-  (props0, ctx) => {
-    const chosen = useSignal([Hidden]);
-    const id0 = ctx.nextId();
-    ctx.addRoot(chosen);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [chosen],
-      q_component_text_segment_0_1fh10fbkzokfc
-    );
-    return maybeThen(text0, (text0) => [
-      '<b q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</b>',
-    ]);
-  },
-  'Picker_component_ryjmp663wqq5',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const component0 = ctx.observeError(createComponent(Picker, null, ctx));
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+/*
+{
+  "origin": "component.tsx",
+  "name": "Body_component_3fvssuocvtjmf",
+  "entry": null,
+  "displayName": "Body_component",
+  "hash": "3fvssuocvtjmf",
+  "canonicalFilename": "component.tsx_Body_component_3fvssuocvtjmf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    96
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Hidden_component_3u75huwji431r.js (ENTRY POINT)==
 
-export { Hidden as __qwik_Hidden };
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Hidden_component_3u75huwji431r = /*#__PURE__*/ _noopQrl('Hidden_component_3u75huwji431r');
+_markComponent(Hidden_component_3u75huwji431r, q_Hidden_component_3u75huwji431r);
 
-export {
-  Body as Body_component_3fvssuocvtjmf,
-  App as App_component_d9hqa5uju2ca,
-  Hidden as Hidden_component_3u75huwji431r,
-  Picker as Picker_component_ryjmp663wqq5,
-};
+export function Hidden_component_3u75huwji431r(props0, ctx) {
+  return '<i>hidden</i>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Hidden_component_3u75huwji431r",
+  "entry": null,
+  "displayName": "Hidden_component",
+  "hash": "3u75huwji431r",
+  "canonicalFilename": "component.tsx_Hidden_component_3u75huwji431r",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    160,
+    207
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
@@ -124,6 +130,97 @@ export const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
   "captureNames": [
     "chosen"
   ]
+}
+*/
+============================= src/component.tsx_Picker_component_ryjmp663wqq5.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Hidden_component_3u75huwji431r as Hidden } from './component.tsx_Hidden_component_3u75huwji431r';
+const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
+  return chosen.value.length;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const q_Picker_component_ryjmp663wqq5 = /*#__PURE__*/ _noopQrl('Picker_component_ryjmp663wqq5');
+_markComponent(Picker_component_ryjmp663wqq5, q_Picker_component_ryjmp663wqq5);
+
+export function Picker_component_ryjmp663wqq5(props0, ctx) {
+  const chosen = useSignal([Hidden]);
+  const id0 = ctx.nextId();
+  ctx.addRoot(chosen);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [chosen],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Picker_component_ryjmp663wqq5",
+  "entry": null,
+  "displayName": "Picker_component",
+  "hash": "ryjmp663wqq5",
+  "canonicalFilename": "component.tsx_Picker_component_ryjmp663wqq5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    208,
+    329
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { Picker_component_ryjmp663wqq5 as Picker } from './component.tsx_Picker_component_ryjmp663wqq5';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const component0 = ctx.observeError(createComponent(Picker, null, ctx));
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    330,
+    374
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

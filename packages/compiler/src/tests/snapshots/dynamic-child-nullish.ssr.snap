@@ -9,51 +9,8 @@ export default (props: { label?: string; content?: any }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _capturesObj,
-  renderSsrContent,
-  createSsrNodeId,
-  renderSsrDynamicContent,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [props] = _capturesObj._;
-  return renderSsrDynamicContent(props.content ?? q_component_jsx_segment_0_38vnjku9rukc6, ctx0);
-};
-const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _noopQrl(
-  'component_content_segment_1_185248kf949cp'
-);
-q_component_content_segment_1_185248kf949cp.s(component_content_segment_1_185248kf949cp);
-const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  return '<i>empty</i>';
-};
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
-  'component_jsx_segment_0_38vnjku9rukc6'
-);
-q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(1);
-    const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    const content0 = ctx.observeError(
-      renderSsrContent(
-        ctx,
-        id0,
-        [],
-        q_component_content_segment_1_185248kf949cp.w([props]),
-        false,
-        true
-      )
-    );
-    return ['<div><!d=', createSsrNodeId(id0), '>', content0, '<!/d></div>'];
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
@@ -111,6 +68,73 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
   ],
   "paramNames": [],
   "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _capturesObj,
+  renderSsrContent,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_content_segment_1_185248kf949cp = (ctx0) => {
+  const [props] = _capturesObj._;
+  return renderSsrDynamicContent(props.content ?? q_component_jsx_segment_0_38vnjku9rukc6, ctx0);
+};
+const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_1_185248kf949cp'
+);
+q_component_content_segment_1_185248kf949cp.s(component_content_segment_1_185248kf949cp);
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  return '<i>empty</i>';
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_1_185248kf949cp.w([props]),
+      false,
+      true
+    )
+  );
+  return ['<div><!d=', createSsrNodeId(id0), '>', content0, '<!/d></div>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    54,
+    150
+  ],
+  "paramNames": [
     "props"
   ]
 }

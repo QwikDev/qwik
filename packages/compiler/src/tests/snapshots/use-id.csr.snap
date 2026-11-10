@@ -17,48 +17,8 @@ export default component$((props: { items: string[] }) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useId,
-  createAttrExpressionEffect,
-  _first,
-  _next,
-  propSource,
-  createCollection,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_id_segment_0_2jskquzwpllhm } from './component.tsx_component_id_segment_0_2jskquzwpllhm';
-import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
-
-const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const id = useId();
-  const el0 = default_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'id',
-    [id],
-    component_id_segment_0_2jskquzwpllhm,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  const prop0 = propSource(props, 'items');
-  ctx.scheduler.waitFor(
-    createCollection(
-      ctx,
-      start0,
-      end0,
-      prop0,
-      null,
-      component_for_render_segment_1_asysu8t2u0ck,
-      0,
-      0
-    )
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_id_segment_0_2jskquzwpllhm.js (ENTRY POINT)==
 
 export const component_id_segment_0_2jskquzwpllhm = (id) => {
@@ -196,6 +156,71 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "paramNames": [],
   "captureNames": [
     "item"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useId,
+  createAttrExpressionEffect,
+  _first,
+  _next,
+  propSource,
+  createCollection,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_id_segment_0_2jskquzwpllhm } from './component.tsx_component_id_segment_0_2jskquzwpllhm';
+import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id = useId();
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'id',
+    [id],
+    component_id_segment_0_2jskquzwpllhm,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const prop0 = propSource(props, 'items');
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      prop0,
+      null,
+      component_for_render_segment_1_asysu8t2u0ck,
+      0,
+      0
+    )
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    52,
+    299
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

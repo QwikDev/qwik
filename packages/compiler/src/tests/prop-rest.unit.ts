@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { loadDefaultFunction, readRenderedText } from './fixtures';
+import { loadDefaultFunction, readRenderedText, renderCode, qrlChunks } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { createDocument } from '../../../qwik/src/testing/document';
 import { Scheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -50,7 +50,7 @@ export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}
     };
     globals.Child = () => [];
     globals.forwardSlot = () => {};
-    const renderComponent = loadDefaultFunction(output.modules[0], globals, true);
+    const renderComponent = loadDefaultFunction(output.modules, globals, true);
     const owner = core.createOwner(null);
     const source = core.useSignal<Record<string, unknown>>({ title: 'Title', label: 'first' });
     const props = core.createPropsProxy(source);
@@ -97,7 +97,7 @@ export default ({ ${pattern} }) => {
     });
     expect(output.diagnostics).toEqual([]);
     const render = loadDefaultFunction(
-      output.modules[0],
+      output.modules,
       {
         ...core,
         get _capturesObj() {
@@ -147,8 +147,8 @@ test.each([true, false])(
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules).toHaveLength(1);
-    expect(output.modules[0].code).toContain('createComponent(Child, rest, ctx)');
-    expect(output.modules[0].code).not.toContain('useComputedQrl');
+    expect(qrlChunks(output)).toHaveLength(0);
+    expect(renderCode(output)).toContain('createComponent(Child, rest, ctx)');
+    expect(renderCode(output)).not.toContain('useComputedQrl');
   }
 );

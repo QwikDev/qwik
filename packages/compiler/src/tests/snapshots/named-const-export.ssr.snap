@@ -8,17 +8,38 @@ export const App = () => {
 
 ============================= src/component.tsx ==
 
-import { _markComponent } from '@qwik.dev/core';
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
 
-export const App = _markComponent(
-  (props, ctx) => {
-    return '<p>Hello Qwik</p>';
-  },
-  'App_component_d9hqa5uju2ca',
-  './component.tsx'
-);
+export { App };
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
 
-export { App as App_component_d9hqa5uju2ca };
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_App_component_d9hqa5uju2ca = /*#__PURE__*/ _noopQrl('App_component_d9hqa5uju2ca');
+_markComponent(App_component_d9hqa5uju2ca, q_App_component_d9hqa5uju2ca);
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  return '<p>Hello Qwik</p>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    30
+  ],
+  "paramNames": []
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

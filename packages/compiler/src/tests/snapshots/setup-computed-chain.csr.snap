@@ -15,40 +15,8 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useComputed,
-  _withCaptures,
-  readTrackedValue,
-  patchCachedAttr,
-  setEvent,
-  _first,
-  patchTextValue,
-  createDomBatchEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
-import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-
-const default_tmpl0 = _createElementTemplate('<button> </button>');
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(1);
-  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
-  const label = useComputed(
-    _withCaptures(component_label_segment_1_871sx3hwa26q, [doubled, props])
-  );
-  const el0 = default_tmpl0(ctx.document);
-  let written0;
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
-  const text0 = _first(el0);
-  createDomBatchEffect(() => {
-    written0 = patchCachedAttr(el0, 'title', readTrackedValue(label), written0);
-    patchTextValue(text0, readTrackedValue(label));
-  }, ctx.scheduler);
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -141,6 +109,63 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "paramNames": [],
   "captureNames": [
     "count"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useComputed,
+  _withCaptures,
+  readTrackedValue,
+  patchCachedAttr,
+  setEvent,
+  _first,
+  patchTextValue,
+  createDomBatchEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
+import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(1);
+  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
+  const label = useComputed(
+    _withCaptures(component_label_segment_1_871sx3hwa26q, [doubled, props])
+  );
+  const el0 = default_tmpl0(ctx.document);
+  let written0;
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  const text0 = _first(el0);
+  createDomBatchEffect(() => {
+    written0 = patchCachedAttr(el0, 'title', readTrackedValue(label), written0);
+    patchTextValue(text0, readTrackedValue(label));
+  }, ctx.scheduler);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    70,
+    293
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

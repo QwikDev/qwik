@@ -1,6 +1,7 @@
 /** Golden snapshots: events, bindings and sync handlers. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
+import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should emit block event handlers through the shared QRL emitter', async () => {
@@ -106,7 +107,7 @@ export default () => (
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The function stays inline under its symbol; no chunk is produced for it. A client event
     // takes the plain function; only a value needs the QRL.
     expect(main.match(/_qrlSync\(\w+, "\w+"(?:, "(?:[^"\\]|\\.)*")?\)/g)).toHaveLength(
@@ -137,7 +138,7 @@ export default () => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Nested arrays flatten, empty entries drop, each function is its own event QRL.
     expect(main).toMatch(
       mode === 'ssr'
@@ -184,7 +185,7 @@ export default component$(() => (
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     expect(main.match(/preventdefault:click/g)).toHaveLength(2);
     expect(main).not.toContain('preventdefault:scroll');
     expect(main).not.toContain('preventdefault:dblclick');
@@ -212,7 +213,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // The signal drives the property; the runtime handler writes the input back into it.
     expect(main).toContain('"checked", checked');
     expect(main).toContain('"value", text');
@@ -254,7 +255,7 @@ export default component$(() => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const main = renderCode(output);
     // Each handler is its own QRL; the child element resolves the list in order.
     expect(main).toMatch(/"onClick\$": \[q_\w+\.w\(\[count\]\), q_\w+\]/);
   });

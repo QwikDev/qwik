@@ -20,52 +20,8 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useOn,
-  _capturesObj,
-  createSsrNodeId,
-  createSsrOpenTag,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-  _noopQrl,
-  _markComponent,
-} from '@qwik.dev/core';
-const component_qrl_segment_0_2fpowujm1ejve = () => {
-  const [count] = _capturesObj._;
-  return count.value++;
-};
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
-  'component_qrl_segment_0_2fpowujm1ejve'
-);
-q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_1_2xwyfnber1kpg'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(0);
-    useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
-    const id0 = ctx.nextId();
-    ctx.addRoot(count);
-    const text0 = renderSsrTextNode(id0, null, count);
-    return maybeThen(text0, (text0) => [
-      createSsrOpenTag(
-        '<button q:id="',
-        createSsrNodeId(id0),
-        '"',
-        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
-        '>'
-      ),
-      escapeHTML(text0),
-      '</button>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _capturesObj } from '@qwik.dev/core';
@@ -128,25 +84,76 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useOn,
+  _capturesObj,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_qrl_segment_0_2fpowujm1ejve = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    createSsrOpenTag(
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+      '>'
+    ),
+    escapeHTML(text0),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    207
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _noopQrl, _markComponent } from '@qwik.dev/core';
-const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
-  return 1;
-};
-const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _noopQrl(
-  'headless_qrl_segment_0_1g1rt7jroxou2'
-);
-q_headless_qrl_segment_0_1g1rt7jroxou2.s(headless_qrl_segment_0_1g1rt7jroxou2);
-export const default_component_35p4jjiq8gazo = _markComponent(
-  (props, ctx) => {
-    useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
-    return 'headless';
-  },
-  'default_component_35p4jjiq8gazo',
-  './headless.tsx'
-);
-export default default_component_35p4jjiq8gazo;
+import { default_component_35p4jjiq8gazo } from './headless.tsx_default_component_35p4jjiq8gazo';
+export { default_component_35p4jjiq8gazo as default };
 ============================= src/headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2.js (ENTRY POINT)==
 
 export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
@@ -168,6 +175,43 @@ export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   "loc": [
     100,
     110
+  ],
+  "paramNames": []
+}
+*/
+============================= src/headless.tsx_default_component_35p4jjiq8gazo.js (ENTRY POINT)==
+
+import { useOnDocument, _noopQrl, _markComponent } from '@qwik.dev/core';
+const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
+  return 1;
+};
+const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _noopQrl(
+  'headless_qrl_segment_0_1g1rt7jroxou2'
+);
+q_headless_qrl_segment_0_1g1rt7jroxou2.s(headless_qrl_segment_0_1g1rt7jroxou2);
+const q_default_component_35p4jjiq8gazo = /*#__PURE__*/ _noopQrl('default_component_35p4jjiq8gazo');
+_markComponent(default_component_35p4jjiq8gazo, q_default_component_35p4jjiq8gazo);
+
+export function default_component_35p4jjiq8gazo(props, ctx) {
+  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
+  return 'headless';
+}
+/*
+{
+  "origin": "headless.tsx",
+  "name": "default_component_35p4jjiq8gazo",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "35p4jjiq8gazo",
+  "canonicalFilename": "headless.tsx_default_component_35p4jjiq8gazo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    116
   ],
   "paramNames": []
 }

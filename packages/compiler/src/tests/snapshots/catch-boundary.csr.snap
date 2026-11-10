@@ -10,34 +10,9 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  BranchRange,
-  createCatch,
-  _withCaptures,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_catch_content_segment_1_nkto614tyy25 } from './component.tsx_component_catch_content_segment_1_nkto614tyy25';
-import { component_catch_fallback_segment_0_3ik9bd623jcyx } from './component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx';
-
-const default_tmpl0 = _createElementTemplate('<section><!><!></section>');
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { fallback } from './fallback';
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  const count = useSignal(0);
-  const el0 = default_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  createCatch(
-    ctx,
-    new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_catch_content_segment_1_nkto614tyy25, [count]),
-    component_catch_fallback_segment_0_3ik9bd623jcyx
-  );
-  return el0;
-};
-export default default_component_3rg6kq1so9aio;
+export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx.js (ENTRY POINT)==
 
 import { createDynamicContent } from '@qwik.dev/core';
@@ -140,6 +115,54 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "captureNames": [
     "count"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createCatch,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_catch_content_segment_1_nkto614tyy25 } from './component.tsx_component_catch_content_segment_1_nkto614tyy25';
+import { component_catch_fallback_segment_0_3ik9bd623jcyx } from './component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx';
+const default_tmpl0 = _createElementTemplate('<section><!><!></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  createCatch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_catch_content_segment_1_nkto614tyy25, [count]),
+    component_catch_fallback_segment_0_3ik9bd623jcyx
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    102,
+    296
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

@@ -13,6 +13,7 @@ import {
   OpKind,
   ProgramBodyKind,
 } from '../schema';
+import { renderCode } from './fixtures';
 
 describe('childPathExpression', () => {
   function path(index: number, nodeCount: number): { code: string; imports: string[] } {
@@ -73,8 +74,8 @@ test('emits mixed multi-root programs as an array', async () => {
   };
 
   const output = await generateJsCsr(linked.plan, {});
-  expect(output.modules[0].code).toContain('createTemplate("before<span></span>")');
-  expect(output.modules[0].code).toContain('return [...fragment0.childNodes];');
+  expect(renderCode(output)).toContain('createTemplate("before<span></span>")');
+  expect(renderCode(output)).toContain('return [...fragment0.childNodes];');
 });
 
 test('collection setup restores outer captures before evaluating local consts', async () => {
@@ -100,7 +101,7 @@ export default () => {
   const row = output.modules.find((module) => module.segment?.ctxName === 'for:render')!;
   expect(row.code).toContain('const [suffix] = _capturesObj._;');
   expect(row.code.indexOf('const [suffix]')).toBeLessThan(row.code.indexOf('const title'));
-  expect(output.modules[0].code).toContain(`_withCaptures(${row.segment!.name}, [suffix])`);
+  expect(renderCode(output)).toContain(`_withCaptures(${row.segment!.name}, [suffix])`);
 
   const declaration = parseModule(row.path, row.code).program.body.find(
     (statement) => statement.type === 'ExportNamedDeclaration'

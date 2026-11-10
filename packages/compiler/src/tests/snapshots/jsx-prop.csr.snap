@@ -14,100 +14,13 @@ export function Rows() {
 
 ============================= src/component.tsx ==
 
-const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallback_segment_1_5cu25viqhgwy',
-  () => import('./component.tsx_component_fallback_segment_1_5cu25viqhgwy'),
-  'component_fallback_segment_1_5cu25viqhgwy'
-);
-const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_3_208o00da84a64',
-  () => import('./component.tsx_component_props_segment_3_208o00da84a64'),
-  'component_props_segment_3_208o00da84a64'
-);
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
-  () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
-  'component_jsx_segment_4_38vnl4ypf6sea'
-);
-const semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0 =
-  _createElementTemplate('<li><!></li>');
-const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-import {
-  _qrlWithChunk,
-  computedProp,
-  readTrackedValue,
-  _props,
-  createComponent,
-  useSignal,
-  createPropsProxy,
-  useComputedQrl,
-  _first,
-  _next,
-  createCollection,
-  _toNodes,
-  maybeThen,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { Direct_component_2ps3ihhdyldo6 as Direct } from './component.tsx_Direct_component_2ps3ihhdyldo6';
+import { Spread_component_2bstbt3vj7y3s as Spread } from './component.tsx_Spread_component_2bstbt3vj7y3s';
+import { Rows_component_1vadfxnxfhuga as Rows } from './component.tsx_Rows_component_1vadfxnxfhuga';
 import { Display } from './display';
-export function Direct(props, ctx) {
-  const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
-  const component0 = createComponent(
-    Display,
-    _props(
-      {
-        get fallback() {
-          return readTrackedValue(prop0);
-        },
-      },
-      { fallback: prop0 }
-    ),
-    ctx
-  );
-  return component0;
-}
-export function Spread(props, ctx) {
-  const options = useSignal({ title: 'title' });
-  const component0 = createComponent(
-    Display,
-    createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
-    ctx
-  );
-  return component0;
-}
-export function Rows(props, ctx) {
-  const el0 = Rows_tmpl0(ctx.document);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, row) {
-    const el0 = semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0(ctx.document);
-    const component0 = createComponent(
-      Display,
-      { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
-      ctx
-    );
-    const marker0 = _first(el0);
-    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-    return el0;
-  }
-  createCollection(
-    ctx,
-    start0,
-    end0,
-    [1, 2],
-    null,
-    semantic_collectionRender_334_399_1rvvd24vhg1k1,
-    0,
-    0,
-    true
-  );
-  return el0;
-}
-
-export {
-  Direct as Direct_component_2ps3ihhdyldo6,
-  Spread as Spread_component_2bstbt3vj7y3s,
-  Rows as Rows_component_1vadfxnxfhuga,
-};
+export { Direct };
+export { Spread };
+export { Rows };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -165,6 +78,58 @@ export const component_fallback_segment_1_5cu25viqhgwy = () => {
   "loc": [
     134,
     146
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Direct_component_2ps3ihhdyldo6.js (ENTRY POINT)==
+
+import {
+  _qrlWithChunk,
+  computedProp,
+  readTrackedValue,
+  _props,
+  createComponent,
+} from '@qwik.dev/core';
+import { Display } from './display';
+const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallback_segment_1_5cu25viqhgwy',
+  () => import('./component.tsx_component_fallback_segment_1_5cu25viqhgwy'),
+  'component_fallback_segment_1_5cu25viqhgwy'
+);
+
+export function Direct_component_2ps3ihhdyldo6(props, ctx) {
+  const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
+  const component0 = createComponent(
+    Display,
+    _props(
+      {
+        get fallback() {
+          return readTrackedValue(prop0);
+        },
+      },
+      { fallback: prop0 }
+    ),
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Direct_component_2ps3ihhdyldo6",
+  "entry": null,
+  "displayName": "Direct_component",
+  "hash": "2ps3ihhdyldo6",
+  "canonicalFilename": "component.tsx_Direct_component_2ps3ihhdyldo6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    108
   ],
   "paramNames": []
 }
@@ -234,6 +199,51 @@ export const component_props_segment_3_208o00da84a64 = () => {
   ]
 }
 */
+============================= src/component.tsx_Spread_component_2bstbt3vj7y3s.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  createPropsProxy,
+  useComputedQrl,
+  createComponent,
+} from '@qwik.dev/core';
+import { Display } from './display';
+const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_3_208o00da84a64',
+  () => import('./component.tsx_component_props_segment_3_208o00da84a64'),
+  'component_props_segment_3_208o00da84a64'
+);
+
+export function Spread_component_2bstbt3vj7y3s(props, ctx) {
+  const options = useSignal({ title: 'title' });
+  const component0 = createComponent(
+    Display,
+    createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
+    ctx
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Spread_component_2bstbt3vj7y3s",
+  "entry": null,
+  "displayName": "Spread_component",
+  "hash": "2bstbt3vj7y3s",
+  "canonicalFilename": "component.tsx_Spread_component_2bstbt3vj7y3s",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    154,
+    232
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_jsx_segment_4_38vnl4ypf6sea.js (ENTRY POINT)==
 
 import { _capturesObj, _first, _textValue, _createElementTemplate } from '@qwik.dev/core';
@@ -266,6 +276,76 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "captureNames": [
     "row"
   ]
+}
+*/
+============================= src/component.tsx_Rows_component_1vadfxnxfhuga.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  createCollection,
+  _qrlWithChunk,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { Display } from './display';
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+  () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
+  'component_jsx_segment_4_38vnl4ypf6sea'
+);
+const semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0 =
+  _createElementTemplate('<li><!></li>');
+const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+
+export function Rows_component_1vadfxnxfhuga(props, ctx) {
+  const el0 = Rows_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, row) {
+    const el0 = semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0(ctx.document);
+    const component0 = createComponent(
+      Display,
+      { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
+      ctx
+    );
+    const marker0 = _first(el0);
+    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+    return el0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    [1, 2],
+    null,
+    semantic_collectionRender_334_399_1rvvd24vhg1k1,
+    0,
+    0,
+    true
+  );
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Rows_component_1vadfxnxfhuga",
+  "entry": null,
+  "displayName": "Rows_component",
+  "hash": "1vadfxnxfhuga",
+  "canonicalFilename": "component.tsx_Rows_component_1vadfxnxfhuga",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    297,
+    322
+  ],
+  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

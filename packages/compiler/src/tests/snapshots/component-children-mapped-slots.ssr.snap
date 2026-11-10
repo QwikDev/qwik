@@ -11,215 +11,42 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  renderSsrSlot,
-  _markComponent,
-  useSignal,
-  createSlotScope,
-  registerProjection,
-  createComponent,
-  _capturesObj,
-  _createSsrSlotMarker,
-  renderSsrCollection,
-  createSsrNodeId,
-  _noopQrl,
-  escapeHTML,
-  _textValue,
-  renderSsrTextExpression,
-  maybeThen,
-} from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
-  const [items] = _capturesObj._;
-  const collectionId0 = ctx.nextId();
-  ctx.addRoot(items);
-  const collection0 = ctx.observeError(
-    renderSsrCollection(
-      ctx,
-      collectionId0,
-      items,
-      q_component_for_key_segment_2_24ursol8ttrxy,
-      q_component_for_render_segment_1_asysu8t2u0ck,
-      0,
-      false,
-      0
-    )
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!f=',
-    createSsrNodeId(collectionId0),
-    '>',
-    collection0,
-    '<!/f><!/s>',
-  ];
-};
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_0_3b0tagwys7lui'
-);
-q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId, __projectionRootId) => {
-  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, __rangeId, __rowId, label) {
-    return ['<p>', escapeHTML(_textValue(label)), '</p>'];
-  }
-  const collection0 = ctx.observeError(
-    renderSsrCollection(
-      ctx,
-      undefined,
-      ['End'],
-      undefined,
-      semantic_collectionRender_323_377_3uyuznkedsah,
-      0,
-      false,
-      0
-    )
-  );
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), collection0, '<!/s>'];
-};
-const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_4_3b0t8wsj4vdse'
-);
-q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
-const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId, __projectionRootId) => {
-  const [items] = _capturesObj._;
-  const collectionId0 = ctx.nextId();
-  ctx.addRoot(items);
-  const collection0 = ctx.observeError(
-    renderSsrCollection(
-      ctx,
-      collectionId0,
-      items,
-      q_component_for_key_segment_7_24urumqse020l,
-      q_component_for_render_segment_6_asysg7p5zyc1,
-      0,
-      false,
-      0
-    )
-  );
-  return [
-    _createSsrSlotMarker(__rangeId, __projectionRootId),
-    '<!f=',
-    createSsrNodeId(collectionId0),
-    '>',
-    collection0,
-    '<!/f><!/s>',
-  ];
-};
-const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_5_3b0t9atn1pfsx'
-);
-q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_5_3b0t9atn1pfsx);
-const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item) => {
-  const id0 = ctx.nextId();
-  ctx.addRoot(item);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [item],
-    q_component_text_segment_3_1fh11lewq6qgx
-  );
-  return maybeThen(text0, (text0) => [
-    '<h2 q:id="',
-    createSsrNodeId(id0),
-    '" q:row="',
-    escapeHTML(__rowId),
-    '">',
-    escapeHTML(text0),
-    '</h2>',
-  ]);
-};
-const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
-  'component_for_render_segment_1_asysu8t2u0ck'
-);
-q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
-const component_for_key_segment_2_24ursol8ttrxy = (item) => {
-  return item.id;
-};
-const q_component_for_key_segment_2_24ursol8ttrxy = /*#__PURE__*/ _noopQrl(
-  'component_for_key_segment_2_24ursol8ttrxy'
-);
-q_component_for_key_segment_2_24ursol8ttrxy.s(component_for_key_segment_2_24ursol8ttrxy);
-const component_for_render_segment_6_asysg7p5zyc1 = (ctx, __rangeId, __rowId, item) => {
-  const id0 = ctx.nextId();
-  ctx.addRoot(item);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [item],
-    q_component_text_segment_8_1fh0xb2pp04b4
-  );
-  return maybeThen(text0, (text0) => [
-    '<section q:row="',
-    escapeHTML(__rowId),
-    '"><span q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</span></section>',
-  ]);
-};
-const q_component_for_render_segment_6_asysg7p5zyc1 = /*#__PURE__*/ _noopQrl(
-  'component_for_render_segment_6_asysg7p5zyc1'
-);
-q_component_for_render_segment_6_asysg7p5zyc1.s(component_for_render_segment_6_asysg7p5zyc1);
-const component_for_key_segment_7_24urumqse020l = (item) => {
-  return item.id;
-};
-const q_component_for_key_segment_7_24urumqse020l = /*#__PURE__*/ _noopQrl(
-  'component_for_key_segment_7_24urumqse020l'
-);
-q_component_for_key_segment_7_24urumqse020l.s(component_for_key_segment_7_24urumqse020l);
-const component_text_segment_3_1fh11lewq6qgx = (item) => {
-  return item.title;
-};
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-const component_text_segment_8_1fh0xb2pp04b4 = (item) => {
-  return item.title;
-};
-const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_8_1fh0xb2pp04b4'
-);
-q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
-export const Panel = _markComponent(
-  (props, ctx) => {
-    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
-    const slot1 = ctx.observeError(renderSsrSlot(ctx, 'footer'));
-    const slot2 = ctx.observeError(renderSsrSlot(ctx));
-    return ['<main>', slot0, slot1, slot2, '</main>'];
-  },
-  'Panel_component_5q1hs6sb6j5z',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const items = useSignal([
-      {
-        id: 1,
-        title: 'Title',
-      },
-    ]);
-    const slotScope0 = createSlotScope();
-    registerProjection(
-      slotScope0,
-      'header',
-      q_component_slot_render_segment_0_3b0tagwys7lui.w([items])
-    );
-    registerProjection(slotScope0, 'footer', q_component_slot_render_segment_4_3b0t8wsj4vdse);
-    registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([items]));
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(Panel, null, ctx, { slotScope: slotScope0 })
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Panel };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Panel_component_5q1hs6sb6j5z.js (ENTRY POINT)==
 
-export { Panel as Panel_component_5q1hs6sb6j5z };
+import { renderSsrSlot, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Panel_component_5q1hs6sb6j5z = /*#__PURE__*/ _noopQrl('Panel_component_5q1hs6sb6j5z');
+_markComponent(Panel_component_5q1hs6sb6j5z, q_Panel_component_5q1hs6sb6j5z);
+
+export function Panel_component_5q1hs6sb6j5z(props, ctx) {
+  const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
+  const slot1 = ctx.observeError(renderSsrSlot(ctx, 'footer'));
+  const slot2 = ctx.observeError(renderSsrSlot(ctx));
+  return ['<main>', slot0, slot1, slot2, '</main>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Panel_component_5q1hs6sb6j5z",
+  "entry": null,
+  "displayName": "Panel_component",
+  "hash": "5q1hs6sb6j5z",
+  "canonicalFilename": "component.tsx_Panel_component_5q1hs6sb6j5z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    50,
+    143
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
@@ -630,6 +457,221 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (item) => {
   "captureNames": [
     "item"
   ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrCollection,
+  createSsrNodeId,
+  _noopQrl,
+  escapeHTML,
+  _textValue,
+  renderSsrTextExpression,
+  maybeThen,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  const [items] = _capturesObj._;
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(items);
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      items,
+      q_component_for_key_segment_2_24ursol8ttrxy,
+      q_component_for_render_segment_1_asysu8t2u0ck,
+      0,
+      false,
+      0
+    )
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId, __projectionRootId) => {
+  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, __rangeId, __rowId, label) {
+    return ['<p>', escapeHTML(_textValue(label)), '</p>'];
+  }
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      ['End'],
+      undefined,
+      semantic_collectionRender_323_377_3uyuznkedsah,
+      0,
+      false,
+      0
+    )
+  );
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), collection0, '<!/s>'];
+};
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_4_3b0t8wsj4vdse'
+);
+q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
+const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId, __projectionRootId) => {
+  const [items] = _capturesObj._;
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(items);
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      items,
+      q_component_for_key_segment_7_24urumqse020l,
+      q_component_for_render_segment_6_asysg7p5zyc1,
+      0,
+      false,
+      0
+    )
+  );
+  return [
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ];
+};
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_5_3b0t9atn1pfsx'
+);
+q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_5_3b0t9atn1pfsx);
+const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(item);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [item],
+    q_component_text_segment_3_1fh11lewq6qgx
+  );
+  return maybeThen(text0, (text0) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
+    escapeHTML(text0),
+    '</h2>',
+  ]);
+};
+const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_1_asysu8t2u0ck'
+);
+q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
+const component_for_key_segment_2_24ursol8ttrxy = (item) => {
+  return item.id;
+};
+const q_component_for_key_segment_2_24ursol8ttrxy = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_2_24ursol8ttrxy'
+);
+q_component_for_key_segment_2_24ursol8ttrxy.s(component_for_key_segment_2_24ursol8ttrxy);
+const component_for_render_segment_6_asysg7p5zyc1 = (ctx, __rangeId, __rowId, item) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(item);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [item],
+    q_component_text_segment_8_1fh0xb2pp04b4
+  );
+  return maybeThen(text0, (text0) => [
+    '<section q:row="',
+    escapeHTML(__rowId),
+    '"><span q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</span></section>',
+  ]);
+};
+const q_component_for_render_segment_6_asysg7p5zyc1 = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_6_asysg7p5zyc1'
+);
+q_component_for_render_segment_6_asysg7p5zyc1.s(component_for_render_segment_6_asysg7p5zyc1);
+const component_for_key_segment_7_24urumqse020l = (item) => {
+  return item.id;
+};
+const q_component_for_key_segment_7_24urumqse020l = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_7_24urumqse020l'
+);
+q_component_for_key_segment_7_24urumqse020l.s(component_for_key_segment_7_24urumqse020l);
+const component_text_segment_3_1fh11lewq6qgx = (item) => {
+  return item.title;
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const component_text_segment_8_1fh0xb2pp04b4 = (item) => {
+  return item.title;
+};
+const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_8_1fh0xb2pp04b4'
+);
+q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const items = useSignal([
+    {
+      id: 1,
+      title: 'Title',
+    },
+  ]);
+  const slotScope0 = createSlotScope();
+  registerProjection(
+    slotScope0,
+    'header',
+    q_component_slot_render_segment_0_3b0tagwys7lui.w([items])
+  );
+  registerProjection(slotScope0, 'footer', q_component_slot_render_segment_4_3b0t8wsj4vdse);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([items]));
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(createComponent(Panel, null, ctx, { slotScope: slotScope0 }));
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    144,
+    226
+  ],
+  "paramNames": []
 }
 */
 == SSR DIAGNOSTICS ==

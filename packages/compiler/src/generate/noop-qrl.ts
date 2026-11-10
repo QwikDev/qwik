@@ -1,5 +1,6 @@
 import type { LinkedModule, LinkedQrl } from '../schema';
 import { QwikWord } from '../words';
+import { chunkSymbolName } from './qrl-chunks';
 
 /**
  * A server-side stand-in for a boundary whose body never runs there. In dev the browser derives the
@@ -11,17 +12,18 @@ export function noopQrlJs(
   captures: readonly string[] = []
 ): { word: QwikWord; code: string } {
   const captureArg = captures.length === 0 ? '' : `, [${captures.join(', ')}]`;
+  const symbol = JSON.stringify(chunkSymbolName(qrl));
   const devPath = module.source.devPath;
   if (devPath === undefined) {
     return {
       word: QwikWord.NoopQrl,
-      code: `${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)}${captureArg})`,
+      code: `${QwikWord.NoopQrl}(${symbol}${captureArg})`,
     };
   }
   const [lo, hi] = qrl.origin.range;
   const dev = JSON.stringify({ file: devPath, lo, hi });
   return {
     word: QwikWord.NoopQrlDev,
-    code: `${QwikWord.NoopQrlDev}(${JSON.stringify(qrl.name)}, ${dev}${captureArg})`,
+    code: `${QwikWord.NoopQrlDev}(${symbol}, ${dev}${captureArg})`,
   };
 }

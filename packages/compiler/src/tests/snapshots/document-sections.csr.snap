@@ -18,16 +18,40 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { createTemplate } from '@qwik.dev/core';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { createTemplate } from '@qwik.dev/core';
 const default_tmpl0 = createTemplate(
   '<head><meta charset="utf-8"><title>Document</title></head><body><main>content</main></body>'
 );
-export const default_component_3rg6kq1so9aio = (props, ctx) => {
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
   const fragment0 = default_tmpl0(ctx.document);
   return [...fragment0.childNodes];
-};
-export default default_component_3rg6kq1so9aio;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    191
+  ],
+  "paramNames": []
+}
+*/
 == CSR DIAGNOSTICS ==
 
 []

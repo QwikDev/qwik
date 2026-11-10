@@ -14,6 +14,12 @@ export default component$(() => <Button onClick$={() => console.log('go')}>go</B
 
 ============================= src/component.tsx ==
 
+import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Button };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Button_component_12fjhbonwyrlb.js (ENTRY POINT)==
+
 import {
   propSource,
   isSource,
@@ -23,72 +29,63 @@ import {
   forwardSlot,
   renderSsrDynamicTag,
   createComponent,
-  _markComponent,
-  registerProjection,
   _noopQrl,
-  _createSsrSlotMarker,
+  _markComponent,
 } from '@qwik.dev/core';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_0_2xwyg1cinvmpz'
-);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'go<!/s>'];
-};
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-export const Button = _markComponent(
-  (props, ctx) => {
-    const Tag = props.href ? 'a' : 'button';
-    const slotScope0 = createSlotScope();
-    const prop0 = propSource(props, 'href');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const prop1 = propSource(props, 'onClick$');
-    isSource(prop1) && ctx.addRoot(prop1);
-    forwardSlot(slotScope0);
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(
-        (props0) => renderSsrDynamicTag(Tag, props0, ctx),
-        _props(
-          {
-            get href() {
-              return readTrackedValue(prop0);
-            },
-            get onClick$() {
-              return readTrackedValue(prop1);
-            },
-          },
-          { href: prop0, onClick$: prop1 }
-        ),
-        ctx,
-        { slotScope: slotScope0 }
-      )
-    );
-    return component0;
-  },
-  'Button_component_12fjhbonwyrlb',
-  './component.tsx'
-);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
-    const slotScope0 = createSlotScope();
-    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-    ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(
-      createComponent(Button, { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz }, ctx, {
-        slotScope: slotScope0,
-      })
-    );
-    return component0;
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+const q_Button_component_12fjhbonwyrlb = /*#__PURE__*/ _noopQrl('Button_component_12fjhbonwyrlb');
+_markComponent(Button_component_12fjhbonwyrlb, q_Button_component_12fjhbonwyrlb);
 
-export { Button as Button_component_12fjhbonwyrlb };
+export function Button_component_12fjhbonwyrlb(props, ctx) {
+  const Tag = props.href ? 'a' : 'button';
+  const slotScope0 = createSlotScope();
+  const prop0 = propSource(props, 'href');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const prop1 = propSource(props, 'onClick$');
+  isSource(prop1) && ctx.addRoot(prop1);
+  forwardSlot(slotScope0);
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(
+    createComponent(
+      (props0) => renderSsrDynamicTag(Tag, props0, ctx),
+      _props(
+        {
+          get href() {
+            return readTrackedValue(prop0);
+          },
+          get onClick$() {
+            return readTrackedValue(prop1);
+          },
+        },
+        { href: prop0, onClick$: prop1 }
+      ),
+      ctx,
+      { slotScope: slotScope0 }
+    )
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Button_component_12fjhbonwyrlb",
+  "entry": null,
+  "displayName": "Button_component",
+  "hash": "12fjhbonwyrlb",
+  "canonicalFilename": "component.tsx_Button_component_12fjhbonwyrlb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    51,
+    244
+  ],
+  "paramNames": [
+    "{ onClick$, href }"
+  ]
+}
+*/
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
@@ -141,6 +138,61 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
   "loc": [
     320,
     322
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _noopQrl,
+  _createSsrSlotMarker,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'go<!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  ctx.addRoot(slotScope0);
+  const component0 = ctx.observeError(
+    createComponent(Button, { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz }, ctx, {
+      slotScope: slotScope0,
+    })
+  );
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    245,
+    333
   ],
   "paramNames": []
 }

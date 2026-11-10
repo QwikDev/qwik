@@ -93,84 +93,13 @@ export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
 */
 ============================= src/component.tsx ==
 
-import {
-  _qrlWithChunk,
-  _createElementTemplate,
-  createEventEffect,
-  _first,
-  _next,
-  createContentBlock,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-} from '@qwik.dev/core';
-import { component_onClickqrl_segment_1_3rzjk4cwl942g } from './component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g';
-
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
-  () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
-  'component_qrl_segment_0_2fpowujm1ejve'
-);
-const Clicker_tmpl0 = _createElementTemplate('<button>click</button>');
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
-  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
-  'component_text_segment_2_1fh117dstcoge'
-);
-const Counter_tmpl0 = _createElementTemplate('<button><!><!></button>');
-const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_3_2fpowgii4khuv',
-  () => import('./component.tsx_component_qrl_segment_3_2fpowgii4khuv'),
-  'component_qrl_segment_3_2fpowgii4khuv'
-);
-const Maybe_tmpl0 = _createElementTemplate('<div>maybe</div>');
+import { Clicker_component_11xdpjgo2tylm as Clicker } from './component.tsx_Clicker_component_11xdpjgo2tylm';
+import { Counter_component_3h2q15ekklxzt as Counter } from './component.tsx_Counter_component_3h2q15ekklxzt';
+import { Maybe_component_azuodhr1u2pp as Maybe } from './component.tsx_Maybe_component_azuodhr1u2pp';
 import { useClick, useCounter, useMaybeClick } from './hooks';
-export const Clicker = (props0, ctx) => {
-  useClick(q_component_qrl_segment_0_2fpowujm1ejve);
-  const el0 = Clicker_tmpl0(ctx.document);
-  return el0;
-};
-export const Counter = (props0, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const _counter = useCounter(1);
-  return maybeThen(invokeCtx0.pendingSetup, () =>
-    invoke(invokeCtx0, () => {
-      const el0 = Counter_tmpl0(ctx.document);
-      const effect0 = createEventEffect(
-        el0,
-        'q-e:click',
-        [_counter],
-        component_onClickqrl_segment_1_3rzjk4cwl942g,
-        ctx.scheduler
-      );
-      ctx.scheduler.run(effect0);
-      const start0 = _first(el0);
-      const end0 = _next(start0);
-      const content0 = createContentBlock(
-        ctx,
-        start0,
-        end0,
-        [],
-        q_component_text_segment_2_1fh117dstcoge.w([_counter]),
-        false,
-        true
-      );
-      ctx.scheduler.notify(content0);
-      return el0;
-    })
-  );
-};
-export const Maybe = (props, ctx) => {
-  useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
-  const el0 = Maybe_tmpl0(ctx.document);
-  return el0;
-};
-
-export {
-  Clicker as Clicker_component_11xdpjgo2tylm,
-  Counter as Counter_component_3h2q15ekklxzt,
-  Maybe as Maybe_component_azuodhr1u2pp,
-};
+export { Clicker };
+export { Counter };
+export { Maybe };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 export const component_qrl_segment_0_2fpowujm1ejve = () => {
@@ -192,6 +121,42 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
   "loc": [
     164,
     193
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_Clicker_component_11xdpjgo2tylm.js (ENTRY POINT)==
+
+import { _qrlWithChunk, _createElementTemplate } from '@qwik.dev/core';
+import { useClick } from './hooks';
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+  () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+const Clicker_tmpl0 = _createElementTemplate('<button>click</button>');
+
+export function Clicker_component_11xdpjgo2tylm(props0, ctx) {
+  useClick(q_component_qrl_segment_0_2fpowujm1ejve);
+  const el0 = Clicker_tmpl0(ctx.document);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Clicker_component_11xdpjgo2tylm",
+  "entry": null,
+  "displayName": "Clicker_component",
+  "hash": "11xdpjgo2tylm",
+  "canonicalFilename": "component.tsx_Clicker_component_11xdpjgo2tylm",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    111,
+    232
   ],
   "paramNames": []
 }
@@ -255,6 +220,78 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   ]
 }
 */
+============================= src/component.tsx_Counter_component_3h2q15ekklxzt.js (ENTRY POINT)==
+
+import {
+  createEventEffect,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_onClickqrl_segment_1_3rzjk4cwl942g } from './component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g';
+import { useCounter } from './hooks';
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_2_1fh117dstcoge',
+  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+  'component_text_segment_2_1fh117dstcoge'
+);
+const Counter_tmpl0 = _createElementTemplate('<button><!><!></button>');
+
+export function Counter_component_3h2q15ekklxzt(props0, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const _counter = useCounter(1);
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = Counter_tmpl0(ctx.document);
+      const effect0 = createEventEffect(
+        el0,
+        'q-e:click',
+        [_counter],
+        component_onClickqrl_segment_1_3rzjk4cwl942g,
+        ctx.scheduler
+      );
+      ctx.scheduler.run(effect0);
+      const start0 = _first(el0);
+      const end0 = _next(start0);
+      const content0 = createContentBlock(
+        ctx,
+        start0,
+        end0,
+        [],
+        q_component_text_segment_2_1fh117dstcoge.w([_counter]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content0);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Counter_component_3h2q15ekklxzt",
+  "entry": null,
+  "displayName": "Counter_component",
+  "hash": "3h2q15ekklxzt",
+  "canonicalFilename": "component.tsx_Counter_component_3h2q15ekklxzt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    233,
+    376
+  ],
+  "paramNames": []
+}
+*/
 ============================= src/component.tsx_component_qrl_segment_3_2fpowgii4khuv.js (ENTRY POINT)==
 
 export const component_qrl_segment_3_2fpowgii4khuv = () => {
@@ -278,6 +315,44 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
     479
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_Maybe_component_azuodhr1u2pp.js (ENTRY POINT)==
+
+import { _qrlWithChunk, _createElementTemplate } from '@qwik.dev/core';
+import { useMaybeClick } from './hooks';
+const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_3_2fpowgii4khuv',
+  () => import('./component.tsx_component_qrl_segment_3_2fpowgii4khuv'),
+  'component_qrl_segment_3_2fpowgii4khuv'
+);
+const Maybe_tmpl0 = _createElementTemplate('<div>maybe</div>');
+
+export function Maybe_component_azuodhr1u2pp(props, ctx) {
+  useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
+  const el0 = Maybe_tmpl0(ctx.document);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Maybe_component_azuodhr1u2pp",
+  "entry": null,
+  "displayName": "Maybe_component",
+  "hash": "azuodhr1u2pp",
+  "canonicalFilename": "component.tsx_Maybe_component_azuodhr1u2pp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    377,
+    512
+  ],
+  "paramNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

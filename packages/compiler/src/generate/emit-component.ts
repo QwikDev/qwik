@@ -410,18 +410,6 @@ export function allocateGeneratedNames(module: LinkedModule): GeneratedNames {
   };
 }
 
-/** The hashed export a component serializes as; the chunk is set only where serialization runs. */
-export interface ComponentMarker {
-  symbol: string;
-  chunk: string | null;
-}
-
-export interface ComponentDeclarationEmission {
-  text: string;
-  /** `name as symbol`, exported at the module end so a sibling declarator stays intact. */
-  alias: string | null;
-}
-
 /** A nested `component$` prints as the compiled arrow where the call stood. */
 export function inlineComponentText(emission: ComponentEmission, names: GeneratedNames): string {
   const params = [names.props, names.ctx, ...(emission.params ?? [])].join(', ');
@@ -432,29 +420,22 @@ export function inlineComponentText(emission: ComponentEmission, names: Generate
 }
 
 /** `component$(X)` of a component: the declaration names `X`, which carries its own marker. */
-export function emitComponentAlias(qrl: LinkedQrl, target: string): ComponentDeclarationEmission {
-  const { expressionOnly, declarationKind, isExported, name, symbol } = qrl.declaration!;
+export function emitComponentAlias(qrl: LinkedQrl, target: string): string {
+  const { expressionOnly, declarationKind, isExported, name } = qrl.declaration!;
   if (expressionOnly) {
-    return { text: target, alias: null };
+    return target;
   }
-  if (declarationKind !== DeclarationKind.DefaultArrow) {
-    return {
-      text: `${isExported ? 'export ' : ''}const ${name} = ${target};`,
-      alias: symbol === undefined ? null : `${name} as ${symbol}`,
-    };
-  }
-  return {
-    text: `export default ${target};`,
-    alias: symbol === undefined ? null : `${target} as ${symbol}`,
-  };
+  return declarationKind === DeclarationKind.DefaultArrow
+    ? `export default ${target};`
+    : `${isExported ? 'export ' : ''}const ${name} = ${target};`;
 }
 
+/** A declaration without a segment of its own: it splices over the authored range. */
 export function emitComponentFunction(
   qrl: LinkedQrl,
   emission: ComponentEmission,
-  names: GeneratedNames,
-  marker: ComponentMarker | null = null
-): ComponentDeclarationEmission {
+  names: GeneratedNames
+): string {
   const declaration = qrl.declaration;
   if (declaration === undefined) {
     throw new Error(`pipeline: emitting a declaration for the undeclared qrl "${qrl.id}"`);
@@ -466,42 +447,19 @@ export function emitComponentFunction(
     .join('\n');
   const asyncPrefix = emission.async === true ? 'async ' : '';
   const arrow = `${asyncPrefix}(${params}) => {\n${body}\n}`;
-  const symbol = declaration.expressionOnly ? null : (marker?.symbol ?? null);
-  const mark = (value: string) =>
-    marker === null || marker.chunk === null || symbol === null
-      ? value
-      : `${QwikWord.MarkComponent}(${value}, ${JSON.stringify(symbol)}, ${JSON.stringify(marker.chunk)})`;
-  const alias = (name: string) => (symbol === null ? null : `${name} as ${symbol}`);
-  // A function declaration keeps its hoisting; the marker follows it as a statement.
-  const markAfter = (name: string) => (mark(name) === name ? '' : `\n${mark(name)};`);
   if (declaration.expressionOnly) {
-    return { text: arrow, alias: null };
+    return arrow;
   }
   switch (declaration.declarationKind) {
     case DeclarationKind.Const:
-      return {
-        text: `${exportPrefix}const ${declaration.name} = ${mark(arrow)};`,
-        alias: alias(declaration.name),
-      };
+      return `${exportPrefix}const ${declaration.name} = ${arrow};`;
     case DeclarationKind.DefaultArrow:
-      // An anonymous default takes its symbol as the name it is also exported under.
-      return symbol === null
-        ? { text: `export default ${arrow};`, alias: null }
-        : {
-            text: `export const ${symbol} = ${mark(arrow)};\nexport default ${symbol};`,
-            alias: null,
-          };
+      return `export default ${arrow};`;
     case DeclarationKind.DefaultFunction: {
-      const name = declaration.localName ?? symbol;
-      return {
-        text: `export default ${asyncPrefix}function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}${name ? markAfter(name) : ''}`,
-        alias: name === null ? null : name === symbol ? symbol : alias(name),
-      };
+      const name = declaration.localName;
+      return `export default ${asyncPrefix}function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}`;
     }
     default:
-      return {
-        text: `${exportPrefix}${asyncPrefix}function ${declaration.name}(${params}) {\n${body}\n}${markAfter(declaration.name)}`,
-        alias: alias(declaration.name),
-      };
+      return `${exportPrefix}${asyncPrefix}function ${declaration.name}(${params}) {\n${body}\n}`;
   }
 }

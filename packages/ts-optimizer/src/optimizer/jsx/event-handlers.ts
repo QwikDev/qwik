@@ -1,4 +1,5 @@
-import type { JSXAttributeItem } from '../../ast-types.js';
+import type { AstNode, JSXAttributeItem } from '../../ast-types.js';
+import { getObjectPropertyKeyName } from '../ast/guards.js';
 import { getJsxAttributeName } from './jsx-attr-name.js';
 
 export function isEventProp(propName: string): boolean {
@@ -31,6 +32,22 @@ export function isEventProp(propName: string): boolean {
  */
 export function isRuntimeEventProp(propName: string): boolean {
   return getEventScopeData(propName, false) !== null && propName.endsWith('$');
+}
+
+/**
+ * Static key name of a property in a jsx() props object. A computed string key that names an event,
+ * like `['onClick$']`, is the same prop as `onClick$`, as in the Rust optimizer. Other computed
+ * keys have no static name.
+ */
+export function jsxPropKeyName(prop: AstNode): string | null {
+  if (prop.type !== 'Property') {
+    return null;
+  }
+  const name = getObjectPropertyKeyName(prop.key);
+  if (!prop.computed) {
+    return name;
+  }
+  return prop.key.type === 'Literal' && name !== null && isRuntimeEventProp(name) ? name : null;
 }
 
 export function isPassiveDirective(propName: string): boolean {

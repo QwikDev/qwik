@@ -12,12 +12,13 @@ import {
   type JsxKeyReservations,
   reserveRegionKeys,
 } from './jsx.js';
-import { isRuntimeEventProp, transformEventPropName } from './event-handlers.js';
+import { isRuntimeEventProp, jsxPropKeyName, transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
 import { analyzeSignalExpression, type SignalHoister } from './signal-analysis.js';
 import type { SegmentImportData } from '../segment/segment-codegen.js';
 
 const EMPTY_SET: ReadonlySet<string> = new Set();
+const IDENTIFIER_NAME = /^[A-Za-z_$][\w$]*$/;
 
 export function collectJsxFunctionNames(importContext: SegmentImportData): Set<string> {
   return collectJsxFunctionNamesFromIterable(importContext.moduleImports);
@@ -540,7 +541,7 @@ function buildJsxSortedCall(
       return null;
     }
     const keyName = propertyKeyName(prop);
-    if (!isHtmlTag && mayBeRuntimeEventKey(prop, keyName, isDynamicTag)) {
+    if (!isHtmlTag && mayBeRuntimeEventKey(prop, isDynamicTag)) {
       hasEventPropsOnDynamicTag = true;
     }
     if (keyName === 'children' && !prop.computed) {
@@ -590,9 +591,12 @@ function buildJsxSortedCall(
         continue;
       }
     }
-    // A computed key like `['onClick$']` is a plain prop in Rust, so only a named handler goes here
-    if (!prop.computed && isHandlerPropKey(keyName)) {
-      const handlerText = s.slice(prop.start, prop.end);
+    // `['onClick$']` is a named handler too, so it is written back as `onClick$`
+    const handlerKey = jsxPropKeyName(prop);
+    if (isHandlerPropKey(handlerKey)) {
+      const handlerText = prop.computed
+        ? `${IDENTIFIER_NAME.test(handlerKey!) ? handlerKey : JSON.stringify(handlerKey)}: ${s.slice(prop.value.start, prop.value.end)}`
+        : s.slice(prop.start, prop.end);
       const isConst = isConstEventHandlerValue(prop.value);
       slots.push({
         kind: 'named',
@@ -696,28 +700,19 @@ function isConstEventHandlerValue(value: AstNode): boolean {
 }
 
 /**
- * Whether a prop key can be an on*$ event at runtime. `['onClick$']` is checked by name, and a
- * computed key like `[name]` could be any event. Computed keys count only on a dynamic tag. Same
- * rule as `component_has_event_props` in the Rust optimizer.
+ * Whether a prop key can be an on*$ event at runtime. `['onClick$']` is checked by name like
+ * `onClick$`, and a computed key like `[name]` could be any event on a dynamic tag. Same rule as
+ * `component_has_event_props` in the Rust optimizer.
  */
-function mayBeRuntimeEventKey(
-  prop: AstNode,
-  keyName: string | null,
-  isDynamicTag: boolean
-): boolean {
+function mayBeRuntimeEventKey(prop: AstNode, isDynamicTag: boolean): boolean {
   if (prop.type !== 'Property') {
     return false;
   }
-  if (!prop.computed) {
-    return keyName !== null && isRuntimeEventProp(keyName);
+  const name = jsxPropKeyName(prop);
+  if (name !== null) {
+    return isRuntimeEventProp(name);
   }
-  if (!isDynamicTag) {
-    return false;
-  }
-  if (prop.key.type === 'Literal') {
-    return typeof prop.key.value === 'string' && isRuntimeEventProp(prop.key.value);
-  }
-  return true;
+  return prop.computed && isDynamicTag && prop.key.type !== 'Literal';
 }
 
 /**

@@ -1,0 +1,131 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { ['onClick$' /* ] */]: handler }),
+      jsx(Cmp, { [/* [ */ 'onBlur$']: () => console.log('blur') }),
+    ],
+  });
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,2CASZ\"}")
+============================= test.tsx_test_component_handler_8vo8NHSEKSA.js (ENTRY POINT)==
+
+export const test_component_handler_8vo8NHSEKSA = ()=>console.log('clicked');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAMoB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_handler_8vo8NHSEKSA",
+  "entry": null,
+  "displayName": "test.tsx_test_component_handler",
+  "hash": "8vo8NHSEKSA",
+  "canonicalFilename": "test.tsx_test_component_handler_8vo8NHSEKSA",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    208,
+    236
+  ]
+}
+*/
+============================= test.tsx_test_component_div_Cmp_onBlur_bxBlZROl6Ug.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_onBlur_bxBlZROl6Ug = ()=>console.log('blur');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDAUsC,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_onBlur_bxBlZROl6Ug",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_onBlur",
+  "hash": "bxBlZROl6Ug",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_onBlur_bxBlZROl6Ug",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "onBlur$",
+  "captures": false,
+  "loc": [
+    366,
+    391
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_div_Cmp_onBlur_bxBlZROl6Ug = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_onBlur_bxBlZROl6Ug"), "test_component_div_Cmp_onBlur_bxBlZROl6Ug");
+const q_test_component_handler_8vo8NHSEKSA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_handler_8vo8NHSEKSA"), "test_component_handler_8vo8NHSEKSA");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+    const handler = q_test_component_handler_8vo8NHSEKSA;
+    return _jsxSorted('div', null, null, [
+        _jsxSplit(Cmp, null, {
+            onClick$: handler
+        }, null, 3, "u6_0"),
+        _jsxSplit(Cmp, null, {
+            /* [ */ onBlur$: q_test_component_div_Cmp_onBlur_bxBlZROl6Ug
+        }, null, 3, "u6_1")
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAI0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAQ,UAAqB;;QACjC,UAAI;YAAQ,KAAK,GAAG,OAAS;;KAC9B;AAEL\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    127,
+    410
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

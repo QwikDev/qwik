@@ -113,14 +113,14 @@ export const test_component_LUXeXe0DQrg = ()=>{
         _jsxSplit(Cmp, null, {
             'window:onScroll$': q_test_component_div_Cmp_window_onScroll_JlSPSZEMKvk
         }, null, 3, "u6_3"),
-        _jsxSorted(Child, {
-            ['onClick$']: handler
-        }, null, null, 3, "u6_4")
+        _jsxSplit(Child, null, {
+            onClick$: handler
+        }, null, 3, "u6_4")
     ], 1, "u6_5");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;0CAK0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAO,UAAU;;QACrB,UAAI;YAAQ,UAAa;;QACzB,UAAI;YAAQ,QAAU;;QACtB,UAAI;YAAQ,kBAAkB;;QAC9B,WAAI;YAAS,CAAC,WAAW,EAAE;;KAC5B;AAEL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;0CAK0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAO,UAAU;;QACrB,UAAI;YAAQ,UAAa;;QACzB,UAAI;YAAQ,QAAU;;QACtB,UAAI;YAAQ,kBAAkB;;QAC9B,UAAI;YAAU,UAAa;;KAC5B;AAEL\"}")
 /*
 {
   "origin": "test.tsx",

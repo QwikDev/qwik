@@ -1241,11 +1241,7 @@ impl<'a> QwikTransform<'a> {
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
-		let node_props = if is_dynamic_tag {
-			Self::normalize_computed_event_keys(node_props)
-		} else {
-			node_props
-		};
+		let node_props = Self::normalize_computed_event_keys(node_props);
 		let (should_sort, var_props, const_props, children, flags) =
 			self.handle_jsx_props_obj(node_props, is_fn, is_dynamic_tag, is_text_only);
 
@@ -2026,8 +2022,8 @@ impl<'a> QwikTransform<'a> {
 		})
 	}
 
-	/// On a dynamic tag, `{ ['onClick$']: fn }` is the same prop as `{ onClick$: fn }`, so the
-	/// handler is extracted and placed like a plain key.
+	/// `{ ['onClick$']: fn }` is the same prop as `{ onClick$: fn }`, so the handler is extracted
+	/// and placed like a plain key.
 	fn normalize_computed_event_keys(mut props: ast::ExprOrSpread) -> ast::ExprOrSpread {
 		if let ast::Expr::Object(ref mut object) = *props.expr {
 			for prop in object.props.iter_mut() {

@@ -20,7 +20,6 @@ import { isStrippedExtraction } from '../rewrite/predicates.js';
 import { extractDestructuredFieldInfo } from '../rewrite/raw-props.js';
 import { flattenDestructureUseCalls } from '../prepare/flatten-destructures.js';
 import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
-import { normalizeComputedJsxEventKeys } from '../prepare/computed-event-keys.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import {
@@ -481,9 +480,8 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   const edits = new MagicString(repairedCode);
   const flattened = flattenDestructureUseCalls(repairedCode, program, edits);
   const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program, edits);
-  const eventKeys = normalizeComputedJsxEventKeys(repairedCode, program, edits);
   let originalOffset = (offset: number): number => offset;
-  if (flattened.changed || inlineProps.changed || eventKeys.changed) {
+  if (flattened.changed || inlineProps.changed) {
     originalOffset = createOriginalOffsetMapper(
       repairedCode,
       edits.toString(),

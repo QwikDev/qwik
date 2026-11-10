@@ -140,8 +140,8 @@ test.describe('navigation to a page with a routeLoader$', () => {
   });
 });
 
-test.describe('hover, then click', () => {
-  test("the new route's chunks are requested on hover", async ({ page }) => {
+test.describe('hover on a Link that prefetches on intent', () => {
+  test("the new route's chunks are requested", async ({ page }) => {
     const { gate, ongoing } = await openFixture(page, FROM.intent, 'cold');
     const urls = await collectUntilQuiet(page, gate, () => treeLink(page, FROM.intent).hover());
     await releaseAll(gate, ongoing);

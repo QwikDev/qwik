@@ -3,7 +3,7 @@ import { component$, useSignal } from '@qwik.dev/core';
 export default component$(() => {
   const message = useSignal('');
   return (
-    <section class="fixture" data-fixture="user-import/user-import">
+    <section class="fixture" data-fixture="user-import">
       <h2>user import</h2>
       <button
         data-testid="trigger"

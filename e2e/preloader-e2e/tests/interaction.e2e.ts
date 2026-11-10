@@ -25,7 +25,7 @@ const requestedUrls = (roundTrips: RoundTrip[]) =>
 const roundTripOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean) =>
   roundTrips.findIndex((roundTrip) => roundTrip.urls.some(isWanted));
 
-test("slot/slot: a click inside projected content doesn't fetch the projecting component's render chunk", async ({
+test("slot: a click inside projected content doesn't fetch the projecting component's render chunk", async ({
   page,
 }) => {
   const roundTrips = await coldClick(page, SLOT);
@@ -35,7 +35,7 @@ test("slot/slot: a click inside projected content doesn't fetch the projecting c
   expect(panelChunks).toEqual([]);
 });
 
-test('scoped-styles/scoped-styles: a component shown on click fetches its scoped styles with its render chunk', async ({
+test('scoped-styles: a component shown on click fetches its scoped styles with its render chunk', async ({
   page,
 }) => {
   const roundTrips = await coldClick(page, SCOPED_STYLES);
@@ -49,7 +49,7 @@ test('scoped-styles/scoped-styles: a component shown on click fetches its scoped
   expect(stylesRoundTrip).toBe(renderRoundTrip);
 });
 
-test('qrl-prop/qrl-prop: a click calling a QRL passed down as a prop fetches it with the handler', async ({
+test('qrl-prop: a click calling a QRL passed down as a prop fetches it with the handler', async ({
   page,
 }) => {
   const roundTrips = await coldClick(page, QRL_PROP);
@@ -68,7 +68,7 @@ test('qrl-prop/qrl-prop: a click calling a QRL passed down as a prop fetches it 
   expect(qrlRoundTrip).toBe(handlerRoundTrip);
 });
 
-test('sync/sync: a click handled only by sync$ shows the result with no request, even cold', async ({
+test('sync: a click handled only by sync$ shows the result with no request, even cold', async ({
   page,
 }) => {
   const roundTrips = await coldClick(page, SYNC);

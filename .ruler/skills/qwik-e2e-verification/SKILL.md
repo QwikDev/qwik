@@ -100,6 +100,8 @@ pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromiu
 `e2e/qwik-e2e/apps/preloader-test`, with the app's own vite config, served by `vite preview` over
 HTTPS (HTTP/2).
 
+- Write test titles with the words defined in `e2e/preloader-e2e/README.md` (round trip, cap, cold
+  click, warm click); prefix tests of the gate itself with `gate:`.
 - Count round trips with the request gate in `utils/gate.ts`. It holds responses, so the count is
   exact on localhost, where timing would show no waterfall.
 - Fixtures come from the app's `scripts/generate.ts` (`pnpm generate` in the app). Edit the script,

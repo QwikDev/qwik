@@ -5,7 +5,7 @@ import { ModalContent } from './modal-content';
 export default component$(() => {
   const isOpen = useSignal(false);
   return (
-    <section class="fixture" data-fixture="modal/modal">
+    <section class="fixture" data-fixture="modal">
       <h2>modal</h2>
       <button data-testid="trigger" onClick$={() => (isOpen.value = true)}>
         Open

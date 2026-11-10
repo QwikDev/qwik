@@ -1,7 +1,7 @@
 import { component$, sync$ } from '@qwik.dev/core';
 
 export default component$(() => (
-  <section class="fixture" data-fixture="sync/sync">
+  <section class="fixture" data-fixture="sync">
     <h2>sync</h2>
     <button
       data-testid="trigger"

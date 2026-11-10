@@ -33,28 +33,28 @@ export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, l
 );
 
 export const MODAL: Fixture = {
-  id: 'modal/modal',
+  id: 'modal',
   path: '/modal/',
   sources: ['src/components/fixtures/modal/', 'src/routes/modal/'],
   expected: '3',
 };
 
 export const USER_IMPORT: Fixture = {
-  id: 'user-import/user-import',
+  id: 'user-import',
   path: '/user-import/',
   sources: ['src/components/fixtures/user-import/', 'src/routes/user-import/', 'src/vendor-lib/'],
   warmRoundTrips: 1,
 };
 
 export const SHARED_HELPER: Fixture = {
-  id: 'shared-helper/shared-helper',
+  id: 'shared-helper',
   path: '/shared-helper/',
   sources: ['src/components/fixtures/shared-helper/', 'src/routes/shared-helper/'],
   expected: '1 clicks',
 };
 
 const handWritten = (name: string, expected: string): Fixture => ({
-  id: `${name}/${name}`,
+  id: name,
   path: `/${name}/`,
   sources: [`src/components/fixtures/${name}/`, `src/routes/${name}/`],
   expected,

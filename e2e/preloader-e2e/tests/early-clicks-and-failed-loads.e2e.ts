@@ -9,7 +9,6 @@ import {
   release,
   releaseAll,
   resultIsDone,
-  settle,
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
@@ -73,11 +72,6 @@ test.describe('click before core loaded', () => {
   });
 });
 
-const firstPreloads = async (page: Page, gate: Awaited<ReturnType<typeof createGate>>) => {
-  await settle(page, gate);
-  return preloaderLinks(page);
-};
-
 const preloadsAfterAnEarlyClick = async (page: Page, heldUrl: string) => {
   const { gate, startupPiece, roundTrips } = await clickWhileLoading(
     page,
@@ -91,9 +85,11 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrl: string) => {
       .filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
   );
   gate.mode = 'pass';
-  await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
-  await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
-  const links = await firstPreloads(page, gate);
+  await waitForNetworkIdle(page, async () => {
+    await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
+    await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
+  });
+  const links = await preloaderLinks(page);
   return { links, clickChunks };
 };
 

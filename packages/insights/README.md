@@ -11,11 +11,19 @@ The Qwik monorepo deploys two independent applications in the QwikDev Cloudflare
 
 Each application has its own deployment workflow. `deploy-insights.yml` builds and deploys
 Insights when its code or shared dependencies change on the production `v1` branch.
-The docs deployment remains independent. The Insights workflow becomes active once merged.
+The docs deployment remains independent.
 
-The repository secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` authenticate
-deployments. The token needs Workers Scripts Edit for the QwikDev account and Workers
-Routes Edit plus Zone Read for `qwik.dev`; verify these permissions before enabling CI.
+The repository secret `CLOUDFLARE_INSIGHTS_API_TOKEN` authenticates Insights deployments.
+Use a QwikDev account-owned token with Workers Editor access at the Workers product scope
+(or legacy Workers Scripts Edit), plus Workers Routes Write/Edit and Zone Read for `qwik.dev`.
+Product-level access is needed because Cloudflare does not yet support per-Worker roles for
+Custom Domains. The QwikDev account ID is configured in `wrangler.jsonc`.
+
+The docs workflow uses its own existing `CLOUDFLARE_API_TOKEN`; Pages permissions alone
+do not grant access to Workers. Insights checks access to `qwik-insights` before building,
+so a missing token or insufficient access fails early. If that check fails, verify the
+token's account and Workers permissions, update the repository secret, and rerun the job.
+
 Runtime secrets belong to the Worker, not GitHub or the checked-in configuration:
 
 - `PRIVATE_LIBSQL_DB_API_TOKEN`: Turso database token.

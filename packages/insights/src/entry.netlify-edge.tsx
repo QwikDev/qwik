@@ -11,7 +11,7 @@ import { createQwikRouter, type PlatformNetlify } from '@qwik.dev/router/middlew
 import render from './entry.ssr';
 
 declare global {
-  type QwikRouterPlatform = PlatformNetlify;
+  interface QwikRouterPlatform extends PlatformNetlify {}
 }
 
 export default createQwikRouter({

@@ -4,7 +4,7 @@ import { Panel } from './panel';
 export default component$(() => {
   const count = useSignal(0);
   return (
-    <section class="fixture" data-fixture="slot/slot">
+    <section class="fixture" data-fixture="slot">
       <h2>slot</h2>
       <Panel title="projected">
         <button data-testid="trigger" onClick$={() => count.value++}>

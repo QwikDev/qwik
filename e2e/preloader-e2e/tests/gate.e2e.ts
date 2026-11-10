@@ -26,7 +26,7 @@ const openHolding = async (page: import('@playwright/test').Page) => {
 const heldFor = (gate: Awaited<ReturnType<typeof openHolding>>, url: string) =>
   gate.held.filter((route) => route.request().url() === url);
 
-test.describe('counting round trips', () => {
+test.describe('gate: counting round trips', () => {
   test('counts one round trip per chained user import(): 3 for a handler that awaits 3', async ({
     page,
   }) => {
@@ -35,7 +35,7 @@ test.describe('counting round trips', () => {
   });
 });
 
-test.describe('keeping requests ongoing', () => {
+test.describe('gate: keeping requests ongoing', () => {
   test('an ongoing preload never finishes until the test releases it', async ({ page }) => {
     const gate = await openHolding(page);
     const url = unusedChunk();
@@ -76,8 +76,8 @@ test.describe('keeping requests ongoing', () => {
   });
 });
 
-test.describe('cold click setup', () => {
-  test("the page's own load work finishes first; one speculative preload stays ongoing", async ({
+test.describe('gate: cold click setup', () => {
+  test("lets the page's own load work finish, then holds one speculative preload", async ({
     page,
   }) => {
     await recordSpeculativePreloads(page);

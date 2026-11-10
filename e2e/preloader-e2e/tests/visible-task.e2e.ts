@@ -53,7 +53,7 @@ test.describe('visible task in view at load', () => {
     }
   });
 
-  test('its whole chain goes out in that first round trip', async ({ page }) => {
+  test('the chunks of its 3 chained visible tasks go out in one round trip', async ({ page }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
     const roundTrips = await countRoundTrips(

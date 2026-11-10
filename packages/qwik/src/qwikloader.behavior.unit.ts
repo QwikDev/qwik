@@ -145,6 +145,35 @@ test.each(['throw', 'missing'])(
   }
 );
 
+test.each([
+  { owner: 'no Catch', attrs: {}, rethrows: true },
+  { owner: 'a Catch', attrs: { 'q:catch': '1' }, rethrows: false },
+])('a handler error on an element owned by $owner rethrows: $rethrows', ({ attrs, rethrows }) => {
+  const { doc, win } = createLoaderEnvironment(['e:click']);
+  const error = new Error('handler failed');
+  const container = createMockElement(null, {
+    'q:container': '',
+    'q:base': './',
+    'q:instance': 'error',
+  });
+  const button = createMockElement(container, { 'q-e:click': '#0#', ...attrs });
+  doc.qFuncs_error = [
+    () => {
+      throw error;
+    },
+  ];
+
+  getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+  expect(doc.dispatchEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ type: 'qerror', detail: expect.objectContaining({ error }) })
+  );
+  expect(win.setTimeout).toHaveBeenCalledTimes(rethrows ? 1 : 0);
+  if (rethrows) {
+    expect(win.setTimeout.mock.calls[0][0]).toThrow(error);
+  }
+});
+
 function getListeners(target: ReturnType<typeof createEventTarget>, eventName: string) {
   const registrations = target.listeners.get(eventName);
   expect(registrations).toBeDefined();

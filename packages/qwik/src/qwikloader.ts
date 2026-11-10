@@ -357,6 +357,14 @@ const dispatch = (
           element,
           reqTime,
         });
+        const hasCatchOwner =
+          element.hasAttribute('q:catch') || !!(element as QElement)._qErrorOwner;
+        if (importError === undefined && !hasCatchOwner) {
+          // No Catch owns the element, so only the global error handler can report it.
+          win.setTimeout(() => {
+            throw error;
+          });
+        }
       };
       const run = (handler: Handler | undefined) =>
         handler && element.isConnected

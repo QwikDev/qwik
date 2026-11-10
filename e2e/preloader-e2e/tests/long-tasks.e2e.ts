@@ -11,10 +11,12 @@ import {
   waitForQwikloader,
 } from '../utils/gate';
 import {
+  findLongTasks,
   longTasksFromThePreloader,
   throttleLikeAMidTierPhone,
   traceLongTasks,
   type LongTask,
+  type TraceEvent,
 } from '../utils/long-tasks';
 import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
@@ -47,6 +49,53 @@ const report = async (testInfo: TestInfo, cpuRate: number, tasks: LongTask[]) =>
     contentType: 'application/json',
   });
 };
+
+const PRELOADER_URL = 'https://app.test/build/qwik-preloader.js';
+const MAIN_THREAD = { pid: 1, tid: 1 };
+const MICROSECONDS = 1000;
+
+const mainThreadName: TraceEvent = {
+  name: 'thread_name',
+  ph: 'M',
+  ts: 0,
+  ...MAIN_THREAD,
+  args: { name: 'CrRendererMain' },
+};
+
+const task = (wallMs: number, cpuMs: number): TraceEvent => ({
+  name: 'RunTask',
+  ph: 'X',
+  ts: 0,
+  dur: wallMs * MICROSECONDS,
+  tts: 0,
+  tdur: cpuMs * MICROSECONDS,
+  ...MAIN_THREAD,
+});
+
+const preloaderCall = (wallMs: number, cpuMs: number): TraceEvent => ({
+  name: 'FunctionCall',
+  ph: 'X',
+  ts: MICROSECONDS,
+  dur: wallMs * MICROSECONDS,
+  tts: MICROSECONDS,
+  tdur: cpuMs * MICROSECONDS,
+  ...MAIN_THREAD,
+  args: { data: { url: PRELOADER_URL } },
+});
+
+const longTasksFromThePreloaderIn = (events: TraceEvent[]) =>
+  longTasksFromThePreloader(findLongTasks([mainThreadName, ...events], PRELOADER_URL, new Set()));
+
+test.describe('long-task detector', () => {
+  test('counts the time the main thread ran, not the time it sat paused', () => {
+    expect(longTasksFromThePreloaderIn([task(62, 20), preloaderCall(47, 5)])).toEqual([]);
+  });
+
+  test('still counts a task whose preloader work alone reaches 50 ms', () => {
+    const flagged = longTasksFromThePreloaderIn([task(70, 70), preloaderCall(55, 55)]);
+    expect(flagged.map((longTask) => longTask.preloaderMs)).toEqual([55]);
+  });
+});
 
 test.describe('from load until the preloader is idle, on /all-at-once/', () => {
   test('no long task comes from the preloader', async ({ browser, page }, testInfo) => {

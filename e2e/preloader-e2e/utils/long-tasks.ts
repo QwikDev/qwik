@@ -66,20 +66,27 @@ export const throttleLikeAMidTierPhone = async (page: Page) => {
   return cpuRate;
 };
 
-type TraceEvent = {
+export type TraceEvent = {
   name: string;
   ph: string;
   ts: number;
   dur?: number;
+  tts?: number;
+  tdur?: number;
   pid: number;
   tid: number;
-  args?: { name?: string; fileName?: string; data?: { url?: string; fileName?: string } };
+  args?: {
+    name?: string;
+    fileName?: string;
+    data?: { url?: string; fileName?: string; functionName?: string; lineNumber?: number };
+  };
 };
 
 export type LongTask = {
   durationMs: number;
   preloaderMs: number;
   scripts: string[];
+  longestEvents: { name: string; source: string; wallMs: number; cpuMs: number }[];
 };
 
 const SCRIPT_EVENTS = new Set([
@@ -90,8 +97,33 @@ const SCRIPT_EVENTS = new Set([
   'v8.evaluateModule',
 ]);
 
+const GC_EVENTS = new Set(['MajorGC', 'MinorGC']);
+const LONGEST_EVENTS_KEPT = 8;
+
 const urlOf = (event: TraceEvent) =>
   event.args?.data?.url ?? event.args?.fileName ?? event.args?.data?.fileName ?? '';
+
+const hasThreadTime = (event: TraceEvent) => event.tts !== undefined && event.tdur !== undefined;
+
+const cpuDuration = (event: TraceEvent) => event.tdur ?? event.dur!;
+
+const wallInterval = (event: TraceEvent): [number, number] => [event.ts, event.ts + event.dur!];
+
+const cpuInterval = (event: TraceEvent): [number, number] => [event.tts!, event.tts! + event.tdur!];
+
+const toMs = (microseconds: number) => Math.round(microseconds / 100) / 10;
+
+const describeEvent = (event: TraceEvent) => {
+  const { functionName = '', lineNumber } = event.args?.data ?? {};
+  const file = urlOf(event).split('/').pop();
+  const line = lineNumber === undefined ? '' : `:${lineNumber}`;
+  return {
+    name: event.name,
+    source: `${functionName} ${file}${line}`.trim(),
+    wallMs: toMs(event.dur!),
+    cpuMs: toMs(cpuDuration(event)),
+  };
+};
 
 const mergedDuration = (intervals: [number, number][]) => {
   let total = 0;
@@ -137,26 +169,29 @@ export const findLongTasks = (
     (event) => event.pid === main.pid && event.tid === main.tid && event.ph === 'X' && event.dur
   );
   return onMain
-    .filter((event) => event.name === 'RunTask' && event.dur! >= LONG_TASK_MS * 1000)
+    .filter((event) => event.name === 'RunTask' && cpuDuration(event) >= LONG_TASK_MS * 1000)
     .map((task) => {
-      const scripts = onMain.filter(
+      const inTheTask = onMain.filter(
         (event) =>
-          SCRIPT_EVENTS.has(event.name) &&
-          event.ts >= task.ts &&
-          event.ts + event.dur! <= task.ts + task.dur!
+          event !== task && event.ts >= task.ts && event.ts + event.dur! <= task.ts + task.dur!
       );
+      const scripts = inTheTask.filter((event) => SCRIPT_EVENTS.has(event.name));
       const isPreloaderWork = (event: TraceEvent) =>
         urlOf(event) === preloaderUrl ||
         (event.name.startsWith('v8.compile') && preloadedUrls.has(urlOf(event)));
-      const preloaderWork = scripts
-        .filter(isPreloaderWork)
-        .map((event) => [event.ts, event.ts + event.dur!] as [number, number]);
+      const preloaderEvents = scripts.filter(isPreloaderWork);
+      const intervalOf = preloaderEvents.every(hasThreadTime) ? cpuInterval : wallInterval;
       return {
-        durationMs: Math.round(task.dur! / 1000),
-        preloaderMs: Math.round(mergedDuration(preloaderWork) / 1000),
+        durationMs: Math.round(cpuDuration(task) / 1000),
+        preloaderMs: Math.round(mergedDuration(preloaderEvents.map(intervalOf)) / 1000),
         scripts: [
           ...new Set(scripts.map((event) => `${event.name} ${urlOf(event).split('/').pop()}`)),
         ],
+        longestEvents: inTheTask
+          .filter((event) => SCRIPT_EVENTS.has(event.name) || GC_EVENTS.has(event.name))
+          .sort((a, b) => b.dur! - a.dur!)
+          .slice(0, LONGEST_EVENTS_KEPT)
+          .map(describeEvent),
       };
     });
 };

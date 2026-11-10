@@ -21,7 +21,7 @@ pnpm test.e2e.preloader
 | Cold click          | A click once the page's own load work is done, while one speculative preload is still ongoing. None of the fixture's chunks has loaded, except those an in-view visible task ran. |
 | Warm click          | A click once the preloader has nothing left to preload. It should need no request.                                                                                                |
 | Result              | The fixture's `output[data-testid=result]` with `data-done` set: every step ran.                                                                                                  |
-| Long task           | A main-thread task of 50 ms or more, with the CPU slowed to a mid-tier phone's.                                                                                                   |
+| Long task           | A main-thread task that takes 50 ms or more of CPU time, with the CPU slowed to a mid-tier phone's. Time the machine paused the browser doesn't count.                            |
 
 ## Expected failures
 

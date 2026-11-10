@@ -1,7 +1,7 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
 import { _capturesObj } from '../internal';
-import { createStore } from '../reactive-primitives/impl/store';
+import { createStore, unwrapStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
   type ComputedSignalInternal,
@@ -14,6 +14,7 @@ import { createQRL } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
+import { isObject } from '../shared/utils/types';
 import { useSequentialScope } from './use-sequential-scope';
 
 const DEBUG = false;
@@ -65,6 +66,29 @@ export interface ResourceOptions {
   timeout?: number;
 }
 
+const copyResourceResult = <T extends object>(result: T): T => {
+  if (Array.isArray(result)) {
+    return result.slice() as T;
+  }
+  return Object.assign({} as T, result);
+};
+
+const syncResourceStore = (current: object, next: object): void => {
+  if (Array.isArray(current) && Array.isArray(next)) {
+    current.length = next.length;
+    Object.assign(current, next);
+    return;
+  }
+  const currentKeys = Object.keys(unwrapStore(current));
+  for (let index = 0; index < currentKeys.length; index++) {
+    const key = currentKeys[index];
+    if (!Object.hasOwn(next, key)) {
+      Reflect.deleteProperty(current, key);
+    }
+  }
+  Object.assign(current, next);
+};
+
 /**
  * The resource function wrapper
  *
@@ -75,16 +99,17 @@ export const _rsc = async <T>(arg: ResourceCtx<T>) => {
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
-  if (result && typeof result === 'object') {
-    if (ref.r) {
-      Object.assign(ref.r, result);
+  if (isObject(result)) {
+    const current = ref.r;
+    if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
+      syncResourceStore(current, result);
     } else {
-      // We need lazy creation because we don't know if it will be an array or an object, and we want to preserve the original reference for reactivity to work
-      ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
+      // Copy so later results do not mutate the caller, and keep this store reference.
+      ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
       DEBUG && log('store created', ref.r);
     }
   } else {
-    ref.r = result as any;
+    ref.r = result;
   }
   return { r: ref.r };
 };

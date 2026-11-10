@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { _deserialize, _serialize } from './standalone';
+import { _deserialize } from './standalone';
+import { _serialize } from '../../../serializer';
 import { PropSource } from '../../component/props';
 import { _noopQrl, _qrlWithChunk } from '../qrl/qrl';
 import { isQrl } from '../qrl/qrl-utils';

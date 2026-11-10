@@ -13,7 +13,6 @@ import {
   runOwnerCleanups,
   type SsrAttributePatch,
   SsrOutputWriter,
-  type SerializationContext,
   type Subscriber,
   type SsrDeferredRange,
   type SsrPublicationChunk,
@@ -22,6 +21,7 @@ import {
   type SsrOutput,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { SubscriberKind, SubscriberFlags, escapeHTML, type ValueOrPromise } from './qwik-copy';
 import { createSsrEventAttrParts } from './ssr-event-attr';
 import { SsrScriptEmitter } from './ssr-script-emitter';

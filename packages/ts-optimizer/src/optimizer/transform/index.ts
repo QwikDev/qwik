@@ -12,6 +12,7 @@ import type {
   TSEnumDeclaration,
 } from '../../ast-types.js';
 import MagicString from 'magic-string';
+import { collectEventOnlyQrls } from '../analysis/event-qrls.js';
 import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
@@ -395,7 +396,11 @@ function transformOneModule(
     analysis,
     emit.isInlineStrategy
   );
-  const preRenameSymbolName = applyProdRename(extractions, closureNodes, emit.emitMode);
+  const preRenameSymbolName = applyProdRename(
+    extractions,
+    [closureNodes, analysis.elementQpParamsMap],
+    emit.emitMode
+  );
   const sourceExtensions = downgradeExtensions(
     extractions,
     emit.shouldTranspileJsx,
@@ -587,6 +592,12 @@ function extractModuleSegments(
   // orchestrator then advances elements in place through the `captured` →
   // `consolidated` phases via per-mutation `Mutable` casts.
   const extractions = facts.extractions as ExtractionResult[];
+  if ((options.entryStrategy?.type ?? 'smart') === 'smart') {
+    const eventOnly = collectEventOnlyQrls(program, extractions);
+    for (const extraction of extractions) {
+      extraction.isEventOnly = eventOnly.has(extraction.argStart);
+    }
+  }
   for (const extraction of extractions) {
     (extraction as Mutable<ExtractionResult>).loc = [
       mkByteOffset(prepared.originalOffset(extraction.loc[0]) + 1),
@@ -694,6 +705,7 @@ function analyzeModuleCaptures(
   // lexical scopes) survive the prod `s_<hash>` rename.
   const {
     closureFreeIdentifiers,
+    closureFreeBindingStarts,
     closureLexicalScopes,
     nonFunctionCaptures,
     extractionLoopMap,
@@ -719,6 +731,8 @@ function analyzeModuleCaptures(
     if (!closureNode) {
       continue;
     }
+    extraction.freeBindingStarts = closureFreeBindingStarts.get(closureNode);
+    extraction.propsBindingStarts = collectPropsBindingStarts(closureNode);
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
@@ -817,7 +831,7 @@ function analyzeModuleCaptures(
     }
   }
 
-  const globalDeclPositions = new Map<string, number>();
+  const captureDeclPositions = new Map<string, Map<string, number>>();
   // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
   // still needs the `(_, _1, capture)` param-padding form, while `inline`
   // keeps captures in `captureNames` for the `_capturesObj._[N]` unpacking path.
@@ -828,7 +842,7 @@ function analyzeModuleCaptures(
     closureFreeIdentifiers,
     bodyScopeIds,
     moduleScopeIds,
-    importedNames,
+    importBindingStarts: collectImportBindingStarts(program),
     enclosingExtMap,
     extractionLoopMap,
     allScopeEntries,
@@ -839,7 +853,7 @@ function analyzeModuleCaptures(
     moduleTopLevelNames: new Set(collectModuleLevelDecls(program, repairedCode).map((d) => d.name)),
   };
 
-  promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
+  promoteEventHandlerCaptures(eventCaptureCtx, captureDeclPositions);
 
   // A worker wrapper delegates positionally to its worker child, so it takes
   // the child's lifted params and moved-captures marker verbatim.
@@ -856,18 +870,19 @@ function analyzeModuleCaptures(
     }
     const mut = wrapper as Mutable<ExtractionResult>;
     mut.paramNames = [...worker.paramNames];
+    mut.captureParamNames = worker.captureParamNames?.slice();
     mut.movedCaptures = worker.movedCaptures;
     mut.captureNames = [];
     mut.captures = false;
   }
 
-  unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
+  unifyParameterSlots(eventCaptureCtx, captureDeclPositions);
 
   // Threads strip-config so stripped event handlers' captures still populate
   // `elementQpParamsMap` for segment-body JSX.
   const elementQpParamsMap = buildElementCaptureMap(
     eventCaptureCtx,
-    globalDeclPositions,
+    captureDeclPositions,
     options.stripCtxName,
     options.stripEventHandlers
   );
@@ -899,6 +914,35 @@ function analyzeModuleCaptures(
     passiveConflicts,
     scopeAwareBindings,
   };
+}
+
+function collectPropsBindingStarts(closureNode: AstFunction): Map<string, number> | undefined {
+  const propsPattern = closureNode.params[0];
+  if (propsPattern?.type !== 'ObjectPattern') {
+    return undefined;
+  }
+  const starts = new Map<string, number>();
+  for (const property of propsPattern.properties) {
+    const target = property.type === 'RestElement' ? property.argument : property.value;
+    const binding = target.type === 'AssignmentPattern' ? target.left : target;
+    if (binding.type === 'Identifier') {
+      starts.set(binding.name, binding.start);
+    }
+  }
+  return starts;
+}
+
+function collectImportBindingStarts(program: AstProgram): Map<string, number> {
+  const starts = new Map<string, number>();
+  for (const statement of program.body) {
+    if (statement.type !== 'ImportDeclaration') {
+      continue;
+    }
+    for (const specifier of statement.specifiers) {
+      starts.set(specifier.local.name, specifier.local.start);
+    }
+  }
+  return starts;
 }
 
 /** Top-level module references resolve through module wiring, never QRL captures. */
@@ -1169,7 +1213,7 @@ function attributeSegmentUsage(
  */
 function applyProdRename(
   extractions: ExtractionResult[],
-  closureNodes: Map<string, AstFunction>,
+  symbolMaps: readonly Map<string, unknown>[],
   emitMode: EmitMode
 ): Map<SymbolName, SymbolName> {
   const preRenameSymbolName = new Map<SymbolName, SymbolName>();
@@ -1185,11 +1229,12 @@ function applyProdRename(
     // Internal-builder cast: rename mutates identity in place post-extraction.
     (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName('s_' + ext.hash);
     preRenameSymbolName.set(ext.symbolName, original);
-    // Mirror the rename in `closureNodes` so post-rename lookups still resolve.
-    const closure = closureNodes.get(original);
-    if (closure) {
-      closureNodes.delete(original);
-      closureNodes.set(ext.symbolName, closure);
+    for (const symbols of symbolMaps) {
+      const value = symbols.get(original);
+      if (value !== undefined) {
+        symbols.delete(original);
+        symbols.set(ext.symbolName, value);
+      }
     }
   }
   return preRenameSymbolName;

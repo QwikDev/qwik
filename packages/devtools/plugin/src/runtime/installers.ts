@@ -398,6 +398,10 @@ export function __qwik_install_perf_runtime__(options: PerfRuntimeOptions) {
     return perf._id;
   };
 
+  // Setup calls have no render timing; never overwrite a render.
+  const isSetupAfterRender = (prev: RuntimeRecord | undefined, entry: RuntimeRecord) =>
+    typeof prev?.renderCount === 'number' && typeof entry?.renderCount !== 'number';
+
   const nextSsrId = (store: RuntimeRecord) => {
     store[options.ssrPerfIdKey] = (store[options.ssrPerfIdKey] || 0) + 1;
     return store[options.ssrPerfIdKey];
@@ -415,11 +419,15 @@ export function __qwik_install_perf_runtime__(options: PerfRuntimeOptions) {
     store[options.ssrPerfCountKey] = store[options.ssrPerfCountKey] || {};
 
     const key = (entry && (entry.viteId || entry.component)) || 'unknown';
+    const existingIdx = store[options.ssrPerfIndexKey][key];
+    if (isSetupAfterRender(store[options.ssrPerfStoreKey][existingIdx], entry)) {
+      return;
+    }
     const nextCount = (store[options.ssrPerfCountKey][key] || 0) + 1;
     store[options.ssrPerfCountKey][key] = nextCount;
 
-    const next = { ...entry, ssrCount: nextCount };
-    const existingIdx = store[options.ssrPerfIndexKey][key];
+    // Setup calls are not renders; the wrapper counts real renders.
+    const next = { ...entry, ssrCount: entry?.renderCount ?? nextCount };
 
     if (typeof existingIdx === 'number') {
       const prev = store[options.ssrPerfStoreKey][existingIdx];
@@ -488,6 +496,10 @@ export function __qwik_install_perf_runtime__(options: PerfRuntimeOptions) {
 
     const key = next && next.component;
     const idx = key ? perf._ssrByComponent[key] : undefined;
+    if (typeof idx === 'number' && isSetupAfterRender(perf.ssr[idx], next)) {
+      emitRender(entry);
+      return;
+    }
     if (typeof idx === 'number') {
       const prev = perf.ssr[idx];
       const prevCount = prev && typeof prev.ssrCount === 'number' ? prev.ssrCount : 0;

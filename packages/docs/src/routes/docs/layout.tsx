@@ -8,13 +8,22 @@ import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import styles from './docs.css?inline';
 
-export default component$(() => {
+export default component$(() => (
+  <DocsShell>
+    <Slot />
+  </DocsShell>
+));
+
+const overviewPathnames = ['/docs/', '/api/'];
+
+/** Shared by the /docs and /api layouts so both get the header, sidebar and TOC. */
+export const DocsShell = component$((props: { class?: string; excludeFromSearch?: boolean }) => {
   useStyles$(styles);
   const loc = useLocation();
-  const hasOnThisPage = useComputed$(() => loc.url.pathname !== '/docs/');
+  const hasOnThisPage = useComputed$(() => !overviewPathnames.includes(loc.url.pathname));
 
   return (
-    <div class="docs">
+    <div class={['docs', props.class]}>
       <Header sidebarId={docsSidebarId} />
       <div class="docs-grid bg-background-base">
         <div class="docs-shell fixed-header">
@@ -29,7 +38,7 @@ export default component$(() => {
               'docs-main-full': !hasOnThisPage.value,
             }}
           >
-            <article class="docs-content" data-pagefind-body>
+            <article class="docs-content" data-pagefind-body={!props.excludeFromSearch}>
               <Slot />
               <div data-pagefind-ignore>
                 <Contributors />

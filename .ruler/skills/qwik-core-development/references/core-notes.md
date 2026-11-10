@@ -26,9 +26,10 @@ packages/qwik/src/core/
   reactive/                  signals, computed values, stores, subscriptions
   runtime/                   owners, invoke contexts, scheduler, hooks, tasks
   shared/qrl/                QRL classes and helpers
-  shared/serdes/             serialization, inflation, root references
+  shared/serdes/             inflation (deserializer), root references, type ids
   tests/                     compiler-backed CSR and SSR behavior specs
 packages/qwik/src/server/    target-native SSR runtime
+packages/qwik/src/serializer/ the writer, shipped as `@qwik.dev/core/internal/serializer`
 ```
 
 Do not restore removed VNode, cursor, legacy SSR-JSX, `reactive-primitives`, or `use/` pipelines.
@@ -57,7 +58,7 @@ When changing computed behavior, inspect:
 - `packages/qwik/src/core/reactive/public-api.ts`
 - `packages/qwik/src/core/reactive/public-types.ts`
 - `packages/qwik/src/core/reactive/async-signal.ts`
-- `packages/qwik/src/core/shared/serdes/serialize.ts`
+- `packages/qwik/src/serializer/serialize.ts`
 - `packages/qwik/src/core/shared/serdes/allocate.ts`
 - the closest computed or async signal unit/spec test
 
@@ -85,6 +86,14 @@ When core state changes its serialized representation:
 Async computeds serialize as `TypeIds.AsyncSignal`; synchronous computeds serialize as
 `TypeIds.ComputedSignal`. Selection uses `ComputedFlags.Async`, not class identity, so resumed and
 deprecated-adapter instances follow the same protocol.
+
+The serializer is its own bundle so browser apps only load it inside the segments that call it
+(e.g. `server$`). Like `src/server/`, it takes stateful runtime values from `@qwik.dev/core` so
+classes and flyweights keep one identity; only `serializer/qwik-copy.ts` (const enums,
+identity-free helpers) and `serializer/qwik-types.ts` may import core through `../`. Core itself
+may import serializer types only. `pnpm build.core` names any core module outside the server's
+copyable directories that ends up in the serializer bundle, and `core/serializer-boundary.unit.ts`
+fails when core statically reaches the serializer.
 
 ### Resolving QRLs During Inflation
 
@@ -133,6 +142,9 @@ deserialization never runs.
 
 ## Compiler And QRL Boundaries
 
+- Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core`;
+  production builds mangle `$...$` properties inside core, so external packages cannot read them
+  directly. Verify these integrations after a production build.
 - Use `$`-suffixed APIs and `$()` when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby tests already need it.
 - If runtime behavior relies on optimizer output, inspect the transform and snapshot.

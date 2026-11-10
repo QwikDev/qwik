@@ -52,6 +52,28 @@ describe(`${name}: attributes`, () => {
     cleanup();
   });
 
+  it('should render a constant boolean attribute as empty on a client-created element', async () => {
+    const AttrComp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          {show.value && (
+            <button id="target" disabled>
+              target
+            </button>
+          )}
+        </>
+      );
+    });
+
+    const { container, qwikLoader, cleanup } = await render(AttrComp);
+    await qwikLoader?.dispatch(container.querySelector('#show')!, 'click');
+
+    expect(container.querySelector('#target')!.getAttribute('disabled')).toBe('');
+    cleanup();
+  });
+
   it('updates class arrays and objects without losing static classes', async () => {
     const App = component$(() => {
       const active = useSignal(true);

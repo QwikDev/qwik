@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
-import { isSyncQrl, qTest, qrlToString, type SerializationContext } from '@qwik.dev/core';
+import { isSyncQrl, qTest, qrlToString } from '@qwik.dev/core';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { escapeHTML } from './qwik-copy';
 import type { PreloaderOptions, ServerQwikManifest } from './types';
 

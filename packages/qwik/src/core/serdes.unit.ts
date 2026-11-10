@@ -9,10 +9,11 @@ import {
   inflate as inflateState,
 } from './shared/serdes/inflate';
 import { restoreStreamedSubscribers, registerStateData } from './runtime/container-context';
-import { createSerializationContext } from './shared/serdes/serialization-context';
+import { createSerializationContext } from '../serializer/serialization-context';
 import { Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
-import { _deserialize, _serialize } from './shared/serdes/standalone';
+import { _deserialize } from './shared/serdes/standalone';
+import { _serialize } from '../serializer';
 import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { SERIALIZABLE_STATE } from './shared/component.public';

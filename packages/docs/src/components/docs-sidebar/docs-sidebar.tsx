@@ -60,7 +60,9 @@ export const DocsSidebar = component$(() => {
 
           {guideSections.length > 0 && (
             <section>
-              <h2 class="p-2 text-[16px] font-bold leading-[22px] text-foreground-base">Guides</h2>
+              <h2 class="p-2 text-[16px] font-bold leading-[22px] text-foreground-base">
+                {menu?.text}
+              </h2>
               <div class="flex flex-col gap-0.5">
                 {guideSections.map((section, index) => (
                   <MenuSection
@@ -195,6 +197,8 @@ const IntroIcon = component$((props: { text: string }) => {
       return <lucide.circlequestionmark class="vanilla-icon" />;
     case 'Upgrade':
       return <lucide.sparkles class="vanilla-icon" />;
+    case 'Back to the docs':
+      return <lucide.arrowleft class="vanilla-icon" />;
     default:
       return null;
   }
@@ -216,6 +220,12 @@ const GuideSectionIcon = component$((props: { name: string }) => {
       return <lucide.compass class="vanilla-icon" />;
     case 'Reference':
       return <lucide.filetext class="vanilla-icon" />;
+    case 'Core':
+      return <lucide.box class="vanilla-icon" />;
+    case 'Middleware':
+      return <lucide.layers class="vanilla-icon" />;
+    case 'Vite Adapters':
+      return <lucide.rocket class="vanilla-icon" />;
     case 'Experimental 🧪':
       return <lucide.testtubediagonal class="vanilla-icon" />;
     default:

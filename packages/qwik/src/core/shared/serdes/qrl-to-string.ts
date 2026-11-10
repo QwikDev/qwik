@@ -1,11 +1,11 @@
 import { isDev } from '@qwik.dev/core/build';
-import { type SerializationContext } from './serialization-context';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { qError, QError } from '../error/error';
 import { getPlatform } from '../platform/platform';
 import { createQRL, createSyncQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
-import type { SsrWriteChunk } from './writer';
+import type { SsrWriteChunk } from '../../../serializer/writer';
 import type { ContainerContext } from '../../runtime/container-context';
 
 /** @internal */

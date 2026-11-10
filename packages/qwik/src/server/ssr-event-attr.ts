@@ -2,10 +2,10 @@ import {
   createSsrEventAttr as createSsrEventAttrChunk,
   createSsrRootRef,
   createSsrRootRefPath,
-  type SerializationContext,
   type SsrEventAttrChunk,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { escapeHTML } from './qwik-copy';
 import { serializeSsrEvent, type SsrEventWriteChunk } from './ssr-events';
 

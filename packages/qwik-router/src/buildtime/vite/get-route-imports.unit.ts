@@ -4,6 +4,16 @@ import type { BuiltLayout, BuiltRoute } from '../types';
 import { getRouteImports } from './get-route-imports';
 
 describe('modifyBundleGraph', () => {
+  test('keys catch-all routes with the trailing slash the runtime looks up', () => {
+    const manifest = {
+      bundles: { 'docs.js': { origins: ['src/routes/docs/[...slug]/index.tsx'] } },
+    } as unknown as QwikManifest;
+    const routes = [
+      { routeName: 'docs/[...slug]', filePath: '/app/src/routes/docs/[...slug]/index.tsx' },
+    ] as BuiltRoute[];
+    expect(Object.keys(getRouteImports(routes, manifest))).toEqual(['docs/[...slug]/']);
+  });
+
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {
@@ -57,7 +67,7 @@ describe('modifyBundleGraph', () => {
             "fake-bundle1.js",
           ],
         },
-        "/subroute": {
+        "/subroute/": {
           "dynamicImports": [
             "fake-bundle-part-of-sub-route.js",
             "fake-bundle-part-of-layout.js",

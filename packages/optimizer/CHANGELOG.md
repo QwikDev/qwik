@@ -1,5 +1,23 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-rc.11
+
+### Patch Changes
+
+- 🐞🩹 preserve loop handler captures across scopes and assignments (by [@tuurbo](https://github.com/tuurbo) in [#9307](https://github.com/QwikDev/qwik/pull/9307))
+
+- 🐞🩹 remove unused callbacks retained after moving helpers into segments (by [@Varixo](https://github.com/Varixo) in [#9380](https://github.com/QwikDev/qwik/pull/9380))
+
+- 🐞🩹 debug builds show readable names for event handler and visible task chunks (by [@maiieul](https://github.com/maiieul) in [#9386](https://github.com/QwikDev/qwik/pull/9386))
+
+## 2.1.0-rc.10
+
+### Patch Changes
+
+- 🐞🩹 child computeds and tasks now update when a prop expression reads render-local values (by [@rapporian](https://github.com/rapporian) in [#9218](https://github.com/QwikDev/qwik/pull/9218))
+
+- 🐞🩹 keep client-only callbacks outside smart render bundles (by [@Varixo](https://github.com/Varixo) in [#9263](https://github.com/QwikDev/qwik/pull/9263))
+
 ## 2.1.0-beta.9
 
 ### Patch Changes

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import { rm } from 'node:fs/promises';
 
 const base = '/qwikrouter-test/loader-navigation/';
@@ -20,7 +21,7 @@ async function completed(page: Page, path: string) {
   await expect(page.locator('#loader-navigation-status')).toHaveText('idle');
 }
 
-async function holdLoader(page: Page, pattern: string) {
+async function holdLoader(page: Page, pattern: string, pagePath?: string) {
   const bodies: string[] = [];
   let release!: () => void;
   let started!: () => void;
@@ -29,6 +30,14 @@ async function holdLoader(page: Page, pattern: string) {
   const requested = new Promise<void>((resolve) => (started = resolve));
   const finished = new Promise<void>((resolve) => (delivered = resolve));
   await page.route(pattern, async (route) => {
+    if (pagePath) {
+      const request = route.request();
+      const path = request.headers()['x-qwik-fullpath'] || new URL('.', request.url()).pathname;
+      if (path !== pagePath) {
+        await route.continue();
+        return;
+      }
+    }
     const response = await route.fetch();
     bodies.push(await response.text());
     started();
@@ -560,18 +569,29 @@ test.describe('loader lifecycle', () => {
       expect(returned.signals['lifecycle-layout']).toBe(first.signals['lifecycle-layout']);
     });
 
+    test('redirects before a resumed shared loader has a client value', async ({ page }) => {
+      await page.locator('#navigate-old-redirect').click();
+      await expect(page).toHaveURL(base + 'child/');
+      await expect(page.locator('#shared-loader-path')).toHaveText(base + 'child/');
+      await expect(page.locator('#shared-loader-token')).not.toBeEmpty();
+      await expect(page.locator('#loader-navigation-status')).toHaveText('idle');
+    });
+
     for (const oldPath of ['42', 'redirect']) {
       test(`ignores the late ${oldPath === '42' ? 'value' : 'redirect'} of the same loader`, async ({
         page,
       }) => {
         const needle = `${base}${oldPath}/q-loader-navigation-dynamic-child.`;
         await ignoreAbort(page, needle);
-        const held = await holdLoader(page, `**${needle}*`);
+        const requested = page.waitForRequest((request) => request.url().includes(needle));
+        const held = await holdLoader(page, '**/*q-loader-*', `${base}${oldPath}/`);
         try {
           await page
             .locator(oldPath === '42' ? '#navigate-dynamic' : '#navigate-old-redirect')
             .click();
+          await requested;
           await held.requested;
+          await expect(page).toHaveURL(`${base}${oldPath}/`);
           await page.locator('#navigate-next-dynamic').click();
           await expect(page).toHaveURL(base + '43/');
           held.release();
@@ -711,17 +731,25 @@ test.describe('loader lifecycle', () => {
       page,
     }) => {
       const original = await snapshot(page);
+      const manifest: QwikManifest = await (
+        await page.request.get('/qwikrouter-test/q-manifest.json')
+      ).json();
+      const routeModule = Object.keys(manifest.bundles).find((file) =>
+        manifest.bundles[file].origins?.includes('src/routes/loader-navigation/[id]/index.tsx')
+      );
+      expect(routeModule).toBeDefined();
       let failedModule = false;
-      await page.route('**/build/*.js', async (route) => {
-        const response = await route.fetch();
-        const source = await response.text();
-        if (!failedModule && source.includes('navigation-dynamic-child')) {
+      await page.route(
+        `**/build/${routeModule}`,
+        async (route) => {
           failedModule = true;
-          await route.fulfill({ response, body: "throw new Error('test route module failure');" });
-        } else {
-          await route.fulfill({ response });
-        }
-      });
+          await route.fulfill({
+            contentType: 'text/javascript',
+            body: "throw new Error('test route module failure');",
+          });
+        },
+        { times: 1 }
+      );
       const child = await holdLoader(page, '**/q-loader-navigation-static-child.*');
       let record!: (value: Snapshot) => void;
       const restoredState = new Promise<Snapshot>((resolve) => (record = resolve));

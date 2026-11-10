@@ -1,5 +1,6 @@
 import type { QwikBundle, QwikManifest } from '@qwik.dev/core/optimizer';
 import { removeExtension } from '../../utils/fs';
+import { ensureSlash } from '../../utils/pathname';
 import type { BuiltRoute } from '../types';
 import { QWIK_ROUTER_CONFIG_ID } from './plugin';
 
@@ -20,7 +21,8 @@ export function getRouteImports(routes: BuiltRoute[], manifest: QwikManifest) {
       }
     }
     if (bundles.length > 0) {
-      result[route.routeName] = { dynamicImports: bundles };
+      // Runtime lookups always add the slash; catch-all names like `[...slug]` lack it.
+      result[ensureSlash(route.routeName)] = { dynamicImports: bundles };
     }
   });
   for (const bundleName of Object.keys(manifest.bundles)) {

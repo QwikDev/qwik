@@ -30,7 +30,7 @@ import { parseSerializedQrlRootIds } from '../qrl/qrl-capture-deltas';
 import { _UNINITIALIZED } from '../utils/constants';
 import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
-import { _constants, TypeIds, type Constants } from './constants';
+import { _constants, BIGINT_PAYLOAD_REGEXP, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { createSyncQRL } from '../qrl/qrl-class';
 import { findQwikElement } from '../../runtime/node-walker';
@@ -177,7 +177,10 @@ export const allocate = (
     case TypeIds.FormData:
       return new FormData();
     case TypeIds.BigInt:
-      return BigInt(value as string);
+      if (typeof value !== 'string' || !BIGINT_PAYLOAD_REGEXP.test(value)) {
+        throw qError(QError.invalidBigIntPayload);
+      }
+      return BigInt(value);
     case TypeIds.Set:
       return new Set();
     case TypeIds.Map:
@@ -275,6 +278,7 @@ export const allocate = (
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
+  throw qError(QError.serializeErrorCannotAllocate, [typeId]);
 };
 
 export function allocateDomEffect(

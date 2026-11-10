@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../core/shared/qrl/qrl-class';
 import { _qrlSync } from '../core/shared/qrl/qrl.public';
-import { createSerializationContext } from '../core/shared/serdes/serialization-context';
+import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import { createSsrEventAttr, createSsrEventAttrParts } from './ssr-event-attr';
 
 describe('SSR event attributes', () => {

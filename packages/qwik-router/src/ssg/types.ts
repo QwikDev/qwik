@@ -26,11 +26,13 @@ export interface StaticStreamWriter extends StreamWriter {
 export interface MainContext {
   hasAvailableWorker: () => boolean;
   render: (staticRoute: SsgRenderInput) => Promise<SsgWorkerRenderResult>;
+  restartWorker: (pathname: string) => Promise<void>;
   close: () => Promise<void>;
 }
 
 export interface Logger {
   info: (...msgs: any[]) => void;
+  warn: (...msgs: any[]) => void;
   error: (...msgs: any[]) => void;
   debug: (...msgs: any[]) => void;
 }
@@ -59,6 +61,12 @@ export interface SsgRenderOptions extends RenderOptions {
   maxWorkers?: number;
   /** Maximum number of tasks to be running at one time per worker. Defaults to `20`. */
   maxTasksPerWorker?: number;
+  /**
+   * Number of times to retry a route whose render failed or timed out, or an `onStaticGenerate`
+   * call that threw, before recording the error. Each retry waits 500ms, doubling up to 2s, plus up
+   * to 30% at random. Defaults to `0` (the first failure is final).
+   */
+  retries?: number;
   /**
    * File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the
    * root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
@@ -120,7 +128,11 @@ export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions
 
 export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
 
-export type WorkerOutputMessage = SsgWorkerRenderResult | WorkerCloseMessage | WorkerReadyMessage;
+export type WorkerOutputMessage =
+  | SsgWorkerRenderResult
+  | WorkerCloseMessage
+  | WorkerReadyMessage
+  | WorkerFileMessage;
 
 export interface SsgRenderInput extends SsgRoute {
   type: 'render';
@@ -139,6 +151,12 @@ export interface WorkerReadyMessage {
   type: 'ready';
 }
 
+export interface WorkerFileMessage {
+  type: 'file';
+  pathname: string;
+  filePath: string;
+}
+
 export interface SsgWorkerRenderResult {
   type: 'render';
   pathname: string;
@@ -148,6 +166,7 @@ export interface SsgWorkerRenderResult {
   filePath: string | null;
   contentType: string | null;
   resourceType: 'page' | null;
+  isInterrupted?: boolean;
 }
 
 /** @public */
@@ -155,5 +174,6 @@ export interface SsgResult {
   duration: number;
   rendered: number;
   errors: number;
+  retried: number;
   staticPaths: string[];
 }

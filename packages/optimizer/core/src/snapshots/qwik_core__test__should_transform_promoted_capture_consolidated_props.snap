@@ -1,0 +1,98 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+export const Panel = component$(({ showAll }) => {
+  return <button onClick$={() => { showAll.value = true; }}>Show all</button>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Panel_component_IdPa2iUO004 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Panel_component_IdPa2iUO004"), "Panel_component_IdPa2iUO004");
+//
+export const Panel = /*#__PURE__*/ componentQrl(q_Panel_component_IdPa2iUO004);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,4CAElB\"}")
+============================= test.tsx_Panel_component_button_q_e_click_U99G0PlLeb8.js (ENTRY POINT)==
+
+export const Panel_component_button_q_e_click_U99G0PlLeb8 = (_, _1, _rawProps)=>{
+    _rawProps.showAll.value = true;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAG2B;IAAQ,UADA,QACQ,KAAK,GAAG;AAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Panel_component_button_q_e_click_U99G0PlLeb8",
+  "entry": null,
+  "displayName": "test.tsx_Panel_component_button_q_e_click",
+  "hash": "U99G0PlLeb8",
+  "canonicalFilename": "test.tsx_Panel_component_button_q_e_click_U99G0PlLeb8",
+  "path": "",
+  "extension": "js",
+  "parent": "Panel_component_IdPa2iUO004",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    125,
+    156
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Panel_component_IdPa2iUO004.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Panel_component_button_q_e_click_U99G0PlLeb8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Panel_component_button_q_e_click_U99G0PlLeb8"), "Panel_component_button_q_e_click_U99G0PlLeb8").m();
+//
+export const Panel_component_IdPa2iUO004 = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Panel_component_button_q_e_click_U99G0PlLeb8,
+        "q:p": _rawProps
+    }, null, "Show all", 6, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAEgC;IAC9B,qBAAO,WAAC;QAAO,WAAQ;;aAAmC;AAC5D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Panel_component_IdPa2iUO004",
+  "entry": null,
+  "displayName": "test.tsx_Panel_component",
+  "hash": "IdPa2iUO004",
+  "canonicalFilename": "test.tsx_Panel_component_IdPa2iUO004",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    79,
+    178
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

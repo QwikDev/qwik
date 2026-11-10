@@ -12,3 +12,4 @@ export type { QwikVitePlugin, QwikVitePluginApi, QwikVitePluginOptions } from '.
 
 export { qwikRolldown, qwikRollup } from './plugins/rolldown';
 export { qwikVite } from './plugins/vite';
+export { createOptimizer } from '@qwik.dev/optimizer';

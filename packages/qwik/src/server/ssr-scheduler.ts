@@ -7,8 +7,8 @@ import {
   type TaskScheduler,
   type TaskSubscriber,
   type ValueOrPromise,
-  type SerializationContext,
 } from '@qwik.dev/core';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { OwnerFlags, SubscriberFlags, SubscriberKind } from './qwik-copy';
 
 const NO_ERROR = Symbol();

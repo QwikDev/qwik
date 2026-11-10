@@ -20,7 +20,7 @@ import {
   type FunctionComponent,
 } from '@qwik.dev/core';
 import { describe, expect, it, onTestFinished, afterEach, vi } from 'vitest';
-import { testRenderer } from '../test-utils';
+import { ssrRender, testRenderer } from '../test-utils';
 import { triggerAll } from './test-hooks';
 import { trigger } from '@qwik.dev/core/testing';
 import { delay } from '../shared/utils/promises';
@@ -29,6 +29,96 @@ import * as logUtils from '../shared/utils/log';
 const debug = false;
 
 const { name, render } = testRenderer;
+
+const formatSize = (count: number) => (count < 10 ? 'few' : 'many');
+const ToggleLabel = component$((props: { label: string }) => {
+  const on = useSignal(false);
+  return (
+    <button id="toggle" class={on.value ? 'on' : 'off'} onClick$={() => (on.value = true)}>
+      {props.label}
+    </button>
+  );
+});
+const TickPanel = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <button id="tick" onClick$={() => count.value++}>
+        tick
+      </button>
+      <ToggleLabel label={formatSize(count.value)} />
+    </div>
+  );
+});
+const SpreadLabel = component$((props: { label?: string }) => <span>{props.label ?? 'none'}</span>);
+const SpreadButton = component$(() => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      <SpreadLabel {...(count.value === 0 ? { label: 'initial' } : {})} />
+    </button>
+  );
+});
+
+const DeepPropLabel = component$((props: { label: string }) => <span>{props.label}</span>);
+const DeepPropParent = component$(() => {
+  const count = useSignal(0);
+  if (count.value < 0) {
+    return null;
+  }
+  const item = { meta: { label: 'hello' }, format: () => 'x' };
+  return (
+    <div>
+      <button onClick$={() => count.value++}>{count.value}</button>
+      <DeepPropLabel label={item.meta.label} />
+    </div>
+  );
+});
+
+type PropChange = 'same' | 'change' | 'remove' | 'add';
+
+const ResumedChildCounter = component$((props: { label?: string }) => {
+  (globalThis as any).resumedChildRenders++;
+  const count = useSignal(0);
+  return (
+    <button id="counter" onClick$={() => count.value++}>
+      {props.label}:{count.value}
+    </button>
+  );
+});
+
+const ResumedChildParent = component$((props: { mode: PropChange }) => {
+  const tick = useSignal(0);
+  const t = tick.value;
+  const childProps: { label?: string } = {};
+  if (props.mode === 'same' || (t === 0 && props.mode !== 'add')) {
+    childProps.label = 'one';
+  } else if (props.mode === 'change' || props.mode === 'add') {
+    childProps.label = 'big';
+  }
+  return (
+    <div>
+      <p>{t}</p>
+      <ResumedChildCounter {...childProps} />
+      <button id="tick" onClick$={() => tick.value++}>
+        tick
+      </button>
+    </div>
+  );
+});
+
+const UnserializedStaticBranch = component$(() => {
+  useSignal('unserialized-static-hook');
+  return <p>static</p>;
+});
+const ResumedChildPage = component$(() => (
+  <main>
+    <ResumedChildParent mode="change" />
+    <aside>
+      <UnserializedStaticBranch />
+    </aside>
+  </main>
+));
 
 describe(`${name}: component`, () => {
   it('should render component', async () => {
@@ -515,6 +605,122 @@ describe(`${name}: component`, () => {
 
     expect(button?.textContent).toBe('1');
 
+    cleanup();
+  });
+
+  it('should rerender a module-scope child when its var props become empty', async () => {
+    const { container, qwikLoader, cleanup } = await render(SpreadButton, { debug });
+    expect(container.querySelector('span')?.textContent).toBe('initial');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('span')?.textContent).toBe('none');
+    cleanup();
+  });
+
+  it('should keep a module-scope child state when its var props do not change', async () => {
+    const { container, qwikLoader, cleanup } = await render(TickPanel, { debug });
+    await qwikLoader?.dispatch(container.querySelector('#toggle')!, 'click');
+    const toggle = container.querySelector('#toggle');
+    expect(toggle?.getAttribute('class')).toBe('on');
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(container.querySelector('#toggle')).toBe(toggle);
+    expect(toggle?.getAttribute('class')).toBe('on');
+    expect(toggle?.textContent).toBe('few');
+    cleanup();
+  });
+
+  it('should rerender a child whose prop reads deep into an object holding a function', async () => {
+    const { container, qwikLoader, cleanup } = await render(DeepPropParent, { debug });
+    expect(container.querySelector('span')?.textContent).toBe('hello');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('button')?.textContent).toBe('1');
+    expect(container.querySelector('span')?.textContent).toBe('hello');
+    cleanup();
+  });
+
+  it('should render a deep prop in a child that can rerender', async () => {
+    const Counter = component$((props: { label: string }) => {
+      const count = useSignal(0);
+      if (count.value < 0) {
+        return null;
+      }
+      return <button onClick$={() => count.value++}>{`${props.label}${count.value}`}</button>;
+    });
+    const Parent = component$(() => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      return <Counter label={item.meta.label} />;
+    });
+
+    const { container, qwikLoader, cleanup } = await render(Parent, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('button')!.textContent).toBe('hello1');
+    cleanup();
+  });
+
+  it('should still update a deep prop that reads a store', async () => {
+    const Parent = component$(() => {
+      const store = useStore({ label: 'a' });
+      const item = { meta: store };
+      return (
+        <div>
+          <button onClick$={() => (store.label = 'b')} />
+          <DeepPropLabel label={item.meta.label} />
+        </div>
+      );
+    });
+
+    const { container, qwikLoader, cleanup } = await render(Parent, { debug });
+    expect(container.querySelector('span')!.textContent).toBe('a');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('span')!.textContent).toBe('b');
+    cleanup();
+  });
+
+  it.each([
+    { mode: 'same', expected: 'one:2' },
+    { mode: 'change', expected: 'big:2' },
+    { mode: 'remove', expected: ':2' },
+    { mode: 'add', expected: 'big:2' },
+  ] as const)('preserves state and prop bindings when props $mode', async ({ mode, expected }) => {
+    (globalThis as any).resumedChildRenders = 0;
+    const { container, qwikLoader, cleanup } = await render(ResumedChildParent, {
+      props: { mode },
+    });
+    await qwikLoader?.dispatch(container.querySelector('#counter')!, 'click');
+    await qwikLoader?.dispatch(container.querySelector('#counter')!, 'click');
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(container.querySelector('#counter')!.textContent).toBe(expected);
+    if (mode !== 'add') {
+      expect((globalThis as any).resumedChildRenders).toBe(1);
+    }
+    cleanup();
+  });
+
+  it('should render a component stored under two store keys after resume', async () => {
+    const Hello = component$(() => <p>hello</p>);
+    const Cmp = component$(() => {
+      const registry = useStore({ first: Hello, second: Hello });
+      const shown = useSignal<typeof Hello | null>(null);
+      return (
+        <>
+          <button onClick$={() => (shown.value = registry.second)}>show</button>
+          {shown.value && <shown.value />}
+        </>
+      );
+    });
+    const { container, qwikLoader, cleanup } = await render(Cmp, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('p')?.textContent).toBe('hello');
+    cleanup();
+  });
+});
+
+describe.runIf(testRenderer.render === ssrRender)('ssrRender: component serialization', () => {
+  it('keeps unrelated static branch hooks out of serialized state', async () => {
+    const { container, cleanup } = await ssrRender(ResumedChildPage);
+    const state = Array.from(container.querySelectorAll('script[type="qwik/state"]'))
+      .map((script) => script.textContent)
+      .join('');
+    expect(state).not.toContain('unserialized-static-hook');
     cleanup();
   });
 });

@@ -1,6 +1,5 @@
 import type { ClassList } from '../jsx/types/jsx-qwik-attributes';
 import { QError, qError } from '../error/error';
-import { isPreventDefault } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
 import { isUnitlessNumber } from './unitless_number';
@@ -87,7 +86,8 @@ export function serializeAttribute(
     value = serializeBooleanOrNumberAttribute(value);
   } else if (value === false || value == null) {
     value = null;
-  } else if (value === true && isPreventDefault(key)) {
+  } else if (value === true) {
+    // a bare attribute, e.g. `disabled` or `preventdefault:click`
     value = '';
   }
   return value;

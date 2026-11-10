@@ -27,6 +27,7 @@ const loadCoreCopy = async () => {
   const component = await import('./component.public');
   const verify = await import('./serdes/verify');
   const standalone = await import('./serdes/standalone');
+  const serializerEntry = await import('../../serializer');
   const constants = await import('./serdes/constants');
   return {
     ...invoke,
@@ -52,6 +53,7 @@ const loadCoreCopy = async () => {
     ...component,
     ...verify,
     ...standalone,
+    ...serializerEntry,
     ...constants,
   };
 };

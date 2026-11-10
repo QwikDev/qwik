@@ -6,6 +6,17 @@ import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
 import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } from './util.ts';
 
+/** Core files other bundles may copy; everything else must come from `@qwik.dev/core`. */
+export const isCopyableCorePath = (path: string) =>
+  path.includes('util') ||
+  path.includes('shared') ||
+  path.includes('ssr') ||
+  path.includes('version') ||
+  path.endsWith(join('core', 'reactive', 'flags.ts')) ||
+  path.endsWith(join('core', 'runtime', 'subscriber.ts')) ||
+  // we allow building preloader into server builds
+  path.includes('preloader');
+
 /**
  * Builds @qwik.dev/core/server
  *
@@ -72,15 +83,7 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
             return null;
           });
           build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
-            if (
-              args.path.includes('util') ||
-              args.path.includes('shared') ||
-              args.path.includes('ssr') ||
-              args.path.endsWith(join('core', 'reactive', 'flags.ts')) ||
-              args.path.endsWith(join('core', 'runtime', 'subscriber.ts')) ||
-              // we allow building preloader into server builds
-              args.path.includes('preloader')
-            ) {
+            if (isCopyableCorePath(args.path)) {
               return null;
             }
             console.error('forbid-core', args);

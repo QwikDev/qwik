@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core';
-import { _deserialize, _serialize } from '@qwik.dev/core/internal';
+import { _deserialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import { describe, expect, it } from 'vitest';
 import { createDOM, createDocument, domRender, ssrRenderToDom, testTarget } from './index';
 

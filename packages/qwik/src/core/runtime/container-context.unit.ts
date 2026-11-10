@@ -12,7 +12,7 @@ import { EffectKind } from '../dom/effect/effect-kind.enum';
 import { isLazySerialized } from '../reactive/lazy-serialized';
 import { SubscriberFlags } from '../reactive/flags';
 import { appendSourceSubscriber, type Source } from '../reactive/source';
-import { createSerializationContext } from '../shared/serdes/serialization-context';
+import { createSerializationContext } from '../../serializer/serialization-context';
 import { createQRL } from '../shared/qrl/qrl-class';
 import { _regSymbol } from '../shared/qrl/qrl';
 import {

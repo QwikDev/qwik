@@ -1,4 +1,17 @@
-import { test, expect, type Locator } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
+
+/** Presses a key and reports whether a document-level handler prevented its default action. */
+const pressAndCheckPrevented = async (page: Page, key: string) => {
+  await page.evaluate(() => {
+    window.addEventListener(
+      'keydown',
+      (event) => document.body.setAttribute('data-keydown-prevented', `${event.defaultPrevented}`),
+      { once: true }
+    );
+  });
+  await page.keyboard.press(key);
+  return page.locator('body').getAttribute('data-keydown-prevented');
+};
 
 test.describe('Docs site smoke tests', () => {
   test('home page loads', async ({ page }) => {
@@ -88,14 +101,14 @@ test.describe('Docs site smoke tests', () => {
       page.locator('[ui-qds-popover-root]').filter({ has: page.getByRole('button', { name }) });
 
     await section('Core').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Core')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Core')).toHaveAttribute('ui-open');
     await expect(section('Core').locator('[ui-qds-popover-content]')).not.toHaveAttribute(
       'data-nav-slide',
       /.+/
     );
 
     await section('Ecosystem').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Ecosystem')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Ecosystem')).toHaveAttribute('ui-open');
     await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveAttribute(
       'data-nav-slide',
       'right'
@@ -110,7 +123,7 @@ test.describe('Docs site smoke tests', () => {
     );
 
     await section('Router').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Router')).toHaveAttribute('ui-open');
     await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
       'data-nav-slide',
       'left'
@@ -126,7 +139,7 @@ test.describe('Docs site smoke tests', () => {
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await section('Resources').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Resources')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Resources')).toHaveAttribute('ui-open');
     await expect(section('Resources').locator('[ui-qds-popover-content]')).toHaveCSS(
       'animation-name',
       'none'
@@ -162,6 +175,49 @@ test.describe('Docs site smoke tests', () => {
       'href',
       '/docs/getting-started/'
     );
+  });
+
+  test('/ opens the search modal and focuses its input', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    // Firefox opens Quick Find on an unprevented '/', so the first press must be prevented.
+    expect(await pressAndCheckPrevented(page, '/')).toBe('true');
+    const input = page.getByPlaceholder('Search docs').filter({ visible: true });
+    await expect(input).toBeFocused();
+    await expect(page.locator('.search-modal:visible')).toHaveCount(1);
+
+    await page.keyboard.type('a/b');
+    await expect(input).toHaveValue('a/b');
+  });
+
+  test('ctrl+k opens search except while typing in a field', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    // Ctrl+Shift+K opens the Firefox web console.
+    expect(await pressAndCheckPrevented(page, 'Control+Shift+K')).toBe('false');
+    await page.keyboard.press('Control+k');
+    await expect(page.getByPlaceholder('Search docs').filter({ visible: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.search-modal:visible')).toHaveCount(0);
+
+    // Code editors such as the playground's use ctrl+k chords.
+    await page.evaluate(() =>
+      document.querySelector('article')!.append(document.createElement('textarea'))
+    );
+    await page.locator('article textarea').focus();
+    expect(await pressAndCheckPrevented(page, 'Control+k')).toBe('false');
+    await page.keyboard.type('abc');
+    await expect(page.locator('article textarea')).toHaveValue('abc');
+    await expect(page.locator('.search-modal:visible')).toHaveCount(0);
+  });
+
+  test('/ opens only the search inside the open mobile menu', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 900 });
+    await page.goto('/docs/');
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    await page.keyboard.press('/');
+    await expect(page.getByPlaceholder('Search docs').filter({ visible: true })).toBeFocused();
+    await expect(page.locator('.search-modal:visible')).toHaveCount(1);
   });
 
   test('search loads its index after opening the modal', async ({ page }) => {

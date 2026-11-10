@@ -13,13 +13,22 @@ import { DocumentHeadContext, RouteLocationContext, RouteNavigateContext } from 
 import { createDocumentHead } from './head';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, getClientNavPathMock } = vi.hoisted(() => ({
+const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
   getClientNavPathMock: vi.fn(),
+  gotoMock: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
+}));
+
+const page = () => Promise.resolve({});
+vi.mock('./router-config', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  findRouterConfig: () => ({
+    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+  }),
 }));
 
 vi.mock('./utils.ts', async (importOriginal) => {
@@ -62,7 +71,7 @@ const RouterProvider = component$(() => {
   );
   useContextProvider(
     RouteNavigateContext,
-    $(() => Promise.resolve())
+    $(() => gotoMock())
   );
   return <Slot />;
 });
@@ -161,6 +170,7 @@ describe('link component', () => {
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+    gotoMock.mockReset();
   });
 
   it('updates forwarded class and title without remounting the link', async () => {
@@ -192,6 +202,16 @@ describe('link component', () => {
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+  });
+
+  it('renders the route name of the link target for bundle prefetch', async () => {
+    getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
+    const dynamic = await renderLink();
+    expect(dynamic.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+
+    getClientNavPathMock.mockReturnValue('/missing/');
+    const unmatched = await renderLink();
+    expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
   });
 
   it('prefetches route data on intent', async () => {
@@ -353,6 +373,57 @@ describe('link component', () => {
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  describe('navigating state', () => {
+    const clickLink = async () => {
+      const { document } = await renderRoot(ClickRoot);
+      const anchor = document.querySelector('a')!;
+      await trigger(document.body, anchor, 'click');
+      return anchor;
+    };
+
+    const flushNavigation = () => new Promise((resolve) => setTimeout(resolve));
+
+    it('marks the link with data-navigating until navigation resolves', async () => {
+      let resolveNavigation!: () => void;
+      gotoMock.mockReturnValue(new Promise<void>((resolve) => (resolveNavigation = resolve)));
+
+      const anchor = await clickLink();
+
+      expect(anchor.hasAttribute('aria-pressed')).toBe(false);
+      expect(anchor.hasAttribute('data-navigating')).toBe(true);
+
+      resolveNavigation();
+      await flushNavigation();
+
+      expect(anchor.hasAttribute('data-navigating')).toBe(false);
+    });
+
+    it('clears data-navigating when navigation rejects, still reporting the error', async () => {
+      const offline = new Error('offline');
+      let rejectNavigation!: (error: Error) => void;
+      gotoMock.mockReturnValue(new Promise<void>((_, reject) => (rejectNavigation = reject)));
+      const vitestListeners = process.listeners('unhandledRejection');
+      const onUnhandledRejection = vi.fn();
+      process.removeAllListeners('unhandledRejection');
+      process.on('unhandledRejection', onUnhandledRejection);
+
+      try {
+        const anchor = await clickLink();
+
+        expect(anchor.hasAttribute('data-navigating')).toBe(true);
+
+        rejectNavigation(offline);
+        await flushNavigation();
+
+        expect(anchor.hasAttribute('data-navigating')).toBe(false);
+        expect(onUnhandledRejection).toHaveBeenCalledWith(offline, expect.any(Promise));
+      } finally {
+        process.removeAllListeners('unhandledRejection');
+        vitestListeners.forEach((listener) => process.on('unhandledRejection', listener));
+      }
+    });
   });
 });
 

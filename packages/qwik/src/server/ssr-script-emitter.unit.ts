@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSerializationContext } from '@qwik.dev/core';
+import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import { TypeIds } from '../core/shared/serdes/constants';
 import { isSsrRecordChunk, type SsrOutput } from '../core/ssr/output';
 import { getQwikLoaderScript } from './scripts';

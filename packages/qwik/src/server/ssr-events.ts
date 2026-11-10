@@ -6,8 +6,8 @@ import {
   qrlToChunks,
   type QRL,
   type QRLInternal,
-  type SerializationContext,
 } from '@qwik.dev/core';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from './qwik-copy';
 
 export type SsrEventWriteChunk = string | number | { readonly path: number[] };

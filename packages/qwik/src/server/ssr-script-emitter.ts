@@ -1,11 +1,13 @@
 import {
   createSsrMarkup,
-  type SerializationContext,
-  type SerializedStateRange,
   type SsrAttributePatch,
   type SsrOutput,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
+import type {
+  SerializationContext,
+  SerializedStateRange,
+} from '@qwik.dev/core/internal/serializer';
 import { escapeHTML, QFuncsPrefix, TypeIds } from './qwik-copy';
 import { getQwikLoaderScript } from './scripts';
 import type { QwikLoaderOptions } from './types';

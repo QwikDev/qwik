@@ -93,9 +93,10 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Event handlers without scope variables are put into a separate file
-		if segment.scoped_idents.is_empty()
-			&& (segment.ctx_kind != SegmentKind::Function || &segment.ctx_name == "event$")
+		// Known events stay separate even when they capture state.
+		if segment.ctx_kind == SegmentKind::EventHandler
+			|| segment.ctx_name == "event$"
+			|| (segment.scoped_idents.is_empty() && segment.ctx_kind != SegmentKind::Function)
 		{
 			return None;
 		}

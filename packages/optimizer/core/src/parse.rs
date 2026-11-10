@@ -16,6 +16,7 @@ use crate::dependency_analysis::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
+use crate::key_before_spread::KeyBeforeSpreadTransform;
 use crate::props_destructuring::transform_props_destructuring;
 use crate::rename_imports::RenameTransform;
 use crate::transform::{
@@ -268,6 +269,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							react_options.runtime = Some(react::Runtime::Automatic);
 							react_options.import_source = Some("@qwik.dev/core".to_string().into());
 						};
+						program.visit_mut_with(&mut KeyBeforeSpreadTransform);
 						program.mutate(&mut react::react(
 							Lrc::clone(&source_map),
 							Some(&comments),

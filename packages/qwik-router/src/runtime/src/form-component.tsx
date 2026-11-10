@@ -2,12 +2,16 @@ import {
   component$,
   Slot,
   $,
+  sync$,
   type EventHandler,
   type QRLEventHandlerMulti,
   type QwikJSX,
 } from '@qwik.dev/core';
+import { _isSyncQrl } from '@qwik.dev/core/internal';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
+
+type ActionFormElement = HTMLFormElement & { _qSubmit?: SubmitEvent };
 
 /** @public */
 export interface FormSubmitCompletedDetail<T> {
@@ -30,16 +34,15 @@ export interface FormProps<O, I> extends Omit<
   reloadDocument?: boolean;
 
   /**
-   * When `true` all the form inputs will be reset in SPA mode, just like happens in a full page
-   * form submission.
+   * Resets SPA form controls after responses, including validation failures.
    *
    * Defaults to `false`
    */
   spaReset?: boolean;
 
   /**
-   * Event handler executed right after the action is executed successfully and returns some data.
-   * Like the native `on*$` events, it accepts an inline function as well as a QRL.
+   * Runs after a form submission returns, including validation failures. Like the native `on*$`
+   * events, it accepts an inline function as well as a QRL.
    */
   onSubmitCompleted$?:
     | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
@@ -56,39 +59,70 @@ export const Form = <O, I>({
   reloadDocument,
   onSubmit$,
   ...rest
-}: FormProps<O, I>) =>
-  action ? (
+}: FormProps<O, I>) => {
+  if (!action) {
+    return (
+      <GetForm
+        spaReset={spaReset}
+        reloadDocument={reloadDocument}
+        onSubmit$={onSubmit$}
+        {...(rest as any)}
+      />
+    );
+  }
+  const submitHandlers = ([onSubmit$] as unknown[]).flat(Infinity) as EventHandler<
+    SubmitEvent,
+    HTMLFormElement
+  >[];
+  const firstAsyncHandler = submitHandlers.findIndex((handler) => handler && !_isSyncQrl(handler));
+  const syncHandlers =
+    firstAsyncHandler === -1 ? submitHandlers : submitHandlers.slice(0, firstAsyncHandler);
+  const asyncHandlers = firstAsyncHandler === -1 ? [] : submitHandlers.slice(firstAsyncHandler);
+  return (
     <form
       {...rest}
       action={action.actionPath}
       preventdefault:submit={!reloadDocument}
       onSubmit$={
-        (Array.isArray(onSubmit$)
-          ? [
-              ...onSubmit$,
-              !reloadDocument
-                ? $((evt: SubmitEvent) => {
-                    if (!action.submitted) {
-                      return action.submit(evt);
-                    }
-                  })
-                : undefined,
-            ]
-          : [onSubmit$, !reloadDocument ? action.submit : undefined]) as any
+        [
+          !reloadDocument
+            ? sync$((event: SubmitEvent, form: ActionFormElement) => {
+                form._qSubmit ??= event;
+              })
+            : undefined,
+          ...(!reloadDocument ? syncHandlers : []),
+          !reloadDocument
+            ? $(async (event: SubmitEvent, form: ActionFormElement) => {
+                if (form._qSubmit !== event) {
+                  return;
+                }
+                try {
+                  for (const handler of asyncHandlers) {
+                    await handler?.(event, form);
+                  }
+                  await action.submit(event);
+                } finally {
+                  delete form._qSubmit;
+                }
+              })
+            : onSubmit$,
+          // The async handler never runs if its chunk fails to load.
+          !reloadDocument
+            ? sync$((event: SubmitEvent, form: ActionFormElement) => {
+                if (form._qSubmit === event) {
+                  delete form._qSubmit;
+                }
+              })
+            : undefined,
+        ] as any
       }
       method="post"
       data-spa-reset={spaReset ? 'true' : undefined}
     >
       <Slot />
     </form>
-  ) : (
-    <GetForm
-      spaReset={spaReset}
-      reloadDocument={reloadDocument}
-      onSubmit$={onSubmit$}
-      {...(rest as any)}
-    />
   );
+};
 
 export const GetForm = component$<FormProps<undefined, undefined>>(
   ({ action: _0, spaReset, reloadDocument, onSubmit$, ...rest }) => {

@@ -15,6 +15,7 @@ import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import {
   IsQAction,
+  IsQLoader,
   QActionId,
   QLoaderId,
   recognizeRequest,
@@ -46,6 +47,7 @@ export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
 export const RequestEvCaughtError = '@caughtError';
+export const RequestEvSentServerError = '@sentServerError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
 export function createRequestEvent(
@@ -68,7 +70,10 @@ export function createRequestEvent(
   if (recognized) {
     url.pathname = trimRecognizedInternalPathname(url.pathname, recognized);
     sharedMap.set(recognized.type, true);
-    internalRequest = 'loader';
+    // A route-resolve request is a navigation, so middleware (e.g. rewrites) must treat it as one.
+    if (recognized.type === IsQLoader) {
+      internalRequest = 'loader';
+    }
     if (recognized.data?.loaderId) {
       sharedMap.set(QLoaderId, recognized.data.loaderId);
     }
@@ -535,6 +540,9 @@ export const formToObj = (formData: FormData): Record<string, any> => {
         const childNode = pathNode.children.get(key)!;
         const nextValue = object[key];
         if (nextValue !== undefined) {
+          if (!Array.isArray(nextValue) && Object.getPrototypeOf(nextValue) !== null) {
+            break;
+          }
           object = nextValue;
           pathNode = childNode;
           continue;

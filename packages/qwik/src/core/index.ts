@@ -22,6 +22,7 @@ export {
   component$,
   _markComponent,
   isQwikComponent,
+  SERIALIZABLE_STATE,
 } from './shared/component.public';
 export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 
@@ -43,7 +44,7 @@ export {
   _qrlWithChunkDEV,
   _regSymbol,
 } from './shared/qrl/qrl';
-export { isQrl, isSyncQrl, SYNC_QRL as _SYNC_QRL } from './shared/qrl/qrl-utils';
+export { isQrl, isSyncQrl, qrlOfBody, SYNC_QRL as _SYNC_QRL } from './shared/qrl/qrl-utils';
 export { qrlToChunks, qrlToString } from './shared/serdes/qrl-to-string';
 export { qTest } from './shared/utils/qdev';
 export type { QRL, PropFunction } from './shared/qrl/qrl.public';
@@ -118,12 +119,18 @@ export type {
 export type { ValueOrPromise } from './shared/utils/types';
 export type { StreamWriter } from './shared/utils/stream-writer';
 export {
+  fastSkipSerialize,
   noSerialize,
   NoSerializeSymbol,
   SerializerSymbol,
   type NoSerialize,
 } from './shared/serdes/verify';
-export { _deserialize, _serialize } from './shared/serdes/standalone';
+export {
+  BIGINT_PAYLOAD_REGEXP,
+  EMPTY_OBJECT_PAYLOAD,
+  explicitUndefined,
+} from './shared/serdes/constants';
+export { _deserialize } from './shared/serdes/standalone';
 export {
   _createQRL,
   _dumpState,
@@ -133,6 +140,7 @@ export {
   _registerSingleton,
   _getContextContainer,
   _hasStoreEffects,
+  _isSyncQrl,
   _renderCompiled,
   _verifySerializable,
   _waitUntilRendered,
@@ -179,7 +187,15 @@ export {
 } from './reactive/public-api';
 export { useConstant, useSignal } from './reactive/signal-api';
 export { Signal } from './reactive/signal';
-export { Computed, readComputed, readComputedUntracked } from './reactive/computed';
+export {
+  Computed,
+  ComputedStatus,
+  isAsyncComputed,
+  readComputed,
+  readComputedUntracked,
+} from './reactive/computed';
+export { NEEDS_COMPUTATION } from './reactive/constants';
+export { isLazySerialized } from './reactive/lazy-serialized';
 export { markComputedDirty } from './reactive/notify';
 export { ComputedQrl, type ComputedQrlFn, type ComputedQrlRef } from './reactive/computed-qrl';
 export {
@@ -203,6 +219,10 @@ export type {
 export {
   forceStoreEffects,
   getStoreSource,
+  getStoreSources,
+  isDeepStore,
+  isStore,
+  StorePropSource,
   unwrapStore,
   useStore,
   type Store,
@@ -237,12 +257,7 @@ export {
 } from './ssr/output';
 export { SsrOutputWriter } from './ssr/output-writer';
 export {
-  createSerializationContext,
-  type SerializationContext,
-  type SerializedStateRange,
-} from './shared/serdes/serialization-context';
-
-export {
+  isSubscriberDisposed,
   SubscriberKind,
   type BranchSubscriber,
   type Collector,
@@ -263,6 +278,8 @@ export {
   disposeOwner,
   getActiveOwner,
   Owner,
+  ownerItemAt,
+  ownerItemsLength,
   registerSubscriberToOwner,
   runOwnerCleanups,
   runWithOwner,
@@ -296,6 +313,7 @@ export {
   renderSsrSlot,
   renderSsrSlotContent,
   resolveSlot,
+  SSRProjectionSubscription,
   type Projection,
   type SlotName,
   type SlotScope,
@@ -342,9 +360,12 @@ export {
   createPropsProxy,
   getMemberSource,
   getPropSource,
+  getPropsProxyState,
+  getPropsSources,
   isSource,
   mergeProps,
   propSource,
+  PropSource,
 } from './component/props';
 export { readExpression } from './utils/qrl';
 
@@ -365,10 +386,12 @@ export {
   escapeSsrContent,
   renderSsrDynamicContent,
   renderSsrContent,
+  SSRContentSubscription,
+  SSRPendingContentSubscription,
   type PendingProps,
 } from './dom/content/content';
 export { Catch, createCatch, createSsrCatch, type CatchProps } from './dom/content/catch';
-export { handleError } from './dom/content/catch-boundary';
+export { findContentBoundary, handleError, isCatchBoundary } from './dom/content/catch-boundary';
 export { createSsrPending } from './dom/content/pending-ssr';
 export {
   Reveal,
@@ -442,7 +465,7 @@ export {
   type TemplateFactory,
 } from './dom/template/template';
 export { toNodes as _toNodes } from './utils/nodes';
-export { EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
+export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export {
   EffectTargetKind,
   SsrAttrEffect,

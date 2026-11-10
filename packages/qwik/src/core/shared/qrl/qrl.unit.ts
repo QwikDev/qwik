@@ -1,7 +1,8 @@
 import { $ } from '@qwik.dev/core';
 import { assert, assertType, describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { getPlatform, setPlatform } from '../platform/platform';
-import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
+import { createSerializationContext } from '../../../serializer';
+import { parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
 import { getFunctionOrResolve } from '../../utils/qrl';

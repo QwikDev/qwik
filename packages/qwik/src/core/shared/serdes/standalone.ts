@@ -1,4 +1,3 @@
-import { createSerializationContext } from './serialization-context';
 import { defaultScheduler } from '../../runtime/scheduler';
 import {
   getStateRoot,
@@ -6,19 +5,6 @@ import {
   type ContainerContext,
 } from '../../runtime/container-context';
 import { deserializeCaptures } from './captures';
-
-/** @internal */
-export async function _serialize<T>(data: T): Promise<string> {
-  const context = createSerializationContext(
-    null,
-    () => '',
-    () => {},
-    new WeakMap<object, object>()
-  );
-  context.$addRoot$(data);
-  await context.$serialize$();
-  return context.$writer$.toString();
-}
 
 /** @internal */
 export async function _deserialize<T>(raw: string): Promise<T> {

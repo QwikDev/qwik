@@ -27,6 +27,7 @@ import type {
 // Import directly from leaf modules to avoid circular dependency:
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
+import { normalizeETag, resolvePreETag } from '../../middleware/request-handler/etag-hash';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -49,6 +50,7 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from './types';
+import { toSafeRedirectUrl } from './utils';
 
 /**
  * Route loaders read data before the route rendering starts, based on the route being navigated to.
@@ -90,6 +92,7 @@ export type LoaderResponse = {
 export type LoaderFetchResult = {
   raw?: string;
   r?: string;
+  eTag?: string;
 };
 
 /**
@@ -205,8 +208,21 @@ class ServerRouteLoaderCapture {
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
     readonly blockSSR: boolean,
+    readonly loader: LoaderInternal,
     readonly requestEv?: RequestEvent
   ) {}
+
+  /** The eTag the q-loader endpoint will send for a value that isn't serialized. */
+  eTag() {
+    const option = this.loader.__eTag;
+    if (
+      this.requestEv &&
+      option !== undefined &&
+      this.loader.__serializationStrategy !== 'always'
+    ) {
+      return resolvePreETag(option, getLoaderRequestEvent(this.loader, this.requestEv));
+    }
+  }
 
   load() {
     const requestEv = this.requestEv;
@@ -279,7 +295,8 @@ export const fetchRouteLoaderData = async (
     }
   }
 
-  const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const pagePath = headers[FULLPATH_HEADER] ?? headers[ROUTE_PATH_HEADER] ?? '';
+  const cacheKey = `${url}\n${pagePath}`;
   const cache = navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);
@@ -316,7 +333,7 @@ export const fetchRouteLoaderData = async (
     }
     const raw = await response.text();
     opts?.signal?.throwIfAborted();
-    return { raw };
+    return { raw, eTag: response.headers.get('ETag') ?? undefined };
   };
 
   if (opts?.ignoreCache) {
@@ -352,6 +369,16 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+const retainLoaderValue = (previous: unknown, abortSignal: AbortSignal) => {
+  if (previous !== undefined) {
+    return previous;
+  }
+  return new Promise<never>((_, reject) => {
+    abortSignal.throwIfAborted();
+    abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+  });
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -365,19 +392,25 @@ const createRouteLoaderSignal = (
         loader.__qrl,
         loader.__validators,
         loader.__blockSSR,
+        loader,
         requestEv ?? getRequestEvent()
       )
     : id;
   const searchFilter = loader.__search;
   const loaderHash = isDev ? loader.__qrl.getHash() : id;
   // Keep the raw payload to preserve object identity when data is unchanged.
-  const lastFetch: { raw?: string } = {};
+  // `e`: eTag of the SSR value, so the first client fetch can match it.
+  const lastFetch: { raw?: string; e?: string } = {};
   // Route-wide state: it must outlive the component that happened to reach for it first.
   return runWithOwner(createOwner(null), () =>
     useComputed$(
       (ctx) => {
         const { info, previous, abortSignal } = ctx;
         const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+        const eTag = isServer && (capture as ServerRouteLoaderCapture).eTag();
+        if (eTag) {
+          lastFetch.e = eTag;
+        }
         // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
         // an action response).
         if (hasInjectedValue) {
@@ -395,15 +428,7 @@ const createRouteLoaderSignal = (
         return (async () => {
           const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
           if (!request.active) {
-            if (previous === undefined) {
-              return new Promise((_, reject) => {
-                abortSignal.throwIfAborted();
-                abortSignal.addEventListener('abort', () => reject(abortSignal.reason), {
-                  once: true,
-                });
-              });
-            }
-            return previous;
+            return retainLoaderValue(previous, abortSignal);
           }
           const pageUrl = new URL(request.pageUrl);
           const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
@@ -441,20 +466,31 @@ const createRouteLoaderSignal = (
           }
           assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
           if (response.r) {
+            const redirectUrl = toSafeRedirectUrl(response.r, pageUrl);
             // Superseded requests cannot redirect the current navigation.
             const goto = routeLoaderCtx.goto;
             if (goto) {
-              goto(response.r, { replaceState: true });
+              goto(redirectUrl.href, { replaceState: true });
             } else {
-              location.href = response.r;
+              location.href = redirectUrl.href;
             }
-            return previous;
+            // Keep unresolved loaders pending until the redirect replaces their request.
+            return retainLoaderValue(previous, abortSignal);
           }
           if (response.e) {
             // Error — throw so signal enters error state
             throw response.e;
           }
           lastFetch.raw = result.raw;
+          // Same eTag as during SSR: subscribers already rendered this data.
+          if (
+            previous === undefined &&
+            lastFetch.e &&
+            lastFetch.e === normalizeETag(result.eTag || '')
+          ) {
+            (state[id] as { untrackedValue: unknown }).untrackedValue = response.d;
+          }
+          lastFetch.e = undefined;
           return response.d;
         })();
       },
@@ -926,13 +962,15 @@ export const getLoaderRequestEvent = (
   const filteredSearch = loader.__search
     ? filterSearchParams(url.searchParams, loader.__search)
     : rootRequestEv.url.search;
-  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+  const isSameUrl =
+    pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search;
+  const params = globalThis.__STRICT_LOADERS__
+    ? (getRouteLoaderParams(rootRequestEv)[loader.__id] ??
+      (pathname === rootRequestEv.url.pathname ? rootRequestEv.params : {}))
+    : rootRequestEv.params;
+  if (isSameUrl && params === rootRequestEv.params) {
     return rootRequestEv;
   }
-  const params =
-    pathname === rootRequestEv.url.pathname
-      ? rootRequestEv.params
-      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -940,15 +978,21 @@ export const getLoaderRequestEvent = (
     rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
   }
 
-  const eventKey = `${pathname}\n${filteredSearch}`;
+  // Layouts sharing an endpoint can have different params.
+  const eventKey = `${pathname}\n${filteredSearch}\n${params === rootRequestEv.params ? '' : loader.__id}`;
   let loaderRequestEv = events.get(eventKey);
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
-    const request = new Request(url, rootRequestEv.request);
+    // Actions may have already consumed the original request body.
+    const request = new Request(url, {
+      method: rootRequestEv.request.method,
+      headers: rootRequestEv.request.headers,
+      signal: rootRequestEv.request.signal,
+    });
     loaderRequestEv = Object.create(rootRequestEv, {
       originalUrl: {
-        value: new URL(url),
+        value: isSameUrl ? rootRequestEv.originalUrl : new URL(url),
         enumerable: true,
       },
       params: {

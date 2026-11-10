@@ -10,7 +10,7 @@ export {
   registerSingleton as _registerSingleton,
 } from './shared/singletons';
 export { _dumpState } from './shared/serdes/dump-state';
-export { _deserialize, _serialize } from './shared/serdes/standalone';
+export { _deserialize } from './shared/serdes/standalone';
 export {
   SerializerSymbol,
   verifySerializable as _verifySerializable,
@@ -31,6 +31,7 @@ export { createOwner, disposeOwner, runWithOwner } from './runtime/owner';
 export { disposeSubscriber } from './reactive/cleanup';
 export type { Computed } from './reactive/computed';
 export { createQRL as _createQRL } from './shared/qrl/qrl-class';
+export { isSyncQrl as _isSyncQrl } from './shared/qrl/qrl-utils';
 export {
   forceStoreEffects,
   hasStoreEffects as _hasStoreEffects,

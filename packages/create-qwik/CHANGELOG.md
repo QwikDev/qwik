@@ -1,5 +1,19 @@
 # create-qwik
 
+## 2.0.0-rc.5
+
+### Patch Changes
+
+- ✨ move the `qwik add prisma` starter to Prisma ORM 8 with PostgreSQL and a shared database client (by [@ankur-arch](https://github.com/ankur-arch) in [#9358](https://github.com/QwikDev/qwik/pull/9358))
+
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🛠 refresh adapter starter toolchain deps and drop EOL node 18 (by [@Yassen717](https://github.com/Yassen717) in [#9214](https://github.com/QwikDev/qwik/pull/9214))
+
+- 🐞🩹 point adapter and integration starter docs links at the right pages (by [@Yassen717](https://github.com/Yassen717) in [#9214](https://github.com/QwikDev/qwik/pull/9214))
+
 ## 2.0.0-rc.3
 
 ## 2.0.0-rc.2

@@ -39,6 +39,7 @@ import { WorkerRoot } from './components/worker/worker';
 import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { QVisibleRoot } from './components/qvisible/qvisible';
+import { VisibleTaskOrderRoot } from './components/visible-task-order/visible-task-order';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
 import { OutOfOrderPendingRoot, PendingRoot } from './components/pending/pending';
@@ -93,6 +94,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/exception/use-task' && <UseTaskExceptions />}
       {pathname === '/e2e/qrl' && <QRL />}
       {pathname === '/e2e/qvisible' && <QVisibleRoot />}
+      {pathname === '/e2e/visible-task-order' && <VisibleTaskOrderRoot />}
       {pathname === '/e2e/async-computed' && <AsyncRoot />}
       {pathname === '/e2e/backpatching' && <Backpatching />}
       {pathname === '/e2e/pending' && <PendingRoot />}

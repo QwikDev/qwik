@@ -1,0 +1,59 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback, Layout }: { Model?: any; Layout: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	const view = $(() => render(<Layout />, [1].map((Layout) => <Layout />)));
+	return <button onClick$={read} onDblClick$={view} />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { Fallback, render } from './x';
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_read_hAtqXQFCN20 = /*#__PURE__*/ _noopQrl("Cmp_component_read_hAtqXQFCN20");
+const q_Cmp_component_view_ITAz7Hgj10g = /*#__PURE__*/ _noopQrl("Cmp_component_view_ITAz7Hgj10g");
+//
+q_Cmp_component_read_hAtqXQFCN20.s(()=>{
+    let _rawProps = _capturesObj._[0];
+    return render(_rawProps.Model ?? Fallback, [
+        1
+    ].map((Model)=>Model));
+});
+q_Cmp_component_view_ITAz7Hgj10g.s(()=>{
+    let _rawProps = _capturesObj._[0];
+    return render(/*#__PURE__*/ _jsxSorted(_rawProps.Layout, null, null, null, 3, "u6_0"), [
+        1
+    ].map((Layout)=>/*#__PURE__*/ _jsxSorted(Layout, null, null, null, 3, "u6_1")));
+});
+q_Cmp_component_4ryKJTOKjWE.s((_rawProps)=>{
+    const read = q_Cmp_component_read_hAtqXQFCN20.w([
+        _rawProps
+    ]);
+    const view = q_Cmp_component_view_ITAz7Hgj10g.w([
+        _rawProps
+    ]);
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": read,
+        "q-e:dblclick": view
+    }, null, 3, "u6_2");
+});
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAEA,SAAS,QAAQ,EAAE,MAAM,QAAQ,MAAM;;;;;;mCAGvB;;WAAM,iBADW,SAAQ,UACL;QAAC;KAAE,CAAC,GAAG,CAAC,CAAC,QAAU;;mCACvC;;WAAM,qBAAO,qBAFsB,sCAEV;QAAC;KAAE,CAAC,GAAG,CAAC,CAAC,uBAAW,WAAC;;8BAFhC;IAC7B,MAAM;;;IACN,MAAM;;;IACN,qBAAO,WAAC;QAAO,aAAU;QAAM,gBAAa;;AAC7C;AAJA,OAAO,MAAM,oBAAM,0CAIhB\"}")
+== DIAGNOSTICS ==
+
+[]

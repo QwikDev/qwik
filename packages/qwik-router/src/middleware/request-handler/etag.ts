@@ -93,14 +93,17 @@ export function resolveCacheKey(
 /** Build the default SSR cache key. eTag slot is dropped when no eTag was resolved. */
 export function defaultSsrCacheKey(requestEv: RequestEvent, eTag: string): string {
   const status = requestEv.status();
-  const pathname = requestEv.originalUrl.pathname;
-  return eTag ? `${status}|${eTag}|${pathname}` : `${status}|${pathname}`;
+  // The origin can come from the client's Host header, so keep hosts apart.
+  const { origin, pathname } = requestEv.originalUrl;
+  const url = origin + pathname;
+  return eTag ? `${status}|${eTag}|${url}` : `${status}|${url}`;
 }
 
 /** Build the default loader cache key. eTag slot is dropped when no eTag was resolved. */
 export function defaultLoaderCacheKey(requestEv: RequestEvent, eTag: string): string {
   const loaderId = requestEv.sharedMap.get(QLoaderId) as string;
-  const base = `${requestEv.url.pathname}|${requestEv.url.search}|${loaderId}`;
+  const { origin, pathname, search } = requestEv.url;
+  const base = `${origin}${pathname}|${search}|${loaderId}`;
   return eTag ? `${base}|${eTag}` : base;
 }
 

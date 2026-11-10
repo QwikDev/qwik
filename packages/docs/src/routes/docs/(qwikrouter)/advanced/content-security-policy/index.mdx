@@ -86,6 +86,10 @@ export default component$(() => {
 ```
 
 
+### Hash-based policies
+
+Qwik's inline scripts, including the qwikloader bootstrap emitted by the default `module` loader strategy, receive the nonce automatically. If your policy allows inline scripts by hash instead of by nonce (for example `script-src 'self'` plus a fixed list of `'sha256-...'` hashes), you must add a hash for every inline script Qwik renders, including the qwikloader bootstrap. Recompute these hashes when you upgrade Qwik, since the generated script content can change between versions.
+
 ## Validate your CSP
 
 There is a great tool to validate your CSP: [https://csp-evaluator.withgoogle.com/](https://csp-evaluator.withgoogle.com/)

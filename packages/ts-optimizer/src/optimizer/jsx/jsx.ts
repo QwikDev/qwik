@@ -133,11 +133,6 @@ export interface ProcessPropsOptions {
   tagIsHtml: boolean;
   passiveEvents: Set<string>;
   inLoop?: boolean;
-  /**
-   * Skip signal analysis for prop values; set when lowering to `_createElement` (spread + key),
-   * whose path emits prop values verbatim so any `_fnSignal` hoists would be unreachable.
-   */
-  skipSignalAnalysis?: boolean;
   /** Loop iteration vars in scope — a wrapProp rooted on one stays var. */
   loopIterVars?: readonly string[];
 }

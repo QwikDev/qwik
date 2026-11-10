@@ -1,14 +1,13 @@
 import { isDev } from '@qwik.dev/core';
-import { loadRoute } from '../../runtime/src/routing';
 import { getRouterConfig } from '../../runtime/src/router-config';
-import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
+import { loadRoute } from '../../runtime/src/routing';
 import type { QwikRouterConfig } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
 import { devPreloadedRouteLoaders } from './dev-preloaded-route-loader';
+import { resolveLoaderPagePathname } from './handlers/json-request-wrapper';
 import {
   IsQLoader,
   recognizeRequest,
-  resolveValidInternalFullPathname,
   trimInternalPathname,
   trimRecognizedInternalPathname,
 } from './request-path';
@@ -103,11 +102,10 @@ export function getRequestHandlerPathname(
     return loaderPathname;
   }
 
-  const routePath =
-    serverRequestEv.request.headers.get(FULLPATH_HEADER) ??
-    (isDevRequest ? serverRequestEv.request.headers.get(ROUTE_PATH_HEADER) : null);
-
-  return resolveValidInternalFullPathname(loaderPathname, routePath) ?? loaderPathname;
+  return (
+    resolveLoaderPagePathname(serverRequestEv.request, loaderPathname, isDevRequest) ??
+    loaderPathname
+  );
 }
 
 async function loadRequestHandlers(

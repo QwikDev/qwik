@@ -244,3 +244,9 @@ A serialized Uint8Array contained malformed base64 data. Regenerate the state us
 **Uninitialized props proxy**
 
 A props proxy was read before its reactive source was restored from serialized state.
+
+## Q40
+
+**Invalid serialized BigInt payload**
+
+A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larger BigInt values cannot be serialized; store them in another form, such as a string.

@@ -1,5 +1,5 @@
 import path, { resolve } from 'node:path';
-import type { Rolldown } from 'vite';
+import { parseAst, type Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
@@ -9,6 +9,7 @@ import {
   type QwikVitePlugin,
   type QwikVitePluginOptions,
   readBuildConstants,
+  stubRemovedChunkImports,
 } from './vite';
 import {
   createBuildWorkerCoreChunkResolver,
@@ -53,10 +54,16 @@ function mockOptimizerOptions(env: 'node' | 'deno' = 'node'): OptimizerOptions {
 }
 
 const includeDeps = undefined;
-const noExternal = ['@qwik.dev/core', '@qwik.dev/core/server', '@qwik.dev/core/build'];
+const noExternal = [
+  '@qwik.dev/core',
+  '@qwik.dev/core/internal/serializer',
+  '@qwik.dev/core/server',
+  '@qwik.dev/core/build',
+];
 
 const excludeDeps = [
   '@qwik.dev/core',
+  '@qwik.dev/core/internal/serializer',
   '@qwik.dev/core/server',
   '@qwik.dev/core/jsx-runtime',
   '@qwik.dev/core/jsx-dev-runtime',
@@ -873,6 +880,145 @@ describe('testTarget', () => {
   }
 });
 
+describe('hotUpdate', () => {
+  const sentHmrFiles = (modules: { url: string; importers?: string[] }[]) => {
+    // configureServer and hotUpdate live on the post plugin
+    const plugin = qwikVite({
+      optimizerOptions: mockOptimizerOptions(),
+      devTools: { imageDevTools: false },
+    })[1];
+    const sent: { data: { files: string[] } }[] = [];
+    plugin.configureServer({
+      environments: { client: { hot: { send: (payload: any) => sent.push(payload) } } },
+    });
+    const ctx = {
+      modules: modules.map(({ url, importers = [] }) => ({
+        url,
+        type: 'js',
+        importers: new Set(importers.map((importer) => ({ url: importer, type: 'js' }))),
+      })),
+      timestamp: 1,
+    };
+    plugin.hotUpdate.call({ environment: { name: 'ssr' } }, ctx);
+    return sent.map((payload) => payload.data.files);
+  };
+
+  test('sends a changed source file', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.tsx' }]), [['/src/a.tsx']]);
+  });
+
+  test('sends the importers of a ?inline stylesheet', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.css?inline', importers: ['/src/a.tsx'] }]), [
+      ['/src/a.tsx'],
+    ]);
+  });
+
+  test('sends the importers of a css module', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.module.css', importers: ['/src/a.tsx'] }]), [
+      ['/src/a.tsx'],
+    ]);
+  });
+
+  test.each([
+    '/src/a.css',
+    '/src/a.scss',
+    '/src/a.pcss',
+    '/src/a.postcss',
+    '/src/a.sss',
+    '/src/theme.module.dark.css',
+  ])('sends nothing for the plain stylesheet %s', (url) => {
+    assert.deepEqual(sentHmrFiles([{ url, importers: ['/src/a.tsx'] }]), []);
+  });
+});
+
+describe('stubRemovedChunkImports', () => {
+  const createChunk = (fileName: string, code: string, dynamicImports: string[]) => ({
+    type: 'chunk',
+    fileName,
+    code,
+    dynamicImports,
+  });
+  const stubImports = (chunk: ReturnType<typeof createChunk>, keptFiles: string[] = []) => {
+    const bundle: Record<string, unknown> = { [chunk.fileName]: chunk };
+    for (const file of keptFiles) {
+      bundle[file] = { type: 'asset' };
+    }
+    const fileNamesBeforeCssCleanup = new Set([chunk.fileName, ...chunk.dynamicImports]);
+    stubRemovedChunkImports(
+      bundle as unknown as Rolldown.OutputBundle,
+      fileNamesBeforeCssCleanup,
+      parseAst
+    );
+  };
+
+  test('stubs dynamic imports of chunks removed from the bundle', () => {
+    const chunk = createChunk(
+      'build/q-segment.js',
+      'await import(`./q-css.js`);await import("./q-kept.js");',
+      ['build/q-css.js', 'build/q-kept.js']
+    );
+
+    stubImports(chunk, ['build/q-kept.js']);
+
+    assert.equal(chunk.code, 'await Promise.resolve({ });await import("./q-kept.js");');
+  });
+
+  test('keeps the code length so source maps stay valid', () => {
+    const code = 'await import("./q-BvRk9kiK.js");throw Error();';
+    const chunk = createChunk('build/q-segment.js', code, ['build/q-BvRk9kiK.js']);
+
+    stubImports(chunk);
+
+    assert.equal(chunk.code.length, code.length);
+    assert.equal(chunk.code.indexOf('throw'), code.indexOf('throw'));
+  });
+
+  test('keeps strings that look like a removed import', () => {
+    const chunk = createChunk(
+      'build/q-segment.js',
+      'await import("./probe.js");export const s = "import(\'./probe.js\')";',
+      ['build/probe.js']
+    );
+
+    stubImports(chunk);
+
+    assert.equal(
+      chunk.code,
+      'await Promise.resolve({ });export const s = "import(\'./probe.js\')";'
+    );
+  });
+
+  test('keeps relative external dynamic imports', () => {
+    const externalImports = 'await import("../widget.js");await import("./worker%.js");';
+    const chunk = createChunk(
+      'build/q-segment.js',
+      `await import("./q-css.js");${externalImports}`,
+      ['build/q-css.js', 'widget.js', 'worker%.js']
+    );
+    const bundle = { [chunk.fileName]: chunk };
+
+    stubRemovedChunkImports(
+      bundle as unknown as Rolldown.OutputBundle,
+      new Set([chunk.fileName, 'build/q-css.js']),
+      parseAst
+    );
+
+    assert.equal(chunk.code, `await Promise.resolve({ });${externalImports}`);
+  });
+
+  test('matches the full path of a removed chunk, not its basename', () => {
+    const chunk = createChunk(
+      'build/js/q-segment.js',
+      'await import("../css/shared.js");await import("./shared.js");',
+      ['build/css/shared.js', 'build/js/shared.js']
+    );
+
+    stubImports(chunk, ['build/js/shared.js']);
+
+    assert.equal(chunk.code, 'await Promise.resolve({       });await import("./shared.js");');
+  });
+});
+
 describe('worker qrl chunk rewrites', () => {
   const workerPlaceholderCode = (importPath: string) =>
     `const chunk = "${QWIK_WORKER_QRL_SENTINEL}${importPath}";`;
@@ -1113,4 +1259,28 @@ test('reads only the boolean build flags the host defined', () => {
     __FEATURE__: false,
     VITE_NEW: true,
   });
+});
+
+test('opts Qwik-compiled modules out of the vitest module cache', () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() }) as any;
+  let generateCacheKey: (ctx: { id: string }) => string | false | undefined = () => '';
+  plugin.configureVitest({
+    defineCacheKeyGenerator: (generator: typeof generateCacheKey) => (generateCacheKey = generator),
+  });
+
+  assert.equal(generateCacheKey({ id: '/app/src/routes/index.tsx' }), false);
+  assert.equal(generateCacheKey({ id: '/app/node_modules/lib/index.qwik.mjs' }), false);
+  assert.equal(generateCacheKey({ id: '/app/node_modules/lodash/index.js' }), undefined);
+});
+
+test('supports vitest 4 cache key generator name and older vitest without one', () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() }) as any;
+  let generateCacheKey: (ctx: { id: string }) => string | false | undefined = () => '';
+  plugin.configureVitest({
+    experimental_defineCacheKeyGenerator: (generator: typeof generateCacheKey) =>
+      (generateCacheKey = generator),
+  });
+
+  assert.equal(generateCacheKey({ id: '/app/src/routes/index.tsx' }), false);
+  assert.doesNotThrow(() => plugin.configureVitest({}));
 });

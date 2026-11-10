@@ -1,5 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
-import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
+import { _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -41,6 +42,7 @@ import {
 import { loaderHandler, setRouteLoaderData } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
+import { routeResolveHandler } from './handlers/route-resolve-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { isStaticPath } from './static-paths';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
@@ -56,7 +58,7 @@ import {
 } from './etag';
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
-import { encoder, isContentType } from './request-utils';
+import { encoder } from './request-utils';
 import { ServerError, throwIfControlFlowSignal } from './server-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
@@ -124,6 +126,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
+      requestHandlers.push(routeResolveHandler());
       requestHandlers.push(loaderHandler(routeLoaders, route));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
@@ -691,37 +694,24 @@ function createResolveRequestHandlers() {
   }
 
   function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
-    const contentType = requestEv.request.headers.get('content-type');
+    const inputOrigin = requestEv.request.headers.get('origin');
+    const origin = requestEv.url.origin;
+    let forbidden = inputOrigin !== origin;
 
-    const isSimpleRequest =
-      !contentType ||
-      isContentType(
-        requestEv.request.headers,
-        'application/x-www-form-urlencoded',
-        'multipart/form-data',
-        'text/plain'
-      );
+    if (
+      forbidden &&
+      laxProto &&
+      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
+    ) {
+      forbidden = false;
+    }
 
-    if (isSimpleRequest) {
-      const inputOrigin = requestEv.request.headers.get('origin');
-      const origin = requestEv.url.origin;
-      let forbidden = inputOrigin !== origin;
-
-      if (
-        forbidden &&
-        laxProto &&
-        inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
-      ) {
-        forbidden = false;
-      }
-
-      if (forbidden) {
-        throw requestEv.error(
-          403,
-          `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+    if (forbidden) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} requests are forbidden.
 The request origin "${inputOrigin}" does not match the server origin "${origin}".`
-        );
-      }
+      );
     }
   }
 

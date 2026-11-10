@@ -1,6 +1,8 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { isDev } from '@qwik.dev/core';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   FULLPATH_HEADER,
+  ROUTE_PATH_HEADER,
   getRouteLoaderCtx,
   getRouteLoaderParams,
   getRouteLoaderResponse,
@@ -16,7 +18,7 @@ import type {
 } from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
-import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
+import { performETagMatch, hash, resolvePreETag, setETagHeader } from '../etag-hash';
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
 import { createLoaderRequestEventFactory } from './loader-request-event';
@@ -51,7 +53,7 @@ export function loaderHandler(
     }
 
     setRouteLoaderData(requestEv, routeLoaders, route);
-    await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
+    await runRouteGuards(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
@@ -130,6 +132,9 @@ export function loaderHandler(
       return;
     }
 
+    if (responseData.e || failed) {
+      requestEv.headers.set('Cache-Control', 'no-store');
+    }
     await sendLoaderResponse(requestEv, data, cacheControl);
   };
 }
@@ -146,16 +151,14 @@ function resolveLoaderCacheControl(
   return value === undefined ? 'private' : value;
 }
 
-async function runBlockingLoadersBeforeTarget(
+/** Blocking loaders guard the route, so they all run whatever the export order. */
+async function runRouteGuards(
   routeLoaders: LoaderInternal[],
   targetLoader: LoaderInternal,
   requestEv: RequestEventInternal
 ) {
   for (const loader of routeLoaders) {
-    if (loader === targetLoader) {
-      return;
-    }
-    if (loader.__blockSSR) {
+    if (loader !== targetLoader && loader.__blockSSR) {
       await loadRouteLoader(loader, requestEv);
     }
   }
@@ -177,18 +180,6 @@ export function setRouteLoaderData(
   setRouteLoaders(requestEv, routeLoaders);
 }
 
-/** Resolve eTag from a static string or function (before running the loader). */
-function resolvePreETag(
-  eTagOption: string | ((ev: RequestEvent) => string | null),
-  requestEv: RequestEvent
-): string {
-  if (typeof eTagOption === 'string') {
-    return normalizeETag(eTagOption);
-  }
-  const result = eTagOption(requestEv);
-  return result ? normalizeETag(result) : '';
-}
-
 async function sendLoaderResponse(
   requestEv: RequestEventInternal,
   data: string,
@@ -196,6 +187,9 @@ async function sendLoaderResponse(
 ) {
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
   addVaryHeader(requestEv, FULLPATH_HEADER);
+  if (isDev) {
+    addVaryHeader(requestEv, ROUTE_PATH_HEADER);
+  }
   // A Cache-Control set by the loader function itself wins over the option
   if (cacheControl !== null && !requestEv.headers.has('Cache-Control')) {
     requestEv.cacheControl(cacheControl);

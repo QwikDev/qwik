@@ -11,7 +11,7 @@ import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { RenderRoot } from '@qwik.dev/core';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { RuntimeInvokeContext } from '@qwik.dev/core';
-import { SerializationContext } from '@qwik.dev/core';
+import { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import { SsrAttributePatch } from '@qwik.dev/core';
 import { SsrEventAttrChunk } from '@qwik.dev/core';

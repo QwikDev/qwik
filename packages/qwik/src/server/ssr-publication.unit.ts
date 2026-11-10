@@ -2,10 +2,10 @@ import {
   Computed,
   createQRL,
   type SsrOutput,
-  createSerializationContext,
   newInvokeContext,
   type SsrCatchController,
 } from '@qwik.dev/core';
+import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import { describe, expect, test, vi } from 'vitest';
 import { createSsrPublication, createStateScriptEventAttrs } from './ssr-publication';
 import { SsrScriptEmitter } from './ssr-script-emitter';

@@ -102,6 +102,21 @@ starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the o
 (or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
 whether a tag is intrinsic.
 
+A pass that rewrites reads of a binding must rewrite its JSX tag reads too. A tag holds only a
+member chain, so a read with a default, a quoted key or a conditional waits for the JSX transform:
+return it as `DeferredTagReads` and apply `resolveDeferredTagReads` (`rewrite/raw-props.ts`) after it.
+
+## Const prop bag
+
+The runtime trusts a const prop to stay the same for the component's lifetime: reads never
+subscribe, `_wrapProp` returns const values unwrapped, and SSR skips serializing all-const props.
+If one changes anyway, the child only re-renders and its `useComputed$`/`useTask$` readers go stale.
+So either optimizer may put a prop, including a `_fnSignal`/`_wrapProp` wrapper, in the const bag
+only when every local it reads survives re-renders: imports, `const` bindings with a static
+initializer (`use*`, `*$`, `*Qrl` calls), or params. Render-computed locals and `_restProps` copies
+are recreated per render and belong in the var bag. Unit specs pass on the TS optimizer alone, so
+pin classification with a `test_input!` snapshot.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers
@@ -126,8 +141,10 @@ Neither gets a scope-correct rename for free, so name uniqueness is the transfor
   carries a duplicate declaration hygiene never revisits. Number generated names at creation.
 - TypeScript: there is no hygiene pass at all, and the rewrite matches identifiers by name. Number
   every generated binding, skip names inside destructuring patterns, and resolve references through
-  oxc-walker's `ScopeTracker` so names re-bound in a nested scope keep their declaration. Do not
-  bail out of the rewrite on shadowing — Rust still consolidates, and the snapshot diverges.
+  oxc-walker's `ScopeTracker` (`collectShadowedIdentifierStarts` in `rewrite/props-field-rewrite.ts`)
+  so names re-bound in a nested scope keep their declaration. Do not bail out of the rewrite on
+  shadowing — Rust still consolidates, and the snapshot diverges. Match captures to prop fields
+  and imports by binding (`isShadowedBinding`), never by name.
 - Props objects (`_rawProps`) follow Rust hygiene: each takes the lowest `_rawProps{n}` not held by
   a props object bound beside it, in emission order. A segment file is its own module; inline `.s()`
   bodies share one, so never hardcode a suffix — go through `rawPropsBindingNames`.

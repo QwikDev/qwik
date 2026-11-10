@@ -1,6 +1,6 @@
 import { suite, test, assert } from 'vitest';
 import { serializeClass } from './styles';
-import { setValueForStyle, stringifyStyle } from './styles';
+import { serializeAttribute, setValueForStyle, stringifyStyle } from './styles';
 
 const obj = {
   foo: false,
@@ -291,5 +291,24 @@ suite('setValueForStyle', () => {
       assert.equal(setValueForStyle('lineHeight', '0'), '0');
       assert.equal(setValueForStyle('lineHeight', '10'), '10');
     });
+  });
+});
+
+suite('serializeAttribute', () => {
+  test('should serialize true as an empty bare attribute', () => {
+    assert.equal(serializeAttribute('disabled', true), '');
+    assert.equal(serializeAttribute('data-foo', true), '');
+    assert.equal(serializeAttribute('preventdefault:click', true), '');
+  });
+
+  test('should keep enumerated attributes as strings', () => {
+    assert.equal(serializeAttribute('aria-hidden', true), 'true');
+    assert.equal(serializeAttribute('draggable', false), 'false');
+  });
+
+  test('should remove false and nullish values', () => {
+    assert.equal(serializeAttribute('disabled', false), null);
+    assert.equal(serializeAttribute('disabled', null), null);
+    assert.equal(serializeAttribute('disabled', undefined), null);
   });
 });

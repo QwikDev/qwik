@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { parseQRL, qrlToString } from './qrl-to-string';
 import { createQRL, createSyncQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
-import type { SerializationContext } from './serialization-context';
+import type { SerializationContext } from '../../../serializer/serialization-context';
 import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { _qrlSync } from '../qrl/qrl.public';
 

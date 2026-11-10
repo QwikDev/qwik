@@ -42,6 +42,8 @@ export default defineConfig(() => {
         output: [
           {
             format: 'es',
+            // A mangled `$` export would read as a QRL marker in linked builds.
+            minifyInternalExports: false,
             chunkFileNames: (chunkInfo) =>
               chunkInfo.moduleIds.some((id) => id.includes('runtime'))
                 ? 'chunks/[name].qwik.mjs'

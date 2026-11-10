@@ -26,6 +26,7 @@ import { submoduleCore } from './submodule-core.ts';
 import { submoduleInsights } from './submodule-insights.ts';
 import { submoduleOptimizer } from './submodule-optimizer.ts';
 import { submoduleQwikLoader } from './submodule-qwikloader.ts';
+import { submoduleSerializer } from './submodule-serializer.ts';
 import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { submoduleWorker } from './submodule-worker.ts';
@@ -113,6 +114,8 @@ export async function build(config: BuildConfig) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader
       await Promise.all([submoduleServer(config, coreNameCache), submodulePreloader(config)]);
+      // after server, so both extend the shared nameCache in a fixed order
+      await submoduleSerializer(config, coreNameCache);
     }
 
     if (config.api || (!config.dev && config.qwik)) {
@@ -211,6 +214,7 @@ export async function build(config: BuildConfig) {
         [config.qwikViteDir]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
         [join(config.srcQwikDir, 'testing')]: () => submoduleTesting(config),
+        [join(config.srcQwikDir, 'serializer')]: () => submoduleSerializer(config),
         [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });
     }

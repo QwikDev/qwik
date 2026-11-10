@@ -11,7 +11,6 @@ import {
   wrapDocumentRange,
 } from './ssr-document';
 import {
-  createSerializationContext,
   createSsrNodeId,
   createSsrMarkup,
   disposeOwner,
@@ -24,7 +23,6 @@ import {
   newInvokeContext,
   setPlatform,
   SsrOutputWriter,
-  type SerializationContext,
   type SsrRangeScope,
   type Subscriber,
   type SsrAttributePatch,
@@ -41,6 +39,10 @@ import {
   type JSXOutput,
   type QRLInternal,
 } from '@qwik.dev/core';
+import {
+  createSerializationContext,
+  type SerializationContext,
+} from '@qwik.dev/core/internal/serializer';
 import { type ValueOrPromise, applyUseOnToSsrOutput, SubscriberFlags } from './qwik-copy';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import { SsrScheduler, type SsrLane } from './ssr-scheduler';

@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { transformModules } from '@qwik.dev/compiler';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -308,10 +309,10 @@ export function createQwikPlugin(
       // we only provide inputs if none were provided by the user
       if (opts.target === 'ssr') {
         // this is for dev mode, prod will have own setting
-        opts.input = [resolvePath(srcDir, 'entry.ssr')];
+        opts.input = [resolvePath(opts.srcDir, 'entry.ssr')];
       } else if (opts.target === 'client') {
         // not really an entry, just a starting point
-        opts.input = [resolvePath(srcDir, 'root')];
+        opts.input = [resolvePath(opts.srcDir, 'root')];
       } else {
         // others including lib should be ok already
         opts.input = undefined!;
@@ -1207,7 +1208,6 @@ export function createQwikPlugin(
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
-    const ext = parsedPathId.ext.toLowerCase();
     let map;
     let meta;
 
@@ -1226,7 +1226,7 @@ export function createQwikPlugin(
       code = replaced;
     }
 
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
+    if (isQwikTransformedPath(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       debug(
@@ -1498,6 +1498,16 @@ export function createQwikPlugin(
 
   const getOptions = () => opts;
 
+  /** Whether a module's output depends on in-memory state that a transform cache would skip. */
+  const isCompiledModule = (id: string) => {
+    const { pathId } = parseId(id);
+    return (
+      isQwikTransformedPath(pathId) ||
+      clientTransformedOutputs.has(pathId) ||
+      serverTransformedOutputs.has(pathId)
+    );
+  };
+
   const getTransformedOutputs = () => {
     return Array.from(clientTransformedOutputs.values()).map((t) => {
       return t[0];
@@ -1671,14 +1681,18 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
+              const isSmartClientOnly =
+                opts.entryStrategy.type === 'smart' &&
+                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
               // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
                 return null;
               }
               const { hash } = segment;
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
+                (isSmartClientOnly ? segment.canonicalFilename : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }
@@ -1779,6 +1793,7 @@ export const isDev = ${JSON.stringify(isDev)};
     hotUpdate,
     codeSplitting,
     generateManifest,
+    isCompiledModule,
   };
 }
 
@@ -1858,7 +1873,13 @@ const TRANSFORM_EXTS = {
  */
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
+const isQwikTransformedPath = (pathId: string) =>
+  pathId.slice(pathId.lastIndexOf('.')).toLowerCase() in TRANSFORM_EXTS ||
+  TRANSFORM_REGEX.test(pathId);
+
 export const QWIK_CORE_ID = '@qwik.dev/core';
+
+export const QWIK_CORE_SERIALIZER_ID = '@qwik.dev/core/internal/serializer';
 
 export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 

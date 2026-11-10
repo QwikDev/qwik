@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   createOwner,
-  createSerializationContext,
   disposeSubscriber,
   Phase,
   registerSubscriberToOwner,
@@ -11,6 +10,7 @@ import {
   useSignal,
   type TaskFn,
 } from '@qwik.dev/core';
+import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import { SsrScheduler, type SsrLane } from './ssr-scheduler';
 
 function createLane(): { lane: SsrLane } {

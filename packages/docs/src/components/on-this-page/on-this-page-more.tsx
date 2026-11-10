@@ -4,17 +4,19 @@ import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 
 type OnThisPageMoreProps = {
-  editUrl: string;
+  editUrl?: string;
 };
 
 export const OnThisPageMore = component$<OnThisPageMoreProps>(({ editUrl }) => {
   return (
     <div class="more-section">
       <h6 class="on-this-page-more-heading">More</h6>
-      <a class="more-item" href={editUrl} rel="noopener" target="_blank">
-        <lucide.pencil class="size-4" />
-        <span>Edit this page</span>
-      </a>
+      {editUrl && (
+        <a class="more-item" href={editUrl} rel="noopener" target="_blank">
+          <lucide.pencil class="size-4" />
+          <span>Edit this page</span>
+        </a>
+      )}
       <a
         class="more-item"
         href="https://github.com/QwikDev/qwik/issues/new/choose"

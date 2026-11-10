@@ -26,3 +26,20 @@ test('forwards preload requests after the preloader is installed', () => {
 
   expect(preload).toHaveBeenCalledWith('entry.js', 0.8);
 });
+
+test('delivers requests buffered by another copy of the bridge', async () => {
+  // Core and the preloader chunk each bundle their own copy of this module
+  vi.resetModules();
+  const core = await import('./bridge');
+  vi.resetModules();
+  const preloaderChunk = await import('./bridge');
+  expect(preloaderChunk).not.toBe(core);
+
+  core.requestPreload('handler.js', 1);
+
+  const preload = vi.fn();
+  preloaderChunk.setPreloader(preload);
+
+  expect(preload).toHaveBeenCalledWith('handler.js', 1);
+  preloaderChunk.setPreloader(undefined);
+});

@@ -39,8 +39,22 @@ export async function submoduleCli(config: BuildConfig) {
           });
         },
       },
+      {
+        // migrate-v2 installs ts-morph into the project, which may not contain this CLI (npx)
+        name: 'tsMorphFromProject',
+        setup(build) {
+          build.onResolve({ filter: /^ts-morph$/ }, () => ({
+            path: 'ts-morph',
+            namespace: 'project',
+          }));
+          build.onLoad({ filter: /.*/, namespace: 'project' }, () => ({
+            contents: `module.exports = require('node:module').createRequire(process.cwd() + '/')('ts-morph');`,
+            loader: 'js',
+          }));
+        },
+      },
     ],
-    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore'],
+    external: ['prettier', 'typescript'],
     define: {
       'globalThis.CODE_MOD': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

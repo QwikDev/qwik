@@ -14,7 +14,13 @@ import type { ComputedSignal } from '@qwik.dev/core';
 import * as z from 'zod';
 import { _createQRL as createQRL } from '@qwik.dev/core/internal';
 import { routeLoader$ } from './route-loaders';
-import { getRequestEvent, routeAction$, server$, serverQrl } from './server-functions';
+import {
+  getRequestEvent,
+  readServerFunctionResponse,
+  routeAction$,
+  server$,
+  serverQrl,
+} from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
@@ -211,5 +217,29 @@ describe('types', () => {
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
       someAnyType?: string;
     }>();
+  });
+});
+
+describe('readServerFunctionResponse', () => {
+  const read = (body: string, contentType: string, status = 200) =>
+    readServerFunctionResponse(
+      new Response(body, { status, headers: { 'Content-Type': contentType } }),
+      undefined
+    );
+
+  test('rejects when the response is an HTML page', async () => {
+    await expect(read('<html></html>', 'text/html; charset=utf-8')).rejects.toThrow(
+      'server$ got an unexpected response: 200 text/html; charset=utf-8'
+    );
+    await expect(read('<html></html>', 'text/html')).rejects.toThrow(
+      'server$ got an unexpected response'
+    );
+  });
+
+  test('accepts content types with parameters', async () => {
+    await expect(read('{"a":1}', 'application/json; charset=utf-8')).resolves.toEqual({ a: 1 });
+    await expect(read('hello', 'text/plain; charset=utf-8')).resolves.toBe('hello');
+    await expect(read('denied', 'text/plain; charset=utf-8', 401)).rejects.toBe('denied');
+    await expect(read('{"a":1}', 'Application/JSON')).resolves.toEqual({ a: 1 });
   });
 });

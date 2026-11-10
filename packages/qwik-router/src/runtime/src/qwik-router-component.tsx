@@ -88,6 +88,7 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
+import { isPlainPrimaryClick } from './spa-init';
 import {
   clearNavFetchCache,
   ensureRouteLoaderSignals,
@@ -127,7 +128,7 @@ import type {
 } from './types';
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isPromise, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
+import { isPromise, isSameOrigin, isSamePath, toPath, toSafeRedirectUrl, toUrl } from './utils';
 import {
   shouldStartViewTransition,
   startViewTransition,
@@ -216,6 +217,29 @@ const applyRoutedLevels = (
   }
 };
 
+/**
+ * A URL the client can't render itself (no matching page) may be a server `rewrite()`. Ask the
+ * server where it routes to. Returns the target pathname, `'reload'` if the server redirects, or
+ * `undefined` when the URL is not rewritten.
+ */
+const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
+  try {
+    const response = await fetch(`${ensureSlash(url.pathname)}q-route.json${url.search}`, {
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+    if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+      return 'reload';
+    }
+    if (response.ok) {
+      const { p } = await response.json();
+      return typeof p === 'string' ? p : undefined;
+    }
+  } catch {
+    // Fall back to rendering what the client matched.
+  }
+};
+
 const getScroller = () => {
   let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
   if (!scroller) {
@@ -264,7 +288,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
+  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void; dest?: URL } = {};
   // Share serialized loader paths across resumed components.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
   routeLoaderCtx.manifestHash = manifestHash;
@@ -479,7 +503,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return;
     }
 
-    if (!forceReload && isSamePath(dest, lastDest)) {
+    if (
+      !forceReload &&
+      isSamePath(dest, lastDest) &&
+      (!navResolver.dest ||
+        (isSamePath(navResolver.dest, dest) && navResolver.dest.href === dest.href))
+    ) {
       if (isBrowser) {
         // Use `location.href` because the lastDest signal is only updated on page navigates.
         if (type === 'link' && dest.href !== location.href) {
@@ -511,6 +540,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     navResolver.cancel?.();
     navResolver.cancel = undefined;
     navResolver.r?.();
+    navResolver.dest = dest;
 
     let historyUpdated = false;
     if (isBrowser) {
@@ -550,6 +580,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       scroll,
       historyUpdated,
     };
+    // routeInternal now holds the in-flight destination, so the shortcut can use it again.
+    navResolver.dest = undefined;
 
     if (wasNavigating) {
       abortRouteLoaderNavigation(routeLoaderCtx);
@@ -609,6 +641,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
       let actionLoaderHashes: string[] | undefined;
       let loadedRoute: LoadedRoute;
+      let rewrittenTo: string | undefined;
       if (isServer) {
         // server
         trackUrl = new URL(navigation.dest, prevUrl);
@@ -622,6 +655,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           navResolver.cancel = () => resolve(undefined);
           actionState.cancelPending = noSerialize(navResolver.cancel);
         });
+        // A navigation that bails before submitting must still settle the submit promise.
+        const abandonAction = () => {
+          action?.reject?.(new Error('Action submission was superseded by a navigation'));
+          if (action) {
+            action.resolve = undefined;
+            action.reject = undefined;
+          }
+        };
 
         // ensure correct trailing slash
         if (trackUrl.pathname.endsWith('/')) {
@@ -640,11 +681,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         try {
           const route = await Promise.race([loadRoutePromise, canceled]);
           if (!route) {
+            abandonAction();
             return;
           }
           loadedRoute = route;
         } catch (e) {
           if (internalState.navCount !== navCountBefore) {
+            abandonAction();
             return;
           }
           const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
@@ -657,13 +700,58 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
         // Bail if a second nav() was fired while we were loading route modules.
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
+        }
+
+        // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
+        // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
+        const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
+          | PageModule
+          | undefined;
+        if (
+          loadedRoute.$notFound$ ||
+          typeof lastModule?.default !== 'function' ||
+          loadedRoute.$routeName$.includes('[')
+        ) {
+          // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
+          const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+          if (internalState.navCount !== navCountBefore) {
+            abandonAction();
+            return;
+          }
+          if (resolved === 'reload') {
+            // With an action, skip the reload so the submission is not dropped; the action still runs.
+            if (!action) {
+              window.location.href = trackUrl.href;
+              return;
+            }
+          } else if (resolved && resolved !== trackUrl.pathname) {
+            try {
+              const config = await loadRouterConfig();
+              loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);
+              rewrittenTo = resolved;
+            } catch (e) {
+              if (internalState.navCount !== navCountBefore) {
+                abandonAction();
+                return;
+              }
+              console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
+              window.location.href = trackUrl.href;
+              return;
+            }
+            if (internalState.navCount !== navCountBefore) {
+              abandonAction();
+              return;
+            }
+          }
         }
 
         // Per-level diff: untouched shared layouts stay mounted. Fail open to a full
         // rebuild when no baseline resolves (fresh resume from an unknown route).
         const { routes } = await loadRouterConfig();
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
         }
         newModuleLoaders = loadedRoute.$moduleLoaders$;
@@ -682,14 +770,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Submit action if one was triggered
         if (action) {
-          const submission = submitAction(action, trackUrl).then((result) => {
-            // Superseded actions still complete their caller's submit promise.
-            if (result && action.resolve) {
-              action.resolve({ status: result.status, result: result.result });
+          const submission = submitAction(action, trackUrl).then(
+            (result) => {
+              // Superseded actions still complete their caller's submit promise.
+              action.resolve?.({ status: result.status, result: result.result });
+              action.resolve = undefined;
+              action.reject = undefined;
+              return result;
+            },
+            (error) => {
+              action.reject?.(error);
+              action.reject = undefined;
               action.resolve = undefined;
             }
-            return result;
-          });
+          );
           action.resolveDispatch?.();
           action.resolveDispatch = undefined;
           const result = await Promise.race([submission, canceled]);
@@ -700,15 +794,18 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           navResolver.cancel = undefined;
           if (!result) {
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+            routeLocation.isNavigating = false;
+            navResolver.r?.();
             return;
           }
 
           if (result.redirect) {
+            const redirectUrl = toSafeRedirectUrl(result.redirect, routeLocation.url);
             if (result.redirect instanceof URL) {
-              location.href = result.redirect.href;
+              location.href = redirectUrl.href;
             } else {
               // Awaiting goto would deadlock this task's next execution.
-              goto(result.redirect, { replaceState: true });
+              goto(redirectUrl.href, { replaceState: true });
             }
             return;
           }
@@ -745,7 +842,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             contentModules,
             loaderState,
             routeLoaderCtx,
-            loadedRoute.$loaderPaths$,
+            // After a rewrite, loaders are fetched via the visible URL so the server re-applies it.
+            rewrittenTo ? undefined : loadedRoute.$loaderPaths$,
             trackUrl,
             prevUrl,
             navCountBefore,
@@ -1269,6 +1367,8 @@ export interface ClientSPAWindow extends Window {
   /** @internal */
   _qRouterInitPopstate?: () => void;
   /** @internal */
+  _qRouterInitNavigate?: RouteNavigate;
+  /** @internal */
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   /** @internal */
   _qRouterInitVisibility?: () => void;
@@ -1299,6 +1399,7 @@ function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
 
     window.removeEventListener('popstate', window._qRouterInitPopstate!);
     window._qRouterInitPopstate = undefined;
+    window._qRouterInitNavigate = undefined;
 
     // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
     // Devs could push their own states that we can't control.
@@ -1347,7 +1448,7 @@ function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
     // Any <a> tags w/ #hash href will break SPA state in Firefox.
     // We patch these events and direct them to Link pipeline during SPA.
     document.addEventListener('click', (event) => {
-      if (event.defaultPrevented) {
+      if (event.defaultPrevented || !isPlainPrimaryClick(event)) {
         return;
       }
 

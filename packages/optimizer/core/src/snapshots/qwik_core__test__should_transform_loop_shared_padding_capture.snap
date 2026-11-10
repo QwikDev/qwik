@@ -1,0 +1,164 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let first = props.prefix + ':first';
+  let _2 = props.prefix + ':second';
+  const change = () => { first = 'x'; _2 = 'y'; };
+  return <div>{props.items.map(item => <button onClick$={() => props.select$(first, item.name)} onMouseDown$={() => props.select$(_2, item.name)} />)}</div>;
+});
+
+============================= test.tsx_List_component_div_button_q_e_mousedown_mduRB930BQ0.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const List_component_div_button_q_e_mousedown_mduRB930BQ0 = (_, _1, _3, _2, item)=>{
+    let props = _capturesObj._[0];
+    return props.select$(_2, item.name);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mEAM8G,YAFxG,IAEyB;;WAAqF,MAAM,OAAO,CAAC,IAAI,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_div_button_q_e_mousedown_mduRB930BQ0",
+  "entry": null,
+  "displayName": "test.tsx_List_component_div_button_q_e_mousedown",
+  "hash": "mduRB930BQ0",
+  "canonicalFilename": "test.tsx_List_component_div_button_q_e_mousedown_mduRB930BQ0",
+  "path": "",
+  "extension": "js",
+  "parent": "List_component_HpIwcodkEXk",
+  "ctxKind": "eventHandler",
+  "ctxName": "onMouseDown$",
+  "captures": true,
+  "loc": [
+    328,
+    362
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_3",
+    "_2",
+    "item"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,qBAAO,2CAKjB\"}")
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_div_button_q_e_click_b7FXjnKcNoQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ"), "List_component_div_button_q_e_click_b7FXjnKcNoQ").m();
+const q_List_component_div_button_q_e_mousedown_mduRB930BQ0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_div_button_q_e_mousedown_mduRB930BQ0"), "List_component_div_button_q_e_mousedown_mduRB930BQ0").m();
+//
+export const List_component_HpIwcodkEXk = (props)=>{
+    let first = props.prefix + ':first';
+    let _2 = props.prefix + ':second';
+    const List_component_div_button_q_e_click_b7FXjnKcNoQ = q_List_component_div_button_q_e_click_b7FXjnKcNoQ.w([
+        props
+    ]);
+    const List_component_div_button_q_e_mousedown_mduRB930BQ0 = q_List_component_div_button_q_e_mousedown_mduRB930BQ0.w([
+        props
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, props.items.map((item)=>/*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": List_component_div_button_q_e_click_b7FXjnKcNoQ,
+            "q-e:mousedown": List_component_div_button_q_e_mousedown_mduRB930BQ0,
+            "q:ps": [
+                first,
+                _2,
+                item
+            ]
+        }, null, null, 6, "u6_0")), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAE+B,CAAC;IAC9B,IAAI,QAAQ,MAAM,MAAM,GAAG;IAC3B,IAAI,KAAK,MAAM,MAAM,GAAG;;;;;;;IAExB,qBAAO,WAAC,mBAAK,MAAM,KAAK,CAAC,GAAG,CAAC,CAAA,qBAAQ,WAAC;YAAO,WAAQ;YAAyC,eAAY;;gBAHtG;gBACA;gBAEyB;;;AAC/B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    377
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const List_component_div_button_q_e_click_b7FXjnKcNoQ = (_, _1, first, _3, item)=>{
+    let props = _capturesObj._[0];
+    return props.select$(first, item.name);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DAMyD,QAHnD,WAGyB;;WAAgC,MAAM,OAAO,CAAC,OAAO,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_div_button_q_e_click_b7FXjnKcNoQ",
+  "entry": null,
+  "displayName": "test.tsx_List_component_div_button_q_e_click",
+  "hash": "b7FXjnKcNoQ",
+  "canonicalFilename": "test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ",
+  "path": "",
+  "extension": "js",
+  "parent": "List_component_HpIwcodkEXk",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    275,
+    312
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "first",
+    "_3",
+    "item"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

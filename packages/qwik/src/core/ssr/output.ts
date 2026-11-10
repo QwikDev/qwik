@@ -1,7 +1,7 @@
 import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { Subscriber } from '../runtime/subscriber';
 import type { Owner } from '../runtime/owner';
-import type { SerializationContext } from '../shared/serdes/serialization-context';
+import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import type { TaskScheduler } from '../runtime/scheduler';
 import type { ServerDataContext } from '../runtime/use-server-data';
 import type { RuntimeInvokeContext } from '../runtime/invoke-context';

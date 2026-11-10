@@ -7,6 +7,8 @@ import {
   prepareRouteLoaders,
   commitRouteLoaders,
   restoreRouteLoaders,
+  clearNavFetchCache,
+  fetchRouteLoaderData,
   getClientRouteLoaders,
   ensureRouteLoaderSignal,
   getModuleRouteLoaders,
@@ -391,6 +393,35 @@ describe('getModuleRouteLoaders', () => {
       shared,
     ]);
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('fetchRouteLoaderData nav cache', () => {
+  it('does not share a strict dev root loader fetch between pages', async () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const headers = init?.headers as Record<string, string>;
+      return new Response(headers['X-Qwik-route-path']);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    clearNavFetchCache();
+    try {
+      const a = await fetchRouteLoaderData('root', '/', 'hash', {
+        pageUrl: new URL('http://test/a/'),
+      });
+      const b = await fetchRouteLoaderData('root', '/', 'hash', {
+        pageUrl: new URL('http://test/b/'),
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(a).toEqual({ raw: '/a/' });
+      expect(b).toEqual({ raw: '/b/' });
+    } finally {
+      clearNavFetchCache();
+      vi.unstubAllGlobals();
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
   });
 });
 

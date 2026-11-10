@@ -45,5 +45,7 @@ Do not load the reference for simple docs, package metadata, formatting, or unre
   the full suite before and after, and compare — the failure will not name your change.
 - Export public core APIs from both `core/index.ts` and `core/public.ts`; API Extractor reads `public.ts`.
 - If the change affects public API, run `pnpm api.update` after the focused tests pass.
+- Vitest does not check `expectTypeOf`, and `pnpm tsc.check` excludes `packages/qwik/src`. Prove type
+  tests there with `pnpm exec tsc --noEmit -p packages/qwik/tsconfig.json`.
 - If this skill or `references/core-notes.md` is stale after your source inspection, update it before
   finishing or record why guidance edits were out of scope.

@@ -543,6 +543,46 @@ export default () => <Child {...base} {...{ title: 'literal' }} />;
     expect(code).not.toContain('createPropsProxy(');
   });
 
+  test('should read a member chain through plain local objects once', async () => {
+    const output = await testInput(mode, 'member-chain-plain-object', {
+      code: `import { useStore } from '@qwik.dev/core';
+export const Label = (props) => <b>{props.label}</b>;
+export default () => {
+  const store = useStore({ count: 0 });
+  const item = { meta: { label: 'hello' }, format: () => 'x', store };
+  return (
+    <>
+      <Label label={item.meta.label} />
+      <span>{item.meta.label}</span>
+    </>
+  );
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('[item]');
+  });
+
+  test('should keep a member chain reactive when it passes through a store', async () => {
+    const output = await testInput(mode, 'member-chain-through-store', {
+      code: `import { useStore } from '@qwik.dev/core';
+export const Label = (props) => <b>{props.label}</b>;
+export default () => {
+  const store = useStore({ label: 'a' });
+  const item = { meta: store };
+  return (
+    <>
+      <Label label={item.meta.label} />
+      <span>{item.meta.label}</span>
+    </>
+  );
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain('[item]');
+  });
+
   test('should proxy mixed reactive component props in authored order', async () => {
     await testInput(mode, 'component-props-reactive-spread-mixed', {
       code: `import { useSignal } from '@qwik.dev/core';

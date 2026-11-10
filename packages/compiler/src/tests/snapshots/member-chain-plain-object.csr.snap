@@ -1,0 +1,63 @@
+==INPUT==
+
+import { useStore } from '@qwik.dev/core';
+export const Label = (props) => <b>{props.label}</b>;
+export default () => {
+  const store = useStore({ count: 0 });
+  const item = { meta: { label: 'hello' }, format: () => 'x', store };
+  return (
+    <>
+      <Label label={item.meta.label} />
+      <span>{item.meta.label}</span>
+    </>
+  );
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  propSource,
+  createTextNodeEffect,
+  _createElementTemplate,
+  useStore,
+  _last,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _textValue,
+  createTemplate,
+} from '@qwik.dev/core';
+const Label_tmpl0 = _createElementTemplate('<b> </b>');
+const default_tmpl0 = createTemplate('<!><span> </span>');
+export const Label = (props, ctx) => {
+  const el0 = Label_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const prop0 = propSource(props, 'label');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const store = useStore({ count: 0 });
+  const item = {
+    meta: { label: 'hello' },
+    format: () => 'x',
+    store,
+  };
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _last(fragment0);
+  const component0 = createComponent(Label, { label: item.meta.label }, ctx);
+  const marker0 = _first(fragment0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  _first(el0).data = _textValue(item.meta.label);
+  return [...fragment0.childNodes];
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Label as Label_component_wb6mvjz2qh8n };
+== CSR DIAGNOSTICS ==
+
+[]

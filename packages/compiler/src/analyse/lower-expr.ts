@@ -18,7 +18,7 @@ import {
   type LocalId,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
-import { identifierName, isFunctionLike } from './ast/utils';
+import { identifierName, isFunctionLike, unwrapExpression } from './ast/utils';
 import { lowerRenderExpression } from './lower-children';
 import { lowerRenderQrl } from './lower-render-qrl';
 import { SegmentContext } from '../words';
@@ -32,7 +32,7 @@ import {
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr, memberReadIr } from './locals';
-import type { Expression, Node } from 'oxc-parser';
+import type { Expression, Node, ObjectExpression } from 'oxc-parser';
 import { recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { expressionResult } from './results';
 
@@ -67,7 +67,60 @@ export function lowerExpressionValue(
   if (read !== null) {
     return read;
   }
+  if (
+    expression.type === 'MemberExpression' &&
+    !expression.computed &&
+    plainObjectOf(expression.object, ctx) !== null
+  ) {
+    return lowerInlineExpressionValue(expression, ctx, collectCaptures(expression, ctx, new Set()));
+  }
   return lowerComputedExpressionValue(expression, ctx, nameCtx, payloadKind);
+}
+
+/**
+ * The object literal a const chain resolves to. The body runs once, so a member of a plain object
+ * never changes; anything the compiler cannot follow may be a store.
+ */
+function plainObjectOf(node: Expression, ctx: LowerContext): ObjectExpression | null {
+  const expression = unwrapExpression(node);
+  if (expression.type === 'ObjectExpression') {
+    return expression;
+  }
+  if (expression.type === 'Identifier') {
+    const binding = ctx.bindings.reference(expression);
+    if (binding === null || ctx.locals.get(binding)?.kind !== LocalKind.Const) {
+      return null;
+    }
+    const [declaration] = ctx.bindings.declarationsOf(binding);
+    return declaration?.type === 'VariableDeclarator' &&
+      declaration.id.type === 'Identifier' &&
+      declaration.init !== null
+      ? plainObjectOf(declaration.init, ctx)
+      : null;
+  }
+  if (expression.type !== 'MemberExpression' || expression.computed) {
+    return null;
+  }
+  const owner = plainObjectOf(expression.object, ctx);
+  const value = owner === null ? null : propertyValueOf(owner, expression.property.name);
+  return value === null ? null : plainObjectOf(value, ctx);
+}
+
+/** The value a literal gives `name`, unless a later spread or accessor may replace it. */
+function propertyValueOf(object: ObjectExpression, name: string): Expression | null {
+  let value: Expression | null = null;
+  for (const property of object.properties) {
+    if (property.type === 'SpreadElement') {
+      value = null;
+    } else if (!property.computed && propertyKeyName(property.key) === name) {
+      value = property.kind === 'init' && !property.method ? property.value : null;
+    }
+  }
+  return value;
+}
+
+function propertyKeyName(key: Node): string | null {
+  return key.type === 'Identifier' ? key.name : key.type === 'Literal' ? String(key.value) : null;
 }
 
 /** `props.title`, or a live alias of it: one member the runtime backs with its own source. */

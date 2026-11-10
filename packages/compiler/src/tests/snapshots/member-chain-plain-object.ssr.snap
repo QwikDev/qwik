@@ -1,0 +1,68 @@
+==INPUT==
+
+import { useStore } from '@qwik.dev/core';
+export const Label = (props) => <b>{props.label}</b>;
+export default () => {
+  const store = useStore({ count: 0 });
+  const item = { meta: { label: 'hello' }, format: () => 'x', store };
+  return (
+    <>
+      <Label label={item.meta.label} />
+      <span>{item.meta.label}</span>
+    </>
+  );
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+  useStore,
+  createComponent,
+  _textValue,
+} from '@qwik.dev/core';
+export const Label = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'label');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</b>',
+    ]);
+  },
+  'Label_component_wb6mvjz2qh8n',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const store = useStore({ count: 0 });
+    const item = {
+      meta: { label: 'hello' },
+      format: () => 'x',
+      store,
+    };
+    const component0 = ctx.observeError(createComponent(Label, { label: item.meta.label }, ctx));
+    return [component0, '<span>', escapeHTML(_textValue(item.meta.label)), '</span>'];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Label as Label_component_wb6mvjz2qh8n };
+== SSR DIAGNOSTICS ==
+
+[]

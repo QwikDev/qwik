@@ -658,6 +658,17 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  it('should render text read deep into a local object holding a function', async () => {
+    const Card = component$(() => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      return <span>{item.meta.label}</span>;
+    });
+
+    const { container, cleanup } = await render(Card, { debug });
+    expect(container.querySelector('span')!.textContent).toBe('hello');
+    cleanup();
+  });
+
   it('should still update a deep prop that reads a store', async () => {
     const Parent = component$(() => {
       const store = useStore({ label: 'a' });

@@ -6893,6 +6893,35 @@ export default component$((props: { eventName: string }) => {
 }
 
 #[test]
+fn should_treat_computed_string_event_key_like_plain_key_on_dynamic_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+import { Child } from './child';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { onClick$: handler }),
+      jsx(Cmp, { ['onClick$']: handler }),
+      jsx(Cmp, { ['onInput$']: () => console.log('input') }),
+      jsx(Cmp, { ['window:onScroll$']: () => console.log('scrolled') }),
+      jsx(Child, { ['onClick$']: handler }),
+    ],
+  });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_keep_passive_directive_on_dynamic_tag_jsx_split() {
 	test_input!(TestInput {
 		code: r#"

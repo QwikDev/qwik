@@ -776,14 +776,19 @@ export function createExtractionCollector(
         pushCount++;
       }
 
-      if (node.type === 'Property' && node.key?.type === 'Identifier') {
+      if (
+        node.type === 'Property' &&
+        (node.key?.type === 'Identifier' ||
+          (!node.computed && node.key?.type === 'Literal' && typeof node.key.value === 'string'))
+      ) {
         // When the surrounding ObjectExpression was tagged as a peer-tool JSX
         // props bag (see the JSX-runtime CallExpression arm below), apply the
         // same naming rules JSX syntax uses for `<tag onProp$=...>` —
         // `q_e_<event>` for HTML tags, `<key without $>` for components.
+        // String keys like `'window:onScroll$'` name the segment too, as in Rust.
         const jsxKind =
           parent?.type === 'ObjectExpression' ? ctx.jsxPropObjects.get(parent) : undefined;
-        const rawKey = node.key.name;
+        const rawKey = node.key.type === 'Identifier' ? node.key.name : String(node.key.value);
         // Skip the `children` key when naming a JSX props bag, so a handler
         // nested under `{ children: _jsxDEV("button", …) }` is named
         // `…_button_…`, not `…_children_button_…`. Plain object literals don't

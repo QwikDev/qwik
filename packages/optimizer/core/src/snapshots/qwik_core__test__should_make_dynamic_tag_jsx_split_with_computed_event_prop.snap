@@ -75,9 +75,9 @@ export const test_component_LUXeXe0DQrg = (props)=>{
         _jsxSplit(Cmp, {
             [props.eventName]: handler
         }, null, null, 3, "u6_0"),
-        _jsxSplit(Cmp, {
-            ['onClick$']: handler
-        }, null, null, 3, "u6_1"),
+        _jsxSplit(Cmp, null, {
+            onClick$: handler
+        }, null, 3, "u6_1"),
         _jsxSorted(Cmp, {
             ['title']: 'static'
         }, null, null, 3, "u6_2"),
@@ -88,7 +88,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAK0B,CAAC;IACzB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAO,CAAC,MAAM,SAAS,CAAC,EAAE;;QAC9B,UAAI;YAAO,CAAC,WAAW,EAAE;;QACzB,WAAI;YAAO,CAAC,QAAQ,EAAE;;QACtB,WAAI;YAAS,CAAC,MAAM,SAAS,CAAC,EAAE;;KACjC;AAEL\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAK0B,CAAC;IACzB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAO,CAAC,MAAM,SAAS,CAAC,EAAE;;QAC9B,UAAI;YAAQ,UAAa;;QACzB,WAAI;YAAO,CAAC,QAAQ,EAAE;;QACtB,WAAI;YAAS,CAAC,MAAM,SAAS,CAAC,EAAE;;KACjC;AAEL\"}")
 /*
 {
   "origin": "test.tsx",

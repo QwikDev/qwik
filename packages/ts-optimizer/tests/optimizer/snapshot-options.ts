@@ -730,6 +730,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_treat_computed_string_event_key_like_plain_key_on_dynamic_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_make_dynamic_tag_jsx_split_with_lowercase_event_props: {
     transpileTs: true,
     transpileJsx: true,

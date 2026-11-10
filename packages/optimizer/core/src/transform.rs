@@ -1241,6 +1241,11 @@ impl<'a> QwikTransform<'a> {
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
+		let node_props = if is_dynamic_tag {
+			Self::normalize_computed_event_keys(node_props)
+		} else {
+			node_props
+		};
 		let (should_sort, var_props, const_props, children, flags) =
 			self.handle_jsx_props_obj(node_props, is_fn, is_dynamic_tag, is_text_only);
 
@@ -2019,6 +2024,41 @@ impl<'a> QwikTransform<'a> {
 				false
 			}
 		})
+	}
+
+	/// On a dynamic tag, `{ ['onClick$']: fn }` is the same prop as `{ onClick$: fn }`, so the
+	/// handler is extracted and placed like a plain key.
+	fn normalize_computed_event_keys(mut props: ast::ExprOrSpread) -> ast::ExprOrSpread {
+		if let ast::Expr::Object(ref mut object) = *props.expr {
+			for prop in object.props.iter_mut() {
+				if let ast::PropOrSpread::Prop(prop) = prop {
+					if let ast::Prop::KeyValue(node) = &mut **prop {
+						let new_key = match &node.key {
+							ast::PropName::Computed(computed) => match &*computed.expr {
+								ast::Expr::Lit(ast::Lit::Str(s))
+									if jsx_event_to_html_attribute(&s.value, false).is_some() =>
+								{
+									if ast::Ident::verify_symbol(&s.value).is_ok() {
+										Some(ast::PropName::Ident(ast::IdentName::new(
+											s.value.clone(),
+											s.span,
+										)))
+									} else {
+										Some(ast::PropName::Str(s.clone()))
+									}
+								}
+								_ => None,
+							},
+							_ => None,
+						};
+						if let Some(key) = new_key {
+							node.key = key;
+						}
+					}
+				}
+			}
+		}
+		props
 	}
 
 	/// Checks if a component has on*$ event handler props, including shorthand ones like `{ onClick$ }`.

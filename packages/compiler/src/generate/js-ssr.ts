@@ -411,11 +411,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     while (lifetime !== null && !this.useOnRootLifetimes.has(lifetime)) {
       lifetime = this.module.lifetimes[lifetime].parent;
     }
-    const hookEvents =
-      body.ops[0]?.op === OpKind.Element &&
-      (mayBe(program.facts.registersEvents) || lifetime !== null);
+    // Dynamic roots before it fill in later, so the first static element carries the events.
+    const carrierIndex =
+      mayBe(program.facts.registersEvents) || lifetime !== null
+        ? body.ops.findIndex((op) => op.op === OpKind.Element)
+        : -1;
     body.ops.forEach((op, index) =>
-      this.op(pass, op, parts, rootRange, options.rootMarker ?? null, index === 0 && hookEvents)
+      this.op(pass, op, parts, rootRange, options.rootMarker ?? null, index === carrierIndex)
     );
     if (options.fence !== undefined) {
       pushMergedStatic(parts, `<!/${options.fence}>`);

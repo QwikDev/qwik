@@ -331,7 +331,7 @@ describe(`${name}: useOn`, () => {
     cleanup();
   });
 
-  it('should not add useOn handlers twice to a JSX node reused across renders', async () => {
+  it('should put useOn handlers on the first static element after a content root', async () => {
     const Child = component$((props: { n: number; onClick$?: QRL<() => void> }) => {
       const count = useSignal(0);
       useOn(
@@ -341,12 +341,10 @@ describe(`${name}: useOn`, () => {
       const button = useConstant(
         (): JSXOutput => <button id="target" onClick$={props.onClick$}></button>
       );
-      // read in the body so that a new `n` re-renders Child
-      const renders = props.n + 1;
       return (
         <>
           {button}
-          <i data-renders={renders}>{count.value}</i>
+          <i data-renders={props.n + 1}>{count.value}</i>
         </>
       );
     });
@@ -369,12 +367,13 @@ describe(`${name}: useOn`, () => {
     await click('#rerender');
     expect(container.querySelector('i')!.getAttribute('data-renders')).toBe('3');
     await click('#target');
-    expect(container.querySelector('i')!.textContent).toBe('1');
     expect(container.querySelector('span')!.textContent).toBe('1');
+    await click('i');
+    expect(container.querySelector('i')!.textContent).toBe('1');
     cleanup();
   });
 
-  it('should keep re-rendering a reused JSX node that only has useOn handlers', async () => {
+  it('should run a useOn handler once after many prop updates', async () => {
     const Child = component$((props: { n: number }) => {
       const count = useSignal(0);
       useOn(
@@ -382,12 +381,10 @@ describe(`${name}: useOn`, () => {
         $(() => count.value++)
       );
       const button = useConstant((): JSXOutput => <button id="target"></button>);
-      // read in the body so that a new `n` re-renders Child
-      const renders = props.n + 1;
       return (
         <>
           {button}
-          <i data-renders={renders}>{count.value}</i>
+          <i data-renders={props.n + 1}>{count.value}</i>
         </>
       );
     });
@@ -408,7 +405,7 @@ describe(`${name}: useOn`, () => {
       await click('#rerender');
     }
     expect(container.querySelector('i')!.getAttribute('data-renders')).toBe('21');
-    await click('#target');
+    await click('i');
     expect(container.querySelector('i')!.textContent).toBe('1');
     cleanup();
   });

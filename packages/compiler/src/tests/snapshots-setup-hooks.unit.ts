@@ -797,6 +797,30 @@ export default () => {
     expect(headless).not.toContain('createSsrOpenTag');
   });
 
+  test('should merge useOn events into the first static element after a dynamic root', async () => {
+    const output = await testInput(mode, 'setup-use-on-after-dynamic-root', {
+      code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+export default () => {
+  const on = useSignal(true);
+  useOn('click', $(() => (on.value = !on.value)));
+  return (
+    <>
+      {on.value && <p>p</p>}
+      <i>static</i>
+    </>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    if (mode === 'ssr') {
+      expect(code).toContain('createSsrOpenTag("<i", ">")');
+    } else {
+      expect(code).not.toContain('createSsrOpenTag');
+    }
+  });
+
   test('should answer an import.meta.env build flag the same way', async () => {
     const output = await testInput(mode, 'build-constants-env', {
       code: `import { component$, useSignal, useTask$ } from '@qwik.dev/core';

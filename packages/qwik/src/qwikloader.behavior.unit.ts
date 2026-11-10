@@ -145,7 +145,7 @@ test.each(['throw', 'missing'])(
   }
 );
 
-test.each([
+test.each<{ owner: string; attrs: Record<string, string>; rethrows: boolean }>([
   { owner: 'no Catch', attrs: {}, rethrows: true },
   { owner: 'a Catch', attrs: { 'q:catch': '1' }, rethrows: false },
 ])('a handler error on an element owned by $owner rethrows: $rethrows', ({ attrs, rethrows }) => {

@@ -188,7 +188,7 @@ jobs:
           lookup-only: true
           path: |
             packages/insights/dist
-            packages/insights/.netlify
+            packages/insights/server
           key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
       - name: 'check cache: unit tests'
         id: cache-unit
@@ -618,13 +618,18 @@ jobs:
       - name: Build Qwik Insights
         run: pnpm run build.packages.insights
 
+      - name: Verify Cloudflare bundle
+        run: pnpm -C packages/insights run deploy.dry-run
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+
       - name: Save Insights Cache
         uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-insights }}
           path: |
             packages/insights/dist
-            packages/insights/.netlify
+            packages/insights/server
 
   ############ BUILD DOCS ############
   build-docs:

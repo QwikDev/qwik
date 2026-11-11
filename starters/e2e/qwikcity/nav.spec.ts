@@ -100,6 +100,50 @@ test.describe("actions", () => {
         } while (scrollY3 > 1000);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
+      test("should fire hashchange on hash-only link navigations", async ({
+        page,
+      }) => {
+        await page.goto("/qwikcity-test/scroll-restoration/hash/");
+        await page.evaluate(() => {
+          const win = window as Window & { hashChanges?: string[] };
+          win.hashChanges = [];
+          win.addEventListener("hashchange", (event) => {
+            win.hashChanges!.push(
+              `${new URL(event.oldURL).hash} -> ${new URL(event.newURL).hash}`,
+            );
+          });
+        });
+        const hashChanges = () =>
+          page.evaluate(
+            () => (window as Window & { hashChanges?: string[] }).hashChanges,
+          );
+
+        await page.locator("#hash-1").click();
+        await expect(page).toHaveURL(
+          "/qwikcity-test/scroll-restoration/hash/#hash-2",
+        );
+        await expect.poll(hashChanges).toEqual([" -> #hash-2"]);
+
+        await page.locator("#hash-2").click();
+        await expect(page).toHaveURL(
+          "/qwikcity-test/scroll-restoration/hash/#hash-1",
+        );
+        await expect
+          .poll(hashChanges)
+          .toEqual([" -> #hash-2", "#hash-2 -> #hash-1"]);
+
+        await page.locator("#no-hash").click();
+        await expect(page).toHaveURL("/qwikcity-test/scroll-restoration/hash/");
+        await expect
+          .poll(hashChanges)
+          .toEqual([" -> #hash-2", "#hash-2 -> #hash-1", "#hash-1 -> "]);
+
+        // Each click adds a single history entry.
+        await page.goBack();
+        await expect(page).toHaveURL(
+          "/qwikcity-test/scroll-restoration/hash/#hash-1",
+        );
+      });
       test("should restore scroll on back and forward navigations", async ({
         page,
       }) => {

@@ -176,3 +176,39 @@ test('keeps high-tail candidates beyond the first 400 mean-latency results', asy
     client.close();
   }
 });
+
+test('returns metadata beyond 1000 symbols only from the selected application and build', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getSymbolDetails } = await import('./query');
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE symbolDetail (hash TEXT, public_api_key TEXT, manifest_hash TEXT, full_name TEXT, origin TEXT, lo INTEGER, hi INTEGER)'
+    );
+    await client.batch([
+      ...Array.from({ length: 1001 }, (_, i) => ({
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: [`hash-${i}`, 'app', 'selected', `Symbol ${i}`, 'source.tsx'],
+      })),
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['foreign', 'other', 'selected', 'Foreign', 'private.tsx'],
+      },
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['old', 'app', 'old', 'Old', 'old.tsx'],
+      },
+    ]);
+    const metadata = await getSymbolDetails(drizzle(client) as AppDatabase, 'app', {
+      manifestHashes: ['selected'],
+    });
+    assert.lengthOf(metadata, 1001);
+    assert.equal(metadata.find((symbol) => symbol.hash === 'hash-1000')?.fullName, 'Symbol 1000');
+    assert.deepEqual(
+      await getSymbolDetails(drizzle(client) as AppDatabase, 'app', { manifestHashes: [] }),
+      []
+    );
+  } finally {
+    client.close();
+  }
+});

@@ -665,110 +665,57 @@ export const delayColumnSums = {
   sumDelayCount49: sql<number>`sum(${edgeTable.delayCount49}) as sumDelayCount49`,
 };
 
-export const timelineDelayAsList = sql<string>`(
-  CAST(SUM(${routesTable.timeline00}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline01}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline02}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline03}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline04}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline05}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline06}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline07}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline08}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline09}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline10}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline11}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline12}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline13}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline14}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline15}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline16}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline17}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline18}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline19}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline20}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline21}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline22}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline23}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline24}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline25}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline26}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline27}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline28}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline29}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline30}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline31}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline32}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline33}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline34}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline35}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline36}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline37}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline38}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline39}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline40}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline41}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline42}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline43}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline44}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline45}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline46}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline47}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline48}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline49}) as VARCHAR)
-)`;
-
-export const timelineDelays = {
-  timeline00: routesTable.timeline00,
-  timeline01: routesTable.timeline01,
-  timeline02: routesTable.timeline02,
-  timeline03: routesTable.timeline03,
-  timeline04: routesTable.timeline04,
-  timeline05: routesTable.timeline05,
-  timeline06: routesTable.timeline06,
-  timeline07: routesTable.timeline07,
-  timeline08: routesTable.timeline08,
-  timeline09: routesTable.timeline09,
-  timeline10: routesTable.timeline10,
-  timeline11: routesTable.timeline11,
-  timeline12: routesTable.timeline12,
-  timeline13: routesTable.timeline13,
-  timeline14: routesTable.timeline14,
-  timeline15: routesTable.timeline15,
-  timeline16: routesTable.timeline16,
-  timeline17: routesTable.timeline17,
-  timeline18: routesTable.timeline18,
-  timeline19: routesTable.timeline19,
-  timeline20: routesTable.timeline20,
-  timeline21: routesTable.timeline21,
-  timeline22: routesTable.timeline22,
-  timeline23: routesTable.timeline23,
-  timeline24: routesTable.timeline24,
-  timeline25: routesTable.timeline25,
-  timeline26: routesTable.timeline26,
-  timeline27: routesTable.timeline27,
-  timeline28: routesTable.timeline28,
-  timeline29: routesTable.timeline29,
-  timeline30: routesTable.timeline30,
-  timeline31: routesTable.timeline31,
-  timeline32: routesTable.timeline32,
-  timeline33: routesTable.timeline33,
-  timeline34: routesTable.timeline34,
-  timeline35: routesTable.timeline35,
-  timeline36: routesTable.timeline36,
-  timeline37: routesTable.timeline37,
-  timeline38: routesTable.timeline38,
-  timeline39: routesTable.timeline39,
-  timeline40: routesTable.timeline40,
-  timeline41: routesTable.timeline41,
-  timeline42: routesTable.timeline42,
-  timeline43: routesTable.timeline43,
-  timeline44: routesTable.timeline44,
-  timeline45: routesTable.timeline45,
-  timeline46: routesTable.timeline46,
-  timeline47: routesTable.timeline47,
-  timeline48: routesTable.timeline48,
-  timeline49: routesTable.timeline49,
+export const sumTimelineDelays = {
+  timeline00: sql<number>`SUM(${routesTable.timeline00})`.mapWith(Number),
+  timeline01: sql<number>`SUM(${routesTable.timeline01})`.mapWith(Number),
+  timeline02: sql<number>`SUM(${routesTable.timeline02})`.mapWith(Number),
+  timeline03: sql<number>`SUM(${routesTable.timeline03})`.mapWith(Number),
+  timeline04: sql<number>`SUM(${routesTable.timeline04})`.mapWith(Number),
+  timeline05: sql<number>`SUM(${routesTable.timeline05})`.mapWith(Number),
+  timeline06: sql<number>`SUM(${routesTable.timeline06})`.mapWith(Number),
+  timeline07: sql<number>`SUM(${routesTable.timeline07})`.mapWith(Number),
+  timeline08: sql<number>`SUM(${routesTable.timeline08})`.mapWith(Number),
+  timeline09: sql<number>`SUM(${routesTable.timeline09})`.mapWith(Number),
+  timeline10: sql<number>`SUM(${routesTable.timeline10})`.mapWith(Number),
+  timeline11: sql<number>`SUM(${routesTable.timeline11})`.mapWith(Number),
+  timeline12: sql<number>`SUM(${routesTable.timeline12})`.mapWith(Number),
+  timeline13: sql<number>`SUM(${routesTable.timeline13})`.mapWith(Number),
+  timeline14: sql<number>`SUM(${routesTable.timeline14})`.mapWith(Number),
+  timeline15: sql<number>`SUM(${routesTable.timeline15})`.mapWith(Number),
+  timeline16: sql<number>`SUM(${routesTable.timeline16})`.mapWith(Number),
+  timeline17: sql<number>`SUM(${routesTable.timeline17})`.mapWith(Number),
+  timeline18: sql<number>`SUM(${routesTable.timeline18})`.mapWith(Number),
+  timeline19: sql<number>`SUM(${routesTable.timeline19})`.mapWith(Number),
+  timeline20: sql<number>`SUM(${routesTable.timeline20})`.mapWith(Number),
+  timeline21: sql<number>`SUM(${routesTable.timeline21})`.mapWith(Number),
+  timeline22: sql<number>`SUM(${routesTable.timeline22})`.mapWith(Number),
+  timeline23: sql<number>`SUM(${routesTable.timeline23})`.mapWith(Number),
+  timeline24: sql<number>`SUM(${routesTable.timeline24})`.mapWith(Number),
+  timeline25: sql<number>`SUM(${routesTable.timeline25})`.mapWith(Number),
+  timeline26: sql<number>`SUM(${routesTable.timeline26})`.mapWith(Number),
+  timeline27: sql<number>`SUM(${routesTable.timeline27})`.mapWith(Number),
+  timeline28: sql<number>`SUM(${routesTable.timeline28})`.mapWith(Number),
+  timeline29: sql<number>`SUM(${routesTable.timeline29})`.mapWith(Number),
+  timeline30: sql<number>`SUM(${routesTable.timeline30})`.mapWith(Number),
+  timeline31: sql<number>`SUM(${routesTable.timeline31})`.mapWith(Number),
+  timeline32: sql<number>`SUM(${routesTable.timeline32})`.mapWith(Number),
+  timeline33: sql<number>`SUM(${routesTable.timeline33})`.mapWith(Number),
+  timeline34: sql<number>`SUM(${routesTable.timeline34})`.mapWith(Number),
+  timeline35: sql<number>`SUM(${routesTable.timeline35})`.mapWith(Number),
+  timeline36: sql<number>`SUM(${routesTable.timeline36})`.mapWith(Number),
+  timeline37: sql<number>`SUM(${routesTable.timeline37})`.mapWith(Number),
+  timeline38: sql<number>`SUM(${routesTable.timeline38})`.mapWith(Number),
+  timeline39: sql<number>`SUM(${routesTable.timeline39})`.mapWith(Number),
+  timeline40: sql<number>`SUM(${routesTable.timeline40})`.mapWith(Number),
+  timeline41: sql<number>`SUM(${routesTable.timeline41})`.mapWith(Number),
+  timeline42: sql<number>`SUM(${routesTable.timeline42})`.mapWith(Number),
+  timeline43: sql<number>`SUM(${routesTable.timeline43})`.mapWith(Number),
+  timeline44: sql<number>`SUM(${routesTable.timeline44})`.mapWith(Number),
+  timeline45: sql<number>`SUM(${routesTable.timeline45})`.mapWith(Number),
+  timeline46: sql<number>`SUM(${routesTable.timeline46})`.mapWith(Number),
+  timeline47: sql<number>`SUM(${routesTable.timeline47})`.mapWith(Number),
+  timeline48: sql<number>`SUM(${routesTable.timeline48})`.mapWith(Number),
+  timeline49: sql<number>`SUM(${routesTable.timeline49})`.mapWith(Number),
 };
 
 export const timelineAvg = sql<number>`

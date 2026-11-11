@@ -110,7 +110,7 @@ export default component$(() => {
               </div>
               <p class="text-editorial-12 text-editorial-secondary">Latest 100 manifests</p>
             </div>
-            <div class="mt-editorial-5 max-w-full overflow-auto">
+            <div class="mt-editorial-5">
               <CorrelationMatrix matrix={data.value.matrix} symbols={data.value.symbols} />
             </div>
           </section>
@@ -307,7 +307,7 @@ export const CorrelationMatrix = component$<{
   return (
     <>
       <div
-        class="border border-editorial-border h-[calc(70vmin-20px)] w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
+        class="border border-editorial-border aspect-square w-full max-w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
         onMouseEnter$={() => (callout.visible = true)}
         onMouseLeave$={() => (callout.visible = false)}
         onMouseMove$={(e) => {

@@ -1,24 +1,15 @@
 import type { Locator, Page, Request, Route } from '@playwright/test';
-import {
-  chunkComesFrom,
-  chunkHasVisibleTask,
-  chunkHoldsSegmentsFrom,
-  labelRequest,
-  ORIGIN,
-} from './app';
-import type { Fixture } from './fixtures';
+import { chunkHoldsSegmentsFrom, labelRequest, ORIGIN } from './app';
 
 export const FILLER = 'src/components/filler/';
 
 const QUIET_MS = 250;
-const ARMING_QUIET_MS = 50;
-const ARMING_IDLE_STEP_MS = 250;
-const ARMING_IDLE_LIMIT_MS = 2000;
 const MAX_ROUND_TRIPS = 20;
 const DOWNLOAD_LIMIT_MS = 30_000;
 const NETWORK_IDLE_LIMIT_MS = 60_000;
 
 export type Gate = {
+  page: Page;
   mode: 'pass' | 'hold';
   held: Route[];
   holdWhilePassing?: (url: string) => boolean;
@@ -26,7 +17,6 @@ export type Gate = {
 
 export type RoundTrip = {
   urls: string[];
-  ongoingUrls: string[];
 };
 
 export type PreloaderLink = { href: string; speculative: boolean };
@@ -35,6 +25,9 @@ type PreloaderWindow = Window & {
   __preloaderLinks?: PreloaderLink[];
   __speculativeInFlight?: number;
   __maxSpeculativeInFlight?: number;
+  __holdsSpeculativePreloads?: boolean;
+  __heldSpeculativePreloads?: number;
+  __resumeSpeculativePreloads?: () => void;
 };
 
 export const recordSpeculativePreloads = (page: Page) =>
@@ -43,7 +36,14 @@ export const recordSpeculativePreloads = (page: Page) =>
     win.__preloaderLinks = [];
     win.__speculativeInFlight = 0;
     win.__maxSpeculativeInFlight = 0;
+    const heldLinks: [Node, HTMLLinkElement][] = [];
     const appendChild = Node.prototype.appendChild;
+    win.__resumeSpeculativePreloads = () => {
+      win.__holdsSpeculativePreloads = false;
+      for (const [parent, link] of heldLinks.splice(0)) {
+        appendChild.call(parent, link);
+      }
+    };
     Node.prototype.appendChild = function <T extends Node>(this: Node, node: T): T {
       if (node instanceof HTMLLinkElement && /preload/i.test(node.rel)) {
         const speculative = node.getAttribute('fetchpriority') === 'low';
@@ -57,11 +57,24 @@ export const recordSpeculativePreloads = (page: Page) =>
           const settled = () => win.__speculativeInFlight!--;
           node.addEventListener('load', settled, { once: true });
           node.addEventListener('error', settled, { once: true });
+          if (win.__holdsSpeculativePreloads) {
+            heldLinks.push([this, node]);
+            win.__heldSpeculativePreloads = heldLinks.length;
+            return node;
+          }
         }
       }
       return appendChild.call(this, node) as T;
     };
   });
+
+export const holdSpeculativePreloads = (page: Page) =>
+  page.addInitScript(() => {
+    (window as PreloaderWindow).__holdsSpeculativePreloads = true;
+  });
+
+const resumeSpeculativePreloads = (page: Page) =>
+  page.evaluate(() => (window as PreloaderWindow).__resumeSpeculativePreloads?.());
 
 export const maxSpeculativeInFlight = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__maxSpeculativeInFlight ?? 0);
@@ -73,7 +86,7 @@ export const speculativePreloads = async (page: Page) =>
   new Set((await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href));
 
 export const createGate = async (page: Page): Promise<Gate> => {
-  const gate: Gate = { mode: 'pass', held: [] };
+  const gate: Gate = { page, mode: 'pass', held: [] };
   await page.route(`${ORIGIN}/**`, (route) => {
     const request = route.request();
     const holds =
@@ -170,80 +183,27 @@ export const waitForNetworkIdle = async (
   }
 };
 
-export const releaseAll = async (gate: Gate, ongoing: Route[] = []) => {
+export const releaseAll = async (gate: Gate, heldBack: Route[] = []) => {
   gate.mode = 'pass';
-  await release([...gate.held.splice(0), ...ongoing.splice(0)]);
+  await resumeSpeculativePreloads(gate.page);
+  await release([...gate.held.splice(0), ...heldBack.splice(0)]);
 };
 
 export const waitForQwikloader = (page: Page) =>
   page.waitForFunction(() => (window as any)._qwikEv?.roots, null, { timeout: 15_000 });
 
-const fixturesWithVisibleTaskInView = async (page: Page) =>
-  new Set(
-    await page.locator('[q-e\\:qvisible]').evaluateAll((elements) =>
-      elements
-        .filter((element) => {
-          const rect = element.getBoundingClientRect();
-          return (
-            rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth
-          );
-        })
-        .map((element) => element.closest<HTMLElement>('[data-fixture]')?.dataset.fixture)
-    )
-  );
-
-const takeRoutes = (routes: Route[], shouldTake: (route: Route) => boolean) => {
-  const taken = routes.filter(shouldTake);
-  routes.splice(0, routes.length, ...routes.filter((route) => !shouldTake(route)));
-  return taken;
-};
-
 const urlsOf = (routes: Route[]) => routes.map((route) => route.request().url());
 
-export const openCold = (page: Page, gate: Gate, fixture: Fixture) =>
-  openColdPage(page, gate, fixture.path, [fixture]);
-
-export const openColdPage = async (page: Page, gate: Gate, path: string, fixtures: Fixture[]) => {
-  page.once('load', () => {
-    gate.mode = 'hold';
+export const openCold = async (page: Page, gate: Gate, path: string) => {
+  await holdSpeculativePreloads(page);
+  await waitForNetworkIdle(page, async () => {
+    await page.goto(path);
+    await waitForQwikloader(page);
+    await page.waitForFunction(() => (window as PreloaderWindow).__heldSpeculativePreloads, null, {
+      timeout: 15_000,
+    });
   });
-  await page.goto(path);
-  await waitForQwikloader(page);
-  const inView = await fixturesWithVisibleTaskInView(page);
-  const ownSources = fixtures.flatMap((fixture) => fixture.sources);
-  const runAtLoadSources = fixtures
-    .filter((fixture) => inView.has(fixture.id))
-    .flatMap((fixture) => fixture.sources);
-  const isOngoingCandidate = (url: string) =>
-    chunkComesFrom(url, [FILLER]) ||
-    (chunkComesFrom(url, ownSources) &&
-      !(chunkHasVisibleTask(url) && chunkComesFrom(url, runAtLoadSources)));
-  let idleMs = 0;
-  for (;;) {
-    await settle(page, gate, ARMING_QUIET_MS);
-    const speculative = await speculativePreloads(page);
-    const isSpeculative = (route: Route) => speculative.has(route.request().url());
-    const loadWork = gate.held.filter((route) => !isSpeculative(route));
-    if (loadWork.length) {
-      gate.held = gate.held.filter(isSpeculative);
-      await release(loadWork);
-      idleMs = 0;
-      continue;
-    }
-    if (gate.held.some((route) => isOngoingCandidate(route.request().url()))) {
-      return gate.held.splice(0);
-    }
-    if (gate.held.length) {
-      await release(gate.held.splice(0));
-      idleMs = 0;
-      continue;
-    }
-    idleMs += ARMING_IDLE_STEP_MS;
-    if (idleMs > ARMING_IDLE_LIMIT_MS) {
-      throw new Error('The preloader went idle before preloading any filler chunk');
-    }
-    await page.waitForTimeout(ARMING_IDLE_STEP_MS);
-  }
+  gate.mode = 'hold';
 };
 
 export const openWarm = async (page: Page, gate: Gate, path: string) => {
@@ -262,39 +222,24 @@ export const countRoundTrips = async (
   gate: Gate,
   action: () => Promise<unknown>,
   isDone: () => Promise<boolean>,
-  ongoing: Route[] = [],
-  { ownSources = [] as string[], setSpeculativeAside = false } = {}
+  heldBack: Route[] = []
 ) => {
   gate.mode = 'hold';
   await action();
   const roundTrips: RoundTrip[] = [];
-  const ownOngoing = takeRoutes(ongoing, (route) =>
-    chunkComesFrom(route.request().url(), ownSources)
-  );
   for (;;) {
     await settle(page, gate);
     if (await isDone()) {
-      ongoing.push(...ownOngoing);
       return roundTrips;
     }
-    if (setSpeculativeAside) {
-      const speculative = await speculativePreloads(page);
-      const isSpeculative = (route: Route) => speculative.has(route.request().url());
-      ongoing.push(...gate.held.filter(isSpeculative));
-      gate.held = gate.held.filter((route) => !isSpeculative(route));
-    }
-    let ongoingRoutes = ownOngoing.splice(0);
-    let routes = [...gate.held.splice(0), ...ongoingRoutes];
-    if (!routes.length) {
-      routes = ongoingRoutes = ongoing.splice(0);
-    }
+    const routes = gate.held.length ? gate.held.splice(0) : heldBack.splice(0);
     if (!routes.length) {
       throw new Error(`Not done and nothing requested after ${roundTrips.length} round trips`);
     }
     if (roundTrips.length === MAX_ROUND_TRIPS) {
       throw new Error(`More than ${MAX_ROUND_TRIPS} round trips`);
     }
-    roundTrips.push({ urls: urlsOf(routes), ongoingUrls: urlsOf(ongoingRoutes) });
+    roundTrips.push({ urls: urlsOf(routes) });
     await release(routes);
   }
 };

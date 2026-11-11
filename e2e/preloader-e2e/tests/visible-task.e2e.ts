@@ -101,15 +101,12 @@ test.describe('visible task below the fold', () => {
       () => fixtureRoot(page, VISIBLE_BELOW).scrollIntoViewIfNeeded(),
       resultIsDone(fixtureResult(page, VISIBLE_BELOW))
     );
-    await releaseAll(opened.gate, opened.ongoing);
+    await releaseAll(opened.gate);
     await expectResult(page, VISIBLE_BELOW);
     await attachRoundTrips('round-trips.txt', roundTrips, VISIBLE_BELOW.sources);
     expect(roundTrips).toHaveLength(1);
     const [firstRoundTrip] = roundTrips;
-    const requestedByTheScroll = firstRoundTrip.urls.filter(
-      (url) => !firstRoundTrip.ongoingUrls.includes(url)
-    );
-    expect(requestedByTheScroll.some((url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]))).toBe(
+    expect(firstRoundTrip.urls.some((url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]))).toBe(
       true
     );
   });

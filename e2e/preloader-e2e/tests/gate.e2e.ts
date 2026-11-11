@@ -81,18 +81,13 @@ test.describe('gate: cold click setup', () => {
     page,
   }) => {
     await recordSpeculativePreloads(page);
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
     const gate = await createGate(page);
-    const ongoing = await openCold(page, gate, SINGLE_TASK_CHAIN);
-    const speculative = await speculativePreloads(page);
-    expect(ongoing).toHaveLength(1);
-    expect(speculative.has(ongoing[0].request().url())).toBe(true);
-    expect(
-      chunkComesFrom(ongoing[0].request().url(), [
-        'src/components/filler/',
-        ...SINGLE_TASK_CHAIN.sources,
-      ])
-    ).toBe(true);
+    await openCold(page, gate, SINGLE_TASK_CHAIN.path);
+    expect((await speculativePreloads(page)).size).toBe(1);
+    expect(requests.filter((url) => chunkComesFrom(url, SINGLE_TASK_CHAIN.sources))).toEqual([]);
     expect(gate.held).toEqual([]);
-    await releaseAll(gate, ongoing);
+    await releaseAll(gate);
   });
 });

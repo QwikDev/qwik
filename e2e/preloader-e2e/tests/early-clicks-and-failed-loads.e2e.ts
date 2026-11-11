@@ -4,9 +4,9 @@ import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures
 import {
   countRoundTrips,
   createGate,
+  holdSpeculativePreloads,
   preloaderLinks,
   recordSpeculativePreloads,
-  release,
   releaseAll,
   resultIsDone,
   waitForNetworkIdle,
@@ -38,6 +38,7 @@ const clickWhileLoading = async (
   result: Fixture
 ) => {
   await recordSpeculativePreloads(page);
+  await holdSpeculativePreloads(page);
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => url === heldUrl;
   await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
@@ -50,8 +51,7 @@ const clickWhileLoading = async (
     gate,
     trigger,
     resultIsDone(fixtureResult(page, result)),
-    startupPiece,
-    { setSpeculativeAside: true }
+    startupPiece
   );
   return { gate, startupPiece, roundTrips };
 };
@@ -98,9 +98,8 @@ for (const [name, heldUrl] of [
         CONDITIONAL_ALL
       );
       const clickChunks = new Set(roundTrips.flatMap((roundTrip) => roundTrip.urls));
-      gate.mode = 'pass';
       await waitForNetworkIdle(page, async () => {
-        await release([...gate.held.splice(0), ...startupPiece.splice(0)]);
+        await releaseAll(gate, startupPiece);
         await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
       });
       const links = await preloaderLinks(page);

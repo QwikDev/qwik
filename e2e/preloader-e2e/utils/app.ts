@@ -63,12 +63,7 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
   );
 };
 
-export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
-
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
-
-export const isPreloaderChunk = (url: string) =>
-  new URL(url).pathname === `/build/${getManifest().preloader}`;
 
 export const chunkUrlsFrom = (path: string) =>
   Object.entries(getManifest().bundles)

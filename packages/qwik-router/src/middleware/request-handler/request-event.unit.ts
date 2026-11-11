@@ -92,65 +92,67 @@ describe('request-event internalRequest', () => {
 });
 
 describe('request-event send', () => {
-  it.each([
-    {
-      name: 'reading a response body',
-      send: (ev: ReturnType<typeof createMockRequestEvent>, error: Error) =>
-        ev.send(
-          new Response(new ReadableStream({ start: (controller) => controller.error(error) }))
-        ),
-      sink: () => ({}),
-    },
-    {
-      name: 'writing a response body',
-      send: (ev: ReturnType<typeof createMockRequestEvent>) => ev.send(200, 'hello'),
-      sink: (error: Error) => ({
-        write: () => {
-          throw error;
-        },
-      }),
-    },
-    {
-      name: 'closing an empty response',
-      send: (ev: ReturnType<typeof createMockRequestEvent>) => ev.send(new Response(null)),
-      sink: (error: Error) => ({
-        close: () => {
-          throw error;
-        },
-      }),
-    },
-  ])('handles failures while $name', async ({ send, sink }) => {
-    const error = new Error('broken response stream');
-    const serverRequestEv = createMockServerRequestEvent();
-    vi.mocked(serverRequestEv.getWritableStream).mockReturnValue(new WritableStream(sink(error)));
-    const requestEv = createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+  describe.each([
+    new Error('broken response stream'),
+    new DOMException('Upstream cancelled', 'AbortError'),
+  ])('reports $name stream failures for active requests', (error) => {
+    it.each([
+      {
+        name: 'reading a response body',
+        send: (ev: ReturnType<typeof createMockRequestEvent>, error: Error) =>
+          ev.send(
+            new Response(new ReadableStream({ start: (controller) => controller.error(error) }))
+          ),
+        sink: () => ({}),
+      },
+      {
+        name: 'writing a response body',
+        send: (ev: ReturnType<typeof createMockRequestEvent>) => ev.send(200, 'hello'),
+        sink: (error: Error) => ({
+          write: () => {
+            throw error;
+          },
+        }),
+      },
+      {
+        name: 'closing an empty response',
+        send: (ev: ReturnType<typeof createMockRequestEvent>) => ev.send(new Response(null)),
+        sink: (error: Error) => ({
+          close: () => {
+            throw error;
+          },
+        }),
+      },
+    ])('handles failures while $name', async ({ send, sink }) => {
+      const serverRequestEv = createMockServerRequestEvent();
+      vi.mocked(serverRequestEv.getWritableStream).mockReturnValue(new WritableStream(sink(error)));
+      const requestEv = createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    try {
-      send(requestEv, error);
+      try {
+        send(requestEv, error);
 
-      expect(requestEv.exited).toBe(true);
-      await vi.waitFor(() =>
-        expect(consoleError).toHaveBeenCalledWith('Response stream failed:', error)
-      );
-      expect(consoleError).toHaveBeenCalledTimes(1);
-    } finally {
-      consoleError.mockRestore();
-    }
+        expect(requestEv.exited).toBe(true);
+        await vi.waitFor(() =>
+          expect(consoleError).toHaveBeenCalledWith('Response stream failed:', error)
+        );
+        expect(consoleError).toHaveBeenCalledTimes(1);
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
   });
 
   it.each([
     ['an abort error', new DOMException('Client disconnected', 'AbortError'), false],
     ['an aborted request', new Error('Client disconnected'), true],
-  ] as const)('does not report %s', async (_, error, abortRequest) => {
+  ] as const)('does not report %s', async (_, error, useAbortReason) => {
     const controller = new AbortController();
     const serverRequestEv = createMockServerRequestEvent(undefined, { signal: controller.signal });
     vi.mocked(serverRequestEv.getWritableStream).mockReturnValue(
       new WritableStream({
         write() {
-          if (abortRequest) {
-            controller.abort(error);
-          }
+          controller.abort(useAbortReason ? error : undefined);
           throw error;
         },
       })

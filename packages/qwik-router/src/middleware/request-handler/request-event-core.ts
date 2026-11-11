@@ -165,8 +165,8 @@ export function createRequestEvent(
     void responseWrite.catch((error) => {
       const signal = request.signal;
       if (
-        (error instanceof Error && error.name === 'AbortError') ||
-        (signal.aborted && error === signal.reason)
+        signal.aborted &&
+        ((error instanceof Error && error.name === 'AbortError') || error === signal.reason)
       ) {
         return;
       }

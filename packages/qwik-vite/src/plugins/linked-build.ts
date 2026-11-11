@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { Rolldown } from 'vite';
-import type { DecoratorOptions, SegmentAnalysis } from '../types';
+import type { DecoratorOptions, EntryStrategy, SegmentAnalysis } from '../types';
 import {
   BuildMode,
   DeliveryKind,
@@ -50,6 +50,8 @@ function planPath(id: string): string {
 export interface LinkedBuildOptions {
   entries: string[];
   rootDir: string;
+  srcDir?: string;
+  entryStrategy?: EntryStrategy;
   /** The Qwik runtime's package directory; like node_modules, it is never compiled as app code. */
   runtimeDir?: string;
   scope?: string;
@@ -294,15 +296,18 @@ export function createLinkedBuild() {
           .join('\n')
       );
     }
-    const output = await (config.server ? generateJsSsr : generateJsCsr)(linked.plan, {
+    const presentation = {
       rootDir: config.rootDir,
+      srcDir: config.srcDir,
+      entryStrategy: config.entryStrategy,
       outputSourceMaps: config.sourceMaps,
       explicitExtensions: true,
-    });
+    };
+    const output = await (config.server ? generateJsSsr : generateJsCsr)(linked.plan, presentation);
     for (const module of linked.plan.modules) {
       for (const qrl of module.qrls) {
         if (qrl.delivery.d === DeliveryKind.Stripped) {
-          config.onSegment?.(module.path, getSegmentAnalysis(module, qrl));
+          config.onSegment?.(module.path, getSegmentAnalysis(module, qrl, presentation));
         }
       }
     }

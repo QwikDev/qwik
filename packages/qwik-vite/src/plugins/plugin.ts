@@ -498,6 +498,8 @@ export function createQwikPlugin(
       await linkedBuild.buildStart(_ctx, {
         entries: Array.isArray(opts.input) ? opts.input : Object.values(opts.input ?? {}),
         rootDir: opts.rootDir,
+        srcDir: opts.srcDir ?? undefined,
+        entryStrategy: opts.entryStrategy,
         runtimeDir: runtimePackage?.id.replace(/[\\/]package\.json$/, ''),
         scope: opts.scope || undefined,
         server: getIsServer(_ctx),

@@ -36,6 +36,28 @@ export const Foo = component$(() => {
     expect(parent.code).not.toMatch(/=>\s*qrl\(\)/);
   });
 
+  it('keeps the exported name when renaming an exported binding that collides with an injected import', () => {
+    const source = `
+import { inlinedQrl } from '@qwik.dev/core';
+import { qrlDEV as makeQrl, qrl } from './qrl-impl.mjs';
+const handler = () => qrl;
+export const q = inlinedQrl(handler, 'q_handler');
+export { qrl, makeQrl as qrlDEV };
+export { qrl as reexported } from './qrl-impl.mjs';
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('lib.qwik.mjs'), code: mkSourceText(source) }],
+      srcDir: mkFilePath('.'),
+      mode: 'prod',
+      entryStrategy: { type: 'segment' },
+    });
+    const parent = result.modules.find((m) => m.kind === 'parent')!;
+
+    expect(parent.code).toMatch(/import \{ qrl \} from ['"]@qwik\.dev\/core['"]/);
+    expect(parent.code).toMatch(/export \{ qrl1 as qrl, makeQrl as qrlDEV \}/);
+    expect(parent.code).toMatch(/export \{ qrl as reexported \} from ['"]\.\/qrl-impl\.mjs['"]/);
+  });
+
   it('renames a user top-level decl whose name collides with an injected runtime import', () => {
     const source = `
 import { component$ } from '@qwik.dev/core';

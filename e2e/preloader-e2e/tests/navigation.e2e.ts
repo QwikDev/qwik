@@ -4,12 +4,18 @@ import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
+  createGate,
   countRoundTrips,
   preloaderLinks,
+  recordSpeculativePreloads,
   recordSpeculativeOrder,
+  release,
   releaseAll,
   resultIsDone,
+  settle,
+  speculativePreloads,
   waitForNetworkIdle,
+  waitForQwikloader,
 } from '../utils/gate';
 import {
   countFixtureRoundTrips,
@@ -149,24 +155,43 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
+const navigateWhilePrefetching = async (page: Page) => {
+  await recordSpeculativePreloads(page);
+  const gate = await createGate(page);
+  gate.holdWhilePassing = (url) =>
+    chunkComesFrom(url, [
+      'src/components/fixtures/single/all/index.tsx_all_component_a1_useComputed_',
+    ]);
+  await page.goto(FROM.off.path);
+  await waitForQwikloader(page);
+  await expect.poll(() => gate.held.length, { timeout: 15_000 }).toBe(1);
+  const pendingPreloads = gate.held.splice(0);
+  gate.holdWhilePassing = undefined;
+  await settle(page, gate);
+  expect((await speculativePreloads(page)).has(pendingPreloads[0].request().url())).toBe(true);
+  const linksBeforeTheClick = (await preloaderLinks(page)).length;
+  await countRoundTrips(
+    page,
+    gate,
+    () => treeLink(page, FROM.off).click(),
+    resultIsDone(fixtureResult(page, TO_TREE))
+  );
+  await expectResult(page, TO_TREE);
+  return { gate, pendingPreloads, linksBeforeTheClick };
+};
+
 test.describe('after a navigation', () => {
   test('the preloader keeps preloading speculatively', async ({ page }, testInfo) => {
-    const { gate } = await navigateToTree(FROM.off, 'cold', page);
-    await releaseAll(gate);
+    const { gate, pendingPreloads } = await navigateWhilePrefetching(page);
+    await release(pendingPreloads);
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
     expect(order.trim()).not.toBe('');
   });
 
   test("the old page's queued speculative preloads aren't sent", async ({ page }) => {
-    const opened = await openFixture(page, FROM.off, 'cold');
-    const linksBeforeTheClick = (await preloaderLinks(page)).length;
-    await countFixtureRoundTrips(
-      opened,
-      () => treeLink(page, FROM.off).click(),
-      resultIsDone(fixtureResult(page, TO_TREE))
-    );
-    await waitForNetworkIdle(page, () => releaseAll(opened.gate), 1500);
+    const { gate, pendingPreloads, linksBeforeTheClick } = await navigateWhilePrefetching(page);
+    await waitForNetworkIdle(page, () => releaseAll(gate, pendingPreloads), 1500);
     const oldPagePreloads = (await preloaderLinks(page))
       .slice(linksBeforeTheClick)
       .filter((link) => link.speculative && chunkComesFrom(link.href, OLD_PAGE_SOURCES))

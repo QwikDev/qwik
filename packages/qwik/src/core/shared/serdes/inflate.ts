@@ -315,7 +315,7 @@ function* inflateIterator(
         asyncSignal.$untrackedPending$ = true;
       }
 
-      const hasValue = d.length > 6;
+      const hasValue = d.length > 6 && d[6] !== _UNINITIALIZED;
       if (hasValue) {
         asyncSignal.$untrackedValue$ = d[6];
       }
@@ -352,7 +352,7 @@ function* inflateIterator(
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }
-      const hasValue = d.length > 2;
+      const hasValue = d.length > 2 && d[2] !== _UNINITIALIZED;
       if (hasValue) {
         computed.$untrackedValue$ = d[2];
       }

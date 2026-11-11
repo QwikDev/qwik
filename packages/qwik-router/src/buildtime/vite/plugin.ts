@@ -340,7 +340,7 @@ function qwikRouterPlugin(
       const updatedViteConfig: UserConfig = {
         define: {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(
-            userOpts?.defaultLoadersSerializationStrategy || 'never'
+            userOpts?.defaultLoadersSerializationStrategy || 'auto'
           ),
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
           'globalThis.__QWIK_ROUTER_BASE_PATHNAME__': JSON.stringify(

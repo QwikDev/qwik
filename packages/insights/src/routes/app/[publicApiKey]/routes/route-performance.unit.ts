@@ -49,6 +49,29 @@ describe('route performance', () => {
     expect(comparison.change).toBeNull();
   });
 
+  it('withholds symbol percentiles and changes when either build has too few samples', () => {
+    const current = [
+      routeRow('/checkout', 'small', 2_000, 2),
+      routeRow('/checkout', 'baseline-small', 2_000, 100),
+    ];
+    const previous = [
+      routeRow('/checkout', 'small', 100, 100),
+      routeRow('/checkout', 'baseline-small', 100, 2),
+    ];
+    const { symbols } = getRouteComparison(current, previous, []);
+    expect(symbols.find((symbol) => symbol.hash === 'small')).toMatchObject({
+      p95: null,
+      change: null,
+      samples: 2,
+      previousSamples: 100,
+    });
+    expect(symbols.find((symbol) => symbol.hash === 'baseline-small')).toMatchObject({
+      change: null,
+      samples: 100,
+      previousSamples: 2,
+    });
+  });
+
   it('excludes one-off outliers from the late symbols table', () => {
     const comparison = getRouteComparison(
       [routeRow('checkout', 'common', 2_000, 100), routeRow('checkout', 'outlier', 900_000, 1)],

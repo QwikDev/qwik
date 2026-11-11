@@ -1,7 +1,7 @@
 import type { SymbolDetailForApp } from '~/db/query';
 import type { RouteSymbolRow } from '~/db/sql-routes';
 import { TIMELINE_BUCKETS, vectorPercentile, vectorSum, type Bucket } from '~/stats/vector';
-import { MIN_PERFORMANCE_SAMPLES } from '../performance';
+import { comparePerformance, MIN_PERFORMANCE_SAMPLES } from '../performance';
 
 export interface RouteSnapshot {
   timeline: number[];
@@ -15,8 +15,9 @@ export interface RouteSymbolPerformance {
   hash: string;
   name: string;
   origin: string;
-  p95: number;
+  p95: number | null;
   samples: number;
+  previousSamples: number;
   share: number;
   change: number | null;
 }
@@ -51,10 +52,9 @@ export function getRouteComparison(
     symbols: latestRows
       .map((row) => {
         const samples = vectorSum(row.timeline);
-        const p95 = vectorPercentile(row.timeline, 0.95, TIMELINE_BUCKETS);
-        const previousP95 = vectorPercentile(
+        const comparison = comparePerformance(
+          row.timeline,
           previousRowsBySymbol.get(row.symbol)?.timeline ?? [],
-          0.95,
           TIMELINE_BUCKETS
         );
         const details = detailsByHash.get(row.symbol);
@@ -62,14 +62,15 @@ export function getRouteComparison(
           hash: row.symbol,
           name: details?.fullName ?? row.symbol,
           origin: details?.origin ?? 'Source unavailable',
-          p95,
+          p95: comparison.p95,
+          previousSamples: comparison.previousSamples,
           samples,
           share: latest.samples ? Math.round((samples / latest.samples) * 100) : 0,
-          change: getPercentageChange(p95, previousP95 || null),
+          change: comparison.change,
         };
       })
       .filter((symbol) => symbol.samples * 100 >= latest.samples)
-      .sort((a, b) => b.p95 - a.p95)
+      .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1))
       .slice(0, 5),
   };
 }

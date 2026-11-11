@@ -27,7 +27,6 @@ import type {
 import { identifierName, unwrapExpression } from './ast/utils';
 import { allocateGeneratedName } from '../names';
 import { UnsupportedError } from '../errors';
-import { QwikMarker } from '../words';
 import { localReadIr, LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
@@ -49,6 +48,7 @@ import { readObjectParameter } from './ast/parameter-members';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
 import {
+  isDollarMarker,
   isSetupHookCall,
   lowerSetupCall,
   lowerSetupCallback,
@@ -254,7 +254,7 @@ function lowerSetupDeclaration(
   }
   const calleeBinding = ctx.bindings.reference(init.callee);
   const coreApi = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
-  if (coreApi === QwikMarker.Dollar) {
+  if (isDollarMarker(coreApi)) {
     const name = identifierName(declarator.id);
     if (name === null) {
       throw new UnsupportedError('a non-identifier core API binding');

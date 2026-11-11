@@ -4,6 +4,21 @@ import { testInput, testInputs } from './snapshot-runner';
 import { renderCode } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should pass an event$ handler as the QRL it is', async () => {
+    const output = await testInput(mode, 'event-dollar-local', {
+      code: `import { component$, event$, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = useSignal(0);
+  const log = event$(() => console.log(count.value));
+  return <button onClick$={log}>log</button>;
+});
+`,
+    });
+    const segments = output.modules.flatMap((module) => (module.segment ? [module.segment] : []));
+    expect(segments.map((segment) => segment.ctxName).sort()).toEqual(['component$', 'event$']);
+    expect(output.modules.map((module) => module.code).join('\n')).not.toContain('eventQrl');
+  });
+
   test('should emit block event handlers through the shared QRL emitter', async () => {
     const output = await testInput(mode, 'event-block-body', {
       code: `import { useSignal } from '@qwik.dev/core';

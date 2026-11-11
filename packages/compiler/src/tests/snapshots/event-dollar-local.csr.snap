@@ -1,0 +1,85 @@
+==INPUT==
+
+import { component$, event$, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = useSignal(0);
+  const log = event$(() => console.log(count.value));
+  return <button onClick$={log}>log</button>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
+export { App };
+============================= src/component.tsx_component_log_segment_0_1xh0hjvaztaud.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_log_segment_0_1xh0hjvaztaud = () => {
+  const [count] = _capturesObj._;
+  return console.log(count.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_log_segment_0_1xh0hjvaztaud",
+  "entry": null,
+  "displayName": "component_log_segment_0",
+  "hash": "1xh0hjvaztaud",
+  "canonicalFilename": "component.tsx_component_log_segment_0_1xh0hjvaztaud",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "event$",
+  "captures": true,
+  "loc": [
+    146,
+    184
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
+
+import { useSignal, qrl, setEvent, _createElementTemplate } from '@qwik.dev/core';
+const q_component_log_segment_0_1xh0hjvaztaud = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_log_segment_0_1xh0hjvaztaud'),
+  'component_log_segment_0_1xh0hjvaztaud'
+);
+const App_tmpl0 = _createElementTemplate('<button>log</button>');
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  const count = useSignal(0);
+  const log = q_component_log_segment_0_1xh0hjvaztaud.w([count]);
+  const el0 = App_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', log);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    64,
+    235
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

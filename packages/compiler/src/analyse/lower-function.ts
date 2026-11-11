@@ -31,7 +31,7 @@ import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QRL_SUFFIX, QRL_TWIN_SUFFIX, QwikMarker } from '../words';
-import { resolveSetupCall } from './lower-setup-call';
+import { isDollarMarker, resolveSetupCall } from './lower-setup-call';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
 export type QrlArgumentBoundary = Pick<Qrl, 'ctxName' | 'boundary'> & {
@@ -457,13 +457,13 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
   }
   const binding = ctx.bindings.reference(node.callee);
   const core = binding === null ? undefined : ctx.coreBindings.get(binding);
-  if (core === QwikMarker.Dollar || core === QwikMarker.Sync) {
+  if (isDollarMarker(core) || core === QwikMarker.Sync) {
     if (node.arguments.length !== 1) {
       return null;
     }
-    return core === QwikMarker.Dollar
-      ? { argument, name: 'qrl', ctxName: core, boundary: { kind: BoundaryKind.Explicit } }
-      : { argument, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } };
+    return core === QwikMarker.Sync
+      ? { argument, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } }
+      : { argument, name: 'qrl', ctxName: core, boundary: { kind: BoundaryKind.Explicit } };
   }
   const callee = resolveSetupCall(node, ctx);
   if (callee === null) {

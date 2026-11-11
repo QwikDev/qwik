@@ -7,6 +7,8 @@ export const QRL_TWIN_SUFFIX = 'Qrl';
 
 export const enum QwikMarker {
   Dollar = '$',
+  /** An alias of `$`: the same QRL under its own context name. */
+  Event = 'event$',
   Sync = 'sync$',
   Component = 'component$',
   /** Build-time only: the marker is stripped and the JS implementation stays the export. */

@@ -191,9 +191,7 @@ import {
   getActiveInvokeContextOrNull,
   maybeThen,
   invoke,
-  event$,
 } from '@qwik.dev/core';
-import { eventQrl } from '@qwik.dev/core';
 import { page_data_log_segment_4_cspgbf14bnv5 } from './page.tsx_page_data_log_segment_4_cspgbf14bnv5';
 import { __qwik_useCustomHook as useCustomHook } from './page.tsx';
 const q_page_read_segment_1_1t6gldzum4vgr = /*#__PURE__*/ qrl(
@@ -215,7 +213,7 @@ export function App_component_gp60srxdjg41(props, ctx) {
   const count = useSignal(0);
   useCustomHook(count.value);
   const read = q_page_read_segment_1_1t6gldzum4vgr.w([count]);
-  const log = eventQrl(q_page_log_segment_2_1y03b0ir1i422);
+  const log = q_page_log_segment_2_1y03b0ir1i422;
   read();
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {

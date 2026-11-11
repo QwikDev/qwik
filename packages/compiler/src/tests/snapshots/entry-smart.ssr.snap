@@ -196,9 +196,7 @@ import {
   invoke,
   _noopQrl,
   _markComponent,
-  event$,
 } from '@qwik.dev/core';
-import { eventQrl } from '@qwik.dev/core';
 import { __qwik_useCustomHook as useCustomHook } from './page.tsx';
 const page_read_segment_1_1t6gldzum4vgr = () => {
   const [count] = _capturesObj._;
@@ -233,7 +231,7 @@ export function App_component_gp60srxdjg41(props, ctx) {
   const count = useSignal(0);
   useCustomHook(count.value);
   const read = q_page_read_segment_1_1t6gldzum4vgr.w([count]);
-  const log = eventQrl(q_page_log_segment_2_1y03b0ir1i422);
+  const log = q_page_log_segment_2_1y03b0ir1i422;
   read();
   return maybeThen(ctx.scheduler.flush(), () =>
     invoke(invokeCtx0, () => {

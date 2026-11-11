@@ -75,7 +75,7 @@ export const run = () => useThing$(() => 1);
     ).rejects.toThrow(/useThing\$ without its qrl twin/);
   });
 
-  test('event$ calls its Qrl twin with the extracted QRL', async () => {
+  test('event$ extracts its QRL like $', async () => {
     const output = await transformModules(
       options(`import { component$, event$, useStore } from '@qwik.dev/core';
 export const Toggle = component$(() => {
@@ -84,7 +84,7 @@ export const Toggle = component$(() => {
   return <button onClick$={toggle$}>t</button>;
 });`)
     );
-    expect(emitted(output)).toMatch(/\beventQrl\(/);
+    expect(emitted(output)).not.toMatch(/\beventQrl\(/);
     expect(emitted(output)).not.toMatch(/\bevent\$\(/);
   });
 

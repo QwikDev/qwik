@@ -47,6 +47,11 @@ function lowerHookCallback(
   return { a: ArgKind.Qrl, use: lowerSetupCallback(call, name, calleeName, ctx) };
 }
 
+export const isDollarMarker = (
+  core: string | undefined
+): core is QwikMarker.Dollar | QwikMarker.Event =>
+  core === QwikMarker.Dollar || core === QwikMarker.Event;
+
 export function lowerSetupCallback(
   init: CallExpression,
   name: string,
@@ -60,7 +65,7 @@ export function lowerSetupCallback(
   if (
     init.optional ||
     argument === null ||
-    (coreApi === QwikMarker.Dollar && init.arguments.length !== 1)
+    (isDollarMarker(coreApi) && init.arguments.length !== 1)
   ) {
     throw new UnsupportedError(`${calleeName}() without a first argument`);
   }
@@ -68,10 +73,9 @@ export function lowerSetupCallback(
     nameCtx: name,
     subject: 'a QRL callback',
     ctxName: calleeName,
-    boundary:
-      coreApi === QwikMarker.Dollar
-        ? { kind: BoundaryKind.Explicit }
-        : { kind: BoundaryKind.Implicit, role: 'hook' },
+    boundary: isDollarMarker(coreApi)
+      ? { kind: BoundaryKind.Explicit }
+      : { kind: BoundaryKind.Implicit, role: 'hook' },
     origin: {
       range: [init.start, init.end],
       calleeRange: [init.callee.start, init.callee.end],
@@ -105,7 +109,7 @@ export function resolveSetupCall(
   const coreApi = ctx.coreBindings.get(binding);
   // `native$` is stripped at assembly, so its `$` must not read as a QRL boundary.
   if (
-    coreApi === QwikMarker.Dollar ||
+    isDollarMarker(coreApi) ||
     coreApi === QwikMarker.Component ||
     coreApi === QwikMarker.Native
   ) {

@@ -1,3 +1,4 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
 import { component$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import Button, { ButtonLink } from '~/components/button';
@@ -6,6 +7,9 @@ import { getPageHref } from '~/stats/pagination';
 export default component$<{ page: number; pageCount: number; parameter?: string }>(
   ({ page, pageCount, parameter = 'page' }) => {
     const location = useLocation();
+    const reportQuery = useReportQuery();
+    const reportUrl = new URL(location.url);
+    reportUrl.search = reportQuery.toString();
     if (pageCount <= 1) {
       return null;
     }
@@ -15,7 +19,7 @@ export default component$<{ page: number; pageCount: number; parameter?: string 
         class="my-editorial-6 flex items-center justify-end gap-editorial-6"
       >
         {page > 1 ? (
-          <ButtonLink href={getPageHref(location.url, parameter, page - 1)} theme="secondary">
+          <ButtonLink href={getPageHref(reportUrl, parameter, page - 1)} theme="secondary">
             ← Previous
           </ButtonLink>
         ) : (
@@ -27,7 +31,7 @@ export default component$<{ page: number; pageCount: number; parameter?: string 
           Page {page} of {pageCount}
         </span>
         {page < pageCount ? (
-          <ButtonLink href={getPageHref(location.url, parameter, page + 1)} theme="primary">
+          <ButtonLink href={getPageHref(reportUrl, parameter, page + 1)} theme="primary">
             Next →
           </ButtonLink>
         ) : (

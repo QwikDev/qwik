@@ -1,3 +1,5 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { getReportHref } from '~/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { Link, useLocation } from '@qwik.dev/router';
 import BrandLockup from '~/components/brand-lockup';
@@ -15,7 +17,10 @@ type ApplicationNavigationProps = {
 };
 
 export default component$<ApplicationNavigationProps>(({ basePath, applicationName }) => {
-  const pathname = useLocation().url.pathname;
+  const location = useLocation();
+  const reportQuery = useReportQuery();
+  const pathname = location.url.pathname;
+  const reportHref = (path: string) => getReportHref(path, reportQuery);
   const primaryItems = [
     { href: basePath, label: 'Dashboard', icon: <DashboardIcon />, exact: true },
     { href: `${basePath}manifests/`, label: 'Manifests', icon: <ManifestIcon /> },
@@ -46,7 +51,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
           Current application
         </p>
         <Link
-          href={basePath}
+          href={reportHref(basePath)}
           title={applicationName}
           class="mt-editorial-2 line-clamp-2 break-words text-editorial-20 font-semibold text-editorial-primary hover:text-editorial-link focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-editorial-accent"
         >
@@ -68,7 +73,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={reportHref(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 class={[
                   'relative flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md border-l-2 px-editorial-3 text-editorial-14 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
@@ -87,7 +92,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
 
           <div class="rounded-editorial-md bg-editorial-subtle py-editorial-2">
             <Link
-              href={symbolsPath}
+              href={reportHref(symbolsPath)}
               class={[
                 'flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md px-editorial-3 text-editorial-14 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
                 isNavigationItemActive(pathname, symbolsPath)
@@ -107,7 +112,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={reportHref(item.href)}
                     aria-current={isActive ? 'page' : undefined}
                     class={[
                       'flex h-editorial-8 items-center rounded-editorial-sm text-editorial-12 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
@@ -124,7 +129,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
           </div>
 
           <Link
-            href={errorsPath}
+            href={reportHref(errorsPath)}
             aria-current={isNavigationItemActive(pathname, errorsPath) ? 'page' : undefined}
             class={[
               'relative flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md border-l-2 px-editorial-3 text-editorial-14 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',

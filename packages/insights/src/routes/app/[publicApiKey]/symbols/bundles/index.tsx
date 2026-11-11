@@ -49,8 +49,16 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
 export default component$(() => {
   const data = useData();
   const selectedIndex = useSignal(0);
+  const selectedSymbol = useSignal('');
+  const selectedRelationship = useSignal(-1);
   const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
-  const strongestRelationships = selectedBundle?.relationships ?? [];
+  const strongestRelationships = selectedSymbol.value
+    ? (selectedBundle?.symbolRelationships[selectedSymbol.value] ?? [])
+    : (selectedBundle?.relationships ?? []);
+  const relationship =
+    selectedRelationship.value < 0
+      ? undefined
+      : strongestRelationships.at(selectedRelationship.value);
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -146,6 +154,8 @@ export default component$(() => {
                         aria-pressed={isSelected}
                         onClick$={() => {
                           selectedIndex.value = index;
+                          selectedSymbol.value = '';
+                          selectedRelationship.value = -1;
                         }}
                       >
                         <span class="block truncate text-editorial-12 font-semibold">
@@ -260,42 +270,124 @@ export default component$(() => {
                   Strongest relationships
                 </h2>
               </div>
+              <div class="px-editorial-5 py-editorial-4">
+                <p class="text-editorial-12 text-editorial-secondary">
+                  Scores from 0 to 1 estimate directional relationships along execution paths. They
+                  are not measured probabilities or statistical correlations.
+                </p>
+                <label class="mt-editorial-4 block text-editorial-12">
+                  Why is this symbol in the group?
+                  <select
+                    class="mt-editorial-2 block w-full rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-2"
+                    value={selectedSymbol.value}
+                    onChange$={(_, select) => {
+                      selectedSymbol.value = select.value;
+                      selectedRelationship.value = -1;
+                    }}
+                  >
+                    <option value="">Top 10 group relationships</option>
+                    {selectedBundle.symbols.map((symbol) => (
+                      <option key={symbol.name} value={symbol.name}>
+                        {symbol.fullName ? `${symbol.fullName} · ${symbol.name}` : symbol.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {selectedSymbol.value && (
+                  <p class="mt-editorial-2 text-editorial-12 text-editorial-secondary">
+                    Up to five strongest incoming or outgoing connections. Group membership can also
+                    connect through intermediate symbols.
+                  </p>
+                )}
+              </div>
               {strongestRelationships.length ? (
                 <ol>
-                  {strongestRelationships.map((relationship, index) => {
-                    const score = Math.round(relationship.score * 100);
+                  {strongestRelationships.map((connection, index) => {
+                    const from = selectedBundle.symbols.find(
+                      (symbol) => symbol.name === connection.from
+                    )!;
+                    const to = selectedBundle.symbols.find(
+                      (symbol) => symbol.name === connection.to
+                    )!;
                     return (
                       <li
-                        key={`${relationship.from}:${relationship.to}`}
-                        class="border-b border-editorial-border px-editorial-5 py-editorial-4"
+                        key={`${connection.from}:${connection.to}`}
+                        class="border-b border-editorial-border"
                       >
-                        <div class="flex items-start gap-editorial-3">
-                          <span class="text-editorial-11 text-editorial-muted">{index + 1}</span>
-                          <div class="min-w-0 flex-1 font-editorial-mono text-editorial-11 font-semibold">
-                            <span class="block truncate">
-                              <SymbolTile symbol={relationship.from} />
-                            </span>
-                            <span class="mt-editorial-1 block truncate text-editorial-secondary">
-                              with <SymbolTile symbol={relationship.to} />
-                            </span>
-                          </div>
-                          <span class="font-editorial-mono text-editorial-11">{score}%</span>
-                        </div>
-                        <div class="mt-editorial-3 h-1 bg-editorial-data-band">
-                          <div
-                            class="h-full bg-editorial-data-current"
-                            style={{ width: `${score}%` }}
-                          />
-                        </div>
+                        <button
+                          type="button"
+                          class="w-full cursor-pointer px-editorial-5 py-editorial-4 text-left hover:bg-editorial-subtle focus-visible:outline-2 focus-visible:outline-editorial-accent"
+                          aria-pressed={selectedRelationship.value === index}
+                          onClick$={() => {
+                            selectedRelationship.value = index;
+                          }}
+                        >
+                          <span class="block break-words font-editorial-mono text-editorial-12">
+                            {from.fullName || from.name}
+                          </span>
+                          <span class="mt-editorial-1 block break-words font-editorial-mono text-editorial-12">
+                            → {to.fullName || to.name}
+                          </span>
+                          <span class="mt-editorial-2 block text-editorial-12">
+                            Relationship score: {connection.score.toFixed(2)} / 1
+                          </span>
+                          <span
+                            class="mt-editorial-3 block h-1 bg-editorial-data-band"
+                            aria-hidden="true"
+                          >
+                            <span
+                              class="block h-full bg-editorial-data-current"
+                              style={{ width: `${connection.score * 100}%` }}
+                            />
+                          </span>
+                        </button>
                       </li>
                     );
                   })}
                 </ol>
               ) : (
                 <p class="px-editorial-5 py-editorial-8 text-editorial-12 text-editorial-muted">
-                  No relationships recorded for this bundle.
+                  No connections to other symbols recorded in this group.
                 </p>
               )}
+              <div aria-live="polite" class="px-editorial-5 py-editorial-4">
+                {relationship ? (
+                  <>
+                    <h3 class="text-editorial-14 font-semibold">Selected relationship</h3>
+                    <p class="mt-editorial-2 break-words font-editorial-mono text-editorial-12">
+                      {relationship.from} → {relationship.to}
+                    </p>
+                    <p class="mt-editorial-2 text-editorial-12">
+                      Relationship score: {relationship.score.toFixed(2)} / 1
+                    </p>
+                    {[relationship.from, relationship.to].map((name) => {
+                      const symbol = selectedBundle.symbols.find((symbol) => symbol.name === name)!;
+                      return (
+                        <div key={name} class="mt-editorial-3 break-words text-editorial-12">
+                          <p class="font-editorial-mono">{symbol.fullName || symbol.name}</p>
+                          <p class="text-editorial-secondary">
+                            {symbol.fileSrc || 'Source metadata unavailable'}
+                          </p>
+                          <SymbolTile
+                            symbol={name}
+                            fullName={symbol.fullName}
+                            origin={symbol.fileSrc}
+                          />
+                        </div>
+                      );
+                    })}
+                    <p class="mt-editorial-3 text-editorial-12 text-editorial-secondary">
+                      The arrow runs from a preceding symbol to a later symbol along the modeled
+                      path. It does not imply a direct function call. Raw observation counts for
+                      this modeled relationship are not available in this report.
+                    </p>
+                  </>
+                ) : (
+                  <p class="text-editorial-12 text-editorial-secondary">
+                    Select a relationship to keep its names, sources, and score visible.
+                  </p>
+                )}
+              </div>
             </section>
           </div>
         </>

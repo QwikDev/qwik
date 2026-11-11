@@ -22,11 +22,25 @@ export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) 
       });
       return cells;
     }),
-    bundles: bundles.map((bundle) => ({
-      ...bundle,
-      symbols: bundle.symbols.map((symbol) => summaries.get(symbol)!),
-      relationships: getStrongestRelationships(bundle.symbols, vectors).slice(0, 10),
-    })),
+    bundles: bundles.map((bundle) => {
+      const relationships = getStrongestRelationships(bundle.symbols, vectors);
+      const symbolRelationships: Record<string, Relationship[]> = Object.fromEntries(
+        bundle.symbols.map((symbol) => [symbol.name, []])
+      );
+      for (const relationship of relationships) {
+        for (const name of [relationship.from, relationship.to]) {
+          if (symbolRelationships[name].length < 5) {
+            symbolRelationships[name].push(relationship);
+          }
+        }
+      }
+      return {
+        ...bundle,
+        symbols: bundle.symbols.map((symbol) => summaries.get(symbol)!),
+        relationships: relationships.slice(0, 10),
+        symbolRelationships,
+      };
+    }),
   };
 }
 
@@ -42,6 +56,12 @@ export function getMatrixCellColor(value: number): string {
   return `color-mix(in srgb, var(--color-editorial-data-current) ${strength}%, var(--color-editorial-data-band))`;
 }
 
+export interface Relationship {
+  from: string;
+  to: string;
+  score: number;
+}
+
 interface RelationshipSymbol {
   name: string;
 }
@@ -51,19 +71,19 @@ export function getStrongestRelationships(
   symbolVectors: { symbols: RelationshipSymbol[]; vectors: number[][] }
 ) {
   const symbolIndex = new Map(symbolVectors.symbols.map((symbol, index) => [symbol.name, index]));
-  const relationships: { from: string; to: string; score: number }[] = [];
+  const relationships: Relationship[] = [];
 
   for (let from = 0; from < bundleSymbols.length; from++) {
-    for (let to = from + 1; to < bundleSymbols.length; to++) {
+    for (let to = 0; to < bundleSymbols.length; to++) {
+      if (from === to) {
+        continue;
+      }
       const fromIndex = symbolIndex.get(bundleSymbols[from].name);
       const toIndex = symbolIndex.get(bundleSymbols[to].name);
       if (fromIndex === undefined || toIndex === undefined) {
         continue;
       }
-      const score = Math.max(
-        symbolVectors.vectors[fromIndex]?.[toIndex] ?? 0,
-        symbolVectors.vectors[toIndex]?.[fromIndex] ?? 0
-      );
+      const score = symbolVectors.vectors[toIndex]?.[fromIndex] ?? 0;
       if (score > 0) {
         relationships.push({
           from: bundleSymbols[from].name,

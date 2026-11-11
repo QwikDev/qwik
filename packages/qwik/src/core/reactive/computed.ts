@@ -15,6 +15,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import { isServerPlatform } from '../shared/platform/platform';
 import { cleanupDeps, runLateCleanup } from './cleanup';
 import { ComputedFlags, OwnerFlags } from './flags';
+import { isNotReadyError, NotReadyError } from './not-ready';
 import { notifySourceSubscribers } from './notify';
 import { Signal } from './signal';
 import type { Source, SourceSubs } from './source';
@@ -98,6 +99,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   storedCleanups: Array<() => ValueOrPromise<void>> | null = null;
   cleanupPromise: Promise<void> | null = null;
   declare private cleanupObservation?: { computed?: Computed<T> };
+  declare private nextSettle?: { promise: Promise<void>; resolve: () => void };
   info: unknown;
 
   constructor(
@@ -311,12 +313,9 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
     if (!(this.flags & ComputedFlags.HasValue)) {
-      // Cancelled work left nothing to return, so the read starts over.
-      this.flags |= ComputedFlags.Dirty;
-      this.computeIfNeeded();
-      if (this.current?.promise) {
-        throw this.current.promise;
-      }
+      // Cancelled work left nothing to return; the reader reruns once a value arrives.
+      this.flags |= ComputedFlags.ReadNotReady;
+      throw new NotReadyError(this);
     }
     return this.v;
   }
@@ -501,15 +500,21 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private publishValue(value: T, notify = true): void {
-    const showsServerValue = !!(this.flags & ComputedFlags.ShowsServerValue);
-    // First materialization is not a change, unless subscribers rendered the server's value.
+    const showsOtherValue = !!(
+      this.flags &
+      (ComputedFlags.ShowsServerValue | ComputedFlags.ReadNotReady)
+    );
+    // First materialization is not a change, unless subscribers rendered something else.
     const changed =
-      showsServerValue || (!!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value));
+      showsOtherValue || (!!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value));
     this.v = value;
-    this.flags = (this.flags | ComputedFlags.HasValue) & ~ComputedFlags.ShowsServerValue;
-    if (changed && (notify || showsServerValue)) {
+    this.flags =
+      (this.flags | ComputedFlags.HasValue) &
+      ~(ComputedFlags.ShowsServerValue | ComputedFlags.ReadNotReady);
+    if (changed && (notify || showsOtherValue)) {
       this.notify();
     }
+    this.settle();
   }
 
   private setError(job: AsyncJob<T>, error: Error): void {
@@ -517,12 +522,32 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       return;
     }
     job.canWrite = false;
-    if (error instanceof Error && error.name === 'AbortError') {
+    // a cancellation or a missing input is no error
+    if ((error instanceof Error && error.name === 'AbortError') || isNotReadyError(error)) {
       return;
     }
     this.errorValue = error;
     this.flags &= ~ComputedFlags.HasValue;
     this.notify();
+    this.settle();
+  }
+
+  /** Settles on the next value or error, for readers that cannot subscribe. */
+  whenSettled(): Promise<void> {
+    if (this.nextSettle === undefined) {
+      let resolve!: () => void;
+      const promise = new Promise<void>((done) => (resolve = done));
+      this.nextSettle = { promise, resolve };
+    }
+    return this.nextSettle.promise;
+  }
+
+  private settle(): void {
+    const next = this.nextSettle;
+    if (next !== undefined) {
+      this.nextSettle = undefined;
+      next.resolve();
+    }
   }
 
   private setLoading(value: boolean): void {

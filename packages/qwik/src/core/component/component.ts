@@ -12,6 +12,7 @@ import type { ContainerContext } from '../runtime/container-context';
 import type { SlotScope } from '../dom/slot/slot';
 import { disposeOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { untrack } from '../reactive/tracking';
+import { isNotReadyError } from '../reactive/not-ready';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
 import { applyUseOnToCsrOutput } from '../runtime/use-on';
@@ -79,7 +80,7 @@ export function createComponent(
   const invokeContext = createComponentInvokeContext(parentInvokeContext, ownerHost, options);
   let nodes: ValueOrPromise<ComponentOutput | void>;
   try {
-    nodes = untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext);
+    nodes = runSetup(invokeContext, render, props, renderContext);
   } catch (error) {
     if (!isPromise(error)) {
       return handleComponentError(invokeContext, error);
@@ -150,7 +151,7 @@ function settleComponent(
         invokeContext = createComponentInvokeContext(parentInvokeContext, ownerHost, options);
         return thenInLifetime(
           ownerHost,
-          untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext),
+          runSetup(invokeContext, render, props, renderContext),
           finish,
           EMPTY_NODES
         );
@@ -182,6 +183,20 @@ function settleComponent(
     );
   }
   return pending;
+}
+
+/** A setup read of a computed without a value waits for its next one, as a pending read does. */
+function runSetup(
+  invokeContext: RuntimeInvokeContext,
+  render: (props: unknown, context: unknown) => ValueOrPromise<ComponentOutput | void>,
+  props: unknown,
+  renderContext: unknown
+): ValueOrPromise<ComponentOutput | void> {
+  try {
+    return untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext);
+  } catch (error) {
+    throw isNotReadyError(error) ? error.source.whenSettled() : error;
+  }
 }
 
 function createComponentInvokeContext(

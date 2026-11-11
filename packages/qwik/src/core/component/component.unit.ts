@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/text-effect';
+import { Computed } from '../reactive/computed';
 import { useSignal } from '../reactive/public-api';
 import type { ContainerContext } from '../runtime/container-context';
 import { getActiveCollector, runWithCollector } from '../reactive/tracking';
@@ -58,6 +59,21 @@ describe('components and invoke contexts', () => {
       expect(owner).not.toHaveProperty('disposalCallbacks');
     }
   );
+
+  it('runs the setup again once a cancelled computed it read gets a value', async () => {
+    const owner = createOwner(null);
+    const list = new Computed<string>(null, () => new Promise<string>(() => {}));
+    expect(() => list.value).toThrow(Promise);
+    list.abort();
+    const render = vi.fn(() => list.value);
+
+    const output = runWithOwner(owner, () => createComponent(render, null));
+    expect(render).toHaveBeenCalledTimes(1);
+    list.value = 'ready';
+
+    await expect(output).resolves.toBe('ready');
+    expect(render).toHaveBeenCalledTimes(2);
+  });
 
   it('ignores a discarded component after its pending work settles', async () => {
     const owner = createOwner(null);

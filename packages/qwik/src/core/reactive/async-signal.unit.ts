@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
 import { useSignal, useAsync } from './public-api';
 import { _await } from './tracking';
+import { NotReadyError } from './not-ready';
 
 describe('async signal', () => {
   it('tracks async dependencies before and after await', async () => {
@@ -119,7 +120,7 @@ describe('async signal', () => {
     expect(continued).toBe(false);
   });
 
-  it('recomputes when read after an abort left no value', async () => {
+  it('reports not ready when read after an abort left no value', async () => {
     let runs = 0;
     const signal = createOwned(() =>
       useAsync<number>(async () => {
@@ -132,7 +133,9 @@ describe('async signal', () => {
     expect(() => signal.value).toThrow(Promise);
     signal.abort();
 
-    expect(() => signal.value).toThrow(Promise);
+    expect(thrownBy(() => signal.value)).toBeInstanceOf(NotReadyError);
+    expect(runs).toBe(1);
+    signal.invalidate();
     await signal.promise();
     expect(signal.value).toBe(2);
   });
@@ -167,4 +170,13 @@ async function waitFor(check: () => boolean): Promise<void> {
   for (let i = 0; i < 10 && !check(); i++) {
     await settle();
   }
+}
+
+function thrownBy(read: () => unknown): unknown {
+  try {
+    read();
+  } catch (error) {
+    return error;
+  }
+  return undefined;
 }

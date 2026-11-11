@@ -1,5 +1,6 @@
 import { isPromise, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
+import { isNotReadyError } from '../../reactive/not-ready';
 import { OwnerFlags } from '../../reactive/flags';
 import type { Owner } from '../../runtime/owner';
 import type { CatchContentSubscription, SSRCatchContentSubscription } from './catch';
@@ -44,6 +45,10 @@ export function findContentBoundary(
 
 export function handleError(owner: Owner | null, error: unknown): ValueOrPromise<void> {
   if (owner !== null && owner.flags & OwnerFlags.Disposed) {
+    return;
+  }
+  // The reader stays subscribed and reruns once the value arrives.
+  if (isNotReadyError(error)) {
     return;
   }
   // A thrown promise is a retry request, not an error.

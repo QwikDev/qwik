@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../../testing/document';
 import { disposeSubscriber } from '../../reactive/cleanup';
+import { Computed } from '../../reactive/computed';
 import { useSignal } from '../../reactive/public-api';
 import { createQRL } from '../../shared/qrl/qrl-class';
 import type { QRL } from '../../shared/qrl/qrl.public';
@@ -97,6 +98,21 @@ describe('ContentBlock', () => {
     await content.scheduler.flushInteraction();
 
     expect(host.textContent).toBe('second');
+  });
+
+  it('renders nothing for a cancelled computed and renders its value once it arrives', async () => {
+    const value = new Computed<string>(null, () => new Promise<string>(() => {}));
+    expect(() => value.value).toThrow(Promise);
+    value.abort();
+    const { content, host } = setup([value], (_document, _scheduler, signal) => signal.value);
+
+    content.run();
+    expect(host.textContent).toBe('');
+
+    value.value = 'ready';
+    await content.scheduler.flushInteraction();
+
+    expect(host.textContent).toBe('ready');
   });
 
   it('renders nothing for a boolean output', async () => {

@@ -43,6 +43,8 @@ export const enum ComputedFlags {
   Async = 1 << 3,
   Disposed = 1 << 4,
   Published = 1 << 5,
+  /** A reader got NotReadyError, so the first value is a change for it. */
+  ReadNotReady = 1 << 6,
   /** Resumed without its value, which the subscribers already rendered on the server. */
   ShowsServerValue = 1 << 7,
 }

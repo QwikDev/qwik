@@ -1,5 +1,5 @@
 import type { Locator, Page, Request, Route } from '@playwright/test';
-import { chunkHoldsSegmentsFrom, labelRequest, ORIGIN } from './app';
+import { bundleFile, chunkHoldsSegmentsFrom, labelRequest, neededWith, ORIGIN } from './app';
 
 export const FILLER = 'src/components/filler/';
 
@@ -28,6 +28,7 @@ type PreloaderWindow = Window & {
   __holdsSpeculativePreloads?: boolean;
   __heldSpeculativePreloads?: number;
   __resumeSpeculativePreloads?: () => void;
+  __sendHeldSpeculativePreloads?: (hrefs: string[]) => void;
 };
 
 export const recordSpeculativePreloads = (page: Page) =>
@@ -38,6 +39,15 @@ export const recordSpeculativePreloads = (page: Page) =>
     win.__maxSpeculativeInFlight = 0;
     const heldLinks: [Node, HTMLLinkElement][] = [];
     const appendChild = Node.prototype.appendChild;
+    win.__sendHeldSpeculativePreloads = (hrefs) => {
+      for (let i = heldLinks.length - 1; i >= 0; i--) {
+        const [parent, link] = heldLinks[i];
+        if (hrefs.includes(link.href)) {
+          heldLinks.splice(i, 1);
+          appendChild.call(parent, link);
+        }
+      }
+    };
     win.__resumeSpeculativePreloads = () => {
       win.__holdsSpeculativePreloads = false;
       for (const [parent, link] of heldLinks.splice(0)) {
@@ -73,6 +83,20 @@ export const holdSpeculativePreloads = (page: Page) =>
     (window as PreloaderWindow).__holdsSpeculativePreloads = true;
   });
 
+/**
+ * The preloader counts a held speculative preload as in flight, so it never requests that chunk
+ * again once it is needed. Send it when a request makes it needed, as the preloader would.
+ */
+const sendHeldPreloadsNeededWith = (page: Page, url: string) => {
+  if (!url.startsWith(`${ORIGIN}/build/`)) {
+    return;
+  }
+  const hrefs = [...neededWith(bundleFile(url))].map((bundle) => `${ORIGIN}/build/${bundle}`);
+  page
+    .evaluate((hrefs) => (window as PreloaderWindow).__sendHeldSpeculativePreloads?.(hrefs), hrefs)
+    .catch(() => {});
+};
+
 const resumeSpeculativePreloads = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__resumeSpeculativePreloads?.());
 
@@ -97,6 +121,9 @@ export const createGate = async (page: Page): Promise<Gate> => {
       return route.continue();
     }
     gate.held.push(route);
+    if (gate.mode === 'hold') {
+      sendHeldPreloadsNeededWith(page, request.url());
+    }
   });
   return gate;
 };

@@ -77,34 +77,90 @@ describe('viteAdapter app build', () => {
     'entry.azure-swa.js': { type: 'chunk', isEntry: true },
     'q-chunk.js': { type: 'chunk', isEntry: false },
   };
+  const ssrConfig = { root: '/app', build: { outDir: '/app/server' } };
 
-  it('hands the ssr entries to generate() without warning, across plugin instances', async () => {
-    const generate = vi.fn();
-    const opts = { name: 'test', origin: 'https://example.com', generate };
-    // Vite resolves the config again for each environment, so the `ssr` build uses another
-    // instance of the plugin than the one `buildApp` runs on.
-    const [topLevelPlugin] = viteAdapter(opts) as any[];
-    const [ssrPlugin] = viteAdapter(opts) as any[];
-    topLevelPlugin.configResolved(resolvedConfig);
-    ssrPlugin.configResolved(resolvedConfig);
+  it.each(['/app/server', 'server'])(
+    'hands the ssr entries across plugin instances with server output %s',
+    async (outDir) => {
+      const generate = vi.fn();
+      const opts = { name: 'test', origin: 'https://example.com', generate };
+      // Vite resolves the config again for each environment, so the `ssr` build uses another
+      // instance of the plugin than the one `buildApp` runs on.
+      const [topLevelPlugin] = viteAdapter(opts) as any[];
+      const [ssrPlugin] = viteAdapter(opts) as any[];
+      topLevelPlugin.configResolved(resolvedConfig);
+      ssrPlugin.configResolved(resolvedConfig);
 
-    const warn = vi.fn();
-    const ssr = { config: { build: { outDir: '/app/server' } } };
-    await topLevelPlugin.buildApp({
-      environments: { ssr },
-      config: { root: '/app', define: {}, logger: { warn() {} } },
+      const warn = vi.fn();
+      const ssr = { config: { ...ssrConfig, build: { outDir } } };
+      await topLevelPlugin.buildApp({
+        environments: { ssr },
+        config: { root: '/app', define: {}, logger: { warn() {} } },
+        build: async () => {
+          ssrPlugin.generateBundle.call(
+            { environment: { name: 'ssr', config: ssrConfig }, warn },
+            {},
+            ssrBundles
+          );
+        },
+      });
+
+      expect(warn).not.toHaveBeenCalled();
+      expect(generate).toHaveBeenCalledWith(
+        expect.objectContaining({ outputEntries: ['entry.azure-swa.js'] })
+      );
+    }
+  );
+
+  it('keeps parallel builds of one root with different server outputs apart', async () => {
+    const firstGenerate = vi.fn();
+    const secondGenerate = vi.fn();
+    const opts = { name: 'test', origin: 'https://example.com', ssg: null };
+    const [firstPlugin] = viteAdapter({ ...opts, generate: firstGenerate }) as any[];
+    const [secondPlugin] = viteAdapter({ ...opts, generate: secondGenerate }) as any[];
+    const [firstSsrPlugin] = viteAdapter(opts) as any[];
+    const [secondSsrPlugin] = viteAdapter(opts) as any[];
+    for (const plugin of [firstPlugin, secondPlugin, firstSsrPlugin, secondSsrPlugin]) {
+      plugin.configResolved(resolvedConfig);
+    }
+
+    const config = { root: '/app', define: {}, logger: { warn() {} } };
+    const firstSsr = { config: { root: '/app', build: { outDir: '/app/server-first' } } };
+    const secondSsr = { config: { root: '/app', build: { outDir: '/app/server-second' } } };
+    let finishFirstBuild!: () => void;
+    const firstBuild = firstPlugin.buildApp({
+      environments: { ssr: firstSsr },
+      config,
+      build: () =>
+        new Promise<void>((resolve) => {
+          finishFirstBuild = resolve;
+        }),
+    });
+
+    await secondPlugin.buildApp({
+      environments: { ssr: secondSsr },
+      config,
       build: async () => {
-        ssrPlugin.generateBundle.call(
-          { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+        firstSsrPlugin.generateBundle.call(
+          { environment: { name: 'ssr', config: firstSsr.config }, warn: vi.fn() },
           {},
           ssrBundles
+        );
+        finishFirstBuild();
+        await firstBuild;
+        secondSsrPlugin.generateBundle.call(
+          { environment: { name: 'ssr', config: secondSsr.config }, warn: vi.fn() },
+          {},
+          { 'entry.second.js': { type: 'chunk', isEntry: true } }
         );
       },
     });
 
-    expect(warn).not.toHaveBeenCalled();
-    expect(generate).toHaveBeenCalledWith(
+    expect(firstGenerate).toHaveBeenCalledWith(
       expect.objectContaining({ outputEntries: ['entry.azure-swa.js'] })
+    );
+    expect(secondGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ outputEntries: ['entry.second.js'] })
     );
   });
 
@@ -114,7 +170,7 @@ describe('viteAdapter app build', () => {
 
     const warn = vi.fn();
     plugin.generateBundle.call(
-      { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+      { environment: { name: 'ssr', config: ssrConfig }, warn },
       {},
       ssrBundles
     );
@@ -130,7 +186,13 @@ describe('viteAdapter app build', () => {
     // `buildApp` has already finished when this runs.
     const warn = vi.fn();
     plugin.generateBundle.call(
-      { environment: { name: 'ssr', config: { root: '/app', build: { watch: {} } } }, warn },
+      {
+        environment: {
+          name: 'ssr',
+          config: { ...ssrConfig, build: { ...ssrConfig.build, watch: {} } },
+        },
+        warn,
+      },
       {},
       ssrBundles
     );
@@ -147,7 +209,7 @@ describe('viteAdapter app build', () => {
 
     await expect(
       topLevelPlugin.buildApp({
-        environments: { ssr: { config: { build: { outDir: '/app/server' } } } },
+        environments: { ssr: { config: ssrConfig } },
         config: { root: '/app', define: {}, logger: { warn() {} } },
         build: async () => {
           throw new Error('build failed');
@@ -157,7 +219,7 @@ describe('viteAdapter app build', () => {
 
     const warn = vi.fn();
     ssrPlugin.generateBundle.call(
-      { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+      { environment: { name: 'ssr', config: ssrConfig }, warn },
       {},
       ssrBundles
     );
@@ -175,17 +237,20 @@ describe('viteAdapter app build', () => {
 
     const warn = vi.fn();
     await topLevelPlugin.buildApp({
-      environments: { ssr: { config: { build: { outDir: '/app/server' } } } },
+      environments: { ssr: { config: ssrConfig } },
       config: { root: '/app', define: {}, logger: { warn() {} } },
       build: async () => {
         ssrPlugin.generateBundle.call(
-          { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+          { environment: { name: 'ssr', config: ssrConfig }, warn },
           {},
           ssrBundles
         );
         // A direct build of another project while `/app` is building.
         ssrPlugin.generateBundle.call(
-          { environment: { name: 'ssr', config: { root: '/other' } }, warn },
+          {
+            environment: { name: 'ssr', config: { ...ssrConfig, root: '/other' } },
+            warn,
+          },
           {},
           { 'entry.other.js': { type: 'chunk', isEntry: true } }
         );

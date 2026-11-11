@@ -20,11 +20,12 @@ const QWIK_SSG_ENTRY_RESOLVED = '\0@qwik-ssg-entry';
 const QWIK_SSG_WORKER_ENTRY_ID = '@qwik-ssg-worker-entry';
 const QWIK_SSG_WORKER_ENTRY_RESOLVED = '\0@qwik-ssg-worker-entry';
 
-// App builds in progress, by resolved root. `buildApp` runs on the top-level instance of the
-// adapter plugin, but Vite resolves the config again for each environment, which creates new
-// plugin instances (unless a plugin sets `sharedDuringBuild`). So the `ssr` build's
-// `generateBundle` cannot reach `buildApp` through the plugin closure, and finds it here instead.
+// Vite creates separate adapter instances for each build environment.
 const appBuilds = new Map<string, { outputEntries: string[] }>();
+
+function getAppBuildKey(root: string, outDir: string) {
+  return JSON.stringify([resolve(root), resolve(root, outDir)]);
+}
 
 /** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
@@ -222,7 +223,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     generateBundle(_, bundles) {
       // Capture the deployed entries (the `ssr` environment), not the throwaway `ssg` output.
       if (this.environment.name === 'ssr') {
-        const appBuild = appBuilds.get(resolve(this.environment.config.root));
+        const { root, build } = this.environment.config;
+        const appBuild = appBuilds.get(getAppBuildKey(root, build.outDir));
         if (appBuild) {
           appBuild.outputEntries.length = 0;
           for (const fileName in bundles) {
@@ -252,17 +254,18 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     // prerendered route code never reaches the `ssr` bundle — then render the pages and post-build.
     // (The client builds in its own `vite build`.)
     async buildApp(builder: ViteBuilder) {
-      const root = resolve(builder.config.root);
+      const ssr = builder.environments.ssr;
+      if (!ssr) {
+        return;
+      }
+      const buildKey = getAppBuildKey(ssr.config.root, ssr.config.build.outDir);
       const appBuild = { outputEntries: [] as string[] };
-      appBuilds.set(root, appBuild);
+      appBuilds.set(buildKey, appBuild);
       try {
-        const ssr = builder.environments.ssr;
-        if (ssr) {
-          await builder.build(ssr);
-        }
+        await builder.build(ssr);
         // Read the deployed server outDir from the `ssr` environment, not a closure: in builder mode
         // `configResolved` runs per environment, so the later `ssg` build would clobber a shared value.
-        const serverOutDir = ssr?.config.build.outDir;
+        const serverOutDir = ssr.config.build.outDir;
         if (!serverOutDir || !qwikRouterPlugin?.api || !qwikVitePlugin?.api) {
           return;
         }
@@ -344,7 +347,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             `\n==============================================`
         );
       } finally {
-        appBuilds.delete(root);
+        appBuilds.delete(buildKey);
       }
     },
   };

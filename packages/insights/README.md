@@ -59,7 +59,7 @@ pnpm exec vitest run packages/insights
 PUBLIC_QWIK_INSIGHTS_KEY='' pnpm build.packages.insights
 ```
 
-The dashboard build runs type checking, lint, and the client and Netlify Edge builds. Clearing
+The dashboard build runs type checking, lint, and the client and Cloudflare Workers builds. Clearing
 `PUBLIC_QWIK_INSIGHTS_KEY` disables the Insights build plugin's remote requests during local
 verification. Production builds should use the intended application's public key.
 
@@ -76,10 +76,28 @@ validation of supplied version metadata and the symbol records used for database
 
 Build production workspace artifacts with `pnpm build.core` and `pnpm build.eslint`, then
 run `pnpm build.packages.insights`. The app produces static assets in
-`packages/insights/dist` and edge functions in `packages/insights/.netlify/edge-functions`.
-Netlify must resolve both directories relative to the app's configured base directory.
-The repository CI builds these artifacts; confirm the Netlify site's source branch, commit,
-build command, and publish directory before promoting a deployment.
+`packages/insights/dist` and server modules in `packages/insights/server`.
+`wrangler.jsonc` targets the existing `qwik-insights` Worker and its `insights.qwik.dev`
+Custom Domain. The Cloudflare adapter uses the Pages middleware and entry filename for Workers;
+keep the `ASSETS` binding and both output directories together. `.assetsignore` excludes the
+Worker entry and Pages control files from public static assets.
+
+Verify the deployment bundle without publishing:
+
+```sh
+pnpm -C packages/insights deploy.dry-run
+```
+
+The `main` branch CI builds and validates these artifacts. Production's existing
+`Deploy Insights` workflow lives on `v1` and deploys that branch; merging into `main` alone
+does not publish the v2 dashboard. An intentional production rollout must select the v2
+source and run `pnpm -C packages/insights deploy` after verification.
+
+Keep `PRIVATE_LIBSQL_DB_API_TOKEN`, `PRIVATE_AUTH_SECRET`, and `PRIVATE_GITHUB_SECRET` in
+Cloudflare Worker secrets. For local Workers testing, put the local development values from
+`.env.local` in the ignored `.dev.vars` file and run
+`pnpm -C packages/insights serve.cloudflare` after building. Use separate credentials for
+staging and register its GitHub OAuth callback.
 
 Before promotion:
 
@@ -93,5 +111,5 @@ Before promotion:
 - Send manifests, symbol events, and error events from both Qwik v1 and v2 fixture applications
   to a registered staging application. Confirm ingestion, dashboard results, and bundle strategy
   responses, including cross-origin browser requests.
-- Confirm the rendered page reports the expected `q:version`. Retain the previous Netlify deploy
+- Confirm the rendered page reports the expected `q:version`. Retain the previous Worker version
   for rollback and verify database compatibility before rolling back application code.

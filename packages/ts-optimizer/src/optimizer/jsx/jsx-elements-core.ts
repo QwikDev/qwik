@@ -1,5 +1,6 @@
 import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
-import { collectPassiveDirectives } from './event-handlers.js';
+import { collectPassiveDirectives, isRuntimeEventProp } from './event-handlers.js';
+import { getJsxAttributeName } from './jsx-attr-name.js';
 import { buildCaptureProp, type LoopContext } from './loop-hoisting.js';
 import {
   processProps,
@@ -621,9 +622,15 @@ export function transformJsxElement(
   }
 
   const hasBindInConst = !tagIsHtml && constEntries.some((e) => e.startsWith('"bind:'));
+  // A dynamic tag can be a string at runtime, so on*$ props need _jsxSplit to become listeners
+  const hasEventPropsOnDynamicTag =
+    !tagIsHtml &&
+    openingElement.attributes.some(
+      (a) => a.type === 'JSXAttribute' && isRuntimeEventProp(getJsxAttributeName(a))
+    );
   const varProps = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : null;
   const constProps = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : null;
-  const jsxFn = hasBindInConst ? '_jsxSplit' : '_jsxSorted';
+  const jsxFn = hasBindInConst || hasEventPropsOnDynamicTag ? '_jsxSplit' : '_jsxSorted';
   neededImports.add(jsxFn);
   const callString = `${jsxFn}(${tag}, ${varProps ?? 'null'}, ${constProps ?? 'null'}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
 

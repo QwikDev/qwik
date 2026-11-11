@@ -1,4 +1,5 @@
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { vectorNew } from '~/stats/vector';
 import { type AppDatabase } from './index';
 import { type ManifestRow, edgeTable, manifestTable } from './schema';
 import { latencyColumnSums, toVector } from './query-helpers';
@@ -6,14 +7,17 @@ import { latencyColumnSums, toVector } from './query-helpers';
 export async function dbGetManifests(
   db: AppDatabase,
   publicApiKey: string,
-  { limit = 1000 }: { limit?: number } = {}
-): Promise<ManifestRow[]> {
+  { limit = 1000, offset = 0 }: { limit?: number; offset?: number } = {}
+): Promise<Pick<ManifestRow, 'hash' | 'timestamp'>[]> {
+  const latestTimestamp = sql`max(${manifestTable.timestamp})`.mapWith(manifestTable.timestamp);
   const manifests = await db
-    .select()
+    .select({ hash: manifestTable.hash, timestamp: latestTimestamp })
     .from(manifestTable)
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
-    .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .where(eq(manifestTable.publicApiKey, publicApiKey))
+    .groupBy(manifestTable.hash)
+    .orderBy(desc(latestTimestamp), manifestTable.hash)
     .limit(limit)
+    .offset(offset)
     .all();
   return manifests;
 }
@@ -26,30 +30,21 @@ export async function dbGetLatestManifests(
     return [];
   }
 
-  const rankedManifests = db
-    .select({
-      id: manifestTable.id,
-      publicApiKey: manifestTable.publicApiKey,
-      hash: manifestTable.hash,
-      timestamp: manifestTable.timestamp,
-      rank: sql<number>`row_number() over (
-        partition by ${manifestTable.publicApiKey}
-        order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
-      )`.as('manifest_rank'),
-    })
-    .from(manifestTable)
-    .where(inArray(manifestTable.publicApiKey, publicApiKeys))
-    .as('ranked_manifests');
+  const latestManifestIds = sql`(
+    select (
+      select ${manifestTable.id}
+      from ${manifestTable}
+      where ${manifestTable.publicApiKey} = requested.value
+      order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
+      limit 1
+    )
+    from json_each(${JSON.stringify(publicApiKeys)}) as requested
+  )`;
 
   const manifests = await db
-    .select({
-      id: rankedManifests.id,
-      publicApiKey: rankedManifests.publicApiKey,
-      hash: rankedManifests.hash,
-      timestamp: rankedManifests.timestamp,
-    })
-    .from(rankedManifests)
-    .where(eq(rankedManifests.rank, 1))
+    .select()
+    .from(manifestTable)
+    .where(inArray(manifestTable.id, latestManifestIds))
     .all();
 
   const applicationOrder = new Map(
@@ -73,38 +68,34 @@ export async function dbGetManifestStats(
   publicApiKey: string,
   { limit = 100 }: { limit?: number } = {}
 ): Promise<ManifestStatsRow[]> {
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey, { limit });
-  if (manifestHashes.length === 0) {
+  const manifests = await dbGetManifests(db, publicApiKey, { limit });
+  if (manifests.length === 0) {
     return [];
   }
-  const manifests = await db
+  const latencyRows = await db
     .select({
-      hash: manifestTable.hash,
-      timestamp: manifestTable.timestamp,
+      hash: edgeTable.manifestHash,
       ...latencyColumnSums,
     })
-    .from(manifestTable)
-    .innerJoin(
-      edgeTable,
+    .from(edgeTable)
+    .where(
       and(
-        eq(edgeTable.publicApiKey, manifestTable.publicApiKey),
-        eq(edgeTable.manifestHash, manifestTable.hash)
+        eq(edgeTable.publicApiKey, publicApiKey),
+        inArray(
+          edgeTable.manifestHash,
+          manifests.map((manifest) => manifest.hash)
+        )
       )
     )
-    .where(
-      and(eq(manifestTable.publicApiKey, publicApiKey), inArray(manifestTable.hash, manifestHashes))
-    )
-    .groupBy(manifestTable.hash)
-    .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(limit)
+    .groupBy(edgeTable.manifestHash)
     .all();
-  return manifests.map((manifest) => {
-    return {
-      hash: manifest.hash,
-      timestamp: manifest.timestamp,
-      latency: toVector('sumLatencyCount' as const, manifest),
-    };
-  });
+  const latencyByHash = new Map(
+    latencyRows.map((row) => [row.hash, toVector('sumLatencyCount', row)])
+  );
+  return manifests.map((manifest) => ({
+    ...manifest,
+    latency: latencyByHash.get(manifest.hash) ?? vectorNew(),
+  }));
 }
 
 export async function dbGetManifestInfo(
@@ -138,13 +129,6 @@ export async function dbGetManifestHashes(
   publicApiKey: string,
   { limit = 100, offset = 0 }: { limit?: number; offset?: number } = {}
 ): Promise<string[]> {
-  const manifests = await db
-    .select({ hash: manifestTable.hash })
-    .from(manifestTable)
-    .where(eq(manifestTable.publicApiKey, publicApiKey))
-    .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(limit)
-    .offset(offset)
-    .all();
+  const manifests = await dbGetManifests(db, publicApiKey, { limit, offset });
   return manifests.map((manifest) => manifest.hash);
 }

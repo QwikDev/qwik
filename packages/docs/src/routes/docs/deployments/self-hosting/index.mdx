@@ -465,12 +465,12 @@ For Apache with mod_proxy enabled, use this configuration:
 
 ### CSRF Protection
 
-Qwik Router applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
+Qwik Router applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PUT, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
 
 #### How It Works
 
 1. **Default Protection**: Enabled by default for all non-idempotent requests
-2. **Origin Checking**: Validates the `Origin` and `Referer` headers against the `ORIGIN` environment variable
+2. **Origin Checking**: Validates the `Origin` header against the server origin
 3. **Configuration**: Controlled via the `checkOrigin` option in `createQwikRouter`
 
 #### Configuration Options

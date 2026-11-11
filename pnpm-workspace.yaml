@@ -32,7 +32,6 @@ allowBuilds:
   '@rolldown/browser': true
   '@tailwindcss/oxide': true
   esbuild: true
-  netlify-cli: true
   puppeteer: true
   sharp: true
   simple-git-hooks: true
@@ -85,6 +84,5 @@ overrides:
 patchedDependencies:
   density-clustering@1.3.0: patches/density-clustering@1.3.0.patch
   domino@2.1.6: patches/domino@2.1.6.patch
-  extract-zip@2.0.1: patches/extract-zip@2.0.1.patch
 
 shellEmulator: true

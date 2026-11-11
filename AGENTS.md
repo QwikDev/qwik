@@ -140,6 +140,23 @@ pnpm vitest packages/qwik/src/qwikloader.unit.ts -u
 
 If any of those fail, fix and push your changes.
 
+PR descriptions also show, when they apply (always for optimizer PRs):
+
+- a minimal code example of the change: the smallest input, and the relevant output or behavior
+  before and after it;
+- the tests that cover the change, as a tree per test file in a code block, grouped by `describe`
+  block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests keep their real names,
+  unless rewriting an `it` name in plain English makes it clearer on a first read; that rename is a
+  refactor, marked `~`. New tests get plain-English names. For example:
+
+  ```text
+  packages/qwik/src/core/tests/use-task.spec.tsx
+  └─ useTask$
+     ├─ ✓ runs once on the server
+     ├─ + reruns on the client when a tracked signal changes
+     └─ - warns when tracking a plain value
+  ```
+
 ## Rules
 
 Recent Qwik v2 work by core maintainers favors small, behavior-shaped changes with regression proof.
@@ -224,6 +241,9 @@ When a change affects published packages, add a changeset under `.changeset/`.
 - Avoid vague names like `data`, `item`, `temp`, `handle`, `process`, or `doWork` unless the local
   scope makes the meaning obvious.
 - Keep existing public API names unless the task is intentionally changing the API.
+- Name tests in their reader's words. End-feature tests use product terms, the ones the product's
+  users would say. DX and code tests use the terms a typical developer and the codebase use (for
+  QRLs: `qrl` or `component qrl`, not `marker`).
 
 #### Control Flow
 

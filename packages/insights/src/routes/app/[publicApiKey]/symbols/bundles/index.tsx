@@ -3,27 +3,22 @@ import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { BundleCmp } from '~/components/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getEdges, getSymbolDetailsByHashes } from '~/db/query';
+import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import {
   computeBundles,
   computeSymbolGraph,
   computeSymbolVectors,
-  type Bundle,
   type Symbol,
-  type SymbolVectors,
 } from '~/stats/edges';
-import { vectorSum } from '~/stats/vector';
 import {
+  createBundleViewData,
   getBundleExecutionCount,
   getMatrixCellColor,
-  getStrongestRelationships,
+  type MatrixCell,
 } from './bundle-view';
 
-interface BundleInfo {
-  vectors: SymbolVectors;
-  bundles: Bundle[];
-}
+type BundleInfo = ReturnType<typeof createBundleViewData>;
 
 export const head: DocumentHead = {
   title: 'Bundles | Qwik Insights',
@@ -36,7 +31,7 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
     : undefined;
 
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
-  const edges = await getEdges(db, params.publicApiKey, { limit, manifestHashes });
+  const edges = await getSymbolGraphEdges(db, params.publicApiKey, { limit, manifestHashes });
   const symbolHashes = Array.from(
     new Set(
       edges
@@ -49,16 +44,14 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   const rootSymbol = computeSymbolGraph(edges, details);
   const vectors = computeSymbolVectors(rootSymbol);
   const bundles = computeBundles(vectors);
-  return { vectors, bundles };
+  return createBundleViewData(vectors, bundles);
 });
 
 export default component$(() => {
   const data = useData();
   const selectedIndex = useSignal(0);
   const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
-  const strongestRelationships = selectedBundle
-    ? getStrongestRelationships(selectedBundle.symbols, data.value.vectors).slice(0, 10)
-    : [];
+  const strongestRelationships = selectedBundle?.relationships ?? [];
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -93,7 +86,7 @@ export default component$(() => {
           {data.value.bundles.length.toLocaleString('en')} bundles
         </strong>
         <span class="text-editorial-14 text-editorial-secondary">
-          across {data.value.vectors.symbols.length.toLocaleString('en')} recorded symbols
+          across {data.value.symbols.length.toLocaleString('en')} recorded symbols
         </span>
       </div>
 
@@ -109,7 +102,7 @@ export default component$(() => {
                   Relationship matrix
                 </p>
                 <h2 id="matrix-title" class="mt-editorial-2 text-editorial-20 font-semibold">
-                  {data.value.vectors.symbols.length.toLocaleString('en')} recorded symbols
+                  {data.value.symbols.length.toLocaleString('en')} recorded symbols
                 </h2>
                 <p class="mt-editorial-1 text-editorial-12 text-editorial-secondary">
                   Darker cells indicate stronger observed relationships.
@@ -117,11 +110,8 @@ export default component$(() => {
               </div>
               <p class="text-editorial-12 text-editorial-secondary">Latest 100 manifests</p>
             </div>
-            <div class="mt-editorial-5 max-w-full overflow-auto">
-              <CorrelationMatrix
-                matrix={data.value.vectors.vectors}
-                symbols={data.value.vectors.symbols}
-              />
+            <div class="mt-editorial-5">
+              <CorrelationMatrix matrix={data.value.matrix} symbols={data.value.symbols} />
             </div>
           </section>
 
@@ -303,7 +293,7 @@ export default component$(() => {
 });
 
 export const CorrelationMatrix = component$<{
-  matrix: number[][];
+  matrix: MatrixCell[][];
   symbols: Symbol[];
 }>(({ matrix, symbols }) => {
   const callout = useStore({
@@ -317,7 +307,7 @@ export const CorrelationMatrix = component$<{
   return (
     <>
       <div
-        class="border border-editorial-border h-[calc(70vmin-20px)] w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
+        class="border border-editorial-border aspect-square w-full max-w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
         onMouseEnter$={() => (callout.visible = true)}
         onMouseLeave$={() => (callout.visible = false)}
         onMouseMove$={(e) => {
@@ -395,7 +385,7 @@ export const CorrelationMatrix = component$<{
 });
 
 export const MatrixCells = component$<{
-  matrix: number[][];
+  matrix: MatrixCell[][];
   symbols: Symbol[];
 }>(({ matrix, symbols }) => {
   const size = matrix.length;
@@ -415,34 +405,27 @@ export const MatrixCells = component$<{
   );
 });
 
-function cells(row: number[], symbols: Symbol[]) {
-  const size = row.length;
+function cells(row: MatrixCell[], symbols: Symbol[]) {
+  const size = symbols.length;
   const cells: JSXOutput[] = [];
-  const total = vectorSum(row);
-  let sparseSize = 0;
-  for (let colIdx = 0; colIdx < row.length; colIdx++) {
-    const value = row[colIdx];
-    if (value / total > 0.05) {
-      if (sparseSize) {
-        cells.push(
-          <div class="h-full inline-block" style={{ width: (sparseSize * 100) / size + '%' }} />
-        );
-        sparseSize = 0;
-      }
-      cells.push(
-        <div
-          key={colIdx}
-          style={{
-            width: 100 / size + '%',
-            backgroundColor: getMatrixCellColor(value),
-          }}
-          data-col-symbol={symbols[colIdx].name}
-          data-value={value}
-        ></div>
-      );
-    } else {
-      sparseSize++;
+  let nextColumn = 0;
+  for (const { column, value } of row) {
+    const gap = column - nextColumn;
+    if (gap) {
+      cells.push(<div class="h-full inline-block" style={{ width: (gap * 100) / size + '%' }} />);
     }
+    cells.push(
+      <div
+        key={column}
+        style={{
+          width: 100 / size + '%',
+          backgroundColor: getMatrixCellColor(value),
+        }}
+        data-col-symbol={symbols[column].name}
+        data-value={value}
+      ></div>
+    );
+    nextColumn = column + 1;
   }
   return cells;
 }

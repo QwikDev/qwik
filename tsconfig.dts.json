@@ -66,6 +66,7 @@
     "packages/qwik/src",
     "packages/qwik/global.d.ts",
     "packages/qwik-vite/global.d.ts",
+    "packages/ts-optimizer/src/hashing/siphash13.d.ts",
     "packages/qwik-router/src",
     "packages/qwik-router/global.d.ts"
   ],

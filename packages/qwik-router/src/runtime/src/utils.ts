@@ -7,6 +7,15 @@ export const toPath = (url: URL) => url.pathname + url.search + url.hash;
 /** Create a URL from a string and baseUrl */
 export const toUrl = (url: string | URL, baseUrl: SimpleURL) => new URL(url, baseUrl.href);
 
+/** Resolves a redirect without allowing executable URL schemes. */
+export const toSafeRedirectUrl = (url: string | URL, baseUrl: SimpleURL) => {
+  const redirectUrl = toUrl(url, baseUrl);
+  if (redirectUrl.protocol !== 'http:' && redirectUrl.protocol !== 'https:') {
+    throw new Error(`Unsupported redirect protocol: ${redirectUrl.protocol}`);
+  }
+  return redirectUrl;
+};
+
 /** Checks only if the origins are the same. */
 export const isSameOrigin = (a: SimpleURL, b: SimpleURL) => a.origin === b.origin;
 

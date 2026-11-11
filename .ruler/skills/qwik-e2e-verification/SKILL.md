@@ -26,6 +26,7 @@ Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules fro
 - Docs e2e: `e2e/docs-e2e/tests/`
 - CLI e2e: `e2e/qwik-cli-e2e/tests/`
 - React integration e2e: `e2e/qwik-react-e2e/tests/`
+- Preloader e2e: `e2e/preloader-e2e/tests/` (own config, see Preloader e2e below)
 
 Apps whose directory names contain `.prod` run in production mode under the shared Qwik dev server.
 Keep exact production-only assertions in those fixtures; regular fixtures must pass after either
@@ -57,12 +58,9 @@ The shared Qwik dev server builds an app on its first page request, so `/<app>/q
 does not exist until a test has called `page.goto()` on that app. A manifest-only test that skips the
 visit passes or fails depending on which worker ran first.
 
-Put preload and request-waterfall assertions in a `.prod` app: development builds leave the preloader
-out of SSR, so every lazy chunk loads in sequence there. Record `page.on('request')` and assert which
-scripts load after the interaction; on localhost every hop finishes within milliseconds, so timing
-never shows a waterfall. To see one while debugging, add latency through CDP
-`Network.emulateNetworkConditions`. Clicking before qwikloader has loaded drops the event, so wait for
-the page to settle before the first interaction.
+Put preload and round-trip assertions in `e2e/preloader-e2e` (see Preloader e2e below), not in the
+shared Qwik e2e apps. Clicking before qwikloader has loaded drops the event, so wait for the page to
+settle before the first interaction.
 
 Playwright's `reuseExistingServer: !CI` means a dev server left over from an earlier run serves
 stale bundles, so a local pass can hide a build break that CI catches. Kill port 3301 before
@@ -94,6 +92,30 @@ Other suites may use named Playwright projects. Check their config before choosi
 pnpm playwright test e2e/docs-e2e/tests/docs-smoke.spec.ts --config e2e/docs-e2e/playwright.config.ts --project chromium
 pnpm playwright test e2e/adapters-e2e/tests/adapters.spec.ts --project=chromium --config e2e/adapters-e2e/playwright.config.ts
 pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts
+```
+
+## Preloader e2e
+
+`e2e/preloader-e2e` checks JS streaming against a production build of
+`e2e/qwik-e2e/apps/preloader-test`, with the app's own vite config, served by `vite preview` over
+HTTPS (HTTP/2).
+
+- Write test titles with the words defined in `e2e/preloader-e2e/README.md` (round trip, cap, cold
+  click, warm click); prefix tests of the gate itself with `gate:`.
+- Count round trips with the request gate in `utils/gate.ts`. It holds responses, so the count is
+  exact on localhost, where timing would show no waterfall.
+- Fixtures come from the app's `scripts/generate.ts` (`pnpm generate` in the app). Edit the script,
+  not the generated files.
+- Every click expects exactly 2 round trips (none when warm). `ROUND_TRIPS_ON_MAIN` and
+  `NOT_READY_WHEN_WARM` in `utils/fixtures.ts` list the clicks main does differently, each with a
+  reason; a fix fails the test until its entry is updated. `NEVER_SHOWS_RESULT` runs as `test.fail()`.
+  Each click's chunks are attached to the report.
+- The counts assume a production core build, as in CI. `build.core.dev` splits core into other
+  chunks and changes the round trips, so build with `pnpm build.core` first.
+
+```bash
+pnpm build.core
+pnpm test.e2e.preloader
 ```
 
 ## SSG snapshot suite

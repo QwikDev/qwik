@@ -1,9 +1,15 @@
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { assert, test } from 'vitest';
+import { NUMBER_OF_BUCKETS } from '~/stats/vector';
 import type { AppDatabase } from '.';
 import { manifestTable } from './schema';
-import { dbGetLatestManifests, dbGetManifestHashes, dbGetManifestStats } from './sql-manifest';
+import {
+  dbGetLatestManifests,
+  dbGetManifestHashes,
+  dbGetManifests,
+  dbGetManifestStats,
+} from './sql-manifest';
 
 test('returns only the latest manifest for each application', async () => {
   const client = createClient({ url: 'file::memory:' });
@@ -104,6 +110,198 @@ test('returns the 100 newest manifest hashes', async () => {
     assert.deepEqual(
       limitedStats.map((manifest) => manifest.hash),
       expectedHashes.slice(0, 2)
+    );
+  } finally {
+    client.close();
+  }
+});
+
+test('finds latest manifests in application order with deterministic timestamp ties', async () => {
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    await client.execute(
+      'CREATE INDEX idx_manifest_api_timestamp ON manifests (public_api_key, timestamp)'
+    );
+    const db = drizzle(client) as AppDatabase;
+    const appWithQuotes = "app'); SELECT 1; --";
+    await db
+      .insert(manifestTable)
+      .values([
+        { publicApiKey: 'app-a', hash: 'first-at-latest-time', timestamp: new Date(200) },
+        { publicApiKey: 'app-a', hash: 'latest', timestamp: new Date(200) },
+        { publicApiKey: 'app-a', hash: 'inserted-last-but-older', timestamp: new Date(100) },
+        { publicApiKey: appWithQuotes, hash: 'quoted-app', timestamp: new Date(300) },
+        { publicApiKey: 'unrequested', hash: 'excluded', timestamp: new Date(400) },
+        { publicApiKey: null, hash: 'orphan', timestamp: new Date(500) },
+      ])
+      .run();
+
+    const manifests = await dbGetLatestManifests(db, [
+      appWithQuotes,
+      'missing-app',
+      'app-a',
+      'app-a',
+    ]);
+    assert.deepEqual(
+      manifests.map(({ publicApiKey, hash }) => ({ publicApiKey, hash })),
+      [
+        { publicApiKey: appWithQuotes, hash: 'quoted-app' },
+        { publicApiKey: 'app-a', hash: 'latest' },
+      ]
+    );
+  } finally {
+    client.close();
+  }
+});
+
+test('pages distinct manifests before choosing the previous deployment', async () => {
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    const db = drizzle(client) as AppDatabase;
+    await db
+      .insert(manifestTable)
+      .values([
+        { publicApiKey: 'app', hash: 'latest', timestamp: new Date(100) },
+        { publicApiKey: 'app', hash: 'previous', timestamp: new Date(200) },
+        { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+        { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+        { publicApiKey: 'other-app', hash: 'previous', timestamp: new Date(400) },
+      ])
+      .run();
+
+    assert.deepEqual(
+      (await dbGetManifests(db, 'app', { limit: 2 })).map(({ hash, timestamp }) => ({
+        hash,
+        timestamp,
+      })),
+      [
+        { hash: 'latest', timestamp: new Date(300) },
+        { hash: 'previous', timestamp: new Date(200) },
+      ]
+    );
+    assert.deepEqual(await dbGetManifestHashes(db, 'app', { limit: 2 }), ['latest', 'previous']);
+    assert.deepEqual(await dbGetManifestHashes(db, 'app', { limit: 1, offset: 1 }), ['previous']);
+    assert.deepEqual(await dbGetManifestHashes(db, 'app', { limit: 1, offset: 2 }), []);
+  } finally {
+    client.close();
+  }
+});
+
+test('counts each latency sample once when manifest records are duplicated', async () => {
+  const client = createClient({ url: 'file::memory:' });
+  const latencyColumns = Array.from(
+    { length: 50 },
+    (_, index) => `latency_count_${String(index).padStart(2, '0')} INTEGER NOT NULL DEFAULT 0`
+  ).join(',');
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT NOT NULL, manifest_hash TEXT NOT NULL, ${latencyColumns})`
+    );
+    const db = drizzle(client) as AppDatabase;
+    await db
+      .insert(manifestTable)
+      .values([
+        { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+        { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+        { publicApiKey: 'app', hash: 'previous', timestamp: new Date(200) },
+        { publicApiKey: 'other-app', hash: 'latest', timestamp: new Date(400) },
+      ])
+      .run();
+    await client.batch([
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['app', 'latest', 3],
+      },
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['app', 'latest', 7],
+      },
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['app', 'previous', 5],
+      },
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['other-app', 'latest', 99],
+      },
+    ]);
+
+    assert.deepEqual(
+      (await dbGetManifestStats(db, 'app', { limit: 2 })).map(({ hash, timestamp, latency }) => ({
+        hash,
+        timestamp,
+        samples: latency[0],
+      })),
+      [
+        { hash: 'latest', timestamp: new Date(300), samples: 10 },
+        { hash: 'previous', timestamp: new Date(200), samples: 5 },
+      ]
+    );
+  } finally {
+    client.close();
+  }
+});
+
+test.each([
+  { scenario: 'the latest deployment has no samples', withoutSamples: ['latest'] },
+  { scenario: 'the previous deployment has no samples', withoutSamples: ['previous'] },
+  { scenario: 'neither deployment has samples', withoutSamples: ['latest', 'previous'] },
+])('keeps both deployments when $scenario', async ({ withoutSamples }) => {
+  const client = createClient({ url: 'file::memory:' });
+  const latencyColumns = Array.from(
+    { length: NUMBER_OF_BUCKETS },
+    (_, index) => `latency_count_${String(index).padStart(2, '0')} INTEGER NOT NULL DEFAULT 0`
+  ).join(',');
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT NOT NULL, manifest_hash TEXT NOT NULL, ${latencyColumns})`
+    );
+    const db = drizzle(client) as AppDatabase;
+    const manifests = [
+      { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+      { publicApiKey: 'app', hash: 'previous', timestamp: new Date(200) },
+      { publicApiKey: 'app', hash: 'older', timestamp: new Date(100) },
+    ];
+    await db.insert(manifestTable).values(manifests).run();
+    await client.batch([
+      ...manifests
+        .filter(({ hash }) => !withoutSamples.includes(hash))
+        .map(({ hash }) => ({
+          sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+          args: ['app', hash, 100],
+        })),
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['other-app', 'latest', 1000],
+      },
+    ]);
+
+    const stats = await dbGetManifestStats(db, 'app', { limit: 2 });
+    assert.deepEqual(
+      stats,
+      manifests.slice(0, 2).map(({ hash, timestamp }) => ({
+        hash,
+        timestamp,
+        latency: Array.from({ length: NUMBER_OF_BUCKETS }, (_, index) =>
+          index === 0 && !withoutSamples.includes(hash) ? 100 : 0
+        ),
+      }))
+    );
+    assert.deepEqual(
+      (await dbGetManifestStats(db, 'app')).map(({ hash }) => hash),
+      ['latest', 'previous', 'older']
     );
   } finally {
     client.close();

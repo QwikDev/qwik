@@ -1,11 +1,92 @@
 import { assert, test } from 'vitest';
+import { DBSCAN } from 'density-clustering';
 import {
   type SymbolPairs,
   type SymbolVectors,
   computeSymbolGraph,
   computeSymbolTree,
   computeSymbolVectors,
+  computeBundles,
 } from './edges';
+
+function bundleSymbols(count: number): SymbolVectors['symbols'] {
+  return Array.from({ length: count }, (_, index) => ({
+    name: `symbol-${index}`,
+    count: 1,
+    depth: 1,
+    children: [],
+    fullName: null,
+    fileSrc: null,
+  }));
+}
+
+test('keeps bundle membership identical to Euclidean clustering', () => {
+  const threshold = 0.95 * Math.sqrt(2);
+  for (const vectors of [
+    [],
+    [[0]],
+    [
+      [1, 0],
+      [1, 0],
+    ],
+    [
+      [0, 0],
+      [threshold, 0],
+    ],
+    [
+      [0, 0],
+      [threshold - 0.000001, 0],
+    ],
+    Array.from({ length: 24 }, (_, row) =>
+      Array.from({ length: 24 }, (_, column) =>
+        row === column ? 1 : (row + column) % 5 === 0 ? ((row * column) % 7) / 7 : 0
+      )
+    ),
+  ]) {
+    const symbols = bundleSymbols(vectors.length);
+    const expected = new DBSCAN()
+      .run(vectors, threshold, 1)
+      .map((cluster) =>
+        cluster
+          .map((index) => symbols[index].name)
+          .sort()
+          .join(',')
+      )
+      .sort();
+    const actual = computeBundles({ symbols, vectors })
+      .map((bundle) =>
+        bundle.symbols
+          .map((symbol) => symbol.name)
+          .sort()
+          .join(',')
+      )
+      .sort();
+    assert.deepEqual(actual, expected);
+  }
+});
+
+test('clusters sparse relationships without repeatedly scanning empty dimensions', () => {
+  const count = 100;
+  let coordinateReads = 0;
+  const vectors = Array.from(
+    { length: count },
+    (_, row) =>
+      new Proxy(
+        Array.from({ length: count }, (_, column) => (row === column ? 1 : 0)),
+        {
+          get(vector, key, receiver) {
+            if (typeof key === 'string' && /^\d+$/.test(key)) {
+              coordinateReads++;
+            }
+            return Reflect.get(vector, key, receiver);
+          },
+        }
+      )
+  );
+  const bundles = computeBundles({ symbols: bundleSymbols(count), vectors });
+  assert.lengthOf(bundles, count);
+  assert.isAtMost(coordinateReads, count * count * 2);
+});
 
 test('empty graph', () => {
   assert.deepEqual(computeSymbolVectors(computeSymbolGraph([])), {

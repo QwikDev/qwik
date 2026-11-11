@@ -454,164 +454,6 @@ export const latencyColumnSums = {
   sumLatencyCount49: sql<number>`sum(${edgeTable.latencyCount49}) as sumLatencyCount49`,
 };
 
-export const latencyColumnSumList = sql<string>`
-  CAST(sum(${edgeTable.latencyCount00}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount01}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount02}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount03}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount04}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount05}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount06}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount07}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount08}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount09}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount10}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount11}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount12}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount13}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount14}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount15}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount16}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount17}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount18}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount19}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount20}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount21}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount22}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount23}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount24}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount25}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount26}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount27}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount28}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount29}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount30}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount31}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount32}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount33}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount34}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount35}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount36}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount37}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount38}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount39}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount40}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount41}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount42}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount43}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount44}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount45}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount46}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount47}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount48}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.latencyCount49}) as VARCHAR)`;
-
-export const delayColumnSumList = sql<string>`
-  CAST(sum(${edgeTable.delayCount00}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount01}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount02}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount03}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount04}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount05}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount06}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount07}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount08}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount09}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount10}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount11}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount12}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount13}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount14}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount15}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount16}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount17}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount18}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount19}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount20}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount21}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount22}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount23}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount24}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount25}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount26}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount27}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount28}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount29}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount30}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount31}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount32}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount33}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount34}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount35}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount36}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount37}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount38}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount39}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount40}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount41}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount42}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount43}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount44}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount45}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount46}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount47}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount48}) as VARCHAR) || ';' ||
-  CAST(sum(${edgeTable.delayCount49}) as VARCHAR)`;
-
-export const latencyCount = {
-  latencyCount: sql<number>`
-    ${edgeTable.latencyCount00} + 
-    ${edgeTable.latencyCount01} + 
-    ${edgeTable.latencyCount02} + 
-    ${edgeTable.latencyCount03} + 
-    ${edgeTable.latencyCount04} + 
-    ${edgeTable.latencyCount05} + 
-    ${edgeTable.latencyCount06} + 
-    ${edgeTable.latencyCount07} + 
-    ${edgeTable.latencyCount08} + 
-    ${edgeTable.latencyCount09} + 
-    ${edgeTable.latencyCount10} + 
-    ${edgeTable.latencyCount11} + 
-    ${edgeTable.latencyCount12} + 
-    ${edgeTable.latencyCount13} + 
-    ${edgeTable.latencyCount14} + 
-    ${edgeTable.latencyCount15} + 
-    ${edgeTable.latencyCount16} + 
-    ${edgeTable.latencyCount17} + 
-    ${edgeTable.latencyCount18} + 
-    ${edgeTable.latencyCount19} + 
-    ${edgeTable.latencyCount20} + 
-    ${edgeTable.latencyCount21} + 
-    ${edgeTable.latencyCount22} + 
-    ${edgeTable.latencyCount23} + 
-    ${edgeTable.latencyCount24} + 
-    ${edgeTable.latencyCount25} + 
-    ${edgeTable.latencyCount26} + 
-    ${edgeTable.latencyCount27} + 
-    ${edgeTable.latencyCount28} + 
-    ${edgeTable.latencyCount29} + 
-    ${edgeTable.latencyCount30} + 
-    ${edgeTable.latencyCount31} + 
-    ${edgeTable.latencyCount32} + 
-    ${edgeTable.latencyCount33} + 
-    ${edgeTable.latencyCount34} + 
-    ${edgeTable.latencyCount35} + 
-    ${edgeTable.latencyCount36} + 
-    ${edgeTable.latencyCount37} + 
-    ${edgeTable.latencyCount38} + 
-    ${edgeTable.latencyCount39} + 
-    ${edgeTable.latencyCount40} + 
-    ${edgeTable.latencyCount41} + 
-    ${edgeTable.latencyCount42} + 
-    ${edgeTable.latencyCount43} + 
-    ${edgeTable.latencyCount44} + 
-    ${edgeTable.latencyCount45} + 
-    ${edgeTable.latencyCount46} + 
-    ${edgeTable.latencyCount47} + 
-    ${edgeTable.latencyCount48} + 
-    ${edgeTable.latencyCount49} as latencyCount`,
-};
-
 export const delayColumnSums = {
   sumDelayCount00: sql<number>`sum(${edgeTable.delayCount00}) as sumDelayCount00`,
   sumDelayCount01: sql<number>`sum(${edgeTable.delayCount01}) as sumDelayCount01`,
@@ -665,110 +507,57 @@ export const delayColumnSums = {
   sumDelayCount49: sql<number>`sum(${edgeTable.delayCount49}) as sumDelayCount49`,
 };
 
-export const timelineDelayAsList = sql<string>`(
-  CAST(SUM(${routesTable.timeline00}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline01}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline02}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline03}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline04}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline05}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline06}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline07}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline08}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline09}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline10}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline11}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline12}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline13}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline14}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline15}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline16}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline17}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline18}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline19}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline20}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline21}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline22}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline23}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline24}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline25}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline26}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline27}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline28}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline29}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline30}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline31}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline32}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline33}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline34}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline35}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline36}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline37}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline38}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline39}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline40}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline41}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline42}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline43}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline44}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline45}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline46}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline47}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline48}) as VARCHAR) || ';' ||
-  CAST(SUM(${routesTable.timeline49}) as VARCHAR)
-)`;
-
-export const timelineDelays = {
-  timeline00: routesTable.timeline00,
-  timeline01: routesTable.timeline01,
-  timeline02: routesTable.timeline02,
-  timeline03: routesTable.timeline03,
-  timeline04: routesTable.timeline04,
-  timeline05: routesTable.timeline05,
-  timeline06: routesTable.timeline06,
-  timeline07: routesTable.timeline07,
-  timeline08: routesTable.timeline08,
-  timeline09: routesTable.timeline09,
-  timeline10: routesTable.timeline10,
-  timeline11: routesTable.timeline11,
-  timeline12: routesTable.timeline12,
-  timeline13: routesTable.timeline13,
-  timeline14: routesTable.timeline14,
-  timeline15: routesTable.timeline15,
-  timeline16: routesTable.timeline16,
-  timeline17: routesTable.timeline17,
-  timeline18: routesTable.timeline18,
-  timeline19: routesTable.timeline19,
-  timeline20: routesTable.timeline20,
-  timeline21: routesTable.timeline21,
-  timeline22: routesTable.timeline22,
-  timeline23: routesTable.timeline23,
-  timeline24: routesTable.timeline24,
-  timeline25: routesTable.timeline25,
-  timeline26: routesTable.timeline26,
-  timeline27: routesTable.timeline27,
-  timeline28: routesTable.timeline28,
-  timeline29: routesTable.timeline29,
-  timeline30: routesTable.timeline30,
-  timeline31: routesTable.timeline31,
-  timeline32: routesTable.timeline32,
-  timeline33: routesTable.timeline33,
-  timeline34: routesTable.timeline34,
-  timeline35: routesTable.timeline35,
-  timeline36: routesTable.timeline36,
-  timeline37: routesTable.timeline37,
-  timeline38: routesTable.timeline38,
-  timeline39: routesTable.timeline39,
-  timeline40: routesTable.timeline40,
-  timeline41: routesTable.timeline41,
-  timeline42: routesTable.timeline42,
-  timeline43: routesTable.timeline43,
-  timeline44: routesTable.timeline44,
-  timeline45: routesTable.timeline45,
-  timeline46: routesTable.timeline46,
-  timeline47: routesTable.timeline47,
-  timeline48: routesTable.timeline48,
-  timeline49: routesTable.timeline49,
+export const sumTimelineDelays = {
+  timeline00: sql<number>`SUM(${routesTable.timeline00})`.mapWith(Number),
+  timeline01: sql<number>`SUM(${routesTable.timeline01})`.mapWith(Number),
+  timeline02: sql<number>`SUM(${routesTable.timeline02})`.mapWith(Number),
+  timeline03: sql<number>`SUM(${routesTable.timeline03})`.mapWith(Number),
+  timeline04: sql<number>`SUM(${routesTable.timeline04})`.mapWith(Number),
+  timeline05: sql<number>`SUM(${routesTable.timeline05})`.mapWith(Number),
+  timeline06: sql<number>`SUM(${routesTable.timeline06})`.mapWith(Number),
+  timeline07: sql<number>`SUM(${routesTable.timeline07})`.mapWith(Number),
+  timeline08: sql<number>`SUM(${routesTable.timeline08})`.mapWith(Number),
+  timeline09: sql<number>`SUM(${routesTable.timeline09})`.mapWith(Number),
+  timeline10: sql<number>`SUM(${routesTable.timeline10})`.mapWith(Number),
+  timeline11: sql<number>`SUM(${routesTable.timeline11})`.mapWith(Number),
+  timeline12: sql<number>`SUM(${routesTable.timeline12})`.mapWith(Number),
+  timeline13: sql<number>`SUM(${routesTable.timeline13})`.mapWith(Number),
+  timeline14: sql<number>`SUM(${routesTable.timeline14})`.mapWith(Number),
+  timeline15: sql<number>`SUM(${routesTable.timeline15})`.mapWith(Number),
+  timeline16: sql<number>`SUM(${routesTable.timeline16})`.mapWith(Number),
+  timeline17: sql<number>`SUM(${routesTable.timeline17})`.mapWith(Number),
+  timeline18: sql<number>`SUM(${routesTable.timeline18})`.mapWith(Number),
+  timeline19: sql<number>`SUM(${routesTable.timeline19})`.mapWith(Number),
+  timeline20: sql<number>`SUM(${routesTable.timeline20})`.mapWith(Number),
+  timeline21: sql<number>`SUM(${routesTable.timeline21})`.mapWith(Number),
+  timeline22: sql<number>`SUM(${routesTable.timeline22})`.mapWith(Number),
+  timeline23: sql<number>`SUM(${routesTable.timeline23})`.mapWith(Number),
+  timeline24: sql<number>`SUM(${routesTable.timeline24})`.mapWith(Number),
+  timeline25: sql<number>`SUM(${routesTable.timeline25})`.mapWith(Number),
+  timeline26: sql<number>`SUM(${routesTable.timeline26})`.mapWith(Number),
+  timeline27: sql<number>`SUM(${routesTable.timeline27})`.mapWith(Number),
+  timeline28: sql<number>`SUM(${routesTable.timeline28})`.mapWith(Number),
+  timeline29: sql<number>`SUM(${routesTable.timeline29})`.mapWith(Number),
+  timeline30: sql<number>`SUM(${routesTable.timeline30})`.mapWith(Number),
+  timeline31: sql<number>`SUM(${routesTable.timeline31})`.mapWith(Number),
+  timeline32: sql<number>`SUM(${routesTable.timeline32})`.mapWith(Number),
+  timeline33: sql<number>`SUM(${routesTable.timeline33})`.mapWith(Number),
+  timeline34: sql<number>`SUM(${routesTable.timeline34})`.mapWith(Number),
+  timeline35: sql<number>`SUM(${routesTable.timeline35})`.mapWith(Number),
+  timeline36: sql<number>`SUM(${routesTable.timeline36})`.mapWith(Number),
+  timeline37: sql<number>`SUM(${routesTable.timeline37})`.mapWith(Number),
+  timeline38: sql<number>`SUM(${routesTable.timeline38})`.mapWith(Number),
+  timeline39: sql<number>`SUM(${routesTable.timeline39})`.mapWith(Number),
+  timeline40: sql<number>`SUM(${routesTable.timeline40})`.mapWith(Number),
+  timeline41: sql<number>`SUM(${routesTable.timeline41})`.mapWith(Number),
+  timeline42: sql<number>`SUM(${routesTable.timeline42})`.mapWith(Number),
+  timeline43: sql<number>`SUM(${routesTable.timeline43})`.mapWith(Number),
+  timeline44: sql<number>`SUM(${routesTable.timeline44})`.mapWith(Number),
+  timeline45: sql<number>`SUM(${routesTable.timeline45})`.mapWith(Number),
+  timeline46: sql<number>`SUM(${routesTable.timeline46})`.mapWith(Number),
+  timeline47: sql<number>`SUM(${routesTable.timeline47})`.mapWith(Number),
+  timeline48: sql<number>`SUM(${routesTable.timeline48})`.mapWith(Number),
+  timeline49: sql<number>`SUM(${routesTable.timeline49})`.mapWith(Number),
 };
 
 export const timelineAvg = sql<number>`
@@ -927,10 +716,6 @@ export const sumTimelineCount = sql<number>`
     SUM(${routesTable.timeline47}) +
     SUM(${routesTable.timeline48}) +
     SUM(${routesTable.timeline49})`;
-
-export function listToVector(list: string): number[] {
-  return list.split(';').map((s) => parseInt(s, 10));
-}
 
 export function toVector<PREFIX extends string>(prefix: PREFIX, dat: VectorFields<PREFIX>) {
   const obj = dat as Record<string, number>;

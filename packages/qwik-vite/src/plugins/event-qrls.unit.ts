@@ -4,7 +4,7 @@ import { createQwikPlugin } from './plugin';
 import { normalizePath } from '../../../qwik/src/testing/util';
 
 const renderConsumers = {
-  hook: 'useCustomHook(Read)',
+  hook: 'hooked',
   tag: '<Read />',
   alias: '<View />',
   getter: `_jsxSorted('button', null, {get 'q-e:click'() {Read(); return Read;}}, 'getter', 3, null)`,
@@ -21,6 +21,7 @@ export const Probe = component$(() => {
   const alias = click;
   const Read = $(() => <span>RENDER_QRL{count.value}</span>);
   ${consumer === 'alias' ? 'const View = Read;' : ''}
+  ${consumer === 'hook' ? 'const hooked = useCustomHook(Read);' : ''}
   return <><button onClick$={(alias)}>RENDER_VIEW</button><button onClick$={Read}>mixed</button>{${renderConsumers[consumer]}}</>;
 });`;
 

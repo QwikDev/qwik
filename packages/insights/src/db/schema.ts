@@ -108,9 +108,10 @@ export const symbolDetailTable = sqliteTable(
     hi: integer('hi').notNull(),
   },
   (symbolDetailTable) => ({
-    apiKeyManifestHashIndex: index('idx_symbolDetail_apiKey_manifestHash').on(
+    apiKeyManifestHashIndex: uniqueIndex('idx_symbolDetail_apiKey_manifestHash_hash').on(
       symbolDetailTable.publicApiKey,
-      symbolDetailTable.manifestHash
+      symbolDetailTable.manifestHash,
+      symbolDetailTable.hash
     ),
     apiKeyHashIndex: index('idx_symbolDetail_apiKey_hash').on(
       symbolDetailTable.publicApiKey,

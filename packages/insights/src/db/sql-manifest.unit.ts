@@ -109,3 +109,44 @@ test('returns the 100 newest manifest hashes', async () => {
     client.close();
   }
 });
+
+test('finds latest manifests in application order with deterministic timestamp ties', async () => {
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    await client.execute(
+      'CREATE INDEX idx_manifest_api_timestamp ON manifests (public_api_key, timestamp)'
+    );
+    const db = drizzle(client) as AppDatabase;
+    const appWithQuotes = "app'); SELECT 1; --";
+    await db
+      .insert(manifestTable)
+      .values([
+        { publicApiKey: 'app-a', hash: 'first-at-latest-time', timestamp: new Date(200) },
+        { publicApiKey: 'app-a', hash: 'latest', timestamp: new Date(200) },
+        { publicApiKey: 'app-a', hash: 'inserted-last-but-older', timestamp: new Date(100) },
+        { publicApiKey: appWithQuotes, hash: 'quoted-app', timestamp: new Date(300) },
+        { publicApiKey: 'unrequested', hash: 'excluded', timestamp: new Date(400) },
+        { publicApiKey: null, hash: 'orphan', timestamp: new Date(500) },
+      ])
+      .run();
+
+    const manifests = await dbGetLatestManifests(db, [
+      appWithQuotes,
+      'missing-app',
+      'app-a',
+      'app-a',
+    ]);
+    assert.deepEqual(
+      manifests.map(({ publicApiKey, hash }) => ({ publicApiKey, hash })),
+      [
+        { publicApiKey: appWithQuotes, hash: 'quoted-app' },
+        { publicApiKey: 'app-a', hash: 'latest' },
+      ]
+    );
+  } finally {
+    client.close();
+  }
+});

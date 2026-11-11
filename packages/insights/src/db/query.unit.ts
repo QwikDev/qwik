@@ -3,6 +3,50 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { assert, test } from 'vitest';
 import type { AppDatabase } from '.';
 
+test('returns every delay and latency bucket for the selected application and manifests', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getEdges } = await import('./query');
+  const client = createClient({ url: 'file::memory:' });
+  const counts = Array.from({ length: 50 }, (_, index) => index + 1);
+  const columns = ['delay', 'latency'].flatMap((kind) =>
+    counts.map((_, index) => `${kind}_count_${String(index).padStart(2, '0')}`)
+  );
+
+  try {
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT NOT NULL, manifest_hash TEXT NOT NULL, "from" TEXT, "to" TEXT NOT NULL, ${columns.map((column) => `${column} INTEGER NOT NULL`).join(',')})`
+    );
+    await client.batch(
+      [
+        ['app', 'current', null, 'child', ...counts, ...counts.map((count) => count * 10)],
+        ['app', 'previous', null, 'child', ...counts, ...counts.map((count) => count * 20)],
+        ['app', 'excluded', null, 'child', ...counts, ...counts],
+        ['other-app', 'current', null, 'child', ...counts, ...counts],
+        ['app', 'current', 'parent', 'child', ...counts.map(() => 0), ...counts.map(() => 0)],
+      ].map((args) => ({
+        sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", ${columns.join(',')}) VALUES (${args.map(() => '?').join(',')})`,
+        args,
+      }))
+    );
+    const db = drizzle(client) as AppDatabase;
+    const options = { manifestHashes: ['current', 'previous'] };
+    assert.deepEqual(await getEdges(db, 'app', options), [
+      {
+        from: null,
+        to: 'child',
+        delay: counts.map((count) => count * 2),
+        latency: counts.map((count) => count * 30),
+      },
+      { from: 'parent', to: 'child', delay: counts.map(() => 0), latency: counts.map(() => 0) },
+    ]);
+    assert.lengthOf(await getEdges(db, 'app', { ...options, limit: 1 }), 1);
+    assert.deepEqual(await getEdges(db, 'missing-app', options), []);
+    assert.deepEqual(await getEdges(db, 'app', { manifestHashes: ['missing-manifest'] }), []);
+  } finally {
+    client.close();
+  }
+});
+
 test('returns aggregated symbol graph counts', async () => {
   (globalThis as any).__EXPERIMENTAL__ = {};
   const { getSlowEdges, getSymbolGraphEdges } = await import('./query');

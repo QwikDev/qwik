@@ -88,10 +88,23 @@ Verify the deployment bundle without publishing:
 pnpm -C packages/insights deploy.dry-run
 ```
 
-The `main` branch CI builds and validates these artifacts. Production's existing
-`Deploy Insights` workflow lives on `v1` and deploys that branch; merging into `main` alone
-does not publish the v2 dashboard. An intentional production rollout must select the v2
-source and run `pnpm -C packages/insights deploy` after verification.
+The separate `Deploy Insights` workflow in `.github/workflows/deploy-insights.yml` owns
+all deployment preparation and publishing. After `Qwik CI` succeeds on `main`, it checks
+out that tested commit, installs locked dependencies, builds Qwik core, the router, the
+ESLint plugin, and Insights, then validates the Cloudflare bundle with a dry run. It
+publishes to Cloudflare and checks that production serves Qwik v2 afterward. Look for
+`Deploy Insights` in the Actions sidebar after `Qwik CI` completes.
+
+Only successful push or manual `Qwik CI` runs on `main` can trigger publishing. Older commits
+are skipped if `main` has advanced when deployment starts. To retry, rerun the matching
+`Deploy Insights` run; it must still match the current `main` commit. The deployment workflow
+builds its own bundle and does not depend on artifacts or preparation jobs in `ci.yml`.
+
+Remove `.github/workflows/deploy-insights.yml` from `v1` before the first v2 deployment;
+the new workflow refuses to publish while that competing workflow exists. Both publishers
+use the same concurrency group so an in-flight deployment finishes before another starts.
+The repository secret `CLOUDFLARE_INSIGHTS_API_TOKEN` supplies the existing Cloudflare
+credentials only to the publishing step. Pull requests never run the deployment job.
 
 Keep `PRIVATE_LIBSQL_DB_API_TOKEN`, `PRIVATE_AUTH_SECRET`, and `PRIVATE_GITHUB_SECRET` in
 Cloudflare Worker secrets. For local Workers testing, put the local development values from

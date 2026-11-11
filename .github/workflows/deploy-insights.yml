@@ -1,0 +1,135 @@
+name: Deploy Insights
+
+on:
+  workflow_run:
+    workflows: ['Qwik CI']
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-insights:
+    name: Deploy Insights to Cloudflare
+    if: >-
+      github.repository == 'QwikDev/qwik' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == 'QwikDev/qwik' &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: qwik-insights-production
+      cancel-in-progress: false
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Verify production deployment ownership
+        id: ownership
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data: main } = await github.rest.git.getRef({ owner, repo, ref: 'heads/main' });
+            if (main.object.sha !== context.payload.workflow_run.head_sha) {
+              core.notice('Skipping deployment because a newer main commit exists.');
+              core.setOutput('deploy', 'false');
+              return;
+            }
+            try {
+              await github.rest.repos.getContent({
+                owner, repo, ref: 'v1', path: '.github/workflows/deploy-insights.yml',
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+              core.setOutput('deploy', 'true');
+              return;
+            }
+            core.setFailed('Remove the v1 deploy-insights.yml workflow before deploying Insights from main.');
+
+      - name: Checkout
+        if: steps.ownership.outputs.deploy == 'true'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        if: steps.ownership.outputs.deploy == 'true'
+
+      - name: Setup Node
+        if: steps.ownership.outputs.deploy == 'true'
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: pnpm-*.yaml
+
+      - name: Install deployment dependencies
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Qwik core and router
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm build.core
+
+      - name: Build Qwik ESLint plugin
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm build.eslint
+
+      - name: Build Insights
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm build.packages.insights
+
+      - name: Verify Cloudflare bundle
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm -C packages/insights run deploy.dry-run
+
+      - name: Deploy Insights to Cloudflare Workers
+        if: steps.ownership.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSIGHTS_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_INSIGHTS_API_TOKEN is required to deploy Insights."
+            exit 1
+          fi
+          test -f packages/insights/dist/_worker.js
+          test -f packages/insights/dist/.assetsignore
+          test -f packages/insights/server/entry.cloudflare-pages.js
+          pnpm -C packages/insights run deploy
+
+      - name: Verify Insights is running Qwik v2
+        if: steps.ownership.outputs.deploy == 'true'
+        run: |
+          node --input-type=module <<'JS'
+          import { setTimeout } from 'node:timers/promises';
+          const url = new URL('https://insights.qwik.dev/');
+          url.searchParams.set('deployment', process.env.DEPLOYMENT_SHA);
+          for (let attempt = 0; attempt < 6; attempt++) {
+            try {
+              const response = await fetch(url, {
+                headers: { 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10_000),
+              });
+              const html = await response.text();
+              const version = html.match(/q:version="([^"]+)"/)?.[1];
+              if (response.ok && version?.startsWith('2.')) {
+                console.log(`Insights is running Qwik ${version}.`);
+                process.exit(0);
+              }
+              console.log(`Waiting for Qwik v2: HTTP ${response.status}, version ${version ?? 'missing'}.`);
+            } catch (error) {
+              console.log(`Waiting for Insights: ${error.message}`);
+            }
+            if (attempt < 5) {
+              await setTimeout(5_000);
+            }
+          }
+          throw new Error('The production Insights deployment did not serve Qwik v2.');
+          JS

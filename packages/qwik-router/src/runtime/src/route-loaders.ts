@@ -101,7 +101,8 @@ export type LoaderFetchResult = {
  * and prevents repeat hover fetches. Cleared after each navigation kicks off its loader fetches;
  * across navigations the browser HTTP cache is the freshness authority.
  */
-let navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
+type NavFetchCache = Map<string, Promise<LoaderFetchResult | undefined>>;
+let navFetchCache: NavFetchCache = new Map();
 /** Entries a loader signal already used: they only dedupe prefetches, so `invalidate()` refetches. */
 const signalFetches = new WeakSet<Promise<LoaderFetchResult | undefined>>();
 
@@ -139,6 +140,8 @@ type LoaderRequest = {
   pageUrl: string;
   active: boolean;
   hash?: string;
+  /** The fetch cache of the navigation that made this request; its body may load after the clear. */
+  fetchCache: NavFetchCache;
   /** An interrupting navigation aborted this request's fetch before it settled. */
   isAborted?: boolean;
   /** Keep redirect reads pending until navigation installs the next request. */
@@ -186,6 +189,7 @@ function getLoaderRequest(ctx: RouteLoaderCtx, state: RouteLoaderState, id: stri
         pageUrl,
         active: client.navCount === undefined || !!path,
         hash,
+        fetchCache: navFetchCache,
       };
       requests.set(state[id], request);
     }
@@ -273,6 +277,7 @@ export const fetchRouteLoaderData = async (
     basePath?: string;
     ignoreCache?: boolean;
     signal?: AbortSignal;
+    cache?: NavFetchCache;
   }
 ): Promise<LoaderFetchResult | undefined> => {
   if (!routePath) {
@@ -302,7 +307,7 @@ export const fetchRouteLoaderData = async (
 
   const pagePath = headers[FULLPATH_HEADER] ?? headers[ROUTE_PATH_HEADER] ?? '';
   const cacheKey = `${url}\n${pagePath}`;
-  const cache = navFetchCache;
+  const cache = opts?.cache ?? navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);
     const signal = opts?.signal;
@@ -452,6 +457,7 @@ const createRouteLoaderSignal = (
             basePath,
             ignoreCache: info === true,
             signal: abortSignal,
+            cache: request.fetchCache,
           });
           assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
           if (!result) {
@@ -818,7 +824,9 @@ export function prepareRouteLoaders(
         : hasSameListedSearch(new URL(old.pageUrl), pageUrl, loader?.__search));
     current.requests.set(
       signal,
-      keepRequest ? old : { routePath, pageUrl: pageUrl.href, active: true, hash }
+      keepRequest
+        ? old
+        : { routePath, pageUrl: pageUrl.href, active: true, hash, fetchCache: navFetchCache }
     );
     ctx.loaderPaths[id] = routePath;
     const force = forceIds === null || forceIds?.some((value) => value === id || value === hash);

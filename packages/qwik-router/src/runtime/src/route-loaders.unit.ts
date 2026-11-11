@@ -397,6 +397,44 @@ describe('getModuleRouteLoaders', () => {
 });
 
 describe('fetchRouteLoaderData nav cache', () => {
+  it('reuses the hover prefetch when the loader fetches after the navigation cleared the cache', async () => {
+    const fetchMock = vi.fn(async () => new Response('page'));
+    vi.stubGlobal('fetch', fetchMock);
+    clearNavFetchCache();
+    try {
+      const state: RouteLoaderState = {};
+      const ctx: RouteLoaderCtx = { loaderPaths: { page: '/a/' } };
+      const page = createLoader('page', async () => 'page');
+      ensureRouteLoaderSignal(page, state, ctx);
+      const next = new URL('http://test/b/');
+      void fetchRouteLoaderData('page', '/b/', 'hash', { pageUrl: next });
+
+      prepareRouteLoaders(
+        [{ page } as unknown as RouteModule],
+        state,
+        ctx,
+        { page: '/b/' },
+        next,
+        new URL('http://test/a/'),
+        1
+      );
+      clearNavFetchCache();
+      // A client build loads the loader body lazily, so its fetch starts after the clear.
+      const request = getClientRouteLoaders(ctx).current.requests.get(state.page)!;
+      const result = await fetchRouteLoaderData('page', request.routePath, 'hash', {
+        pageUrl: next,
+        signal: new AbortController().signal,
+        cache: request.fetchCache,
+      });
+
+      expect(result).toEqual({ raw: 'page' });
+      expect(fetchMock).toHaveBeenCalledOnce();
+    } finally {
+      clearNavFetchCache();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('does not share a strict dev root loader fetch between pages', async () => {
     const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
     globalThis.__STRICT_LOADERS__ = true;

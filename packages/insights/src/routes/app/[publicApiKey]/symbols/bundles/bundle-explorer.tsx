@@ -6,6 +6,8 @@ import { RelationshipMatrix } from './relationship-matrix';
 
 export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
   const selectedIndex = useSignal(0);
+  const search = useSignal('');
+  const visibleCount = useSignal(50);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
@@ -17,6 +19,14 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
     selectedRelationship.value < 0
       ? undefined
       : strongestRelationships.at(selectedRelationship.value);
+
+  const visibleSymbols = (selectedBundle?.symbols ?? [])
+    .filter((symbol) =>
+      [symbol.name, symbol.fullName, symbol.fileSrc].some((value) =>
+        value?.toLowerCase().includes(search.value.trim().toLowerCase())
+      )
+    )
+    .sort((a, b) => b.count - a.count);
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -71,6 +81,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
               value={selectedIndex.value}
               onChange$={(_, select) => {
                 selectedIndex.value = Number(select.value);
+                search.value = '';
+                visibleCount.value = 50;
                 selectedSymbol.value = '';
                 selectedRelationship.value = -1;
               }}
@@ -111,6 +123,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         aria-pressed={isSelected}
                         onClick$={() => {
                           selectedIndex.value = index;
+                          search.value = '';
+                          visibleCount.value = 50;
                           selectedSymbol.value = '';
                           selectedRelationship.value = -1;
                         }}
@@ -343,6 +357,22 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         Symbols in this group
                       </h2>
                     </div>
+                    <label class="block px-editorial-5 py-editorial-3 text-editorial-12">
+                      Search this group
+                      <input
+                        type="search"
+                        value={search.value}
+                        onInput$={(_, input) => {
+                          search.value = input.value;
+                          visibleCount.value = 50;
+                        }}
+                        placeholder="Name, hash, or source path"
+                        class="mt-editorial-2 w-full rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-2"
+                      />
+                    </label>
+                    <p class="px-editorial-5 text-editorial-11 text-editorial-muted">
+                      {visibleSymbols.length} matching symbols, most observed first
+                    </p>
                     <div class="overflow-x-auto">
                       <table class="w-full min-w-[360px] text-left text-editorial-12">
                         <thead class="sticky top-0 border-b border-editorial-border bg-editorial-canvas text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
@@ -355,17 +385,12 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedBundle.symbols.map((symbol) => (
+                          {visibleSymbols.slice(0, visibleCount.value).map((symbol) => (
                             <tr
                               key={symbol.name}
                               class="border-b border-editorial-border align-top"
                             >
                               <th class="max-w-64 px-editorial-5 py-editorial-4 font-normal">
-                                {symbol.fullName && (
-                                  <code class="block truncate font-editorial-mono text-editorial-12 font-semibold">
-                                    {symbol.fullName}
-                                  </code>
-                                )}
                                 <span
                                   class={[
                                     'block truncate font-editorial-mono text-editorial-11',
@@ -400,6 +425,17 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         </tbody>
                       </table>
                     </div>
+                    {visibleSymbols.length > visibleCount.value && (
+                      <button
+                        type="button"
+                        class="m-editorial-5 text-editorial-12 font-semibold text-editorial-link"
+                        onClick$={() => {
+                          visibleCount.value += 50;
+                        }}
+                      >
+                        Show 50 more symbols
+                      </button>
+                    )}
                   </section>
                 )}
                 {selectedView.value === 'matrix' && (

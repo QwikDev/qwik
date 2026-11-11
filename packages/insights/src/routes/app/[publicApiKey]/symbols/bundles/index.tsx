@@ -3,7 +3,7 @@ import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { BundleCmp } from '~/components/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getEdges, getSymbolDetailsByHashes } from '~/db/query';
+import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import {
   computeBundles,
@@ -36,7 +36,7 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
     : undefined;
 
   const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
-  const edges = await getEdges(db, params.publicApiKey, { limit, manifestHashes });
+  const edges = await getSymbolGraphEdges(db, params.publicApiKey, { limit, manifestHashes });
   const symbolHashes = Array.from(
     new Set(
       edges

@@ -5,7 +5,8 @@ import type { AppDatabase } from '.';
 
 test('returns every delay and latency bucket for the selected application and manifests', async () => {
   (globalThis as any).__EXPERIMENTAL__ = {};
-  const { getEdges } = await import('./query');
+  const { getEdges, getSymbolGraphEdges } = await import('./query');
+  const { vectorSum2 } = await import('../stats/vector');
   const client = createClient({ url: 'file::memory:' });
   const counts = Array.from({ length: 50 }, (_, index) => index + 1);
   const columns = ['delay', 'latency'].flatMap((kind) =>
@@ -39,6 +40,14 @@ test('returns every delay and latency bucket for the selected application and ma
       },
       { from: 'parent', to: 'child', delay: counts.map(() => 0), latency: counts.map(() => 0) },
     ]);
+    const histogramEdges = await getEdges(db, 'app', options);
+    assert.deepEqual(
+      await getSymbolGraphEdges(db, 'app', options),
+      histogramEdges.map(({ from, to, delay }) => {
+        const [relatedCount, unrelatedCount] = vectorSum2(delay, 250);
+        return { from, to, relatedCount, unrelatedCount };
+      })
+    );
     assert.lengthOf(await getEdges(db, 'app', { ...options, limit: 1 }), 1);
     assert.deepEqual(await getEdges(db, 'missing-app', options), []);
     assert.deepEqual(await getEdges(db, 'app', { manifestHashes: ['missing-manifest'] }), []);

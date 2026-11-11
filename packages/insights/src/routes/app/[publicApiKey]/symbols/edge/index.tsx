@@ -1,33 +1,23 @@
+import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import Button, { ButtonLink } from '~/components/button';
 import PageHeader from '~/components/page-header';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { computeSymbolGraph, computeSymbolTree, type SymbolTreeNode } from '~/stats/edges';
 import { getSymbolGraphEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 
 export const useRootSymbol = routeLoader$(async ({ params, url }) => {
   const db = getDB();
-  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '', 10) || 1);
-  const limit = url.searchParams.get('limit')
-    ? parseInt(url.searchParams.get('limit')!)
-    : undefined;
-  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey, {
-    limit: 101,
-    offset: (page - 1) * 100,
-  });
-  const hasNext = manifestHashes.length > 100;
-  const pageManifestHashes = manifestHashes.slice(0, 100);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, url.searchParams);
+  const pageManifestHashes = selectedHash ? [selectedHash] : [];
   if (pageManifestHashes.length === 0) {
-    return { rootSymbol: computeSymbolTree(computeSymbolGraph([])[0]), page, hasNext };
+    return { rootSymbol: computeSymbolTree(computeSymbolGraph([])[0]) };
   }
   const symbols = await getSymbolGraphEdges(db, params.publicApiKey, {
-    limit,
     manifestHashes: pageManifestHashes,
   });
-  return { rootSymbol: computeSymbolTree(computeSymbolGraph(symbols)[0]), page, hasNext };
+  return { rootSymbol: computeSymbolTree(computeSymbolGraph(symbols)[0]) };
 });
 
 export default component$(() => {
@@ -39,11 +29,9 @@ export default component$(() => {
         report="edge"
         eyebrow="Symbol relationships"
         title="Execution paths"
-        description="Symbol execution paths across the latest 100 manifests."
+        description="Observed symbol sequences in the selected build."
         class="mb-editorial-8"
-      >
-        <Pagination page={rootSymbol.value.page} hasNext={rootSymbol.value.hasNext} />
-      </PageHeader>
+      />
 
       <div class="overflow-x-auto">
         <div class="flex h-12 min-w-[36rem] items-center gap-editorial-3 border-b border-editorial-border px-editorial-4 text-editorial-12 text-editorial-secondary">
@@ -65,33 +53,6 @@ export default component$(() => {
     </section>
   );
 });
-
-function Pagination({ page, hasNext }: { page: number; hasNext: boolean }) {
-  const buttonClass = '!min-h-[41px]';
-  return (
-    <nav aria-label="Pagination" class="flex items-center gap-editorial-6 self-end md:self-auto">
-      {page > 1 ? (
-        <ButtonLink href={`?page=${page - 1}`} theme="secondary" class={buttonClass}>
-          ← Previous
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="secondary" class={buttonClass}>
-          ← Previous
-        </Button>
-      )}
-      <span class="text-editorial-12 font-semibold whitespace-nowrap">Page {page}</span>
-      {hasNext ? (
-        <ButtonLink href={`?page=${page + 1}`} theme="primary" class={buttonClass}>
-          Next →
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="primary" class={buttonClass}>
-          Next →
-        </Button>
-      )}
-    </nav>
-  );
-}
 
 function SymbolTree({
   symbol,

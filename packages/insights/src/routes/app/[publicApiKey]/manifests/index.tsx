@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import { getManifestPerformance } from '../performance';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
@@ -27,6 +27,7 @@ export const useData = routeLoader$(async ({ params, query }) => {
 
 export default component$(() => {
   const data = useData();
+  const location = useLocation();
   const overview = data.value.overview;
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -72,7 +73,8 @@ export default component$(() => {
                 return (
                   <tr key={row.hash} class="border-b border-editorial-border align-middle">
                     <th class="py-editorial-5 font-normal">
-                      <code
+                      <Link
+                        href={`/app/${location.params.publicApiKey}/?manifest=${encodeURIComponent(row.hash)}`}
                         class="inline-flex items-center gap-editorial-3 font-editorial-mono font-semibold"
                         title={row.hash}
                       >
@@ -80,7 +82,7 @@ export default component$(() => {
                           <ManifestIcon class="size-3.5" />
                         </span>
                         {row.hash.slice(0, 8)}
-                      </code>
+                      </Link>
                     </th>
                     <td class="py-editorial-5 text-editorial-secondary">
                       {formatManifestTimestamp(row.timestamp)}

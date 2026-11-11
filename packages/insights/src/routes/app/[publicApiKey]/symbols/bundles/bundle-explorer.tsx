@@ -29,8 +29,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
             Suggested bundles
           </h1>
           <p class="mt-editorial-2 max-w-2xl text-editorial-14 text-editorial-secondary">
-            Explore suggested symbol groups based on execution relationships across the latest 100
-            manifests. These are analysis groups, not emitted build files.
+            Explore suggested symbol groups based on execution relationships in the selected build.
+            These are analysis groups, not emitted build files.
           </p>
         </div>
         {selectedBundle && (

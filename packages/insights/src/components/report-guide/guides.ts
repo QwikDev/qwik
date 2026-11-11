@@ -63,7 +63,7 @@ export const reportGuides = {
     purpose: 'Find a function and distinguish gaps between requests from loading latency.',
     steps: [
       'Find the symbol by name, hash, or source file.',
-      'Compare its latency distribution and sample count across the manifests on this page.',
+      'Compare its latency distribution and sample count within the selected build scope.',
       'Inspect its source and execution relationships to identify a concrete optimization to test.',
     ],
     meaning:
@@ -116,7 +116,7 @@ export const reportGuides = {
       'After deploying a fix, check for new occurrences and confirm telemetry is still arriving.',
     ],
     meaning:
-      'This report groups the most recent 1,000 events from the last 30 days. Dashboard error groups cover the last 24 hours.',
+      'This report groups the selected build’s most recent 1,000 events from the last 30 days. Dashboard error groups cover the last 24 hours.',
     caution:
       'No recorded errors can mean either no reported failures or missing telemetry. Counts represent events, not unique users.',
   },

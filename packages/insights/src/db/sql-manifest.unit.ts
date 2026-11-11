@@ -106,6 +106,14 @@ test('returns the 100 newest manifest hashes', async () => {
       expectedHashes
     );
     assert.equal(stats[0].latency[0], 0);
+    const selectedStats = await dbGetManifestStats(db, 'app', {
+      manifestHashes: ['hash-120', 'hash-100', 'foreign'],
+    });
+    assert.deepEqual(
+      selectedStats.map((manifest) => manifest.hash),
+      ['hash-120', 'hash-100']
+    );
+    assert.deepEqual(await dbGetManifestStats(db, 'app', { manifestHashes: [] }), []);
     const limitedStats = await dbGetManifestStats(db, 'app', { limit: 2 });
     assert.deepEqual(
       limitedStats.map((manifest) => manifest.hash),

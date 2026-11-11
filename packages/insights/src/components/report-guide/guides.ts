@@ -132,6 +132,19 @@ export const reportGuides = {
     caution:
       'No recorded errors can mean either no reported failures or missing telemetry. Counts represent events, not unique users.',
   },
+  health: {
+    purpose:
+      'Distinguish missing telemetry, missing source metadata, and an unverified repository mapping.',
+    steps: [
+      'Choose a build and check recorded symbols and routes.',
+      'Check metadata coverage, then test a source file against the saved GitHub settings.',
+      'Verify build plugin logs and collect representative observations before comparing performance.',
+    ],
+    meaning:
+      'Coverage measures how many observed symbol hashes have metadata in the selected build. A source test fetches one file from the application-wide revision.',
+    caution:
+      'Recorded data does not prove telemetry is still arriving. The current schema does not record arrival timestamps or confirm which optimization strategy a deployment used.',
+  },
   settings: {
     purpose: 'Connect the application, its build metadata, and its matching source code.',
     steps: [

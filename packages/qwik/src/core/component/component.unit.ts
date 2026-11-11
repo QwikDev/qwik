@@ -75,6 +75,24 @@ describe('components and invoke contexts', () => {
     expect(render).toHaveBeenCalledTimes(2);
   });
 
+  it('runs an async setup again once a cancelled computed it read gets a value', async () => {
+    const owner = createOwner(null);
+    const list = new Computed<string>(null, () => new Promise<string>(() => {}));
+    expect(() => list.value).toThrow(Promise);
+    list.abort();
+    const render = vi.fn(async () => {
+      await Promise.resolve();
+      return list.value;
+    });
+
+    const output = runWithOwner(owner, () => createComponent(render, null));
+    await new Promise((resolve) => setTimeout(resolve));
+    list.value = 'ready';
+
+    await expect(output).resolves.toBe('ready');
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
   it('ignores a discarded component after its pending work settles', async () => {
     const owner = createOwner(null);
     let release!: () => void;

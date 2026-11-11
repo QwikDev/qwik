@@ -141,12 +141,13 @@ function settleComponent(
   const finish = (nodes: ComponentOutput | void) =>
     invoke(invokeContext, finalizeOutput, nodes, invokeContext);
   const retry = (error: unknown): ValueOrPromise<ComponentOutput | void> => {
-    if (!isPromise(error)) {
+    const retryRequest = toRetryRequest(error);
+    if (!isPromise(retryRequest)) {
       return handleComponentError(invokeContext, error);
     }
     const result = retryAfterPromise(
       ownerHost,
-      error,
+      retryRequest,
       () => {
         invokeContext = createComponentInvokeContext(parentInvokeContext, ownerHost, options);
         return thenInLifetime(
@@ -158,9 +159,7 @@ function settleComponent(
       },
       EMPTY_NODES
     );
-    return isPromise(result)
-      ? result.catch((error) => handleComponentError(invokeContext, error))
-      : result;
+    return isPromise(result) ? result.catch(retry) : result;
   };
   const pending = isPendingRead
     ? retry(source)
@@ -186,6 +185,9 @@ function settleComponent(
 }
 
 /** A setup read of a computed without a value waits for its next one, as a pending read does. */
+const toRetryRequest = (error: unknown): unknown =>
+  isNotReadyError(error) ? error.source.whenSettled() : error;
+
 function runSetup(
   invokeContext: RuntimeInvokeContext,
   render: (props: unknown, context: unknown) => ValueOrPromise<ComponentOutput | void>,
@@ -195,7 +197,7 @@ function runSetup(
   try {
     return untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext);
   } catch (error) {
-    throw isNotReadyError(error) ? error.source.whenSettled() : error;
+    throw toRetryRequest(error);
   }
 }
 

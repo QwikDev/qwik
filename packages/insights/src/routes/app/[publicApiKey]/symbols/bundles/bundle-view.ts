@@ -96,3 +96,5 @@ export function getStrongestRelationships(
 
   return relationships.sort((a, b) => b.score - a.score);
 }
+
+export type BundleInfo = ReturnType<typeof createBundleViewData>;

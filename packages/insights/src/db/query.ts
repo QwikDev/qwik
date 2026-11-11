@@ -213,7 +213,6 @@ export async function getAppInfo(
   description: string | null;
   publicApiKey: string;
   url: string | null;
-  github: string | null;
 }> {
   const app = await db
     .select()
@@ -221,10 +220,6 @@ export async function getAppInfo(
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
   return {
-    github:
-      publicApiKey == '221smyuj5gl'
-        ? 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src'
-        : null,
     ...app!,
   };
 }

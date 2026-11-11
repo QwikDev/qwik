@@ -38,4 +38,15 @@ describe('visualization lab', () => {
     expect(document.querySelector('aside h3')?.textContent).toBe('Group 2');
     expect(document.querySelector('aside')?.textContent).toContain('gamma_component');
   });
+  it('recenters the neighborhood when a neighbor is selected', async () => {
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} initialView="neighborhood" />
+    );
+    const selected = document.querySelector('.lab-center code')!.textContent;
+    const neighbor = document.querySelector<HTMLButtonElement>('button.lab-node')!;
+    const neighborName = neighbor.querySelector('code')!.textContent;
+    expect(neighborName).not.toBe(selected);
+    await trigger(document.body, neighbor, 'click');
+    expect(document.querySelector('.lab-center code')?.textContent).toBe(neighborName);
+  });
 });

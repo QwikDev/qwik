@@ -54,4 +54,32 @@ describe('bundle explorer', () => {
       'Selected relationship'
     );
   });
+  it('scopes the matrix to the selected group and lets users inspect either direction', async () => {
+    const { document } = await domRender(<BundleExplorer data={data} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    const selectValue = async (selector: string, value: string) => {
+      const select = document.querySelector<HTMLSelectElement>(selector)!;
+      expect(select).toBeTruthy();
+      select.value = value;
+      await trigger(document.body, select, 'change');
+    };
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('2 symbols');
+    await selectValue('[data-matrix-row]', '1');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain('0.80 / 1');
+    await selectValue('[data-matrix-row]', '0');
+    await selectValue('[data-matrix-column]', '1');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain('0.40 / 1');
+    await selectValue('[data-matrix-minimum]', '0.8');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'hidden by minimum score'
+    );
+    await selectValue('[data-matrix-scope]', 'all');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('3 symbols');
+    await selectValue('[data-matrix-row]', '2');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'No modeled connection: 0.00 / 1'
+    );
+    await trigger(document.body, '[data-group="1"]', 'click');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('1 symbol');
+  });
 });

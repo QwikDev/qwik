@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getBundleExecutionCount,
+  getMatrixView,
   createBundleViewData,
   getMatrixCellColor,
   getStrongestRelationships,
@@ -8,7 +9,7 @@ import {
 import type { Symbol } from '~/stats/edges';
 
 describe('bundle view', () => {
-  it('sends only matrix cells that are visible in the report', () => {
+  it('preserves every positive score so filtering cannot be confused with zero', () => {
     const vectors = {
       symbols: [],
       vectors: [
@@ -20,6 +21,7 @@ describe('bundle view', () => {
     expect(createBundleViewData(vectors, []).matrix).toEqual([
       [
         { column: 0, value: 1 },
+        { column: 1, value: 0.04 },
         { column: 2, value: 0.1 },
       ],
       [],
@@ -46,7 +48,7 @@ describe('bundle view', () => {
       symbols,
       vectors: [
         [1, 0.5],
-        [0.2, 1],
+        [0.04, 1],
       ],
     };
     const bundles = [{ name: 'bundle_a', symbols: symbols.slice(0, 2) }];
@@ -59,7 +61,7 @@ describe('bundle view', () => {
     expect(getBundleExecutionCount(result.bundles[0])).toBe(3);
     expect(result.bundles[0].relationships).toEqual([
       { from: 'symbol-1', to: 'symbol-0', score: 0.5 },
-      { from: 'symbol-0', to: 'symbol-1', score: 0.2 },
+      { from: 'symbol-0', to: 'symbol-1', score: 0.04 },
     ]);
     expect(result.matrix[0]).toEqual([
       { column: 0, value: 1 },
@@ -67,7 +69,7 @@ describe('bundle view', () => {
     ]);
     expect(vectors.vectors).toEqual([
       [1, 0.5],
-      [0.2, 1],
+      [0.04, 1],
     ]);
     expect(symbols[0].children).toHaveLength(1);
     const resumed = await _deserialize<typeof result>(await _serialize(result));
@@ -98,6 +100,52 @@ describe('bundle view', () => {
     expect(connections.every(({ from, to }) => from !== to)).toBe(true);
   });
 
+  it('orders both matrix axes by group and remaps directional scores without changing input', () => {
+    const symbols: Symbol[] = ['a', 'b', 'c'].map((name) => ({
+      name,
+      count: 1,
+      fullName: null,
+      fileSrc: null,
+      depth: 0,
+      children: [],
+    }));
+    const data = createBundleViewData(
+      {
+        symbols,
+        vectors: [
+          [1, 0.2, 0],
+          [0.7, 1, 0.1],
+          [0, 0, 1],
+        ],
+      },
+      [
+        { name: 'bc', symbols: [symbols[2], symbols[1]] },
+        { name: 'a', symbols: [symbols[0]] },
+      ]
+    );
+    const original = JSON.stringify(data);
+    const selected = getMatrixView(data, 0, false);
+    expect(selected.symbols.map(({ name }) => name)).toEqual(['c', 'b']);
+    expect(selected.matrix).toEqual([
+      [{ column: 0, value: 1 }],
+      [
+        { column: 1, value: 1 },
+        { column: 0, value: 0.1 },
+      ],
+    ]);
+    const all = getMatrixView(data, 0, true);
+    expect(all.symbols.map(({ name }) => name)).toEqual(['c', 'b', 'a']);
+    expect(all.matrix[1]).toContainEqual({ column: 2, value: 0.7 });
+    expect(all.groups).toEqual([
+      { label: 'Group 1', start: 0, size: 2 },
+      { label: 'Group 2', start: 2, size: 1 },
+    ]);
+    expect(JSON.stringify(data)).toBe(original);
+    expect(
+      getMatrixView(createBundleViewData({ symbols: [], vectors: [] }, []), 0, false).symbols
+    ).toEqual([]);
+  });
+
   it('summarizes recorded executions', () => {
     expect(
       getBundleExecutionCount({
@@ -107,12 +155,20 @@ describe('bundle view', () => {
     ).toBe(119);
   });
 
-  it('uses the editorial data palette for matrix values', () => {
+  it('fades weak scores into the canvas without a minimum color floor', () => {
     expect(getMatrixCellColor(0)).toBe(
-      'color-mix(in srgb, var(--color-editorial-data-current) 0%, var(--color-editorial-data-band))'
+      'color-mix(in srgb, var(--color-editorial-data-current) 0%, var(--color-editorial-canvas))'
     );
+    expect(getMatrixCellColor(0.01)).toBe(
+      'color-mix(in srgb, var(--color-editorial-data-current) 1%, var(--color-editorial-canvas))'
+    );
+    expect(getMatrixCellColor(0.5)).toBe(
+      'color-mix(in srgb, var(--color-editorial-data-current) 50%, var(--color-editorial-canvas))'
+    );
+    expect(getMatrixCellColor(-1)).toBe(getMatrixCellColor(0));
+    expect(getMatrixCellColor(2)).toBe(getMatrixCellColor(1));
     expect(getMatrixCellColor(1)).toBe(
-      'color-mix(in srgb, var(--color-editorial-data-current) 100%, var(--color-editorial-data-band))'
+      'color-mix(in srgb, var(--color-editorial-data-current) 100%, var(--color-editorial-canvas))'
     );
   });
 

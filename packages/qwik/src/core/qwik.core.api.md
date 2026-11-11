@@ -38,7 +38,7 @@ export type AsyncSignalOptions<T> = ComputedOptions<T>;
 export const _BIGINT_PAYLOAD_REGEXP: RegExp;
 
 // @internal (undocumented)
-export const _caC: (props: CatchProps) => JSXOutput;
+export function _caC(props: CatchProps): JSXOutput;
 
 // @internal (undocumented)
 export const _canSerialize: (value: unknown, seen?: WeakSet<any>) => boolean;
@@ -52,7 +52,7 @@ export const _capturesObj: {
 };
 
 // @internal (undocumented)
-export const _caR: () => void;
+export function _caR(): void;
 
 // @public
 export const Catch: Component<CatchProps>;
@@ -504,7 +504,7 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 // Warning: (ae-forgotten-export) The symbol "EachProps" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
+export function _eaC(props: EachProps<any>): JSXNode<unknown>;
 
 // Warning: (ae-forgotten-export) The symbol "EachComponent" needs to be exported by the entry point index.d.ts
 //
@@ -512,7 +512,7 @@ export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
 export const Each: EachComponent;
 
 // @internal (undocumented)
-export const _eaT: (input: TaskCtx) => Promise<void>;
+export function _eaT(input: TaskCtx): Promise<void>;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -677,10 +677,10 @@ export function _hasSlotProps(props: Props | null | undefined): boolean;
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
-export const _hmr: (this: string | undefined, event: CustomEvent<{
+export function _hmr(this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;
-}>, element: Element) => void | Promise<void>;
+}>, element: Element): void | Promise<void>;
 
 // @internal (undocumented)
 export type _HostElement = _VNode | ISsrNode;
@@ -934,7 +934,7 @@ export interface OnVisibleTaskOptions {
 }
 
 // @internal (undocumented)
-export const _peC: (props: PendingProps) => JSXNodeInternal<string>[];
+export function _peC(props: PendingProps): JSXNodeInternal<string>[];
 
 // @public (undocumented)
 export const Pending: Component<PendingProps>;
@@ -946,7 +946,7 @@ export type PendingProps = {
 };
 
 // @internal (undocumented)
-export const _peT: (input: TaskCtx) => void;
+export function _peT(input: TaskCtx): void;
 
 // @alpha @deprecated (undocumented)
 export const PrefetchGraph: (_opts?: {
@@ -1179,7 +1179,7 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 // Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
+export function _reC(props: RevealProps): JSXNodeInternal<FunctionComponent<    {
 name?: string;
 children?: JSXChildren;
 }>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
@@ -1246,7 +1246,7 @@ export interface RenderSSROptions {
 export const _requestPreload: Preload;
 
 // @internal (undocumented)
-export const _reR: () => boolean;
+export function _reR(): boolean;
 
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void | Promise<void>;
@@ -1301,8 +1301,11 @@ export type ResourceReturn<T> = {
 // @internal (undocumented)
 export const _restProps: (props: unknown, omit?: string[], target?: Props) => Props;
 
+// @internal
+export const _resumeRootsQrl: (roots: unknown[]) => QRL<typeof _res>;
+
 // @internal (undocumented)
-export const _reT: (input: TaskCtx) => void;
+export function _reT(input: TaskCtx): void;
 
 // @internal
 export function _retryOnPromise<T>(fn: () => ValueOrPromise<T>, onError?: (e: any) => ValueOrPromise<T>): ValueOrPromise<T>;
@@ -1322,7 +1325,7 @@ export type RevealProps = {
 };
 
 // @internal
-export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
+export function _rsc<T>(arg: ResourceCtx<T>): Promise<{
     r: T;
 }>;
 
@@ -1417,7 +1420,7 @@ export abstract class _SharedContainer implements _Container {
 }
 
 // @internal (undocumented)
-export const _shC: (props: ShowProps<any>) => JSXNode<unknown>;
+export function _shC(props: ShowProps<any>): JSXNode<unknown>;
 
 // @public (undocumented)
 export const Show: ShowComponent;
@@ -1436,7 +1439,7 @@ export interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, E
 }
 
 // @internal (undocumented)
-export const _shT: (input: TaskCtx) => ValueOrPromise<void | undefined>;
+export function _shT(input: TaskCtx): ValueOrPromise<void | undefined>;
 
 // @public
 export interface Signal<T = any> {

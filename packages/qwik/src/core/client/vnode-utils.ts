@@ -531,7 +531,7 @@ export const vnode_ensureElementInflated = (container: Container, vnode: VNode) 
 const unwrapEventHandlerQrl = (
   handler: ReturnType<typeof parseQRL>
 ): QRL<(...args: any[]) => void> => {
-  if (handler.$symbol$ === '_run') {
+  if (handler.$hash$ === 'run') {
     const innerHandler = handler.getCaptured()?.[0];
     if (isQrl(innerHandler)) {
       return innerHandler as QRL<(...args: any[]) => void>;

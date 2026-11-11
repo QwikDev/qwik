@@ -637,6 +637,16 @@ describe('debug chunk names', () => {
     }
   );
 
+  test.each(['core.qwik.mjs', 'core.prod.qwik.mjs', 'core.min.qwik.mjs'])(
+    'names the chunk holding %s build/core.js',
+    async (file) => {
+      const chunkFileNames = await readableChunkFileNames({ buildMode: 'production', debug: true });
+      const moduleIds = [`/app/node_modules/@qwik.dev/core/dist/${file}`];
+
+      expect(chunkFileNames({ name: 'app', moduleIds } as any)).toBe('build/core.js');
+    }
+  );
+
   test('adds -entry to an entry chunk whose module lives in another chunk', async () => {
     const chunkFileNames = await readableChunkFileNames({ buildMode: 'production', debug: true });
     const name = 'app.tsx_App_component_button_q_e_click_abc123';
@@ -685,6 +695,24 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
     [false, false, false]
   );
+});
+
+test('the qwik-core group holds the core library, its QRL chunk and its segments', async () => {
+  const codeSplitting = await clientCodeSplitting({});
+  const coreTest = codeSplitting.groups![0].test as RegExp;
+  const core = '/app/node_modules/@qwik.dev/core/dist';
+
+  for (const id of [
+    `${core}/core.qwik.mjs`,
+    `${core}/core.prod.qwik.mjs`,
+    `${core}/core-qrl.prod.mjs`,
+    `${core}/core.prod.qwik.mjs_s_run.js`,
+  ]) {
+    assert.ok(coreTest.test(id), id);
+  }
+  for (const id of [`${core}/preloader.mjs`, '/app/src/root.tsx_root_component_abc.js']) {
+    assert.notOk(coreTest.test(id), id);
+  }
 });
 
 test('codeSplitting appends the user groups after the qwik groups', async () => {

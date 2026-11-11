@@ -5,12 +5,11 @@ import {
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
-  _res,
+  _resumeRootsQrl,
   _setEvent,
   _walkJSX,
   _handleSSRError,
   _isTask as isTask,
-  _createQRL as createQRL,
   _getVarProps,
   isSignal,
   type Signal,
@@ -1520,7 +1519,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     const attrs: Props = { type: 'qwik/state', [QInstanceAttr]: this.$instanceHash$ };
     const eagerResume = this.serializationCtx.$eagerResume$;
     if (eagerResume.size > 0) {
-      attrs['q-d:qidle'] = createQRL(null, '_res', _res, null, [...eagerResume]);
+      attrs['q-d:qidle'] = _resumeRootsQrl([...eagerResume]);
     }
     return attrs;
   }

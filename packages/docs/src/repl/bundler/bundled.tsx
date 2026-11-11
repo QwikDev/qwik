@@ -3,12 +3,11 @@ import type { PkgUrls } from '../types';
 
 import qBuild from '../../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
 import qCoreDts from '../../../node_modules/@qwik.dev/core/dist/core-internal.d.ts?raw-source';
-import qCoreMinMjs from '../../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
-import qCoreMjs from '../../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
+import qCoreQrlMjs from '../../../node_modules/@qwik.dev/core/dist/core-qrl.mjs?raw-source';
+import qCoreQwikMjs from '../../../node_modules/@qwik.dev/core/dist/core.qwik.mjs?raw-source';
 import qAsyncLocalStorageMjs from '../../../node_modules/@qwik.dev/core/dist/async-local-storage.mjs?raw-source';
 import qViteMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
 import qPreloaderMjs from '../../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
-import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
 import qWorkerMjs from '../../../node_modules/@qwik.dev/core/dist/worker/index.mjs?raw-source';
 import qWorkerJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.js?raw-source';
 import qWorkerNodeJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.node.js?raw-source';
@@ -21,6 +20,7 @@ import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?ra
 import qTsOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/ts-optimizer.mjs?raw-source';
 
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import { shipsCoreAsQwikLibrary } from './core-layout';
 
 export const getNpmCdnUrl = (
   bundled: PkgUrls,
@@ -65,8 +65,8 @@ const qwikUrls: PkgUrls[string] = {
   // For bundled version, use local files
   '/dist/build/index.d.ts': qBuild,
   '/dist/core.d.ts': qCoreDts,
-  '/dist/core.min.mjs': qCoreMinMjs,
-  '/dist/core.mjs': qCoreMjs,
+  '/dist/core.qwik.mjs': qCoreQwikMjs,
+  '/dist/core-qrl.mjs': qCoreQrlMjs,
   '/dist/async-local-storage.mjs': qAsyncLocalStorageMjs,
   '/dist/optimizer.mjs': qViteMjs,
   '/dist/server.mjs': qServerMjs,
@@ -79,7 +79,6 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/worker/worker.shared.js': qWorkerSharedJs,
   '/dist/qwikloader.js': qQwikLoaderJs,
   '/dist/ts-optimizer.mjs': qTsOptimizerMjs,
-  '/handlers.mjs': qHandlersMjs,
 };
 export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V1]: qwikUrls,
@@ -96,10 +95,12 @@ export const getDeps = (qwikVersion: string) => {
     out[QWIK_PKG_NAME_V1] = {
       version: qwikVersion,
     };
+    const coreFiles = shipsCoreAsQwikLibrary(qwikVersion)
+      ? ['/dist/core.qwik.mjs', '/dist/core-qrl.mjs']
+      : ['/dist/core.mjs', '/dist/core.min.mjs', '/handlers.mjs'];
     for (const p of [
-      `/dist/core.mjs`,
+      ...coreFiles,
       `/dist/async-local-storage.mjs`,
-      `/dist/core.min.mjs`,
       `/dist/optimizer.mjs`,
       `/dist/server.mjs`,
       ...(isV2 ? [`/dist/serializer.mjs`] : []),
@@ -110,7 +111,6 @@ export const getDeps = (qwikVersion: string) => {
       `/dist/worker/worker.js`,
       `/dist/worker/worker.node.js`,
       `/dist/worker/worker.shared.js`,
-      '/handlers.mjs',
     ]) {
       out[QWIK_PKG_NAME_V1][p] = getNpmCdnUrl(
         bundled,

@@ -221,6 +221,24 @@ Out-of-order (OOOS) invariants:
   render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
+- Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform, plus
+  `dist/core-qrl*.mjs`, the QRL machinery that core imports and so evaluates first. The optimizer
+  hoists every core QRL to the top of `core.qwik.mjs`; only modules in `QRL_MACHINERY`
+  (`scripts/submodule-core.ts`) may be needed by those hoisted calls, and those modules' top level
+  may only touch each other. `core-hoisting.unit.ts` evaluates the transformed core with both
+  optimizers on every variant (dev, `.prod`, `.min`); run it after `build.core` when touching QRL
+  creation, that list or the core minifier, since a dev build makes the variants plain copies.
+- Each core variant is a chunk pair that imports itself through `@qwik.dev/core`, so never point a
+  variant at another with an `export *` stub: the self-import cycles through the stub. Terser runs per
+  chunk, so its mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
+  `$props$` must avoid plain property names of every chunk, not just the one being minified.
+- Core's own QRLs (event wrapper, bind handlers, visible tasks, control flow, HMR, eager resume) are
+  `_inlinedQrl(fn, 'q_<hash>', [captures])` calls, with `inlinedQrl as _inlinedQrl` imported from
+  `shared/qrl/library-qrl.ts`; the build turns that import into `@qwik.dev/core`. Never create them
+  with `createQRL(null, '_x', fn)`: the optimizer must see them to give them a chunk and a dev URL.
+  Add each hash to `CORE_QRL_HASHES` and match core QRLs by hash, not symbol (prod renames `q_run`
+  to `s_run`). Make `fn` a function declaration: the Rust optimizer's SSR output calls `.s(fn)` at
+  the top of the module. Give the QRL a name different from `fn`'s, or dev segments redeclare it.
 
 ## Focused Verification
 

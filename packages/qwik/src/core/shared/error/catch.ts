@@ -5,7 +5,7 @@ import { _jsxSorted } from '../jsx/jsx-internal';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
-import { inlinedQrl } from '../qrl/qrl';
+import { inlinedQrl as _inlinedQrl } from '../qrl/library-qrl';
 import type { QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
 import {
@@ -35,7 +35,6 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import {
   ERROR_CONTEXT,
-  CATCH_QRL_SYMBOL,
   getOwnCatchStore,
   isErrorFromDeferredSegment,
   markBoundaryErrored,
@@ -72,7 +71,7 @@ export interface CatchProps {
 }
 
 /** @internal */
-export const catchReset = (): void => {
+export function catchReset(): void {
   const [host] = _capturesObj._ as [VNode];
   // this is executed only on client
   const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
@@ -80,7 +79,7 @@ export const catchReset = (): void => {
   if (isBrowserEnv && host && container) {
     resetCatch(container, host);
   }
-};
+}
 
 const RESET_KEY_SUFFIX = '\0';
 
@@ -195,7 +194,7 @@ const buildSSRCatchHosts = (store: CatchStore, container: SSRContainer | undefin
 };
 
 /** @internal */
-export const catchCmp = (props: CatchProps): JSXOutput => {
+export function catchCmp(props: CatchProps): JSXOutput {
   if (!__EXPERIMENTAL__.catchBoundary) {
     throw new Error(
       '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
@@ -212,7 +211,7 @@ export const catchCmp = (props: CatchProps): JSXOutput => {
     return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
   }
 
-  const reset = /*#__PURE__*/ inlinedQrl(catchReset, '_caR', [invokeCtx?.$hostElement$]);
+  const reset = /*#__PURE__*/ _inlinedQrl(catchReset, 'q_caR', [invokeCtx?.$hostElement$]);
   if (isServerEnv) {
     const fallbackQrl = props.fallback$;
     store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
@@ -234,11 +233,11 @@ export const catchCmp = (props: CatchProps): JSXOutput => {
     0,
     null
   );
-};
+}
 
 /** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
 export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProps>(
-  /*#__PURE__*/ inlinedQrl(catchCmp, CATCH_QRL_SYMBOL)
+  /*#__PURE__*/ _inlinedQrl(catchCmp, 'q_caC')
 );
 
 type SSRErrorFallbackProps = {

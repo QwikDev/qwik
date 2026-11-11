@@ -1,6 +1,7 @@
 import { _run } from '../client/run-qrl';
-import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
-import { isQrl } from '../shared/qrl/qrl-utils';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { CORE_QRL_HASHES, isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
 import type { SerializationContext } from '../../serializer/serialization-context';
@@ -35,13 +36,15 @@ export function setEvent(
      * If there are captures we need to schedule so everything is executed in the right order + qrls
      * are resolved.
      *
-     * For internal qrls (starting with `_`) we assume that they do the right thing.
+     * For internal qrls (starting with `_`) and core's own QRLs we assume that they do the right
+     * thing.
      */
     if (
       !qrl.$symbol$.startsWith('_') &&
+      !CORE_QRL_HASHES.has(qrl.$hash$) &&
       (Array.isArray(qrl.$captures$) || (hasMovedCaptures && qrl.$hasMovedCaptures$))
     ) {
-      qrl = createQRL(null, '_run', _run, null, [qrl]);
+      qrl = _inlinedQrl(_run, 'q_run', [qrl]) as QRLInternal<unknown>;
     }
     return qrlToChunks(serializationCtx, qrl);
   };

@@ -1,11 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
-import {
-  _capturesObj,
-  deserializeCaptureDeltas,
-  setCaptures,
-  type QRLInternal,
-} from '../shared/qrl/qrl-class';
-import { inlinedQrl } from '../shared/qrl/qrl';
+import { _capturesObj, deserializeCaptureDeltas, setCaptures } from '../shared/qrl/qrl-class';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -23,7 +18,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
  *
  * @internal
  */
-export const _hmr = function (
+export function _hmr(
   this: string | undefined,
   event: CustomEvent<{ files: string[]; t: number }>,
   element: Element
@@ -48,9 +43,8 @@ export const _hmr = function (
     const doc: any = element.ownerDocument;
     doc.__hmrDone = doc.__hmrT;
   });
-};
+}
 
-let hmrQrl: QRL<(event: CustomEvent, element: Element) => void>;
 /**
  * Injected by the optimizer into component$ bodies in HMR mode. Registers a document event listener
  * that triggers component re-render on HMR updates.
@@ -62,9 +56,10 @@ export function _useHmr(devPath: string): void {
   if (!iCtx) {
     return;
   }
-  hmrQrl ||= inlinedQrl(_hmr, '_hmr');
   const hostElement = iCtx.$hostElement$;
   // We must capture the vnode to be able to re-render
-  const qrl = (hmrQrl as QRLInternal).w([hostElement, devPath]) as typeof hmrQrl;
+  const qrl = _inlinedQrl(_hmr, 'q_hmr', [hostElement, devPath]) as QRL<
+    (event: CustomEvent, element: Element) => void
+  >;
   useOnDocument('qHmr', qrl);
 }

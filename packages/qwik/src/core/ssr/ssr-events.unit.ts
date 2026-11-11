@@ -20,6 +20,6 @@ describe('setEvent', () => {
   it('wraps a handler that receives moved captures', () => {
     const qrl = createQRL('chunk', 'handler', () => {}).m();
 
-    expect(setEvent(context, 'q-e:click', qrl, true)).toEqual(['runtime#_run', '#', 0]);
+    expect(setEvent(context, 'q-e:click', qrl, true)).toEqual(['runtime#q_run', '#', 0]);
   });
 });

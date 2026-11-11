@@ -5,7 +5,7 @@ import { setNodeDiffPayload } from '../shared/cursor/chore-execution';
 import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { SkipRender } from '../shared/jsx/utils.public';
 import { isServerPlatform } from '../shared/platform/platform';
-import { inlinedQrl } from '../shared/qrl/qrl';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { isQrl } from '../shared/qrl/qrl-utils';
@@ -50,7 +50,7 @@ const invokeShowFn = <T, A>(
 };
 
 /** @internal */
-export const showCmpTask = ({ track }: TaskCtx) => {
+export function showCmpTask({ track }: TaskCtx) {
   const props = _capturesObj._![0] as ShowProps<any>;
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;
@@ -76,20 +76,20 @@ export const showCmpTask = ({ track }: TaskCtx) => {
       });
     }
   );
-};
+}
 
 /** @internal */
-export const showCmp = (props: ShowProps<any>) => {
+export function showCmp(props: ShowProps<any>) {
   if (!__EXPERIMENTAL__.show) {
     throw new Error(
       'Show is experimental and must be enabled with `experimental: ["show"]` in the `qwikVite` plugin.'
     );
   }
-  useTaskQrl(/*#__PURE__*/ inlinedQrl(showCmpTask, '_shT', [props]));
+  useTaskQrl(/*#__PURE__*/ _inlinedQrl(showCmpTask, 'q_shT', [props]));
   return SkipRender;
-};
+}
 
 /** @public @experimental */
 export const Show = /*#__PURE__*/ componentQrl<ShowProps<any>>(
-  /*#__PURE__*/ inlinedQrl(showCmp, '_shC')
+  /*#__PURE__*/ _inlinedQrl(showCmp, 'q_shC')
 ) as ShowComponent;

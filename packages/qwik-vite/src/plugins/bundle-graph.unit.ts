@@ -107,6 +107,19 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test("core's own QRL symbols stay out of the graph, since core is always loaded", () => {
+    const manifest = {
+      core: 'qwik-core.js',
+      bundles: {
+        'qwik-core.js': { size, total, imports: ['runtime.js'], symbols: ['s_run'] },
+        'runtime.js': { size, total },
+        'app.js': { size, total, symbols: ['s_abc123'] },
+      } as Record<string, QwikBundle>,
+      mapping: { s_run: 'qwik-core.js', s_abc123: 'app.js' },
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['app.js', 'abc123', -7, 0]);
+  });
+
   test('import cycle through the reduced bundle keeps reachable deps', () => {
     const manifest = {
       bundles: {

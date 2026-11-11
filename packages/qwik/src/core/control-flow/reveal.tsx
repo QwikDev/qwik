@@ -6,7 +6,7 @@ import { componentQrl } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
-import { inlinedQrl } from '../shared/qrl/qrl';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import { _capturesObj } from '../shared/qrl/qrl-class';
 import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
 import { canRevealRegistration, type RevealOrder } from '../shared/utils/reveal';
@@ -58,7 +58,7 @@ const createRevealContext = (props: RevealProps): RevealContext => {
 };
 
 /** @internal */
-export const revealCanReveal = () => {
+export function revealCanReveal() {
   const registration = _capturesObj._![0] as RevealRegistration | null;
   // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
   if (registration !== null && registration.reveal.version.value < 0) {
@@ -71,10 +71,10 @@ export const revealCanReveal = () => {
     }
   }
   return canRevealRegistration(registration);
-};
+}
 
 /** @internal */
-export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
+export function revealCleanupTask({ cleanup }: TaskCtx) {
   const registration = _capturesObj._![0] as RevealRegistration;
   cleanup(() => {
     // Keep the SSR registry intact so `reveal.items` serializes for resume.
@@ -88,7 +88,7 @@ export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
       registration.reveal.version.value++;
     }
   });
-};
+}
 
 export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration | null => {
   const reveal = useContext(RevealContext, null);
@@ -102,7 +102,7 @@ export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration 
   });
 
   if (registration !== null) {
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(revealCleanupTask, '_reT', [registration]), {
+    useTaskQrl(/*#__PURE__*/ _inlinedQrl(revealCleanupTask, 'q_reT', [registration]), {
       deferUpdates: false,
     });
   }
@@ -126,7 +126,7 @@ const getOutOfOrderCoordinator = (
 };
 
 /** @internal */
-export const revealCmp = (props: RevealProps) => {
+export function revealCmp(props: RevealProps) {
   if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
       'Reveal is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
@@ -152,11 +152,11 @@ export const revealCmp = (props: RevealProps) => {
   }
 
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0');
-};
+}
 
 /** @public @experimental */
 export const Reveal = /*#__PURE__*/ componentQrl<RevealProps>(
-  /*#__PURE__*/ inlinedQrl(revealCmp, '_reC')
+  /*#__PURE__*/ _inlinedQrl(revealCmp, 'q_reC')
 ) as typeof revealCmp;
 
 type SSRRevealSlotProps = {

@@ -453,6 +453,31 @@ describe('computed body loading', () => {
     expect(isAsyncComputed(computed)).toBe(false);
   });
 
+  it('reports a computed as pending while its body loads', async () => {
+    const double = () => 4;
+    const computed = new ComputedQrl(
+      createQRL('chunk', 'double', null, async () => ({ double }), null)
+    );
+
+    expect(computed.untrackedPending).toBe(true);
+    expect(computed.untrackedError).toBeUndefined();
+    await computed.promise();
+    expect(computed.untrackedPending).toBe(false);
+    expect(computed.value).toBe(4);
+  });
+
+  it('tells a pending reader once the body has loaded', async () => {
+    const double = () => 4;
+    const computed = new ComputedQrl(
+      createQRL('chunk', 'double', null, async () => ({ double }), null)
+    );
+    const pending = new Computed<boolean>(null, () => computed.pending);
+
+    expect(pending.value).toBe(true);
+    await vi.waitFor(() => expect(pending.value).toBe(false));
+    expect(computed.value).toBe(4);
+  });
+
   it('keeps a value assigned while the body failed to load', async () => {
     const computed = new ComputedQrl(
       createQRL<() => number>(

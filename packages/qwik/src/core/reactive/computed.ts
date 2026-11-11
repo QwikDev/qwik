@@ -160,7 +160,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   get untrackedPending(): boolean {
-    this.computeIfNeeded();
+    this.computeStatusIfNeeded();
     if (isServerEnv() && this.current?.promise) {
       throw this.current.promise;
     }
@@ -181,7 +181,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   get untrackedError(): Error | undefined {
-    this.computeIfNeeded();
+    this.computeStatusIfNeeded();
     if (isServerEnv() && this.current?.promise) {
       throw this.current.promise;
     }
@@ -319,6 +319,20 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       }
     }
     return this.v;
+  }
+
+  /** A status read never throws for a loading body: the computed is pending until it loads. */
+  private computeStatusIfNeeded(): void {
+    try {
+      this.computeIfNeeded();
+    } catch (error) {
+      if (!isPromise(error)) {
+        throw error;
+      }
+      this.loadingValue = true;
+      // the status readers read again and start the computation
+      error.then(() => this.setLoading(false));
+    }
   }
 
   computeIfNeeded(): void {

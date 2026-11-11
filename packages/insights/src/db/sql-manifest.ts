@@ -1,4 +1,5 @@
 import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { vectorNew } from '~/stats/vector';
 import { type AppDatabase } from './index';
 import { type ManifestRow, edgeTable, manifestTable } from './schema';
 import { latencyColumnSums, toVector } from './query-helpers';
@@ -91,10 +92,10 @@ export async function dbGetManifestStats(
   const latencyByHash = new Map(
     latencyRows.map((row) => [row.hash, toVector('sumLatencyCount', row)])
   );
-  return manifests.flatMap((manifest) => {
-    const latency = latencyByHash.get(manifest.hash);
-    return latency ? [{ ...manifest, latency }] : [];
-  });
+  return manifests.map((manifest) => ({
+    ...manifest,
+    latency: latencyByHash.get(manifest.hash) ?? vectorNew(),
+  }));
 }
 
 export async function dbGetManifestInfo(

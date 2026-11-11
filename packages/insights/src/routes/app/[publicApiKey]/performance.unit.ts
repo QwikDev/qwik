@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUCKETS } from '~/stats/vector';
+import { BUCKETS, vectorNew } from '~/stats/vector';
 import {
   getManifestPerformance,
   MIN_PERFORMANCE_SAMPLES,
@@ -22,6 +22,13 @@ describe('manifest performance', () => {
   it('hides P95 while samples are still collecting', () => {
     expect(getManifestPerformance([MIN_PERFORMANCE_SAMPLES - 1])).toEqual({
       samples: MIN_PERFORMANCE_SAMPLES - 1,
+      p95: null,
+    });
+  });
+
+  it('hides P95 before any samples arrive', () => {
+    expect(getManifestPerformance(vectorNew())).toEqual({
+      samples: 0,
       p95: null,
     });
   });

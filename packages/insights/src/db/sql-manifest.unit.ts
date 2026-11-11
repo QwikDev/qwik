@@ -1,6 +1,7 @@
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { assert, test } from 'vitest';
+import { NUMBER_OF_BUCKETS } from '~/stats/vector';
 import type { AppDatabase } from '.';
 import { manifestTable } from './schema';
 import {
@@ -244,6 +245,63 @@ test('counts each latency sample once when manifest records are duplicated', asy
         { hash: 'latest', timestamp: new Date(300), samples: 10 },
         { hash: 'previous', timestamp: new Date(200), samples: 5 },
       ]
+    );
+  } finally {
+    client.close();
+  }
+});
+
+test.each([
+  { scenario: 'the latest deployment has no samples', withoutSamples: ['latest'] },
+  { scenario: 'the previous deployment has no samples', withoutSamples: ['previous'] },
+  { scenario: 'neither deployment has samples', withoutSamples: ['latest', 'previous'] },
+])('keeps both deployments when $scenario', async ({ withoutSamples }) => {
+  const client = createClient({ url: 'file::memory:' });
+  const latencyColumns = Array.from(
+    { length: NUMBER_OF_BUCKETS },
+    (_, index) => `latency_count_${String(index).padStart(2, '0')} INTEGER NOT NULL DEFAULT 0`
+  ).join(',');
+  try {
+    await client.execute(
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT NOT NULL, timestamp INTEGER NOT NULL)'
+    );
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT NOT NULL, manifest_hash TEXT NOT NULL, ${latencyColumns})`
+    );
+    const db = drizzle(client) as AppDatabase;
+    const manifests = [
+      { publicApiKey: 'app', hash: 'latest', timestamp: new Date(300) },
+      { publicApiKey: 'app', hash: 'previous', timestamp: new Date(200) },
+      { publicApiKey: 'app', hash: 'older', timestamp: new Date(100) },
+    ];
+    await db.insert(manifestTable).values(manifests).run();
+    await client.batch([
+      ...manifests
+        .filter(({ hash }) => !withoutSamples.includes(hash))
+        .map(({ hash }) => ({
+          sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+          args: ['app', hash, 100],
+        })),
+      {
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, latency_count_00) VALUES (?, ?, ?)',
+        args: ['other-app', 'latest', 1000],
+      },
+    ]);
+
+    const stats = await dbGetManifestStats(db, 'app', { limit: 2 });
+    assert.deepEqual(
+      stats,
+      manifests.slice(0, 2).map(({ hash, timestamp }) => ({
+        hash,
+        timestamp,
+        latency: Array.from({ length: NUMBER_OF_BUCKETS }, (_, index) =>
+          index === 0 && !withoutSamples.includes(hash) ? 100 : 0
+        ),
+      }))
+    );
+    assert.deepEqual(
+      (await dbGetManifestStats(db, 'app')).map(({ hash }) => hash),
+      ['latest', 'previous', 'older']
     );
   } finally {
     client.close();

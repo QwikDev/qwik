@@ -11,9 +11,10 @@ import { isNavigationItemActive } from './active-path';
 
 type ApplicationNavigationProps = {
   basePath: string;
+  applicationName: string;
 };
 
-export default component$<ApplicationNavigationProps>(({ basePath }) => {
+export default component$<ApplicationNavigationProps>(({ basePath, applicationName }) => {
   const pathname = useLocation().url.pathname;
   const primaryItems = [
     { href: basePath, label: 'Dashboard', icon: <DashboardIcon />, exact: true },
@@ -39,6 +40,19 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
       >
         <BrandLockup compact />
       </Link>
+
+      <div class="mx-editorial-4 mb-editorial-5 border-b border-editorial-border pb-editorial-5">
+        <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
+          Current application
+        </p>
+        <Link
+          href={basePath}
+          title={applicationName}
+          class="mt-editorial-2 line-clamp-2 break-words text-editorial-20 font-semibold text-editorial-primary hover:text-editorial-link focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-editorial-accent"
+        >
+          {applicationName}
+        </Link>
+      </div>
 
       <nav
         aria-label="Application"

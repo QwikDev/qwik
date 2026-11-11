@@ -93,6 +93,22 @@ describe('components and invoke contexts', () => {
     expect(render).toHaveBeenCalledTimes(2);
   });
 
+  it('runs the setup again once the source of a derived computed gets a value', async () => {
+    const owner = createOwner(null);
+    const list = new Computed<string>(null, () => new Promise<string>(() => {}));
+    expect(() => list.value).toThrow(Promise);
+    list.abort();
+    const shout = new Computed<string>(null, () => list.value + '!');
+    const render = vi.fn(() => shout.value);
+
+    const output = runWithOwner(owner, () => createComponent(render, null));
+    list.value = 'ready';
+    const stillWaiting = new Promise((resolve) => setTimeout(resolve, 50, 'still waiting'));
+
+    await expect(Promise.race([output, stillWaiting])).resolves.toBe('ready!');
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
   it('ignores a discarded component after its pending work settles', async () => {
     const owner = createOwner(null);
     let release!: () => void;

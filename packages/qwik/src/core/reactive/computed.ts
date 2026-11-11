@@ -100,6 +100,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   cleanupPromise: Promise<void> | null = null;
   declare private cleanupObservation?: { computed?: Computed<T> };
   declare private nextSettle?: { promise: Promise<void>; resolve: () => void };
+  /** The missing input of the last computation; only that source can settle its readers. */
+  declare private missingInput?: NotReadyError;
   info: unknown;
 
   constructor(
@@ -315,7 +317,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (!(this.flags & ComputedFlags.HasValue)) {
       // Cancelled work left nothing to return; the reader reruns once a value arrives.
       this.flags |= ComputedFlags.ReadNotReady;
-      throw new NotReadyError(this);
+      throw this.missingInput ?? new NotReadyError(this);
     }
     return this.v;
   }
@@ -356,6 +358,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     }
 
     this.flags |= ComputedFlags.Computing;
+    this.missingInput = undefined;
     const job = new AsyncJob(this, this.info);
     this.info = undefined;
     this.current = job;
@@ -523,7 +526,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     }
     job.canWrite = false;
     // a cancellation or a missing input is no error
-    if ((error instanceof Error && error.name === 'AbortError') || isNotReadyError(error)) {
+    if (isNotReadyError(error)) {
+      this.missingInput = error;
+      return;
+    }
+    if (error instanceof Error && error.name === 'AbortError') {
       return;
     }
     this.errorValue = error;

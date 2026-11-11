@@ -106,25 +106,29 @@ export async function dbGetManifestInfo(
   publicApiKey: string,
   manifestHash: string
 ): Promise<ManifestRow> {
-  const manifest = await db
+  const lookup = db
     .select()
     .from(manifestTable)
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)))
-    .get();
-  if (manifest) {
-    return manifest;
-  } else {
-    const manifestFields = {
+    .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)));
+  const existing = await lookup.get();
+  if (existing) {
+    return existing;
+  }
+  const inserted = await db
+    .insert(manifestTable)
+    .values({
       publicApiKey,
       hash: manifestHash,
       timestamp: new Date(),
-    };
-    const response = await db.insert(manifestTable).values(manifestFields).run();
-    return {
-      id: Number(response.lastInsertRowid),
-      ...manifestFields,
-    };
+    })
+    .onConflictDoNothing()
+    .returning()
+    .all();
+  const manifest = inserted.at(0) ?? (await lookup.get());
+  if (!manifest) {
+    throw new Error('Manifest could not be registered');
   }
+  return manifest;
 }
 
 export async function dbGetManifestHashes(

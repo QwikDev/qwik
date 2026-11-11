@@ -1,3 +1,4 @@
+import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { Link, routeLoader$, useLocation, useNavigate, type DocumentHead } from '@qwik.dev/router';
 import SelectField from '~/components/select-field';
@@ -107,6 +108,7 @@ export const RoutesView = component$<{
           <p class="text-editorial-12 text-editorial-muted">Waiting for manifest data</p>
         )}
       </header>
+      <ReportGuide report="routes" />
 
       <div class="flex flex-wrap items-baseline justify-between gap-editorial-4 py-editorial-6">
         <p class="text-editorial-14 text-editorial-secondary">

@@ -1,3 +1,4 @@
+import ReportGuide from '~/components/report-guide';
 import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { inArray } from 'drizzle-orm';
@@ -95,6 +96,8 @@ export default component$(() => {
               Select the Qwik Insights application whose manifests and production data you want to
               inspect.
             </p>
+
+            <ReportGuide report="applications" />
 
             <div class="relative mt-editorial-10">
               <label class="sr-only" for="application-search">

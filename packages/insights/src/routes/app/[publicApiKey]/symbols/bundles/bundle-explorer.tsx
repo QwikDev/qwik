@@ -1,4 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
+import ReportGuide from '~/components/report-guide';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
@@ -44,6 +45,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
           </div>
         )}
       </header>
+      <ReportGuide report="bundles" />
 
       <div class="flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 py-editorial-6">
         <strong class="text-editorial-24 font-semibold">

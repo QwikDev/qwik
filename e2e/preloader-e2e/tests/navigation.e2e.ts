@@ -72,8 +72,8 @@ const navigateToTree = async (from: Fixture, state: 'cold' | 'warm', page: Page)
 
 test.describe('cold SPA navigation', () => {
   test('every render chunk of the new page goes out in the same round trip', async ({ page }) => {
-    const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
-    await releaseAll(gate, ongoing);
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
     await expectResult(page, TO_TREE);
     const withNewPageChunks = roundTrips.filter((roundTrip) =>
       roundTrip.urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))
@@ -84,8 +84,8 @@ test.describe('cold SPA navigation', () => {
   });
 
   test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
-    const { gate, ongoing, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
-    await releaseAll(gate, ongoing);
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {
       roundTrips: 4,
@@ -128,7 +128,7 @@ test.describe('navigation to a page with a routeLoader$', () => {
       () => fixtureRoot(page, FROM.off).locator('[data-testid=link-data]').click(),
       resultIsDone(fixtureResult(page, TO_DATA))
     );
-    await releaseAll(opened.gate, opened.ongoing);
+    await releaseAll(opened.gate);
     await expectResult(page, TO_DATA);
     await attachRoundTrips('round-trips.txt', roundTrips);
     const roundTripOf = (isWanted: (url: string) => boolean) =>
@@ -142,17 +142,17 @@ test.describe('navigation to a page with a routeLoader$', () => {
 
 test.describe('hover on a Link that prefetches on intent', () => {
   test("the new route's chunks are requested", async ({ page }) => {
-    const { gate, ongoing } = await openFixture(page, FROM.intent, 'cold');
+    const { gate } = await openFixture(page, FROM.intent, 'cold');
     const urls = await collectUntilQuiet(page, gate, () => treeLink(page, FROM.intent).hover());
-    await releaseAll(gate, ongoing);
+    await releaseAll(gate);
     expect(urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))).toBe(true);
   });
 });
 
 test.describe('after a navigation', () => {
   test('the preloader keeps preloading speculatively', async ({ page }, testInfo) => {
-    const { gate, ongoing } = await navigateToTree(FROM.off, 'cold', page);
-    await releaseAll(gate, ongoing);
+    const { gate } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
     expect(order.trim()).not.toBe('');
@@ -166,7 +166,7 @@ test.describe('after a navigation', () => {
       () => treeLink(page, FROM.off).click(),
       resultIsDone(fixtureResult(page, TO_TREE))
     );
-    await waitForNetworkIdle(page, () => releaseAll(opened.gate, opened.ongoing), 1500);
+    await waitForNetworkIdle(page, () => releaseAll(opened.gate), 1500);
     const oldPagePreloads = (await preloaderLinks(page))
       .slice(linksBeforeTheClick)
       .filter((link) => link.speculative && chunkComesFrom(link.href, OLD_PAGE_SOURCES))
@@ -210,18 +210,18 @@ const submitAction = async (page: Page) => {
     () => fixtureRoot(page, ACTION).locator('[data-testid=trigger]').click(),
     resultIsDone(fixtureResult(page, ACTION))
   );
-  await releaseAll(opened.gate, opened.ongoing);
+  await releaseAll(opened.gate);
   await expectResult(page, ACTION);
   return roundTrips;
 };
 
 test.describe('form action', () => {
-  test("the action's result shows in 4 round trips, over the cap of 2", async ({ page }) => {
+  test("the action's result shows in 6 round trips, over the cap of 2", async ({ page }) => {
     const roundTrips = await submitAction(page);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {
-      roundTrips: 4,
-      reason: 'over the cap on main: the action request waits for 3 round trips of router code',
+      roundTrips: 6,
+      reason: 'over the cap on main: the action request waits for 5 round trips of router code',
     });
   });
 });

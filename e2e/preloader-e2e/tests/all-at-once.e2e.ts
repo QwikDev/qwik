@@ -12,7 +12,7 @@ import {
   countRoundTrips,
   createGate,
   formatRoundTrips,
-  openColdPage,
+  openCold,
   openWarm,
   recordSpeculativePreloads,
   releaseAll,
@@ -42,16 +42,14 @@ test.describe('all at once', () => {
   }, testInfo) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
-    const ongoing = await openColdPage(page, gate, ALL_AT_ONCE, CLICKABLE);
+    await openCold(page, gate, ALL_AT_ONCE);
     const report: string[] = [];
     for (const fixture of CLICKABLE) {
       const roundTrips = await countRoundTrips(
         page,
         gate,
         clickFixture(page, fixture),
-        resultIsDone(fixtureResult(page, fixture)),
-        ongoing,
-        { ownSources: fixture.sources }
+        resultIsDone(fixtureResult(page, fixture))
       );
       report.push(
         `${fixture.id}\n${formatRoundTrips(roundTrips, { segmentsFrom: fixture.sources })}`
@@ -59,7 +57,7 @@ test.describe('all at once', () => {
       expectRoundTrips(roundTrips, ROUND_TRIPS_ON_MAIN[fixture.id], `${fixture.id}: `);
       await expectExpectedText(page, fixture);
     }
-    await releaseAll(gate, ongoing);
+    await releaseAll(gate);
     await testInfo.attach('cold-clicks.txt', {
       body: report.join('\n'),
       contentType: 'text/plain',
@@ -93,7 +91,7 @@ test.describe('all at once', () => {
     );
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
-    const ongoing = await openColdPage(page, gate, ALL_AT_ONCE, [first, second]);
+    await openCold(page, gate, ALL_AT_ONCE);
     gate.mode = 'hold';
     await clickFixture(page, first)();
     await settle(page, gate);
@@ -104,7 +102,7 @@ test.describe('all at once', () => {
       .slice(heldForTheFirstClick)
       .map((route) => route.request().url())
       .filter((url) => chunkComesFrom(url, second.sources));
-    await releaseAll(gate, ongoing);
+    await releaseAll(gate);
     await expectResult(page, first);
     await expectResult(page, second);
     expect(secondClickChunks.length).toBeGreaterThan(0);

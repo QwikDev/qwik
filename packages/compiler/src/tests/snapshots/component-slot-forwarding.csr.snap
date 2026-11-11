@@ -109,15 +109,9 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  createSlotScope,
-  registerProjection,
-  _qrlWithChunk,
-  createComponent,
-} from '@qwik.dev/core';
+import { createSlotScope, registerProjection, qrl, createComponent } from '@qwik.dev/core';
 import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );

@@ -65,18 +65,16 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
   createTemplate,
   _capturesObj,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
   'component_branch_then_segment_3_24n7atwir5934'
 );
-const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_4_19dvrvh6znjhf',
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_else_segment_4_19dvrvh6znjhf'),
   'component_branch_else_segment_4_19dvrvh6znjhf'
 );

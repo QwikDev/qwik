@@ -142,21 +142,25 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = async () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  useTask,
-  _withCaptures,
+  qrl,
+  useTaskQrl,
   setEvent,
   _createElementTemplate,
   getActiveInvokeContextOrNull,
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_run_segment_0_3puv0fmsn52m6',
+const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_run_segment_0_3puv0fmsn52m6'),
   'component_run_segment_0_3puv0fmsn52m6'
+);
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 const default_tmpl0 = _createElementTemplate('<button>run</button>');
 
@@ -164,11 +168,15 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const run = q_component_run_segment_0_3puv0fmsn52m6.w([count, props]);
-  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [count, props]));
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count, props]));
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count, run, props]);
+      setEvent(
+        el0,
+        'q-e:click',
+        q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count, run, props])
+      );
       return el0;
     })
   );

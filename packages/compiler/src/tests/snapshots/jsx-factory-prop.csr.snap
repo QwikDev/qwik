@@ -22,18 +22,22 @@ export { App as default };
 import {
   _capturesObj,
   setEvent,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<button> </button>');
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   const [count, value] = _capturesObj._;
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count, value]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count, value]));
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,
@@ -130,9 +134,8 @@ export const component_text_segment_2_1fh117dstcoge = (value) => {
 */
 ============================= src/component.tsx_component_render_segment_3_1kxav1tcxzeqy.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
@@ -243,9 +246,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (text) => {
 */
 ============================= src/component.tsx_component_onResolved_segment_6_cb9rinp6vivg.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+import { qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
@@ -278,9 +280,8 @@ export const component_onResolved_segment_6_cb9rinp6vivg = ({ label }) => {
 */
 ============================= src/component.tsx_component_props_segment_7_208nyg8uks240.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_onResolved_segment_6_cb9rinp6vivg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_onResolved_segment_6_cb9rinp6vivg',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_onResolved_segment_6_cb9rinp6vivg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_onResolved_segment_6_cb9rinp6vivg'),
   'component_onResolved_segment_6_cb9rinp6vivg'
 );
@@ -318,7 +319,7 @@ import {
   useSignal,
   _first,
   _last,
-  _qrlWithChunk,
+  qrl,
   createComponent,
   _toNodes,
   maybeThen,
@@ -327,13 +328,11 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Display } from './display';
-const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_render_segment_3_1kxav1tcxzeqy',
+const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_render_segment_3_1kxav1tcxzeqy'),
   'component_render_segment_3_1kxav1tcxzeqy'
 );
-const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_7_208nyg8uks240',
+const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
   'component_props_segment_7_208nyg8uks240'
 );

@@ -72,15 +72,13 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { useSignal, qrl, createComponent } from '@qwik.dev/core';
 import { Button } from './button';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );

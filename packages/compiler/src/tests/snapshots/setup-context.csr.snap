@@ -95,19 +95,23 @@ export const component_text_segment_1_1fh10tcowimfv = (count) => {
 import {
   useContext as read,
   setEvent,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 import { __qwik_Counter as Counter } from './component.tsx';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
 const Child_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function Child_component_syc3erfxihm7(props, ctx) {
   const count = read(Counter);
   const el0 = Child_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count]));
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,

@@ -34,7 +34,7 @@ export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_text_segment_1_1ipiow57gf7g4",
   "entry": null,
   "displayName": "index_text_segment_1",
@@ -97,7 +97,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",
@@ -136,7 +136,7 @@ export const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
 };
 /*
 {
-  "origin": "server-fn.ts",
+  "origin": "shared/server-fn.ts",
   "name": "server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
   "entry": null,
   "displayName": "server_fn_serverqrl_segment_0",

@@ -89,17 +89,19 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 import {
   useSignal,
   useOn,
-  _qrlWithChunk,
+  qrl,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
@@ -107,7 +109,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(0);
   useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]));
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
@@ -164,9 +166,8 @@ export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
 */
 ============================= src/headless.tsx_default_component_35p4jjiq8gazo.js (ENTRY POINT)==
 
-import { useOnDocument, _qrlWithChunk, _first, createTemplate } from '@qwik.dev/core';
-const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _qrlWithChunk(
-  './headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2',
+import { useOnDocument, qrl, _first, createTemplate } from '@qwik.dev/core';
+const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ qrl(
   () => import('./headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2'),
   'headless_qrl_segment_0_1g1rt7jroxou2'
 );

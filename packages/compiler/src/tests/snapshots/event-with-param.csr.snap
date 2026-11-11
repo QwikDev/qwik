@@ -40,13 +40,16 @@ export const component_q_e_dblclick_segment_0_3cy9sja0qxi3h = (ev) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { setEvent, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_e_dblclick_segment_0_3cy9sja0qxi3h } from './component.tsx_component_q_e_dblclick_segment_0_3cy9sja0qxi3h';
+import { setEvent, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_dblclick_segment_0_3cy9sja0qxi3h'),
+  'component_q_e_dblclick_segment_0_3cy9sja0qxi3h'
+);
 const default_tmpl0 = _createElementTemplate('<button>go</button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:dblclick', component_q_e_dblclick_segment_0_3cy9sja0qxi3h);
+  setEvent(el0, 'q-e:dblclick', q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h);
   return el0;
 }
 /*

@@ -77,15 +77,14 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (action) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   createEventEffect,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_onClickqrl_segment_1_3rzjk4cwl942g } from './component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g';
-const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_action_segment_0_2k64kau1v2n45',
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
   'component_action_segment_0_2k64kau1v2n45'
 );

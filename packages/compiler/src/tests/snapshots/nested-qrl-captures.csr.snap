@@ -24,13 +24,17 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, useTask, _withCaptures } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
+import { useSignal, useTaskQrl, qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
+);
 import { log } from './log';
 export const useCounter = (step) => {
   const c = useSignal(0);
-  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [c, step]));
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([c, step]));
   return c;
 };
 export { default_component_3rg6kq1so9aio as default };
@@ -69,9 +73,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
@@ -142,9 +145,8 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_2_2fpow2he7qfuc',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_2_2fpow2he7qfuc'),
   'component_qrl_segment_2_2fpow2he7qfuc'
 );
@@ -213,19 +215,21 @@ export const component_text_segment_4_1fh11zg0n0shg = (ctx0) => {
 
 import {
   setEvent,
+  qrl,
   _first,
   _next,
-  _qrlWithChunk,
   createContentBlock,
   _createElementTemplate,
   getActiveInvokeContextOrNull,
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
 import { useCounter } from './component.tsx';
-const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_4_1fh11zg0n0shg',
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi'),
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_4_1fh11zg0n0shg'),
   'component_text_segment_4_1fh11zg0n0shg'
 );
@@ -237,7 +241,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [c]);
+      setEvent(el0, 'q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([c]));
       const start0 = _first(el0);
       const end0 = _next(start0);
       const content0 = createContentBlock(

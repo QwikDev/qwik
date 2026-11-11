@@ -78,10 +78,9 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
 
-import { createSlotScope, forwardSlot, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { createSlotScope, forwardSlot, qrl, createComponent } from '@qwik.dev/core';
 import { Inner_component_4pzhs2ajjr75 as Inner } from './component.tsx_Inner_component_4pzhs2ajjr75';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
@@ -149,15 +148,14 @@ import {
   _last,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
   _toNodes,
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Wrapper_component_1yrb0pezcavja as Wrapper } from './component.tsx_Wrapper_component_1yrb0pezcavja';
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );

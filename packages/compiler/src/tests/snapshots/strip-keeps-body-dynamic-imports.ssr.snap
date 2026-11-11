@@ -64,7 +64,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",
@@ -92,7 +92,7 @@ export const linked_content_0_1mzevuukkeaia = (ctx0) => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "linked_content_0_1mzevuukkeaia",
   "entry": null,
   "displayName": "linked_content_0",
@@ -134,7 +134,7 @@ export const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
 };
 /*
 {
-  "origin": "server-fn.ts",
+  "origin": "shared/server-fn.ts",
   "name": "server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
   "entry": null,
   "displayName": "server_fn_serverqrl_segment_0",

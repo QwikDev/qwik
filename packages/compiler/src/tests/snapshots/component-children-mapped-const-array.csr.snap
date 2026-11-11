@@ -62,13 +62,12 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
 const semantic_collectionRender_233_523_ndy4cqkboyx4_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
@@ -168,15 +167,19 @@ import {
   _capturesObj,
   createAttrExpressionEffect,
   setEvent,
+  qrl,
   _first,
   _last,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_3_2f0qzrfk87dlc } from './component.tsx_component_title_segment_3_2f0qzrfk87dlc';
-import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 import { component_text_segment_6_1fh12ri8gowii } from './component.tsx_component_text_segment_6_1fh12ri8gowii';
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+  'component_q_e_click_segment_4_2xwyeh830jenv'
+);
 const component_branch_then_segment_2_24n7b7xmnzb3n_tmpl0 =
   _createElementTemplate('<h2><!>:<!></h2>');
 
@@ -191,7 +194,7 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [label]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([label]));
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
@@ -359,12 +362,11 @@ import {
   useSignal,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );

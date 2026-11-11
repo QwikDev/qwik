@@ -113,10 +113,19 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, setEvent, _first, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_w_dblclick_segment_0_tisevbdmqsib } from './component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib';
-import { component_q_dp_scroll_segment_1_owxjdujcmr14 } from './component.tsx_component_q_dp_scroll_segment_1_owxjdujcmr14';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+import { useSignal, setEvent, qrl, _first, _createElementTemplate } from '@qwik.dev/core';
+const q_component_q_w_dblclick_segment_0_tisevbdmqsib = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib'),
+  'component_q_w_dblclick_segment_0_tisevbdmqsib'
+);
+const q_component_q_dp_scroll_segment_1_owxjdujcmr14 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_dp_scroll_segment_1_owxjdujcmr14'),
+  'component_q_dp_scroll_segment_1_owxjdujcmr14'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const default_tmpl0 = _createElementTemplate(
   '<div><a href="/x" preventdefault:click stoppropagation:click capture:click>go</a></div>'
 );
@@ -124,10 +133,10 @@ const default_tmpl0 = _createElementTemplate(
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(0);
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-w:dblclick', component_q_w_dblclick_segment_0_tisevbdmqsib, [count]);
-  setEvent(el0, 'q-dp:scroll', component_q_dp_scroll_segment_1_owxjdujcmr14, [count]);
+  setEvent(el0, 'q-w:dblclick', q_component_q_w_dblclick_segment_0_tisevbdmqsib.w([count]));
+  setEvent(el0, 'q-dp:scroll', q_component_q_dp_scroll_segment_1_owxjdujcmr14.w([count]));
   const el1 = _first(el0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  setEvent(el1, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]));
   return el0;
 }
 /*

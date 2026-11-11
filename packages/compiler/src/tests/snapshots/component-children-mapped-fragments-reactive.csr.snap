@@ -286,17 +286,15 @@ import {
   useSignal,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
 );

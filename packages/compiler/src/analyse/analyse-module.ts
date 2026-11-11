@@ -32,6 +32,8 @@ import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { QwikMarker } from '../words';
 import { recordEnvConstants } from './build-env';
+import { recordRootContexts } from './root-context';
+import { recordEventOnlyQrls } from './event-only';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 import { recordBindingResults } from './results';
@@ -317,6 +319,8 @@ export async function analyseModule(
   finalizeLocalFunctions(lowerContext);
   recordBindingResults(lowerContext);
   recordEnvConstants(parsed.program, plan);
+  recordRootContexts(plan, parsed.program, input.path);
+  recordEventOnlyQrls(plan, bindings);
   return finish();
 }
 

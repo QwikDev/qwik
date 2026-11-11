@@ -18,15 +18,13 @@ export default App;
 
 ============================= src/helper.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 
-const q_helper_jsx_segment_0_1f76rxaw5v558 = /*#__PURE__*/ _qrlWithChunk(
-  './helper.tsx_helper_jsx_segment_0_1f76rxaw5v558',
+const q_helper_jsx_segment_0_1f76rxaw5v558 = /*#__PURE__*/ qrl(
   () => import('./helper.tsx_helper_jsx_segment_0_1f76rxaw5v558'),
   'helper_jsx_segment_0_1f76rxaw5v558'
 );
-const q_helper_jsx_segment_2_1f76spd3zj96a = /*#__PURE__*/ _qrlWithChunk(
-  './helper.tsx_helper_jsx_segment_2_1f76spd3zj96a',
+const q_helper_jsx_segment_2_1f76spd3zj96a = /*#__PURE__*/ qrl(
   () => import('./helper.tsx_helper_jsx_segment_2_1f76spd3zj96a'),
   'helper_jsx_segment_2_1f76spd3zj96a'
 );
@@ -189,15 +187,13 @@ export const helper_text_segment_3_2krfxpmh85jlb = (prefix, label) => {
 */
 ============================= src/app.tsx ==
 
-import { _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { qrl, createComponent } from '@qwik.dev/core';
 
-const q_app_jsx_segment_0_3qpc3dhc6i5ki = /*#__PURE__*/ _qrlWithChunk(
-  './app.tsx_app_jsx_segment_0_3qpc3dhc6i5ki',
+const q_app_jsx_segment_0_3qpc3dhc6i5ki = /*#__PURE__*/ qrl(
   () => import('./app.tsx_app_jsx_segment_0_3qpc3dhc6i5ki'),
   'app_jsx_segment_0_3qpc3dhc6i5ki'
 );
-const q_app_jsx_segment_2_3qpc2lf4cu1jg = /*#__PURE__*/ _qrlWithChunk(
-  './app.tsx_app_jsx_segment_2_3qpc2lf4cu1jg',
+const q_app_jsx_segment_2_3qpc2lf4cu1jg = /*#__PURE__*/ qrl(
   () => import('./app.tsx_app_jsx_segment_2_3qpc2lf4cu1jg'),
   'app_jsx_segment_2_3qpc2lf4cu1jg'
 );

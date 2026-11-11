@@ -53,7 +53,7 @@ export const component_read_segment_0_1zbzildyw5vrf = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   useTaskQrl,
   useComputedQrl,
   setEvent,
@@ -66,8 +66,7 @@ import {
 } from '@qwik.dev/core';
 import { useCustomQrl } from './hooks';
 import { useCustom$ as custom } from './hooks';
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
   'component_read_segment_0_1zbzildyw5vrf'
 );

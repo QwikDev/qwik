@@ -185,9 +185,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (v, count) => {
 */
 ============================= src/component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_2_38vniss1y6gb4',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
   'component_jsx_segment_2_38vniss1y6gb4'
 );
@@ -254,26 +253,22 @@ export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { useSignal, qrl, createComponent } from '@qwik.dev/core';
 import { component_pick_segment_0_3dnf2wesexw1y } from './component.tsx_component_pick_segment_0_3dnf2wesexw1y';
 import { Child } from './child';
-const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_pick_segment_0_3dnf2wesexw1y',
+const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_pick_segment_0_3dnf2wesexw1y'),
   'component_pick_segment_0_3dnf2wesexw1y'
 );
-const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb',
+const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb'),
   'component_fallbackqrl_segment_1_3grqawftcqexb'
 );
-const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6',
+const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6'),
   'component_renderqrl_segment_4_5bp3q9cb45d6'
 );
-const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_dataqrl_segment_5_2mjc43lmu203l',
+const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_dataqrl_segment_5_2mjc43lmu203l'),
   'component_dataqrl_segment_5_2mjc43lmu203l'
 );

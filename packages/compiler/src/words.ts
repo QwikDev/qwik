@@ -38,6 +38,7 @@ export const enum QwikWord {
   WithCaptures = '_withCaptures',
   QrlSync = '_qrlSync',
   QrlWithChunk = '_qrlWithChunk',
+  Qrl = 'qrl',
   MarkComponent = '_markComponent',
   ToNodes = '_toNodes',
   EmptyObject = '_EMPTY_OBJ',
@@ -152,17 +153,14 @@ export const enum QwikGenWord {
 export const enum QwikHook {
   UseComputed = 'useComputed$',
   UseComputedQrl = 'useComputedQrl',
-  UseComputedFunction = 'useComputed',
   UseSignal = 'useSignal',
   UseStore = 'useStore',
   UseId = 'useId',
   UseChildrenInfo = 'useChildrenInfo',
   UseVisibleTask = 'useVisibleTask$',
   UseVisibleTaskQrl = 'useVisibleTaskQrl',
-  UseVisibleTaskFunction = 'useVisibleTask',
   UseTask = 'useTask$',
   UseTaskQrl = 'useTaskQrl',
-  UseTaskFunction = 'useTask',
   UseContextProvider = 'useContextProvider',
   UseStyles = 'useStyles$',
   UseStylesFunction = 'useStyles',
@@ -170,7 +168,6 @@ export const enum QwikHook {
   UseStylesScopedFunction = 'useStylesScoped',
   UseSerializer = 'useSerializer$',
   UseSerializerQrl = 'useSerializerQrl',
-  UseSerializerFunction = 'useSerializer',
   /** Internal: holds back the calling component's render until a promise settles. */
   WaitOn = '_waitOn',
 }

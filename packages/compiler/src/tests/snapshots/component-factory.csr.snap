@@ -13,8 +13,7 @@ export default component$(() => <main><Wrapped label="x" /></main>);
 
 ============================= src/component.tsx ==
 
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0_208o16glymg7p',
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
   'component_props_segment_0_208o16glymg7p'
 );
@@ -23,7 +22,7 @@ const component_component_segment_1_1wtreduzn0bln_tmpl0 = _createElementTemplate
 );
 import {
   _first,
-  _qrlWithChunk,
+  qrl,
   computedProp,
   readTrackedValue,
   createDynamicTag,

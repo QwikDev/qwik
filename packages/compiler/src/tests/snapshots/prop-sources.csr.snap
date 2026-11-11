@@ -237,15 +237,14 @@ export const component_title_segment_2_2f0r05go51flv = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   computedProp,
   readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
 import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
-const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_2_2f0r05go51flv',
+const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_title_segment_2_2f0r05go51flv'),
   'component_title_segment_2_2f0r05go51flv'
 );

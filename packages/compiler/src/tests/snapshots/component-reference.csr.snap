@@ -16,12 +16,11 @@ export const direct = () => plain({ x: 'a' });
 
 ============================= src/component.tsx ==
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-import { _qrlWithChunk, component$, componentQrl, qrl } from '@qwik.dev/core';
+import { qrl, component$, componentQrl } from '@qwik.dev/core';
 import { Body_component_3fvssuocvtjmf as Body } from './component.tsx_Body_component_3fvssuocvtjmf';
 import { Marked_component_3gj4wfqq43v17 as Marked } from './component.tsx_Marked_component_3gj4wfqq43v17';
 import { Imported } from './imported';

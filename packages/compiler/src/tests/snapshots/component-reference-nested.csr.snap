@@ -20,20 +20,18 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
 const component_component_segment_2_1wtrerw3judm6_tmpl0 = _createElementTemplate('<div> </div>');
-const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_3_38vnj6t5v0ibn',
+const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_3_38vnj6t5v0ibn'),
   'component_jsx_segment_3_38vnj6t5v0ibn'
 );
 const component_component_segment_5_1wtrfxzfacjnr_tmpl0 = _createElementTemplate('<i>x</i>');
 import {
-  _qrlWithChunk,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,

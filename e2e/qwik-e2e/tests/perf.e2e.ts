@@ -43,7 +43,7 @@ test.describe('performance counter', () => {
     }
   });
 
-  test('creates CSR rows without loading another handler chunk', async ({ page }) => {
+  test('creates CSR rows without loading their handler chunks', async ({ page }) => {
     await page.goto('/perf.prod/?csr=1', { waitUntil: 'networkidle' });
     const scripts: string[] = [];
     page.on('request', (request) => {
@@ -53,7 +53,12 @@ test.describe('performance counter', () => {
     });
     await page.locator('#runlots').click();
     await expect(page.locator('tbody > tr')).toHaveCount(10_000);
-    expect(scripts).toEqual([]);
+    const manifest = await (await page.request.get('/perf.prod/q-manifest.json')).json();
+    const loadedSymbols = scripts.flatMap(
+      (url) => manifest.bundles[new URL(url).pathname.split('/').pop()!]?.symbols ?? []
+    );
+    // Only the clicked button's handler loads; the rows load theirs on first use.
+    expect(loadedSymbols).toHaveLength(1);
   });
 
   test('swaps SSR rows without recreating them', async ({ page }) => {

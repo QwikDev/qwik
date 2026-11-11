@@ -311,7 +311,7 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
   propSource,
   createCollection,
   _createElementTemplate,
@@ -321,18 +321,15 @@ import { component_for_render_segment_2_asyu0c4tc6e5 } from './component.tsx_com
 import { component_for_key_segment_3_24urt2mcqntyh } from './component.tsx_component_for_key_segment_3_24urt2mcqntyh';
 import { component_branch_condition_segment_5_2fzrggonbf7cm } from './component.tsx_component_branch_condition_segment_5_2fzrggonbf7cm';
 import { component_branch_condition_segment_7_2fzrfomfhr3bk } from './component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk';
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_6_24n7cs22bbj5r',
+const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_6_24n7cs22bbj5r'),
   'component_branch_then_segment_6_24n7cs22bbj5r'
 );
-const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_8_24n7f48psbv8x',
+const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_8_24n7f48psbv8x'),
   'component_branch_then_segment_8_24n7f48psbv8x'
 );

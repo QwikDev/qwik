@@ -19,12 +19,11 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 function renderDeclared(row) {
   return q_component_jsx_segment_0_38vnjku9rukc6.w([row]);
@@ -394,7 +393,7 @@ export const component_text_segment_10_2cdl418j88efl = (row) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   _first,
   _next,
   _last,
@@ -407,8 +406,7 @@ import { component_for_render_segment_5_asyra4dfhsag } from './component.tsx_com
 import { component_for_key_segment_6_24uru8poh6002 } from './component.tsx_component_for_key_segment_6_24uru8poh6002';
 import { component_for_render_segment_8_asyq411ozm8v } from './component.tsx_component_for_render_segment_8_asyq411ozm8v';
 import { component_for_key_segment_9_24urvet07o61n } from './component.tsx_component_for_key_segment_9_24urvet07o61n';
-const q_component_jsx_segment_11_2wo80qpf8geko = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_11_2wo80qpf8geko',
+const q_component_jsx_segment_11_2wo80qpf8geko = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_11_2wo80qpf8geko'),
   'component_jsx_segment_11_2wo80qpf8geko'
 );

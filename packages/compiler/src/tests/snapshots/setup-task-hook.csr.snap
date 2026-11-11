@@ -93,9 +93,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  useTask,
-  _withCaptures,
+  qrl,
+  useTaskQrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
@@ -103,12 +102,14 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
 import { __qwik_useCustom$ as useCustom$ } from './component.tsx';
-const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq',
+const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq'),
   'component_useCustomqrl_segment_0_heif5ecaq0pq'
+);
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
 );
 const default_tmpl0 = _createElementTemplate('<span> </span>');
 
@@ -116,9 +117,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   useCustom$(q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]));
-  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [count]), {
-    deferUpdates: true,
-  });
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count]), { deferUpdates: true });
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);

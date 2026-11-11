@@ -57,9 +57,13 @@ import {
   _last,
   createAttrEffect,
   setEvent,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
 const default_tmpl0 = _createElementTemplate(
   '<section><div><span>raw</span></div><p></p></section>'
 );
@@ -70,7 +74,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const el1 = _last(el0);
   const effect0 = createAttrEffect(el1, 'dangerouslySetInnerHTML', markup, ctx.scheduler);
   ctx.scheduler.notify(effect0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [markup]);
+  setEvent(el1, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([markup]));
   return el0;
 }
 /*

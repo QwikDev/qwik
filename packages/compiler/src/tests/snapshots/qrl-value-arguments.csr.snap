@@ -17,17 +17,15 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
-const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx',
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
   'component_qrl_segment_1_2fpox8kpy8lvx'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { config } from './config';
 function tick() {
@@ -173,8 +171,8 @@ export const component_snapshot_segment_4_98oramdy0zcr = () => {
 
 import {
   useSignal,
-  useTask,
-  _qrlWithChunk,
+  useTaskQrl,
+  qrl,
   setEvent,
   _first,
   _next,
@@ -184,19 +182,19 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_2_1og81asunhx6e } from './component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e';
-const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_later_segment_3_3i4odul1ji17c',
+const q_component_useTaskqrl_segment_2_1og81asunhx6e = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e'),
+  'component_useTaskqrl_segment_2_1og81asunhx6e'
+);
+const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_later_segment_3_3i4odul1ji17c'),
   'component_later_segment_3_3i4odul1ji17c'
 );
-const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_snapshot_segment_4_98oramdy0zcr',
+const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_snapshot_segment_4_98oramdy0zcr'),
   'component_snapshot_segment_4_98oramdy0zcr'
 );
-const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_linked_content_0_3641q2pvcvlmq',
+const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ qrl(
   () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
   'linked_content_0_3641q2pvcvlmq'
 );
@@ -205,7 +203,7 @@ const default_tmpl0 = _createElementTemplate('<button><!><!></button>');
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
-  useTask(component_useTaskqrl_segment_2_1og81asunhx6e);
+  useTaskQrl(q_component_useTaskqrl_segment_2_1og81asunhx6e);
   const later = q_component_later_segment_3_3i4odul1ji17c;
   const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
   return maybeThen(invokeCtx0.pendingSetup, () =>

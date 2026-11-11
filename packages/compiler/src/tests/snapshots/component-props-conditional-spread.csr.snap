@@ -116,16 +116,9 @@ export const component_props_segment_1_208o0sfi1se76 = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  createPropsProxy,
-  useComputedQrl,
-  createComponent,
-} from '@qwik.dev/core';
+import { useSignal, qrl, createPropsProxy, useComputedQrl, createComponent } from '@qwik.dev/core';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1_208o0sfi1se76',
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
   'component_props_segment_1_208o0sfi1se76'
 );

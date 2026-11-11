@@ -153,24 +153,21 @@ import {
   _next,
   _last,
   _prev,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
 import { __qwik_side as side, __qwik_fallback as fallback } from './component.tsx';
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
   'component_text_segment_1_1fh10tcowimfv'
 );
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
   'component_text_segment_2_1fh117dstcoge'
 );
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
   'component_text_segment_3_1fh11lewq6qgx'
 );

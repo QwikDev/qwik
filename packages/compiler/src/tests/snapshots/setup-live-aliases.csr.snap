@@ -30,45 +30,38 @@ export { default_component_3rg6kq1so9aio as default };
 
 import {
   _capturesObj,
-  _qrlWithChunk,
+  qrl,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
   createDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
 );
-const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse',
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse'),
   'component_slot_render_segment_4_3b0t8wsj4vdse'
 );
-const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_6_3b0t84qbb79rc',
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_6_3b0t84qbb79rc'),
   'component_slot_render_segment_6_3b0t84qbb79rc'
 );
-const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_8_3b0t7co3hj5qa',
+const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_8_3b0t7co3hj5qa'),
   'component_slot_render_segment_8_3b0t7co3hj5qa'
 );
-const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7',
+const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7'),
   'component_slot_render_segment_10_3m3ztgqtay7c7'
 );
@@ -301,12 +294,11 @@ import {
   _first,
   _next,
   createTemplate,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
 } from '@qwik.dev/core';
 const component_slot_render_segment_6_3b0t84qbb79rc_tmpl0 = createTemplate('<!><!>');
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_7_1fh135jcdiyj1',
+const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_7_1fh135jcdiyj1'),
   'component_text_segment_7_1fh135jcdiyj1'
 );
@@ -491,12 +483,11 @@ import {
   _first,
   _next,
   createTemplate,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
 } from '@qwik.dev/core';
 const default_tmpl0 = createTemplate('<!><!>');
-const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
   'component_tag_dynamic_segment_0_331xea01t87eh'
 );

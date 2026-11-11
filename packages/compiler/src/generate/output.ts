@@ -1,5 +1,5 @@
 /** Generator output — a true superset of the legacy `TransformOutput` data. */
-import type { SegmentAnalysis } from '@qwik.dev/optimizer';
+import type { EntryStrategy, SegmentAnalysis } from '@qwik.dev/optimizer';
 import type { Diagnostic, LinkedModule, LinkedPlan } from '../schema';
 import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';
 
@@ -23,6 +23,10 @@ export interface PresentationOptions {
   explicitExtensions?: boolean;
   /** Working directory for foreign-module transpilation (oxc `cwd`). */
   rootDir?: string;
+  /** Segment origins are relative to it, as the manifest and entry names expect. */
+  srcDir?: string;
+  /** How a bundler groups segments into chunks; only sets `segment.entry`. */
+  entryStrategy?: EntryStrategy;
 }
 
 export function moduleBasename(module: LinkedModule): string {

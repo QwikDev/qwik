@@ -87,6 +87,10 @@ import {
   type PresentationOptions,
 } from './output';
 
+const WORKER_CTX_NAME = 'worker$';
+/** Rewritten by the qwik-vite worker plugin to the chunk's served path. */
+const WORKER_CHUNK_PREFIX = '__QWIK_WORKER_QRL__:';
+
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
 type RangeOp = Extract<
   LinkedOp,
@@ -212,14 +216,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           this.inlineComponentOrRef(use, names, (use) =>
             this.lazyRenderReference(use, names.props)
           ),
-        this.chunkImports,
-        (use) => this.capturedChunkReference(use, names.props)
+        this.chunkImports
       )
     );
   }
 
   emitHook(hook: HookDecl, names: GeneratedNames): string {
-    const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     return emitHookBody(
       this.module,
       hook,
@@ -228,11 +230,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         this.module,
         this.imports,
         (use) => this.lazyRenderReference(use, names.props),
-        this.chunkImports,
-        staticQrl
+        this.chunkImports
       ),
       names,
-      { staticQrl, localFunction: staticQrl, chunkImports: this.chunkImports }
+      {
+        localFunction: (use) => this.capturedChunkReference(use, names.props),
+        chunkImports: this.chunkImports,
+      }
     );
   }
 
@@ -265,13 +269,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       propSources: new Map(),
       revealGroups: new Map(),
     };
-    const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     const emitQrl = withMarkerEmitter(
       this.module,
       this.imports,
       (use) => this.lazyRenderReference(use, names.props),
-      this.chunkImports,
-      staticQrl
+      this.chunkImports
     );
     const statements = emitJsSetup(
       this.module,
@@ -281,7 +283,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
       names,
-      { staticQrl, localFunction: staticQrl, chunkImports: this.chunkImports }
+      {
+        localFunction: (use) => this.capturedChunkReference(use, names.props),
+        chunkImports: this.chunkImports,
+      }
     );
     const setupCount = statements.length;
     const params = parameterDefaults(this.module, program, this.imports, emitQrl);
@@ -1110,7 +1115,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** Arms load lazily: a hoisted `_qrlWithChunk` reference per arm chunk. */
+  /** Lazy QRLs: a hoisted `qrl(() => import(chunk))` reference per chunk. */
   private lazyQrlReference(qrl: LinkedQrl): string {
     if (!this.lazyQrls.has(qrl.id)) {
       this.lazyQrls.add(qrl.id);
@@ -1135,10 +1140,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       target.hoists.push(reference);
       return;
     }
-    const path = chunkImportSpecifier(this.module, qrl, this.options);
-    target.imports.add(QwikWord.QrlWithChunk);
+    const specifier = chunkImportSpecifier(this.module, qrl, this.options);
+    const path = JSON.stringify(specifier);
+    const name = JSON.stringify(qrl.name);
+    if (qrl.ctxName === WORKER_CTX_NAME) {
+      // A worker imports the chunk by path; the bundler swaps the marker for the real one.
+      const chunk = JSON.stringify(`${WORKER_CHUNK_PREFIX}${specifier}`);
+      target.imports.add(QwikWord.QrlWithChunk);
+      target.hoists.push(
+        `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${chunk}, () => import(${path}), ${name});`
+      );
+      return;
+    }
+    // No chunk name: the preloader knows bundles only, never segment paths.
+    target.imports.add(QwikWord.Qrl);
     target.hoists.push(
-      `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(path)}), ${JSON.stringify(qrl.name)});`
+      `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.Qrl}(() => import(${path}), ${name});`
     );
   }
 
@@ -1512,10 +1529,18 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
         ? this.resolveQrlUse(handler.value.use, pass.names.props)
         : { symbol: inlineValueJs(this.module, handler.value), args: [] };
     });
-    const symbolOf = (use: (typeof uses)[number]) =>
-      'symbol' in use ? use.symbol : this.chunkSymbol(use.qrl);
+    // A handler loads when the event fires, as on main; only an inline `sync$` ships in place.
+    const handlerOf = (use: (typeof uses)[number]) => {
+      if ('symbol' in use) {
+        return use.symbol;
+      }
+      if (use.qrl.boundary.kind === BoundaryKind.Sync) {
+        return this.chunkSymbol(use.qrl);
+      }
+      const ref = this.lazyQrlReference(use.qrl);
+      return use.args.length === 0 ? ref : `${ref}.w([${use.args.join(', ')}])`;
+    };
     if (uses.length === 1) {
-      const args = uses[0].args;
       const row = pass.row;
       const use = values[0]?.value;
       if (row !== undefined && use?.v === ValueKind.Qrl) {
@@ -1529,9 +1554,10 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
           this.imports.add(QwikWord.CreateCapturedEvent);
           this.imports.add(QwikWord.SetEvent);
           const name = pass.next('rowEvent');
+          // The row value rides as the handler's event parameter; the QRL carries the captures.
           row.handlers.push({
             name,
-            value: `${QwikWord.CreateCapturedEvent}(${symbolOf(uses[0])}, [${args.join(', ')}], 1)`,
+            value: `${QwikWord.CreateCapturedEvent}(${handlerOf(uses[0])}, null, 1)`,
           });
           statements.push(`${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${name});`);
           return;
@@ -1539,21 +1565,14 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
       }
       this.imports.add(QwikWord.SetEvent);
       statements.push(
-        `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${symbolOf(uses[0])}${args.length === 0 ? '' : `, [${args.join(', ')}]`});`
+        `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${handlerOf(uses[0])});`
       );
       return;
     }
     // Each handler carries its own captures; the runtime dispatches the list in order.
     this.imports.add(QwikWord.SetEvent);
-    const entries = uses.map((use) => {
-      if (use.args.length === 0) {
-        return symbolOf(use);
-      }
-      this.imports.add(QwikWord.CreateCapturedEvent);
-      return `${QwikWord.CreateCapturedEvent}(${symbolOf(use)}, [${use.args.join(', ')}])`;
-    });
     statements.push(
-      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, [${entries.join(', ')}]);`
+      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, [${uses.map(handlerOf).join(', ')}]);`
     );
   }
 

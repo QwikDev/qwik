@@ -73,7 +73,11 @@ describe(`${name}: visible task`, () => {
       await qwikLoader?.dispatch(container.querySelector('script[hidden]') ?? container, 'qinit');
     }
     await flush();
-    expect(container.querySelector('b')!.textContent).toBe('count 0');
+    // A visible task loads lazily after the flush (as on main); its writes need their own flush.
+    await vi.waitFor(async () => {
+      await flush();
+      expect(container.querySelector('b')!.textContent).toBe('count 0');
+    });
     cleanup();
   });
 
@@ -133,7 +137,10 @@ describe(`${name}: visible task`, () => {
     const span = container.querySelector('span')!;
     await qwikLoader?.dispatch(span, 'qidle');
     await flush();
-    expect(span.textContent).toBe('CSR');
+    await vi.waitFor(async () => {
+      await flush();
+      expect(span.textContent).toBe('CSR');
+    });
     cleanup();
   });
 

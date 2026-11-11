@@ -116,12 +116,11 @@ import {
   _first,
   _next,
   createTemplate,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
 } from '@qwik.dev/core';
 const component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0 = createTemplate('<!><!>');
-const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_3_18523gi7fg5bn',
+const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_3_18523gi7fg5bn'),
   'component_content_segment_3_18523gi7fg5bn'
 );
@@ -296,7 +295,7 @@ export const component_text_segment_6_1fh12ri8gowii = (row) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   _first,
   _last,
   createSlotScope,
@@ -311,18 +310,15 @@ import {
 import { component_for_render_segment_4_asyro5hcbuaz } from './component.tsx_component_for_render_segment_4_asyro5hcbuaz';
 import { component_for_key_segment_5_24urtuokkbxzj } from './component.tsx_component_for_key_segment_5_24urtuokkbxzj';
 import { Frame_component_3fvtje3o9mga4 as Frame } from './component.tsx_Frame_component_3fvtje3o9mga4';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );

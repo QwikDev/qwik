@@ -862,9 +862,9 @@ test('transform uses compiler for core test path', async () => {
     meta: result!.meta,
   }).toMatchInlineSnapshot(`
     {
-      "code": "import { _qrlWithChunk } from "@qwik.dev/core";
+      "code": "import { qrl } from "@qwik.dev/core";
 
-    const q_component_spec_jsx_segment_0_1102ojfss05y2 = /*#__PURE__*/ _qrlWithChunk("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js", () => import("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js"), "component_spec_jsx_segment_0_1102ojfss05y2");
+    const q_component_spec_jsx_segment_0_1102ojfss05y2 = /*#__PURE__*/ qrl(() => import("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js"), "component_spec_jsx_segment_0_1102ojfss05y2");
     export function view() {
     	return q_component_spec_jsx_segment_0_1102ojfss05y2;
     }
@@ -902,7 +902,7 @@ export function useCounter() {
     '/root/src/use-counter.ts'
   );
 
-  expect(result?.code).toContain('useComputed(_withCaptures(');
+  expect(result?.code).toContain('useComputedQrl(q_');
   expect(result?.code).not.toContain('useComputed$(');
   // segment names spell $ as qrl, so the boundary reads useComputedqrl
   const segmentId = result?.meta?.qwikdeps?.find((dep) => dep.includes('useComputedqrl_segment'));

@@ -43,7 +43,7 @@ export const index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = () => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_routeLoaderqrl_segment_0_1ikesr9pxvi1b",
   "entry": null,
   "displayName": "index_routeLoaderqrl_segment_0",
@@ -71,7 +71,7 @@ export const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_text_segment_1_1ipiow57gf7g4",
   "entry": null,
   "displayName": "index_text_segment_1",
@@ -148,7 +148,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",

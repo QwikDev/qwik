@@ -9,10 +9,9 @@ export default function (opts) {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );

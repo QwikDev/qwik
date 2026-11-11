@@ -9,17 +9,15 @@ export const form = ({ action, onSubmit$, ...rest }) =>
 
 ============================= src/component.tsx ==
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_3_38vnj6t5v0ibn',
+const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_3_38vnj6t5v0ibn'),
   'component_jsx_segment_3_38vnj6t5v0ibn'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 export const form = ({ action, onSubmit$, ...rest }) =>
   action
     ? q_component_jsx_segment_0_38vnjku9rukc6.w([rest, onSubmit$, action])
@@ -103,9 +101,8 @@ export const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
 */
 ============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
 
-import { _qrlWithChunk, $ } from '@qwik.dev/core';
-const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx',
+import { qrl, $ } from '@qwik.dev/core';
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
   'component_qrl_segment_1_2fpox8kpy8lvx'
 );

@@ -154,10 +154,9 @@ export const component_useLocalqrl_segment_3_34296ojkgual = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   useTaskQrl,
-  useComputed,
-  _withCaptures,
+  useComputedQrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
@@ -165,16 +164,24 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_total_segment_1_33cb9ycgfz3ta } from './component.tsx_component_total_segment_1_33cb9ycgfz3ta';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_2_heiedc4h1woo } from './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo';
-import { component_useLocalqrl_segment_3_34296ojkgual } from './component.tsx_component_useLocalqrl_segment_3_34296ojkgual';
+import { useCustomQrl } from './hooks';
 import { useCustom$ } from './hooks';
 import { useLocal$ } from './component.tsx';
-const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
   'component_read_segment_0_1zbzildyw5vrf'
+);
+const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_total_segment_1_33cb9ycgfz3ta'),
+  'component_total_segment_1_33cb9ycgfz3ta'
+);
+const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo'),
+  'component_useCustomqrl_segment_2_heiedc4h1woo'
+);
+const q_component_useLocalqrl_segment_3_34296ojkgual = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useLocalqrl_segment_3_34296ojkgual'),
+  'component_useLocalqrl_segment_3_34296ojkgual'
 );
 const default_tmpl0 = _createElementTemplate('<span> </span>');
 
@@ -183,11 +190,11 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(1);
   const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
   useTaskQrl(read);
-  const total = useComputed(_withCaptures(component_total_segment_1_33cb9ycgfz3ta, [count]), {
+  const total = useComputedQrl(q_component_total_segment_1_33cb9ycgfz3ta.w([count]), {
     initial: 0,
   });
-  useCustom(_withCaptures(component_useCustomqrl_segment_2_heiedc4h1woo, [count]));
-  useLocal(_withCaptures(component_useLocalqrl_segment_3_34296ojkgual, [count]));
+  useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
+  useLocalQrl(q_component_useLocalqrl_segment_3_34296ojkgual.w([count]));
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);

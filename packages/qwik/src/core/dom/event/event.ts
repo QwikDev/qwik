@@ -76,11 +76,12 @@ export function createCapturedEvent(
   captures?: readonly unknown[] | null,
   paramCount = 0
 ): QDispatchHandler {
-  if (!captures) {
+  if (!captures && paramCount === 0) {
     return wrapDispatch(handler) as QDispatchHandler;
   }
 
-  const captured = captures as CapturedEventHandler;
+  // A QRL handler carries its own captures; the array then only holds the row parameter count.
+  const captured = (captures ?? []) as CapturedEventHandler;
   if (paramCount !== 0) {
     captured._qParamCount = paramCount;
   }

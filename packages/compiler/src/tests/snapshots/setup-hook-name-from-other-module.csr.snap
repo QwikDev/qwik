@@ -52,18 +52,21 @@ export const component_double_segment_0_oorkh4t0y6ca = () => {
 
 import {
   useSignal,
-  useComputed,
-  _withCaptures,
+  useComputedQrl,
+  qrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_double_segment_0_oorkh4t0y6ca } from './component.tsx_component_double_segment_0_oorkh4t0y6ca';
+const q_component_double_segment_0_oorkh4t0y6ca = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_double_segment_0_oorkh4t0y6ca'),
+  'component_double_segment_0_oorkh4t0y6ca'
+);
 const default_tmpl0 = _createElementTemplate('<b> </b>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(1);
-  const double = useComputed(_withCaptures(component_double_segment_0_oorkh4t0y6ca, [count]));
+  const double = useComputedQrl(q_component_double_segment_0_oorkh4t0y6ca.w([count]));
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, double, ctx.scheduler);

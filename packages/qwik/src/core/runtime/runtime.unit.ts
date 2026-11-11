@@ -2049,19 +2049,19 @@ describe('runtime scheduler and owner lifecycle', () => {
       },
       null
     );
-    const task = runWithTestContainer(scheduler, () => useTaskQrl(qrl));
-
-    scheduler.notify(task);
+    // A client task starts during setup, so it needs no notify.
+    runWithTestContainer(scheduler, () => useTaskQrl(qrl));
     await scheduler.flushInteraction();
 
     expect(resolved).toBe(true);
     expect(order).toEqual(['qrl']);
   });
 
+  // A client task starts during setup; a visible task waits for its trigger.
   describe.each([
-    ['task', useTaskQrl],
-    ['visible task', useVisibleTaskQrl],
-  ] as const)('%s raw QRL', (_, createTask) => {
+    ['task', useTaskQrl, false],
+    ['visible task', useVisibleTaskQrl, true],
+  ] as const)('%s raw QRL', (_, createTask, needsTrigger) => {
     it('shares code while restoring scopes, tracking after await, and cleaning up', async () => {
       const scheduler = new Scheduler(noopSchedule);
       const firstSource = useSignal(1);
@@ -2096,8 +2096,10 @@ describe('runtime scheduler and owner lifecycle', () => {
       const secondQrl = firstQrl.w([secondSource, secondAfter, 200]);
       const first = createOwned(() => createTask(firstQrl), container);
       const second = createOwned(() => createTask(secondQrl), container);
-      scheduler.notify(first);
-      scheduler.notify(second);
+      if (needsTrigger) {
+        scheduler.notify(first);
+        scheduler.notify(second);
+      }
       await scheduler.flushInteraction();
       await Promise.all([first.runPromise, second.runPromise]);
 
@@ -2136,7 +2138,9 @@ describe('runtime scheduler and owner lifecycle', () => {
       const run = vi.fn();
       qrl.resolved = run;
       const task = runWithTestContainer(scheduler, () => createTask(qrl));
-      scheduler.notify(task);
+      if (needsTrigger) {
+        scheduler.notify(task);
+      }
       await scheduler.flushInteraction();
 
       expect(run).toHaveBeenCalledOnce();
@@ -2222,9 +2226,7 @@ describe('runtime scheduler and owner lifecycle', () => {
       '0 1',
       container
     );
-    const task = createOwned(() => useTaskQrl(qrl), container);
-
-    scheduler.notify(task);
+    createOwned(() => useTaskQrl(qrl), container);
     await scheduler.flushInteraction();
 
     expect(seen).toEqual(['task:capture']);

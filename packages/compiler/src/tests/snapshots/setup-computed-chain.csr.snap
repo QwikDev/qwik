@@ -116,8 +116,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 import {
   useSignal,
-  useComputed,
-  _withCaptures,
+  useComputedQrl,
+  qrl,
   readTrackedValue,
   patchCachedAttr,
   setEvent,
@@ -126,20 +126,27 @@ import {
   createDomBatchEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
-import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_doubled_segment_0_2yvob8vshk72o'),
+  'component_doubled_segment_0_2yvob8vshk72o'
+);
+const q_component_label_segment_1_871sx3hwa26q = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_label_segment_1_871sx3hwa26q'),
+  'component_label_segment_1_871sx3hwa26q'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(1);
-  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
-  const label = useComputed(
-    _withCaptures(component_label_segment_1_871sx3hwa26q, [doubled, props])
-  );
+  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
+  const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
   const el0 = default_tmpl0(ctx.document);
   let written0;
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]));
   const text0 = _first(el0);
   createDomBatchEffect(() => {
     written0 = patchCachedAttr(el0, 'title', readTrackedValue(label), written0);

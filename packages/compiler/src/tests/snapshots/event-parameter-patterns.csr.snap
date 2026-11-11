@@ -152,15 +152,13 @@ export const component_q_e_reset_segment_2_3clnjugf9bxli = (
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { qrl, createComponent } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
-const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft',
+const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft'),
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
-const q_component_q_e_reset_segment_2_3clnjugf9bxli = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli',
+const q_component_q_e_reset_segment_2_3clnjugf9bxli = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli'),
   'component_q_e_reset_segment_2_3clnjugf9bxli'
 );

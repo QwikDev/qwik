@@ -111,6 +111,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 
 import {
   setEvent,
+  qrl,
   _first,
   _next,
   _last,
@@ -119,11 +120,14 @@ import {
   _createElementTemplate,
   _capturesObj,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 import { component_text_segment_6_1fh12ri8gowii } from './component.tsx_component_text_segment_6_1fh12ri8gowii';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const component_for_render_segment_1_asysu8t2u0ck_tmpl0 = _createElementTemplate(
   '<h2><!>:<!>:<!>:<!></h2>'
 );
@@ -138,7 +142,7 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
   } = item.details;
   const [first = copy, , ...tail] = rest.parts;
   const el0 = component_for_render_segment_1_asysu8t2u0ck_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [label, first, tail]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, first, tail]));
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
@@ -358,12 +362,11 @@ import {
   useSignal,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );

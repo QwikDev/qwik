@@ -65,12 +65,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
@@ -185,12 +184,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 const component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_5_24n7d63685l6a',
+const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_5_24n7d63685l6a'),
   'component_branch_then_segment_5_24n7d63685l6a'
 );
@@ -305,12 +303,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_7_2fzrfomfhr3bk } from './component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk';
 const component_slot_render_segment_6_3b0t84qbb79rc_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_8_24n7f48psbv8x',
+const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_8_24n7f48psbv8x'),
   'component_branch_then_segment_8_24n7f48psbv8x'
 );
@@ -484,7 +481,7 @@ import {
   _last,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
   _toNodes,
   maybeThen,
@@ -496,23 +493,19 @@ import {
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_9_2fzrl51y9fviy } from './component.tsx_component_branch_condition_segment_9_2fzrl51y9fviy';
 import { Host_component_omsd8g3aigfl as Host } from './component.tsx_Host_component_omsd8g3aigfl';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
 );
-const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_6_3b0t84qbb79rc',
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_6_3b0t84qbb79rc'),
   'component_slot_render_segment_6_3b0t84qbb79rc'
 );
-const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_10_1yfeetw8az0ma',
+const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_10_1yfeetw8az0ma'),
   'component_branch_then_segment_10_1yfeetw8az0ma'
 );

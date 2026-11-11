@@ -110,7 +110,7 @@ export const component_text_segment_2_1fh117dstcoge = (_destructured) => {
 
 import {
   useSignal,
-  _withCaptures,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -118,21 +118,27 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
-import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
+import { useCustomQrl } from './hooks';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { useCustom$ as custom } from './hooks';
+const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq'),
+  'component_useCustomqrl_segment_0_heif5ecaq0pq'
+);
+const q_component_useCustomqrl_segment_1_heifjfg7k2q9 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9'),
+  'component_useCustomqrl_segment_1_heifjfg7k2q9'
+);
 const default_tmpl0 = _createElementTemplate('<span> </span>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
-  const _destructured = useCustom(
-    _withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]),
+  const _destructured = useCustomQrl(
+    q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]),
     props.options
   );
-  useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [props]), ...props.args);
+  useCustomQrl(q_component_useCustomqrl_segment_1_heifjfg7k2q9.w([props]), ...props.args);
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);

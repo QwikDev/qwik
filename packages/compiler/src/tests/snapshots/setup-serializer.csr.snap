@@ -147,25 +147,28 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
 
 import {
   useSignal,
-  useSerializer,
-  _withCaptures,
+  useSerializerQrl,
+  qrl,
   _first,
   _last,
   _prev,
   _next,
-  _qrlWithChunk,
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_count_segment_0_1adkz2bcpjjfs } from './component.tsx_component_count_segment_0_1adkz2bcpjjfs';
-import { component_date_segment_1_89fc8zvxt5qk } from './component.tsx_component_date_segment_1_89fc8zvxt5qk';
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
+const q_component_count_segment_0_1adkz2bcpjjfs = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_count_segment_0_1adkz2bcpjjfs'),
+  'component_count_segment_0_1adkz2bcpjjfs'
+);
+const q_component_date_segment_1_89fc8zvxt5qk = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_date_segment_1_89fc8zvxt5qk'),
+  'component_date_segment_1_89fc8zvxt5qk'
+);
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
   'component_text_segment_2_1fh117dstcoge'
 );
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
   'component_text_segment_3_1fh11lewq6qgx'
 );
@@ -173,8 +176,8 @@ const default_tmpl0 = _createElementTemplate('<span><!><!><!><!></span>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const start = useSignal(5);
-  const count = useSerializer(_withCaptures(component_count_segment_0_1adkz2bcpjjfs, [start]));
-  const date = useSerializer(component_date_segment_1_89fc8zvxt5qk);
+  const count = useSerializerQrl(q_component_count_segment_0_1adkz2bcpjjfs.w([start]));
+  const date = useSerializerQrl(q_component_date_segment_1_89fc8zvxt5qk);
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);

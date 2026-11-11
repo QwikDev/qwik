@@ -10,11 +10,10 @@ export default () => <_Layout><_createContent text="hi" /></_Layout>;
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
@@ -32,12 +31,11 @@ import {
   _capturesObj,
   _first,
   _next,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
   'component_text_segment_1_1fh10tcowimfv'
 );
@@ -153,12 +151,11 @@ import {
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
 } from '@qwik.dev/core';
 import { __qwik__Layout as _Layout } from './component.tsx';
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );

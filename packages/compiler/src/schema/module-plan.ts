@@ -74,6 +74,10 @@ export interface Qrl {
   /** Wire symbol for chunked QRLs. */
   name: string;
   ctxName: string;
+  /** The top-level declaration the QRL sits in; entry strategies group segments by it. */
+  rootContext?: string;
+  /** Only element event handlers read it, so it loads with the event instead of the render. */
+  eventOnly?: true;
   /** Neutral boundary facts current emitters require. */
   boundary: /** `inline` marks a nested `component$` value: it prints where its call stood, never a chunk. */
     | { kind: BoundaryKind.Component; inline?: true }

@@ -38,7 +38,7 @@ export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}
         );
       }
     }
-    globals._qrlWithChunk = (_path: string, _load: unknown, symbol: string) => {
+    globals.qrl = (_load: unknown, symbol: string) => {
       const qrl = core._noopQrl(symbol);
       qrl.s(globals[symbol] as (...args: unknown[]) => unknown);
       return qrl;

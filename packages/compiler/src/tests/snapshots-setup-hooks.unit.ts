@@ -4,6 +4,98 @@ import { testInput, testInputs } from './snapshot-runner';
 import { renderCode, qrlChunks } from './fixtures';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should give a $ that only event handlers read its own smart chunk', async () => {
+    const output = await testInput(
+      mode,
+      'entry-smart-event-only',
+      {
+        code: `import { $, component$, useSignal } from '@qwik.dev/core';
+export const Probe = component$(() => {
+  const count = useSignal(0);
+  const click = $(() => console.log('click', count.value));
+  const alias = click;
+  const read = $(() => count.value);
+  const helper = $(() => count.value);
+  return (
+    <>
+      <button onClick$={alias}>alias</button>
+      <button onClick$={() => click()}>inside</button>
+      <button onClick$={read}>mixed</button>
+      {read()}
+      <b data-x={helper} />
+    </>
+  );
+});
+`,
+      },
+      { entryStrategy: { type: 'smart' } }
+    );
+    const segment = (name: string) =>
+      output.modules.find((module) => module.segment?.name.includes(`_${name}_segment_`))!.segment!;
+    expect(segment('click').entry).toBe(segment('click').canonicalFilename);
+    expect(segment('read').entry).toBe('component.tsx_entry_Probe');
+    expect(segment('helper').entry).toBe('component.tsx_entry_Probe');
+  });
+
+  test('should give a worker$ chunk the path a worker imports', async () => {
+    const output = await testInput(mode, 'worker-qrl', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+const double = worker$((value: number) => value * 2);
+export const App = component$(() => {
+  const count = useSignal(1);
+  return <button onClick$={async () => (count.value = await double(count.value))}>{count.value}</button>;
+});
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    if (mode === 'csr') {
+      expect(code).toMatch(
+        /_qrlWithChunk\("__QWIK_WORKER_QRL__:\.\/component\.tsx_\w+", \(\) => import\(/
+      );
+      expect(code).toMatch(/= \/\*#__PURE__\*\/ qrl\(\(\) => import\("\.\/component\.tsx_\w+click/);
+    }
+  });
+
+  test('should group smart segments by their top-level declaration', async () => {
+    const output = await testInput(
+      mode,
+      'entry-smart',
+      {
+        path: 'src/routes/page.tsx',
+        code: `import { $, component$, event$, useSignal, useTask$ } from '@qwik.dev/core';
+function useCustomHook(value) {
+  useTask$(() => console.log('hook', value));
+}
+export const App = component$(() => {
+  const count = useSignal(0);
+  useCustomHook(count.value);
+  const read = $(() => console.log(count.value));
+  const log = event$(() => console.log('log'));
+  read();
+  return <button onClick$={() => count.value++} data-log={log}>{count.value}</button>;
+});
+export default component$(() => <App />);
+`,
+      },
+      { entryStrategy: { type: 'smart' } }
+    );
+    const entries = Object.fromEntries(
+      output.modules.flatMap((module) =>
+        module.segment ? [[module.segment.ctxName, module.segment.entry]] : []
+      )
+    );
+    expect(entries['useTask$']).toBe('routes/page.tsx_entry_useCustomHook');
+    expect(entries['$']).toBe('routes/page.tsx_entry_App');
+    expect(entries['onClick$']).toBeNull();
+    expect(entries['event$']).toBeNull();
+    const components = output.modules.filter((module) => module.segment?.ctxName === 'component$');
+    expect(components.map((module) => module.segment!.entry).sort()).toEqual([
+      'routes/page.tsx_entry_App',
+      'routes/page.tsx_entry_page',
+    ]);
+  });
+
   test('should share module bindings with QRL chunks', async () => {
     const output = await testInput(mode, 'qrl-module-bindings', {
       code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
@@ -319,14 +411,12 @@ export default () => {
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
-    // The runtime registers the trigger on both targets; the server ships the task as a QRL.
+    // The runtime registers the trigger on both targets, with the task as a lazy QRL.
     expect(code).not.toContain('useVisibleTask$(');
-    expect(code.match(mode === 'ssr' ? /useVisibleTaskQrl\(/g : /useVisibleTask\(/g)).toHaveLength(
-      3
-    );
+    expect(code.match(/useVisibleTaskQrl\(/g)).toHaveLength(3);
   });
 
-  test('should rewrite $ hooks to their Qrl and function twins', async () => {
+  test('should rewrite $ hooks to their Qrl twins', async () => {
     const output = await testInput(mode, 'setup-marker-hooks', {
       code: `import { $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
@@ -346,17 +436,10 @@ export default () => {
     });
     const code = output.modules.map((module) => module.code).join('\n');
     expect(code).toContain('useTaskQrl(read)');
-    if (mode === 'ssr') {
-      expect(code).toContain('import { useCustomQrl } from "./hooks";');
-      expect(code).toContain('useComputedQrl(');
-      expect(code).toContain('useCustomQrl(');
-      expect(code).toContain('useLocalQrl(');
-    } else {
-      expect(code).toContain('import { useCustom } from "./hooks";');
-      expect(code).toContain('useComputed(_withCaptures(');
-      expect(code).toContain('useCustom(_withCaptures(');
-      expect(code).toContain('useLocal(_withCaptures(');
-    }
+    expect(code).toContain('import { useCustomQrl } from "./hooks";');
+    expect(code).toContain('useComputedQrl(');
+    expect(code).toContain('useCustomQrl(');
+    expect(code).toContain('useLocalQrl(');
     expect(code).not.toContain('useCustom$(');
     expect(code).not.toContain('useLocal$(');
   });
@@ -418,12 +501,7 @@ export default () => {
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
-    if (mode === 'ssr') {
-      expect(code.match(/useSerializerQrl\(/g)).toHaveLength(2);
-    } else {
-      expect(code).toContain('useSerializer(_withCaptures(');
-      expect(code.match(/useSerializer\(/g)).toHaveLength(2);
-    }
+    expect(code.match(/useSerializerQrl\(/g)).toHaveLength(2);
     expect(code).not.toContain('useSerializer$(');
   });
 
@@ -448,7 +526,7 @@ export default () => {
         : 'maybeThen(invokeCtx0.pendingSetup, () => invoke(invokeCtx0, () => {'
     );
     if (mode === 'csr') {
-      expect(code).toContain('useTask(_withCaptures(component_useTaskqrl_segment_0_');
+      expect(code).toContain('useTaskQrl(q_component_useTaskqrl_segment_0_');
     }
   });
 
@@ -748,8 +826,8 @@ export const Maybe = component$((props: { flag: boolean }) => {
     expect(output.diagnostics).toEqual([]);
     const hooks = output.modules.find((module) => module.path === 'src/hooks.ts')!.code;
     const main = renderCode(output);
-    // Hook bodies compile like component setup: their $ calls become QRLs or static callbacks.
-    expect(hooks).toContain(mode === 'ssr' ? 'useTaskQrl(q_' : 'useTask(_withCaptures(');
+    // Hook bodies compile like component setup: their $ calls become QRLs.
+    expect(hooks).toContain('useTaskQrl(q_');
     expect(hooks).not.toContain('useTask$(');
     // An early return stays ordinary JavaScript inside the compiled body.
     expect(hooks).toMatch(/if \(!flag\) \{\s*return null;\s*\}/);
@@ -896,9 +974,8 @@ export default () => {
     const code = output.modules.map((module) => module.code).join('\n');
     expect(code).not.toContain('useCustom$(');
     const main = renderCode(output);
-    // Setup and module helpers take the client fast path; a chunk body keeps the qrl twin.
-    const twin = mode === 'ssr' ? 'useCustomQrl(q_' : 'useCustom(_withCaptures(';
-    expect(main.match(new RegExp(twin.replace(/[$()]/g, '\\$&'), 'g'))).toHaveLength(2);
+    // Setup, module helpers and chunk bodies all take the qrl twin.
+    expect(main.match(/useCustomQrl\(q_/g)).toHaveLength(2);
     expect(code).toMatch(/useCustomQrl\(q_\w+\.w\(\[count\]\)\);/);
   });
 

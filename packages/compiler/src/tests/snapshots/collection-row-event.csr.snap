@@ -22,13 +22,16 @@ import { default_component_3rg6kq1so9aio } from './component.tsx_default_compone
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _first, createCapturedEvent, setEvent, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+import { _first, createCapturedEvent, setEvent, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><button>x</button></li>'
 );
 function createRowEvents0() {
-  return createCapturedEvent(component_q_e_click_segment_2_2xwygteqhjqr1, [], 1);
+  return createCapturedEvent(q_component_q_e_click_segment_2_2xwygteqhjqr1, null, 1);
 }
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, rowIndex0, collection0) => {

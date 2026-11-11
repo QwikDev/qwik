@@ -19,12 +19,11 @@ import { Declared } from './helpers';
 export const Wrapped = component$(Declared);
 ============================= src/helpers.tsx ==
 
-const q_helpers_jsx_segment_0_32g7syw1xnsrq = /*#__PURE__*/ _qrlWithChunk(
-  './helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq',
+const q_helpers_jsx_segment_0_32g7syw1xnsrq = /*#__PURE__*/ qrl(
   () => import('./helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq'),
   'helpers_jsx_segment_0_32g7syw1xnsrq'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { Declared_component_2m8wav44xl533 as Declared } from './helpers.tsx_Declared_component_2m8wav44xl533';
 export { Declared };
 export const plain = (props) => q_helpers_jsx_segment_0_32g7syw1xnsrq.w([props]);

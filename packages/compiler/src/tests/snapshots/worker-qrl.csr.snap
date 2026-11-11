@@ -1,0 +1,179 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { worker$ } from '@qwik.dev/core/worker';
+const double = worker$((value: number) => value * 2);
+export const App = component$(() => {
+  const count = useSignal(1);
+  return <button onClick$={async () => (count.value = await double(count.value))}>{count.value}</button>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_workerqrl_segment_0_1fmx1v6fytxp4 = /*#__PURE__*/ _qrlWithChunk(
+  '__QWIK_WORKER_QRL__:./component.tsx_component_workerqrl_segment_0_1fmx1v6fytxp4',
+  () => import('./component.tsx_component_workerqrl_segment_0_1fmx1v6fytxp4'),
+  'component_workerqrl_segment_0_1fmx1v6fytxp4'
+);
+import { _qrlWithChunk } from '@qwik.dev/core';
+import { workerQrl } from '@qwik.dev/core/worker';
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
+import { worker$ } from '@qwik.dev/core/worker';
+const double = workerQrl(q_component_workerqrl_segment_0_1fmx1v6fytxp4);
+export { App };
+
+export { double as __qwik_double };
+============================= src/component.tsx_component_workerqrl_segment_0_1fmx1v6fytxp4.js (ENTRY POINT)==
+
+export const component_workerqrl_segment_0_1fmx1v6fytxp4 = (value) => {
+  return value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_workerqrl_segment_0_1fmx1v6fytxp4",
+  "entry": null,
+  "displayName": "component_workerqrl_segment_0",
+  "hash": "1fmx1v6fytxp4",
+  "canonicalFilename": "component.tsx_component_workerqrl_segment_0_1fmx1v6fytxp4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "worker$",
+  "captures": false,
+  "loc": [
+    120,
+    157
+  ],
+  "paramNames": [
+    "value"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _capturesObj, _await } from '@qwik.dev/core';
+import { __qwik_double as double } from './component.tsx';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = async () => {
+  const [count] = _capturesObj._;
+  return (count.value = (await _await(double(count.value)))());
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    244,
+    307
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  setEvent,
+  qrl,
+  _first,
+  _next,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
+  'linked_content_0_3641q2pvcvlmq'
+);
+const App_tmpl0 = _createElementTemplate('<button><!><!></button>');
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  const count = useSignal(1);
+  const el0 = App_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]));
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_linked_content_0_3641q2pvcvlmq.w([count]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    159,
+    336
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_linked_content_0_3641q2pvcvlmq.js (ENTRY POINT)==
+
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
+
+export const linked_content_0_3641q2pvcvlmq = (ctx0) => {
+  const [count] = _capturesObj._;
+  return createDynamicContent(count.value, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "linked_content_0_3641q2pvcvlmq",
+  "entry": null,
+  "displayName": "linked_content_0",
+  "hash": "3641q2pvcvlmq",
+  "canonicalFilename": "component.tsx_linked_content_0_3641q2pvcvlmq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    310,
+    321
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

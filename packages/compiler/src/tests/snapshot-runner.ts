@@ -4,6 +4,7 @@
  * before accepting.
  */
 import { expect } from 'vitest';
+import type { TransformModulesOptions } from '@qwik.dev/optimizer';
 import { transformModules } from '../transform-modules';
 import { snapshotResult } from './snapshot-format';
 
@@ -21,6 +22,7 @@ export interface TestOptions {
   explicitExtensions?: boolean;
   mode?: 'dev' | 'lib';
   inspector?: boolean;
+  entryStrategy?: TransformModulesOptions['entryStrategy'];
 }
 
 export async function testInput(

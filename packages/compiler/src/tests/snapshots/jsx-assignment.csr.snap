@@ -109,7 +109,7 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  qrl,
   _first,
   _last,
   _prev,
@@ -118,18 +118,15 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Box } from './box';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_1_185248kf949cp',
+const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_1_185248kf949cp'),
   'component_content_segment_1_185248kf949cp'
 );
-const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_2_185232h3im3b4',
+const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_2_185232h3im3b4'),
   'component_content_segment_2_185232h3im3b4'
 );

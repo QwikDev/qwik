@@ -126,22 +126,31 @@ export class VisibleTaskSubscription
 }
 
 export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
-  const invokeContext = getActiveInvokeContext();
-  const container = invokeContext.container;
+  return registerTask(run, undefined, options);
+}
+
+/** A client render runs the task during setup and holds the render on it, as the server does. */
+function registerTask(
+  run: TaskFn | undefined,
+  qrl: TaskQrlRef | undefined,
+  options: TaskOptions | undefined
+): TaskSubscriber {
+  const invokeContext = getActiveInvokeContextOrNull();
+  const container = invokeContext?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
     new TaskSubscription(
       new Task(
         run,
         options?.deferUpdates === false ? Phase.DeferredTask : Phase.BlockingTask,
-        undefined,
+        qrl,
         container,
         invokeContext
       ),
       scheduler
     )
   );
-  if (qTest ? isServerPlatform() : isServer) {
+  if (invokeContext === null || (qTest ? isServerPlatform() : isServer)) {
     subscriber.scheduler.notify(subscriber);
     return subscriber;
   }
@@ -174,23 +183,7 @@ export function _waitOn(promise: Promise<unknown>): void {
 }
 
 export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
-  const invokeContext = getActiveInvokeContextOrNull();
-  const container = invokeContext?.container;
-  const scheduler = container?.scheduler ?? defaultScheduler;
-  const subscriber = registerSubscriberToOwner(
-    new TaskSubscription(
-      new Task(
-        undefined,
-        options?.deferUpdates === false ? Phase.DeferredTask : Phase.BlockingTask,
-        qrl,
-        container,
-        invokeContext
-      ),
-      scheduler
-    )
-  );
-  subscriber.scheduler.notify(subscriber);
-  return subscriber;
+  return registerTask(undefined, qrl, options);
 }
 
 /** @public */

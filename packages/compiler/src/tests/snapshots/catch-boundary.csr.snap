@@ -46,18 +46,22 @@ export const component_catch_fallback_segment_0_3ik9bd623jcyx = (ctx0, error0) =
 import {
   _capturesObj,
   setEvent,
+  qrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const component_catch_content_segment_1_nkto614tyy25_tmpl0 =
   _createElementTemplate('<button> </button>');
 
 export const component_catch_content_segment_1_nkto614tyy25 = (ctx) => {
   const [count] = _capturesObj._;
   const el0 = component_catch_content_segment_1_nkto614tyy25_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]));
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);

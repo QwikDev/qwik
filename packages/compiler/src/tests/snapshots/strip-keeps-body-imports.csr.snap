@@ -35,7 +35,7 @@ export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_useVisibleTaskqrl_segment_0_xu37ccow27t1",
   "entry": null,
   "displayName": "index_useVisibleTaskqrl_segment_0",
@@ -65,7 +65,7 @@ export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_text_segment_1_1ipiow57gf7g4",
   "entry": null,
   "displayName": "index_text_segment_1",
@@ -90,19 +90,22 @@ export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
 
 import {
   useSignal,
-  useVisibleTask,
-  _withCaptures,
+  useVisibleTaskQrl,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { index_useVisibleTaskqrl_segment_0_xu37ccow27t1 } from './index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1';
 import { index_text_segment_1_1ipiow57gf7g4 } from './index.tsx_index_text_segment_1_1ipiow57gf7g4';
+const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ qrl(
+  () => import('./index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1'),
+  'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
+);
 const default_tmpl0 = _createElementTemplate('<div> </div>');
 
 export function default_component_tv8h7w8tm3v2(props, ctx) {
   const result = useSignal('pending');
-  useVisibleTask(_withCaptures(index_useVisibleTaskqrl_segment_0_xu37ccow27t1, [result]));
+  useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -116,7 +119,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",

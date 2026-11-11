@@ -9,10 +9,9 @@ export function makeNode(label) {
 
 ============================= src/component.tsx ==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
@@ -24,14 +23,18 @@ export function makeNode(label) {
 import {
   _capturesObj,
   setEvent,
+  qrl,
   _first,
   _last,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate(
   '<button><!>:<!></button>'
 );
@@ -43,7 +46,11 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
     return arguments;
   })(..._argumentsValues0);
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [_this, [..._arguments]]);
+  setEvent(
+    el0,
+    'q-e:click',
+    q_component_q_e_click_segment_1_2xwyfnber1kpg.w([_this, [..._arguments]])
+  );
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);

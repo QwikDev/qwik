@@ -146,15 +146,14 @@ import {
   useSignal,
   _first,
   _next,
-  _qrlWithChunk,
+  qrl,
   _wrapArray,
   createCollection,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 import { component_for_key_segment_2_24ursol8ttrxy } from './component.tsx_component_for_key_segment_2_24ursol8ttrxy';
-const q_component_collection_source_segment_0_21yfn4vi2lwwj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj',
+const q_component_collection_source_segment_0_21yfn4vi2lwwj = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj'),
   'component_collection_source_segment_0_21yfn4vi2lwwj'
 );

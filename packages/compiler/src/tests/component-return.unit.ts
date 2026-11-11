@@ -95,8 +95,8 @@ test.each(['props.visible.value ? <b>on</b> : null', 'props.visible.value && <b>
       get _capturesObj() {
         return core._capturesObj;
       },
-      _qrlWithChunk(chunk: string, _importer: unknown, symbol: string) {
-        return core._qrlWithChunk(chunk, async () => ({ [symbol]: globals[symbol] }), symbol);
+      qrl(_importer: unknown, symbol: string) {
+        return core.qrl(async () => ({ [symbol]: globals[symbol] }), symbol);
       },
     };
     for (const module of output.modules) {

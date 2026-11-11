@@ -123,9 +123,9 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 import {
   useSignal,
-  useComputed,
-  _withCaptures,
-  useTask,
+  useComputedQrl,
+  qrl,
+  useTaskQrl,
   setEvent,
   _first,
   createTextNodeEffect,
@@ -134,20 +134,29 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
-import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+  'component_title_segment_0_2f0r0xivypjmx'
+);
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
-  const title = useComputed(_withCaptures(component_title_segment_0_2f0r0xivypjmx, [count]));
-  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [title]));
+  const title = useComputedQrl(q_component_title_segment_0_2f0r0xivypjmx.w([count]));
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([title]));
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+      setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]));
       const text0 = _first(el0);
       const effect0 = createTextNodeEffect(text0, title, ctx.scheduler);
       ctx.scheduler.notify(effect0);

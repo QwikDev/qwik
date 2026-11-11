@@ -58,14 +58,13 @@ import {
   _first,
   _last,
   _next,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
   maybeThen,
   createSlot,
   _createElementTemplate,
 } from '@qwik.dev/core';
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
   'component_text_segment_0_1fh10fbkzokfc'
 );
@@ -170,20 +169,13 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  createSlotScope,
-  registerProjection,
-  _qrlWithChunk,
-  createComponent,
-} from '@qwik.dev/core';
+import { createSlotScope, registerProjection, qrl, createComponent } from '@qwik.dev/core';
 import { List_component_3heyy58kmhk1z as List } from './component.tsx_List_component_3heyy58kmhk1z';
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );

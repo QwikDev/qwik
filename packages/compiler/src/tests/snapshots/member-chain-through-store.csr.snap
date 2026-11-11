@@ -23,15 +23,8 @@ export { Label };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Label_component_wb6mvjz2qh8n.js (ENTRY POINT)==
 
-import {
-  _first,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_linked_content_0_3641q2pvcvlmq',
+import { _first, _next, qrl, createContentBlock, _createElementTemplate } from '@qwik.dev/core';
+const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ qrl(
   () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
   'linked_content_0_3641q2pvcvlmq'
 );
@@ -143,7 +136,7 @@ import {
   useStore,
   _first,
   _last,
-  _qrlWithChunk,
+  qrl,
   computedProp,
   readTrackedValue,
   _props,
@@ -155,13 +148,11 @@ import {
   createTemplate,
 } from '@qwik.dev/core';
 import { Label_component_wb6mvjz2qh8n as Label } from './component.tsx_Label_component_wb6mvjz2qh8n';
-const q_component_label_segment_0_871tb4lt4479 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_label_segment_0_871tb4lt4479',
+const q_component_label_segment_0_871tb4lt4479 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_label_segment_0_871tb4lt4479'),
   'component_label_segment_0_871tb4lt4479'
 );
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
   'component_text_segment_1_1fh10tcowimfv'
 );

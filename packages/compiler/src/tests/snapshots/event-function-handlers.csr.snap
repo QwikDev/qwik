@@ -186,19 +186,24 @@ import {
   _next,
   _last,
   setEvent,
-  _qrlWithChunk,
+  qrl,
   createComponent,
   _toNodes,
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
-const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_save_segment_2_3krcacnjwdae8',
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_save_segment_2_3krcacnjwdae8'),
   'component_q_e_save_segment_2_3krcacnjwdae8'
+);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi'),
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
 );
 const default_tmpl0 = _createElementTemplate(
   '<main><button>plain</button><!><button>async</button></main>'
@@ -208,7 +213,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
   const el2 = _first(el0);
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
+  setEvent(el2, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg);
   const component0 = createComponent(
     Button,
     { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([props]) },
@@ -216,7 +221,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   );
   const marker0 = _next(_first(el0));
   maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [props]);
+  setEvent(el1, 'q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([props]));
   return el0;
 }
 /*

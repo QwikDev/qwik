@@ -1,0 +1,290 @@
+==INPUT==
+
+import { $, component$, event$, useSignal, useTask$ } from '@qwik.dev/core';
+function useCustomHook(value) {
+  useTask$(() => console.log('hook', value));
+}
+export const App = component$(() => {
+  const count = useSignal(0);
+  useCustomHook(count.value);
+  const read = $(() => console.log(count.value));
+  const log = event$(() => console.log('log'));
+  read();
+  return <button onClick$={() => count.value++} data-log={log}>{count.value}</button>;
+});
+export default component$(() => <App />);
+
+== CSR OUTPUT ==
+
+============================= src/routes/page.tsx ==
+
+const q_page_useTaskqrl_segment_0_8cv6ad0lwihn = /*#__PURE__*/ qrl(
+  () => import('./page.tsx_page_useTaskqrl_segment_0_8cv6ad0lwihn'),
+  'page_useTaskqrl_segment_0_8cv6ad0lwihn'
+);
+import { useTaskQrl, qrl } from '@qwik.dev/core';
+import { App_component_gp60srxdjg41 as App } from './page.tsx_App_component_gp60srxdjg41';
+import { default_component_35o4hp7v19h6v } from './page.tsx_default_component_35o4hp7v19h6v';
+function useCustomHook(value) {
+  useTaskQrl(q_page_useTaskqrl_segment_0_8cv6ad0lwihn.w([value]));
+}
+export { App };
+export { default_component_35o4hp7v19h6v as default };
+
+export { useCustomHook as __qwik_useCustomHook };
+============================= src/routes/page.tsx_page_useTaskqrl_segment_0_8cv6ad0lwihn.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const page_useTaskqrl_segment_0_8cv6ad0lwihn = () => {
+  const [value] = _capturesObj._;
+  return console.log('hook', value);
+};
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "page_useTaskqrl_segment_0_8cv6ad0lwihn",
+  "entry": "routes/page.tsx_entry_useCustomHook",
+  "displayName": "page_useTaskqrl_segment_0",
+  "hash": "8cv6ad0lwihn",
+  "canonicalFilename": "page.tsx_page_useTaskqrl_segment_0_8cv6ad0lwihn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    111,
+    153
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "value"
+  ]
+}
+*/
+============================= src/routes/page.tsx_page_read_segment_1_1t6gldzum4vgr.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const page_read_segment_1_1t6gldzum4vgr = () => {
+  const [count] = _capturesObj._;
+  return console.log(count.value);
+};
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "page_read_segment_1_1t6gldzum4vgr",
+  "entry": "routes/page.tsx_entry_App",
+  "displayName": "page_read_segment_1",
+  "hash": "1t6gldzum4vgr",
+  "canonicalFilename": "page.tsx_page_read_segment_1_1t6gldzum4vgr",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    270,
+    303
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/routes/page.tsx_page_log_segment_2_1y03b0ir1i422.js (ENTRY POINT)==
+
+export const page_log_segment_2_1y03b0ir1i422 = () => {
+  return console.log('log');
+};
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "page_log_segment_2_1y03b0ir1i422",
+  "entry": null,
+  "displayName": "page_log_segment_2",
+  "hash": "1y03b0ir1i422",
+  "canonicalFilename": "page.tsx_page_log_segment_2_1y03b0ir1i422",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "event$",
+  "captures": false,
+  "loc": [
+    319,
+    351
+  ],
+  "paramNames": []
+}
+*/
+============================= src/routes/page.tsx_page_q_e_click_segment_3_1tgmyucprga53.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const page_q_e_click_segment_3_1tgmyucprga53 = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "page_q_e_click_segment_3_1tgmyucprga53",
+  "entry": null,
+  "displayName": "page_q_e_click_segment_3",
+  "hash": "1tgmyucprga53",
+  "canonicalFilename": "page.tsx_page_q_e_click_segment_3_1tgmyucprga53",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    380,
+    410
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/routes/page.tsx_page_data_log_segment_4_cspgbf14bnv5.js (ENTRY POINT)==
+
+export const page_data_log_segment_4_cspgbf14bnv5 = (log) => {
+  return log;
+};
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "page_data_log_segment_4_cspgbf14bnv5",
+  "entry": "routes/page.tsx_entry_App",
+  "displayName": "page_data_log_segment_4",
+  "hash": "cspgbf14bnv5",
+  "canonicalFilename": "page.tsx_page_data_log_segment_4_cspgbf14bnv5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "data-log",
+  "captures": true,
+  "loc": [
+    421,
+    424
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "log"
+  ]
+}
+*/
+============================= src/routes/page.tsx_App_component_gp60srxdjg41.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  qrl,
+  setEvent,
+  createAttrExpressionEffect,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+  event$,
+} from '@qwik.dev/core';
+import { eventQrl } from '@qwik.dev/core';
+import { page_data_log_segment_4_cspgbf14bnv5 } from './page.tsx_page_data_log_segment_4_cspgbf14bnv5';
+import { __qwik_useCustomHook as useCustomHook } from './page.tsx';
+const q_page_read_segment_1_1t6gldzum4vgr = /*#__PURE__*/ qrl(
+  () => import('./page.tsx_page_read_segment_1_1t6gldzum4vgr'),
+  'page_read_segment_1_1t6gldzum4vgr'
+);
+const q_page_log_segment_2_1y03b0ir1i422 = /*#__PURE__*/ qrl(
+  () => import('./page.tsx_page_log_segment_2_1y03b0ir1i422'),
+  'page_log_segment_2_1y03b0ir1i422'
+);
+const q_page_q_e_click_segment_3_1tgmyucprga53 = /*#__PURE__*/ qrl(
+  () => import('./page.tsx_page_q_e_click_segment_3_1tgmyucprga53'),
+  'page_q_e_click_segment_3_1tgmyucprga53'
+);
+const App_tmpl0 = _createElementTemplate('<button> </button>');
+
+export function App_component_gp60srxdjg41(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  useCustomHook(count.value);
+  const read = q_page_read_segment_1_1t6gldzum4vgr.w([count]);
+  const log = eventQrl(q_page_log_segment_2_1y03b0ir1i422);
+  read();
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = App_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', q_page_q_e_click_segment_3_1tgmyucprga53.w([count]));
+      const effect0 = createAttrExpressionEffect(
+        el0,
+        'data-log',
+        [log],
+        page_data_log_segment_4_cspgbf14bnv5,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      const text0 = _first(el0);
+      const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
+      ctx.scheduler.notify(effect1);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "App_component_gp60srxdjg41",
+  "entry": "routes/page.tsx_entry_App",
+  "displayName": "App_component",
+  "hash": "gp60srxdjg41",
+  "canonicalFilename": "page.tsx_App_component_gp60srxdjg41",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    157,
+    453
+  ],
+  "paramNames": []
+}
+*/
+============================= src/routes/page.tsx_default_component_35o4hp7v19h6v.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { App_component_gp60srxdjg41 as App } from './page.tsx_App_component_gp60srxdjg41';
+
+export function default_component_35o4hp7v19h6v(props, ctx) {
+  const component0 = createComponent(App, null, ctx);
+  return component0;
+}
+/*
+{
+  "origin": "routes/page.tsx",
+  "name": "default_component_35o4hp7v19h6v",
+  "entry": "routes/page.tsx_entry_page",
+  "displayName": "default_component",
+  "hash": "35o4hp7v19h6v",
+  "canonicalFilename": "page.tsx_default_component_35o4hp7v19h6v",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    454,
+    495
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

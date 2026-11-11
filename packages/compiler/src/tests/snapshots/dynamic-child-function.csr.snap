@@ -42,9 +42,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-import { createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+import { createDynamicContent, qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
@@ -78,12 +77,11 @@ import {
   useSignal,
   _first,
   _next,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
   'component_text_segment_1_1fh10tcowimfv'
 );

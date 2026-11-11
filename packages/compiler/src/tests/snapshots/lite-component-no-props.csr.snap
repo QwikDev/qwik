@@ -157,13 +157,12 @@ import {
   _next,
   BranchRange,
   createBranch,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_Mark_segment_2_t9oujovgd45s } from './component.tsx_component_Mark_segment_2_t9oujovgd45s';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
   'component_branch_then_segment_3_24n7atwir5934'
 );

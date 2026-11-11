@@ -50,8 +50,8 @@ test.each([
   );
   const globals: Record<string, unknown> = {
     ...core,
-    _qrlWithChunk(chunk: string, _importer: unknown, symbol: string) {
-      return core._qrlWithChunk(chunk, async () => ({ [symbol]: globals[symbol] }), symbol);
+    qrl(_importer: unknown, symbol: string) {
+      return core.qrl(async () => ({ [symbol]: globals[symbol] }), symbol);
     },
     get _capturesObj() {
       return core._capturesObj;

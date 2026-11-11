@@ -85,15 +85,14 @@ export const component_total_segment_0_33cbacdkct5tt = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   computedProp,
   readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
-const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_total_segment_0_33cbacdkct5tt',
+const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_total_segment_0_33cbacdkct5tt'),
   'component_total_segment_0_33cbacdkct5tt'
 );

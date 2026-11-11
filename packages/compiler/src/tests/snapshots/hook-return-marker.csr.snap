@@ -9,12 +9,15 @@ export function useCounter() {
 
 ============================= src/use-counter.ts ==
 
-import { useSignal, _withCaptures, useComputed$ } from '@qwik.dev/core';
-import { useComputed } from '@qwik.dev/core';
-import { use_counter_useComputedqrl_segment_0_17tyklczwyk76 } from './use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76';
+const q_use_counter_useComputedqrl_segment_0_17tyklczwyk76 = /*#__PURE__*/ qrl(
+  () => import('./use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76'),
+  'use_counter_useComputedqrl_segment_0_17tyklczwyk76'
+);
+import { useSignal, qrl, useComputed$ } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 export function useCounter() {
   const count = useSignal(0);
-  return useComputed(_withCaptures(use_counter_useComputedqrl_segment_0_17tyklczwyk76, [count]));
+  return useComputedQrl(q_use_counter_useComputedqrl_segment_0_17tyklczwyk76.w([count]));
 }
 ============================= src/use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76.js (ENTRY POINT)==
 

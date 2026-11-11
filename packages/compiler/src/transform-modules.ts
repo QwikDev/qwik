@@ -55,6 +55,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
       exports: options.stripExports ?? [],
       ctxName: options.stripCtxName ?? [],
       regCtxName: options.regCtxName ?? [],
+      eventHandlers: options.stripEventHandlers === true,
     },
     ...(options.buildConstants === undefined ? {} : { constants: options.buildConstants }),
     ...(options.engine === undefined ? {} : { engine: options.engine as PlanEngine }),
@@ -71,6 +72,8 @@ export async function transformModules(options: TransformModulesOptions): Promis
     outputSourceMaps: !!options.sourceMaps,
     explicitExtensions: options.explicitExtensions,
     rootDir: options.rootDir,
+    srcDir: options.srcDir,
+    entryStrategy: options.entryStrategy,
   };
   const generated =
     options.isServer === false

@@ -25,7 +25,7 @@ export const index_q_e_click_segment_1_1h3g2urbi46jt = () => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_q_e_click_segment_1_1h3g2urbi46jt",
   "entry": null,
   "displayName": "index_q_e_click_segment_1",
@@ -102,7 +102,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",

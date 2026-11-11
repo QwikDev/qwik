@@ -22,16 +22,23 @@ import {
   createAttrExpressionEffect,
   createCapturedEvent,
   setEvent,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_2_2f0r05go51flv } from './component.tsx_component_title_segment_2_2f0r05go51flv';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
-import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi'),
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+  'component_q_e_click_segment_4_2xwyeh830jenv'
+);
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><button>save</button><button>optional</button></li>'
 );
 function createRowEvents0() {
-  return createCapturedEvent(component_q_e_click_segment_3_2xwygfdmkpoqi, [], 1);
+  return createCapturedEvent(q_component_q_e_click_segment_3_2xwygfdmkpoqi, null, 1);
 }
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, rowIndex0, collection0) => {
@@ -49,7 +56,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, rowIndex0
   ctx.scheduler.notify(effect0);
   setEvent(el1, 'q-e:click', rowEvent0);
   const el2 = _last(el0);
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [item]);
+  setEvent(el2, 'q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([item]));
   return el0;
 };
 /*

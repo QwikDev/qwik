@@ -521,7 +521,11 @@ describe(`${name}: task`, () => {
     await qwikLoader?.dispatch(span, 'qinit');
     await flush();
 
-    expect(span.textContent).toBe('CSR');
+    // A visible task loads lazily after the flush (as on main); its writes need their own flush.
+    await vi.waitFor(async () => {
+      await flush();
+      expect(span.textContent).toBe('CSR');
+    });
 
     cleanup();
   });
@@ -691,7 +695,12 @@ describe(`${name}: useTask`, () => {
 
     const { container, cleanup } = await render(Counter, { debug });
     onTestFinished(cleanup);
-    expect((globalThis as any).__mainTestLog).toEqual(['Counter', 'task', 'render', 'resolved']);
+    // A client task loads lazily, so the body finishes before the task's first run.
+    expect((globalThis as any).__mainTestLog).toEqual(
+      name === 'csrRender'
+        ? ['Counter', 'render', 'task', 'resolved']
+        : ['Counter', 'task', 'render', 'resolved']
+    );
     expect(container.querySelectorAll('span')).toHaveLength(1);
     expect(container.querySelector('span')!.textContent).toBe('WORKS');
   });
@@ -718,14 +727,11 @@ describe(`${name}: useTask`, () => {
 
     const { container, cleanup } = await render(Counter, { debug });
     onTestFinished(cleanup);
-    expect((globalThis as any).__mainTestLog).toEqual([
-      'Counter',
-      '1:task',
-      'render',
-      '1:resolved',
-      '2:task',
-      '2:resolved',
-    ]);
+    expect((globalThis as any).__mainTestLog).toEqual(
+      name === 'csrRender'
+        ? ['Counter', 'render', '1:task', '1:resolved', '2:task', '2:resolved']
+        : ['Counter', '1:task', 'render', '1:resolved', '2:task', '2:resolved']
+    );
     expect(container.querySelectorAll('span')).toHaveLength(1);
     expect(container.querySelector('span')!.textContent).toBe('AB');
   });
@@ -933,7 +939,7 @@ describe(`${name}: useTask`, () => {
       if (name === 'ssrRender') {
         expect((globalThis as any).log).toEqual(['quadruple', 'double', 'quadruple', 'Counter']);
       } else {
-        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+        expect((globalThis as any).log).toEqual(['Counter', 'quadruple', 'double', 'quadruple']);
       }
       expect(container.querySelectorAll('button')).toHaveLength(1);
       expect(container.querySelector('button')!.textContent).toBe('1/2/4');
@@ -1006,7 +1012,7 @@ describe(`${name}: useTask`, () => {
       onTestFinished(cleanup);
 
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
+        isCSR ? ['Child', 'task:'] : ['task:', 'Child', 'cleanup:']
       );
       expect(container.querySelectorAll('button')).toHaveLength(1);
       expect(container.querySelector('button')!.textContent).toBe('Child');
@@ -1024,7 +1030,8 @@ describe(`${name}: useTask`, () => {
       await triggerAll(container, 'button', 'click');
       await flush();
 
-      expect((globalThis as any).log).toEqual(['task:', 'Child']);
+      // A loaded task runs in setup; after resume the client loads it on this first mount.
+      expect((globalThis as any).log).toEqual(isCSR ? ['task:', 'Child'] : ['Child', 'task:']);
       expect(container.querySelectorAll('button')).toHaveLength(1);
       expect(container.querySelector('button')!.textContent).toBe('Child');
       expect(container.querySelectorAll('span')).toHaveLength(1);
@@ -1078,22 +1085,33 @@ describe(`${name}: useTask`, () => {
       });
       const { container, cleanup } = await render(MyComp, { debug });
       onTestFinished(cleanup);
-      expect((global as any).log).toEqual([
-        // 1st render
-        'render',
-        // task 1 returns sync and sideloads promise
-        '1a',
-        // task 2 runs sync after that and returns a promise
-        '2a',
-        // async microtasks run, task 1 queues a delay
-        'inside.1',
-        '2b',
-        // task 3 runs sync and attaches to the promise
-        '3a',
-        // microtasks run
-        '1b',
-        '3b',
-      ]);
+      const log: string[] = (global as any).log;
+      if (name === 'csrRender') {
+        // Each client task loads before it runs, so only the per-task order is fixed.
+        expect([...log].sort()).toEqual(['1a', '1b', '2a', '2b', '3a', '3b', 'inside.1', 'render']);
+        const at = (entry: string) => log.indexOf(entry);
+        expect(at('render')).toBe(0);
+        expect(at('1a')).toBeLessThan(at('2a'));
+        expect(at('2b')).toBeLessThan(at('3a'));
+        expect(at('3a')).toBeLessThan(at('3b'));
+      } else {
+        expect(log).toEqual([
+          // 1st render
+          'render',
+          // task 1 returns sync and sideloads promise
+          '1a',
+          // task 2 runs sync after that and returns a promise
+          '2a',
+          // async microtasks run, task 1 queues a delay
+          'inside.1',
+          '2b',
+          // task 3 runs sync and attaches to the promise
+          '3a',
+          // microtasks run
+          '1b',
+          '3b',
+        ]);
+      }
       // The DOM should have the final value of the sideloaded promise
       expect(container.querySelectorAll('p')).toHaveLength(1);
       expect(container.querySelector('p')!.textContent).toBe('Should have a number: "3"');

@@ -97,12 +97,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
   'component_branch_then_segment_1_24n7blyqktd46'
 );

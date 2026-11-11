@@ -14,12 +14,11 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 export const stream = q_component_qrl_segment_0_2fpowujm1ejve;
@@ -125,17 +124,19 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-const q_component_counted_segment_1_2a19h1ljxbgrm = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_counted_segment_1_2a19h1ljxbgrm',
+const q_component_counted_segment_1_2a19h1ljxbgrm = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_counted_segment_1_2a19h1ljxbgrm'),
   'component_counted_segment_1_2a19h1ljxbgrm'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
@@ -143,7 +144,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const step = useSignal(1);
   const counted = q_component_counted_segment_1_2a19h1ljxbgrm.w([step]);
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [counted]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([counted]));
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, step, ctx.scheduler);
   ctx.scheduler.notify(effect0);

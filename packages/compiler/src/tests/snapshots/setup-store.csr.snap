@@ -76,18 +76,22 @@ export const component_text_segment_1_1fh10tcowimfv = (state) => {
 import {
   useStore,
   setEvent,
+  qrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const state = useStore(() => ({ count: props.initial }), { deep: false });
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [state]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([state]));
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,

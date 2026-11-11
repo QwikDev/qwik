@@ -27,10 +27,15 @@ function matches(prefixes: readonly string[], ctxName: string): boolean {
 }
 
 export function applyStripping(modules: LinkedModule[], specialization: Specialization): void {
-  const { exports, ctxName, regCtxName } = specialization.strip;
+  const { exports, ctxName, regCtxName, eventHandlers = false } = specialization.strip;
   for (const module of modules) {
-    if (ctxName.length > 0) {
-      stripBoundaries(module, ctxName, specialization.environment === Environment.Browser);
+    if (ctxName.length > 0 || eventHandlers) {
+      stripBoundaries(
+        module,
+        ctxName,
+        specialization.environment === Environment.Browser,
+        eventHandlers
+      );
     }
     if (regCtxName.length > 0) {
       registerBoundaries(module, regCtxName);
@@ -45,11 +50,15 @@ export function applyStripping(modules: LinkedModule[], specialization: Speciali
 function stripBoundaries(
   module: LinkedModule,
   prefixes: readonly string[],
-  pruneDeadImports: boolean
+  pruneDeadImports: boolean,
+  eventHandlers: boolean
 ): void {
   const stripped = new Set<string>();
   for (const qrl of module.qrls) {
-    if (qrl.boundary.kind === BoundaryKind.Implicit && matches(prefixes, qrl.ctxName)) {
+    if (
+      qrl.boundary.kind === BoundaryKind.Implicit &&
+      (matches(prefixes, qrl.ctxName) || (eventHandlers && qrl.boundary.role === 'event'))
+    ) {
       stripped.add(qrl.id);
     }
   }

@@ -4,6 +4,7 @@ import { transformModules } from '../transform-modules';
 import { parseModule } from '../analyse/ast/parse';
 import { createCapturedEvent, setEvent } from '../../../qwik/src/core/dom/event/event';
 import { _capturesObj, setCaptures } from '../../../qwik/src/core/shared/qrl/qrl-captures';
+import { qrl } from '../../../qwik/src/core/shared/qrl/qrl';
 import type { CapturedEventHandler, QElement } from '../../../qwik/src/core/shared/types';
 
 async function renderRow(body: string, params = 'row') {
@@ -101,12 +102,9 @@ test.each([1, 2])('shares %i generated handlers independently for each list', as
   if (binding.type !== 'Identifier') {
     throw new Error('expected a named row function');
   }
-  const handlerNames = body.flatMap((statement) =>
-    statement.type === 'ImportDeclaration' && statement.source.value !== '@qwik.dev/core'
-      ? statement.specifiers.map((specifier) => specifier.local.name)
-      : []
-  );
-  expect(handlerNames).toHaveLength(count);
+  // Handlers load lazily: each one is a `qrl` the row module hoists.
+  const handlerCount = code.match(/\bqrl\(/g)?.length ?? 0;
+  expect(handlerCount).toBe(count);
   const executable = body
     .filter((statement) => statement.type !== 'ImportDeclaration')
     .map((statement) => {
@@ -114,25 +112,21 @@ test.each([1, 2])('shares %i generated handlers independently for each list', as
       return code.slice(node.start, node.end);
     })
     .join('\n');
+  const handler = (_event: Event, _element: Element, row: { id: number }) => {
+    const [selected] = _capturesObj._! as [{ value: number }];
+    selected.value = row.id;
+  };
   const render = runInNewContext(`${executable}\n${binding.name};`, {
     _capturesObj,
     createCapturedEvent,
     setEvent,
+    qrl: (_importer: unknown, symbol: string) => qrl(async () => ({ [symbol]: handler }), symbol),
     _createElementTemplate: () => () =>
       ({
         isConnected: true,
         ownerDocument: { defaultView: {} },
         closest: () => ({ _ctx: {} }),
       }) as unknown as QElement,
-    ...Object.fromEntries(
-      handlerNames.map((name) => [
-        name,
-        (_event: Event, _element: Element, row: { id: number }) => {
-          const [selected] = _capturesObj._! as [{ value: number }];
-          selected.value = row.id;
-        },
-      ])
-    ),
   });
   const collections = [{}, {}];
   const selected = [{ value: 0 }, { value: 0 }];
@@ -148,7 +142,7 @@ test.each([1, 2])('shares %i generated handlers independently for each list', as
     expect(roots[0]._qDispatch!['e:dblclick']).not.toBe(dispatch[0]);
   }
   for (const index of [2, 1, 0]) {
-    dispatch[index]._qRun(dispatch[index], new Event('click'), roots[index]);
+    await dispatch[index]._qRun(dispatch[index], new Event('click'), roots[index]);
   }
   expect(selected).toEqual([{ value: 1 }, { value: 3 }]);
 });

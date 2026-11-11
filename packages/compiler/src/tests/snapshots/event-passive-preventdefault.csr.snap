@@ -143,12 +143,27 @@ export const component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { _first, _next, _last, _prev, setEvent, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_ep_click_segment_0_1d1haenu4olet } from './component.tsx_component_q_ep_click_segment_0_1d1haenu4olet';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-import { component_q_ep_scroll_segment_2_nlfghcwaub86 } from './component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
-import { component_q_ep_dblclick_segment_4_3rnzp5juf9e0n } from './component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n';
+import { _first, _next, _last, _prev, setEvent, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_q_ep_click_segment_0_1d1haenu4olet = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_ep_click_segment_0_1d1haenu4olet'),
+  'component_q_ep_click_segment_0_1d1haenu4olet'
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_component_q_ep_scroll_segment_2_nlfghcwaub86 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86'),
+  'component_q_ep_scroll_segment_2_nlfghcwaub86'
+);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi'),
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const q_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n'),
+  'component_q_ep_dblclick_segment_4_3rnzp5juf9e0n'
+);
 const default_tmpl0 = _createElementTemplate(
   '<div><button stoppropagation:click capture:click></button><button preventdefault:click></button><button preventdefault:click></button><button></button></div>'
 );
@@ -156,14 +171,14 @@ const default_tmpl0 = _createElementTemplate(
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
-  setEvent(el1, 'q-ep:click', component_q_ep_click_segment_0_1d1haenu4olet);
+  setEvent(el1, 'q-ep:click', q_component_q_ep_click_segment_0_1d1haenu4olet);
   const el2 = _next(_first(el0));
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
-  setEvent(el2, 'q-ep:scroll', component_q_ep_scroll_segment_2_nlfghcwaub86);
+  setEvent(el2, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg);
+  setEvent(el2, 'q-ep:scroll', q_component_q_ep_scroll_segment_2_nlfghcwaub86);
   const el3 = _prev(_last(el0));
-  setEvent(el3, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi);
+  setEvent(el3, 'q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi);
   const el4 = _last(el0);
-  setEvent(el4, 'q-ep:dblclick', component_q_ep_dblclick_segment_4_3rnzp5juf9e0n);
+  setEvent(el4, 'q-ep:dblclick', q_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n);
   return el0;
 }
 /*

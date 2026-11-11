@@ -119,8 +119,8 @@ export const component_text_segment_2_1fh117dstcoge = () => {
 
 import {
   useSignal,
-  useTask,
-  _withCaptures,
+  useTaskQrl,
+  qrl,
   setEvent,
   _first,
   createTextExpressionEffect,
@@ -129,19 +129,25 @@ import {
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c'),
+  'component_useTaskqrl_segment_0_1og80iqmttt5c'
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(0);
-  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [count]));
+  useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c.w([count]));
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
+      setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]));
       const text0 = _first(el0);
       const effect0 = createTextExpressionEffect(
         text0,

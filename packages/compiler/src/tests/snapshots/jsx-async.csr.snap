@@ -326,10 +326,9 @@ export const component_text_segment_7_1fh135jcdiyj1 = (label) => {
 */
 ============================= src/component.tsx_component_result_segment_8_1732eo28f3tsm.js (ENTRY POINT)==
 
-import { _capturesObj, _await as _await0, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _await as _await0, qrl } from '@qwik.dev/core';
 import { load } from './consumer';
-const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_6_38vnkcwhliod8',
+const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_6_38vnkcwhliod8'),
   'component_jsx_segment_6_38vnkcwhliod8'
 );
@@ -401,30 +400,29 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (result) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
-  useComputed,
-  _withCaptures,
+  qrl,
+  useComputedQrl,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_result_segment_8_1732eo28f3tsm } from './component.tsx_component_result_segment_8_1732eo28f3tsm';
 import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 import { register, load } from './consumer';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_2_38vniss1y6gb4',
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
   'component_jsx_segment_2_38vniss1y6gb4'
 );
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
+);
+const q_component_result_segment_8_1732eo28f3tsm = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_result_segment_8_1732eo28f3tsm'),
+  'component_result_segment_8_1732eo28f3tsm'
 );
 const default_tmpl0 = _createElementTemplate('<output> </output>');
 
@@ -438,7 +436,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     const label = await load(value);
     return q_component_jsx_segment_4_38vnl4ypf6sea.w([label]);
   });
-  const result = useComputed(_withCaptures(component_result_segment_8_1732eo28f3tsm, [count]));
+  const result = useComputedQrl(q_component_result_segment_8_1732eo28f3tsm.w([count]));
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(

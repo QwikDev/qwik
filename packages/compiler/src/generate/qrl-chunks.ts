@@ -9,6 +9,7 @@ import {
   type LocalId,
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
+import { resolveSegmentEntry } from './entry-strategy';
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { assembleGeneratedModule } from './source-assembly';
@@ -59,7 +60,7 @@ export function emitQrlChunks(
         map: assembled.map,
         isEntry: true,
         origPath: module.path,
-        segment: getSegmentAnalysis(module, qrl),
+        segment: getSegmentAnalysis(module, qrl, options),
       };
     });
 }
@@ -67,7 +68,8 @@ export function emitQrlChunks(
 /** Segment identity survives stripping its executable body. */
 export function getSegmentAnalysis(
   module: LinkedModule,
-  qrl: LinkedQrl
+  qrl: LinkedQrl,
+  options: PresentationOptions = {}
 ): NonNullable<GenerateOutput['modules'][number]['segment']> {
   const mapRange =
     module.source.normalizationMap === null
@@ -78,21 +80,32 @@ export function getSegmentAnalysis(
           module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
         );
   const name = chunkSymbolName(qrl);
+  const origin = segmentOrigin(module, options.srcDir);
+  const canonicalFilename = chunkCanonicalFilename(module, qrl);
+  const ctxKind =
+    qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event' ? 'eventHandler' : 'function';
+  const captures = qrl.captures.length > 0;
   return {
-    origin: moduleBasename(module),
+    origin,
     name,
-    entry: null,
+    entry: resolveSegmentEntry(options.entryStrategy, {
+      name,
+      canonicalFilename,
+      origin,
+      ctxKind,
+      ctxName: qrl.ctxName,
+      captures,
+      rootContext: qrl.rootContext ?? null,
+      isEventOnly: qrl.eventOnly === true,
+    }),
     displayName: getSegmentDisplayName(name),
     hash: getSegmentSymbolHash(name),
-    canonicalFilename: chunkCanonicalFilename(module, qrl),
+    canonicalFilename,
     extension: 'js',
     parent: null,
-    ctxKind:
-      qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event'
-        ? 'eventHandler'
-        : 'function',
+    ctxKind,
     ctxName: qrl.ctxName,
-    captures: qrl.captures.length > 0,
+    captures,
     loc: mapRange(qrl.origin.range),
     paramNames: eventParamNames(
       module,
@@ -122,6 +135,13 @@ function minifyFunction(source: string): string {
     throw new UnsupportedError(`a sync$ function that does not minify: ${errors[0].message}`);
   }
   return code.replace(/^export default /, '').replace(/;\s*$/, '');
+}
+
+/** The module path relative to `srcDir`, the way the v2 optimizers report a segment's origin. */
+function segmentOrigin(module: LinkedModule, srcDir: string | undefined): string {
+  const path = module.path.replace(/\\/g, '/');
+  const prefix = srcDir === undefined ? null : `${srcDir.replace(/\\/g, '/').replace(/\/$/, '')}/`;
+  return prefix !== null && path.startsWith(prefix) ? path.slice(prefix.length) : path;
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {

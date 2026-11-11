@@ -38,13 +38,16 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { setEvent, _createElementTemplate } from '@qwik.dev/core';
-import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+import { setEvent, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
 const default_tmpl0 = _createElementTemplate('<button>go</button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz);
   return el0;
 }
 /*

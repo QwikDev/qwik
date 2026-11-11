@@ -53,16 +53,8 @@ export const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  _first,
-  _last,
-  setEvent,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_onSave_segment_0_2tdav5vx5sjh3',
+import { useSignal, qrl, _first, _last, setEvent, _createElementTemplate } from '@qwik.dev/core';
+const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_onSave_segment_0_2tdav5vx5sjh3'),
   'component_onSave_segment_0_2tdav5vx5sjh3'
 );

@@ -52,9 +52,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_fallback_segment_1_5cu25viqhgwy.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+import { qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
@@ -84,16 +83,9 @@ export const component_fallback_segment_1_5cu25viqhgwy = () => {
 */
 ============================= src/component.tsx_Direct_component_2ps3ihhdyldo6.js (ENTRY POINT)==
 
-import {
-  _qrlWithChunk,
-  computedProp,
-  readTrackedValue,
-  _props,
-  createComponent,
-} from '@qwik.dev/core';
+import { qrl, computedProp, readTrackedValue, _props, createComponent } from '@qwik.dev/core';
 import { Display } from './display';
-const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallback_segment_1_5cu25viqhgwy',
+const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_fallback_segment_1_5cu25viqhgwy'),
   'component_fallback_segment_1_5cu25viqhgwy'
 );
@@ -165,9 +157,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
 */
 ============================= src/component.tsx_component_props_segment_3_208o00da84a64.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_2_38vniss1y6gb4',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
   'component_jsx_segment_2_38vniss1y6gb4'
 );
@@ -201,16 +192,9 @@ export const component_props_segment_3_208o00da84a64 = () => {
 */
 ============================= src/component.tsx_Spread_component_2bstbt3vj7y3s.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  _qrlWithChunk,
-  createPropsProxy,
-  useComputedQrl,
-  createComponent,
-} from '@qwik.dev/core';
+import { useSignal, qrl, createPropsProxy, useComputedQrl, createComponent } from '@qwik.dev/core';
 import { Display } from './display';
-const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_3_208o00da84a64',
+const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_props_segment_3_208o00da84a64'),
   'component_props_segment_3_208o00da84a64'
 );
@@ -284,15 +268,14 @@ import {
   _first,
   _next,
   createCollection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
   _toNodes,
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Display } from './display';
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
 );

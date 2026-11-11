@@ -22,18 +22,16 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
   createTemplate,
   _capturesObj,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
   'component_branch_then_segment_3_24n7atwir5934'
 );
-const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_7_19dvs9iawhlhy',
+const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_else_segment_7_19dvs9iawhlhy'),
   'component_branch_else_segment_7_19dvs9iawhlhy'
 );
@@ -158,12 +156,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 const component_branch_then_segment_3_24n7atwir5934_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_5_24n7d63685l6a',
+const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_5_24n7d63685l6a'),
   'component_branch_then_segment_5_24n7d63685l6a'
 );
@@ -325,12 +322,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_8_2fzrlj3269xjh } from './component.tsx_component_branch_condition_segment_8_2fzrlj3269xjh';
 const component_branch_else_segment_7_19dvs9iawhlhy_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_9_24n7eq7lvht8e = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_9_24n7eq7lvht8e',
+const q_component_branch_then_segment_9_24n7eq7lvht8e = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_9_24n7eq7lvht8e'),
   'component_branch_then_segment_9_24n7eq7lvht8e'
 );

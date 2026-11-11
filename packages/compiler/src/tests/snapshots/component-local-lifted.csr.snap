@@ -82,18 +82,22 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 import {
   _capturesObj,
   setEvent,
+  qrl,
   _first,
   propSource,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const component_Filter_segment_2_2k94mv8ai8l03_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
   const [n] = _capturesObj._;
   const el0 = component_Filter_segment_2_2k94mv8ai8l03_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [n]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([n]));
   const text0 = _first(el0);
   const prop0 = propSource(props, 'filter');
   const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
@@ -172,13 +176,12 @@ import {
   _next,
   BranchRange,
   createBranch,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
   'component_branch_then_segment_3_24n7atwir5934'
 );

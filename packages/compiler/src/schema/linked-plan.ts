@@ -48,6 +48,8 @@ export interface Specialization {
     exports: string[];
     ctxName: string[];
     regCtxName: string[];
+    /** The server never runs an event handler, so it keeps only the symbol. */
+    eventHandlers?: boolean;
   };
   /** Boolean values the host defines, from vite env and `define`; a missing name stays a read. */
   constants?: Readonly<Record<string, boolean>>;

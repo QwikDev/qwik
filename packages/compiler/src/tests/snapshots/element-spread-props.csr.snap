@@ -50,9 +50,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
+import { qrl } from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );

@@ -63,17 +63,21 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 import {
   _capturesObj,
   setEvent,
+  qrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const component_jsx_segment_1_38vnjyvdoomcp_tmpl0 = _createElementTemplate('<button> </button>');
 
 export const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
   const [count] = _capturesObj._;
   const el0 = component_jsx_segment_1_38vnjyvdoomcp_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]));
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
@@ -210,10 +214,9 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_5_18525souwghet.js (ENTRY POINT)==
 
-import { _capturesObj, createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent, qrl } from '@qwik.dev/core';
 import { wrap } from './wrappers';
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
@@ -281,10 +284,9 @@ export const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_7_185250mn2sddr.js (ENTRY POINT)==
 
-import { _capturesObj, createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent, qrl } from '@qwik.dev/core';
 import { wrap } from './wrappers';
-const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_6_38vnkcwhliod8',
+const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_6_38vnkcwhliod8'),
   'component_jsx_segment_6_38vnkcwhliod8'
 );
@@ -320,7 +322,7 @@ export const component_content_segment_7_185250mn2sddr = (ctx0) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   _first,
   _next,
   _last,
@@ -331,29 +333,24 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { wrap, consume } from './wrappers';
-const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
   'component_jsx_segment_0_38vnjku9rukc6'
 );
-const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_1_38vnjyvdoomcp',
+const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_1_38vnjyvdoomcp'),
   'component_jsx_segment_1_38vnjyvdoomcp'
 );
-const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_3_18523gi7fg5bn',
+const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_3_18523gi7fg5bn'),
   'component_content_segment_3_18523gi7fg5bn'
 );
-const q_component_content_segment_5_18525souwghet = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_5_18525souwghet',
+const q_component_content_segment_5_18525souwghet = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_5_18525souwghet'),
   'component_content_segment_5_18525souwghet'
 );
 const semantic_collectionRender_342_381_3pmr3rjnp9sp9_tmpl0 = createTemplate('<!><!>');
-const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_7_185250mn2sddr',
+const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_7_185250mn2sddr'),
   'component_content_segment_7_185250mn2sddr'
 );

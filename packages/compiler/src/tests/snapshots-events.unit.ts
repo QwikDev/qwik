@@ -143,7 +143,7 @@ export default () => {
     expect(main).toMatch(
       mode === 'ssr'
         ? /eventAttrParts\("q-e:click", \[q_\w+\.w\(\[count\]\), q_\w+\.w\(\[count\]\), log\]\)/
-        : /setEvent\(el0, "q-e:click", \[createCapturedEvent\(\w+, \[count\]\), createCapturedEvent\(\w+, \[count\]\), log\]\)/
+        : /setEvent\(el0, "q-e:click", \[q_\w+\.w\(\[count\]\), q_\w+\.w\(\[count\]\), log\]\)/
     );
   });
 

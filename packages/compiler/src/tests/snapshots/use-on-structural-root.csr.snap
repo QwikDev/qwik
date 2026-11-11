@@ -146,7 +146,7 @@ export const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
 import {
   useSignal,
   useOn,
-  _qrlWithChunk,
+  qrl,
   _first,
   _next,
   createTemplate,
@@ -155,19 +155,16 @@ import {
   _withCaptures,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
 const Toggle_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
-const q_component_branch_else_segment_3_19dvttmqjttk2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_3_19dvttmqjttk2',
+const q_component_branch_else_segment_3_19dvttmqjttk2 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_else_segment_3_19dvttmqjttk2'),
   'component_branch_else_segment_3_19dvttmqjttk2'
 );
@@ -278,9 +275,8 @@ export const component_jsx_segment_5_38vnliztc0uet = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_6_18524mlj5ybd8.js (ENTRY POINT)==
 
-import { _capturesObj, createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_5_38vnliztc0uet = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_5_38vnliztc0uet',
+import { _capturesObj, createDynamicContent, qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_5_38vnliztc0uet = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_5_38vnliztc0uet'),
   'component_jsx_segment_5_38vnliztc0uet'
 );
@@ -320,20 +316,18 @@ export const component_content_segment_6_18524mlj5ybd8 = (ctx0) => {
 import {
   useSignal,
   useOn,
-  _qrlWithChunk,
+  qrl,
   _first,
   _next,
   createTemplate,
   createContentBlock,
 } from '@qwik.dev/core';
-const q_component_qrl_segment_4_2fpovaf6e2bta = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_4_2fpovaf6e2bta',
+const q_component_qrl_segment_4_2fpovaf6e2bta = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_4_2fpovaf6e2bta'),
   'component_qrl_segment_4_2fpovaf6e2bta'
 );
 const Later_tmpl0 = createTemplate('<!><!>');
-const q_component_content_segment_6_18524mlj5ybd8 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_content_segment_6_18524mlj5ybd8',
+const q_component_content_segment_6_18524mlj5ybd8 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_6_18524mlj5ybd8'),
   'component_content_segment_6_18524mlj5ybd8'
 );

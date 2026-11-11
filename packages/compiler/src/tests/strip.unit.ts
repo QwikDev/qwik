@@ -233,6 +233,14 @@ export default component$(() => {
     expect(main).toContain('value * secret()');
   });
 
+  test('the server keeps an event handler as a symbol with its captures', async () => {
+    const { main, chunks } = await compile(true, { stripEventHandlers: true }, COMPONENT);
+
+    expect(chunks.filter((path) => /q_e_click/.test(path))).toEqual([]);
+    expect(main).toMatch(/q_index_q_e_click_segment_\d+_[a-z0-9]+\.w\(\[count\]\)/);
+    expect(main).not.toContain('count.value++');
+  });
+
   test('the server keeps a client-only task as a symbol with its captures', async () => {
     const { main, chunks } = await compile(true, { stripCtxName: CLIENT_CTX_NAMES }, COMPONENT);
 

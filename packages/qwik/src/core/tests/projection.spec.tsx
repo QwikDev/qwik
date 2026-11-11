@@ -13,7 +13,7 @@ import {
   useVisibleTask$,
   type Signal,
 } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
 
 const { name, render } = testRenderer;
@@ -1449,11 +1449,15 @@ describe(`${name}: projection`, () => {
       const { container, cleanup, qwikLoader, flush } = await render(App);
       await qwikLoader?.dispatch(container.querySelector('div')!, 'qinit');
       await flush();
-      expect(Array.from(container.querySelectorAll('p'), (p) => p.textContent)).toEqual([
-        'Hide until visible',
-        'Content',
-        'index page',
-      ]);
+      // A visible task loads lazily after the flush (as on main); its writes need their own flush.
+      await vi.waitFor(async () => {
+        await flush();
+        expect(Array.from(container.querySelectorAll('p'), (p) => p.textContent)).toEqual([
+          'Hide until visible',
+          'Content',
+          'index page',
+        ]);
+      });
       cleanup();
     });
 

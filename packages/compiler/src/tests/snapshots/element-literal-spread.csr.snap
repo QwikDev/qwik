@@ -110,11 +110,15 @@ import {
   useSignal,
   createAttrExpressionEffect,
   setEvent,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_data_clicks_segment_0_203c7budwklj } from './component.tsx_component_data_clicks_segment_0_203c7budwklj';
 import { component_id_segment_1_2jskr910mfni5 } from './component.tsx_component_id_segment_1_2jskr910mfni5';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const default_tmpl0 = _createElementTemplate('<div title="fixed" class="box">x</div>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
@@ -137,7 +141,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     ctx.scheduler
   );
   ctx.scheduler.notify(effect1);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [clicks]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([clicks]));
   return el0;
 }
 /*

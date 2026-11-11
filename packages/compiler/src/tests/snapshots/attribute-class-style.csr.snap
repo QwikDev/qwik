@@ -120,11 +120,15 @@ import {
   patchCachedAttr,
   createDomBatchEffect,
   setEvent,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
 import { component_style_segment_1_cgm3c4qw0vql } from './component.tsx_component_style_segment_1_cgm3c4qw0vql';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const default_tmpl0 = _createElementTemplate('<button></button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
@@ -148,7 +152,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
       written1
     );
   }, ctx.scheduler);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active]));
   return el0;
 }
 /*

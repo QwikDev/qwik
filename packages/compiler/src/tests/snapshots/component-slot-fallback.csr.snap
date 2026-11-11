@@ -43,15 +43,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
 
-import {
-  _first,
-  maybeThen,
-  createSlot,
-  _qrlWithChunk,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+import { _first, maybeThen, createSlot, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
@@ -127,12 +120,11 @@ import {
   maybeThen,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Card_component_1j4wd08arm0n5 as Card } from './component.tsx_Card_component_1j4wd08arm0n5';
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );

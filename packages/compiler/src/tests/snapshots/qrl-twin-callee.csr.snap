@@ -9,22 +9,19 @@ export const bare = $(() => 2);
 
 ============================= src/plugin@session.ts ==
 
-const q_plugin_session_qrl_segment_0_3015o61q3dwg9 = /*#__PURE__*/ _qrlWithChunk(
-  './plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9',
+const q_plugin_session_qrl_segment_0_3015o61q3dwg9 = /*#__PURE__*/ qrl(
   () => import('./plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9'),
   'plugin_session_qrl_segment_0_3015o61q3dwg9'
 );
-const q_plugin_session_qrl_segment_1_3015ns0m6jufq = /*#__PURE__*/ _qrlWithChunk(
-  './plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq',
+const q_plugin_session_qrl_segment_1_3015ns0m6jufq = /*#__PURE__*/ qrl(
   () => import('./plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq'),
   'plugin_session_qrl_segment_1_3015ns0m6jufq'
 );
-const q_plugin_session_qrl_segment_2_3015ndzi9psf7 = /*#__PURE__*/ _qrlWithChunk(
-  './plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7',
+const q_plugin_session_qrl_segment_2_3015ndzi9psf7 = /*#__PURE__*/ qrl(
   () => import('./plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7'),
   'plugin_session_qrl_segment_2_3015ndzi9psf7'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { routeLoaderQrl } from '@qwik.dev/router';
 export const useSession = routeLoaderQrl(q_plugin_session_qrl_segment_0_3015o61q3dwg9);
 export const useNested = routeLoaderQrl(wrap(q_plugin_session_qrl_segment_1_3015ns0m6jufq));

@@ -52,14 +52,18 @@ import {
   useSignal,
   _noopQrl,
   setEvent,
+  qrl,
   _createElementTemplate,
   getActiveInvokeContextOrNull,
   maybeThen,
   invoke,
 } from '@qwik.dev/core';
 import { serverQrl } from '@qwik.dev/router';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { server$ } from '@qwik.dev/router';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const default_tmpl0 = _createElementTemplate('<button>go</button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
@@ -69,7 +73,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count, read]);
+      setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count, read]));
       return el0;
     })
   );

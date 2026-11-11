@@ -701,7 +701,9 @@ import { linkPrefetchInit } from './link-prefetch';
       `<u onClick$={[$(() => { document.title = 'f'; }), spaInit]}></u>`
     );
 
-    expect(code).toMatch(/setEvent\(el0, "q-e:click", \[component_qrl_segment_0_\w+, spaInit\]\)/);
+    expect(code).toMatch(
+      /setEvent\(el0, "q-e:click", \[q_component_qrl_segment_0_\w+, spaInit\]\)/
+    );
     expect(chunks).toBe(1);
   });
 

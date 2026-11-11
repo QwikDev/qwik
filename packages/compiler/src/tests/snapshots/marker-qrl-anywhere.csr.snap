@@ -19,13 +19,16 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { _withCaptures } from '@qwik.dev/core';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
+const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq'),
+  'component_useCustomqrl_segment_0_heif5ecaq0pq'
+);
+import { qrl } from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 import { useCustom$ } from './hooks';
 export function make(count) {
-  return useCustom(_withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]));
+  return useCustomQrl(q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]));
 }
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
@@ -123,10 +126,9 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, qrl } from '@qwik.dev/core';
 import { useCustomQrl } from './hooks';
-const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo',
+const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo'),
   'component_useCustomqrl_segment_2_heiedc4h1woo'
 );
@@ -190,26 +192,30 @@ export const component_data_n_segment_4_brpn0aqdy9ay = (handles) => {
 
 import {
   useSignal,
-  _withCaptures,
+  qrl,
   setEvent,
   createAttrExpressionEffect,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { useCustom } from './hooks';
-import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
-import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { useCustomQrl } from './hooks';
 import { component_data_n_segment_4_brpn0aqdy9ay } from './component.tsx_component_data_n_segment_4_brpn0aqdy9ay';
+const q_component_useCustomqrl_segment_1_heifjfg7k2q9 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9'),
+  'component_useCustomqrl_segment_1_heifjfg7k2q9'
+);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi'),
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(0);
-  const handles = [
-    useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [count])),
-  ];
+  const handles = [useCustomQrl(q_component_useCustomqrl_segment_1_heifjfg7k2q9.w([count]))];
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count]));
   const effect0 = createAttrExpressionEffect(
     el0,
     'data-n',

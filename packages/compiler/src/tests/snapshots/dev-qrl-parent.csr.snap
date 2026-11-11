@@ -25,7 +25,7 @@ export const index_q_e_click_segment_1_1h3g2urbi46jt = () => {
 };
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "index_q_e_click_segment_1_1h3g2urbi46jt",
   "entry": null,
   "displayName": "index_q_e_click_segment_1",
@@ -52,6 +52,7 @@ import {
   useSignal,
   _noopQrlDEV,
   setEvent,
+  qrl,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
@@ -60,8 +61,11 @@ import {
   invoke,
 } from '@qwik.dev/core';
 import { serverQrl } from '@qwik.dev/router';
-import { index_q_e_click_segment_1_1h3g2urbi46jt } from './index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt';
 import { server$ } from '@qwik.dev/router';
+const q_index_q_e_click_segment_1_1h3g2urbi46jt = /*#__PURE__*/ qrl(
+  () => import('./index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt'),
+  'index_q_e_click_segment_1_1h3g2urbi46jt'
+);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
 export function default_component_tv8h7w8tm3v2(props, ctx) {
@@ -77,7 +81,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);
-      setEvent(el0, 'q-e:click', index_q_e_click_segment_1_1h3g2urbi46jt, [count]);
+      setEvent(el0, 'q-e:click', q_index_q_e_click_segment_1_1h3g2urbi46jt.w([count]));
       const text0 = _first(el0);
       const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
       ctx.scheduler.notify(effect0);
@@ -87,7 +91,7 @@ export function default_component_tv8h7w8tm3v2(props, ctx) {
 }
 /*
 {
-  "origin": "index.tsx",
+  "origin": "routes/index.tsx",
   "name": "default_component_tv8h7w8tm3v2",
   "entry": null,
   "displayName": "default_component",

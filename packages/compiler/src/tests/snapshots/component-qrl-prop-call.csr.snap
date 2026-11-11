@@ -49,15 +49,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
 */
 ============================= src/component.tsx_ProductRelations_component_1ip78ju5ryj73.js (ENTRY POINT)==
 
-import {
-  _first,
-  _next,
-  _qrlWithChunk,
-  createContentBlock,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+import { _first, _next, qrl, createContentBlock, _createElementTemplate } from '@qwik.dev/core';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
   'component_text_segment_0_1fh10fbkzokfc'
 );
@@ -178,9 +171,8 @@ export const component_text_segment_2_1fh117dstcoge = (products) => {
 */
 ============================= src/component.tsx_component_renderqrl_segment_3_5bp1s3sqxvaj.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_1_38vnjyvdoomcp',
+import { qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_jsx_segment_1_38vnjyvdoomcp'),
   'component_jsx_segment_1_38vnjyvdoomcp'
 );
@@ -212,10 +204,9 @@ export const component_renderqrl_segment_3_5bp1s3sqxvaj = (products) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import { qrl, createComponent } from '@qwik.dev/core';
 import { ProductRelations_component_1ip78ju5ryj73 as ProductRelations } from './component.tsx_ProductRelations_component_1ip78ju5ryj73';
-const q_component_renderqrl_segment_3_5bp1s3sqxvaj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_renderqrl_segment_3_5bp1s3sqxvaj',
+const q_component_renderqrl_segment_3_5bp1s3sqxvaj = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_renderqrl_segment_3_5bp1s3sqxvaj'),
   'component_renderqrl_segment_3_5bp1s3sqxvaj'
 );

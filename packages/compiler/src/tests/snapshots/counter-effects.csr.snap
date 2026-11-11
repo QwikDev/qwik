@@ -400,6 +400,7 @@ import {
   patchTextValue,
   createCapturedEvent,
   setEvent,
+  qrl,
   _textValue,
   createLazyDomBatchEffect,
   _createElementTemplate,
@@ -407,9 +408,11 @@ import {
 } from '@qwik.dev/core';
 import { root_class_segment_8_2mmckolp85icd } from './root.tsx_root_class_segment_8_2mmckolp85icd';
 import { root_text_segment_9_s05sg8no1g19 } from './root.tsx_root_text_segment_9_s05sg8no1g19';
-import { root_q_e_click_segment_10_1exocj53zlhne } from './root.tsx_root_q_e_click_segment_10_1exocj53zlhne';
 import { root_text_segment_11_3hdfywg1ew6ek } from './root.tsx_root_text_segment_11_3hdfywg1ew6ek';
-import { root_q_e_click_segment_12_1exobr2w5xdmc } from './root.tsx_root_q_e_click_segment_12_1exobr2w5xdmc';
+const q_root_q_e_click_segment_10_1exocj53zlhne = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_10_1exocj53zlhne'),
+  'root_q_e_click_segment_10_1exocj53zlhne'
+);
 function locateTextParent0(root) {
   return _first(root);
 }
@@ -465,13 +468,17 @@ function updateRow0(effect0, initialParent0, initialParent1) {
     }
   }
 }
+const q_root_q_e_click_segment_12_1exobr2w5xdmc = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_12_1exobr2w5xdmc'),
+  'root_q_e_click_segment_12_1exobr2w5xdmc'
+);
 const root_for_render_segment_6_142sxd5ip3f7n_tmpl0 = _createElementTemplate(
   '<tr><td class="col-md-1"></td><td class="col-md-4"><a></a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6"></td></tr>'
 );
 function createRowEvents0(selectedItem, data) {
   return [
-    createCapturedEvent(root_q_e_click_segment_10_1exocj53zlhne, [selectedItem], 1),
-    createCapturedEvent(root_q_e_click_segment_12_1exobr2w5xdmc, [data], 1),
+    createCapturedEvent(q_root_q_e_click_segment_10_1exocj53zlhne.w([selectedItem]), null, 1),
+    createCapturedEvent(q_root_q_e_click_segment_12_1exobr2w5xdmc.w([data]), null, 1),
   ];
 }
 
@@ -712,19 +719,38 @@ import {
   _last,
   _prev,
   setEvent,
+  qrl,
   createCollection,
   _withCaptures,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { root_q_e_click_segment_0_2xenc01chyg01 } from './root.tsx_root_q_e_click_segment_0_2xenc01chyg01';
-import { root_q_e_click_segment_1_2xenbm08l4dzi } from './root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi';
-import { root_q_e_click_segment_2_2xenb7z4oabyz } from './root.tsx_root_q_e_click_segment_2_2xenb7z4oabyz';
-import { root_q_e_click_segment_3_2xenaty0rg9yg } from './root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg';
-import { root_q_e_click_segment_4_2xendk5s5ao25 } from './root.tsx_root_q_e_click_segment_4_2xendk5s5ao25';
-import { root_q_e_click_segment_5_2xend64o8gm1m } from './root.tsx_root_q_e_click_segment_5_2xend64o8gm1m';
 import { root_for_render_segment_6_142sxd5ip3f7n } from './root.tsx_root_for_render_segment_6_142sxd5ip3f7n';
 import { root_for_key_segment_7_sh7qb8wgbo2z } from './root.tsx_root_for_key_segment_7_sh7qb8wgbo2z';
 import { buildData } from './build-data/build-data';
+const q_root_q_e_click_segment_0_2xenc01chyg01 = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_0_2xenc01chyg01'),
+  'root_q_e_click_segment_0_2xenc01chyg01'
+);
+const q_root_q_e_click_segment_1_2xenbm08l4dzi = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi'),
+  'root_q_e_click_segment_1_2xenbm08l4dzi'
+);
+const q_root_q_e_click_segment_2_2xenb7z4oabyz = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_2_2xenb7z4oabyz'),
+  'root_q_e_click_segment_2_2xenb7z4oabyz'
+);
+const q_root_q_e_click_segment_3_2xenaty0rg9yg = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg'),
+  'root_q_e_click_segment_3_2xenaty0rg9yg'
+);
+const q_root_q_e_click_segment_4_2xendk5s5ao25 = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_4_2xendk5s5ao25'),
+  'root_q_e_click_segment_4_2xendk5s5ao25'
+);
+const q_root_q_e_click_segment_5_2xend64o8gm1m = /*#__PURE__*/ qrl(
+  () => import('./root.tsx_root_q_e_click_segment_5_2xend64o8gm1m'),
+  'root_q_e_click_segment_5_2xend64o8gm1m'
+);
 const Root_tmpl0 = _createElementTemplate(
   '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="run">Create 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="runlots">Create 10,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="add">Append 1,000 rows</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="update">Update every 10th row</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="clear">Clear</button></div><div class="col-sm-6 smallpad"><button class="btn btn-primary btn-block" type="button" stoppropagation:click id="swaprows">Swap Rows</button></div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!><!></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>'
 );
@@ -734,17 +760,17 @@ export function Root_component_1wwbdvvn6s0lu(props, ctx) {
   const selectedItem = useSignal(null);
   const el0 = Root_tmpl0(ctx.document);
   const el1 = _first(_first(_first(_last(_first(_first(el0))))));
-  setEvent(el1, 'q-e:click', root_q_e_click_segment_0_2xenc01chyg01, [data]);
+  setEvent(el1, 'q-e:click', q_root_q_e_click_segment_0_2xenc01chyg01.w([data]));
   const el2 = _first(_next(_first(_first(_last(_first(_first(el0)))))));
-  setEvent(el2, 'q-e:click', root_q_e_click_segment_1_2xenbm08l4dzi, [data]);
+  setEvent(el2, 'q-e:click', q_root_q_e_click_segment_1_2xenbm08l4dzi.w([data]));
   const el3 = _first(_next(_next(_first(_first(_last(_first(_first(el0))))))));
-  setEvent(el3, 'q-e:click', root_q_e_click_segment_2_2xenb7z4oabyz, [data]);
+  setEvent(el3, 'q-e:click', q_root_q_e_click_segment_2_2xenb7z4oabyz.w([data]));
   const el4 = _first(_prev(_prev(_last(_first(_last(_first(_first(el0))))))));
-  setEvent(el4, 'q-e:click', root_q_e_click_segment_3_2xenaty0rg9yg, [data]);
+  setEvent(el4, 'q-e:click', q_root_q_e_click_segment_3_2xenaty0rg9yg.w([data]));
   const el5 = _first(_prev(_last(_first(_last(_first(_first(el0)))))));
-  setEvent(el5, 'q-e:click', root_q_e_click_segment_4_2xendk5s5ao25, [data]);
+  setEvent(el5, 'q-e:click', q_root_q_e_click_segment_4_2xendk5s5ao25.w([data]));
   const el6 = _first(_last(_first(_last(_first(_first(el0))))));
-  setEvent(el6, 'q-e:click', root_q_e_click_segment_5_2xend64o8gm1m, [data]);
+  setEvent(el6, 'q-e:click', q_root_q_e_click_segment_5_2xend64o8gm1m.w([data]));
   const start0 = _first(_first(_next(_first(el0))));
   const end0 = _next(start0);
   ctx.scheduler.waitFor(

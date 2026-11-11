@@ -123,12 +123,16 @@ import {
   _first,
   createAttrExpressionEffect,
   setEvent,
+  qrl,
   propSource,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 const component_Filter_segment_3_2k94mh76leizk_tmpl0 = _createElementTemplate('<li><a> </a></li>');
 
 export const component_Filter_segment_3_2k94mh76leizk = (props0, ctx) => {
@@ -143,7 +147,7 @@ export const component_Filter_segment_3_2k94mh76leizk = (props0, ctx) => {
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [props, props0]);
+  setEvent(el1, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([props, props0]));
   const text0 = _first(el1);
   const prop0 = propSource(props0, 'filter');
   const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
@@ -249,13 +253,12 @@ import {
   _next,
   BranchRange,
   createBranch,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_Filter_segment_3_2k94mh76leizk } from './component.tsx_component_Filter_segment_3_2k94mh76leizk';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t',
+const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t'),
   'component_branch_then_segment_4_24n7dk4a4zn6t'
 );

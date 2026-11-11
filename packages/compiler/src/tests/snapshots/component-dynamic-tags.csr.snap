@@ -60,12 +60,11 @@ import {
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
@@ -176,7 +175,7 @@ import {
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createDynamicTag,
   createComponent,
   _toNodes,
@@ -185,18 +184,15 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Badge, UI } from './ui';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
-const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy',
+const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy'),
   'component_tag_dynamic_segment_1_331xdvyxwe5dy'
 );
-const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw',
+const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw'),
   'component_tag_dynamic_segment_3_331xd3wq2q1cw'
 );

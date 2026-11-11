@@ -25,17 +25,15 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
-const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_4_19dvrvh6znjhf',
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_else_segment_4_19dvrvh6znjhf'),
   'component_branch_else_segment_4_19dvrvh6znjhf'
 );
@@ -112,15 +110,14 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 
 import {
   _capturesObj,
-  _qrlWithChunk,
+  qrl,
   computedProp,
   readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
 import { Level_component_1i23bu1ds9l1b as Level } from './component.tsx_Level_component_1i23bu1ds9l1b';
-const q_component_items_segment_3_m1ac948mhuv6 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_items_segment_3_m1ac948mhuv6',
+const q_component_items_segment_3_m1ac948mhuv6 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_items_segment_3_m1ac948mhuv6'),
   'component_items_segment_3_m1ac948mhuv6'
 );

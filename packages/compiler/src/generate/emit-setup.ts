@@ -31,26 +31,17 @@ import { noopQrlJs } from './noop-qrl';
 import { allocateGeneratedName } from '../names';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 
-/** Runtime names per core operation: the `Qrl` form and the client function fast path. */
-const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
-  [CoreOperation.CreateSignal]: { qrl: QwikHook.UseSignal, fn: QwikHook.UseSignal },
-  [CoreOperation.CreateStore]: { qrl: QwikHook.UseStore, fn: QwikHook.UseStore },
-  [CoreOperation.UseId]: { qrl: QwikHook.UseId, fn: QwikHook.UseId },
-  [CoreOperation.ChildrenInfo]: { qrl: QwikHook.UseChildrenInfo, fn: QwikHook.UseChildrenInfo },
-  [CoreOperation.CreateComputed]: {
-    qrl: QwikHook.UseComputedQrl,
-    fn: QwikHook.UseComputedFunction,
-  },
-  [CoreOperation.Task]: { qrl: QwikHook.UseTaskQrl, fn: QwikHook.UseTaskFunction },
-  [CoreOperation.VisibleTask]: {
-    qrl: QwikHook.UseVisibleTaskQrl,
-    fn: QwikHook.UseVisibleTaskFunction,
-  },
-  [CoreOperation.Serializer]: {
-    qrl: QwikHook.UseSerializerQrl,
-    fn: QwikHook.UseSerializerFunction,
-  },
-  [CoreOperation.WaitOn]: { qrl: QwikHook.WaitOn, fn: QwikHook.WaitOn },
+/** Runtime names per core operation: callbacks travel as QRLs, so each call takes its `Qrl` form. */
+const coreCallNames: Record<CoreOperation, QwikHook> = {
+  [CoreOperation.CreateSignal]: QwikHook.UseSignal,
+  [CoreOperation.CreateStore]: QwikHook.UseStore,
+  [CoreOperation.UseId]: QwikHook.UseId,
+  [CoreOperation.ChildrenInfo]: QwikHook.UseChildrenInfo,
+  [CoreOperation.CreateComputed]: QwikHook.UseComputedQrl,
+  [CoreOperation.Task]: QwikHook.UseTaskQrl,
+  [CoreOperation.VisibleTask]: QwikHook.UseVisibleTaskQrl,
+  [CoreOperation.Serializer]: QwikHook.UseSerializerQrl,
+  [CoreOperation.WaitOn]: QwikHook.WaitOn,
 };
 
 /**
@@ -163,24 +154,17 @@ export function emitJsSetup(
     }
     if (entry.s === SetupKind.Call) {
       const [first] = entry.args;
-      // A stripped callback keeps only its symbol, so the call takes the QRL twin.
+      // A stripped callback keeps only its symbol; the server prints its stand-in on its own.
       const stripped =
-        target.staticQrl !== undefined && first?.a === ArgKind.Qrl
+        target.isServer !== true && first?.a === ArgKind.Qrl
           ? strippedQrlJs(module, first.use, imports)
           : null;
-      // The client fast path: the callback ships with the component as a plain function.
-      const isFunctionTwin =
-        stripped === null &&
-        target.staticQrl !== undefined &&
-        first?.a === ArgKind.Qrl &&
-        (entry.target.kind === CallTargetKind.Core || entry.target.kind === CallTargetKind.Marker);
-      const callee = hookCalleeJs(module, entry.target, isFunctionTwin, imports, target);
+      // Every `$` callback is a lazy QRL, as on main; the bundler groups what loads together.
+      const callee = hookCalleeJs(module, entry.target, imports, target);
       const args = entry.args.map((arg, index) =>
         index === 0 && arg.a === ArgKind.Qrl && stripped !== null
           ? stripped
-          : isFunctionTwin && index === 0 && arg.a === ArgKind.Qrl
-            ? target.staticQrl!(arg.use)
-            : argJs(module, arg, emitQrl)
+          : argJs(module, arg, emitQrl)
       );
       return bindCallResult(module, entry, `${callee}(${args.join(', ')})`);
     }
@@ -216,8 +200,6 @@ export function emitJsSetup(
 export interface SetupEmitTarget {
   /** SSR registers visible tasks as events and keeps task hooks on their QRLs. */
   isServer?: boolean;
-  /** CSR delivers hook callbacks statically, as plain functions with their captures. */
-  staticQrl?: (use: QrlUse) => string;
   /** A lifted body function, bound to its captures, in this module's scope. */
   localFunction?: (use: QrlUse) => string;
   /** Header import lines of the module emitter, for hook twins outside `@qwik.dev/core`. */
@@ -278,11 +260,9 @@ export function deferRenderAfterTasks(
 function hookCalleeJs(
   module: LinkedModule,
   target: CallTarget,
-  isFunctionTwin: boolean,
   imports: Set<string>,
   emitter: SetupEmitTarget
 ): string {
-  const form = isFunctionTwin ? 'fn' : 'qrl';
   switch (target.kind) {
     case CallTargetKind.Binding:
       requestBindingImport(module, target.binding, imports);
@@ -291,14 +271,14 @@ function hookCalleeJs(
       if (target.subpathBinding !== undefined) {
         return module.bindings[target.subpathBinding].name;
       }
-      const name = coreCallNames[target.operation][form];
+      const name = coreCallNames[target.operation];
       imports.add(name);
       return name;
     }
     case CallTargetKind.Value:
       return `(0, ${valueIrJs(module, target.value)})`;
     case CallTargetKind.Marker:
-      return markerTwinJs(module, target, form, emitter.chunkImports);
+      return markerTwinJs(module, target, emitter.chunkImports);
   }
 }
 
@@ -316,38 +296,28 @@ function strippedQrlJs(module: LinkedModule, use: QrlUse, imports: Set<string>):
 function markerTwinJs(
   module: LinkedModule,
   target: Extract<CallTarget, { kind: CallTargetKind.Marker }>,
-  form: 'qrl' | 'fn',
   chunkImports: string[] | undefined
 ): string {
   if (target.twins === undefined) {
-    throw new UnsupportedError(`${target.stem}$ without its ${form} twin`);
+    throw new UnsupportedError(`${target.stem}$ without its qrl twin`);
   }
-  return hookTwinJs(module, target.twins[form], chunkImports);
+  return hookTwinJs(module, target.twins.qrl, chunkImports);
 }
 
 /**
- * Lets a payload emitter print custom `$` hook calls: static callbacks take the function twin. A
- * stripped boundary keeps its identity through the `Qrl` twin, with a QRL that resolves to
- * nothing.
+ * Lets a payload emitter print custom `$` hook calls through their `Qrl` twin. A stripped boundary
+ * keeps its identity there too, with a QRL that resolves to nothing.
  */
 export function withMarkerEmitter(
   module: LinkedModule,
   imports: Set<string>,
   emitQrl: EmitQrl,
-  chunkImports: string[] | undefined,
-  staticQrl?: (use: QrlUse) => string
+  chunkImports: string[] | undefined
 ): EmitQrl {
-  const stripped = (use: QrlUse) =>
-    module.qrls.find((qrl) => qrl.id === use.qrl && qrl.delivery.d === DeliveryKind.Stripped);
   return Object.assign(emitQrl, {
     marker: (target: Extract<CallTarget, { kind: CallTargetKind.Marker }>, use: QrlUse) => ({
-      callee: markerTwinJs(
-        module,
-        target,
-        staticQrl === undefined || stripped(use) !== undefined ? 'qrl' : 'fn',
-        chunkImports
-      ),
-      argument: strippedQrlJs(module, use, imports) ?? (staticQrl ?? emitQrl)(use),
+      callee: markerTwinJs(module, target, chunkImports),
+      argument: strippedQrlJs(module, use, imports) ?? emitQrl(use),
     }),
   });
 }

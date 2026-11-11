@@ -114,6 +114,7 @@ const TEXT_FIELDS = new Set([
   'text',
   'message',
   'name',
+  'rootContext',
   'path',
   'originalPath',
   'specifier',

@@ -30,17 +30,15 @@ import {
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
-const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx',
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx'),
   'component_slot_render_segment_5_3b0t9atn1pfsx'
 );
@@ -95,12 +93,11 @@ import {
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
+  qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
 const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<!><!>');
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
   'component_branch_then_segment_3_24n7atwir5934'
 );
@@ -182,12 +179,11 @@ import {
   _first,
   _next,
   createTemplate,
-  _qrlWithChunk,
+  qrl,
   createContentBlock,
 } from '@qwik.dev/core';
 const component_branch_then_segment_3_24n7atwir5934_tmpl0 = createTemplate('<!><!>');
-const q_component_tag_dynamic_segment_4_331xfu4hgkfgl = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_4_331xfu4hgkfgl',
+const q_component_tag_dynamic_segment_4_331xfu4hgkfgl = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_4_331xfu4hgkfgl'),
   'component_tag_dynamic_segment_4_331xfu4hgkfgl'
 );
@@ -299,18 +295,10 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  _first,
-  _next,
-  createTemplate,
-  _qrlWithChunk,
-  createContentBlock,
-} from '@qwik.dev/core';
+import { useSignal, _first, _next, createTemplate, qrl, createContentBlock } from '@qwik.dev/core';
 import { A, B, choose } from './parts';
 const default_tmpl0 = createTemplate('<!><!>');
-const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
   'component_tag_dynamic_segment_0_331xea01t87eh'
 );

@@ -19,12 +19,11 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
-import { _qrlWithChunk } from '@qwik.dev/core';
+import { qrl } from '@qwik.dev/core';
 import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 export function later(run) {
   return q_component_qrl_segment_0_2fpowujm1ejve.w([run]);
@@ -157,9 +156,8 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_3_2fpowgii4khuv',
+import { _capturesObj, qrl } from '@qwik.dev/core';
+const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_3_2fpowgii4khuv'),
   'component_qrl_segment_3_2fpowgii4khuv'
 );
@@ -225,24 +223,25 @@ export const component_data_n_segment_5_brpnebuasbbh = (wrapped) => {
 import {
   useSignal,
   useOn,
-  _qrlWithChunk,
+  qrl,
   setEvent,
   createAttrExpressionEffect,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
 import { component_data_n_segment_5_brpnebuasbbh } from './component.tsx_component_data_n_segment_5_brpnebuasbbh';
-const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx',
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
   'component_qrl_segment_1_2fpox8kpy8lvx'
 );
-const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_qrl_segment_2_2fpow2he7qfuc',
+const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_2_2fpow2he7qfuc'),
   'component_qrl_segment_2_2fpow2he7qfuc'
+);
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+  'component_q_e_click_segment_4_2xwyeh830jenv'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
@@ -251,7 +250,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   useOn('click', q_component_qrl_segment_1_2fpox8kpy8lvx.w([count]));
   const wrapped = [1].map((step) => q_component_qrl_segment_2_2fpow2he7qfuc.w([count, step]));
   const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [count]);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count]));
   const effect0 = createAttrExpressionEffect(
     el0,
     'data-n',

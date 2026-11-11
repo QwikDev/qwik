@@ -114,19 +114,23 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   setEvent,
-  createCapturedEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
-const q_component_log_segment_0_1xh0hjvaztaud = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_log_segment_0_1xh0hjvaztaud',
+const q_component_log_segment_0_1xh0hjvaztaud = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_log_segment_0_1xh0hjvaztaud'),
   'component_log_segment_0_1xh0hjvaztaud'
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 
@@ -135,8 +139,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const log = q_component_log_segment_0_1xh0hjvaztaud.w([count]);
   const el0 = default_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', [
-    createCapturedEvent(component_q_e_click_segment_1_2xwyfnber1kpg, [count]),
-    createCapturedEvent(component_q_e_click_segment_2_2xwygteqhjqr1, [count]),
+    q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]),
+    q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]),
     log,
   ]);
   const text0 = _first(el0);

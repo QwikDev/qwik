@@ -222,10 +222,10 @@ import {
   _next,
   _last,
   setEvent,
+  qrl,
   BranchRange,
   createBranch,
   _withCaptures,
-  _qrlWithChunk,
   createComponent,
   _toNodes,
   maybeThen,
@@ -233,11 +233,13 @@ import {
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
 import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 import { component_branch_condition_segment_3_2fzrh8qv53bdo } from './component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t',
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t'),
   'component_branch_then_segment_4_24n7dk4a4zn6t'
 );
@@ -269,7 +271,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     '⚡️f5nxrrrtaczd-2'
   );
   ctx.scheduler.notify(effect1);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
+  setEvent(el1, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active]));
   const start0 = _next(_next(_first(el0)));
   const end0 = _next(start0);
   const branch0 = createBranch(

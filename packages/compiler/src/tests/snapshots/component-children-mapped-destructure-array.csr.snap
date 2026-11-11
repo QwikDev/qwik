@@ -60,17 +60,21 @@ import {
   createTemplate,
   createCollection,
   setEvent,
+  qrl,
   _last,
   _prev,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 const semantic_collectionRender_301_710_2q9lnxoxqq41u_tmpl0 = _createElementTemplate(
   '<h2><!>:<!>:<!>:<!></h2>'
 );
@@ -89,7 +93,11 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
     } = item.details;
     const [first = copy, , ...tail] = rest.parts;
     const el0 = semantic_collectionRender_301_710_2q9lnxoxqq41u_tmpl0(ctx.document);
-    setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [label, first, tail]);
+    setEvent(
+      el0,
+      'q-e:click',
+      q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, first, tail])
+    );
     const marker0 = _first(el0);
     const text0 = ctx.document.createTextNode('');
     marker0.replaceWith(text0);
@@ -324,12 +332,11 @@ import {
   useSignal,
   createSlotScope,
   registerProjection,
-  _qrlWithChunk,
+  qrl,
   createComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );

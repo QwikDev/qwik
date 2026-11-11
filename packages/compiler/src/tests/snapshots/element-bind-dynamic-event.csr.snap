@@ -174,7 +174,7 @@ export const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) =>
 
 import {
   useSignal,
-  _qrlWithChunk,
+  qrl,
   _first,
   _next,
   _last,
@@ -192,8 +192,7 @@ import { component_onInputqrl_segment_1_1og4fnsuxzixg } from './component.tsx_co
 import { component_onInputqrl_segment_2_1og4gtw6ohoz1 } from './component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1';
 import { component_onInputqrl_segment_3_1og4gfv2rnmyi } from './component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi';
 import { component_onInputqrl_segment_4_1og4ehpj7hcvv } from './component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv';
-const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_action_segment_0_2k64kau1v2n45',
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
   'component_action_segment_0_2k64kau1v2n45'
 );

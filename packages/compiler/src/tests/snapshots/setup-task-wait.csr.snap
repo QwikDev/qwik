@@ -84,8 +84,8 @@ export const component_useTaskqrl_segment_0_1og80iqmttt5c = async () => {
 
 import {
   useSignal,
-  useTask,
-  _withCaptures,
+  useTaskQrl,
+  qrl,
   _first,
   _last,
   createTextNodeEffect,
@@ -96,14 +96,17 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
 } from '@qwik.dev/core';
-import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c'),
+  'component_useTaskqrl_segment_0_1og80iqmttt5c'
+);
 const default_tmpl0 = _createElementTemplate('<section><span> </span><!></section>');
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const ready = useSignal('pending');
-  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [ready]));
+  useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c.w([ready]));
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);

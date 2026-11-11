@@ -32,7 +32,7 @@ const defineNeverShowsResultTest = (fixture: Fixture, reason: string) => {
   test(`${fixture.id}: a cold click shows the result`, async ({ page }) => {
     const opened = await openFixture(page, fixture, 'cold');
     await fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
-    await waitForNetworkIdle(page, () => releaseAll(opened.gate, opened.ongoing));
+    await waitForNetworkIdle(page, () => releaseAll(opened.gate));
     test.fail(true, reason);
     await expectResult(page, fixture);
   });

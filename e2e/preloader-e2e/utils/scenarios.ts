@@ -1,4 +1,4 @@
-import { expect, type Page, type Route } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import type { Fixture } from './fixtures';
 import {
   countRoundTrips,
@@ -15,7 +15,6 @@ export type OpenFixture = {
   page: Page;
   fixture: Fixture;
   gate: Gate;
-  ongoing: Route[];
 };
 
 export const fixtureRoot = (page: Page, fixture: Fixture) =>
@@ -39,18 +38,15 @@ export const openFixture = async (
 ): Promise<OpenFixture> => {
   await recordSpeculativePreloads(page);
   const gate = await createGate(page);
-  const ongoing =
-    state === 'cold'
-      ? await openCold(page, gate, fixture)
-      : (await openWarm(page, gate, fixture.path), []);
-  return { page, fixture, gate, ongoing };
+  await (state === 'cold' ? openCold : openWarm)(page, gate, fixture.path);
+  return { page, fixture, gate };
 };
 
 export const countFixtureRoundTrips = (
-  { page, fixture, gate, ongoing }: OpenFixture,
+  { page, gate }: OpenFixture,
   action: () => Promise<unknown>,
   isDone: () => Promise<boolean>
-) => countRoundTrips(page, gate, action, isDone, ongoing, { ownSources: fixture.sources });
+) => countRoundTrips(page, gate, action, isDone);
 
 export const clickTrigger = (opened: OpenFixture) =>
   countFixtureRoundTrips(
@@ -62,7 +58,7 @@ export const clickTrigger = (opened: OpenFixture) =>
 const clickOnce = async (page: Page, fixture: Fixture, state: 'cold' | 'warm') => {
   const opened = await openFixture(page, fixture, state);
   const roundTrips = await clickTrigger(opened);
-  await releaseAll(opened.gate, opened.ongoing);
+  await releaseAll(opened.gate);
   await expectResult(page, fixture);
   return roundTrips;
 };

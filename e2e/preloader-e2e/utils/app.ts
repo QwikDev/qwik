@@ -63,8 +63,6 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
   );
 };
 
-export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
-
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
 export const chunkUrlsFrom = (path: string) =>

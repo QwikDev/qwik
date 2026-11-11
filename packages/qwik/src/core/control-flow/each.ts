@@ -2,7 +2,7 @@ import type { PublicProps } from '../shared/component.public';
 import { qTest } from '../shared/utils/qdev';
 import type { DevJSX, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { inlinedQrl } from '../shared/qrl/qrl';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import { tryGetInvokeContext } from '../use/use-core';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -27,7 +27,7 @@ export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
 ) => JSXOutput;
 
 /** @internal */
-export const eachCmpTask = async ({ track }: TaskCtx) => {
+export async function eachCmpTask({ track }: TaskCtx) {
   const props = _capturesObj._![0] as EachProps<any>;
   track(() => props.items);
   const context = tryGetInvokeContext()!;
@@ -38,20 +38,20 @@ export const eachCmpTask = async ({ track }: TaskCtx) => {
   if (isSsr) {
     await renderPromise;
   }
-};
+}
 
 /** @internal */
-export const eachCmp = (props: EachProps<any>) => {
+export function eachCmp(props: EachProps<any>) {
   if (!__EXPERIMENTAL__.each) {
     throw new Error(
       'Each is experimental and must be enabled with `experimental: ["each"]` in the `qwikVite` plugin.'
     );
   }
-  useTaskQrl(/*#__PURE__*/ inlinedQrl(eachCmpTask, '_eaT', [props]));
+  useTaskQrl(/*#__PURE__*/ _inlinedQrl(eachCmpTask, 'q_eaT', [props]));
   return SkipRender;
-};
+}
 
 /** @public @experimental */
 export const Each = /*#__PURE__*/ componentQrl<EachProps<any>>(
-  /*#__PURE__*/ inlinedQrl(eachCmp, '_eaC')
+  /*#__PURE__*/ _inlinedQrl(eachCmp, 'q_eaC')
 ) as EachComponent;

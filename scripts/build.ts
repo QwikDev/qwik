@@ -26,8 +26,6 @@ import { submoduleInsights } from './submodule-insights.ts';
 import { submoduleOptimizer } from './submodule-optimizer.ts';
 import { submoduleQwikLoader } from './submodule-qwikloader.ts';
 import { submoduleBackpatch } from './submodule-backpatch.ts';
-import { submoduleSerializer } from './submodule-serializer.ts';
-import { submoduleServer } from './submodule-server.ts';
 import { submoduleTesting } from './submodule-testing.ts';
 import { submoduleWorker } from './submodule-worker.ts';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
@@ -92,11 +90,11 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
-    let coreNameCache: object | undefined;
     if (config.qwik) {
-      [coreNameCache] = await Promise.all([
+      // The server, built with core, inlines the backpatch executors.
+      await submoduleBackpatch(config);
+      await Promise.all([
         submoduleCore(config),
-        submoduleBackpatch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
@@ -109,11 +107,7 @@ export async function build(config: BuildConfig) {
       await submoduleInsights(config);
     }
     if (config.qwik) {
-      // server bundling must happen after the results from the others
-      // because it inlines the qwik loader
-      await Promise.all([submoduleServer(config, coreNameCache), submodulePreloader(config)]);
-      // after server, so both extend the shared nameCache in a fixed order
-      await submoduleSerializer(config, coreNameCache);
+      await submodulePreloader(config);
     }
 
     if (config.api || (!config.dev && config.qwik)) {
@@ -198,15 +192,13 @@ export async function build(config: BuildConfig) {
 
     if (config.watch) {
       await watchDirectories({
-        [join(config.srcQwikDir, 'core')]: async () => {
-          await submoduleCore({ ...config, dev: true });
-        },
+        [join(config.srcQwikDir, 'core')]: () => submoduleCore({ ...config, dev: true }),
+        [join(config.srcQwikDir, 'server')]: () => submoduleCore({ ...config, dev: true }),
+        [join(config.srcQwikDir, 'serializer')]: () => submoduleCore({ ...config, dev: true }),
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),
         [config.optimizerDir]: () => submoduleOptimizer(config),
         [config.qwikViteDir]: () => submoduleOptimizer(config),
-        [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
-        [join(config.srcQwikDir, 'serializer')]: () => submoduleSerializer(config),
         [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });
     }

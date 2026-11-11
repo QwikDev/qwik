@@ -63,7 +63,7 @@
       "import": {
         "development": "./dist/serializer.mjs",
         "production": "./dist/serializer.prod.mjs",
-        "min": "./dist/serializer.prod.mjs",
+        "min": "./dist/serializer.min.mjs",
         "default": "./dist/serializer.prod.mjs"
       }
     },
@@ -119,12 +119,19 @@
     "./preloader": {
       "import": "./dist/preloader.mjs"
     },
-    "./server.mjs": "./dist/server.mjs",
+    "./server.mjs": {
+      "types": "./server.d.ts",
+      "development": "./dist/server.mjs",
+      "production": "./dist/server.prod.mjs",
+      "min": "./dist/server.min.mjs",
+      "default": "./dist/server.prod.mjs"
+    },
     "./server": {
       "types": "./server.d.ts",
       "import": {
         "development": "./dist/server.mjs",
         "production": "./dist/server.prod.mjs",
+        "min": "./dist/server.min.mjs",
         "default": "./dist/server.prod.mjs"
       }
     },

@@ -581,13 +581,11 @@ describe('debug chunk names', () => {
   );
 
   test.each([true, false])(
-    'shortens the chunk name of a deeply nested handler (tsOptimizer: %s)',
+    'shortens the chunk name of a handler in a file with a long name (tsOptimizer: %s)',
     async (tsOptimizer) => {
       const { segmentChunks } = await buildSmartDebugClient(tsOptimizer, {
-        'app.tsx': `import { component$ } from '@qwik.dev/core';
-         export const App = component$(() =>
-           ${'<div>'.repeat(60)}<button onClick$={() => console.log('deep')} />${'</div>'.repeat(60)}
-         );`,
+        [`${'deeply-nested-route-'.repeat(6)}page.tsx`]: `import { component$ } from '@qwik.dev/core';
+         export const App = component$(() => <button onClick$={() => console.log('deep')} />);`,
       });
       const { segment, fileName } = segmentChunks.find(
         ({ segment }) => segment.ctxName === 'onClick$'

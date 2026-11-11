@@ -4,7 +4,7 @@ import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { spawn } from 'node:child_process';
 import { readFile, rm, unlink } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
-import { type Plugin, type UserConfig, type ViteBuilder } from 'vite';
+import { type Environment, type Plugin, type UserConfig, type ViteBuilder } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
@@ -22,6 +22,7 @@ const QWIK_SSG_WORKER_ENTRY_RESOLVED = '\0@qwik-ssg-worker-entry';
 
 // Vite creates separate adapter instances for each build environment.
 const appBuilds = new Map<string, { outputEntries: string[] }>();
+const appWatchEnvironments = new WeakSet<Environment>();
 
 function getAppBuildKey(root: string, outDir: string) {
   return JSON.stringify([resolve(root), resolve(root, outDir)]);
@@ -237,10 +238,9 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         // SSG runs only from `buildApp` (the multi-environment app build). If the deployed server was
         // built directly via Vite's programmatic `build()`, buildApp never ran and nothing was
         // prerendered — warn loudly rather than silently shipping an un-prerendered site.
-        // In watch mode `builder.build()` returns before the bundle is written, so `buildApp` has
-        // already finished by now and this says nothing about how the build was started.
-        const isWatching = !!this.environment.config.build?.watch;
-        if (opts.ssg !== null && viteCommand === 'build' && !appBuild && !isWatching) {
+        // Watch builds return before their first bundle is written.
+        const isAppWatch = !!build.watch && appWatchEnvironments.has(this.environment);
+        if (opts.ssg !== null && viteCommand === 'build' && !appBuild && !isAppWatch) {
           this.warn(
             'Qwik Router SSG was skipped: the `ssr` environment was built directly instead of through ' +
               'the Vite app builder, so no pages were prerendered. Build with the Qwik CLI or ' +
@@ -259,10 +259,16 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         return;
       }
       const buildKey = getAppBuildKey(ssr.config.root, ssr.config.build.outDir);
+      if (appBuilds.has(buildKey)) {
+        throw new Error(`An app build is already running for ${buildKey}`);
+      }
       const appBuild = { outputEntries: [] as string[] };
       appBuilds.set(buildKey, appBuild);
       try {
         await builder.build(ssr);
+        if (ssr.config.build.watch) {
+          appWatchEnvironments.add(ssr);
+        }
         // Read the deployed server outDir from the `ssr` environment, not a closure: in builder mode
         // `configResolved` runs per environment, so the later `ssg` build would clobber a shared value.
         const serverOutDir = ssr.config.build.outDir;

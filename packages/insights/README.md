@@ -91,9 +91,10 @@ pnpm -C packages/insights deploy.dry-run
 The separate `Deploy Insights` workflow in `.github/workflows/deploy-insights.yml` owns
 all deployment preparation and publishing. After `Qwik CI` succeeds on `main`, it checks
 out that tested commit, installs locked dependencies, builds Qwik core, the router, the
-ESLint plugin, and Insights, then validates the Cloudflare bundle with a dry run. It
-publishes to Cloudflare and checks that production serves Qwik v2 afterward. Look for
-`Deploy Insights` in the Actions sidebar after `Qwik CI` completes.
+ESLint plugin, and Insights, then validates the Cloudflare bundle with a dry run. It tests
+the migration runner, applies pending database migrations, publishes to Cloudflare, and
+checks that production serves Qwik v2 afterward. A failed migration fails the job and
+prevents publishing. Look for `Deploy Insights` in the Actions sidebar after `Qwik CI` completes.
 
 Only successful push or manual `Qwik CI` runs on `main` can trigger publishing. Older commits
 are skipped if `main` has advanced when deployment starts. To retry, rerun the matching
@@ -103,8 +104,21 @@ builds its own bundle and does not depend on artifacts or preparation jobs in `c
 Remove `.github/workflows/deploy-insights.yml` from `v1` before the first v2 deployment;
 the new workflow refuses to publish while that competing workflow exists. Both publishers
 use the same concurrency group so an in-flight deployment finishes before another starts.
-The repository secret `CLOUDFLARE_INSIGHTS_API_TOKEN` supplies the existing Cloudflare
-credentials only to the publishing step. Pull requests never run the deployment job.
+The repository secrets `CLOUDFLARE_INSIGHTS_API_TOKEN` and `INSIGHTS_LIBSQL_MIGRATION_TOKEN`
+are required by the credential preflight. After that check, each is exposed only to its
+publishing or migration step. Pull requests never run the deployment job.
+
+`INSIGHTS_LIBSQL_MIGRATION_TOKEN` must be a dedicated read/write token scoped to the Insights
+database, with schema-change permission. Store it as a GitHub Actions repository secret;
+do not use an organization-wide or database-group token. Production migrations read the
+URL from `wrangler.jsonc`, so they target the same database as the Worker. They ignore local
+`.env` files and require an explicit token. No database credentials enter build artifacts.
+
+The database migration journal makes reruns skip applied migrations. Migrations and publishing
+share the existing production concurrency lock. Keep schema changes backward compatible with
+the currently deployed Worker: migrations run before publishing, and a later publishing failure
+leaves the migrated database in place. Do not roll back the database automatically; retry the
+deployment or ship a forward migration. Validate new migrations against staging first.
 
 Keep `PRIVATE_LIBSQL_DB_API_TOKEN`, `PRIVATE_AUTH_SECRET`, and `PRIVATE_GITHUB_SECRET` in
 Cloudflare Worker secrets. For local Workers testing, put the local development values from
@@ -116,8 +130,9 @@ Before promotion:
 
 - Configure the database, session, and GitHub credentials for the target environment. Register
   `https://<deployment-host>/auth/callback/github` as its GitHub OAuth callback.
-- Check the target database's migration history against `drizzle/` and apply any outstanding
-  migrations separately. The manifest compatibility change does not require a schema migration.
+- Check the target database's migration history against `drizzle/`. The production deployment
+  applies pending migrations automatically; use `pnpm -C packages/insights db.migrate` for
+  local or staging credentials.
 - Verify sign-in, sign-out, unauthenticated redirects, and per-application access restrictions.
 - Exercise application creation and editing, user access changes, dashboard navigation, and
   symbol details in a browser.
@@ -126,3 +141,18 @@ Before promotion:
   responses, including cross-origin browser requests.
 - Confirm the rendered page reports the expected `q:version`. Retain the previous Worker version
   for rollback and verify database compatibility before rolling back application code.
+
+## GitHub source previews
+
+Application settings → GitHub source code connects each application to a **public** GitHub
+repository. Set the repository URL, branch/tag/commit, and repository-relative source directory.
+For example, `https://github.com/QwikDev/qwik`, `v1`, and `packages/docs/src` can resolve legacy
+DocSearch origins. Use the revision matching the recorded build; pin a commit for stable results.
+Older manifests may require a different revision. No GitHub credentials are stored or sent.
+
+The source directory is prepended to each symbol's origin. Leave it empty when origins already
+include the full repository-relative path. Clearing the repository disables previews.
+
+The deployment workflow applies `0020_application_source.sql` before publishing this feature.
+It adds `application_sources` and preserves the existing Qwik Docs mapping to `main`; it does
+not guess a revision for historical builds. No existing analytics rows are modified.

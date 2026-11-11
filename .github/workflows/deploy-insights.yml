@@ -59,6 +59,17 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
 
+      - name: Verify deployment credentials
+        if: steps.ownership.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSIGHTS_API_TOKEN }}
+          PRIVATE_LIBSQL_DB_API_TOKEN: ${{ secrets.INSIGHTS_LIBSQL_MIGRATION_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$PRIVATE_LIBSQL_DB_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_INSIGHTS_API_TOKEN and INSIGHTS_LIBSQL_MIGRATION_TOKEN are required."
+            exit 1
+          fi
+
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         if: steps.ownership.outputs.deploy == 'true'
 
@@ -90,15 +101,22 @@ jobs:
         if: steps.ownership.outputs.deploy == 'true'
         run: pnpm -C packages/insights run deploy.dry-run
 
+      - name: Verify database migration runner
+        if: steps.ownership.outputs.deploy == 'true'
+        run: pnpm -C packages/insights exec vitest run scripts/db.migrate.unit.ts
+
+      - name: Apply Insights database migrations
+        if: steps.ownership.outputs.deploy == 'true'
+        timeout-minutes: 5
+        env:
+          PRIVATE_LIBSQL_DB_API_TOKEN: ${{ secrets.INSIGHTS_LIBSQL_MIGRATION_TOKEN }}
+        run: pnpm -C packages/insights run db.migrate --production
+
       - name: Deploy Insights to Cloudflare Workers
         if: steps.ownership.outputs.deploy == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSIGHTS_API_TOKEN }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "::error::CLOUDFLARE_INSIGHTS_API_TOKEN is required to deploy Insights."
-            exit 1
-          fi
           test -f packages/insights/dist/_worker.js
           test -f packages/insights/dist/.assetsignore
           test -f packages/insights/server/entry.cloudflare-pages.js

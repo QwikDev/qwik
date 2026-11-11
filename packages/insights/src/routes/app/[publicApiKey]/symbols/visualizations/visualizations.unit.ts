@@ -1,0 +1,51 @@
+import { describe, expect, it } from 'vitest';
+import { createBundleViewData } from '../bundles/bundle-view';
+import { getNeighborhood, getDefaultSymbol } from './visualizations';
+
+const symbols = ['a', 'b', 'c'].map((name) => ({
+  name,
+  count: 10,
+  depth: 0,
+  children: [],
+  fullName: name,
+  fileSrc: null,
+}));
+const data = createBundleViewData(
+  {
+    symbols,
+    vectors: [
+      [1, 0.2, 0],
+      [0.8, 1, 0],
+      [0.6, 0, 1],
+    ],
+  },
+  [
+    { name: 'ab', symbols: symbols.slice(0, 2) },
+    { name: 'c', symbols: symbols.slice(2) },
+  ]
+);
+
+describe('relationship visualization alternatives', () => {
+  it('selects a named symbol in one matrix pass and ignores self and weak connections', () => {
+    let visits = 0;
+    const matrix = data.matrix.map((row) =>
+      row.map((cell) => ({
+        column: cell.column,
+        get value() {
+          visits++;
+          return cell.value;
+        },
+      }))
+    );
+    expect(getDefaultSymbol({ ...data, matrix })).toBe('a');
+    expect(visits).toBeLessThanOrEqual(matrix.flat().length);
+    expect(getDefaultSymbol({ ...data, symbols: [], matrix: [] })).toBe('');
+  });
+  it('separates incoming and outgoing modeled scores and limits each side', () => {
+    expect(getNeighborhood(data, 'a', 1)).toEqual({
+      incoming: [{ from: 'b', to: 'a', score: 0.2 }],
+      outgoing: [{ from: 'a', to: 'b', score: 0.8 }],
+    });
+    expect(getNeighborhood(data, 'missing', 5)).toEqual({ incoming: [], outgoing: [] });
+  });
+});

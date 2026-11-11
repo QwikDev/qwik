@@ -92,4 +92,15 @@ describe('visualization lab', () => {
     await trigger(document.body, more, 'click');
     expect(document.querySelectorAll('aside li')).toHaveLength(8);
   });
+  it('recenters the neighborhood when a neighbor is selected', async () => {
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} initialView="neighborhood" />
+    );
+    const selected = document.querySelector('.lab-center code')!.textContent;
+    const neighbor = document.querySelector<HTMLButtonElement>('button.lab-node')!;
+    const neighborName = neighbor.querySelector('code')!.textContent;
+    expect(neighborName).not.toBe(selected);
+    await trigger(document.body, neighbor, 'click');
+    expect(document.querySelector('.lab-center code')?.textContent).toBe(neighborName);
+  });
 });

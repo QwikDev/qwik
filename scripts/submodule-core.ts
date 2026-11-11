@@ -6,14 +6,15 @@ import {
   type InputOptions as RolldownInputOptions,
   type Plugin as RolldownPlugin,
 } from 'rolldown';
-import { minify, type MinifyOptions } from 'terser';
+import { type ManglePropertiesOptions, minify, type MinifyOptions } from 'terser';
+import { serverSourceOptions } from './submodule-server.ts';
 import { type BuildConfig, copyFile, fileSize, getBanner, target, writeFile } from './util.ts';
 
 /**
- * Regex for property names that should be mangled consistently across all bundles (core + server).
+ * Regex for property names that should be mangled consistently across all of core's chunks.
  * Properties matching $...$ are internal framework properties not part of the public API.
  */
-export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
+const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
 /** Terser strands these annotations, so bundlers silently drop the tree-shaking hint. */
 function fixPureAnnotations(code: string): string {
@@ -47,22 +48,50 @@ const libraryQrlSites: RolldownPlugin = {
 };
 
 type CoreVariant = '' | '.prod' | '.min';
+type CoreEntry = 'core' | 'serializer' | 'server';
+type CoreInputs = Record<CoreEntry, string>;
 
 const coreFileNames = (variant: CoreVariant) => ({
   core: `core${variant}.qwik.mjs`,
+  serializer: `serializer${variant}.mjs`,
+  server: `server${variant}.mjs`,
   qrl: `core-qrl${variant}.mjs`,
 });
 
 /**
- * Build the core package which is also the root package: @qwik.dev/core
+ * Bundling the serializer and server with core makes them import core's modules instead of copying
+ * them, and share its property mangling. Every variant has all of them: an entry resolved to
+ * another variant than core would bundle a second core, as the browser's import of the server
+ * (never run there) would with the min variant.
+ */
+const CORE_ENTRIES: CoreEntry[] = ['core', 'serializer', 'server'];
+
+const coreInputs = (pathOf: (entry: CoreEntry) => string) =>
+  Object.fromEntries(CORE_ENTRIES.map((entry) => [entry, pathOf(entry)])) as CoreInputs;
+
+/** Points the serializer and server sources at the core and serializer entries. */
+function resolveCoreEntries(inputs: CoreInputs): RolldownPlugin {
+  return {
+    name: 'resolveCoreEntries',
+    resolveId(id) {
+      if (id === '@qwik.dev/core' || id === '@qwik.dev/core/internal') {
+        return inputs.core;
+      }
+      if (id === '@qwik.dev/core/internal/serializer') {
+        return inputs.serializer;
+      }
+    },
+  };
+}
+
+/**
+ * Build the core package which is also the root package: @qwik.dev/core, together with its
+ * `/internal/serializer` and `/server` subpaths.
  *
  * Uses rolldown on the sources during development (it is fast) and TSC + rolldown + Terser for
  * production, because tsc output minifies better.
- *
- * In production, returns a Terser nameCache so the server bundle can apply the same property
- * mangling and keep $...$ names in sync across both bundles.
  */
-export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
+export async function submoduleCore(config: BuildConfig) {
   const platformDir = join(config.srcQwikDir, 'core', 'shared', 'platform');
   await build({
     entryPoints: [
@@ -81,11 +110,12 @@ export async function submoduleCore(config: BuildConfig): Promise<object | undef
     join(config.distQwikPkgDir, 'async-local-storage.d.ts')
   );
 
+  const server = await serverSourceOptions(config);
   if (config.dev) {
-    await submoduleCoreDev(config);
-    return undefined;
+    await submoduleCoreDev(config, server);
+  } else {
+    await submoduleCoreProd(config, server);
   }
-  return submoduleCoreProd(config);
 }
 
 /**
@@ -179,24 +209,27 @@ function collectPlainPropertyNames(chunks: { code: string }[]) {
   return [...names].filter((name) => !isMangled.test(name));
 }
 
-/** Bundles core into its entry chunk and its QRL machinery chunk, and returns both. */
+/** Bundles each entry into its own chunk, plus the shared QRL machinery chunk, and returns them. */
 async function bundleCore(
   config: BuildConfig,
-  input: string,
+  inputs: CoreInputs,
   variant: CoreVariant,
-  inputOptions: Pick<RolldownInputOptions, 'external' | 'plugins'>
+  inputOptions: Pick<RolldownInputOptions, 'external' | 'plugins'>,
+  inlinedGlobals: Record<string, string> = {}
 ) {
   const names = coreFileNames(variant);
   const bundle = await rolldown({
-    input,
+    input: inputs,
     platform: 'neutral',
     logLevel: 'warn',
+    // Entry chunks export what the other entries import from them.
+    preserveEntrySignatures: 'allow-extension',
     ...inputOptions,
     plugins: [libraryQrlSites, ...((inputOptions.plugins as RolldownPlugin[]) ?? [])],
   });
   const { output } = await bundle.generate({
     format: 'esm',
-    entryFileNames: names.core,
+    entryFileNames: (chunk) => names[chunk.name as CoreEntry],
     chunkFileNames: names.qrl,
     sourcemap: variant === '',
     codeSplitting: coreCodeSplitting,
@@ -206,31 +239,48 @@ async function bundleCore(
     .filter((o) => o.type === 'chunk')
     .map((c) => ({ fileName: c.fileName, code: c.code, sourcemapFileName: c.sourcemapFileName }));
   const fileNames = chunks.map((c) => c.fileName).sort();
-  if (fileNames.join() !== [names.core, names.qrl].sort().join()) {
-    throw new Error(`core build must emit ${names.core} and ${names.qrl}, got ${fileNames}`);
+  const expected = [...Object.keys(inputs).map((e) => names[e as CoreEntry]), names.qrl].sort();
+  if (fileNames.join() !== expected.join()) {
+    throw new Error(`core build must emit ${expected}, got ${fileNames}`);
   }
+  for (const name of Object.keys(inlinedGlobals)) {
+    if (!chunks.some((chunk) => chunk.code.includes(name))) {
+      throw new Error(`core build must inline ${name}, but no chunk references it`);
+    }
+  }
+  const globals = {
+    'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+    ...inlinedGlobals,
+  };
   for (const chunk of chunks) {
-    chunk.code = chunk.code.replaceAll(
-      'globalThis.QWIK_VERSION',
-      JSON.stringify(config.distVersion)
-    );
+    for (const [name, value] of Object.entries(globals)) {
+      chunk.code = chunk.code.replaceAll(name, () => value);
+    }
     if (chunk.fileName === names.core) {
       chunk.code = nameLibraryQrlImport(chunk.code);
+      validateLibraryQrlImport(chunk.code, chunk.fileName);
+      continue;
     }
-    if (
-      chunk.fileName === names.core &&
-      !chunk.code.includes('inlinedQrl as _inlinedQrl } from "@qwik.dev/core"')
-    ) {
-      const imports = chunk.code.split('\n').filter((line) => line.startsWith('import'));
+    if (/from "@qwik\.dev\/core(\/internal(\/serializer)?)?";/.test(chunk.code)) {
       throw new Error(
-        `${names.core} must import inlinedQrl as _inlinedQrl from @qwik.dev/core for its QRLs:\n${imports.join('\n')}`
+        `${chunk.fileName} must not import @qwik.dev/core: QRL sites belong in ${names.core}, and the other entries import its chunk`
       );
     }
-    if (chunk.fileName === names.qrl && chunk.code.includes('from "@qwik.dev/core";')) {
-      throw new Error(`${names.qrl} must not contain QRL sites; they would run before it`);
+    if (chunk.fileName !== names.qrl) {
+      // Entering through core's QRL chunk would evaluate core before the QRL machinery.
+      chunk.code = `import "./${names.core}";\n${chunk.code}`;
     }
   }
   return { chunks, sourcemaps: output.filter((o) => o.type === 'asset') };
+}
+
+function validateLibraryQrlImport(code: string, fileName: string) {
+  if (!code.includes('inlinedQrl as _inlinedQrl } from "@qwik.dev/core"')) {
+    const imports = code.split('\n').filter((line) => line.startsWith('import'));
+    throw new Error(
+      `${fileName} must import inlinedQrl as _inlinedQrl from @qwik.dev/core for its QRLs:\n${imports.join('\n')}`
+    );
+  }
 }
 
 async function writeCoreChunks(config: BuildConfig, files: { fileName: string; code: string }[]) {
@@ -247,16 +297,34 @@ const coreExternals = [
   '@qwik.dev/core/async-local-storage',
 ];
 
-async function submoduleCoreProd(config: BuildConfig): Promise<object | undefined> {
+type ServerSourceOptions = Awaited<ReturnType<typeof serverSourceOptions>>;
+
+function bundleCoreSources(
+  config: BuildConfig,
+  srcDir: string,
+  ext: 'ts' | 'js',
+  variant: CoreVariant,
+  server: ServerSourceOptions
+) {
+  const inputs = coreInputs((entry) => join(srcDir, entry, `index.${ext}`));
+  return bundleCore(
+    config,
+    inputs,
+    variant,
+    { external: coreExternals, plugins: [resolveCoreEntries(inputs), ...server.plugins] },
+    server.globals
+  );
+}
+
+async function submoduleCoreProd(config: BuildConfig, server: ServerSourceOptions) {
   const banner = getBanner('@qwik.dev/core', config.distVersion);
   const devNames = coreFileNames('');
-  const { chunks, sourcemaps } = await bundleCore(
+  const { chunks, sourcemaps } = await bundleCoreSources(
     config,
-    join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
+    join(config.tscDir, 'packages', 'qwik', 'src'),
+    'js',
     '',
-    {
-      external: coreExternals,
-    }
+    server
   );
   await writeCoreChunks(
     config,
@@ -269,9 +337,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
     await writeFile(join(config.distQwikPkgDir, map.fileName), String(map.source));
   }
 
-  const devCore = join(config.distQwikPkgDir, devNames.core);
+  const devInputs = coreInputs((entry) => join(config.distQwikPkgDir, devNames[entry]));
 
-  const min = await bundleCore(config, devCore, '.min', {
+  const min = await bundleCore(config, devInputs, '.min', {
     external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
     plugins: [
       {
@@ -296,7 +364,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       },
     ],
   });
-  const prod = await bundleCore(config, devCore, '.prod', {
+  const prod = await bundleCore(config, devInputs, '.prod', {
     external: [
       '@qwik.dev/core/preloader',
       'node:async_hooks',
@@ -305,24 +373,26 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
     plugins: [inlineProdIsDev()],
   });
 
-  // Shared nameCache so that $...$  property mangling is consistent across all Terser runs
-  // (core.min, core.prod and both of their chunks) and can later be reused for the server bundle.
+  // Shared nameCache so that $...$ property mangling is consistent across all Terser runs.
   // When mangle=false (--mangle=false), skip mangling.
   const nameCache: object = {};
   const noMangle = config.mangle === false;
-  const mangle: MinifyOptions['mangle'] = noMangle
-    ? false
+  const mangleProperties: ManglePropertiesOptions | undefined = noMangle
+    ? undefined
     : {
+        regex: MANGLE_PROPS_REGEX,
+        reserved: collectPlainPropertyNames([...min.chunks, ...prod.chunks]),
+      };
+  const mangle: MinifyOptions['mangle'] = mangleProperties
+    ? {
         toplevel: true,
         module: true,
         // App optimizers only extract QRL sites calling exactly `_inlinedQrl`.
         reserved: ['_inlinedQrl'],
         nth_identifier: identifiersWithoutDollar(),
-        properties: {
-          regex: MANGLE_PROPS_REGEX,
-          reserved: collectPlainPropertyNames([...min.chunks, ...prod.chunks]),
-        },
-      };
+        properties: mangleProperties,
+      }
+    : false;
 
   const minFiles = [];
   for (const chunk of min.chunks) {
@@ -379,33 +449,66 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   }
   await writeCoreChunks(config, minFiles);
 
+  const prodNames = coreFileNames('.prod');
   const prodFiles = [];
   for (const chunk of prod.chunks) {
+    const isCoreChunk = chunk.fileName === prodNames.core || chunk.fileName === prodNames.qrl;
     prodFiles.push({
       fileName: chunk.fileName,
-      code: await minifyProdChunk(config, chunk.code, chunk.fileName, mangle, nameCache),
+      code: isCoreChunk
+        ? await minifyProdChunk(config, chunk.code, chunk.fileName, mangle, nameCache)
+        : await mangleProdEntryProperties(config, chunk.code, mangleProperties, nameCache),
     });
   }
   await writeCoreChunks(config, prodFiles);
-
-  return mangle ? nameCache : undefined;
 }
 
 /**
- * Inlines only `isDev = false` from `@qwik.dev/core/build`, while keeping `isServer` and
- * `isBrowser` as imports (the build is universal — it must work on both server and browser).
+ * The server and serializer only get `$props$` mangled, so apps can still define their
+ * `globalThis.qDev` checks.
+ */
+async function mangleProdEntryProperties(
+  config: BuildConfig,
+  code: string,
+  properties: ManglePropertiesOptions | undefined,
+  nameCache: object
+) {
+  if (!properties) {
+    return code;
+  }
+  const result = await minify(code, {
+    nameCache,
+    compress: false,
+    mangle: { properties },
+    format: {
+      beautify: true,
+      braces: true,
+      comments: 'all',
+      preserve_annotations: true,
+      ecma: 2020,
+      preamble: getBanner('@qwik.dev/core', config.distVersion),
+    },
+  });
+  return result.code! + '\n';
+}
+
+/**
+ * Inlines only `isDev = false` from `@qwik.dev/core/build` into core's chunks, while keeping
+ * `isServer` and `isBrowser` as imports (the build is universal — it must work on both server and
+ * browser). The server and serializer keep importing `isDev`, so the app's build decides it.
  */
 function inlineProdIsDev(): RolldownPlugin {
   const VIRTUAL_BUILD = '\0prod-build';
+  const devNames = coreFileNames('');
+  const keepsAppIsDev = (importer: string | undefined) =>
+    importer === VIRTUAL_BUILD ||
+    importer?.endsWith(devNames.server) ||
+    importer?.endsWith(devNames.serializer);
   return {
     name: 'inlineProdIsDev',
     resolveId(id, importer) {
       if (id === '@qwik.dev/core/build') {
-        // When the virtual itself re-imports @qwik.dev/core/build, keep it external.
-        if (importer === VIRTUAL_BUILD) {
-          return { id, external: true };
-        }
-        return VIRTUAL_BUILD;
+        return keepsAppIsDev(importer) ? { id, external: true } : VIRTUAL_BUILD;
       }
     },
     load(id) {
@@ -500,16 +603,15 @@ function validateNoHmrReferences(code: string, filename: string) {
   }
 }
 
-async function submoduleCoreDev(config: BuildConfig) {
-  // Every variant gets its own chunk pair: core and core-qrl import each other by file name.
+async function submoduleCoreDev(config: BuildConfig, server: ServerSourceOptions) {
+  // Every variant gets its own chunks: they import each other by file name.
   for (const variant of ['', '.prod', '.min'] as const) {
-    const { chunks, sourcemaps } = await bundleCore(
+    const { chunks, sourcemaps } = await bundleCoreSources(
       config,
-      join(config.srcQwikDir, 'core', 'index.ts'),
+      config.srcQwikDir,
+      'ts',
       variant,
-      {
-        external: coreExternals,
-      }
+      server
     );
     await writeCoreChunks(
       config,

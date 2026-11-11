@@ -165,12 +165,16 @@ When a core value gains serialized state:
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
 4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
-The serializer is its own bundle so browser apps only load it inside the segments that call it
-(e.g. `server$`). Like `src/server/`, it takes runtime values from `@qwik.dev/core/internal` (as
-`_name` exports tagged `@internal`) so classes and flyweights keep one identity; only
-`serializer/qwik-copy.ts` (const enums, identity-free helpers) and `serializer/qwik-types.ts` may
-import core through `../`. `pnpm build.core` names any core module outside the server's copyable
-directories that ends up in the serializer bundle.
+The serializer is its own entry so browser apps only load it inside the segments that call it
+(e.g. `server$`). It and `src/server/` are entries of core's library build
+(`scripts/submodule-core.ts`), so a core module they import, through `../` or
+`@qwik.dev/core/internal`, stays in core's chunks and keeps one identity. Each entry chunk imports
+`core*.qwik.mjs` first; entering through `core-qrl*.mjs` would evaluate core before its QRL
+machinery, and every variant has every entry, under the same package conditions as core: an entry
+resolved to another variant would bundle a second core (the browser imports the server through
+the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
+keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
+decide those (the qwik e2e server runs core.prod with `isDev` true); only core's chunks bake them in.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.

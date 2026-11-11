@@ -63,7 +63,7 @@
       "import": {
         "development": "./dist/serializer.mjs",
         "production": "./dist/serializer.prod.mjs",
-        "min": "./dist/serializer.prod.mjs",
+        "min": "./dist/serializer.min.mjs",
         "default": "./dist/serializer.prod.mjs"
       }
     },
@@ -125,6 +125,7 @@
       "import": {
         "development": "./dist/server.mjs",
         "production": "./dist/server.prod.mjs",
+        "min": "./dist/server.min.mjs",
         "default": "./dist/server.prod.mjs"
       }
     },

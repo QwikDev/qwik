@@ -1,3 +1,5 @@
+import SymbolFilter from '~/components/symbol-filter';
+import { filterSymbols } from '~/stats/symbol-search';
 import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
@@ -35,14 +37,17 @@ export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
   const details = new Map(metadata.map((symbol) => [symbol.hash, symbol]));
   return {
     ...paginateResults(
-      edges
-        .map((edge) => ({
+      filterSymbols(
+        edges.map((edge) => ({
           ...edge,
+          hash: edge.to,
           fullName: details.get(edge.to)?.fullName,
           origin: details.get(edge.to)?.origin,
           ...getManifestPerformance(edge.latency),
-        }))
-        .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1) || b.samples - a.samples),
+        })),
+        query.get('q'),
+        query.get('sort') ?? 'p95'
+      ),
       query.get('page')
     ),
     manifestCount: manifestHashes.length,
@@ -75,6 +80,7 @@ export default component$(() => {
         />
       </dl>
 
+      <SymbolFilter defaultSort="p95" />
       <ResultsPagination page={data.value.page} pageCount={data.value.pageCount} />
 
       {data.value.items.length ? (
@@ -135,9 +141,9 @@ export default component$(() => {
         </div>
       ) : (
         <section class="border-b border-editorial-border py-editorial-16">
-          <h2 class="text-editorial-24 font-semibold">No slow symbols yet</h2>
+          <h2 class="text-editorial-24 font-semibold">No matching slow symbols</h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
-            Slow symbols will appear after latency samples are recorded.
+            Clear the search, choose another build, or collect loading latency observations.
           </p>
         </section>
       )}

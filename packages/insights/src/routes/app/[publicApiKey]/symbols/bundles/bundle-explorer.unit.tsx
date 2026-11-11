@@ -49,6 +49,47 @@ describe('bundle explorer', () => {
     expect(document.querySelector('[data-panel="relationships"]')).toBeTruthy();
   });
 
+  it('searches and expands the selected group without losing matrix scope', async () => {
+    const manySymbols = Array.from({ length: 55 }, (_, index) => ({
+      ...symbols[0],
+      name: `symbol-${index}`,
+      fullName: `component-${index}`,
+      count: index,
+    }));
+    const report = createBundleViewData(
+      {
+        symbols: manySymbols,
+        vectors: manySymbols.map((_, index) =>
+          manySymbols.map((__, column) => (index === column ? 1 : 0))
+        ),
+      },
+      [
+        { name: 'large', symbols: manySymbols.slice(0, 54) },
+        { name: 'last', symbols: manySymbols.slice(54) },
+      ]
+    );
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="symbols"]', 'click');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(50);
+    const more = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Show 50 more')
+    )!;
+    await trigger(document.body, more, 'click');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(54);
+    const search = document.querySelector<HTMLInputElement>(
+      '[data-panel="symbols"] input[type="search"]'
+    )!;
+    search.value = 'component-53';
+    await trigger(document.body, search, 'input');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(1);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('54 symbols');
+    const scope = document.querySelector<HTMLSelectElement>('[data-matrix-scope]')!;
+    scope.value = 'all';
+    await trigger(document.body, scope, 'change');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('55 symbols');
+  });
+
   it('clears relationship details when selecting a different group', async () => {
     const { document } = await domRender(<BundleExplorer data={data} />);
     await trigger(document.body, '[data-relationship="0"]', 'click');

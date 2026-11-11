@@ -25,9 +25,6 @@ type PreloaderWindow = Window & {
   __preloaderLinks?: PreloaderLink[];
   __speculativeInFlight?: number;
   __maxSpeculativeInFlight?: number;
-  __holdsSpeculativePreloads?: boolean;
-  __heldSpeculativePreloads?: number;
-  __resumeSpeculativePreloads?: () => void;
 };
 
 export const recordSpeculativePreloads = (page: Page) =>
@@ -36,14 +33,7 @@ export const recordSpeculativePreloads = (page: Page) =>
     win.__preloaderLinks = [];
     win.__speculativeInFlight = 0;
     win.__maxSpeculativeInFlight = 0;
-    const heldLinks: [Node, HTMLLinkElement][] = [];
     const appendChild = Node.prototype.appendChild;
-    win.__resumeSpeculativePreloads = () => {
-      win.__holdsSpeculativePreloads = false;
-      for (const [parent, link] of heldLinks.splice(0)) {
-        appendChild.call(parent, link);
-      }
-    };
     Node.prototype.appendChild = function <T extends Node>(this: Node, node: T): T {
       if (node instanceof HTMLLinkElement && /preload/i.test(node.rel)) {
         const speculative = node.getAttribute('fetchpriority') === 'low';
@@ -57,24 +47,11 @@ export const recordSpeculativePreloads = (page: Page) =>
           const settled = () => win.__speculativeInFlight!--;
           node.addEventListener('load', settled, { once: true });
           node.addEventListener('error', settled, { once: true });
-          if (win.__holdsSpeculativePreloads) {
-            heldLinks.push([this, node]);
-            win.__heldSpeculativePreloads = heldLinks.length;
-            return node;
-          }
         }
       }
       return appendChild.call(this, node) as T;
     };
   });
-
-export const holdSpeculativePreloads = (page: Page) =>
-  page.addInitScript(() => {
-    (window as PreloaderWindow).__holdsSpeculativePreloads = true;
-  });
-
-const resumeSpeculativePreloads = (page: Page) =>
-  page.evaluate(() => (window as PreloaderWindow).__resumeSpeculativePreloads?.());
 
 export const maxSpeculativeInFlight = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__maxSpeculativeInFlight ?? 0);
@@ -185,7 +162,6 @@ export const waitForNetworkIdle = async (
 
 export const releaseAll = async (gate: Gate, heldBack: Route[] = []) => {
   gate.mode = 'pass';
-  await resumeSpeculativePreloads(gate.page);
   await release([...gate.held.splice(0), ...heldBack.splice(0)]);
 };
 
@@ -195,11 +171,12 @@ export const waitForQwikloader = (page: Page) =>
 const urlsOf = (routes: Route[]) => routes.map((route) => route.request().url());
 
 export const openCold = async (page: Page, gate: Gate, path: string) => {
-  await holdSpeculativePreloads(page);
+  const url = new URL(path, ORIGIN);
+  url.searchParams.set('maxIdlePreloads', '0');
   await waitForNetworkIdle(page, async () => {
-    await page.goto(path);
+    await page.goto(url.href);
     await waitForQwikloader(page);
-    await page.waitForFunction(() => (window as PreloaderWindow).__heldSpeculativePreloads, null, {
+    await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
       timeout: 15_000,
     });
   });

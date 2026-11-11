@@ -10,7 +10,8 @@ import {
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
-import { warmClick } from '../utils/scenarios';
+import { clickTrigger, expectResult, warmClick } from '../utils/scenarios';
+import { expectRoundTrips } from '../utils/click-tests';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
@@ -77,7 +78,7 @@ test.describe('gate: keeping requests ongoing', () => {
 });
 
 test.describe('gate: cold click setup', () => {
-  test("lets the page's own load work finish, then holds one speculative preload", async ({
+  test("lets the page's own load work finish, without starting speculative preloads", async ({
     page,
   }) => {
     await recordSpeculativePreloads(page);
@@ -85,9 +86,12 @@ test.describe('gate: cold click setup', () => {
     page.on('request', (request) => requests.push(request.url()));
     const gate = await createGate(page);
     await openCold(page, gate, SINGLE_TASK_CHAIN.path);
-    expect((await speculativePreloads(page)).size).toBe(1);
+    expect((await speculativePreloads(page)).size).toBe(0);
     expect(requests.filter((url) => chunkComesFrom(url, SINGLE_TASK_CHAIN.sources))).toEqual([]);
     expect(gate.held).toEqual([]);
+    const roundTrips = await clickTrigger({ page, fixture: SINGLE_TASK_CHAIN, gate });
+    expectRoundTrips(roundTrips);
+    await expectResult(page, SINGLE_TASK_CHAIN);
     await releaseAll(gate);
   });
 });

@@ -4,7 +4,6 @@ import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures
 import {
   countRoundTrips,
   createGate,
-  holdSpeculativePreloads,
   preloaderLinks,
   recordSpeculativePreloads,
   releaseAll,
@@ -38,7 +37,6 @@ const clickWhileLoading = async (
   result: Fixture
 ) => {
   await recordSpeculativePreloads(page);
-  await holdSpeculativePreloads(page);
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => url === heldUrl;
   await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
@@ -65,7 +63,7 @@ test.describe('click before core loaded', () => {
       page,
       coreUrl(),
       clickConditional(page),
-      CONDITIONAL_ALL
+      { ...CONDITIONAL_ALL, path: `${CONDITIONAL_ALL.path}?maxIdlePreloads=0` }
     );
     await releaseAll(gate, startupPiece);
     await expectResult(page, CONDITIONAL_ALL);
@@ -97,7 +95,11 @@ for (const [name, heldUrl] of [
         clickConditional(page),
         CONDITIONAL_ALL
       );
-      const clickChunks = new Set(roundTrips.flatMap((roundTrip) => roundTrip.urls));
+      const clickChunks = new Set(
+        roundTrips
+          .flatMap((roundTrip) => roundTrip.urls)
+          .filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+      );
       await waitForNetworkIdle(page, async () => {
         await releaseAll(gate, startupPiece);
         await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
@@ -114,8 +116,8 @@ for (const [name, heldUrl] of [
       );
       expect(clickLinks.length).toBeGreaterThan(0);
       test.fail(
-        true,
-        'on main, hints sent before the preloader runs come out as speculative: a later 0.6 hint overwrites their probability'
+        name === 'the bundle graph',
+        'hints replayed after the graph arrives can still start at speculative priority'
       );
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });

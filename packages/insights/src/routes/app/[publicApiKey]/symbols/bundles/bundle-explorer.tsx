@@ -70,6 +70,12 @@ export const BundleExplorer = component$<{
             Explore suggested symbol groups based on execution relationships in the selected build.
             These are analysis groups, not emitted build files.
           </p>
+          <a
+            href="../visualizations/"
+            class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
+          >
+            Explore relationship visualizations
+          </a>
         </div>
         {selectedBundle && (
           <div class="md:text-right">

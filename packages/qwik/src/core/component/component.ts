@@ -136,7 +136,9 @@ function settleComponent(
     }
     return EMPTY_NODES;
   }
-  const finish = (nodes: ComponentOutput | void) => finalizeOutput(nodes, invokeContext);
+  // useOn events reach the scheduler through the component's context, gone after the await.
+  const finish = (nodes: ComponentOutput | void) =>
+    invoke(invokeContext, finalizeOutput, nodes, invokeContext);
   const retry = (error: unknown): ValueOrPromise<ComponentOutput | void> => {
     if (!isPromise(error)) {
       return handleComponentError(invokeContext, error);

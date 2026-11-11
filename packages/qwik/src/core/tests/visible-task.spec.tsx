@@ -94,6 +94,30 @@ describe(`${name}: visible task`, () => {
     cleanup();
   });
 
+  it('watches a component for visibility when its task loads before it renders', async () => {
+    const Child = component$(() => {
+      useTask$(() => {});
+      useVisibleTask$(() => {});
+      return <span id="child">child</span>;
+    });
+    const App = component$(() => {
+      const show = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (show.value = true)} />
+          {show.value && <Child />}
+        </div>
+      );
+    });
+    const { container, cleanup, flush } = await render(App, { debug });
+    await trigger(container, 'button', 'click');
+    await vi.waitFor(async () => {
+      await flush();
+      expect(container.querySelector('#child')?.getAttribute('q:observed')).toBe('true');
+    });
+    cleanup();
+  });
+
   it('supports the document-idle strategy', async () => {
     const App = component$(() => {
       const state = useSignal('SSR');

@@ -1,3 +1,35 @@
+import type { Bundle, Symbol, SymbolVectors } from '~/stats/edges';
+import { vectorSum } from '~/stats/vector';
+
+export interface MatrixCell {
+  column: number;
+  value: number;
+}
+
+export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) {
+  const summaries = new Map(
+    vectors.symbols.map((symbol) => [symbol, { ...symbol, children: [] as Symbol['children'] }])
+  );
+  return {
+    symbols: Array.from(summaries.values()),
+    matrix: vectors.vectors.map((row) => {
+      const total = vectorSum(row);
+      const cells: MatrixCell[] = [];
+      row.forEach((value, column) => {
+        if (value / total > 0.05) {
+          cells.push({ column, value });
+        }
+      });
+      return cells;
+    }),
+    bundles: bundles.map((bundle) => ({
+      ...bundle,
+      symbols: bundle.symbols.map((symbol) => summaries.get(symbol)!),
+      relationships: getStrongestRelationships(bundle.symbols, vectors).slice(0, 10),
+    })),
+  };
+}
+
 export function getBundleExecutionCount(bundle: {
   name: string;
   symbols: { count: number }[];

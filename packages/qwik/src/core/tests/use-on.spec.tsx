@@ -966,7 +966,7 @@ describe(`${name}: useOn`, () => {
     const { container, document, cleanup, qwikLoader } = await render(App, { debug });
     onTestFinished(cleanup);
     (globalThis as any).__dispatchChild = () => {
-      // the outgoing arm is still shown, so its carrier answers
+      // only the shown arm's carrier answers, whichever arm that is when the task runs
       void qwikLoader?.dispatch(document.body, 'child');
     };
     await qwikLoader?.dispatch(container.querySelector('button')!, 'click');

@@ -109,9 +109,10 @@ function hasInitialMarkup(output: SsrOutput, cursor: { inComment: boolean }): bo
   );
 }
 
+/** A carrier outside `<head>`/`<body>` would be a child of `<html>`, so it moves into the head. */
 export function relocateHeadlessCarriers(output: SsrOutput): SsrOutput {
   const carriers: SsrOutput[] = [];
-  const withoutCarriers = removeHeadlessCarriers(output, carriers);
+  const withoutCarriers = removeHeadlessCarriers(output, carriers, { inSection: false });
   return carriers.length === 0
     ? output
     : insertAtSection(withoutCarriers, 'head', carriers, 'after');
@@ -126,18 +127,25 @@ function isHeadlessCarrierOutput(output: SsrOutput): boolean {
   );
 }
 
-function removeHeadlessCarriers(output: SsrOutput, carriers: SsrOutput[]): SsrOutput {
+function removeHeadlessCarriers(
+  output: SsrOutput,
+  carriers: SsrOutput[],
+  cursor: { inSection: boolean }
+): SsrOutput {
+  if (isSsrRecordChunk(output) && output.section !== undefined) {
+    cursor.inSection = output.openTag;
+  }
   if (!Array.isArray(output)) {
     return output;
   }
   let children: SsrOutput[] | null = null;
   for (let i = 0; i < output.length; i++) {
     const child = output[i];
-    if (isHeadlessCarrierOutput(child)) {
+    if (!cursor.inSection && isHeadlessCarrierOutput(child)) {
       children ??= output.slice(0, i);
       carriers.push(child);
     } else {
-      const nested = removeHeadlessCarriers(child, carriers);
+      const nested = removeHeadlessCarriers(child, carriers, cursor);
       if (nested !== child) {
         children ??= output.slice(0, i);
       }

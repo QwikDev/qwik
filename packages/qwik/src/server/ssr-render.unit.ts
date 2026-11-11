@@ -2177,19 +2177,53 @@ describe('SSR context markers', () => {
     }
   });
 
-  test('moves a headless global event carrier into document head', async () => {
+  test('puts a document event of a root rendering the body on the body element', async () => {
     const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
     const result = await renderToString(
       () => {
         useOnDocument('qinit', handler);
-        return '<body><p>value</p></body>';
+        return [
+          createSsrSection('body', '<body', '>'),
+          '<p>value</p>',
+          createSsrSection('/body', '</body>'),
+        ];
+      },
+      { containerTagName: 'html' }
+    );
+
+    expect(result.html).toContain('<body q-d:qinit="listener.js#_handler"><p>value</p>');
+    expect(result.html).not.toContain('<script hidden');
+  });
+
+  test('keeps the carrier of a component inside the body in place', async () => {
+    const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
+    const result = await renderToString(
+      (_props, ctx) => {
+        const carrier: SsrOutput = [
+          {
+            ...createSsrOpenTag('<script hidden', ctx.eventAttr('q-d:qinit', handler), '>'),
+            headlessCarrier: true,
+          },
+          '</script>',
+        ];
+        return [
+          createSsrSection('head', '<head', '>'),
+          '<meta charset="utf-8">',
+          createSsrSection('/head', '</head>'),
+          createSsrSection('body', '<body', '>'),
+          '<p>value</p>',
+          carrier,
+          createSsrSection('/body', '</body>'),
+        ];
       },
       { containerTagName: 'html' }
     );
 
     const head = result.html.slice(result.html.indexOf('<head>'), result.html.indexOf('</head>'));
-    expect(head).toContain('<script hidden q-d:qinit="listener.js#_handler"></script>');
-    expect(result.html.indexOf('<script hidden')).toBeLessThan(result.html.indexOf('<body>'));
+    expect(head).not.toContain('<script hidden');
+    expect(result.html).toContain(
+      '<p>value</p><script hidden q-d:qinit="listener.js#_handler"></script>'
+    );
   });
 
   test('moves a carrier into a head following a projected slot marker', async () => {

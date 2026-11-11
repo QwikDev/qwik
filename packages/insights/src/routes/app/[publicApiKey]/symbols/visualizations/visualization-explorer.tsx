@@ -6,6 +6,7 @@ type LabData = BundleInfo;
 const views = [
   ['groups', 'Group sizes'],
   ['neighborhood', 'Neighborhood'],
+  ['ranked', 'Ranked connections'],
 ];
 const control =
   'w-full min-w-0 rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-3 text-editorial-12';
@@ -167,10 +168,12 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
           </section>
         )}
 
-        {activeView === 'neighborhood' && (
+        {(activeView === 'neighborhood' || activeView === 'ranked') && (
           <section class="pt-editorial-5" aria-labelledby="symbol-title">
             <h2 id="symbol-title" class="text-editorial-24 font-semibold">
-              What connects to this symbol?
+              {activeView === 'neighborhood'
+                ? 'What connects to this symbol?'
+                : 'Which connections are strongest?'}
             </h2>
             <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
               Modeled preceding → later relationships, including indirect paths. Scores are not
@@ -196,110 +199,156 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
                 ))}
               </select>
             </label>
-            <>
-              <div class="mt-editorial-5 grid grid-cols-3 gap-editorial-3 text-editorial-12 text-editorial-secondary">
-                <span>Preceding · top 5</span>
-                <span class="text-center">Selected symbol</span>
-                <span class="text-right">Later · top 5</span>
-              </div>
-              <div
-                class="lab-graph"
-                style={{ height: `${graphHeight}px` }}
-                aria-label="Directed neighborhood graph"
-              >
-                <svg
-                  viewBox={`0 0 1000 ${graphHeight}`}
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <marker
-                      id="lab-arrow"
-                      markerWidth="4"
-                      markerHeight="4"
-                      refX="3.5"
-                      refY="2"
-                      orient="auto"
-                    >
-                      <path d="M0,0 L4,2 L0,4 Z" fill="var(--color-editorial-data-current)" />
-                    </marker>
-                  </defs>
-                  {neighborhood.incoming.map((edge, index) => (
-                    <path
-                      key={edge.from}
-                      d={`M280,${position(index, neighborhood.incoming.length)} C320,${position(index, neighborhood.incoming.length)} 320,${graphHeight / 2} 356,${graphHeight / 2}`}
-                      fill="none"
-                      stroke="var(--color-editorial-data-current)"
-                      stroke-width={1 + edge.score * 3}
-                      opacity={0.25 + edge.score * 0.75}
-                      marker-end="url(#lab-arrow)"
-                    />
-                  ))}
-                  {neighborhood.outgoing.map((edge, index) => (
-                    <path
-                      key={edge.to}
-                      d={`M640,${graphHeight / 2} C680,${graphHeight / 2} 680,${position(index, neighborhood.outgoing.length)} 716,${position(index, neighborhood.outgoing.length)}`}
-                      fill="none"
-                      stroke="var(--color-editorial-data-current)"
-                      stroke-width={1 + edge.score * 3}
-                      opacity={0.25 + edge.score * 0.75}
-                      marker-end="url(#lab-arrow)"
-                    />
-                  ))}
-                </svg>
-                {neighborhood.incoming.map((edge, index) => (
-                  <button
-                    key={edge.from}
-                    type="button"
-                    class={['lab-node', button, 'bg-editorial-surface']}
-                    style={{ left: 0, top: `${position(index, neighborhood.incoming.length)}px` }}
-                    onClick$={() => {
-                      selectedSymbol.value = edge.from;
-                    }}
-                  >
-                    <code class="block text-editorial-12">{name(edge.from)}</code>
-                    <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
-                      → selected · {edge.score.toFixed(2)} / 1
-                    </span>
-                  </button>
-                ))}
-                <div
-                  class="lab-node lab-center rounded-editorial-md border border-editorial-accent bg-editorial-selected p-editorial-4"
-                  style={{ top: `${graphHeight / 2}px` }}
-                >
-                  <p class="text-editorial-11 text-editorial-secondary">SELECTED</p>
-                  <code class="mt-editorial-2 block text-editorial-14 font-semibold">
-                    {name(selectedSymbol.value)}
-                  </code>
-                  <p class="mt-editorial-2 break-all text-editorial-11 text-editorial-secondary">
-                    {selectedSymbol.value}
-                  </p>
+            {activeView === 'neighborhood' ? (
+              <>
+                <div class="mt-editorial-5 grid grid-cols-3 gap-editorial-3 text-editorial-12 text-editorial-secondary">
+                  <span>Preceding · top 5</span>
+                  <span class="text-center">Selected symbol</span>
+                  <span class="text-right">Later · top 5</span>
                 </div>
-                {neighborhood.outgoing.map((edge, index) => (
-                  <button
-                    key={edge.to}
-                    type="button"
-                    class={['lab-node', button, 'bg-editorial-surface']}
-                    style={{
-                      right: 0,
-                      top: `${position(index, neighborhood.outgoing.length)}px`,
-                    }}
-                    onClick$={() => {
-                      selectedSymbol.value = edge.to;
-                    }}
+                <div
+                  class="lab-graph"
+                  style={{ height: `${graphHeight}px` }}
+                  aria-label="Directed neighborhood graph"
+                >
+                  <svg
+                    viewBox={`0 0 1000 ${graphHeight}`}
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
                   >
-                    <code class="block text-editorial-12">{name(edge.to)}</code>
-                    <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
-                      selected → · {edge.score.toFixed(2)} / 1
-                    </span>
-                  </button>
+                    <defs>
+                      <marker
+                        id="lab-arrow"
+                        markerWidth="4"
+                        markerHeight="4"
+                        refX="3.5"
+                        refY="2"
+                        orient="auto"
+                      >
+                        <path d="M0,0 L4,2 L0,4 Z" fill="var(--color-editorial-data-current)" />
+                      </marker>
+                    </defs>
+                    {neighborhood.incoming.map((edge, index) => (
+                      <path
+                        key={edge.from}
+                        d={`M280,${position(index, neighborhood.incoming.length)} C320,${position(index, neighborhood.incoming.length)} 320,${graphHeight / 2} 356,${graphHeight / 2}`}
+                        fill="none"
+                        stroke="var(--color-editorial-data-current)"
+                        stroke-width={1 + edge.score * 3}
+                        opacity={0.25 + edge.score * 0.75}
+                        marker-end="url(#lab-arrow)"
+                      />
+                    ))}
+                    {neighborhood.outgoing.map((edge, index) => (
+                      <path
+                        key={edge.to}
+                        d={`M640,${graphHeight / 2} C680,${graphHeight / 2} 680,${position(index, neighborhood.outgoing.length)} 716,${position(index, neighborhood.outgoing.length)}`}
+                        fill="none"
+                        stroke="var(--color-editorial-data-current)"
+                        stroke-width={1 + edge.score * 3}
+                        opacity={0.25 + edge.score * 0.75}
+                        marker-end="url(#lab-arrow)"
+                      />
+                    ))}
+                  </svg>
+                  {neighborhood.incoming.map((edge, index) => (
+                    <button
+                      key={edge.from}
+                      type="button"
+                      class={['lab-node', button, 'bg-editorial-surface']}
+                      style={{ left: 0, top: `${position(index, neighborhood.incoming.length)}px` }}
+                      onClick$={() => {
+                        selectedSymbol.value = edge.from;
+                      }}
+                    >
+                      <code class="block text-editorial-12">{name(edge.from)}</code>
+                      <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
+                        → selected · {edge.score.toFixed(2)} / 1
+                      </span>
+                    </button>
+                  ))}
+                  <div
+                    class="lab-node lab-center rounded-editorial-md border border-editorial-accent bg-editorial-selected p-editorial-4"
+                    style={{ top: `${graphHeight / 2}px` }}
+                  >
+                    <p class="text-editorial-11 text-editorial-secondary">SELECTED</p>
+                    <code class="mt-editorial-2 block text-editorial-14 font-semibold">
+                      {name(selectedSymbol.value)}
+                    </code>
+                    <p class="mt-editorial-2 break-all text-editorial-11 text-editorial-secondary">
+                      {selectedSymbol.value}
+                    </p>
+                  </div>
+                  {neighborhood.outgoing.map((edge, index) => (
+                    <button
+                      key={edge.to}
+                      type="button"
+                      class={['lab-node', button, 'bg-editorial-surface']}
+                      style={{
+                        right: 0,
+                        top: `${position(index, neighborhood.outgoing.length)}px`,
+                      }}
+                      onClick$={() => {
+                        selectedSymbol.value = edge.to;
+                      }}
+                    >
+                      <code class="block text-editorial-12">{name(edge.to)}</code>
+                      <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
+                        selected → · {edge.score.toFixed(2)} / 1
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
+                  Line thickness represents score. Select a neighbor to make it the center. Only the
+                  five strongest connections on each side are shown.
+                </p>
+              </>
+            ) : (
+              <div class="mt-editorial-6 grid gap-editorial-6 md:grid-cols-2">
+                {[
+                  ['incoming', 'Preceding symbols · top 5'],
+                  ['outgoing', 'Later symbols · top 5'],
+                ].map(([direction, title]) => (
+                  <section key={direction} class="min-w-0">
+                    <h3 class="text-editorial-20 font-semibold">{title}</h3>
+                    <p class="mt-editorial-1 text-editorial-12 text-editorial-secondary">
+                      Relationship score · 0 to 1
+                    </p>
+                    <ol class="mt-editorial-4">
+                      {neighborhood[direction as 'incoming' | 'outgoing'].map((edge) => {
+                        const neighbor = direction === 'incoming' ? edge.from : edge.to;
+                        return (
+                          <li
+                            key={neighbor}
+                            class="border-b border-editorial-border py-editorial-3"
+                          >
+                            <button
+                              type="button"
+                              class="w-full cursor-pointer text-left"
+                              onClick$={() => {
+                                selectedSymbol.value = neighbor;
+                              }}
+                            >
+                              <span class="flex items-start justify-between gap-editorial-3 text-editorial-12">
+                                <code class="min-w-0 break-words">{name(neighbor)}</code>
+                                <span class="shrink-0 tabular-nums">{edge.score.toFixed(2)}</span>
+                              </span>
+                              <span class="mt-editorial-2 block h-2 bg-editorial-data-band">
+                                <span
+                                  class="block h-full bg-editorial-data-current"
+                                  style={{ width: `${edge.score * 100}%` }}
+                                />
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </section>
                 ))}
               </div>
-              <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
-                Line thickness represents score. Select a neighbor to make it the center. Only the
-                five strongest connections on each side are shown.
-              </p>
-            </>
+            )}
             {!neighborhood.incoming.length && !neighborhood.outgoing.length && (
               <p class="mt-editorial-4 text-editorial-14">
                 No modeled connections for this symbol.

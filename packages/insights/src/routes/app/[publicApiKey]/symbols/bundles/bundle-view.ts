@@ -1,5 +1,4 @@
 import type { Bundle, Symbol, SymbolVectors } from '~/stats/edges';
-import { vectorSum } from '~/stats/vector';
 
 export interface MatrixCell {
   column: number;
@@ -13,10 +12,9 @@ export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) 
   return {
     symbols: Array.from(summaries.values()),
     matrix: vectors.vectors.map((row) => {
-      const total = vectorSum(row);
       const cells: MatrixCell[] = [];
       row.forEach((value, column) => {
-        if (value / total > 0.05) {
+        if (value > 0) {
           cells.push({ column, value });
         }
       });
@@ -57,7 +55,7 @@ export function getBundleExecutionCount(bundle: {
 
 export function getMatrixCellColor(value: number): string {
   const strength = Math.round(Math.max(0, Math.min(1, value)) * 100);
-  return `color-mix(in srgb, var(--color-editorial-data-current) ${strength}%, var(--color-editorial-data-band))`;
+  return `color-mix(in srgb, var(--color-editorial-data-current) ${strength}%, var(--color-editorial-canvas))`;
 }
 
 export interface Relationship {
@@ -102,3 +100,30 @@ export function getStrongestRelationships(
 }
 
 export type BundleInfo = ReturnType<typeof createBundleViewData>;
+
+export function getMatrixView(data: BundleInfo, selectedIndex: number, showAll: boolean) {
+  const bundles = showAll
+    ? data.bundles.map((bundle, index) => ({ bundle, index }))
+    : data.bundles.at(selectedIndex)
+      ? [{ bundle: data.bundles[selectedIndex], index: selectedIndex }]
+      : [];
+  const symbols = bundles.flatMap(({ bundle }) => bundle.symbols);
+  const originalIndexes = new Map(data.symbols.map((symbol, index) => [symbol.name, index]));
+  const columns = new Map(
+    symbols.map((symbol, index) => [originalIndexes.get(symbol.name), index])
+  );
+  let start = 0;
+  const groups = bundles.map(({ bundle, index }) => {
+    const group = { label: `Group ${index + 1}`, start, size: bundle.symbols.length };
+    start += group.size;
+    return group;
+  });
+  const matrix = symbols.map((symbol) => {
+    const row = data.matrix[originalIndexes.get(symbol.name)!] ?? [];
+    return row.flatMap((cell) => {
+      const column = columns.get(cell.column);
+      return column === undefined ? [] : [{ column, value: cell.value }];
+    });
+  });
+  return { symbols, matrix, groups };
+}

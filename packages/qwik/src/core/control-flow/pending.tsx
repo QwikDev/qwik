@@ -7,7 +7,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
-import { inlinedQrl } from '../shared/qrl/qrl';
+import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
@@ -30,7 +30,6 @@ import { revealCanReveal, useRevealBoundary, type RevealRegistration } from './r
 import {
   isOutOfOrderStreaming,
   nextOutOfOrderPendingId,
-  PENDING_QRL_SYMBOL,
   type OutOfOrderRevealBoundary,
 } from './pending-utils';
 
@@ -67,7 +66,7 @@ const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
 const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @internal */
-export const pendingTask = ({ track, cleanup }: TaskCtx) => {
+export function pendingTask({ track, cleanup }: TaskCtx) {
   const cursorBoundary = _capturesObj._![0] as CursorBoundary,
     props = _capturesObj._![1] as { delay?: number },
     state = _capturesObj._![2] as Signal<PendingState>,
@@ -87,10 +86,10 @@ export const pendingTask = ({ track, cleanup }: TaskCtx) => {
     }
   }, props.delay ?? 0);
   cleanup(() => clearTimeout(delayTimer));
-};
+}
 
 /** @internal */
-export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
+export function pendingCmp(props: PendingProps): JSXNodeInternal<string>[] {
   if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
       'Pending is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
@@ -101,11 +100,11 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
   const cursorBoundary = useCursorBoundary();
   const revealRegistration = useRevealBoundary(cursorBoundary);
   const canReveal = useComputedQrl(
-    /*#__PURE__*/ inlinedQrl(revealCanReveal, '_reR', [revealRegistration])
+    /*#__PURE__*/ _inlinedQrl(revealCanReveal, 'q_reR', [revealRegistration])
   );
 
   useTaskQrl(
-    /*#__PURE__*/ inlinedQrl(pendingTask, '_peT', [
+    /*#__PURE__*/ _inlinedQrl(pendingTask, 'q_peT', [
       cursorBoundary,
       props,
       state,
@@ -202,11 +201,11 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
       null
     ),
   ];
-};
+}
 
 /** @public @experimental */
 export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<PendingProps>(
-  /*#__PURE__*/ inlinedQrl(pendingCmp, PENDING_QRL_SYMBOL)
+  /*#__PURE__*/ _inlinedQrl(pendingCmp, 'q_peC')
 );
 
 type SSRFallbackProps = {

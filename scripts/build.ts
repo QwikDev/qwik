@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import { rmSync } from 'fs';
-import { copyFile, watch } from 'fs/promises';
+import { watch } from 'fs/promises';
 import { join } from 'path';
 import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
@@ -200,10 +200,6 @@ export async function build(config: BuildConfig) {
       await watchDirectories({
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
-          await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
-          );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),

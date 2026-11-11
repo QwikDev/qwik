@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createBundleViewData } from '../bundles/bundle-view';
-import { getNeighborhood, getDefaultSymbol } from './visualizations';
+import { getNeighborhood, getDefaultSymbol, getGroupDensity } from './visualizations';
 
 const symbols = ['a', 'b', 'c'].map((name) => ({
   name,
@@ -47,5 +47,17 @@ describe('relationship visualization alternatives', () => {
       outgoing: [{ from: 'a', to: 'b', score: 0.8 }],
     });
     expect(getNeighborhood(data, 'missing', 5)).toEqual({ incoming: [], outgoing: [] });
+  });
+  it('counts directed connections above the threshold and excludes self pairs', () => {
+    const density = getGroupDensity(data, 0.5);
+    expect(density.cells[0][0]).toMatchObject({ count: 1, possible: 2, density: 0.5 });
+    expect(density.cells[1][0]).toMatchObject({ count: 1, possible: 2, density: 0.5 });
+    expect(density.cells[0][1]).toMatchObject({ count: 0, possible: 2, density: 0 });
+    expect(density.cells[1][1]).toMatchObject({ count: 0, possible: 0, density: 0 });
+  });
+  it('combines overflow groups without losing symbols or inventing connections', () => {
+    const density = getGroupDensity(data, 0.5, 1);
+    expect(density.groups.map((group) => group.symbols.length)).toEqual([2, 1]);
+    expect(density.groups[1].label).toBe('Other 1 group');
   });
 });

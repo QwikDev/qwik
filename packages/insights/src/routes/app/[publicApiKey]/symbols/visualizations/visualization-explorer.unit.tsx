@@ -58,4 +58,12 @@ describe('visualization lab', () => {
     expect(document.body.textContent).toContain('Later symbols · top 5');
     expect(document.body.textContent).toContain('0.80');
   });
+  it('renders directed group density and supporting pair counts', async () => {
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} initialView="matrix" />
+    );
+    expect(document.body.textContent).toContain('Which groups connect?');
+    expect(document.body.textContent).toContain('50.00% density');
+    expect(document.body.textContent).toContain('1 of 2 possible directed pairs');
+  });
 });

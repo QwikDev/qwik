@@ -1,12 +1,13 @@
 import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
-import { type BundleInfo } from '../bundles/bundle-view';
-import { getNeighborhood, getDefaultSymbol } from './visualizations';
+import { getMatrixCellColor, type BundleInfo } from '../bundles/bundle-view';
+import { getGroupDensity, getNeighborhood, getDefaultSymbol } from './visualizations';
 
 type LabData = BundleInfo;
 const views = [
   ['groups', 'Group sizes'],
   ['neighborhood', 'Neighborhood'],
   ['ranked', 'Ranked connections'],
+  ['matrix', 'Group matrix'],
 ];
 const control =
   'w-full min-w-0 rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-3 text-editorial-12';
@@ -36,8 +37,13 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
     const selectedSymbol = useSignal(() => getDefaultSymbol(data));
     const selectedGroup = useSignal(0);
     const showAllGroups = useSignal(false);
+    const threshold = useSignal(0.5);
+    const matrixRow = useSignal(0);
+    const matrixColumn = useSignal(0);
     const name = (hash: string) => named.get(hash) || hash;
     const neighborhood = getNeighborhood(data, selectedSymbol.value, 5);
+    const density = getGroupDensity(data, threshold.value);
+    const cell = density.cells.at(matrixRow.value)?.at(matrixColumn.value);
     const graphHeight =
       Math.max(3, neighborhood.incoming.length, neighborhood.outgoing.length) * 95;
     const position = (index: number, total: number) => ((index + 0.5) / total) * graphHeight;
@@ -354,6 +360,147 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
                 No modeled connections for this symbol.
               </p>
             )}
+          </section>
+        )}
+
+        {activeView === 'matrix' && (
+          <section class="pt-editorial-5" aria-labelledby="density-title">
+            <h2 id="density-title" class="text-editorial-24 font-semibold">
+              Which groups connect?
+            </h2>
+            <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
+              Cell value = qualifying directed pairs ÷ possible directed pairs. Self-pairs are
+              excluded.
+            </p>
+            <div class="mt-editorial-4 flex flex-wrap items-center justify-between gap-editorial-4">
+              <label class="text-editorial-12">
+                Qualifying score ≥{' '}
+                <select
+                  class="rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-2"
+                  value={threshold.value}
+                  onChange$={(_, select) => {
+                    threshold.value = Number(select.value);
+                  }}
+                >
+                  <option value="0.1" selected={threshold.value === 0.1}>
+                    0.1
+                  </option>
+                  <option value="0.5" selected={threshold.value === 0.5}>
+                    0.5
+                  </option>
+                  <option value="0.8" selected={threshold.value === 0.8}>
+                    0.8
+                  </option>
+                </select>
+              </label>
+              <p class="text-editorial-12 text-editorial-secondary">
+                Largest 8 groups + all remaining groups combined · darker = higher density
+              </p>
+            </div>
+            <div class="mt-editorial-5 grid gap-editorial-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
+              <div class="min-w-0 overflow-x-auto">
+                <p class="mb-editorial-3 text-center text-editorial-12 text-editorial-secondary">
+                  Preceding group (column) →
+                </p>
+                <table
+                  class="w-full min-w-[500px] border-separate text-editorial-11"
+                  style={{ borderSpacing: '3px' }}
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-left font-normal text-editorial-secondary">
+                        Later group ↓
+                      </th>
+                      {density.groups.map((group, index) => (
+                        <th scope="col" key={group.label} class="py-editorial-2 font-normal">
+                          {index < 8 ? `G${index + 1}` : 'Other'}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {density.groups.map((group, row) => (
+                      <tr key={group.label}>
+                        <th scope="row" class="pr-editorial-2 text-left font-normal">
+                          {row < 8 ? `Group ${row + 1}` : 'Other'}
+                        </th>
+                        {density.cells[row].map((summary, column) => (
+                          <td key={column}>
+                            <button
+                              type="button"
+                              aria-label={`${density.groups[column].label} to ${group.label}: ${(summary.density * 100).toFixed(2)} percent of pairs`}
+                              aria-pressed={
+                                matrixRow.value === row && matrixColumn.value === column
+                              }
+                              class="h-11 w-full cursor-pointer rounded-editorial-sm text-editorial-11 focus-visible:outline-2 focus-visible:outline-editorial-accent"
+                              style={{
+                                backgroundColor: getMatrixCellColor(summary.density),
+                                color:
+                                  summary.density > 0.6
+                                    ? 'var(--color-editorial-on-accent)'
+                                    : 'var(--color-editorial-primary)',
+                                outline:
+                                  matrixRow.value === row && matrixColumn.value === column
+                                    ? '2px solid var(--color-editorial-accent)'
+                                    : undefined,
+                              }}
+                              onClick$={() => {
+                                matrixRow.value = row;
+                                matrixColumn.value = column;
+                              }}
+                            >
+                              {summary.possible === 0
+                                ? '—'
+                                : summary.density === 0
+                                  ? '0'
+                                  : `${(summary.density * 100).toFixed(summary.density < 0.01 ? 1 : 0)}%`}
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {cell && (
+                <aside
+                  aria-live="polite"
+                  class="min-w-0 border-l border-editorial-border pl-editorial-4"
+                >
+                  <h3 class="text-editorial-20 font-semibold">
+                    {density.groups[matrixColumn.value].label} →{' '}
+                    {density.groups[matrixRow.value].label}
+                  </h3>
+                  <p class="mt-editorial-3 text-editorial-24 font-semibold">
+                    {(cell.density * 100).toFixed(2)}% density
+                  </p>
+                  <p class="mt-editorial-2 text-editorial-12 text-editorial-secondary">
+                    {cell.count.toLocaleString('en')} of {cell.possible.toLocaleString('en')}{' '}
+                    possible directed pairs score at least {threshold.value}.
+                  </p>
+                  <h4 class="mt-editorial-5 text-editorial-14 font-semibold">
+                    Strongest qualifying pairs
+                  </h4>
+                  <ul class="mt-editorial-2 space-y-editorial-4 text-editorial-12">
+                    {cell.strongest.map((edge) => (
+                      <li key={`${edge.from}:${edge.to}`} class="break-words">
+                        <code>
+                          {name(edge.from)} → {name(edge.to)}
+                        </code>
+                        <p class="mt-editorial-1 text-editorial-secondary">
+                          Score {edge.score.toFixed(2)} / 1
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  {!cell.count && (
+                    <p class="mt-editorial-3 text-editorial-12 text-editorial-secondary">
+                      No pairs meet this threshold.
+                    </p>
+                  )}
+                </aside>
+              )}
+            </div>
           </section>
         )}
       </div>

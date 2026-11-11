@@ -24,7 +24,7 @@ export default component$(() => {
 
   return (
     <div class="level">
-      <span class="step">level 2: {out.value}</span>
+      <span class="step">B: {out.value}</span>
       <Level3 />
     </div>
   );

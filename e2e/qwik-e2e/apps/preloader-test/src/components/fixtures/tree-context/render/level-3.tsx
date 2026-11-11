@@ -9,7 +9,7 @@ export default component$(() => {
 
   return (
     <div class="level">
-      <span class="step">level 3: {incremented}</span>
+      <span class="step">C: {incremented}</span>
       <output data-testid="result" data-done={out.value ? '' : undefined}>
         {out.value}
       </output>

@@ -173,6 +173,8 @@ type Setup = (typeof SETUPS)[number];
 
 const LEVELS: Record<Setup, number> = { single: 1, tree: 3, 'tree-context': 3, conditional: 3 };
 
+const levelName = (level: number) => 'ABC'[level - 1];
+
 const pascal = (value: string) =>
   value
     .split(/[^a-zA-Z0-9]/)
@@ -271,7 +273,7 @@ const writeTree = (setup: 'tree' | 'tree-context', primitive: string) => {
     const body = `
   return (
     ${isRoot ? `<section class="fixture" data-fixture="${fixtureId(setup, primitive)}">` : '<div class="level">'}
-      ${isRoot ? `<h2>${fixtureId(setup, primitive)}</h2>\n      <button data-testid="trigger" onClick$={() => (input.value = 1)}>\n        Run\n      </button>\n      ` : ''}<span class="step">level ${level}: ${step}</span>
+      ${isRoot ? `<h2>${fixtureId(setup, primitive)}</h2>\n      <button data-testid="trigger" onClick$={() => (input.value = 1)}>\n        Run\n      </button>\n      ` : ''}<span class="step">${levelName(level)}: ${step}</span>
       ${child}
     ${isRoot ? '</section>' : '</div>'}
   );`;
@@ -318,7 +320,7 @@ export default component$(() => {
 export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {${code('input')}
   return (
     <div class="level">
-      <span class="step">level ${level}: ${step}</span>
+      <span class="step">${levelName(level)}: ${step}</span>
       ${isLast ? result() : `<Level${level + 1} input={out} />`}
     </div>
   );

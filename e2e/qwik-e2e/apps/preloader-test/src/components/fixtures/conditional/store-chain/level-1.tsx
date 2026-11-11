@@ -19,7 +19,7 @@ export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
   const out = useComputed$(() => store.nested.out);
   return (
     <div class="level">
-      <span class="step">level 1: {out.value}</span>
+      <span class="step">A: {out.value}</span>
       <Level2 input={out} />
     </div>
   );

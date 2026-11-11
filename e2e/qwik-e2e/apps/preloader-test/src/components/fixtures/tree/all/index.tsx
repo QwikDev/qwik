@@ -56,7 +56,7 @@ export default component$(() => {
       <button data-testid="trigger" onClick$={() => (input.value = 1)}>
         Run
       </button>
-      <span class="step">level 1: {out.value}</span>
+      <span class="step">A: {out.value}</span>
       <Level2 input={out} />
     </section>
   );

@@ -11,7 +11,7 @@ export const NavTree = component$(() => {
   const incremented = useComputed$(() => out.value && out.value + 1);
   return (
     <div class="level">
-      <span class="step">level 1: {incremented.value}</span>
+      <span class="step">A: {incremented.value}</span>
       <NavTreeChild input={incremented} />
     </div>
   );

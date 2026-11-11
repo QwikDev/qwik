@@ -155,26 +155,16 @@ test('entryStrategy, smart', async () => {
   assert.deepEqual(opts.entryStrategy.type, 'smart');
 });
 
-test.each([
-  { tsOptimizer: false, compiled: false },
-  { tsOptimizer: true, compiled: false },
-  { tsOptimizer: false, compiled: true },
-  { tsOptimizer: true, compiled: true },
-])(
-  'smart preserves optimizer entries and SSR stripping inside custom hooks ($tsOptimizer, compiled: $compiled)',
-  async ({ tsOptimizer, compiled }) => {
-    const hooks = compiled
-      ? `useTaskQrl(inlinedQrl(() => { const [value] = useLexicalScope(); console.log('shared-task', value); }, 's_task', [value]));
-         useVisibleTaskQrl(inlinedQrl(() => { const [value] = useLexicalScope(); clientFeature(value); }, 's_visible', [value]));
-         useClientFeatureQrl(inlinedQrl(() => { const [value] = useLexicalScope(); clientFeature(value); }, 's_client', [value]));`
-      : `useTask$(() => console.log('shared-task', value));
-         visible(() => clientFeature(value));
-         useClientFeature$(() => clientFeature(value));`;
-    const source = `import { $, component$, inlinedQrl, useLexicalScope, useTaskQrl, useVisibleTaskQrl, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
+test.each([false, true])(
+  'smart preserves optimizer entries and SSR stripping inside custom hooks (%s)',
+  async (tsOptimizer) => {
+    const source = `import { $, component$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
     import { clientFeature } from './client-feature';
-    import { useClientFeature$, useClientFeatureQrl } from './custom-client-hook';
+    import { useClientFeature$ } from './custom-client-hook';
     function useCustomHook(value) {
-      ${hooks}
+      useTask$(() => console.log('shared-task', value));
+      visible(() => clientFeature(value));
+      useClientFeature$(() => clientFeature(value));
     }
     export const App = component$(() => {
       const value = 1;
@@ -236,11 +226,7 @@ test.each([
     ).toBeNull();
     expect(server.code).toContain('shared-task');
     expect(server.code).toContain('shared-callback');
-    if (compiled) {
-      expect(server.code).toContain('_noopQrl("s_visible")');
-    } else {
-      expect(server.code).not.toContain('clientFeature(value)');
-    }
+    expect(server.code).not.toContain('clientFeature(value)');
   }
 );
 

@@ -225,10 +225,13 @@ describe('signal-analysis', () => {
       }
     });
 
-    it('does not hoist a deep store chain that calls an import: store[dep()].name', () => {
-      const { node, source } = parseExpr('store[dep()].name');
-      expect(analyzeSignalExpression(node, source, importedNames).type).toBe('none');
-    });
+    it.each(['store[dep()].name', '(store[dep()] as Item).name'])(
+      'does not hoist a deep store chain that calls an import: %s',
+      (expr) => {
+        const { node, source } = parseExpr(expr);
+        expect(analyzeSignalExpression(node, source, importedNames).type).toBe('none');
+      }
+    );
 
     it('generates fnSignal for ternary on deep store: store.address.city.name ? "true" : "false"', () => {
       const { node, source } = parseExpr("store.address.city.name ? 'true' : 'false'");

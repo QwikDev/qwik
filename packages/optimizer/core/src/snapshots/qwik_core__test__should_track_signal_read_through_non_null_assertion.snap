@@ -1,0 +1,77 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, type Signal } from '@qwik.dev/core';
+export const List = component$((props: { rows: { open?: Signal<boolean>; error: unknown }[] }) => {
+  return <div>{props.rows.map((row) => <p aria-expanded={!row.open!.value}>{row.open!.value ? 'open' : 'closed'}{(row.error as Error).message}</p>)}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,qBAAO,2CAEjB\"}")
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const _hf0 = (p0)=>!p0.open.value;
+const _hf0_str = "!p0.open.value";
+const _hf1 = (p0)=>p0.open.value ? 'open' : 'closed';
+const _hf1_str = 'p0.open.value?"open":"closed"';
+const _hf2 = (p0)=>p0.error.message;
+const _hf2_str = "p0.error.message";
+export const List_component_HpIwcodkEXk = (props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, props.rows.map((row)=>/*#__PURE__*/ _jsxSorted("p", {
+            "aria-expanded": _fnSignal(_hf0, [
+                row
+            ], _hf0_str)
+        }, null, [
+            _fnSignal(_hf1, [
+                row
+            ], _hf1_str),
+            _fnSignal(_hf2, [
+                row
+            ], _hf2_str)
+        ], 1, "u6_0")), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAGyD,CAAC,GAAI,IAAI,CAAE,KAAK;;mBAAG,GAAI,IAAI,CAAE,KAAK,GAAG,SAAS;;mBAAU,AAAC,GAAI,KAAK,CAAW,OAAO;;0CAD9G,CAAC;IAC9B,qBAAO,WAAC,mBAAK,MAAM,IAAI,CAAC,GAAG,CAAC,CAAC,oBAAQ,WAAC;YAAE,eAAa;;;;;;;;;;;AACvD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    91,
+    317
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bundle affinity playground</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+        color: #252b2a;
+        background: #fafbf8;
+        accent-color: #126c50;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        max-width: 1180px;
+        margin: auto;
+        padding: 48px 28px;
+      }
+      h1 {
+        font-size: 44px;
+        letter-spacing: -1.8px;
+        margin: 10px 0;
+      }
+      p {
+        color: #69736d;
+        line-height: 1.6;
+      }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #126c50;
+      }
+      .panel {
+        border: 1px solid #dce2d9;
+        border-radius: 12px;
+        padding: 24px;
+        background: white;
+        margin: 28px 0;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: 1px solid #dce2d9;
+        border-radius: 6px;
+        padding: 8px 12px;
+        background: #fff;
+        color: #126c50;
+      }
+      input {
+        width: 100%;
+        margin: 26px 0 12px;
+        cursor: pointer;
+      }
+      .muted {
+        font-size: 12px;
+        color: #69736d;
+      }
+      .metrics {
+        display: flex;
+        gap: 40px;
+        padding: 4px 0 28px;
+      }
+      .metric strong {
+        font-size: 36px;
+        display: block;
+        letter-spacing: -1px;
+      }
+      .metric span {
+        font-size: 12px;
+        color: #69736d;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        border: 1px solid #dce2d9;
+        border-radius: 12px;
+        background: white;
+        overflow: hidden;
+      }
+      .list {
+        max-height: 570px;
+        overflow: auto;
+        border-right: 1px solid #dce2d9;
+        padding: 12px;
+      }
+      .bundle {
+        display: block;
+        width: 100%;
+        text-align: left;
+        color: #252b2a;
+        border: 0;
+        margin-bottom: 4px;
+        padding: 14px;
+      }
+      .bundle[aria-pressed='true'] {
+        background: #e8f2e8;
+      }
+      .bundle small {
+        display: block;
+        color: #69736d;
+        margin-top: 6px;
+      }
+      .detail {
+        padding: 24px;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 0 0 20px;
+      }
+      code {
+        font-size: 12px;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        padding: 12px 0;
+        border-bottom: 1px solid #eef0ec;
+      }
+      .bar {
+        height: 5px;
+        background: #126c50;
+        border-radius: 4px;
+        margin-top: 10px;
+        min-width: 2px;
+      }
+      .note {
+        border-left: 3px solid #d9ad49;
+        padding-left: 14px;
+        font-size: 13px;
+      }
+      .count {
+        color: #126c50;
+      }
+      @media (max-width: 680px) {
+        main {
+          padding: 24px 16px;
+        }
+        h1 {
+          font-size: 34px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .list {
+          max-height: 240px;
+          border-right: 0;
+          border-bottom: 1px solid #dce2d9;
+        }
+        .metrics {
+          gap: 22px;
+        }
+        .metric strong {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="eyebrow">Qwik Insights · interactive prototype</span>
+      <h1>Find the right bundle affinity.</h1>
+      <p>
+        Explore how strongly symbols must relate to stay together. The bundle count updates as you
+        drag.
+      </p>
+      <div class="panel">
+        <div class="row">
+          <label for="affinity"><strong>Clustering affinity</strong></label
+          ><button id="reset">Reset to automatic</button>
+        </div>
+        <input
+          id="affinity"
+          type="range"
+          min="0"
+          max="100"
+          value="50"
+          step="1"
+          aria-describedby="help"
+        />
+        <div class="row muted">
+          <span>Fewer, larger bundles</span><strong id="level">50% · automatic</strong
+          ><span>More, smaller bundles</span>
+        </div>
+        <p id="help" class="muted">
+          Higher affinity requires closer execution relationships. Counts can jump when several
+          groups split at once.
+        </p>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <strong class="count"><output id="count" for="affinity"></output></strong
+          ><span>suggested bundles</span>
+        </div>
+        <div class="metric">
+          <strong id="largest"></strong><span>symbols in largest bundle</span>
+        </div>
+        <div class="metric">
+          <strong id="average"></strong><span>average symbols / bundle</span>
+        </div>
+        <div class="metric"><strong>120</strong><span>sample symbols</span></div>
+      </div>
+      <div class="grid">
+        <div id="bundles" class="list" aria-label="Suggested bundles"></div>
+        <section class="detail">
+          <h2 id="selected"></h2>
+          <p id="description" class="muted"></p>
+          <ul id="symbols"></ul>
+        </section>
+      </div>
+      <p class="note">
+        This standalone playground uses synthetic execution relationships for a fictional
+        storefront. The actual Insights Bundles page in this branch also has the slider and uses its
+        recorded telemetry when configured. Nothing here changes build recommendations.
+      </p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

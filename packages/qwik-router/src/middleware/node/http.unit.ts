@@ -487,22 +487,29 @@ describe('fromNodeHttp()', () => {
     const waitsForDrain = timing === 'before drain';
     let drainListenersAtFailure: number | undefined;
     res.setHeader = vi.fn();
-    res.write = vi.fn((_chunk: Uint8Array, callback?: (error?: Error | null) => void) => {
-      const fail = () => {
-        drainListenersAtFailure = res.listenerCount('drain');
-        if (abortsRequest) {
-          res.emit('error', error);
+    res.write = vi.fn(
+      (
+        _chunk: Uint8Array,
+        encoding?: BufferEncoding | ((error?: Error | null) => void),
+        callback?: (error?: Error | null) => void
+      ) => {
+        const onWrite = typeof encoding === 'function' ? encoding : callback;
+        const fail = () => {
+          drainListenersAtFailure = res.listenerCount('drain');
+          if (abortsRequest) {
+            res.emit('error', error);
+          } else {
+            onWrite?.(error);
+          }
+        };
+        if (waitsForDrain) {
+          queueMicrotask(fail);
         } else {
-          callback?.(error);
+          fail();
         }
-      };
-      if (waitsForDrain) {
-        queueMicrotask(fail);
-      } else {
-        fail();
+        return false;
       }
-      return false;
-    }) as ServerResponse['write'];
+    );
     const serverRequestEv = await fromNodeHttp(new URL('http://localhost/'), req, res, 'server');
     const requestEv = createRequestEvent(
       serverRequestEv,

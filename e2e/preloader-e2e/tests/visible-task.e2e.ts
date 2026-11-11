@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom } from '../utils/app';
+import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   VISIBLE_ABOVE,
@@ -15,6 +15,7 @@ import {
   recordSpeculativePreloads,
   releaseAll,
   resultIsDone,
+  speculativePreloads,
 } from '../utils/gate';
 import {
   countFixtureRoundTrips,
@@ -34,7 +35,26 @@ test.describe('visible task in view at load', () => {
     await recordSpeculativePreloads(page);
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
-    await page.goto(VISIBLE_ABOVE.path);
+    const gate = await createGate(page);
+    const coreUrl = `${ORIGIN}/build/${getManifest().core}`;
+    // Hold core so startup ordering does not depend on cache.
+    await page.route(`${ORIGIN}/build/**`, async (route) => {
+      const url = route.request().url();
+      if (url === coreUrl || (await speculativePreloads(page)).has(url)) {
+        gate.held.push(route);
+      } else {
+        await route.fallback();
+      }
+    });
+    await page.goto(VISIBLE_ABOVE.path, { waitUntil: 'commit' });
+    await expect
+      .poll(async () => {
+        const speculative = await speculativePreloads(page);
+        return gate.held.some((route) => speculative.has(route.request().url()));
+      })
+      .toBe(true);
+    await page.unroute(`${ORIGIN}/build/**`);
+    await releaseAll(gate);
     await expectResult(page, VISIBLE_ABOVE);
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
@@ -92,7 +112,7 @@ test.describe('visible task below the fold', () => {
     await releaseAll(opened.gate);
   });
 
-  test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows in that one round trip', async ({
+  test('after a cold scroll, its chunks go out at once and the result shows in that one round trip', async ({
     page,
   }) => {
     const opened = await openFixture(page, VISIBLE_BELOW, 'cold');

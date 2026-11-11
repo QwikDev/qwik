@@ -14,14 +14,14 @@ import Root from './root';
 
 const requestedMaxIdlePreloads = (opts: RenderToStreamOptions) => {
   const url = opts.serverData?.url;
-  return url ? Number(new URL(url).searchParams.get('maxIdlePreloads')) : 0;
+  return url ? Number(new URL(url).searchParams.get('maxIdlePreloads') ?? 1) : 1;
 };
 
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     preloader: {
       ssrPreloads: 0,
-      maxIdlePreloads: requestedMaxIdlePreloads(opts) || 1,
+      maxIdlePreloads: requestedMaxIdlePreloads(opts),
     },
     qwikLoader: 'inline',
     ...opts,

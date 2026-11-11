@@ -8,10 +8,12 @@ import { errorTable, getDB } from '~/db';
 import { getSlowEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestStats } from '~/db/sql-manifest';
 import { getRoutes } from '~/db/sql-routes';
-import { BUCKETS, vectorPercentile, vectorSum } from '~/stats/vector';
+import { BUCKETS } from '~/stats/vector';
 import { useApplication } from './layout';
 import {
   getManifestPerformance,
+  comparePerformance,
+  groupSymbolChanges,
   MIN_PERFORMANCE_SAMPLES,
   PERFORMANCE_PERCENTILE,
 } from './performance';
@@ -59,24 +61,22 @@ export const useAppData = routeLoader$(async ({ params }) => {
   }
   const slowSymbols = latestEdges
     .map((edge) => {
-      const latency = vectorPercentile(edge.latency, PERFORMANCE_PERCENTILE);
-      const previousLatency = vectorPercentile(
-        previousEdgesBySymbol.get(edge.to)?.latency ?? [],
-        PERFORMANCE_PERCENTILE
+      const comparison = comparePerformance(
+        edge.latency,
+        previousEdgesBySymbol.get(edge.to)?.latency ?? []
       );
       return {
         hash: edge.to,
         name: names.get(edge.to) ?? edge.to,
         routes: Array.from(symbolRoutes.get(edge.to) ?? []).slice(0, 2),
-        latency,
-        change: previousLatency
-          ? Math.round(((latency - previousLatency) / previousLatency) * 100)
-          : null,
-        samples: vectorSum(edge.latency),
+        latency: comparison.p95,
+        change: comparison.change,
+        delta: comparison.delta,
+        samples: comparison.samples,
+        previousSamples: comparison.previousSamples,
       };
     })
-    .sort((a, b) => b.latency - a.latency)
-    .slice(0, 3);
+    .sort((a, b) => (b.latency ?? -1) - (a.latency ?? -1));
   const latest = manifests.at(0);
   const previous = manifests.at(1);
   const latestPerformance = latest ? getManifestPerformance(latest.latency) : null;
@@ -107,7 +107,7 @@ export const useAppData = routeLoader$(async ({ params }) => {
       latestLatency !== null && previousLatency !== null && previousLatency > 0
         ? Math.round(((latestLatency - previousLatency) / previousLatency) * 100)
         : null,
-    slowSymbols,
+    slowSymbols: groupSymbolChanges(slowSymbols).flatMap((group) => group.symbols),
     errors: errors.map((error) => ({
       message: error.message,
       latest: error.latest?.toISOString() ?? '',
@@ -131,9 +131,9 @@ export default component$(() => {
       : change === null
         ? 'Collecting comparison data'
         : isRegression
-          ? 'Regression detected'
+          ? 'Higher observed P95'
           : isImprovement
-            ? 'Performance improved'
+            ? 'Lower observed P95'
             : 'Performance stable';
   const headline = !latest
     ? 'Waiting for symbol data'
@@ -274,8 +274,16 @@ export default component$(() => {
               value={change === null ? '—' : `${change > 0 ? '+' : ''}${change}%`}
               tone={isRegression ? 'danger' : isImprovement ? 'success' : undefined}
             />
-            <Metric label="Samples" value={latest?.samples.toLocaleString('en') ?? '—'} />
+            <Metric label="Current samples" value={latest?.samples.toLocaleString('en') ?? '—'} />
+            <Metric
+              label="Baseline samples"
+              value={previous?.samples.toLocaleString('en') ?? '—'}
+            />
           </dl>
+          <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
+            Observed changes are descriptive, not statistical proof. Traffic mix can affect
+            comparisons. Percentiles are estimated from histogram buckets.
+          </p>
           {latest && (
             <div class="mt-editorial-6 grid gap-editorial-4 text-editorial-12">
               <div>
@@ -302,11 +310,11 @@ export default component$(() => {
       <div class="grid gap-editorial-10 pt-editorial-8 xl:grid-cols-[1.2fr_1fr]">
         <section class="min-w-0" aria-labelledby="slow-symbols-title">
           <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
-            What changed
+            Investigate changes
           </p>
           <div class="mt-editorial-2 flex items-center justify-between gap-editorial-4">
             <h2 id="slow-symbols-title" class="text-editorial-24 font-semibold tracking-[-0.02em]">
-              Slow symbols
+              Symbol comparisons
             </h2>
             <Link
               class="text-editorial-12 font-semibold text-editorial-link"
@@ -324,34 +332,52 @@ export default component$(() => {
                     <th class="py-editorial-3 font-semibold">Routes</th>
                     <th class="py-editorial-3 font-semibold">P95</th>
                     <th class="py-editorial-3 font-semibold">Change</th>
-                    <th class="py-editorial-3 text-right font-semibold">Samples</th>
+                    <th class="py-editorial-3 text-right font-semibold">Samples / baseline</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.value.slowSymbols.map((symbol) => (
-                    <tr key={symbol.hash} class="border-b border-editorial-border">
-                      <td class="max-w-48 truncate py-editorial-3 font-editorial-mono font-semibold text-editorial-link">
-                        {symbol.name}
-                      </td>
-                      <td class="max-w-48 truncate py-editorial-3 text-editorial-secondary">
-                        {symbol.routes.join(', ') || '—'}
-                      </td>
-                      <td class="py-editorial-3 font-semibold">{formatDuration(symbol.latency)}</td>
-                      <td
-                        class={[
-                          'py-editorial-3 font-semibold',
-                          symbol.change !== null && symbol.change > 0 && 'text-editorial-danger',
-                          symbol.change !== null && symbol.change < 0 && 'text-editorial-success',
-                        ]}
-                      >
-                        {symbol.change === null
-                          ? '—'
-                          : `${symbol.change > 0 ? '+' : ''}${symbol.change}%`}
-                      </td>
-                      <td class="py-editorial-3 text-right text-editorial-secondary">
-                        {symbol.samples.toLocaleString('en')}
-                      </td>
-                    </tr>
+                  {groupSymbolChanges(data.value.slowSymbols).map((group) => (
+                    <>
+                      <tr key={group.label}>
+                        <th colSpan={5} class="pt-editorial-5 pb-editorial-2 font-semibold">
+                          {group.label}
+                        </th>
+                      </tr>
+                      {group.symbols.map((symbol) => (
+                        <tr key={symbol.hash} class="border-b border-editorial-border">
+                          <td class="max-w-48 truncate py-editorial-3 font-editorial-mono font-semibold text-editorial-link">
+                            {symbol.name}
+                          </td>
+                          <td class="max-w-48 truncate py-editorial-3 text-editorial-secondary">
+                            {symbol.routes.join(', ') || '—'}
+                          </td>
+                          <td class="py-editorial-3 font-semibold">
+                            {symbol.latency === null
+                              ? 'Collecting data'
+                              : formatDuration(symbol.latency)}
+                          </td>
+                          <td
+                            class={[
+                              'py-editorial-3 font-semibold',
+                              symbol.change !== null &&
+                                symbol.change > 0 &&
+                                'text-editorial-danger',
+                              symbol.change !== null &&
+                                symbol.change < 0 &&
+                                'text-editorial-success',
+                            ]}
+                          >
+                            {symbol.change === null
+                              ? '—'
+                              : `${symbol.change > 0 ? '+' : ''}${symbol.change}%`}
+                          </td>
+                          <td class="py-editorial-3 text-right text-editorial-secondary">
+                            {symbol.samples.toLocaleString('en')} /{' '}
+                            {symbol.previousSamples.toLocaleString('en')}
+                          </td>
+                        </tr>
+                      ))}
+                    </>
                   ))}
                 </tbody>
               </table>

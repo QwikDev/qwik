@@ -1,7 +1,6 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import {
-  computeLatency,
   createEdgeRow,
   createRouteRow,
   delayBucketField,
@@ -124,8 +123,6 @@ export async function getSlowEdges(
         and(eq(edgeTable.publicApiKey, publicApiKey), inArray(edgeTable.manifestHash, manifests))
       )
       .groupBy(edgeTable.manifestHash, edgeTable.to)
-      .orderBy(sql`${computeLatency} DESC`)
-      .limit(400)
       .all();
     return rows.map((edge) => ({
       manifestHash: edge.manifestHash,

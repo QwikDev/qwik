@@ -1,3 +1,4 @@
+import { SymbolTile } from '~/components/symbol-tile';
 import { loadReportScope } from '~/db/report-scope';
 import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
@@ -243,7 +244,11 @@ export const RouteDetailView = component$<{
                 {data.symbols.map((symbol) => (
                   <tr key={symbol.hash} class="border-b border-editorial-border">
                     <td class="max-w-64 truncate py-editorial-4 font-editorial-mono font-semibold text-editorial-link">
-                      {symbol.name}
+                      <SymbolTile
+                        symbol={symbol.hash}
+                        fullName={symbol.name}
+                        origin={symbol.origin}
+                      />
                     </td>
                     <td class="max-w-80 truncate py-editorial-4 font-editorial-mono text-editorial-muted">
                       {symbol.origin}

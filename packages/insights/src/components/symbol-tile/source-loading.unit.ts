@@ -1,3 +1,6 @@
+vi.mock('~/components/report-scope/use-report-query', () => ({
+  useReportQuery: () => new URLSearchParams(),
+}));
 import { expect, test, vi } from 'vitest';
 import type * as Qwik from '@qwik.dev/core';
 
@@ -25,7 +28,10 @@ vi.mock('@qwik.dev/router', () => ({
   }),
   server$: (fn: unknown) => fn,
   serverQrl: (fn: unknown) => fn,
-  useLocation: () => ({ params: { publicApiKey: 'app-a' } }),
+  useLocation: () => ({
+    params: { publicApiKey: 'app-a' },
+    url: new URL('https://insights.test/app/app-a/'),
+  }),
 }));
 vi.mock('~/db', () => ({ getDB: () => ({}) }));
 vi.mock('~/db/source', () => ({ loadSymbolSource: loadSource }));

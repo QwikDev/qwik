@@ -71,6 +71,18 @@ export const reportGuides = {
     caution:
       'Delay can include time waiting for a user. Neither histogram measures CPU time spent executing the function.',
   },
+  symbol: {
+    purpose: 'Connect a symbol’s loading behavior to its source and observed routes.',
+    steps: [
+      'Check the selected and baseline builds and their sample counts.',
+      'Inspect source and follow an observed route to reproduce the relevant interaction.',
+      'Use execution paths and bundle relationships to evaluate a change, then verify its loading latency in a later build.',
+    ],
+    meaning:
+      'P95 summarizes request-to-delivery latency for this symbol. Source metadata comes from the selected manifest.',
+    caution:
+      'The GitHub revision is configured per application. Confirm that it matches the selected build before relying on highlighted lines.',
+  },
   slow: {
     purpose: 'Prioritize symbol loads that are slow and observed often enough to investigate.',
     steps: [

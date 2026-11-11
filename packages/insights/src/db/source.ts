@@ -41,7 +41,8 @@ export async function loadSymbolSource(
   db: AppDatabase,
   publicApiKey: string,
   symbolHash: string,
-  fetchSource: typeof fetch = fetch
+  fetchSource: typeof fetch = fetch,
+  manifestHash?: string
 ) {
   const symbol = await db
     .select({
@@ -52,7 +53,11 @@ export async function loadSymbolSource(
     })
     .from(symbolDetailTable)
     .where(
-      and(eq(symbolDetailTable.publicApiKey, publicApiKey), eq(symbolDetailTable.hash, symbolHash))
+      and(
+        eq(symbolDetailTable.publicApiKey, publicApiKey),
+        eq(symbolDetailTable.hash, symbolHash),
+        manifestHash ? eq(symbolDetailTable.manifestHash, manifestHash) : undefined
+      )
     )
     .get();
   const result = {

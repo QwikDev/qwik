@@ -2,7 +2,7 @@ import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { getDB } from '~/db';
-import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
+import { getSymbolGraphEdges, getSymbolDetails } from '~/db/query';
 import {
   computeBundles,
   computeSymbolGraph,
@@ -25,15 +25,9 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   const { selectedHash } = await loadReportScope(db, params.publicApiKey, url.searchParams);
   const manifestHashes = selectedHash ? [selectedHash] : [];
   const edges = await getSymbolGraphEdges(db, params.publicApiKey, { limit, manifestHashes });
-  const symbolHashes = Array.from(
-    new Set(
-      edges
-        .flatMap((edge) => [edge.from, edge.to])
-        .filter((symbol): symbol is string => Boolean(symbol))
-        .map((symbol) => symbol.split('_').pop()!)
-    )
-  );
-  const details = await getSymbolDetailsByHashes(db, params.publicApiKey, symbolHashes);
+  const details = selectedHash
+    ? await getSymbolDetails(db, params.publicApiKey, { manifestHashes })
+    : [];
   const rootSymbol = computeSymbolGraph(edges, details);
   const vectors = computeSymbolVectors(rootSymbol, true);
   const bundles = computeBundles(vectors);

@@ -11,6 +11,7 @@ vi.mock('@qwik.dev/router', () => ({
   Link: () => null,
   useLocation: vi.fn(),
 }));
+vi.mock('~/components/symbol-tile', () => ({ SymbolTile: () => null }));
 vi.mock('./layout', () => ({ useApplication: vi.fn() }));
 vi.mock('~/db/report-scope', () => ({
   loadReportScope: vi.fn().mockResolvedValue({ selectedHash: null, previousHash: null }),

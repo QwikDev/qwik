@@ -8,11 +8,13 @@ import PageHeader from '~/components/page-header';
 import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getSlowEdges, type SlowEdge } from '~/db/query';
+import { getSlowEdges, getSymbolDetails, type SlowEdge } from '~/db/query';
 import { BUCKETS, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
-interface SlowSymbol extends ResultsPage<SlowEdge & ReturnType<typeof getManifestPerformance>> {
+interface SlowSymbol extends ResultsPage<
+  SlowEdge & ReturnType<typeof getManifestPerformance> & { fullName?: string; origin?: string }
+> {
   manifestCount: number;
   samples: number;
   symbolCount: number;
@@ -26,11 +28,20 @@ export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
   const db = getDB();
   const { selectedHash } = await loadReportScope(db, params.publicApiKey, query);
   const manifestHashes = selectedHash ? [selectedHash] : [];
-  const edges = await getSlowEdges(db, params.publicApiKey, manifestHashes);
+  const [edges, metadata] = await Promise.all([
+    getSlowEdges(db, params.publicApiKey, manifestHashes),
+    selectedHash ? getSymbolDetails(db, params.publicApiKey, { manifestHashes }) : [],
+  ]);
+  const details = new Map(metadata.map((symbol) => [symbol.hash, symbol]));
   return {
     ...paginateResults(
       edges
-        .map((edge) => ({ ...edge, ...getManifestPerformance(edge.latency) }))
+        .map((edge) => ({
+          ...edge,
+          fullName: details.get(edge.to)?.fullName,
+          origin: details.get(edge.to)?.origin,
+          ...getManifestPerformance(edge.latency),
+        }))
         .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1) || b.samples - a.samples),
       query.get('page')
     ),
@@ -106,7 +117,7 @@ export default component$(() => {
                     </code>
                   </th>
                   <td class="py-editorial-5 font-editorial-mono font-semibold">
-                    <SymbolTile symbol={edge.to} />
+                    <SymbolTile symbol={edge.to} fullName={edge.fullName} origin={edge.origin} />
                   </td>
                   <td class="py-editorial-5 text-right font-semibold">
                     {vectorSum(edge.latency).toLocaleString('en')}

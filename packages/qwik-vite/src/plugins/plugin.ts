@@ -1608,8 +1608,12 @@ function isAdditionalFile(mod: TransformModule) {
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
 
-/** Cheap pre-check; a false positive only costs an extra transform. */
-const mightContainDecorators = (code: string) => /(?:^|[\s(,])@[\p{ID_Start}$_]/mu.test(code);
+/**
+ * Cheap pre-check; a false positive costs an extra transform and a Vite import, which the browser
+ * REPL lacks. Bundler annotations like `/* @__PURE__ *\/` are not decorators.
+ */
+export const mightContainDecorators = (code: string) =>
+  /(?:^|[\s(,])@(?!__PURE__|__NO_SIDE_EFFECTS__)[\p{ID_Start}$_]/mu.test(code);
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

@@ -26,30 +26,21 @@ export async function dbGetLatestManifests(
     return [];
   }
 
-  const rankedManifests = db
-    .select({
-      id: manifestTable.id,
-      publicApiKey: manifestTable.publicApiKey,
-      hash: manifestTable.hash,
-      timestamp: manifestTable.timestamp,
-      rank: sql<number>`row_number() over (
-        partition by ${manifestTable.publicApiKey}
-        order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
-      )`.as('manifest_rank'),
-    })
-    .from(manifestTable)
-    .where(inArray(manifestTable.publicApiKey, publicApiKeys))
-    .as('ranked_manifests');
+  const latestManifestIds = sql`(
+    select (
+      select ${manifestTable.id}
+      from ${manifestTable}
+      where ${manifestTable.publicApiKey} = requested.value
+      order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
+      limit 1
+    )
+    from json_each(${JSON.stringify(publicApiKeys)}) as requested
+  )`;
 
   const manifests = await db
-    .select({
-      id: rankedManifests.id,
-      publicApiKey: rankedManifests.publicApiKey,
-      hash: rankedManifests.hash,
-      timestamp: rankedManifests.timestamp,
-    })
-    .from(rankedManifests)
-    .where(eq(rankedManifests.rank, 1))
+    .select()
+    .from(manifestTable)
+    .where(inArray(manifestTable.id, latestManifestIds))
     .all();
 
   const applicationOrder = new Map(

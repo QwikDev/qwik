@@ -68,6 +68,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_stable_property_helper: { transpileTs: true, transpileJsx: true },
   should_transform_loop_nullable_capture: { transpileTs: true, transpileJsx: true },
+  should_track_signal_read_through_non_null_assertion: { transpileTs: true, transpileJsx: true },
 
   should_transform_loop_named_factory: { transpileTs: true, transpileJsx: true },
   should_transform_loop_function_argument: { transpileTs: true, transpileJsx: true },

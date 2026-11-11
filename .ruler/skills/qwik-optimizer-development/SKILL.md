@@ -80,6 +80,11 @@ DCE'd. Lower such syntax inside `stripTypeScript` itself, threading the option t
 (see `decorator`); lowering later in the Vite plugin is too late. Segments are served as `.js`, so
 Vite's own `vite:oxc` pass never touches them.
 
+JSX analysis still runs on the TypeScript AST, while Rust strips types first. So any helper that
+walks a member chain (signal and store detection, capture roots) must look through `!`, `as` and
+`satisfies` (`peelExpressionWrappers` in `jsx/signal-analysis.ts`), or `a.b!.value` falls back to
+collecting every identifier, property names included.
+
 ## JSX tag names
 
 Rust transpiles JSX before its Qwik transform, so SWC's rule decides what a tag is: only a tag

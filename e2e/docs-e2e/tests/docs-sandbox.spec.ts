@@ -52,6 +52,16 @@ test.describe('Sandbox smoke tests', () => {
       );
     });
 
+    test('output tabs list the client bundles and SSR module', async ({ page }) => {
+      await page.goto('/playground/');
+      await expect(page.locator('iframe').contentFrame().locator('body')).not.toBeEmpty();
+
+      for (const tab of ['Client Bundles', 'SSR Module']) {
+        await page.getByRole('button', { name: tab, exact: true }).click();
+        await expect(page.locator('.output-modules .file-item').first()).toBeVisible();
+      }
+    });
+
     test('counter click works in REPL', async ({ page }) => {
       await page.goto('/examples/reactivity/counter/');
 

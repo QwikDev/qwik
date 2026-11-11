@@ -10657,6 +10657,16 @@ export const List = component$((props) => {
 }
 
 #[test]
+fn should_track_signal_read_through_non_null_assertion() {
+	test_input!(TestInput { code: r#"
+import { component$, type Signal } from '@qwik.dev/core';
+export const List = component$((props: { rows: { open?: Signal<boolean>; error: unknown }[] }) => {
+  return <div>{props.rows.map((row) => <p aria-expanded={!row.open!.value}>{row.open!.value ? 'open' : 'closed'}{(row.error as Error).message}</p>)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
 fn should_transform_loop_logical_property_capture() {
 	test_input!(TestInput { code: r#"
 import { component$ } from '@qwik.dev/core';

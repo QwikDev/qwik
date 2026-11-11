@@ -60,6 +60,19 @@ export const C = component$((props) => {
     expect(out).not.toMatch(/=> p0\[index\]\.image/);
   });
 
+  it('parameterizes a loop var used as a computed object key', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$(() => {
+  const sig = useSignal(1);
+  const names = useSignal(['a']);
+  return <div>{names.value.map((name) => <p title={({ [name + '']: sig }).a.value} />)}</div>;
+});`;
+    const out = run(input);
+    expect(out).not.toMatch(/\[name \+ ""\]/);
+    expect(out).toMatch(/_fnSignal\(_hf\d+, \[[^\]]*\bname\b/);
+  });
+
   it('leaves a literal computed key inline (no spurious extra dep)', () => {
     const input = `
 import { component$, useSignal } from '@qwik.dev/core';

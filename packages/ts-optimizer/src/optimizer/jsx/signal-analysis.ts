@@ -196,21 +196,24 @@ function hasCallOutsideChainSpine(node: AstMaybeNode, inChainSpine: boolean): bo
   return found;
 }
 
-function getMemberChainRoot(node: AstNode): string | null {
-  if (node.type === 'Identifier') {
-    return node.name;
+// Rust strips types first, so `a.b!.value` is the chain `a.b.value` here too.
+function getMemberChainRoot(node: AstMaybeNode): string | null {
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type === 'Identifier') {
+    return peeled.name;
   }
-  if (node.type === 'MemberExpression') {
-    return getMemberChainRoot(node.object);
+  if (peeled?.type === 'MemberExpression') {
+    return getMemberChainRoot(peeled.object);
   }
   return null;
 }
 
-function getMemberChainDepth(node: AstNode): number {
-  if (node.type !== 'MemberExpression') {
+function getMemberChainDepth(node: AstMaybeNode): number {
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type !== 'MemberExpression') {
     return 0;
   }
-  return 1 + getMemberChainDepth(node.object);
+  return 1 + getMemberChainDepth(peeled.object);
 }
 
 function isDeepStoreAccess(
@@ -237,6 +240,14 @@ function isDeepStoreAccess(
     return false;
   }
   return true;
+}
+
+/** A property name is not a binding, so it is never a dependency. */
+function isPropertyName(key: string, parent: AstNode): boolean {
+  return (
+    (key === 'key' && parent.type === 'Property' && !parent.computed) ||
+    (key === 'property' && parent.type === 'MemberExpression' && !parent.computed)
+  );
 }
 
 /**
@@ -304,19 +315,23 @@ function collectSignalDeps(
       }
       return;
     }
-    forEachAstChild(n, (child) => fallbackCollectIdents(child));
+    forEachAstChild(n, (child, key, parent) => {
+      if (!isPropertyName(key, parent)) {
+        fallbackCollectIdents(child);
+      }
+    });
   }
 
   // A store/signal chain's computed keys (`sig.value[key]`) are dependencies:
   // a loop-local key must be carried so the hoisted `_fnSignal` parameterizes
   // it, while module-scope keys stay free (resolvable at the hoist site).
   function walkComputedKeys(chainNode: AstMaybeNode): void {
-    let cur: AstMaybeNode = chainNode;
+    let cur = peelExpressionWrappers(chainNode);
     while (cur != null && cur.type === 'MemberExpression') {
       if (cur.computed && cur.property != null) {
         walkKey(cur.property);
       }
-      cur = cur.object;
+      cur = peelExpressionWrappers(cur.object);
     }
   }
 
@@ -402,13 +417,9 @@ function collectSignalDeps(
 
   function descend(n: AstNode): void {
     forEachAstChild(n, (child, key, parent) => {
-      if (key === 'key' && parent.type === 'Property') {
-        return;
+      if (!isPropertyName(key, parent)) {
+        walk(child);
       }
-      if (key === 'property' && parent.type === 'MemberExpression' && !parent.computed) {
-        return;
-      }
-      walk(child);
     });
   }
 
@@ -497,12 +508,12 @@ function collectComputedKeyRewrites(
     }
     forEachAstChild(node, (child, key, parent) => rewriteKey(child, key, parent));
   }
-  let cur: AstMaybeNode = chainNode;
+  let cur = peelExpressionWrappers(chainNode);
   while (cur != null && cur.type === 'MemberExpression') {
     if (cur.computed && cur.property != null) {
       rewriteKey(cur.property, 'property', cur);
     }
-    cur = cur.object;
+    cur = peelExpressionWrappers(cur.object);
   }
   return reps;
 }
@@ -577,14 +588,12 @@ function rootReplacementsCollector(
 }
 
 function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
-  if (!node) {
-    return null;
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type === 'Identifier') {
+    return peeled;
   }
-  if (node.type === 'Identifier') {
-    return node;
-  }
-  if (node.type === 'MemberExpression') {
-    return findRootIdentifier(node.object);
+  if (peeled?.type === 'MemberExpression') {
+    return findRootIdentifier(peeled.object);
   }
   return null;
 }

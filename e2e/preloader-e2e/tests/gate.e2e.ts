@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, chunkUrlsFrom } from '../utils/app';
+import { bundleFile, chunkComesFrom, chunkUrlsFrom } from '../utils/app';
 import { fixtureById, IMPORT_CHAIN } from '../utils/fixtures';
 import {
   createGate,
@@ -10,9 +10,12 @@ import {
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
-import { warmClick } from '../utils/scenarios';
+import { clickTrigger, openFixture, warmClick } from '../utils/scenarios';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
+const TREE_CONTEXT = fixtureById('tree-context/all');
+const TREE_CONTEXT_DIR = 'src/components/fixtures/tree-context/all/';
+const JUST_BELOW_NEEDED = 0.985;
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
 
 const openHolding = async (page: import('@playwright/test').Page) => {
@@ -89,5 +92,28 @@ test.describe('gate: cold click setup', () => {
     expect(requests.filter((url) => chunkComesFrom(url, SINGLE_TASK_CHAIN.sources))).toEqual([]);
     expect(gate.held).toEqual([]);
     await releaseAll(gate);
+  });
+});
+
+test.describe('gate: cold click', () => {
+  test('a held speculative preload goes out with the round trip that needs it', async ({
+    page,
+  }) => {
+    const [contexts] = chunkUrlsFrom(`${TREE_CONTEXT_DIR}contexts.ts`);
+    const contextConsumers = chunkUrlsFrom(`${TREE_CONTEXT_DIR}level-3.tsx`);
+    await page.addInitScript(
+      ([bundle, probability]) => {
+        (window as any).qPreloadQueue = [[bundle, probability]];
+      },
+      [bundleFile(contexts), JUST_BELOW_NEEDED] as const
+    );
+    const opened = await openFixture(page, TREE_CONTEXT, 'cold');
+    expect([...(await speculativePreloads(page))]).toEqual([contexts]);
+    const roundTrips = await clickTrigger(opened);
+    await releaseAll(opened.gate);
+    const withConsumers = roundTrips.find(({ urls }) =>
+      urls.some((url) => contextConsumers.includes(url))
+    )!;
+    expect(withConsumers.urls).toContain(contexts);
   });
 });

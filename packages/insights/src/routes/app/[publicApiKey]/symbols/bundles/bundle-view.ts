@@ -44,6 +44,10 @@ export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) 
   };
 }
 
+export function getSelectedBundleIndex(selectedIndex: number, bundleCount: number): number {
+  return selectedIndex >= 0 && selectedIndex < bundleCount ? selectedIndex : 0;
+}
+
 export function getBundleExecutionCount(bundle: {
   name: string;
   symbols: { count: number }[];

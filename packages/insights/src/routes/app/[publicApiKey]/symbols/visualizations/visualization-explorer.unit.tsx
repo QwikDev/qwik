@@ -213,4 +213,31 @@ describe('visualization lab', () => {
     await trigger(document.body, threshold, 'change');
     expect(getGroupDensity).toHaveBeenCalledTimes(2);
   });
+  it('labels a tiny positive density consistently in the cell and its detail', async () => {
+    const symbols = Array.from({ length: 1000 }, (_, index) => ({
+      ...data.symbols[0],
+      name: `s${index}`,
+    }));
+    const matrix = symbols.map(() => [] as { column: number; value: number }[]);
+    matrix[500] = [{ column: 0, value: 1 }];
+    const report = {
+      ...data,
+      symbols,
+      matrix,
+      bundles: [
+        { ...data.bundles[0], name: 'first', symbols: symbols.slice(0, 500) },
+        { ...data.bundles[0], name: 'second', symbols: symbols.slice(500) },
+      ],
+    };
+    const { document } = await domRender(
+      <VisualizationExplorer data={report} initialView="matrix" />
+    );
+    const cell = document.querySelector<HTMLButtonElement>('button[aria-label*="less than"]')!;
+    expect(cell).toBeTruthy();
+    expect(cell.textContent).toContain('<0.1%');
+    expect(cell.getAttribute('aria-label')).toContain('less than 0.01 percent');
+    await trigger(document.body, cell, 'click');
+    expect(document.body.textContent).toContain('<0.01% density');
+    expect(document.body.textContent).toMatch(/1 of 250,?000/);
+  });
 });

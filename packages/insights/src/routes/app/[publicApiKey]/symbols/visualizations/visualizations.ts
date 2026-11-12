@@ -66,30 +66,28 @@ export function getGroupDensity(data: BundleInfo, threshold: number, limit = 8) 
       strongest: [] as Relationship[],
     }))
   );
-  data.matrix.forEach((row, rowIndex) => {
-    const to = data.symbols[rowIndex].name;
-    const laterGroup = indexes.get(to);
-    if (laterGroup === undefined) {
+  visitMatrixScores(data, (row, column, score) => {
+    if (column === row || score < threshold) {
       return;
     }
-    for (const cell of row) {
-      if (cell.column === rowIndex || cell.value < threshold) {
-        continue;
-      }
-      const from = data.symbols[cell.column].name;
-      const precedingGroup = indexes.get(from);
-      if (precedingGroup === undefined) {
-        continue;
-      }
-      const summary = cells[laterGroup][precedingGroup];
-      summary.count++;
-      summary.strongest.push({ from, to, score: cell.value });
+    const to = data.symbols[row].name;
+    const from = data.symbols[column].name;
+    const laterGroup = indexes.get(to);
+    const precedingGroup = indexes.get(from);
+    if (laterGroup === undefined || precedingGroup === undefined) {
+      return;
+    }
+    const summary = cells[laterGroup][precedingGroup];
+    summary.count++;
+    summary.strongest.push({ from, to, score });
+    summary.strongest.sort((a, b) => b.score - a.score);
+    if (summary.strongest.length > 3) {
+      summary.strongest.pop();
     }
   });
   for (const row of cells) {
     for (const cell of row) {
       cell.density = cell.possible ? cell.count / cell.possible : 0;
-      cell.strongest = cell.strongest.sort((a, b) => b.score - a.score).slice(0, 3);
     }
   }
   return { groups, cells };
@@ -158,7 +156,8 @@ export function getExamplePath(edges: ObservedEdge[], knownNames: Set<string>) {
 }
 
 export function getObservedEdges(rows: SymbolPairCounts[], names: Set<string>): ObservedEdge[] {
-  return rows.flatMap((row) => {
+  const edges = new Map<string, ObservedEdge>();
+  for (const row of rows) {
     const count = row.relatedCount + row.unrelatedCount;
     if (
       !row.from ||
@@ -167,10 +166,17 @@ export function getObservedEdges(rows: SymbolPairCounts[], names: Set<string>): 
       !names.has(row.to) ||
       count <= 0
     ) {
-      return [];
+      continue;
     }
-    return [{ from: row.from, to: row.to, count }];
-  });
+    const key = JSON.stringify([row.from, row.to]);
+    const edge = edges.get(key);
+    if (edge) {
+      edge.count += count;
+    } else {
+      edges.set(key, { from: row.from, to: row.to, count });
+    }
+  }
+  return Array.from(edges.values());
 }
 
 export function getDefaultSymbol(data: BundleInfo) {
@@ -219,4 +225,10 @@ export function visitMatrixScores(
       }
     });
   }
+}
+
+export function formatDensity(density: number, digits = 2): string {
+  const percentage = density * 100;
+  const minimum = 10 ** -digits;
+  return percentage > 0 && percentage < minimum ? `<${minimum}%` : `${percentage.toFixed(digits)}%`;
 }

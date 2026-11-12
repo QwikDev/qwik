@@ -3,6 +3,7 @@ import {
   chunkComesFrom,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
+  getCoreBundle,
   getManifest,
   ORIGIN,
 } from '../utils/app';
@@ -58,7 +59,7 @@ const DOCS_LAYOUT_SOURCES = [
   'src/components/fixtures/navigation/docs-sidebar.tsx',
 ];
 
-const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
+const coreUrl = () => `${ORIGIN}/build/${getCoreBundle()}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
 

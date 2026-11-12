@@ -20,7 +20,6 @@ describe('sanitizeChunkGroupName', () => {
   });
 
   test('suffixes reserved names so a segment cannot hijack the manifest pointers', () => {
-    expect(sanitizeChunkGroupName('qwik-core')).toBe('qwik-core-segment');
     expect(sanitizeChunkGroupName('qwikloader')).toBe('qwikloader-segment');
     expect(sanitizeChunkGroupName('qwik-preloader')).toBe('qwik-preloader-segment');
   });

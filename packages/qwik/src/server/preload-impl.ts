@@ -100,16 +100,6 @@ export const preloaderPre = (
     }
     container.writeScript(scriptAttrs, script);
   }
-
-  const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
-  if (corePath) {
-    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
-    if (nonce) {
-      linkAttrs['nonce'] = nonce;
-    }
-    container.openElement('link', null, linkAttrs, null, null, null);
-    container.closeElement();
-  }
 };
 
 export const includePreloader = (
@@ -132,13 +122,12 @@ export const includePreloader = (
   const { resolvedManifest } = container;
   if (ssrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
-    const coreBundle = resolvedManifest?.manifest.core;
     // With the bundle graph, link what the client preloader would fetch first for this hint.
     const ranked = getPreloadOrder(referencedBundles);
     const candidates = ranked.length ? ranked : referencedBundles;
     for (let i = 0; i < candidates.length && links.length < ssrPreloads; i++) {
-      // we already preload the preloader and core bundles
-      if (candidates[i] !== preloaderBundle && candidates[i] !== coreBundle) {
+      // we already preload the preloader bundle
+      if (candidates[i] !== preloaderBundle) {
         links.push(candidates[i]);
       }
     }
@@ -214,6 +203,6 @@ export const getBundles = (qrls: QRLInternal[]) => {
 };
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 0,
+  ssrPreloads: 5,
   maxIdlePreloads: 25,
 };

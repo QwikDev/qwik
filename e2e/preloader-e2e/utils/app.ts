@@ -11,7 +11,6 @@ export const PORT = 4318;
 export const ORIGIN = `https://localhost:${PORT}`;
 
 type Manifest = {
-  core?: string;
   preloader?: string;
   bundleGraphAsset?: string;
   bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
@@ -22,6 +21,17 @@ let manifest: Manifest | undefined;
 
 export const getManifest = (): Manifest =>
   (manifest ||= JSON.parse(readFileSync(join(APP_DIR, 'dist/q-manifest.json'), 'utf8')));
+
+export const getCoreBundle = () => {
+  const { bundles } = getManifest();
+  const coreBundle = Object.keys(bundles).find((file) =>
+    bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
+  );
+  if (!coreBundle) {
+    throw new Error('No bundle in q-manifest.json holds core');
+  }
+  return coreBundle;
+};
 
 let bundleGraph: Map<string, string[]> | undefined;
 

@@ -1365,7 +1365,6 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        core: manifest.core,
         preloader: manifest.preloader,
         qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
@@ -1407,23 +1406,6 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  /**
-   * Core's library and its handler segments (see core's `handler-qrls.ts`) share a chunk: no import
-   * waterfall. Its control-flow components (Show, Each, Pending, …) are ordinary segments.
-   */
-  const isQwikCoreChunk = (id: string, ctx: ChunkingContext) => {
-    if (/[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik)?\.mjs$/.test(id)) {
-      return true;
-    }
-    const segment = ctx.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
-    return (
-      !!segment &&
-      /^core(\.prod|\.min)?\.qwik\.mjs_(run|chk|val|res|task|hmr|rsc)Qrl_onFirstUse/.test(
-        segment.displayName
-      )
-    );
-  };
-
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => {
     const getSegmentGroupName = (segment: SegmentAnalysis) => {
@@ -1461,11 +1443,6 @@ export const isDev = ${JSON.stringify(isDev)};
     };
     return {
       groups: [
-        {
-          name: (id: string, ctx: ChunkingContext) =>
-            isQwikCoreChunk(id, ctx) ? 'qwik-core' : null,
-          includeDependenciesRecursively: false,
-        },
         {
           name: 'qwik-preloader',
           test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,

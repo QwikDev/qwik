@@ -221,7 +221,6 @@ export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
     };
-    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {
@@ -388,7 +387,7 @@ export interface SegmentEntryStrategy {
 }
 
 // @public
-export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'qwikLoader'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

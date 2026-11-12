@@ -130,8 +130,11 @@ test.describe('router ssg snapshot', () => {
 
   test('core chunk brotli size stays within budget', async () => {
     const manifest = JSON.parse(await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8'));
-    const coreFile = manifest.core as string | undefined;
-    expect(coreFile, 'q-manifest.json should expose `core`').toBeTruthy();
+    const bundles: Record<string, { origins?: string[] }> = manifest.bundles;
+    const coreFile = Object.keys(bundles).find((file) =>
+      bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
+    );
+    expect(coreFile, 'some bundle should contain core').toBeTruthy();
 
     await checkBrotliBudget('core', coreFile!, CORE_BROTLI_BUDGET);
   });

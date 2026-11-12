@@ -1445,6 +1445,15 @@ export const isDev = ${JSON.stringify(isDev)};
 
   // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
+  const CLIENT_ONLY_HOOKS = CLIENT_STRIP_CTX_NAME.filter((name) => name !== 'event$');
+
+  /** Smart: what runs without a user interaction, or has no entry, gets its own chunk. */
+  const smartChunkName = (segment: SegmentAnalysis) => {
+    const runsWithoutInteraction =
+      segment.ctxName === 'qwikify$' ||
+      isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_ONLY_HOOKS);
+    return runsWithoutInteraction || !segment.entry ? segment.canonicalFilename : segment.entry;
+  };
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
@@ -1463,33 +1472,21 @@ export const isDev = ${JSON.stringify(isDev)};
       {
         includeDependenciesRecursively: false,
         name: (id: string, ctx: ChunkingContext) => {
-          const module = ctx?.getModuleInfo(id);
-          if (module) {
-            const segment = module.meta.segment as SegmentAnalysis | undefined;
-            if (segment) {
-              const isSmart = opts.entryStrategy.type === 'smart';
-              const isSmartClientOnly =
-                isSmart &&
-                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
-              const isSmartComputed = isSmart && segment.ctxName === 'useComputed$';
-              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly && !isSmartComputed) {
-                return null;
-              }
-              const { hash } = segment;
-              const isEvent = segment.ctxKind === 'eventHandler' || segment.ctxName === 'event$';
-              const hasOwnChunk = isSmartClientOnly && !(isEvent && segment.entry);
-              // Group segments by entry or Qwik Insights hash.
-              const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                (hasOwnChunk ? segment.canonicalFilename : segment.entry);
-              if (chunkName) {
-                return sanitizeChunkGroupName(chunkName);
-              }
-            }
+          const segment = ctx?.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
+          if (!segment) {
+            // Non-qwik code: let the bundler decide.
+            return null;
           }
-          // Non-qwik code: let the bundler decide.
-          return null;
+          const isSmart = opts.entryStrategy.type === 'smart';
+          // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+          if (!isSmart && EAGER_CTX_NAMES.has(segment.ctxName)) {
+            return null;
+          }
+          // Group segments by entry or Qwik Insights hash.
+          const chunkName =
+            (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] ||
+            (isSmart ? smartChunkName(segment) : segment.entry);
+          return chunkName ? sanitizeChunkGroupName(chunkName) : null;
         },
       },
     ],

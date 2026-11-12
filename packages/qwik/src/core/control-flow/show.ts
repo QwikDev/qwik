@@ -49,47 +49,50 @@ const invokeShowFn = <T, A>(
   return isQrl(fn) ? (fn as QRLInternal<(arg: A) => T>).getFn(context)(arg) : fn(arg);
 };
 
-/** @internal */
-export function showCmpTask({ track }: TaskCtx) {
-  const props = _capturesObj._![0] as ShowProps<any>;
-  const context = tryGetInvokeContext()!;
-  const host = context.$hostElement$!;
-  const container = context.$container$!;
-  const isSsr = qTest ? isServerPlatform() : isServer;
-
-  return maybeThen(
-    track(() => invokeShowFn(props.when$, tryGetInvokeContext(), undefined as any)),
-    (condition) => {
-      const branch = condition ? props.then$ : props.else$;
-      return maybeThen(branch ? invokeShowFn(branch, context, condition) : null, (output) => {
-        const jsx = branch ? [output] : [];
-        if (isSsr) {
-          const ssr = container as SSRContainer;
-          return ssr.renderJSX(jsx, {
-            currentStyleScoped: null,
-            parentComponentFrame: ssr.getComponentFrame(0),
-          });
-        } else {
-          setNodeDiffPayload(host as VNode, jsx);
-          markVNodeDirty(container, host, ChoreBits.NODE_DIFF);
-        }
-      });
-    }
-  );
-}
-
-/** @internal */
-export function showCmp(props: ShowProps<any>) {
-  if (!__EXPERIMENTAL__.show) {
-    throw new Error(
-      'Show is experimental and must be enabled with `experimental: ["show"]` in the `qwikVite` plugin.'
-    );
-  }
-  useTaskQrl(/*#__PURE__*/ _inlinedQrl(showCmpTask, 'q_shT', [props]));
-  return SkipRender;
-}
-
 /** @public @experimental */
 export const Show = /*#__PURE__*/ componentQrl<ShowProps<any>>(
-  /*#__PURE__*/ _inlinedQrl(showCmp, 'q_shC')
+  /*#__PURE__*/ _inlinedQrl(function showCmp(props: ShowProps<any>) {
+    if (!__EXPERIMENTAL__.show) {
+      throw new Error(
+        'Show is experimental and must be enabled with `experimental: ["show"]` in the `qwikVite` plugin.'
+      );
+    }
+    useTaskQrl(
+      /*#__PURE__*/ _inlinedQrl(
+        function showCmpTask({ track }: TaskCtx) {
+          const props = _capturesObj._![0] as ShowProps<any>;
+          const context = tryGetInvokeContext()!;
+          const host = context.$hostElement$!;
+          const container = context.$container$!;
+          const isSsr = qTest ? isServerPlatform() : isServer;
+
+          return maybeThen(
+            track(() => invokeShowFn(props.when$, tryGetInvokeContext(), undefined as any)),
+            (condition) => {
+              const branch = condition ? props.then$ : props.else$;
+              return maybeThen(
+                branch ? invokeShowFn(branch, context, condition) : null,
+                (output) => {
+                  const jsx = branch ? [output] : [];
+                  if (isSsr) {
+                    const ssr = container as SSRContainer;
+                    return ssr.renderJSX(jsx, {
+                      currentStyleScoped: null,
+                      parentComponentFrame: ssr.getComponentFrame(0),
+                    });
+                  } else {
+                    setNodeDiffPayload(host as VNode, jsx);
+                    markVNodeDirty(container, host, ChoreBits.NODE_DIFF);
+                  }
+                }
+              );
+            }
+          );
+        },
+        'q_shT',
+        [props]
+      )
+    );
+    return SkipRender;
+  }, 'q_shC')
 ) as ShowComponent;

@@ -518,7 +518,21 @@ const ALL_AT_ONCE = { group: 'all at once', href: '/all-at-once/', label: 'all a
 const runsVisibleTasksOnceInView = (setup: Setup, primitive: string) =>
   setup !== 'conditional' && PRIMITIVES[primitive].imports.includes('useVisibleTask$');
 
-const writeAllAtOnce = () => {
+type EveryFixturePage = {
+  route: string;
+  title: string;
+  imports?: string[];
+  hooks?: string;
+  firstItem?: string;
+};
+
+const writeEveryFixturePage = ({
+  route,
+  title,
+  imports: pageImports = [],
+  hooks = '',
+  firstItem = '',
+}: EveryFixturePage) => {
   let imports = '';
   let items = '';
   let itemsBelowTheFold = '';
@@ -534,18 +548,17 @@ const writeAllAtOnce = () => {
     }
   }
   write(
-    'routes/all-at-once/index.tsx',
-    `import { component$ } from '@qwik.dev/core';
-import type { DocumentHead } from '@qwik.dev/router';
+    `routes/${route}/index.tsx`,
+    `${coreImports(['component$', ...pageImports])}import type { DocumentHead } from '@qwik.dev/router';
 import Modal from '~/components/fixtures/modal';
 import UserImport from '~/components/fixtures/user-import';
 import VisibleAbove from '~/components/fixtures/visible/above';
 import VisibleBelow from '~/components/fixtures/visible/below';
 ${imports}
 export default component$(() => {
-  return (
+${hooks}  return (
     <>
-      <VisibleAbove />
+${firstItem}      <VisibleAbove />
 ${items}      <Modal />
       <UserImport />
       <div class="spacer" />
@@ -554,9 +567,68 @@ ${itemsBelowTheFold}      <VisibleBelow />
   );
 });
 
-export const head: DocumentHead = { title: 'all at once' };
+export const head: DocumentHead = { title: '${title}' };
 `
   );
+};
+
+const THEME_SETTERS = {
+  click: {
+    imports: [],
+    hooks: '',
+    trigger: `        <button data-testid="trigger" onClick$={() => (theme.value = 'dark')}>
+          Dark theme
+        </button>
+`,
+  },
+  'visible-task': {
+    imports: ['useVisibleTask$'],
+    hooks: `  useVisibleTask$(() => {
+    theme.value = 'dark';
+  });
+`,
+    trigger: '',
+  },
+};
+
+const THEME_CLASS_DERIVATIONS = {
+  computed: {
+    imports: ['useComputed$'],
+    hooks: `  const themeClass = useComputed$(() => \`theme-\${theme.value}\`);
+`,
+  },
+  task: {
+    imports: ['useTask$'],
+    hooks: `  const themeClass = useSignal('theme-light');
+  useTask$(({ track }) => {
+    themeClass.value = \`theme-\${track(theme)}\`;
+  });
+`,
+  },
+};
+
+const writeOverPreloading = () => {
+  for (const [setter, setsTheme] of Object.entries(THEME_SETTERS)) {
+    for (const [derivation, derivesThemeClass] of Object.entries(THEME_CLASS_DERIVATIONS)) {
+      const name = `${setter}-${derivation}`;
+      const id = `over-preloading/${name}`;
+      writeEveryFixturePage({
+        route: id,
+        title: id,
+        imports: ['useSignal', ...setsTheme.imports, ...derivesThemeClass.imports],
+        hooks: `  const theme = useSignal('light');
+${derivesThemeClass.hooks}${setsTheme.hooks}`,
+        firstItem: `      <section class="fixture" data-fixture="${id}">
+        <h2>${id}</h2>
+${setsTheme.trigger}        <output data-testid="result" data-done={themeClass.value === 'theme-dark' ? '' : undefined}>
+          {themeClass.value}
+        </output>
+      </section>
+`,
+      });
+      routes.push({ group: 'over-preloading', href: `/${id}/`, label: name });
+    }
+  }
 };
 
 const writeRoutesList = () => {
@@ -569,5 +641,6 @@ const writeRoutesList = () => {
 writeFiller();
 writeHeavyPayload();
 writeMatrix();
-writeAllAtOnce();
+writeEveryFixturePage({ route: 'all-at-once', title: 'all at once' });
+writeOverPreloading();
 writeRoutesList();

@@ -2,7 +2,6 @@ import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
-import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -1445,15 +1444,8 @@ export const isDev = ${JSON.stringify(isDev)};
 
   // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
-  const CLIENT_ONLY_HOOKS = CLIENT_STRIP_CTX_NAME.filter((name) => name !== 'event$');
-
-  /** Smart: what runs without a user interaction, or has no entry, gets its own chunk. */
-  const smartChunkName = (segment: SegmentAnalysis) => {
-    const runsWithoutInteraction =
-      segment.ctxName === 'qwikify$' ||
-      isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_ONLY_HOOKS);
-    return runsWithoutInteraction || !segment.entry ? segment.canonicalFilename : segment.entry;
-  };
+  // Smart groups computeds with their component's handlers and tasks.
+  const SMART_OWN_CHUNK_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
@@ -1482,10 +1474,12 @@ export const isDev = ${JSON.stringify(isDev)};
           if (!isSmart && EAGER_CTX_NAMES.has(segment.ctxName)) {
             return null;
           }
+          const hasOwnChunk =
+            isSmart && (SMART_OWN_CHUNK_CTX_NAMES.has(segment.ctxName) || !segment.entry);
           // Group segments by entry or Qwik Insights hash.
           const chunkName =
             (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] ||
-            (isSmart ? smartChunkName(segment) : segment.entry);
+            (hasOwnChunk ? segment.canonicalFilename : segment.entry);
           return chunkName ? sanitizeChunkGroupName(chunkName) : null;
         },
       },

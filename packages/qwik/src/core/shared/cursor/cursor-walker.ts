@@ -73,8 +73,7 @@ function scheduleYield(): void {
  */
 export function processCursorQueue(): void {
   cursorTick.isScheduled = false;
-  const startTime = performance.now();
-  const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
+  const yieldTime = performance.now() + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
@@ -113,8 +112,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
   const cursorData = getCursorData(cursor)!;
 
   // Check if cursor is blocked by a promise
-  const blockingPromise = cursorData.promise;
-  if (blockingPromise) {
+  if (cursorData.promise) {
     return;
   }
 
@@ -138,10 +136,6 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     if (DEBUG && count++ > 1000) {
       throw new Error('Infinite loop detected in cursor walker');
     }
-    if (cursorData.promise) {
-      return;
-    }
-
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
@@ -157,9 +151,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
         executeCleanup(currentVNode, container);
       }
       if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
-        if (next !== null) {
-          currentVNode = next;
+        if (tryDescendDirtyChildren(container, cursorData, currentVNode, cursor)) {
           continue;
         }
       }
@@ -187,9 +179,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
-        if (next !== null) {
-          currentVNode = next;
+        if (tryDescendDirtyChildren(container, cursorData, currentVNode, cursor)) {
           continue;
         }
       } else if (currentVNode.dirty & ChoreBits.ERROR_WRAP) {
@@ -320,10 +310,7 @@ export function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): v
 /** @returns Next vNode to process, or null if traversal is complete */
 export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container): VNode | null {
   if (vNode === cursor) {
-    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
-      return cursor;
-    }
-    return null;
+    return cursor.dirty & ChoreBits.DIRTY_MASK ? cursor : null;
   }
   // Prefer slotParent (logical owner) for Projections, fall back to parent
   let parent: VNode | null = null;
@@ -334,10 +321,7 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
   }
 
   if (!parent) {
-    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
-      return cursor;
-    }
-    return null;
+    return cursor.dirty & ChoreBits.DIRTY_MASK ? cursor : null;
   }
   const dirtyChildren = parent.dirtyChildren!;
   let index = parent.nextDirtyChildIndex;

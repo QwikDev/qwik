@@ -186,6 +186,26 @@ export const routes = [
     label: 'all',
   },
   {
+    group: 'over-preloading',
+    href: '/over-preloading/click-computed/',
+    label: 'click-computed',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/click-task/',
+    label: 'click-task',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-computed/',
+    label: 'visible-task-computed',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-task/',
+    label: 'visible-task-task',
+  },
+  {
     group: 'other',
     href: '/modal/',
     label: 'modal',

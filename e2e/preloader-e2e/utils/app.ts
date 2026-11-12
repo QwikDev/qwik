@@ -102,6 +102,8 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
 
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
+export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
+
 export const chunkUrlsFrom = (path: string) =>
   Object.entries(getManifest().bundles)
     .filter(([, bundle]) => bundle.origins?.some((origin) => origin.startsWith(path)))

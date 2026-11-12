@@ -66,6 +66,18 @@ export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');
 export const BARREL = handWritten('barrel', 'alpha 1.0');
 
+const overPreloading = (name: string): Fixture => ({
+  id: `over-preloading/${name}`,
+  path: `/over-preloading/${name}/`,
+  sources: [`src/routes/over-preloading/${name}/`],
+  expected: 'theme-dark',
+});
+
+export const CLICK_RUNS_COMPUTED = overPreloading('click-computed');
+export const CLICK_RUNS_TASK = overPreloading('click-task');
+export const VISIBLE_TASK_RUNS_COMPUTED = overPreloading('visible-task-computed');
+export const VISIBLE_TASK_RUNS_TASK = overPreloading('visible-task-task');
+
 export const IMPORT_CHAIN: Fixture = {
   id: 'harness/import-chain',
   path: '/harness/import-chain/',

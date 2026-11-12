@@ -34,7 +34,7 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
   );
   const details = await getSymbolDetailsByHashes(db, params.publicApiKey, symbolHashes);
   const rootSymbol = computeSymbolGraph(edges, details);
-  const vectors = computeSymbolVectors(rootSymbol);
+  const vectors = computeSymbolVectors(rootSymbol, true);
   const bundles = computeBundles(vectors);
   return createBundleViewData(vectors, bundles);
 });

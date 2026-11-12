@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { domRender, trigger } from '@qwik.dev/core/testing';
 import { BundleExplorer } from './bundle-explorer';
+import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 import { createBundleViewData } from './bundle-view';
 
 vi.mock('~/components/symbol-tile', () => ({
@@ -106,6 +107,30 @@ describe('bundle explorer', () => {
     await trigger(document.body, column, 'change');
     expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
       'Relationship score: 0.0010 / 1'
+    );
+  });
+  it('bounds the rendered matrix and moves its window to a distant pair', async () => {
+    const vectors = computeSymbolVectors(
+      computeSymbolGraph(
+        Array.from({ length: 110 }, (_, index) => ({
+          from: index ? `s${index - 1}` : null,
+          to: `s${index}`,
+          relatedCount: 100,
+          unrelatedCount: 0,
+        }))
+      ),
+      true
+    );
+    const report = createBundleViewData(vectors, [{ name: 'chain', symbols: vectors.symbols }]);
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    expect(document.querySelectorAll('svg rect').length).toBeLessThanOrEqual(10_004);
+    const row = document.querySelector<HTMLSelectElement>('[data-matrix-row]')!;
+    row.value = '109';
+    await trigger(document.body, row, 'change');
+    expect(document.querySelector('svg[role="img"]')?.getAttribute('viewBox')).toBe('0 100 100 10');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'Relationship score: 1.0 / 1'
     );
   });
 });

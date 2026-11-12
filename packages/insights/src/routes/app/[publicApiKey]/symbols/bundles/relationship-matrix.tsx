@@ -7,7 +7,13 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
     const minimumScore = useSignal(0);
     const selectedRow = useSignal(0);
     const selectedColumn = useSignal(0);
-    const view = getMatrixView(data, selectedIndex, scope.value === 'all');
+    const view = getMatrixView(
+      data,
+      selectedIndex,
+      scope.value === 'all',
+      selectedRow.value,
+      selectedColumn.value
+    );
     const size = view.symbols.length;
     const row = Math.min(selectedRow.value, Math.max(0, size - 1));
     const column = Math.min(selectedColumn.value, Math.max(0, size - 1));
@@ -102,6 +108,12 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
         </p>
         {size > 0 && (
           <>
+            {size > 100 && (
+              <p class="mt-editorial-3 text-editorial-12 text-editorial-secondary">
+                Showing rows {view.rowStart + 1}–{view.rowEnd} and columns {view.columnStart + 1}–
+                {view.columnEnd} of {size}. Choose any pair above to move the window.
+              </p>
+            )}
             <div class="mt-editorial-5 grid gap-editorial-4 sm:grid-cols-2">
               <label class="min-w-0 text-editorial-12">
                 Preceding symbol (column)
@@ -163,6 +175,12 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
                 {later.fileSrc || 'Source metadata unavailable'}
               </p>
             </div>
+            {size > 100 && (
+              <p class="mt-editorial-3 text-editorial-12 text-editorial-secondary">
+                Showing rows {view.rowStart + 1}–{view.rowEnd} and columns {view.columnStart + 1}–
+                {view.columnEnd} of {size}. Choose any pair above to move the window.
+              </p>
+            )}
             <div class="mt-editorial-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-editorial-2">
               <span class="text-editorial-12 text-editorial-secondary [writing-mode:vertical-rl]">
                 Later symbol (row) ↓
@@ -173,7 +191,7 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
                 </p>
                 <svg
                   class="aspect-square w-full border border-editorial-border"
-                  viewBox={`0 0 ${size} ${size}`}
+                  viewBox={`${view.columnStart} ${view.rowStart} ${view.columnEnd - view.columnStart} ${view.rowEnd - view.rowStart}`}
                   role="img"
                   aria-label={`Directional relationship matrix for ${size} symbols. Use the preceding and later symbol selectors to inspect cells.`}
                   onClick$={(event, svg) => {
@@ -182,14 +200,22 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
                       0,
                       Math.min(
                         size - 1,
-                        Math.floor(((event.clientX - bounds.left) * size) / bounds.width)
+                        view.columnStart +
+                          Math.floor(
+                            ((event.clientX - bounds.left) * (view.columnEnd - view.columnStart)) /
+                              bounds.width
+                          )
                       )
                     );
                     selectedRow.value = Math.max(
                       0,
                       Math.min(
                         size - 1,
-                        Math.floor(((event.clientY - bounds.top) * size) / bounds.height)
+                        view.rowStart +
+                          Math.floor(
+                            ((event.clientY - bounds.top) * (view.rowEnd - view.rowStart)) /
+                              bounds.height
+                          )
                       )
                     );
                   }}

@@ -55,6 +55,7 @@ export function createAffinityTree(vectors: number[][]): AffinityLink[] {
       const canUseBinaryDistance =
         leftBinary !== null &&
         rightBinary !== null &&
+        leftBinary.length === rightBinary.length &&
         leftBinary.length < (left.length + right.length) / 2;
       const sum = canUseBinaryDistance
         ? binarySquaredDistance(leftBinary, rightBinary, closestSquaredDistance)

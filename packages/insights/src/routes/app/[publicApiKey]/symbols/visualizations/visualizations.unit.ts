@@ -1,6 +1,7 @@
+import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 import { describe, expect, it } from 'vitest';
 import { createBundleViewData } from '../bundles/bundle-view';
-import { getNeighborhood, getDefaultSymbol } from './visualizations';
+import { formatScore, getNeighborhood, getDefaultSymbol } from './visualizations';
 
 const symbols = ['a', 'b', 'c'].map((name) => ({
   name,
@@ -48,4 +49,31 @@ describe('relationship visualization alternatives', () => {
     });
     expect(getNeighborhood(data, 'missing', 5)).toEqual({ incoming: [], outgoing: [] });
   });
+});
+
+it('shows weak positive scores distinctly from zero', () => {
+  expect(formatScore(0.004)).toBe('0.0040');
+  expect(formatScore(0)).toBe('0.00');
+  expect(formatScore(0.8)).toBe('0.80');
+});
+
+it('reads the same neighborhood from compact paths as from exact matrix scores', () => {
+  const vectors = computeSymbolVectors(
+    computeSymbolGraph([
+      { from: null, to: 'first', relatedCount: 100, unrelatedCount: 0 },
+      { from: 'first', to: 'second', relatedCount: 1, unrelatedCount: 99 },
+      { from: 'second', to: 'third', relatedCount: 1, unrelatedCount: 99 },
+    ]),
+    true
+  );
+  const groups = [{ name: 'all', symbols: vectors.symbols }];
+  const compact = createBundleViewData(vectors, groups);
+  const dense = createBundleViewData(
+    { symbols: vectors.symbols, vectors: vectors.vectors },
+    groups
+  );
+  expect(compact.matrix).toEqual([]);
+  for (const symbol of vectors.symbols) {
+    expect(getNeighborhood(compact, symbol.name)).toEqual(getNeighborhood(dense, symbol.name));
+  }
 });

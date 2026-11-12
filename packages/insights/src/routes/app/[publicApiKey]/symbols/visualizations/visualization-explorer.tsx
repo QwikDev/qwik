@@ -1,6 +1,6 @@
-import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+import { component$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
 import { type BundleInfo } from '../bundles/bundle-view';
-import { getNeighborhood, getDefaultSymbol } from './visualizations';
+import { formatScore, getNeighborhood, getDefaultSymbol } from './visualizations';
 
 type LabData = BundleInfo;
 const views = [
@@ -20,7 +20,8 @@ interface VisualizationExplorerProps {
 }
 
 export const VisualizationExplorer = component$<VisualizationExplorerProps>(
-  ({ data, initialView, currentSearch = '' }) => {
+  (props) => {
+    const { data, initialView, currentSearch = '' } = props;
     useStylesScoped$(`
     .lab-graph { position:relative; margin-top:24px; }
     .lab-graph svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
@@ -40,6 +41,12 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
         .map((symbol) => [symbol.name, symbol.fullName!])
     );
     const selectedSymbol = useSignal(() => getDefaultSymbol(data));
+    useTask$(({ track }) => {
+      const report = track(() => props.data);
+      if (!report.symbols.some((symbol) => symbol.name === selectedSymbol.value)) {
+        selectedSymbol.value = getDefaultSymbol(report);
+      }
+    });
     const selectedGroup = useSignal(0);
     const memberLimit = useSignal(6);
     const showAllGroups = useSignal(false);
@@ -289,7 +296,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     >
                       <code class="block text-editorial-12">{name(edge.from)}</code>
                       <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
-                        → selected · {edge.score.toFixed(2)} / 1
+                        → selected · {formatScore(edge.score)} / 1
                       </span>
                     </button>
                   ))}
@@ -320,7 +327,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     >
                       <code class="block text-editorial-12">{name(edge.to)}</code>
                       <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
-                        selected → · {edge.score.toFixed(2)} / 1
+                        selected → · {formatScore(edge.score)} / 1
                       </span>
                     </button>
                   ))}
@@ -358,7 +365,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                             >
                               <span class="flex items-start justify-between gap-editorial-3 text-editorial-12">
                                 <code class="min-w-0 break-words">{name(neighbor)}</code>
-                                <span class="shrink-0 tabular-nums">{edge.score.toFixed(2)}</span>
+                                <span class="shrink-0 tabular-nums">{formatScore(edge.score)}</span>
                               </span>
                               <span class="mt-editorial-2 block h-2 bg-editorial-data-band">
                                 <span

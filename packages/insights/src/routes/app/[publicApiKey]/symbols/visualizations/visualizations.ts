@@ -1,4 +1,5 @@
 import { createMatrixReader } from '../bundles/matrix-paths';
+import type { SymbolPairCounts } from '~/stats/edges';
 import type { BundleInfo, Relationship } from '../bundles/bundle-view';
 
 export function getNeighborhood(data: BundleInfo, symbol: string, limit = 5) {
@@ -92,6 +93,84 @@ export function getGroupDensity(data: BundleInfo, threshold: number, limit = 8) 
     }
   }
   return { groups, cells };
+}
+
+export interface ObservedEdge {
+  from: string;
+  to: string;
+  count: number;
+}
+
+export function findObservedPath(edges: ObservedEdge[], from: string, to: string, maxSteps = 6) {
+  if (!from || !to) {
+    return [];
+  }
+  const adjacency = new Map<string, ObservedEdge[]>();
+  for (const edge of edges) {
+    const neighbors = adjacency.get(edge.from) ?? [];
+    neighbors.push(edge);
+    adjacency.set(edge.from, neighbors);
+  }
+  const queue = [[from]];
+  const visited = new Set([from]);
+  for (let index = 0; index < queue.length; index++) {
+    const path = queue[index];
+    const last = path[path.length - 1];
+    if (last === to) {
+      return path;
+    }
+    if (path.length > maxSteps) {
+      continue;
+    }
+    for (const edge of (adjacency.get(last) ?? []).sort((a, b) => b.count - a.count)) {
+      if (visited.has(edge.to)) {
+        continue;
+      }
+      visited.add(edge.to);
+      queue.push([...path, edge.to]);
+    }
+  }
+  return [];
+}
+
+export function getExamplePath(edges: ObservedEdge[], knownNames: Set<string>) {
+  const namedEdges = edges
+    .filter((edge) => knownNames.has(edge.from) && knownNames.has(edge.to))
+    .sort((a, b) => b.count - a.count);
+  for (const first of namedEdges.slice(0, 32)) {
+    const second = namedEdges.find((edge) => edge.from === first.to && edge.to !== first.from);
+    if (!second) {
+      continue;
+    }
+    const third = namedEdges.find(
+      (edge) => edge.from === second.to && ![first.from, first.to].includes(edge.to)
+    );
+    const path = findObservedPath(edges, first.from, third?.to ?? second.to);
+    if (path.length > 2) {
+      return path;
+    }
+  }
+  return namedEdges.length
+    ? [namedEdges[0].from, namedEdges[0].to]
+    : edges.length
+      ? [edges[0].from, edges[0].to]
+      : [];
+}
+
+export function getObservedEdges(rows: SymbolPairCounts[], names: Set<string>): ObservedEdge[] {
+  return rows.flatMap((row) => {
+    const count = row.relatedCount + row.unrelatedCount;
+    if (
+      !row.from ||
+      row.from === row.to ||
+      !names.has(row.from) ||
+      !names.has(row.to) ||
+      count <= 0
+    ) {
+      return [];
+    }
+    return [{ from: row.from, to: row.to, count }];
+  });
 }
 
 export function getDefaultSymbol(data: BundleInfo) {

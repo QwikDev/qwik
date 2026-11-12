@@ -14,8 +14,17 @@ vi.mock('../bundles/matrix-paths', async (importOriginal) => {
 });
 import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 import { describe, expect, it, vi } from 'vitest';
+import type { SymbolPairCounts } from '~/stats/edges';
 import { createBundleViewData } from '../bundles/bundle-view';
-import { formatScore, getNeighborhood, getDefaultSymbol, getGroupDensity } from './visualizations';
+import {
+  formatScore,
+  getNeighborhood,
+  getDefaultSymbol,
+  getGroupDensity,
+  findObservedPath,
+  getExamplePath,
+  getObservedEdges,
+} from './visualizations';
 
 const symbols = ['a', 'b', 'c'].map((name) => ({
   name,
@@ -74,6 +83,65 @@ describe('relationship visualization alternatives', () => {
     const density = getGroupDensity(data, 0.5, 1);
     expect(density.groups.map((group) => group.symbols.length)).toEqual([2, 1]);
     expect(density.groups[1].label).toBe('Other 1 group');
+  });
+  it('finds a bounded shortest observed path without following cycles', () => {
+    const edges = [
+      { from: 'a', to: 'b', count: 5 },
+      { from: 'b', to: 'a', count: 3 },
+      { from: 'b', to: 'c', count: 2 },
+    ];
+    expect(findObservedPath(edges, 'a', 'c')).toEqual(['a', 'b', 'c']);
+    expect(findObservedPath(edges, 'c', 'a')).toEqual([]);
+    expect(findObservedPath(edges, 'a', 'c', 1)).toEqual([]);
+  });
+  it('chooses a multi-step example when a shortcut would collapse the first candidate', () => {
+    const edges = [
+      { from: 'a', to: 'b', count: 10 },
+      { from: 'b', to: 'c', count: 8 },
+      { from: 'a', to: 'c', count: 6 },
+      { from: 'd', to: 'e', count: 5 },
+      { from: 'e', to: 'f', count: 4 },
+    ];
+    expect(getExamplePath(edges, new Set(['a', 'b', 'c', 'd', 'e', 'f']))).toEqual(['d', 'e', 'f']);
+    expect(findObservedPath([], '', '')).toEqual([]);
+  });
+  it('bounds example search on dense graphs with direct shortcuts', () => {
+    const names = Array.from({ length: 71 }, (_, index) => String(index));
+    let visits = 0;
+    const edges = names.flatMap((from) =>
+      names
+        .filter((to) => to !== from)
+        .map((to) => ({
+          from,
+          to,
+          get count() {
+            visits++;
+            return 1;
+          },
+        }))
+    );
+    expect(getExamplePath(edges, new Set(names))).toHaveLength(2);
+    expect(visits).toBeLessThan(edges.length * 100);
+  });
+  it('serializes flat observed edges without graph cycles, self pairs, or outside symbols', async () => {
+    (globalThis as any).__EXPERIMENTAL__ = {};
+    const { _serialize } = await import('@qwik.dev/core/internal/serializer');
+    const { _deserialize } = await import('@qwik.dev/core/internal');
+    const rows: SymbolPairCounts[] = [
+      { from: 'a', to: 'b', relatedCount: 5, unrelatedCount: 7 },
+      { from: 'b', to: 'a', relatedCount: 0, unrelatedCount: 3 },
+      { from: 'a', to: 'a', relatedCount: 1, unrelatedCount: 0 },
+      { from: 'a', to: 'outside', relatedCount: 9, unrelatedCount: 0 },
+      { from: null, to: 'a', relatedCount: 2, unrelatedCount: 0 },
+      { from: 'a', to: 'b', relatedCount: 0, unrelatedCount: 0 },
+    ];
+    const edges = getObservedEdges(rows, new Set(['a', 'b']));
+    expect(edges).toEqual([
+      { from: 'a', to: 'b', count: 12 },
+      { from: 'b', to: 'a', count: 3 },
+    ]);
+    expect(await _deserialize(await _serialize(edges))).toEqual(edges);
+    expect(rows).toHaveLength(6);
   });
 });
 

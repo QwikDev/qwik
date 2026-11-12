@@ -26,6 +26,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
     .lab-graph { position:relative; margin-top:24px; }
     .lab-graph svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
     .lab-node { position:absolute; width:28%; transform:translateY(-50%); text-align:left; overflow-wrap:anywhere; }
+    .lab-node code { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .lab-center { left:36%; }
     @media(max-width:700px) {
       .lab-graph { height:auto !important; display:flex; flex-direction:column; gap:16px; }
@@ -294,7 +295,9 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                         selectedSymbol.value = edge.from;
                       }}
                     >
-                      <code class="block text-editorial-12">{name(edge.from)}</code>
+                      <code title={name(edge.from)} class="block text-editorial-12">
+                        {name(edge.from)}
+                      </code>
                       <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
                         → selected · {formatScore(edge.score)} / 1
                       </span>
@@ -305,7 +308,10 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     style={{ top: `${graphHeight / 2}px` }}
                   >
                     <p class="text-editorial-11 text-editorial-secondary">SELECTED</p>
-                    <code class="mt-editorial-2 block text-editorial-14 font-semibold">
+                    <code
+                      title={name(selectedSymbol.value)}
+                      class="mt-editorial-2 block text-editorial-14 font-semibold"
+                    >
                       {name(selectedSymbol.value)}
                     </code>
                     <p class="mt-editorial-2 break-all text-editorial-11 text-editorial-secondary">
@@ -325,7 +331,9 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                         selectedSymbol.value = edge.to;
                       }}
                     >
-                      <code class="block text-editorial-12">{name(edge.to)}</code>
+                      <code title={name(edge.to)} class="block text-editorial-12">
+                        {name(edge.to)}
+                      </code>
                       <span class="mt-editorial-2 block text-editorial-12 text-editorial-secondary">
                         selected → · {formatScore(edge.score)} / 1
                       </span>

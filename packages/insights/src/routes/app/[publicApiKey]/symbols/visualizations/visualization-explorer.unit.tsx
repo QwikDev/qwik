@@ -144,4 +144,19 @@ describe('visualization lab', () => {
     await trigger(document.body, '[data-replace]', 'click');
     expect(document.querySelector('.lab-center code')?.textContent).toContain('new-');
   });
+  it('keeps complete graph labels available when their display is truncated', async () => {
+    const report = {
+      ...data,
+      symbols: data.symbols.map((symbol) => ({
+        ...symbol,
+        fullName: (symbol.fullName || symbol.name).repeat(100),
+      })),
+    };
+    const { document } = await domRender(
+      <VisualizationExplorer data={report} initialView="neighborhood" />
+    );
+    for (const label of document.querySelectorAll('.lab-node code')) {
+      expect(label.getAttribute('title')).toBe(label.textContent);
+    }
+  });
 });

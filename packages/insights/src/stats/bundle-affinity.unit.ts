@@ -145,3 +145,12 @@ test('preserves clustering across slider thresholds for binary and weighted vect
     }
   }
 });
+
+test('counts trailing binary dimensions when vector lengths differ', () => {
+  for (const vectors of [
+    [Array(32).fill(1), Array(64).fill(1)],
+    [Array(64).fill(1), Array(32).fill(1)],
+  ]) {
+    expect(createAffinityTree(vectors)).toEqual([{ from: 0, to: 1, distance: Math.sqrt(32) }]);
+  }
+});

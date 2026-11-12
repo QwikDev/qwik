@@ -197,6 +197,11 @@ export const routes = [
   },
   {
     group: 'over-preloading',
+    href: '/over-preloading/click-task-calling-qrl/',
+    label: 'click-task-calling-qrl',
+  },
+  {
+    group: 'over-preloading',
     href: '/over-preloading/visible-task-computed/',
     label: 'visible-task-computed',
   },
@@ -204,6 +209,11 @@ export const routes = [
     group: 'over-preloading',
     href: '/over-preloading/visible-task-task/',
     label: 'visible-task-task',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-task-calling-qrl/',
+    label: 'visible-task-task-calling-qrl',
   },
   {
     group: 'other',

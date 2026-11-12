@@ -605,6 +605,17 @@ const THEME_CLASS_DERIVATIONS = {
   });
 `,
   },
+  'task-calling-qrl': {
+    imports: ['$', 'useTask$'],
+    hooks: `  const themeClass = useSignal('theme-light');
+  const applyTheme = $((value: string) => {
+    themeClass.value = \`theme-\${value}\`;
+  });
+  useTask$(async ({ track }) => {
+    await applyTheme(track(theme));
+  });
+`,
+  },
 };
 
 const writeOverPreloading = () => {

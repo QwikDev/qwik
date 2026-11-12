@@ -11,7 +11,22 @@ export function createAffinityTree(vectors: number[][]): AffinityLink[] {
   if (vectors.length < 2) {
     return [];
   }
-  const sparse = vectors.map((row) => row.flatMap((value, index) => (value ? [index, value] : [])));
+  const sparseVectors = vectors.map((row) =>
+    row.flatMap((value, index) => (value ? [index, value] : []))
+  );
+  const binaryVectors = vectors.map((row) => {
+    const words = new Uint32Array(Math.ceil(row.length / 32));
+    for (let dimension = 0; dimension < row.length; dimension++) {
+      const value = row[dimension];
+      if (value !== 0 && value !== 1) {
+        return null;
+      }
+      if (value === 1) {
+        words[dimension >>> 5] |= 1 << (dimension & 31);
+      }
+    }
+    return words;
+  });
   const visited = new Set<number>();
   const distances = vectors.map(() => Infinity);
   const parents = vectors.map(() => 0);
@@ -32,28 +47,18 @@ export function createAffinityTree(vectors: number[][]): AffinityLink[] {
       if (visited.has(index)) {
         continue;
       }
-      const left = sparse[nearest];
-      const right = sparse[index];
-      let leftIndex = left.length - 2;
-      let rightIndex = right.length - 2;
-      let sum = 0;
-      while (leftIndex >= 0 || rightIndex >= 0) {
-        const leftDimension = leftIndex >= 0 ? left[leftIndex] : -1;
-        const rightDimension = rightIndex >= 0 ? right[rightIndex] : -1;
-        let difference: number;
-        if (leftDimension === rightDimension) {
-          difference = left[leftIndex + 1] - right[rightIndex + 1];
-          leftIndex -= 2;
-          rightIndex -= 2;
-        } else if (leftDimension > rightDimension) {
-          difference = left[leftIndex + 1];
-          leftIndex -= 2;
-        } else {
-          difference = right[rightIndex + 1];
-          rightIndex -= 2;
-        }
-        sum += difference * difference;
-      }
+      const left = sparseVectors[nearest];
+      const right = sparseVectors[index];
+      const leftBinary = binaryVectors[nearest];
+      const rightBinary = binaryVectors[index];
+      const closestSquaredDistance = distances[index] * distances[index];
+      const canUseBinaryDistance =
+        leftBinary !== null &&
+        rightBinary !== null &&
+        leftBinary.length < (left.length + right.length) / 2;
+      const sum = canUseBinaryDistance
+        ? binarySquaredDistance(leftBinary, rightBinary, closestSquaredDistance)
+        : sparseSquaredDistance(left, right, closestSquaredDistance);
       const distance = Math.sqrt(sum);
       if (distance < distances[index]) {
         distances[index] = distance;
@@ -62,6 +67,48 @@ export function createAffinityTree(vectors: number[][]): AffinityLink[] {
     }
   }
   return links;
+}
+
+function binarySquaredDistance(left: Uint32Array, right: Uint32Array, maximum: number): number {
+  let sum = 0;
+  for (let word = 0; word < left.length; word++) {
+    // Binary Euclidean distance counts coordinates with different values.
+    let differences = left[word] ^ right[word];
+    differences -= (differences >>> 1) & 0x55555555;
+    differences = (differences & 0x33333333) + ((differences >>> 2) & 0x33333333);
+    sum += (((differences + (differences >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
+    if (sum > maximum) {
+      return sum;
+    }
+  }
+  return sum;
+}
+
+function sparseSquaredDistance(left: number[], right: number[], maximum: number): number {
+  let leftIndex = left.length - 2;
+  let rightIndex = right.length - 2;
+  let sum = 0;
+  while (leftIndex >= 0 || rightIndex >= 0) {
+    const leftDimension = leftIndex >= 0 ? left[leftIndex] : -1;
+    const rightDimension = rightIndex >= 0 ? right[rightIndex] : -1;
+    let difference: number;
+    if (leftDimension === rightDimension) {
+      difference = left[leftIndex + 1] - right[rightIndex + 1];
+      leftIndex -= 2;
+      rightIndex -= 2;
+    } else if (leftDimension > rightDimension) {
+      difference = left[leftIndex + 1];
+      leftIndex -= 2;
+    } else {
+      difference = right[rightIndex + 1];
+      rightIndex -= 2;
+    }
+    sum += difference * difference;
+    if (sum > maximum) {
+      return sum;
+    }
+  }
+  return sum;
 }
 
 export function groupByAffinity<T extends { name: string }>(

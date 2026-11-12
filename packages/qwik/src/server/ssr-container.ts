@@ -118,7 +118,13 @@ import {
   recordExternalRootEffect,
   type SubscriptionPatchRecord,
 } from './ooos-utils';
-import { preloaderPost, preloaderPre } from './preload-impl';
+import {
+  getBundles,
+  getStaticImports,
+  preloaderPost,
+  preloaderPre,
+  simplifyPath,
+} from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
@@ -346,6 +352,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   private renderQueue: Promise<unknown> = Promise.resolve();
   private scriptUnsafeEmits: (() => void)[] = [];
   private emittedQwikEventNames = new Set<string>();
+  private preloadedHandlerBundles = new Set<string>();
+  private preloadedHandlerQrlCount = 0;
   public emittedSyncFnCount = 0;
   private emittedVNodeDataOwners: Set<VNodeDataOwner> | null = null;
   private segmentRootIdMaps: number[][] | null = null;
@@ -646,6 +654,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     rootContainer.serializationCtx.$scope$ ||= rootContainer;
     segmentContainer.styleIds = this.styleIds;
     segmentContainer.emittedQwikEventNames = this.emittedQwikEventNames;
+    segmentContainer.preloadedHandlerBundles = this.preloadedHandlerBundles;
     segmentContainer.qlInclude = QwikLoaderInclude.Done;
     segmentContainer.$instanceHash$ = this.$instanceHash$;
     innerSegmentContainer._didAddQwikLoader = true;
@@ -789,6 +798,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
+      }
+      if (this.preloadedHandlerQrlCount !== this.serializationCtx.$eventHandlerQrls$.length) {
+        this.emitHandlerPreloads();
       }
       if (this.emittedQwikEventNames.size !== this.serializationCtx.$eventNames$.size) {
         // Lets qwikloader catch interactions while the rest of the page streams in
@@ -1716,6 +1728,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       if (this.qlInclude !== QwikLoaderInclude.Done) {
         this.emitQwikLoaderInline();
       }
+      this.emitHandlerPreloads();
       // emit the used events so the loader can subscribe to them
       this.emitNewQwikEvents(true);
     }
@@ -1733,6 +1746,35 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       qwikEventItems.push(`${QwikEvContainerReady}`, JSON.stringify(this.$instanceHash$));
     }
     this.emitQwikEvents(qwikEventItems, removeScript);
+  }
+
+  /** Preloads the bundles that event handlers referenced since the last call, before any event. */
+  protected emitHandlerPreloads() {
+    const qrls = this.serializationCtx.$eventHandlerQrls$;
+    const newQrls = qrls.slice(this.preloadedHandlerQrlCount) as QRLInternal[];
+    this.preloadedHandlerQrlCount = qrls.length;
+    if (isDev) {
+      return;
+    }
+    const nonce = this.renderOptions.serverData?.nonce;
+    const nonceAttr = nonce ? ` nonce="${escapeHTML(nonce)}"` : '';
+    const staticImports = getStaticImports(this.resolvedManifest?.manifest.bundleGraph);
+    // Grows as we go: a handler needs its static imports before it can run.
+    const bundles = getBundles(newQrls);
+    for (let i = 0; i < bundles.length; i++) {
+      const bundle = bundles[i];
+      if (this.preloadedHandlerBundles.has(bundle)) {
+        continue;
+      }
+      this.preloadedHandlerBundles.add(bundle);
+      // Plain markup: the preload scanner sees it, and resuming skips elements without `:`.
+      const href = escapeHTML(simplifyPath(this.$buildBase$!, bundle)!);
+      this.write(`<link rel="modulepreload" href="${href}"${nonceAttr}>`);
+      const imports = staticImports?.get(bundle);
+      if (imports) {
+        bundles.push(...imports);
+      }
+    }
   }
 
   private emitQwikEvents(qwikEventItems: string[], removeScript = false) {
@@ -2156,6 +2198,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         this.serializationCtx = segmentCtx;
         this.emitNewQwikEvents();
       }
+      // A late segment's last handlers come after its last element, which would have flushed them.
+      this.emitHandlerPreloads();
       this.emitPatchDataIfNeeded();
       this.drainCleanupQueue();
       const rootIdMap = this.getSegmentRootIdMap();

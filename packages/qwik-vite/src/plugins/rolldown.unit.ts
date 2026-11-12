@@ -223,7 +223,7 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
     await plugin.options!({});
     const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
     const groups = (output.codeSplitting as CodeSplitting).groups!;
-    const name = groups[2].name as Rolldown.CodeSplittingNameFunction;
+    const name = groups[1].name as Rolldown.CodeSplittingNameFunction;
     const ctx = {
       getModuleInfo: () => ({
         meta: {
@@ -666,58 +666,21 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
   assert.deepEqual(codeSplitting.includeDependenciesRecursively, false);
   assert.deepEqual(
     codeSplitting.groups!.map((group) => typeof group.name),
-    ['function', 'string', 'function']
+    ['string', 'function']
   );
-  assert.deepEqual(codeSplitting.groups![1].name, 'qwik-preloader');
+  assert.deepEqual(codeSplitting.groups![0].name, 'qwik-preloader');
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
-    [false, false, false]
+    [false, false]
   );
-});
-
-test('the qwik-core group holds the core library, its QRL chunk and its handler segments', async () => {
-  const codeSplitting = await clientCodeSplitting({});
-  const coreGroupOf = codeSplitting.groups![0].name as (id: string, ctx: any) => string | null;
-  const core = '/app/node_modules/@qwik.dev/core/dist';
-  const segments: Record<string, string> = {
-    [`${core}/core.min.qwik.mjs_s_2xRpqnukrhk.js`]: 'core.min.qwik.mjs_core_handlers_run',
-    [`${core}/core.qwik.mjs_core_handlers_scheduleTask_PyxK.js`]:
-      'core.qwik.mjs_core_handlers_scheduleTask',
-    [`${core}/core.prod.qwik.mjs_s_4rwP95eV0jk.js`]: 'core.prod.qwik.mjs_Show_component',
-    '/app/src/core_handlers.tsx_core_handlers_run_abc.js': 'core_handlers.tsx_core_handlers_run',
-  };
-  const ctx = {
-    getModuleInfo: (id: string) => ({
-      meta: { segment: segments[id] && { displayName: segments[id] } },
-    }),
-  };
-
-  for (const id of [
-    `${core}/core.qwik.mjs`,
-    `${core}/core.prod.qwik.mjs`,
-    `${core}/core-qrl.prod.mjs`,
-    `${core}/core.min.qwik.mjs_s_2xRpqnukrhk.js`,
-    `${core}/core.qwik.mjs_core_handlers_scheduleTask_PyxK.js`,
-  ]) {
-    assert.deepEqual(coreGroupOf(id, ctx), 'qwik-core', id);
-  }
-  // Control-flow components load like any segment, only on pages that render them.
-  for (const id of [
-    `${core}/preloader.mjs`,
-    `${core}/core-vnode-render.min.mjs`,
-    `${core}/core.prod.qwik.mjs_s_4rwP95eV0jk.js`,
-    '/app/src/core_handlers.tsx_core_handlers_run_abc.js',
-  ]) {
-    assert.deepEqual(coreGroupOf(id, ctx), null, id);
-  }
 });
 
 test('codeSplitting appends the user groups after the qwik groups', async () => {
   const vendor = { name: 'vendor', test: /node_modules/ };
   const codeSplitting = await clientCodeSplitting({ codeSplitting: { groups: [vendor] } });
 
-  assert.deepEqual(codeSplitting.groups!.length, 4);
-  assert.deepEqual(codeSplitting.groups![3], vendor);
+  assert.deepEqual(codeSplitting.groups!.length, 3);
+  assert.deepEqual(codeSplitting.groups![2], vendor);
 });
 
 test('codeSplitting keeps the user top-level options without touching the qwik groups', async () => {
@@ -729,14 +692,14 @@ test('codeSplitting keeps the user top-level options without touching the qwik g
   assert.deepEqual(codeSplitting.minSize, 20000);
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
-    [false, false, false]
+    [false, false]
   );
 });
 
 test('codeSplitting true is the default and keeps the qwik groups', async () => {
   const codeSplitting = await clientCodeSplitting({ codeSplitting: true });
 
-  assert.deepEqual(codeSplitting.groups!.length, 3);
+  assert.deepEqual(codeSplitting.groups!.length, 2);
 });
 
 test('codeSplitting false throws', async () => {

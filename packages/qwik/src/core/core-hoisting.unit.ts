@@ -54,7 +54,7 @@ describe('core built as a Qwik library', () => {
         throw new Error('Build core first: pnpm build.core.dev');
       }
       // The app's optimizer keeps the hash core's build gave the QRL.
-      const resHash = /"core_handlers_res_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
+      const resHash = /"bind_handlers_res_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
       const createOptimizer = optimizerName === 'rust' ? createRustOptimizer : createTsOptimizer;
       const optimizer = await createOptimizer();
       const output = await optimizer.transformModules({

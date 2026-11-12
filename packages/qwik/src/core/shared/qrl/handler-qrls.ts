@@ -1,4 +1,8 @@
-import { _chk, _hmr, _res, _rsc, _run, _val, scheduleTask } from './core-handlers';
+import { _run } from '../../client/run-qrl';
+import { _hmr } from '../../use/use-hmr';
+import { _rsc } from '../../use/use-resource';
+import { scheduleTask } from '../../use/use-task';
+import { _chk, _res, _val } from '../jsx/bind-handlers';
 import type { QRLInternal } from './qrl-class';
 import { $ } from './qrl.public';
 
@@ -10,8 +14,7 @@ const onFirstUse = <T>(create: () => T) => {
 
 /*
  * Core functions that read their own captures; the qwikloader calls most of them with the
- * serialized captures as `this`. Bind captures with `.w([...])`. Their segments share core's chunk
- * (see `core-handlers.ts`), so a click doesn't wait on them.
+ * serialized captures as `this`. Bind captures with `.w([...])`.
  */
 export const runQrl = onFirstUse(() => $(_run) as QRLInternal<typeof _run>);
 export const chkQrl = onFirstUse(() => $(_chk) as QRLInternal<typeof _chk>);

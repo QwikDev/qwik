@@ -204,3 +204,17 @@ describe('preloader', () => {
     expect(immediateScript).not.toContain('route-3.js');
   });
 });
+
+describe('getStaticImports', () => {
+  it('lists the imports before the dynamic marker, even when a dynamic one has probability 1', async () => {
+    const { getStaticImports } = await import('./preload-impl');
+    const staticImports = getStaticImports(['a.js', 4, -10, 5, 'b.js', 'c.js']);
+    expect(staticImports?.get('a.js')).toEqual(['b.js']);
+    expect(staticImports?.get('b.js')).toEqual([]);
+  });
+
+  it('is undefined without a bundle graph', async () => {
+    const { getStaticImports } = await import('./preload-impl');
+    expect(getStaticImports(undefined)).toBeUndefined();
+  });
+});

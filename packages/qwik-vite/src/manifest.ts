@@ -344,7 +344,7 @@ function getQrlImports(
 
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
- * files for the preloader, core and qwikloader. This information is used during SSR.
+ * files for the preloader and qwikloader. This information is used during SSR.
  */
 export function generateManifestFromBundles(
   path: Path,
@@ -368,7 +368,6 @@ export function generateManifestFromBundles(
       // don't copy the insights stuff
       entryStrategy: opts.entryStrategy && { type: opts.entryStrategy.type },
     },
-    core: undefined,
     preloader: undefined,
     qwikLoader: undefined,
     bundleGraphAsset: undefined,
@@ -397,9 +396,6 @@ export function generateManifestFromBundles(
   // Group names come from plugin.ts.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
-    if (outputBundle.name === 'qwik-core') {
-      manifest.core = bundleFileName;
-    }
     if (outputBundle.name === 'qwik-preloader') {
       preloaderBundleName = bundleFileName;
       manifest.preloader = bundleFileName;
@@ -503,10 +499,6 @@ export function generateManifestFromBundles(
       captureNames: segment.captureNames,
     };
   }
-  if (!manifest.core) {
-    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
-  }
-
   for (const bundle of Object.values(manifest.bundles)) {
     const interactivityScore = getBundleInteractivity(bundle, manifest);
     bundle.interactivity = interactivityScore;

@@ -83,14 +83,14 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
+  test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
     const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {
-      roundTrips: 4,
+      roundTrips: 3,
       reason:
-        "over the cap on main: the Link handler, the router's navigation code, then the layout and route modules each cost a round trip before the render chunks",
+        "over the cap: the router's navigation code, then the layout and route modules each cost a round trip before the render chunks; SSR preloads the Link handler",
     });
   });
 });

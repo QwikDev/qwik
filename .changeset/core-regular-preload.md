@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-perf: core loads through the preloader like any bundle instead of an eager modulepreload
+perf: core is modulepreloaded only on pages whose event handlers need it

@@ -109,7 +109,6 @@ describe('convertManifestToBundleGraph', () => {
 
   test('core is preloaded like any bundle its segments import', () => {
     const manifest = {
-      core: 'core.js',
       bundles: {
         'core.js': { size, total },
         'run.js': { size, total, imports: ['core.js'], symbols: ['s_run'] },

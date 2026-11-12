@@ -1364,7 +1364,6 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        core: manifest.core,
         preloader: manifest.preloader,
         qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
@@ -1406,28 +1405,12 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  /**
-   * Core's library and its handler segments (see core's `core-handlers.ts`) share a chunk: no
-   * import waterfall. Its control-flow components (Show, Each, Pending, …) are ordinary segments.
-   */
-  const isQwikCoreChunk = (id: string, ctx: ChunkingContext) => {
-    if (/[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik)?\.mjs$/.test(id)) {
-      return true;
-    }
-    const segment = ctx.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
-    return !!segment && /^core(\.prod|\.min)?\.qwik\.mjs_core_handlers_/.test(segment.displayName);
-  };
-
   // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
-      {
-        name: (id: string, ctx: ChunkingContext) => (isQwikCoreChunk(id, ctx) ? 'qwik-core' : null),
-        includeDependenciesRecursively: false,
-      },
       {
         name: 'qwik-preloader',
         test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
@@ -1498,6 +1481,8 @@ export const isDev = ${JSON.stringify(isDev)};
     });
     const bgPath = ctx.getFileName(bgAsset);
     manifest.bundleGraphAsset = bgPath;
+    // SSR modulepreloads each handler bundle's static imports from it
+    manifest.bundleGraph = bundleGraph;
     // we already generated the assets list so we need to update it
     manifest.assets![bgPath] = {
       name: 'bundle-graph.json',

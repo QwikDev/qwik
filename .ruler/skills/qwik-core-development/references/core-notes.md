@@ -241,8 +241,14 @@ Out-of-order (OOOS) invariants:
   `shared/qrl/library-qrl.ts`; the build turns that import into `@qwik.dev/core`. Never create them
   with `createQRL(null, '_x', fn)`: the optimizer must see them to give them a chunk and a dev URL.
   Add each hash to `CORE_QRL_HASHES` and match core QRLs by hash, not symbol (prod renames `q_run`
-  to `s_run`). Make `fn` a function declaration: the Rust optimizer's SSR output calls `.s(fn)` at
-  the top of the module. Give the QRL a name different from `fn`'s, or dev segments redeclare it.
+  to `s_run`). Pass `fn` as a function declaration (the Rust optimizer's SSR output calls `.s(fn)`
+  at the top of the module) or, so the segment owns the code, as an inline named function
+  expression that reads only module scope and `_capturesObj`; never as a `const` arrow. Give the
+  QRL a name different from `fn`'s, or dev segments redeclare it.
+- Only event/task handler QRLs share the app's `qwik-core` chunk (the `qwik-core` group in
+  `packages/qwik-vite/src/plugins/plugin.ts` lists their hashes). Everything else, like the
+  control-flow components, is an ordinary segment: write its function inline at the QRL site and
+  don't export it, or the segment is a one-line re-export and its code stays in every app's core.
 
 ## Focused Verification
 

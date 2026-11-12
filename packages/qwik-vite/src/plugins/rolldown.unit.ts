@@ -675,7 +675,7 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
   );
 });
 
-test('the qwik-core group holds the core library, its QRL chunk and its segments', async () => {
+test('the qwik-core group holds the core library, its QRL chunk and its handler segments', async () => {
   const codeSplitting = await clientCodeSplitting({});
   const coreTest = codeSplitting.groups![0].test as RegExp;
   const core = '/app/node_modules/@qwik.dev/core/dist';
@@ -685,10 +685,17 @@ test('the qwik-core group holds the core library, its QRL chunk and its segments
     `${core}/core.prod.qwik.mjs`,
     `${core}/core-qrl.prod.mjs`,
     `${core}/core.prod.qwik.mjs_s_run.js`,
+    `${core}/core.qwik.mjs_q_task.js`,
   ]) {
     assert.ok(coreTest.test(id), id);
   }
-  for (const id of [`${core}/preloader.mjs`, '/app/src/root.tsx_root_component_abc.js']) {
+  // Control-flow components load like any segment, only on pages that render them.
+  for (const id of [
+    `${core}/preloader.mjs`,
+    '/app/src/root.tsx_root_component_abc.js',
+    `${core}/core.prod.qwik.mjs_s_shC.js`,
+    `${core}/core.min.qwik.mjs_s_peT.js`,
+  ]) {
     assert.notOk(coreTest.test(id), id);
   }
 });

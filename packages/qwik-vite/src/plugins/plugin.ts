@@ -1412,10 +1412,11 @@ export const isDev = ${JSON.stringify(isDev)};
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
-      // core's entry, runtime and own segments share a chunk: no import waterfall
+      // core's entry, runtime and event/task handlers share a chunk: no import waterfall. Its
+      // control-flow components (Show, Each, Pending, …) are ordinary segments.
       {
         name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik\.mjs(_[^/\\]+\.js)?|\.mjs)$/,
+        test: /[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik\.mjs(_[qs]_(run|chk|val|task|rsc|res|hmr)\.js)?|\.mjs)$/,
         includeDependenciesRecursively: false,
       },
       {

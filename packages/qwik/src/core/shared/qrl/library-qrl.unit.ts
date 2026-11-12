@@ -12,17 +12,21 @@ const sources = sourceFiles.map((file) => ({
   source: readFileSync(join(coreDir, file), 'utf8'),
 }));
 const allSource = sources.map(({ source }) => source).join('\n');
-const sites = sources.flatMap(({ file, source }) =>
+const qrlNames = sources.flatMap(({ source }) =>
+  [...source.matchAll(/'(q_[a-zA-Z0-9]+)'/g)].map(([, name]) => name)
+);
+// Sites that pass a declared function; the others pass the function inline.
+const namedSites = sources.flatMap(({ file, source }) =>
   [...source.matchAll(/_inlinedQrl\((\w+), '([^']+)'/g)].map(([, fn, name]) => ({ file, fn, name }))
 );
 
 describe("core's own QRL sites", () => {
   it('cover exactly CORE_QRL_HASHES', () => {
-    const hashes = sites.map((site) => site.name.replace(/^q_/, '')).sort();
+    const hashes = qrlNames.map((name) => name.replace(/^q_/, '')).sort();
     expect(hashes).toEqual([...CORE_QRL_HASHES].sort());
   });
 
-  it.each(sites)('$name in $file is named q_<hash> after a function declaration', (site) => {
+  it.each(namedSites)('$name in $file is named q_<hash> after a function declaration', (site) => {
     expect(site.name).toMatch(/^q_[a-zA-Z0-9]+$/);
     expect(site.name).not.toBe(site.fn);
     // The Rust optimizer's SSR output calls `.s(fn)` at the top of the module.

@@ -1442,10 +1442,8 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Eager contexts stay with their parent, not a segment chunk.
-  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
-  // Smart groups computeds with their component's handlers and tasks.
-  const SMART_OWN_CHUNK_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
+  // Loaded outside user interactions, so each keeps its own chunk.
+  const OWN_CHUNK_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
@@ -1469,13 +1467,7 @@ export const isDev = ${JSON.stringify(isDev)};
             // Non-qwik code: let the bundler decide.
             return null;
           }
-          const isSmart = opts.entryStrategy.type === 'smart';
-          // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-          if (!isSmart && EAGER_CTX_NAMES.has(segment.ctxName)) {
-            return null;
-          }
-          const hasOwnChunk =
-            isSmart && (SMART_OWN_CHUNK_CTX_NAMES.has(segment.ctxName) || !segment.entry);
+          const hasOwnChunk = OWN_CHUNK_CTX_NAMES.has(segment.ctxName);
           // Group segments by entry or Qwik Insights hash.
           const chunkName =
             (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] ||

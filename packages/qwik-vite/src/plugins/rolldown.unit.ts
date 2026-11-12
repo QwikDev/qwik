@@ -241,18 +241,6 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
     ctx.getModuleInfo = () => ({
       meta: {
         segment: {
-          hash: 'top123',
-          canonicalFilename: 'app.tsx_click_top123',
-          ctxName: 'event$',
-          ctxKind: 'function',
-          entry: null,
-        },
-      },
-    });
-    assert.equal(name('/src/top.js', ctx), 'app.tsx_click_top123');
-    ctx.getModuleInfo = () => ({
-      meta: {
-        segment: {
           hash: 'computed123',
           ctxName: 'useComputed$',
           ctxKind: 'function',
@@ -314,7 +302,7 @@ test('smart rendering never imports a future interaction library through bundler
                           hash: id,
                           canonicalFilename: `app.tsx_App_component_${id}`,
                           ctxName: id === 'render' ? 'component$' : 'event$',
-                          entry: id === 'render' ? 'entry_render' : null,
+                          entry: id === 'render' ? 'app.tsx_render_App' : 'app.tsx_entry_App',
                         },
                       }
                     : {},

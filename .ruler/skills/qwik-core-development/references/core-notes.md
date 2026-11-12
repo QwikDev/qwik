@@ -246,7 +246,9 @@ Out-of-order (OOOS) invariants:
   expression that reads only module scope and `_capturesObj`; never as a `const` arrow. Give the
   QRL a name different from `fn`'s, or dev segments redeclare it.
 - Only event/task handler QRLs share the app's `qwik-core` chunk (the `qwik-core` group in
-  `packages/qwik-vite/src/plugins/plugin.ts` lists their hashes). Everything else, like the
+  `packages/qwik-vite/src/plugins/plugin.ts` lists their hashes), so a cold click doesn't spend a
+  round trip on `_run` before it knows its handler. Core itself has no special preload: it's a
+  static import in the bundle graph like any chunk. Everything else, like the
   control-flow components, is an ordinary segment: write its function inline at the QRL site and
   don't export it, or the segment is a one-line re-export and its code stays in every app's core.
 

@@ -120,6 +120,12 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
   });
 
+  test('lists core among the imports of the bundles that need it', () => {
+    const app = { ...chunk('app', 'q-app.js'), imports: ['q-core.js'] };
+    const manifest = generate({ 'q-core.js': chunk('qwik-core', 'q-core.js'), 'q-app.js': app });
+    expect(manifest.bundles['q-app.js'].imports).toEqual(['q-core.js']);
+  });
+
   test('leaves core undefined when no qwik-core chunk exists', () => {
     const manifest = generate({ 'q-app.js': chunk('app', 'q-app.js') });
     expect(manifest.core).toBeUndefined();

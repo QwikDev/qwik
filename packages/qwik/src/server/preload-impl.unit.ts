@@ -9,7 +9,6 @@ const createContainer = (buildBase = '/') => {
     resolvedManifest: {
       manifest: {
         preloader: 'preloader.js',
-        core: 'core.js',
         bundleGraphAsset: 'assets/bundle-graph.json',
         bundleGraph: [],
       },
@@ -137,15 +136,7 @@ describe('preloader', () => {
     preloaderPre(container, {});
     preloaderPost(container, { preloader: {} } as any);
 
-    expect(elements).toEqual([
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/core.js',
-        },
-      },
-    ]);
+    expect(elements).toEqual([]);
     expect(getScriptContent()).toBe('');
   });
 
@@ -164,13 +155,6 @@ describe('preloader', () => {
           href: '/assets/bundle-graph.json',
           as: 'fetch',
           crossorigin: 'anonymous',
-        },
-      },
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/core.js',
         },
       },
     ]);
@@ -195,31 +179,6 @@ describe('preloader', () => {
 
     expect(elements).toEqual([]);
     expectDeferredUntilAfterPaint(getScriptContent(), false);
-  });
-
-  it('preloads the core bundle from the build base in a development build', async () => {
-    // `vite build` with a NODE_ENV other than production sets DEV, but still serves from /build/.
-    vi.stubEnv('DEV', true);
-    vi.stubEnv('BASE_URL', '/');
-    vi.doMock('./qwik-copy', () => ({
-      initPreloader: vi.fn(),
-      qTest: false,
-    }));
-    vi.resetModules();
-    const { container, elements } = createContainer('/build/');
-    const { preloaderPre } = await import('./preload-impl');
-
-    preloaderPre(container, {});
-
-    expect(elements).toEqual([
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/build/core.js',
-        },
-      },
-    ]);
   });
 
   it('emits no speculative preload links before page load by default', async () => {

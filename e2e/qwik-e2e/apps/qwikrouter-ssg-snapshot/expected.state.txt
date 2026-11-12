@@ -71,7 +71,7 @@
 11 Signal [
   Constant undefined
   EffectSubscriptionNoData [
-    VNode "11A"
+    VNode "10A"
     Constant ':'
   ]
 ]
@@ -104,7 +104,7 @@
     Constant STORE_ALL_PROPS
     Set [
       EffectSubscriptionNoData [
-        VNode "1H"
+        VNode "1G"
         Constant ':'
       ]
     ]
@@ -119,7 +119,7 @@
     QRL "[omitted]"
     Set [
       EffectSubscriptionNoData [
-        VNode "11AAA"
+        VNode "10AAA"
         Constant ':'
       ]
       EffectSubscriptionNoData [
@@ -146,7 +146,7 @@
             RootRef [omitted]
           ]
           {number} 0
-          VNode "13A"
+          VNode "12A"
           EffectSubscriptionNoData [
             RootRef [omitted]
             Constant '.'
@@ -191,7 +191,7 @@
             RootRef [omitted]
           ]
           {number} 0
-          VNode "8"
+          VNode "7"
           EffectSubscription [
             RootRef [omitted]
             {string} "href"

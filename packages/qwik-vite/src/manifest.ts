@@ -389,7 +389,6 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
-  let coreBundleName: string | undefined;
   let preloaderBundleName: string | undefined;
 
   // A /qwikloader route could shadow a chunk-name match.
@@ -399,7 +398,6 @@ export function generateManifestFromBundles(
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
     if (outputBundle.name === 'qwik-core') {
-      coreBundleName = bundleFileName;
       manifest.core = bundleFileName;
     }
     if (outputBundle.name === 'qwik-preloader') {
@@ -451,7 +449,7 @@ export function generateManifestFromBundles(
     }
     const bundleImports = outputBundle.imports
       .map((i) => getBundleName(i))
-      .filter((i) => i !== preloaderBundleName && i !== coreBundleName)
+      .filter((i) => i !== preloaderBundleName)
       .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
@@ -505,7 +503,7 @@ export function generateManifestFromBundles(
       captureNames: segment.captureNames,
     };
   }
-  if (!coreBundleName) {
+  if (!manifest.core) {
     console.error('Qwik core bundle not found, is Qwik actually used in this project?');
   }
 

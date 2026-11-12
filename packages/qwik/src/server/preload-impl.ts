@@ -100,16 +100,6 @@ export const preloaderPre = (
     }
     container.writeScript(scriptAttrs, script);
   }
-
-  const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
-  if (corePath) {
-    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
-    if (nonce) {
-      linkAttrs['nonce'] = nonce;
-    }
-    container.openElement('link', null, linkAttrs, null, null, null);
-    container.closeElement();
-  }
 };
 
 export const includePreloader = (
@@ -134,11 +124,10 @@ export const includePreloader = (
   const { resolvedManifest } = container;
   if (allowedSsrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
-    const coreBundle = resolvedManifest?.manifest.core;
     for (let i = 0; i < referencedBundles.length; i++) {
       const href = referencedBundles[i];
-      // we already preload the preloader and core bundles
-      if (href === preloaderBundle || href === coreBundle) {
+      // we already preload the preloader bundle
+      if (href === preloaderBundle) {
         continue;
       }
       links.push(href);

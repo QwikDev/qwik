@@ -13,6 +13,7 @@ import {
 import {
   createBundleViewData,
   getBundleExecutionCount,
+  getSelectedBundleIndex,
   getMatrixCellColor,
   type MatrixCell,
 } from './bundle-view';
@@ -51,7 +52,8 @@ export default component$(() => {
   const selectedIndex = useSignal(0);
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
-  const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+  const effectiveIndex = getSelectedBundleIndex(selectedIndex.value, data.value.bundles.length);
+  const selectedBundle = data.value.bundles.at(effectiveIndex);
   const strongestRelationships = selectedSymbol.value
     ? (selectedBundle?.symbolRelationships[selectedSymbol.value] ?? [])
     : (selectedBundle?.relationships ?? []);
@@ -78,7 +80,7 @@ export default component$(() => {
         {selectedBundle && (
           <div class="md:text-right">
             <code class="font-editorial-mono text-editorial-20 font-semibold">
-              Group {selectedIndex.value + 1}
+              Group {effectiveIndex + 1}
             </code>
             <p class="mt-editorial-1 text-editorial-12 text-editorial-secondary">
               {selectedBundle.symbols.length.toLocaleString('en')} symbols ·{' '}
@@ -142,7 +144,7 @@ export default component$(() => {
               </div>
               <ol class="p-editorial-2">
                 {data.value.bundles.map((bundle, index) => {
-                  const isSelected = index === selectedIndex.value;
+                  const isSelected = index === effectiveIndex;
                   return (
                     <li key={bundle.name}>
                       <button

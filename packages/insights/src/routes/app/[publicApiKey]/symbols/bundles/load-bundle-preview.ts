@@ -20,10 +20,11 @@ export async function loadBundlePreview(publicApiKey: string, limit?: number) {
   );
   const details = await getSymbolDetailsByHashes(db, publicApiKey, symbolHashes);
   const rootSymbol = computeSymbolGraph(edges, details);
-  const vectors = computeSymbolVectors(rootSymbol);
+  const vectors = computeSymbolVectors(rootSymbol, true);
   const bundles = computeBundles(vectors);
   return {
     ...createBundleViewData(vectors, bundles),
+    previewPaths: vectors.paths,
     affinityTree: createAffinityTree(vectors.vectors),
   };
 }

@@ -1415,6 +1415,18 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
+  /**
+   * Core's library and its handler segments (see core's `core-handlers.ts`) share a chunk: no
+   * import waterfall. Its control-flow components (Show, Each, Pending, …) are ordinary segments.
+   */
+  const isQwikCoreChunk = (id: string, ctx: ChunkingContext) => {
+    if (/[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik)?\.mjs$/.test(id)) {
+      return true;
+    }
+    const segment = ctx.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
+    return !!segment && /^core(\.prod|\.min)?\.qwik\.mjs_core_handlers_/.test(segment.displayName);
+  };
+
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => {
     const getSegmentGroupName = (segment: SegmentAnalysis) => {
@@ -1452,11 +1464,9 @@ export const isDev = ${JSON.stringify(isDev)};
     };
     return {
       groups: [
-        // core's entry, runtime and event/task handlers share a chunk: no import waterfall. Its
-        // control-flow components (Show, Each, Pending, …) are ordinary segments.
         {
-          name: 'qwik-core',
-          test: /[/\\](core|qwik)[/\\]dist[/\\]core(-qrl)?(\.prod|\.min)?(\.qwik\.mjs(_[qs]_(run|chk|val|task|rsc|res|hmr)\.js)?|\.mjs)$/,
+          name: (id: string, ctx: ChunkingContext) =>
+            isQwikCoreChunk(id, ctx) ? 'qwik-core' : null,
           includeDependenciesRecursively: false,
         },
         {

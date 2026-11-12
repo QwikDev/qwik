@@ -53,20 +53,30 @@ describe('core built as a Qwik library', () => {
       if (!existsSync(core)) {
         throw new Error('Build core first: pnpm build.core.dev');
       }
+      // The app's optimizer keeps the hash core's build gave the QRL.
+      const resHash = /"core_handlers_res_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
       const createOptimizer = optimizerName === 'rust' ? createRustOptimizer : createTsOptimizer;
       const optimizer = await createOptimizer();
-      const output = await optimizer.transformModules({
-        input: [{ path: `core${variant}.qwik.mjs`, code: readFileSync(core, 'utf8') }],
-        srcDir,
-        entryStrategy: { type: isServer ? 'hoist' : 'segment' },
-        minify: 'simplify',
-        explicitExtensions: true,
-        mode,
-        isServer,
-      });
+      const transform = (file: string) =>
+        optimizer.transformModules({
+          input: [{ path: file, code: readFileSync(join(dist, file), 'utf8') }],
+          srcDir,
+          entryStrategy: { type: isServer ? 'hoist' : 'segment' },
+          minify: 'simplify',
+          explicitExtensions: true,
+          mode,
+          isServer,
+        });
+      const output = await transform(`core${variant}.qwik.mjs`);
       expect(output.diagnostics).toEqual([]);
       const segments = output.modules.filter((module) => module.segment);
       expect(segments.length).toBe(isServer ? 0 : 18);
+      // Smart chunking and the manifest's priorities read these, so minifying must keep them.
+      const ctxNames = (modules: typeof output.modules) =>
+        modules.flatMap((module) => module.segment?.ctxName ?? []).sort();
+      expect(ctxNames(output.modules)).toEqual(
+        ctxNames((await transform('core.qwik.mjs')).modules)
+      );
 
       const dir = mkdtempSync(join(workDir, `${optimizerName}-${name}-${mode}-`));
       const parent = output.modules.find((module) => !module.segment)!;
@@ -103,7 +113,7 @@ describe('core built as a Qwik library', () => {
       );
       const { each, hash, file } = JSON.parse(result.trim().split('\n').pop()!);
       expect(each).toBe('function');
-      expect(hash).toBe('res');
+      expect(hash).toBe(resHash);
       if (mode === 'dev') {
         // Dev servers map a core QRL to its segment URL through this file.
         expect(file).toBe(`${srcDir}/core.qwik.mjs`);

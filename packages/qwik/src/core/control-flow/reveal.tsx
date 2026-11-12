@@ -2,19 +2,17 @@ import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { createSignal } from '../reactive-primitives/signal.public';
-import { componentQrl, type Component } from '../shared/component.public';
+import { component$, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
-import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
-import { _capturesObj } from '../shared/qrl/qrl-class';
 import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
 import type { RevealOrder } from '../shared/utils/reveal';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
 import { useConstant } from '../use/use-signal';
-import { useTaskQrl, type TaskCtx } from '../use/use-task';
+import { useTask$ } from '../use/use-task-dollar';
 import {
   createOutOfOrderRevealCoordinator,
   isOutOfOrderStreaming,
@@ -69,26 +67,21 @@ export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration 
   });
 
   if (registration !== null) {
-    useTaskQrl(
-      /*#__PURE__*/ _inlinedQrl(
-        function revealCleanupTask({ cleanup }: TaskCtx) {
-          const registration = _capturesObj._![0] as RevealRegistration;
-          cleanup(() => {
-            // Keep the SSR registry intact so `reveal.items` serializes for resume.
-            if (qTest ? isServerPlatform() : !isBrowser) {
-              return;
-            }
-            const items = registration.reveal.items;
-            const index = items.indexOf(registration.item);
-            if (index !== -1) {
-              items.splice(index, 1);
-              registration.reveal.version.value++;
-            }
-          });
-        },
-        'q_reT',
-        [registration]
-      ),
+    useTask$(
+      ({ cleanup }) => {
+        cleanup(() => {
+          // Keep the SSR registry intact so `reveal.items` serializes for resume.
+          if (qTest ? isServerPlatform() : !isBrowser) {
+            return;
+          }
+          const items = registration.reveal.items;
+          const index = items.indexOf(registration.item);
+          if (index !== -1) {
+            items.splice(index, 1);
+            registration.reveal.version.value++;
+          }
+        });
+      },
       {
         deferUpdates: false,
       }
@@ -114,35 +107,33 @@ const getOutOfOrderCoordinator = (
 };
 
 /** @public @experimental */
-export const Reveal: Component<RevealProps> = /*#__PURE__*/ componentQrl<RevealProps>(
-  /*#__PURE__*/ _inlinedQrl(function revealCmp(props: RevealProps) {
-    if (!__EXPERIMENTAL__.pendingBoundary) {
-      throw new Error(
-        'Reveal is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
-      );
-    }
+export const Reveal: Component<RevealProps> = /*#__PURE__*/ component$<RevealProps>((props) => {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
+    throw new Error(
+      'Reveal is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
+    );
+  }
 
-    const reveal = useConstant(createRevealContext, props);
-    useContextProvider(RevealContext, reveal);
+  const reveal = useConstant(createRevealContext, props);
+  useContextProvider(RevealContext, reveal);
 
-    const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-    if (__EXPERIMENTAL__.pendingBoundary && isServerEnv && isOutOfOrderStreaming()) {
-      const coordinator = getOutOfOrderCoordinator(reveal);
-      return /*#__PURE__*/ _jsxSorted(
-        SSRRevealSlot,
-        {
-          coordinator,
-        },
-        null,
-        null,
-        0,
-        'u7_0'
-      );
-    }
+  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  if (__EXPERIMENTAL__.pendingBoundary && isServerEnv && isOutOfOrderStreaming()) {
+    const coordinator = getOutOfOrderCoordinator(reveal);
+    return /*#__PURE__*/ _jsxSorted(
+      SSRRevealSlot,
+      {
+        coordinator,
+      },
+      null,
+      null,
+      0,
+      'u7_0'
+    );
+  }
 
-    return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0');
-  }, 'q_reC')
-);
+  return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0');
+});
 
 type SSRRevealSlotProps = {
   coordinator: OutOfOrderRevealCoordinator;

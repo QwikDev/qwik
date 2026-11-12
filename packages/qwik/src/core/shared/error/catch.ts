@@ -1,12 +1,11 @@
 import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { useCatchStore } from '../../use/use-catch-store';
-import { componentQrl, type Component } from '../component.public';
+import { component$, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
-import { inlinedQrl as _inlinedQrl } from '../qrl/library-qrl';
-import type { QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
 import {
   OnRenderProp,
@@ -43,7 +42,6 @@ import {
   type CatchStore,
   CatchPhase,
 } from './error-handling';
-import { _capturesObj } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import type { VNode } from '../vnode/vnode';
@@ -183,8 +181,8 @@ const buildSSRCatchHosts = (store: CatchStore, container: SSRContainer | undefin
 };
 
 /** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
-export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProps>(
-  /*#__PURE__*/ _inlinedQrl(function catchCmp(props: CatchProps): JSXOutput {
+export const Catch: Component<CatchProps> = /*#__PURE__*/ component$<CatchProps>(
+  (props): JSXOutput => {
     if (!__EXPERIMENTAL__.catchBoundary) {
       throw new Error(
         '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
@@ -201,19 +199,15 @@ export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProp
       return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
     }
 
-    const reset = /*#__PURE__*/ _inlinedQrl(
-      function catchReset(): void {
-        const [host] = _capturesObj._ as [VNode];
-        // this is executed only on client
-        const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
-        const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
-        if (isBrowserEnv && host && container) {
-          resetCatch(container, host);
-        }
-      },
-      'q_caR',
-      [invokeCtx?.$hostElement$]
-    );
+    const host = invokeCtx?.$hostElement$ as VNode;
+    const reset = $((): void => {
+      // this is executed only on client
+      const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
+      const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+      if (isBrowserEnv && host && container) {
+        resetCatch(container, host);
+      }
+    });
     if (isServerEnv) {
       const fallbackQrl = props.fallback$;
       store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
@@ -235,7 +229,7 @@ export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProp
       0,
       null
     );
-  }, 'q_caC')
+  }
 );
 
 type SSRErrorFallbackProps = {

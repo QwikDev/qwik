@@ -23,28 +23,6 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-/** Hashes of core's own QRLs, named `q_<hash>` at their `_inlinedQrl()` sites. */
-export const CORE_QRL_HASHES = new Set([
-  'run',
-  'chk',
-  'val',
-  'task',
-  'rsc',
-  'res',
-  'hmr',
-  'caR',
-  'caC',
-  'eaT',
-  'eaC',
-  'shT',
-  'shC',
-  'peT',
-  'peC',
-  'reR',
-  'reT',
-  'reC',
-]);
-
 export const getSymbolHash = (symbolName: string) => {
   const index = symbolName.lastIndexOf('_') + 1;
   return symbolName.slice(index);

@@ -1,35 +1,35 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CORE_QRL_HASHES } from './qrl-utils';
 
 const coreDir = join(__dirname, '../..');
-const sourceFiles = (readdirSync(coreDir, { recursive: true }) as string[]).filter(
-  (file) => /\.tsx?$/.test(file) && !/\.(unit|spec)\.tsx?$|[/\\](tests|bench)[/\\]/.test(file)
-);
-const sources = sourceFiles.map((file) => ({
-  file,
-  source: readFileSync(join(coreDir, file), 'utf8'),
-}));
+const withoutComments = (source: string) => source.replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, '');
+const sources = (readdirSync(coreDir, { recursive: true }) as string[])
+  .filter(
+    (file) =>
+      /\.tsx?$/.test(file) &&
+      !/\.(unit|spec)\.tsx?$|(^|[/\\])(tests|bench)[/\\]|^examples\.tsx$/.test(file)
+  )
+  .map((file) => ({ file, source: withoutComments(readFileSync(join(coreDir, file), 'utf8')) }));
 const allSource = sources.map(({ source }) => source).join('\n');
-const qrlNames = sources.flatMap(({ source }) =>
-  [...source.matchAll(/'(q_[a-zA-Z0-9]+)'/g)].map(([, name]) => name)
-);
-// Sites that pass a declared function; the others pass the function inline.
-const namedSites = sources.flatMap(({ file, source }) =>
-  [...source.matchAll(/_inlinedQrl\((\w+), '([^']+)'/g)].map(([, fn, name]) => ({ file, fn, name }))
-);
+// `$(name)` roots; the other sites pass the function inline.
+const importsDollar = /import \{[^}]*(?<![\w$])\$[\s,}]/;
+const namedRoots = sources
+  .filter(({ source }) => importsDollar.test(source))
+  .flatMap(({ file, source }) =>
+    [...source.matchAll(/(?<![\w$.])\$\((\w+)\)/g)].map(([, fn]) => ({ file, fn }))
+  );
 
-describe("core's own QRL sites", () => {
-  it('cover exactly CORE_QRL_HASHES', () => {
-    const hashes = qrlNames.map((name) => name.replace(/^q_/, '')).sort();
-    expect(hashes).toEqual([...CORE_QRL_HASHES].sort());
+describe("core's own QRLs", () => {
+  it('are written with $() for the library build to compile', () => {
+    const handBuilt = sources.filter(
+      ({ file, source }) => !/^shared[/\\]qrl[/\\]/.test(file) && /\binlinedQrl\(/.test(source)
+    );
+    expect(handBuilt.map(({ file }) => file)).toEqual([]);
   });
 
-  it.each(namedSites)('$name in $file is named q_<hash> after a function declaration', (site) => {
-    expect(site.name).toMatch(/^q_[a-zA-Z0-9]+$/);
-    expect(site.name).not.toBe(site.fn);
+  it.each(namedRoots)('$(fn) in $file passes a function declaration', ({ fn }) => {
     // The Rust optimizer's SSR output calls `.s(fn)` at the top of the module.
-    expect(allSource).toMatch(new RegExp(`function ${site.fn}\\b`));
+    expect(allSource).toMatch(new RegExp(`function ${fn}\\b`));
   });
 });

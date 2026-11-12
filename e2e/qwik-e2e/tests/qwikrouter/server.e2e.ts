@@ -229,11 +229,13 @@ test.describe('server$', () => {
           manifest.bundles[file].origins?.some((origin) => pattern.test(origin))
         );
       const serializerBundle = findByOrigin(/\/serializer(\.prod)?\.mjs$/);
+      const coreBundle = findByOrigin(/\/core(\.prod|\.min)?\.qwik\.mjs$/);
       const serverSegmentBundle = findByOrigin(/_serverQrl_\w+\.js$/);
+      expect(coreBundle, 'some bundle should contain core').toBeDefined();
       expect(serializerBundle, 'some bundle should contain the serializer').toBeDefined();
       expect(serverSegmentBundle, 'some bundle should contain the server$ segment').toBeDefined();
       return {
-        manifest,
+        coreBundle,
         serializerBundle: serializerBundle!,
         serverSegmentBundle: serverSegmentBundle!,
       };
@@ -242,10 +244,10 @@ test.describe('server$', () => {
     test('ships the serializer inside the server$ segment, not core', async ({ page }) => {
       // The dev server builds the app on its first page request.
       await page.goto(pageUrl);
-      const { manifest, serializerBundle, serverSegmentBundle } = await findBundles(page);
+      const { coreBundle, serializerBundle, serverSegmentBundle } = await findBundles(page);
 
       expect(serializerBundle).toBe(serverSegmentBundle);
-      expect(serializerBundle).not.toBe(manifest.core);
+      expect(serializerBundle).not.toBe(coreBundle);
     });
 
     test('preloads the serializer before the first server$ call', async ({ page }) => {

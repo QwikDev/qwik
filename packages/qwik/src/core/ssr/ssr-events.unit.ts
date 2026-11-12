@@ -4,6 +4,7 @@ import { runQrl, valQrl } from '../shared/qrl/handler-qrls';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializationContext } from '../../serializer/serialization-context';
+import type { QRL } from '../shared/qrl/qrl.public';
 import { setEvent } from './ssr-events';
 
 describe('setEvent', () => {
@@ -39,6 +40,26 @@ describe('setEvent', () => {
       '#',
       0,
     ]);
+  });
+
+  const symbols = (qrls: Iterable<QRL<unknown>>) => [...qrls].map((q) => q.getSymbol());
+
+  it('tells the preloader about _run and the handler it runs, in that order', () => {
+    const qrl = createQRL('chunk', 'handler', () => {}).m();
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-e:click', qrl, true);
+
+    expect(symbols(context.$eventQrls$)).toEqual([runQrl().$symbol$, 'handler']);
+  });
+
+  it("preloads the optimizer's bind:value handler from core's own handler bundle", () => {
+    const qrl = inlinedQrl(_val, '_val', [{}]) as QRLInternal<unknown>;
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-e:input', qrl, false);
+
+    expect(symbols(context.$eventQrls$)).toEqual([valQrl().$symbol$]);
   });
 
   it("serializes the optimizer's bind:value handler as core's own handler", () => {

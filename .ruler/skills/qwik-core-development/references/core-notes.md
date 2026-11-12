@@ -245,12 +245,19 @@ Out-of-order (OOOS) invariants:
   In the unit tests core's modules load unbundled, so a QRL created at the top level of a module
   that `qrl-class.ts` imports transitively runs before `createQRL` exists: create it on first use.
 - Functions that read their own captures (the qwikloader calls them with the captures as `this`)
-  get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Import them there
-  through `core-handlers.ts`: its file name prefixes their segment names, which the `qwik-core`
-  group in `packages/qwik-vite/src/plugins/plugin.ts` keeps in core's chunk, so a cold click doesn't
-  spend a round trip on `_run` before it knows its handler. Core itself has no special preload: it's
-  a static import in the bundle graph like any chunk. Write every other QRL, like the control-flow
-  components', inline at its `$()` site, so its segment owns the code.
+  get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Write every other QRL,
+  like the control-flow components', inline at its `$()` site, so its segment owns the code.
+- Core has no chunk group or special preload: its chunks are ordinary bundles in the graph, and SSR
+  writes no modulepreload links of its own. An event attribute's QRLs go into
+  `serializationCtx.$eventQrls$`, including `_run`, which the attribute lists next to the handler.
+  `preloaderPost` hints their bundles to the preloader, and `ssrPreloads` links the first ones the
+  client queue would fetch, ranked on the server with `getPreloadOrder` (same probabilities, shared
+  preloader state reset per call). The preloader e2e suite counts the round trips that depend on
+  this.
+- What every app needs to be interactive belongs in core's chunk; what only some apps use is its
+  own segment. An `import()` inside core is a cut point the preloads don't follow, so don't split
+  code every interaction needs behind one: measured on the preloader app, re-render code in its own
+  chunk cost more bytes than it saved and didn't change first-click latency.
 
 ## Focused Verification
 

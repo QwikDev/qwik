@@ -10,7 +10,6 @@ const createContainer = (buildBase = '/') => {
     resolvedManifest: {
       manifest: {
         preloader: 'preloader.js',
-        core: 'core.js',
         bundleGraphAsset: 'assets/bundle-graph.json',
         bundleGraph: [],
       },
@@ -138,15 +137,7 @@ describe('preloader', () => {
     preloaderPre(container, {});
     preloaderPost(container, { preloader: {} } as any);
 
-    expect(elements).toEqual([
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/core.js',
-        },
-      },
-    ]);
+    expect(elements).toEqual([]);
     expect(getScriptContent()).toBe('');
   });
 
@@ -165,13 +156,6 @@ describe('preloader', () => {
           href: '/assets/bundle-graph.json',
           as: 'fetch',
           crossorigin: 'anonymous',
-        },
-      },
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/core.js',
         },
       },
     ]);
@@ -207,32 +191,7 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), false);
   });
 
-  it('preloads the core bundle from the build base in a development build', async () => {
-    // `vite build` with a NODE_ENV other than production sets DEV, but still serves from /build/.
-    vi.stubEnv('DEV', true);
-    vi.stubEnv('BASE_URL', '/');
-    vi.doMock('./qwik-copy', () => ({
-      initPreloader: vi.fn(),
-      qTest: false,
-    }));
-    vi.resetModules();
-    const { container, elements } = createContainer('/build/');
-    const { preloaderPre } = await import('./preload-impl');
-
-    preloaderPre(container, {});
-
-    expect(elements).toEqual([
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/build/core.js',
-        },
-      },
-    ]);
-  });
-
-  it('emits no speculative preload links before page load by default', async () => {
+  it('links the first 5 bundles before page load by default', async () => {
     const { container, getScriptContent } = createContainer();
     const { includePreloader } = await import('./preload-impl');
     const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
@@ -240,7 +199,8 @@ describe('preloader', () => {
     includePreloader(container, undefined, bundles);
 
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
-    expect(immediateScript).toBe('');
+    expect(immediateScript).toContain('route-5.js');
+    expect(immediateScript).not.toContain('route-6.js');
   });
 
   it('emits speculative preload links when ssrPreloads is opted into', async () => {
@@ -318,6 +278,45 @@ describe('preloader', () => {
       'c.js',
       'c-dep.js',
     ]);
+  });
+
+  it("links core first for an event, since _run's and the handler's bundles both import it", async () => {
+    const { getPlatform, setPlatform } = await import('@qwik.dev/core');
+    const { setEvent } = await import('../core/ssr/ssr-events');
+    const { createQRL } = await import('../core/shared/qrl/qrl-class');
+    const { runQrl } = await import('../core/shared/qrl/handler-qrls');
+    const { initPreloader } = await import('../core/preloader/bundle-graph');
+    const { preloaderPost } = await import('./preload-impl');
+    const runSymbol = runQrl().$symbol$;
+    const platform = getPlatform();
+    setPlatform({
+      ...platform,
+      chunkForSymbol: (symbol, chunk) => [symbol, symbol === runSymbol ? 'run.js' : chunk!],
+    });
+    // Both bundles statically import core.js, so the client rates it above either of them.
+    initPreloader(['run.js', 2, 'core.js', 'handler.js', 2]);
+    try {
+      const { container, getScriptContent } = createContainer();
+      Object.assign(container.serializationCtx, {
+        $symbolToChunkResolver$: () => 'run.js',
+        $addRoot$: () => 0,
+        $eventNames$: new Set(),
+      });
+      setEvent(
+        container.serializationCtx,
+        'q-e:click',
+        createQRL('handler.js', 's_handler', () => {}).m(),
+        true
+      );
+      preloaderPost(container, { preloader: { ssrPreloads: 1 } } as any);
+
+      const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
+      // Render order would link run.js first.
+      expect(linksScript).toContain('["core.js"].map(');
+      expect(afterLoad).toContain('p(["run.js","handler.js"])');
+    } finally {
+      setPlatform(platform);
+    }
   });
 
   it("ranks each render's hint afresh, since SSR shares the preloader's state", async () => {

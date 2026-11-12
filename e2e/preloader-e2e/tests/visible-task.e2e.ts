@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom, chunkHasVisibleTask, getManifest, ORIGIN } from '../utils/app';
+import { chunkComesFrom, chunkHasVisibleTask, getCoreBundle, ORIGIN } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
@@ -32,7 +32,7 @@ const VISIBLE_ABOVE_SOURCE = 'src/components/fixtures/visible/above.tsx';
 const VISIBLE_BELOW_SOURCE = 'src/components/fixtures/visible/below.tsx';
 
 const openOnceASpeculativePreloadStarted = async (page: Page, fixture: Fixture) => {
-  const coreUrl = `${ORIGIN}/build/${getManifest().core}`;
+  const coreUrl = `${ORIGIN}/build/${getCoreBundle()}`;
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => url === coreUrl;
   await page.goto(fixture.path, { waitUntil: 'commit' });

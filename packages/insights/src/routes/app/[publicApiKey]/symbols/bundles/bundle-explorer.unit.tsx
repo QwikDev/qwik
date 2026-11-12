@@ -129,6 +129,9 @@ describe('bundle explorer', () => {
     row.value = '109';
     await trigger(document.body, row, 'change');
     expect(document.querySelector('svg[role="img"]')?.getAttribute('viewBox')).toBe('0 100 100 10');
+    expect(document.querySelector('svg[role="img"]')?.getAttribute('preserveAspectRatio')).toBe(
+      'none'
+    );
     expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
       'Relationship score: 1.0 / 1'
     );

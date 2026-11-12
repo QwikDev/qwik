@@ -190,6 +190,7 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
                   Preceding symbol (column) →
                 </p>
                 <svg
+                  preserveAspectRatio="none"
                   class="aspect-square w-full border border-editorial-border"
                   viewBox={`${view.columnStart} ${view.rowStart} ${view.columnEnd - view.columnStart} ${view.rowEnd - view.rowStart}`}
                   role="img"

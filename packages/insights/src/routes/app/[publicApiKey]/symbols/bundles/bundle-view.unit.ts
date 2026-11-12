@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getBundleExecutionCount,
+  getSelectedBundleIndex,
   createBundleViewData,
   getMatrixCellColor,
   getStrongestRelationships,
@@ -8,6 +9,13 @@ import {
 import type { Symbol } from '~/stats/edges';
 
 describe('bundle view', () => {
+  it('falls back to the first group when navigation returns fewer groups', () => {
+    expect(getSelectedBundleIndex(2, 3)).toBe(2);
+    expect(getSelectedBundleIndex(2, 1)).toBe(0);
+    expect(getSelectedBundleIndex(2, 0)).toBe(0);
+    expect(getSelectedBundleIndex(-1, 3)).toBe(0);
+  });
+
   it('sends only matrix cells that are visible in the report', () => {
     const vectors = {
       symbols: [],

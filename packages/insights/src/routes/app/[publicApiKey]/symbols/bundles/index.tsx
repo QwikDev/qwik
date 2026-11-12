@@ -1,6 +1,5 @@
 import { component$, useSignal, useStore, type JSXOutput } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
-import { BundleCmp } from '~/components/bundle';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
@@ -14,6 +13,7 @@ import {
 import {
   createBundleViewData,
   getBundleExecutionCount,
+  getSelectedBundleIndex,
   getMatrixCellColor,
   type MatrixCell,
 } from './bundle-view';
@@ -50,7 +50,8 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
 export default component$(() => {
   const data = useData();
   const selectedIndex = useSignal(0);
-  const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+  const effectiveIndex = getSelectedBundleIndex(selectedIndex.value, data.value.bundles.length);
+  const selectedBundle = data.value.bundles.at(effectiveIndex);
   const strongestRelationships = selectedBundle?.relationships ?? [];
 
   return (
@@ -61,17 +62,17 @@ export default component$(() => {
             Bundle analysis
           </p>
           <h1 class="mt-editorial-2 text-editorial-44 font-bold leading-[1.1] tracking-[-0.035em]">
-            Bundle lens
+            Suggested bundles
           </h1>
           <p class="mt-editorial-2 max-w-2xl text-editorial-14 text-editorial-secondary">
-            Inspect symbol groups derived from execution relationships across the latest 100
-            manifests.
+            Explore suggested symbol groups based on execution relationships across the latest 100
+            manifests. These are analysis groups, not emitted build files.
           </p>
         </div>
         {selectedBundle && (
           <div class="md:text-right">
             <code class="font-editorial-mono text-editorial-20 font-semibold">
-              {selectedBundle.name}
+              Group {effectiveIndex + 1}
             </code>
             <p class="mt-editorial-1 text-editorial-12 text-editorial-secondary">
               {selectedBundle.symbols.length.toLocaleString('en')} symbols ·{' '}
@@ -83,12 +84,17 @@ export default component$(() => {
 
       <div class="flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 py-editorial-6">
         <strong class="text-editorial-24 font-semibold">
-          {data.value.bundles.length.toLocaleString('en')} bundles
+          {data.value.bundles.length.toLocaleString('en')} suggested groups
         </strong>
         <span class="text-editorial-14 text-editorial-secondary">
           across {data.value.symbols.length.toLocaleString('en')} recorded symbols
         </span>
       </div>
+
+      <p class="mb-editorial-6 max-w-2xl text-editorial-14 text-editorial-secondary">
+        Groups can connect through intermediate symbols; membership does not mean every pair has a
+        strong relationship. Select a group to explore its members and connections.
+      </p>
 
       {selectedBundle ? (
         <>
@@ -125,12 +131,12 @@ export default component$(() => {
                   id="bundle-list-title"
                   class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase"
                 >
-                  Bundles
+                  Suggested groups
                 </h2>
               </div>
               <ol class="p-editorial-2">
                 {data.value.bundles.map((bundle, index) => {
-                  const isSelected = index === selectedIndex.value;
+                  const isSelected = index === effectiveIndex;
                   return (
                     <li key={bundle.name}>
                       <button
@@ -145,11 +151,26 @@ export default component$(() => {
                         }}
                       >
                         <span class="block truncate text-editorial-12 font-semibold">
-                          <BundleCmp name={bundle.name} />
+                          Group {index + 1}
                         </span>
                         <span class="mt-editorial-1 block text-editorial-11 text-editorial-muted">
                           {bundle.symbols.length.toLocaleString('en')} symbols ·{' '}
                           {getBundleExecutionCount(bundle).toLocaleString('en')} executions
+                        </span>
+                        <span class="mt-editorial-2 block text-editorial-11 text-editorial-secondary">
+                          {Math.round((bundle.symbols.length / data.value.symbols.length) * 100)}%
+                          of recorded symbols
+                        </span>
+                        <span
+                          class="mt-editorial-2 block h-1 bg-editorial-data-band"
+                          aria-hidden="true"
+                        >
+                          <span
+                            class="block h-full bg-editorial-data-current"
+                            style={{
+                              width: `${(bundle.symbols.length / data.value.symbols.length) * 100}%`,
+                            }}
+                          />
                         </span>
                       </button>
                     </li>
@@ -282,9 +303,9 @@ export default component$(() => {
         </>
       ) : (
         <section class="border-t border-editorial-border py-editorial-16">
-          <h2 class="text-editorial-24 font-semibold">No bundle relationships yet</h2>
+          <h2 class="text-editorial-24 font-semibold">No symbol groups yet</h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
-            Bundles will appear after symbol executions are recorded.
+            Suggested groups will appear after symbol executions are recorded.
           </p>
         </section>
       )}

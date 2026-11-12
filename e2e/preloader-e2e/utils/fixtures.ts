@@ -75,8 +75,10 @@ const overPreloading = (name: string): Fixture => ({
 
 export const CLICK_RUNS_COMPUTED = overPreloading('click-computed');
 export const CLICK_RUNS_TASK = overPreloading('click-task');
+export const CLICK_RUNS_TASK_CALLING_QRL = overPreloading('click-task-calling-qrl');
 export const VISIBLE_TASK_RUNS_COMPUTED = overPreloading('visible-task-computed');
 export const VISIBLE_TASK_RUNS_TASK = overPreloading('visible-task-task');
+export const VISIBLE_TASK_RUNS_TASK_CALLING_QRL = overPreloading('visible-task-task-calling-qrl');
 
 export const IMPORT_CHAIN: Fixture = {
   id: 'harness/import-chain',

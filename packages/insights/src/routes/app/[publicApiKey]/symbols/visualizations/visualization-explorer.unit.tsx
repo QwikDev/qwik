@@ -38,4 +38,43 @@ describe('visualization lab', () => {
     expect(document.querySelector('aside h3')?.textContent).toBe('Group 2');
     expect(document.querySelector('aside')?.textContent).toContain('gamma_component');
   });
+  it('keeps a visible selection after collapsing the group list', async () => {
+    const groups = Array.from({ length: 9 }, (_, index) => ({
+      ...data.bundles[0],
+      name: `group-${index}`,
+    }));
+    const { document } = await domRender(
+      <VisualizationExplorer data={{ ...data, bundles: groups }} />
+    );
+    const toggle = () =>
+      Array.from(document.querySelectorAll('button')).find(
+        (button) =>
+          button.textContent?.includes('Show all') || button.textContent?.includes('Show largest')
+      )!;
+    await trigger(document.body, toggle(), 'click');
+    await trigger(document.body, document.querySelectorAll('button[aria-pressed]')[8], 'click');
+    await trigger(document.body, toggle(), 'click');
+    expect(document.querySelector('button[aria-pressed="true"]')).toBeTruthy();
+    expect(document.querySelector('aside h3')?.textContent).toBe('Group 1');
+  });
+  it('expands source members beyond the initial six', async () => {
+    const members = Array.from({ length: 8 }, (_, index) => ({
+      ...data.symbols[0],
+      name: `member-${index}`,
+      fullName: `Member ${index}`,
+    }));
+    const report = {
+      ...data,
+      symbols: members,
+      bundles: [{ ...data.bundles[0], symbols: members }],
+    };
+    const { document } = await domRender(<VisualizationExplorer data={report} />);
+    expect(document.querySelectorAll('aside li')).toHaveLength(6);
+    expect(document.querySelector('aside')?.textContent).toContain('Showing 6 of 8');
+    const more = Array.from(document.querySelectorAll('aside button')).find((button) =>
+      button.textContent?.includes('Show more')
+    )!;
+    await trigger(document.body, more, 'click');
+    expect(document.querySelectorAll('aside li')).toHaveLength(8);
+  });
 });

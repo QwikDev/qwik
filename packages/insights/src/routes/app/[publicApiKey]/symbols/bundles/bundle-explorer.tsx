@@ -9,7 +9,8 @@ import { RelationshipMatrix } from './relationship-matrix';
 
 export const BundleExplorer = component$<{
   data: BundleInfo & { affinityTree?: AffinityLink[]; previewPaths?: MatrixPath[] };
-}>(({ data: initialData }) => {
+  comparisonHref?: string;
+}>(({ data: initialData, comparisonHref }) => {
   const affinity = useSignal(50);
   const data = useComputed$(() => ({
     ...initialData,
@@ -71,7 +72,7 @@ export const BundleExplorer = component$<{
             These are analysis groups, not emitted build files.
           </p>
           <a
-            href="../visualizations/"
+            href={comparisonHref ?? '../visualizations/'}
             class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
           >
             Explore relationship visualizations

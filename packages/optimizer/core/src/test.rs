@@ -4332,6 +4332,14 @@ export const Local = component$(() => {
 	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
+fn removed_entry_strategies_are_rejected() {
+	for name in ["component", "hook"] {
+		let parsed = serde_json::from_str::<EntryStrategy>(&format!("\"{name}\""));
+		assert!(parsed.is_err(), "{name}");
+	}
+}
+
+#[test]
 fn consistent_hashes() {
 	let code = r#"
 import { component$, $ } from '@qwik.dev/core';
@@ -4355,27 +4363,21 @@ export const Greeter = component$(() => {
 	let options = vec![
 		(EmitMode::Test, EntryStrategy::Segment, true),
 		(EmitMode::Test, EntryStrategy::Single, true),
-		(EmitMode::Test, EntryStrategy::Component, true),
 		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
-		(EmitMode::Prod, EntryStrategy::Component, true),
 		// (EmitMode::Prod, EntryStrategy::Inline, true),
 		(EmitMode::Dev, EntryStrategy::Segment, true),
 		(EmitMode::Dev, EntryStrategy::Single, true),
-		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
 		(EmitMode::Test, EntryStrategy::Segment, false),
 		(EmitMode::Test, EntryStrategy::Single, false),
-		(EmitMode::Test, EntryStrategy::Component, false),
 		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
-		(EmitMode::Prod, EntryStrategy::Component, false),
 		// (EmitMode::Prod, EntryStrategy::Inline, false),
 		(EmitMode::Dev, EntryStrategy::Segment, false),
 		(EmitMode::Dev, EntryStrategy::Single, false),
-		(EmitMode::Dev, EntryStrategy::Component, false),
 		// (EmitMode::Dev, EntryStrategy::Inline, false),
 	];
 

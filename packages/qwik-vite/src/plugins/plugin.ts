@@ -65,6 +65,7 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+const REMOVED_ENTRY_STRATEGIES: Record<string, string> = { component: 'smart', hook: 'segment' };
 
 type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
 type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
@@ -259,6 +260,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     opts.csr = !!updatedOpts.csr;
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
+      const removed: string = updatedOpts.entryStrategy.type;
+      const replacement = REMOVED_ENTRY_STRATEGIES[removed];
+      if (replacement) {
+        throw new Error(
+          `The "${removed}" entry strategy was removed. Use "${replacement}" instead.`
+        );
+      }
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {

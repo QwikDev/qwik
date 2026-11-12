@@ -158,6 +158,7 @@ function createMockCursorData(container: Container): CursorData {
     afterFlushTasks: null,
     extraPromises: null,
     journal: null,
+    $commitBlockers$: null,
     container,
     position: null,
     priority: 0,

@@ -6,6 +6,7 @@ import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
 import type { CursorBoundary } from '../../use/use-cursor-boundary';
 import { registerSingleton } from '../singletons';
+import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 
 export const cursorDatas = /*#__PURE__*/ registerSingleton(
   'cursorDatas',
@@ -43,10 +44,30 @@ export function getPendingQwikLoaderEvents(cursorData: CursorData): string[] | u
   return loaderEvents;
 }
 
+export function blockEarlyCommit(cursorData: CursorData, vNode: VNode): void {
+  (cursorData.$commitBlockers$ ||= []).push(vNode);
+}
+
+/** The journal may commit while `waitingVNode` waits only if no blocker is still rendering. */
+export function canCommitEarly(cursorData: CursorData, waitingVNode: VNode): boolean {
+  const blockers = cursorData.$commitBlockers$;
+  if (blockers) {
+    for (let i = 0; i < blockers.length; i++) {
+      const blocker = blockers[i];
+      if (blocker === waitingVNode || blocker.dirty & ChoreBits.DIRTY_MASK) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 export interface CursorData {
   afterFlushTasks: Task[] | null;
   extraPromises: Promise<void>[] | null;
   journal: VNodeJournal | null;
+  /** VNodes whose subtrees must finish rendering before the journal may commit early. */
+  $commitBlockers$: VNode[] | null;
   container: Container;
   position: VNode | null;
   priority: number;
@@ -84,6 +105,7 @@ export function mergeCursors(
   // delete from global cursors queue
   removeCursorFromQueue(oldCursor, container);
   mergeCursorData(newCursorData, oldCursorData);
+  blockEarlyCommit(newCursorData, oldCursor);
 }
 
 export function mergeCursorData(newCursorData: CursorData, oldCursorData: CursorData): void {

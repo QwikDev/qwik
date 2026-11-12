@@ -97,6 +97,7 @@ export function abandonCursor(
   oldCursorData.afterFlushTasks = null;
   oldCursorData.extraPromises = null;
   oldCursorData.journal = null;
+  oldCursorData.$commitBlockers$ = null;
   oldCursorData.boundaries = null;
   oldCursorData.position = null;
   oldCursorData.promise = null;

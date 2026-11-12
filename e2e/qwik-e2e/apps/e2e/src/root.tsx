@@ -1,6 +1,7 @@
 import type { FunctionComponent } from '@qwik.dev/core';
 import { component$ } from '@qwik.dev/core';
 import { Async } from './components/async/async';
+import { IndependentRenderCommits } from './components/independent-render-commits/independent-render-commits';
 import { Attributes } from './components/attributes/attributes';
 import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { BuildVariables } from './components/build-variables/build';
@@ -56,6 +57,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/render': () => <Render />,
   '/e2e/events': () => <Events />,
   '/e2e/async': () => <Async />,
+  '/e2e/independent-render-commits': () => <IndependentRenderCommits />,
   '/e2e/container': () => <Containers />,
   '/e2e/factory': () => <Factory />,
   '/e2e/watch': () => <Watch />,

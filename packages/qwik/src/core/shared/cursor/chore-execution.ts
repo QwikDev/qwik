@@ -28,6 +28,7 @@ import type { JSXOutput } from '../jsx/types/jsx-node';
 import {
   HOST_SIGNAL,
   ERROR_DATA_KEY,
+  blockEarlyCommit,
   NODE_DIFF_DATA_KEY,
   NODE_PROPS_DATA_KEY,
   type CursorData,
@@ -96,6 +97,7 @@ export function executeTasks(
       if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
         // VisibleTasks: store for execution after flush (don't execute now)
         (cursorData.afterFlushTasks ||= []).push(task);
+        blockEarlyCommit(cursorData, vNode);
       } else {
         // Regular tasks: chain promises only between each other
         const isRenderBlocking = !!(task.$flags$ & TaskFlags.RENDER_BLOCKING);

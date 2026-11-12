@@ -103,4 +103,13 @@ describe('visualization lab', () => {
     await trigger(document.body, neighbor, 'click');
     expect(document.querySelector('.lab-center code')?.textContent).toBe(neighborName);
   });
+  it('shows separate ranked incoming and outgoing scores', async () => {
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} initialView="ranked" />
+    );
+    expect(document.body.textContent).toContain('Which connections are strongest?');
+    expect(document.body.textContent).toContain('Preceding symbols · top 5');
+    expect(document.body.textContent).toContain('Later symbols · top 5');
+    expect(document.body.textContent).toContain('0.80');
+  });
 });

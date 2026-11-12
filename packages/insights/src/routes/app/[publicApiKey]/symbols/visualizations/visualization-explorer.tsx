@@ -5,7 +5,7 @@ import {
   formatDensity,
   findObservedPath,
   getExamplePath,
-  getGroupDensity,
+  getGroupDensitySummaries,
   getNeighborhood,
   getDefaultSymbol,
   type ObservedEdge,
@@ -19,6 +19,7 @@ const views = [
   ['matrix', 'Group matrix'],
   ['paths', 'Observed paths'],
 ];
+const densityThresholds = [0.1, 0.5, 0.8];
 const control =
   'w-full min-w-0 rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-3 text-editorial-12';
 const button =
@@ -72,16 +73,41 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
     );
     const pathFrom = useSignal(() => example.value[0] ?? '');
     const pathTo = useSignal(() => example.value[example.value.length - 1] ?? '');
+    useTask$(({ track }) => {
+      const report = track(() => props.data);
+      const view = track(() => props.initialView);
+      if (view !== 'paths') {
+        return;
+      }
+      const names = new Set(report.symbols.map((symbol) => symbol.name));
+      if (names.has(pathFrom.value) && names.has(pathTo.value)) {
+        return;
+      }
+      const next = getExamplePath(
+        report.observedEdges,
+        new Set(report.symbols.filter((symbol) => symbol.fullName).map((symbol) => symbol.name))
+      );
+      example.value = next;
+      const fallback =
+        report.symbols.find((symbol) => symbol.fullName)?.name ?? report.symbols[0]?.name ?? '';
+      pathFrom.value = next[0] ?? fallback;
+      pathTo.value = next.at(-1) ?? fallback;
+    });
     const name = (hash: string) => named.get(hash) || hash;
     const neighborhood = useComputed$(() =>
       props.initialView === 'neighborhood' || props.initialView === 'ranked'
         ? getNeighborhood(props.data, selectedSymbol.value, 5)
         : { incoming: [], outgoing: [] }
     );
-    const density = useComputed$(() =>
-      props.initialView === 'matrix'
-        ? getGroupDensity(props.data, threshold.value)
-        : { groups: [], cells: [] }
+    const densitySummaries = useComputed$(() =>
+      props.initialView === 'matrix' ? getGroupDensitySummaries(props.data, densityThresholds) : []
+    );
+    const density = useComputed$(
+      () =>
+        densitySummaries.value[densityThresholds.indexOf(threshold.value)] ?? {
+          groups: [],
+          cells: [],
+        }
     );
     const cell = density.value.cells.at(matrixRow.value)?.at(matrixColumn.value);
     const path = findObservedPath(data.observedEdges, pathFrom.value, pathTo.value);

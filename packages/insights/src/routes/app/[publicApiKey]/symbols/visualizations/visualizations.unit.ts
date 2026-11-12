@@ -22,6 +22,7 @@ import {
   getNeighborhood,
   getDefaultSymbol,
   getGroupDensity,
+  getGroupDensitySummaries,
   findObservedPath,
   getExamplePath,
   getObservedEdges,
@@ -223,4 +224,24 @@ it('counts dense groups without sorting an unbounded relationship list', () => {
   } finally {
     spy.mockRestore();
   }
+});
+
+it('decodes scores once when preparing all density thresholds', () => {
+  let reads = 0;
+  const tracked = {
+    ...data,
+    matrix: data.matrix.map((row) =>
+      row.map((cell) => ({
+        column: cell.column,
+        get value() {
+          reads++;
+          return cell.value;
+        },
+      }))
+    ),
+  };
+  const thresholds = [0.1, 0.5, 0.8];
+  const summaries = getGroupDensitySummaries(tracked, thresholds);
+  expect(reads).toBeLessThanOrEqual(data.matrix.flat().length);
+  expect(summaries).toEqual(thresholds.map((threshold) => getGroupDensity(data, threshold)));
 });

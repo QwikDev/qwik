@@ -1,5 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import { getGroupDensity, getNeighborhood } from './visualizations';
+import { getGroupDensitySummaries, getNeighborhood } from './visualizations';
 import { describe, expect, it, vi } from 'vitest';
 import { domRender, trigger } from '@qwik.dev/core/testing';
 import { createBundleViewData } from '../bundles/bundle-view';
@@ -9,7 +9,7 @@ vi.mock('./visualizations', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./visualizations')>();
   return {
     ...actual,
-    getGroupDensity: vi.fn(actual.getGroupDensity),
+    getGroupDensitySummaries: vi.fn(actual.getGroupDensitySummaries),
     getNeighborhood: vi.fn(actual.getNeighborhood),
   };
 });
@@ -190,28 +190,28 @@ describe('visualization lab', () => {
     );
   });
   it('skips hidden aggregations and reuses density when selecting another cell', async () => {
-    vi.mocked(getGroupDensity).mockClear();
+    vi.mocked(getGroupDensitySummaries).mockClear();
     vi.mocked(getNeighborhood).mockClear();
     const groups = await domRender(<VisualizationExplorer data={data} />);
-    expect(getGroupDensity).not.toHaveBeenCalled();
+    expect(getGroupDensitySummaries).not.toHaveBeenCalled();
     expect(getNeighborhood).not.toHaveBeenCalled();
     const buttons = groups.document.querySelectorAll<HTMLButtonElement>('button[aria-pressed]');
     await trigger(groups.document.body, buttons[1], 'click');
-    expect(getGroupDensity).not.toHaveBeenCalled();
+    expect(getGroupDensitySummaries).not.toHaveBeenCalled();
     const { document } = await domRender(
       <VisualizationExplorer data={data} initialView="matrix" />
     );
-    expect(getGroupDensity).toHaveBeenCalledTimes(1);
+    expect(getGroupDensitySummaries).toHaveBeenCalledTimes(1);
     expect(getNeighborhood).not.toHaveBeenCalled();
     const cell = document.querySelectorAll<HTMLButtonElement>(
       'button[aria-label*="percent of pairs"]'
     )[1];
     await trigger(document.body, cell, 'click');
-    expect(getGroupDensity).toHaveBeenCalledTimes(1);
+    expect(getGroupDensitySummaries).toHaveBeenCalledTimes(1);
     const threshold = document.querySelector<HTMLSelectElement>('select')!;
     threshold.value = '0.8';
     await trigger(document.body, threshold, 'change');
-    expect(getGroupDensity).toHaveBeenCalledTimes(2);
+    expect(getGroupDensitySummaries).toHaveBeenCalledTimes(1);
   });
   it('labels a tiny positive density consistently in the cell and its detail', async () => {
     const symbols = Array.from({ length: 1000 }, (_, index) => ({
@@ -239,5 +239,44 @@ describe('visualization lab', () => {
     await trigger(document.body, cell, 'click');
     expect(document.body.textContent).toContain('<0.01% density');
     expect(document.body.textContent).toMatch(/1 of 250,?000/);
+  });
+  it('chooses valid path endpoints after the report is replaced', async () => {
+    const replacement = {
+      ...data,
+      symbols: data.symbols.map((symbol) => ({
+        ...symbol,
+        name: `new-${symbol.name}`,
+        fullName: `new-${symbol.fullName}`,
+      })),
+      observedEdges: data.observedEdges.map((edge) => ({
+        ...edge,
+        from: `new-${edge.from}`,
+        to: `new-${edge.to}`,
+      })),
+    };
+    const Host = component$(() => {
+      const report = useSignal(data);
+      return (
+        <>
+          <button
+            data-new-report
+            onClick$={() => {
+              report.value = replacement;
+            }}
+          >
+            New report
+          </button>
+          <VisualizationExplorer data={report.value} initialView="paths" />
+        </>
+      );
+    });
+    const { document } = await domRender(<Host />);
+    expect(document.querySelectorAll('.lab-path code')).toHaveLength(3);
+    await trigger(document.body, '[data-new-report]', 'click');
+    const labels = document.querySelectorAll('.lab-path code');
+    expect(labels).toHaveLength(3);
+    for (const label of labels) {
+      expect(label.textContent).toContain('new-');
+    }
   });
 });

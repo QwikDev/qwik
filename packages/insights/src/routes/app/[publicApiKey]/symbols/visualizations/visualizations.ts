@@ -42,6 +42,10 @@ export function getNeighborhood(data: BundleInfo, symbol: string, limit = 5) {
 }
 
 export function getGroupDensity(data: BundleInfo, threshold: number, limit = 8) {
+  return getGroupDensitySummaries(data, [threshold], limit)[0];
+}
+
+export function getGroupDensitySummaries(data: BundleInfo, thresholds: number[], limit = 8) {
   const groups = data.bundles
     .slice(0, limit)
     .map((bundle, index) => ({ label: `Group ${index + 1}`, symbols: bundle.symbols }));
@@ -56,18 +60,21 @@ export function getGroupDensity(data: BundleInfo, threshold: number, limit = 8) 
   groups.forEach((group, index) =>
     group.symbols.forEach((symbol) => indexes.set(symbol.name, index))
   );
-  const cells = groups.map((later, row) =>
-    groups.map((preceding, column) => ({
-      count: 0,
-      possible:
-        later.symbols.length * preceding.symbols.length -
-        (row === column ? later.symbols.length : 0),
-      density: 0,
-      strongest: [] as Relationship[],
-    }))
-  );
+  const summaries = thresholds.map((threshold) => ({
+    threshold,
+    cells: groups.map((later, row) =>
+      groups.map((preceding, column) => ({
+        count: 0,
+        possible:
+          later.symbols.length * preceding.symbols.length -
+          (row === column ? later.symbols.length : 0),
+        density: 0,
+        strongest: [] as Relationship[],
+      }))
+    ),
+  }));
   visitMatrixScores(data, (row, column, score) => {
-    if (column === row || score < threshold) {
+    if (row === column) {
       return;
     }
     const to = data.symbols[row].name;
@@ -77,20 +84,27 @@ export function getGroupDensity(data: BundleInfo, threshold: number, limit = 8) 
     if (laterGroup === undefined || precedingGroup === undefined) {
       return;
     }
-    const summary = cells[laterGroup][precedingGroup];
-    summary.count++;
-    summary.strongest.push({ from, to, score });
-    summary.strongest.sort((a, b) => b.score - a.score);
-    if (summary.strongest.length > 3) {
-      summary.strongest.pop();
+    for (const { threshold, cells } of summaries) {
+      if (score < threshold) {
+        continue;
+      }
+      const summary = cells[laterGroup][precedingGroup];
+      summary.count++;
+      summary.strongest.push({ from, to, score });
+      summary.strongest.sort((a, b) => b.score - a.score);
+      if (summary.strongest.length > 3) {
+        summary.strongest.pop();
+      }
     }
   });
-  for (const row of cells) {
-    for (const cell of row) {
-      cell.density = cell.possible ? cell.count / cell.possible : 0;
+  return summaries.map(({ cells }) => {
+    for (const row of cells) {
+      for (const cell of row) {
+        cell.density = cell.possible ? cell.count / cell.possible : 0;
+      }
     }
-  }
-  return { groups, cells };
+    return { groups, cells };
+  });
 }
 
 export interface ObservedEdge {

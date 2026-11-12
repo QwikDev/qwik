@@ -8,14 +8,33 @@ export function getNeighborhood(data: BundleInfo, symbol: string, limit = 5) {
   if (index < 0) {
     return { incoming, outgoing };
   }
-  visitMatrixScores(data, (row, column, score) => {
+  const append = (row: number, column: number, score: number) => {
+    if (score <= 0) {
+      return;
+    }
     if (row === index && column !== index) {
       incoming.push({ from: data.symbols[column].name, to: symbol, score });
     }
     if (column === index && row !== index) {
       outgoing.push({ from: symbol, to: data.symbols[row].name, score });
     }
-  });
+  };
+  if (data.matrixPaths) {
+    const readRows = createMatrixReader(data.matrixPaths);
+    const indexes = data.symbols.map((_, index) => index);
+    readRows([index], indexes)[0].forEach((score, column) => append(index, column, score));
+    readRows(indexes, [index]).forEach(([score], row) => append(row, index, score));
+  } else {
+    data.matrix[index]?.forEach((cell) => append(index, cell.column, cell.value));
+    data.matrix.forEach((row, rowIndex) => {
+      if (rowIndex !== index) {
+        const score = row.find((cell) => cell.column === index)?.value;
+        if (score !== undefined) {
+          append(rowIndex, index, score);
+        }
+      }
+    });
+  }
   const rank = (connections: Relationship[]) =>
     connections.sort((a, b) => b.score - a.score).slice(0, limit);
   return { incoming: rank(incoming), outgoing: rank(outgoing) };

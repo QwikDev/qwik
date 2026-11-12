@@ -1,5 +1,19 @@
+const { matrixQueries } = vi.hoisted(() => ({ matrixQueries: [] as [number, number][] }));
+vi.mock('../bundles/matrix-paths', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../bundles/matrix-paths')>();
+  return {
+    ...actual,
+    createMatrixReader: (paths: Parameters<typeof actual.createMatrixReader>[0]) => {
+      const read = actual.createMatrixReader(paths);
+      return (rows: number[], columns: number[]) => {
+        matrixQueries.push([rows.length, columns.length]);
+        return read(rows, columns);
+      };
+    },
+  };
+});
 import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createBundleViewData } from '../bundles/bundle-view';
 import { formatScore, getNeighborhood, getDefaultSymbol } from './visualizations';
 
@@ -74,6 +88,11 @@ it('reads the same neighborhood from compact paths as from exact matrix scores',
   );
   expect(compact.matrix).toEqual([]);
   for (const symbol of vectors.symbols) {
+    matrixQueries.length = 0;
     expect(getNeighborhood(compact, symbol.name)).toEqual(getNeighborhood(dense, symbol.name));
+    expect(matrixQueries.every(([rows, columns]) => rows === 1 || columns === 1)).toBe(true);
+    expect(
+      matrixQueries.reduce((total, [rows, columns]) => total + rows * columns, 0)
+    ).toBeLessThanOrEqual(2 * vectors.symbols.length);
   }
 });

@@ -1,4 +1,4 @@
-import { component$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
 import { getMatrixCellColor, type BundleInfo } from '../bundles/bundle-view';
 import {
   formatScore,
@@ -72,12 +72,20 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
     const pathFrom = useSignal(() => example.value[0] ?? '');
     const pathTo = useSignal(() => example.value[example.value.length - 1] ?? '');
     const name = (hash: string) => named.get(hash) || hash;
-    const neighborhood = getNeighborhood(data, selectedSymbol.value, 5);
-    const density = getGroupDensity(data, threshold.value);
-    const cell = density.cells.at(matrixRow.value)?.at(matrixColumn.value);
+    const neighborhood = useComputed$(() =>
+      props.initialView === 'neighborhood' || props.initialView === 'ranked'
+        ? getNeighborhood(props.data, selectedSymbol.value, 5)
+        : { incoming: [], outgoing: [] }
+    );
+    const density = useComputed$(() =>
+      props.initialView === 'matrix'
+        ? getGroupDensity(props.data, threshold.value)
+        : { groups: [], cells: [] }
+    );
+    const cell = density.value.cells.at(matrixRow.value)?.at(matrixColumn.value);
     const path = findObservedPath(data.observedEdges, pathFrom.value, pathTo.value);
     const graphHeight =
-      Math.max(3, neighborhood.incoming.length, neighborhood.outgoing.length) * 95;
+      Math.max(3, neighborhood.value.incoming.length, neighborhood.value.outgoing.length) * 95;
     const position = (index: number, total: number) => ((index + 0.5) / total) * graphHeight;
     const group = data.bundles.at(selectedGroup.value);
     const namedMembers = group?.symbols.filter((symbol) => symbol.fullName) ?? [];
@@ -285,10 +293,10 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                         <path d="M0,0 L4,2 L0,4 Z" fill="var(--color-editorial-data-current)" />
                       </marker>
                     </defs>
-                    {neighborhood.incoming.map((edge, index) => (
+                    {neighborhood.value.incoming.map((edge, index) => (
                       <path
                         key={edge.from}
-                        d={`M280,${position(index, neighborhood.incoming.length)} C320,${position(index, neighborhood.incoming.length)} 320,${graphHeight / 2} 356,${graphHeight / 2}`}
+                        d={`M280,${position(index, neighborhood.value.incoming.length)} C320,${position(index, neighborhood.value.incoming.length)} 320,${graphHeight / 2} 356,${graphHeight / 2}`}
                         fill="none"
                         stroke="var(--color-editorial-data-current)"
                         stroke-width={1 + edge.score * 3}
@@ -296,10 +304,10 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                         marker-end="url(#lab-arrow)"
                       />
                     ))}
-                    {neighborhood.outgoing.map((edge, index) => (
+                    {neighborhood.value.outgoing.map((edge, index) => (
                       <path
                         key={edge.to}
-                        d={`M640,${graphHeight / 2} C680,${graphHeight / 2} 680,${position(index, neighborhood.outgoing.length)} 716,${position(index, neighborhood.outgoing.length)}`}
+                        d={`M640,${graphHeight / 2} C680,${graphHeight / 2} 680,${position(index, neighborhood.value.outgoing.length)} 716,${position(index, neighborhood.value.outgoing.length)}`}
                         fill="none"
                         stroke="var(--color-editorial-data-current)"
                         stroke-width={1 + edge.score * 3}
@@ -308,12 +316,15 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                       />
                     ))}
                   </svg>
-                  {neighborhood.incoming.map((edge, index) => (
+                  {neighborhood.value.incoming.map((edge, index) => (
                     <button
                       key={edge.from}
                       type="button"
                       class={['lab-node', button, 'bg-editorial-surface']}
-                      style={{ left: 0, top: `${position(index, neighborhood.incoming.length)}px` }}
+                      style={{
+                        left: 0,
+                        top: `${position(index, neighborhood.value.incoming.length)}px`,
+                      }}
                       onClick$={() => {
                         selectedSymbol.value = edge.from;
                       }}
@@ -341,14 +352,14 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                       {selectedSymbol.value}
                     </p>
                   </div>
-                  {neighborhood.outgoing.map((edge, index) => (
+                  {neighborhood.value.outgoing.map((edge, index) => (
                     <button
                       key={edge.to}
                       type="button"
                       class={['lab-node', button, 'bg-editorial-surface']}
                       style={{
                         right: 0,
-                        top: `${position(index, neighborhood.outgoing.length)}px`,
+                        top: `${position(index, neighborhood.value.outgoing.length)}px`,
                       }}
                       onClick$={() => {
                         selectedSymbol.value = edge.to;
@@ -380,7 +391,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                       Relationship score · 0 to 1
                     </p>
                     <ol class="mt-editorial-4">
-                      {neighborhood[direction as 'incoming' | 'outgoing'].map((edge) => {
+                      {neighborhood.value[direction as 'incoming' | 'outgoing'].map((edge) => {
                         const neighbor = direction === 'incoming' ? edge.from : edge.to;
                         return (
                           <li
@@ -413,7 +424,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                 ))}
               </div>
             )}
-            {!neighborhood.incoming.length && !neighborhood.outgoing.length && (
+            {!neighborhood.value.incoming.length && !neighborhood.value.outgoing.length && (
               <p class="mt-editorial-4 text-editorial-14">
                 No modeled connections for this symbol.
               </p>
@@ -469,7 +480,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                       <th scope="col" class="text-left font-normal text-editorial-secondary">
                         Later group ↓
                       </th>
-                      {density.groups.map((group, index) => (
+                      {density.value.groups.map((group, index) => (
                         <th scope="col" key={group.label} class="py-editorial-2 font-normal">
                           {index < 8 ? `G${index + 1}` : 'Other'}
                         </th>
@@ -477,16 +488,16 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     </tr>
                   </thead>
                   <tbody>
-                    {density.groups.map((group, row) => (
+                    {density.value.groups.map((group, row) => (
                       <tr key={group.label}>
                         <th scope="row" class="pr-editorial-2 text-left font-normal">
                           {row < 8 ? `Group ${row + 1}` : 'Other'}
                         </th>
-                        {density.cells[row].map((summary, column) => (
+                        {density.value.cells[row].map((summary, column) => (
                           <td key={column}>
                             <button
                               type="button"
-                              aria-label={`${density.groups[column].label} to ${group.label}: ${(summary.density * 100).toFixed(2)} percent of pairs`}
+                              aria-label={`${density.value.groups[column].label} to ${group.label}: ${(summary.density * 100).toFixed(2)} percent of pairs`}
                               aria-pressed={
                                 matrixRow.value === row && matrixColumn.value === column
                               }
@@ -526,8 +537,8 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                   class="min-w-0 border-l border-editorial-border pl-editorial-4"
                 >
                   <h3 class="text-editorial-20 font-semibold">
-                    {density.groups[matrixColumn.value].label} →{' '}
-                    {density.groups[matrixRow.value].label}
+                    {density.value.groups[matrixColumn.value].label} →{' '}
+                    {density.value.groups[matrixRow.value].label}
                   </h3>
                   <p class="mt-editorial-3 text-editorial-24 font-semibold">
                     {(cell.density * 100).toFixed(2)}% density

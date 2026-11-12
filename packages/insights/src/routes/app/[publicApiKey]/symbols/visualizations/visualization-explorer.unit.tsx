@@ -1,8 +1,18 @@
 import { component$, useSignal } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { getGroupDensity, getNeighborhood } from './visualizations';
+import { describe, expect, it, vi } from 'vitest';
 import { domRender, trigger } from '@qwik.dev/core/testing';
 import { createBundleViewData } from '../bundles/bundle-view';
 import { VisualizationExplorer } from './visualization-explorer';
+
+vi.mock('./visualizations', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./visualizations')>();
+  return {
+    ...actual,
+    getGroupDensity: vi.fn(actual.getGroupDensity),
+    getNeighborhood: vi.fn(actual.getNeighborhood),
+  };
+});
 
 const symbols = ['alpha', 'beta', 'gamma'].map((name) => ({
   name,
@@ -178,5 +188,29 @@ describe('visualization lab', () => {
     expect(document.body.textContent).toContain(
       'does not prove that the entire sequence occurred together'
     );
+  });
+  it('skips hidden aggregations and reuses density when selecting another cell', async () => {
+    vi.mocked(getGroupDensity).mockClear();
+    vi.mocked(getNeighborhood).mockClear();
+    const groups = await domRender(<VisualizationExplorer data={data} />);
+    expect(getGroupDensity).not.toHaveBeenCalled();
+    expect(getNeighborhood).not.toHaveBeenCalled();
+    const buttons = groups.document.querySelectorAll<HTMLButtonElement>('button[aria-pressed]');
+    await trigger(groups.document.body, buttons[1], 'click');
+    expect(getGroupDensity).not.toHaveBeenCalled();
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} initialView="matrix" />
+    );
+    expect(getGroupDensity).toHaveBeenCalledTimes(1);
+    expect(getNeighborhood).not.toHaveBeenCalled();
+    const cell = document.querySelectorAll<HTMLButtonElement>(
+      'button[aria-label*="percent of pairs"]'
+    )[1];
+    await trigger(document.body, cell, 'click');
+    expect(getGroupDensity).toHaveBeenCalledTimes(1);
+    const threshold = document.querySelector<HTMLSelectElement>('select')!;
+    threshold.value = '0.8';
+    await trigger(document.body, threshold, 'change');
+    expect(getGroupDensity).toHaveBeenCalledTimes(2);
   });
 });

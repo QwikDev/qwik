@@ -18,6 +18,7 @@ import type { SymbolPairCounts } from '~/stats/edges';
 import { createBundleViewData } from '../bundles/bundle-view';
 import {
   formatScore,
+  formatDensity,
   getNeighborhood,
   getDefaultSymbol,
   getGroupDensity,
@@ -167,6 +168,7 @@ it('reads the same neighborhood from compact paths as from exact matrix scores',
     groups
   );
   expect(compact.matrix).toEqual([]);
+  expect(getGroupDensity(compact, 0.001)).toEqual(getGroupDensity(dense, 0.001));
   for (const symbol of vectors.symbols) {
     matrixQueries.length = 0;
     expect(getNeighborhood(compact, symbol.name)).toEqual(getNeighborhood(dense, symbol.name));
@@ -174,5 +176,51 @@ it('reads the same neighborhood from compact paths as from exact matrix scores',
     expect(
       matrixQueries.reduce((total, [rows, columns]) => total + rows * columns, 0)
     ).toBeLessThanOrEqual(2 * vectors.symbols.length);
+  }
+});
+
+it('keeps small positive densities distinct from zero', () => {
+  expect(formatDensity(1 / 250000, 1)).toBe('<0.1%');
+  expect(formatDensity(1 / 250000)).toBe('<0.01%');
+  expect(formatDensity(0)).toBe('0.00%');
+});
+it('sums observed counts for normalized pairs', () => {
+  const names = new Set(['a', 'b']);
+  expect(
+    getObservedEdges(
+      [
+        { from: 'a', to: 'b', relatedCount: 3, unrelatedCount: 2 },
+        { from: 'a', to: 'b', relatedCount: 5, unrelatedCount: 4 },
+      ],
+      names
+    )
+  ).toEqual([{ from: 'a', to: 'b', count: 14 }]);
+});
+
+it('counts dense groups without sorting an unbounded relationship list', () => {
+  const symbols = Array.from({ length: 64 }, (_, index) => ({
+    ...data.symbols[0],
+    name: `s${index}`,
+  }));
+  const report = createBundleViewData(
+    { symbols, vectors: symbols.map(() => symbols.map(() => 1)) },
+    [{ name: 'all', symbols }]
+  );
+  let largest = 0;
+  const original = Array.prototype.sort;
+  const spy = vi.spyOn(Array.prototype, 'sort').mockImplementation(function (
+    this: unknown[],
+    compare
+  ) {
+    largest = Math.max(largest, this.length);
+    return original.call(this, compare);
+  });
+  try {
+    const density = getGroupDensity(report, 0.5);
+    expect(density.cells[0][0].count).toBe(64 * 63);
+    expect(density.cells[0][0].strongest).toHaveLength(3);
+    expect(largest).toBeLessThanOrEqual(4);
+  } finally {
+    spy.mockRestore();
   }
 });

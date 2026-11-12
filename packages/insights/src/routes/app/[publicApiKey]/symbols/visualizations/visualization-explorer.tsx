@@ -2,6 +2,7 @@ import { component$, useComputed$, useSignal, useStylesScoped$, useTask$ } from 
 import { getMatrixCellColor, type BundleInfo } from '../bundles/bundle-view';
 import {
   formatScore,
+  formatDensity,
   findObservedPath,
   getExamplePath,
   getGroupDensity,
@@ -497,7 +498,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                           <td key={column}>
                             <button
                               type="button"
-                              aria-label={`${density.value.groups[column].label} to ${group.label}: ${(summary.density * 100).toFixed(2)} percent of pairs`}
+                              aria-label={`${density.value.groups[column].label} to ${group.label}: ${formatDensity(summary.density).replace('<', 'less than ').replace('%', ' percent')} of pairs`}
                               aria-pressed={
                                 matrixRow.value === row && matrixColumn.value === column
                               }
@@ -522,7 +523,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                                 ? '—'
                                 : summary.density === 0
                                   ? '0'
-                                  : `${(summary.density * 100).toFixed(summary.density < 0.01 ? 1 : 0)}%`}
+                                  : formatDensity(summary.density, summary.density < 0.01 ? 1 : 0)}
                             </button>
                           </td>
                         ))}
@@ -541,7 +542,7 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     {density.value.groups[matrixRow.value].label}
                   </h3>
                   <p class="mt-editorial-3 text-editorial-24 font-semibold">
-                    {(cell.density * 100).toFixed(2)}% density
+                    {formatDensity(cell.density)} density
                   </p>
                   <p class="mt-editorial-2 text-editorial-12 text-editorial-secondary">
                     {cell.count.toLocaleString('en')} of {cell.possible.toLocaleString('en')}{' '}

@@ -1,5 +1,7 @@
 import { build } from 'esbuild';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parseAst } from 'rolldown/parseAst';
 import {
   rolldown,
@@ -7,6 +9,7 @@ import {
   type Plugin as RolldownPlugin,
 } from 'rolldown';
 import { type ManglePropertiesOptions, minify, type MinifyOptions } from 'terser';
+import { compileCoreQrls } from './core-library-qrls.ts';
 import { serverSourceOptions } from './submodule-server.ts';
 import { type BuildConfig, copyFile, fileSize, getBanner, target, writeFile } from './util.ts';
 
@@ -46,6 +49,22 @@ const libraryQrlSites: RolldownPlugin = {
     }
   },
 };
+
+/** Compiles core's `$()` sites like any Qwik library's, with the TS optimizer built before core. */
+async function libraryModeQrls(config: BuildConfig, srcDir: string): Promise<RolldownPlugin> {
+  const tsOptimizerPath = join(config.distQwikPkgDir, 'ts-optimizer.mjs');
+  if (!existsSync(tsOptimizerPath)) {
+    throw new Error(`core's build needs the TS optimizer: build it with --optimizer first`);
+  }
+  const { transformModule } = await import(pathToFileURL(tsOptimizerPath).href);
+  const coreDir = join(srcDir, 'core');
+  return {
+    name: 'libraryModeQrls',
+    transform(code, id) {
+      return compileCoreQrls(transformModule, coreDir, id, code);
+    },
+  };
+}
 
 type CoreVariant = '' | '.prod' | '.min';
 type CoreEntry = 'core' | 'serializer' | 'server';
@@ -175,6 +194,27 @@ function identifiersWithoutDollar() {
   };
 }
 
+/** The calls or variable around a core QRL; the app's optimizer names its segment after them. */
+const QRL_CONTEXT_REGEX =
+  /([\w$]+)\s*(?:=\s*|\()(?:([\w$]+)\(\(\)\s*=>\s*)?(?:\/\*\s*[#@]__PURE__\s*\*\/\s*)?_inlinedQrl\(/g;
+
+function collectQrlContextNames(chunks: { code: string; fileName: string }[]) {
+  const names = new Set<string>();
+  for (const chunk of chunks) {
+    const matches = [...chunk.code.matchAll(QRL_CONTEXT_REGEX)];
+    if (matches.length !== chunk.code.split('_inlinedQrl(').length - 1) {
+      throw new Error(`${chunk.fileName}: a core QRL site has a shape QRL_CONTEXT_REGEX misses`);
+    }
+    for (const [, name, wrapper] of matches) {
+      names.add(name);
+      if (wrapper) {
+        names.add(wrapper);
+      }
+    }
+  }
+  return [...names];
+}
+
 /**
  * Terser only avoids plain property names of the chunk it is minifying, so a `$name$` mangled in
  * one core chunk could take a name another chunk uses as-is (e.g. the QRL's `m` method).
@@ -215,7 +255,8 @@ async function bundleCore(
   inputs: CoreInputs,
   variant: CoreVariant,
   inputOptions: Pick<RolldownInputOptions, 'external' | 'plugins'>,
-  inlinedGlobals: Record<string, string> = {}
+  inlinedGlobals: Record<string, string> = {},
+  banner = ''
 ) {
   const names = coreFileNames(variant);
   const bundle = await rolldown({
@@ -233,6 +274,12 @@ async function bundleCore(
     chunkFileNames: names.qrl,
     sourcemap: variant === '',
     codeSplitting: coreCodeSplitting,
+    // Added while rendering, so the sourcemaps account for them.
+    banner: (chunk) => {
+      // Entering through core's QRL chunk would evaluate core before the QRL machinery.
+      const coreFirst = chunk.isEntry && chunk.name !== 'core' ? `import "./${names.core}";` : '';
+      return [banner, coreFirst].filter(Boolean).join('\n');
+    },
   });
   await bundle.close();
   const chunks = output
@@ -266,10 +313,6 @@ async function bundleCore(
         `${chunk.fileName} must not import @qwik.dev/core: QRL sites belong in ${names.core}, and the other entries import its chunk`
       );
     }
-    if (chunk.fileName !== names.qrl) {
-      // Entering through core's QRL chunk would evaluate core before the QRL machinery.
-      chunk.code = `import "./${names.core}";\n${chunk.code}`;
-    }
   }
   return { chunks, sourcemaps: output.filter((o) => o.type === 'asset') };
 }
@@ -299,20 +342,27 @@ const coreExternals = [
 
 type ServerSourceOptions = Awaited<ReturnType<typeof serverSourceOptions>>;
 
-function bundleCoreSources(
+async function bundleCoreSources(
   config: BuildConfig,
   srcDir: string,
   ext: 'ts' | 'js',
   variant: CoreVariant,
-  server: ServerSourceOptions
+  server: ServerSourceOptions,
+  banner?: string
 ) {
   const inputs = coreInputs((entry) => join(srcDir, entry, `index.${ext}`));
+  const plugins = [
+    await libraryModeQrls(config, srcDir),
+    resolveCoreEntries(inputs),
+    ...server.plugins,
+  ];
   return bundleCore(
     config,
     inputs,
     variant,
-    { external: coreExternals, plugins: [resolveCoreEntries(inputs), ...server.plugins] },
-    server.globals
+    { external: coreExternals, plugins },
+    server.globals,
+    banner
   );
 }
 
@@ -324,13 +374,14 @@ async function submoduleCoreProd(config: BuildConfig, server: ServerSourceOption
     join(config.tscDir, 'packages', 'qwik', 'src'),
     'js',
     '',
-    server
+    server,
+    banner
   );
   await writeCoreChunks(
     config,
     chunks.map((c) => ({
       fileName: c.fileName,
-      code: `${banner}\n${c.code}${c.sourcemapFileName ? `\n//# sourceMappingURL=${c.sourcemapFileName}` : ''}`,
+      code: `${c.code}${c.sourcemapFileName ? `\n//# sourceMappingURL=${c.sourcemapFileName}` : ''}`,
     }))
   );
   for (const map of sourcemaps) {
@@ -387,8 +438,9 @@ async function submoduleCoreProd(config: BuildConfig, server: ServerSourceOption
     ? {
         toplevel: true,
         module: true,
-        // App optimizers only extract QRL sites calling exactly `_inlinedQrl`.
-        reserved: ['_inlinedQrl'],
+        // App optimizers only extract QRL sites calling exactly `_inlinedQrl`, and chunk and
+        // rank them by the name around each site.
+        reserved: ['_inlinedQrl', ...collectQrlContextNames([...min.chunks, ...prod.chunks])],
         nth_identifier: identifiersWithoutDollar(),
         properties: mangleProperties,
       }

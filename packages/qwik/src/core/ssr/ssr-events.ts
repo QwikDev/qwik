@@ -1,7 +1,6 @@
-import { _run } from '../client/run-qrl';
-import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { CORE_QRL_HASHES, isQrl } from '../shared/qrl/qrl-utils';
+import { readsOwnCaptures, runQrl } from '../shared/qrl/handler-qrls';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
 import type { SerializationContext } from '../../serializer/serialization-context';
@@ -36,17 +35,15 @@ export function setEvent(
      * If there are captures we need to schedule so everything is executed in the right order + qrls
      * are resolved.
      *
-     * For internal qrls (starting with `_`) and core's own QRLs we assume that they do the right
-     * thing.
+     * Internal qrls (starting with `_`) and core's own handlers deserialize their own captures.
      */
     if (
       !qrl.$symbol$.startsWith('_') &&
-      !CORE_QRL_HASHES.has(qrl.$hash$) &&
+      !readsOwnCaptures(qrl) &&
       (Array.isArray(qrl.$captures$) || (hasMovedCaptures && qrl.$hasMovedCaptures$))
     ) {
       // Listing the handler chunk lets qwikloader import it with core instead of after it
-      const runQrl = _inlinedQrl(_run, 'q_run', [qrl]) as QRLInternal<unknown>;
-      return qrlToChunks(serializationCtx, runQrl, qrl);
+      return qrlToChunks(serializationCtx, runQrl().w([qrl]), qrl);
     }
     return qrlToChunks(serializationCtx, qrl);
   };

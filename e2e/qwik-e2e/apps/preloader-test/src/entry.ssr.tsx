@@ -20,7 +20,6 @@ const requestedMaxIdlePreloads = (opts: RenderToStreamOptions) => {
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     preloader: {
-      ssrPreloads: 0,
       maxIdlePreloads: requestedMaxIdlePreloads(opts),
     },
     qwikLoader: 'inline',

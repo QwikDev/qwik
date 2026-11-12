@@ -371,11 +371,11 @@ number
 
 </td><td>
 
-_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active: the first ones the preloader would fetch for the page, ranked the same way by probability, so shared static imports come first. Setting this to 0 will disable all preload links.
+_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active: the first ones the preloader would fetch for the page, ranked the same way by probability, so shared static imports such as core come first. Setting this to 0 will disable all preload links.
 
 Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not a Core Web Vital but more noticeable to the user.
 
-Defaults to `0`, so speculative preloading starts once the page is loaded.
+Defaults to `5`: the bundles the preloader ranks first, which normally include core and the handler bundles the page's events and tasks run through.
 
 </td></tr>
 </tbody></table>

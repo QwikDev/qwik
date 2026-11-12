@@ -9,6 +9,7 @@ import {
   preloaderLinks,
   recordSpeculativePreloads,
   recordSpeculativeOrder,
+  release,
   releaseAll,
   resultIsDone,
   settle,
@@ -182,7 +183,7 @@ const navigateWhilePrefetching = async (page: Page) => {
 test.describe('after a navigation', () => {
   test('the preloader keeps preloading speculatively', async ({ page }, testInfo) => {
     const { gate, pendingPreloads } = await navigateWhilePrefetching(page);
-    await releaseAll(gate, pendingPreloads);
+    await release(pendingPreloads);
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
     expect(order.trim()).not.toBe('');

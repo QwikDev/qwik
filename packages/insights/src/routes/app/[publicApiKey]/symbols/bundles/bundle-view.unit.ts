@@ -66,7 +66,8 @@ describe('bundle view', () => {
     expect(result.bundles[0].symbols[0]).toBe(result.symbols[0]);
     expect(getBundleExecutionCount(result.bundles[0])).toBe(3);
     expect(result.bundles[0].relationships).toEqual([
-      { from: 'symbol-0', to: 'symbol-1', score: 0.5 },
+      { from: 'symbol-1', to: 'symbol-0', score: 0.5 },
+      { from: 'symbol-0', to: 'symbol-1', score: 0.2 },
     ]);
     expect(result.matrix[0]).toEqual([
       { column: 0, value: 1 },
@@ -80,6 +81,29 @@ describe('bundle view', () => {
     const resumed = await _deserialize<typeof result>(await _serialize(result));
     expect(resumed).toEqual(result);
     expect(resumed.bundles[0].symbols[0]).toBe(resumed.symbols[0]);
+  });
+
+  it('preserves the strongest connections for every symbol, beyond the group top ten', () => {
+    const symbols = Array.from({ length: 8 }, (_, index) => ({
+      name: `symbol-${index}`,
+      count: 1,
+      depth: 0,
+      fullName: null,
+      fileSrc: null,
+      children: [],
+    }));
+    const vectors = symbols.map((_, row) =>
+      symbols.map((_, column) => (row === column ? 1 : (row + column + 1) / 20))
+    );
+    const result = createBundleViewData({ symbols, vectors }, [{ name: 'bundle', symbols }]);
+    expect(result.bundles[0].relationships).toHaveLength(10);
+    const connections = result.bundles[0].symbolRelationships['symbol-0'];
+    expect(connections).toHaveLength(5);
+    expect(connections.every(({ from, to }) => from === 'symbol-0' || to === 'symbol-0')).toBe(
+      true
+    );
+    expect(connections[0].score).toBe(0.4);
+    expect(connections.every(({ from, to }) => from !== to)).toBe(true);
   });
 
   it('summarizes recorded executions', () => {
@@ -100,7 +124,7 @@ describe('bundle view', () => {
     );
   });
 
-  it('ranks relationships within the selected bundle', () => {
+  it('ranks both directions from preceding to later symbols within the selected bundle', () => {
     const [first, second, third, outside] = ['first', 'second', 'third', 'outside'].map((name) => ({
       name,
     }));
@@ -116,9 +140,12 @@ describe('bundle view', () => {
         ],
       })
     ).toEqual([
-      { from: 'first', to: 'third', score: 0.9 },
+      { from: 'third', to: 'first', score: 0.9 },
       { from: 'second', to: 'third', score: 0.8 },
       { from: 'first', to: 'second', score: 0.6 },
+      { from: 'third', to: 'second', score: 0.4 },
+      { from: 'second', to: 'first', score: 0.2 },
+      { from: 'first', to: 'third', score: 0.1 },
     ]);
   });
 });

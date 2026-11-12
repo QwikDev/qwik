@@ -27,6 +27,10 @@ const data = {
       { name: 'second', symbols: symbols.slice(2) },
     ]
   ),
+  observedEdges: [
+    { from: 'alpha', to: 'beta', count: 8 },
+    { from: 'beta', to: 'gamma', count: 6 },
+  ],
 };
 
 describe('visualization lab', () => {
@@ -166,5 +170,13 @@ describe('visualization lab', () => {
     expect(document.body.textContent).toContain('Which groups connect?');
     expect(document.body.textContent).toContain('50.00% density');
     expect(document.body.textContent).toContain('1 of 2 possible directed pairs');
+  });
+  it('renders observed paths with counts and temporal limitations', async () => {
+    const { document } = await domRender(<VisualizationExplorer data={data} initialView="paths" />);
+    expect(document.body.textContent).toContain('2 observed steps');
+    expect(document.body.textContent).toContain('8 adjacent executions');
+    expect(document.body.textContent).toContain(
+      'does not prove that the entire sequence occurred together'
+    );
   });
 });

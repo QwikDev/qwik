@@ -1,13 +1,22 @@
 import { component$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
 import { getMatrixCellColor, type BundleInfo } from '../bundles/bundle-view';
-import { formatScore, getGroupDensity, getNeighborhood, getDefaultSymbol } from './visualizations';
+import {
+  formatScore,
+  findObservedPath,
+  getExamplePath,
+  getGroupDensity,
+  getNeighborhood,
+  getDefaultSymbol,
+  type ObservedEdge,
+} from './visualizations';
 
-type LabData = BundleInfo;
+type LabData = BundleInfo & { observedEdges: ObservedEdge[] };
 const views = [
   ['groups', 'Group sizes'],
   ['neighborhood', 'Neighborhood'],
   ['ranked', 'Ranked connections'],
   ['matrix', 'Group matrix'],
+  ['paths', 'Observed paths'],
 ];
 const control =
   'w-full min-w-0 rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-3 text-editorial-12';
@@ -29,6 +38,8 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
     .lab-node { position:absolute; width:28%; transform:translateY(-50%); text-align:left; overflow-wrap:anywhere; }
     .lab-node code { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .lab-center { left:36%; }
+    .lab-path { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
+    .lab-path-node { flex:1 1 180px; min-width:0; overflow-wrap:anywhere; }
     @media(max-width:700px) {
       .lab-graph { height:auto !important; display:flex; flex-direction:column; gap:16px; }
       .lab-graph svg { display:none; }
@@ -55,10 +66,16 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
     const threshold = useSignal(0.5);
     const matrixRow = useSignal(0);
     const matrixColumn = useSignal(0);
+    const example = useSignal(() =>
+      activeView === 'paths' ? getExamplePath(data.observedEdges, new Set(named.keys())) : []
+    );
+    const pathFrom = useSignal(() => example.value[0] ?? '');
+    const pathTo = useSignal(() => example.value[example.value.length - 1] ?? '');
     const name = (hash: string) => named.get(hash) || hash;
     const neighborhood = getNeighborhood(data, selectedSymbol.value, 5);
     const density = getGroupDensity(data, threshold.value);
     const cell = density.cells.at(matrixRow.value)?.at(matrixColumn.value);
+    const path = findObservedPath(data.observedEdges, pathFrom.value, pathTo.value);
     const graphHeight =
       Math.max(3, neighborhood.incoming.length, neighborhood.outgoing.length) * 95;
     const position = (index: number, total: number) => ((index + 0.5) / total) * graphHeight;
@@ -540,6 +557,92 @@ export const VisualizationExplorer = component$<VisualizationExplorerProps>(
                     </p>
                   )}
                 </aside>
+              )}
+            </div>
+          </section>
+        )}
+
+        {activeView === 'paths' && (
+          <section class="pt-editorial-5" aria-labelledby="path-title">
+            <h2 id="path-title" class="text-editorial-24 font-semibold">
+              What observed sequence connects these symbols?
+            </h2>
+            <p class="mt-editorial-2 max-w-3xl text-editorial-14 text-editorial-secondary">
+              Shortest path through recorded neighboring executions, up to six steps. These are
+              temporal relationships, not function calls or the exact path used by the score model.
+            </p>
+            <div class="mt-editorial-5 grid gap-editorial-4 md:grid-cols-2">
+              {[
+                ['from', 'Starting symbol'],
+                ['to', 'Ending symbol'],
+              ].map(([side, label]) => (
+                <label key={side} class="min-w-0 text-editorial-12">
+                  {label}
+                  <select
+                    class={['mt-editorial-2', control]}
+                    value={side === 'from' ? pathFrom.value : pathTo.value}
+                    onChange$={(_, select) => {
+                      if (side === 'from') {
+                        pathFrom.value = select.value;
+                      } else {
+                        pathTo.value = select.value;
+                      }
+                    }}
+                  >
+                    {data.symbols.map((symbol) => (
+                      <option
+                        key={symbol.name}
+                        value={symbol.name}
+                        selected={symbol.name === (side === 'from' ? pathFrom.value : pathTo.value)}
+                      >
+                        {symbol.fullName ? `${symbol.fullName} · ${symbol.name}` : symbol.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <div aria-live="polite" class="mt-editorial-6">
+              {path.length ? (
+                <>
+                  <p class="mb-editorial-4 text-editorial-12 text-editorial-secondary">
+                    {path.length - 1} observed {path.length === 2 ? 'step' : 'steps'} · arrow labels
+                    show recorded adjacent-execution counts
+                  </p>
+                  <div class="lab-path">
+                    {path.map((hash, index) => (
+                      <div key={hash} class="lab-path-node">
+                        <div class="rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-4">
+                          <p class="text-editorial-11 text-editorial-secondary">STEP {index + 1}</p>
+                          <code class="mt-editorial-2 block text-editorial-14 font-semibold">
+                            {name(hash)}
+                          </code>
+                          <p class="mt-editorial-2 break-all text-editorial-11 text-editorial-secondary">
+                            {hash}
+                          </p>
+                        </div>
+                        {index < path.length - 1 && (
+                          <p class="my-editorial-3 text-editorial-12 text-editorial-link">
+                            →{' '}
+                            {data.observedEdges
+                              .find((edge) => edge.from === hash && edge.to === path[index + 1])
+                              ?.count.toLocaleString('en')}{' '}
+                            adjacent executions
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p class="mt-editorial-5 max-w-3xl text-editorial-12 text-editorial-secondary">
+                    Each edge was observed separately; this does not prove that the entire sequence
+                    occurred together in one session. Counts are not multiplied into a path
+                    probability.
+                  </p>
+                </>
+              ) : (
+                <p class="text-editorial-14">
+                  No observed path found within six steps. A modeled relationship may still exist.
+                </p>
               )}
             </div>
           </section>

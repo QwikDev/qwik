@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, type JSXOutput } from '@qwik.dev/core';
+import { $, component$, useSignal, useStore, type JSXOutput, type QRL } from '@qwik.dev/core';
 import { SymbolTile } from '~/components/symbol-tile';
 import type { Symbol } from '~/stats/edges';
 import {
@@ -458,42 +458,31 @@ export const CorrelationMatrix = component$<{
     value: 0,
     rowSymbol: '',
     colSymbol: '',
-    x: 0,
-    y: 0,
+  });
+  const selectCell = $((_: Event, cell: HTMLButtonElement) => {
+    callout.value = Number(cell.getAttribute('data-value'));
+    callout.rowSymbol = cell.getAttribute('data-row-symbol')!;
+    callout.colSymbol = cell.getAttribute('data-col-symbol')!;
+    callout.visible = true;
   });
   return (
     <>
-      <div
-        class="border border-editorial-border aspect-square w-full max-w-[calc(70vmin-20px)] flex flex-col justify-evenly mb-14"
-        onMouseEnter$={() => (callout.visible = true)}
-        onMouseLeave$={() => (callout.visible = false)}
-        onMouseMove$={(e) => {
-          callout.x = e.clientX;
-          callout.y = e.clientY;
-          const col = e.target as HTMLElement;
-          const row = col.parentNode as HTMLElement;
-          callout.value = parseFloat(col.dataset.value!);
-          callout.colSymbol = col.dataset.colSymbol!;
-          callout.rowSymbol = row.dataset.rowSymbol!;
-        }}
-      >
-        <MatrixCells matrix={matrix} symbols={symbols} />
+      <div class="border border-editorial-border aspect-square w-full max-w-[calc(70vmin-20px)] flex flex-col justify-evenly">
+        <MatrixCells matrix={matrix} symbols={symbols} onSelect$={selectCell} />
       </div>
       <div
-        style={{
-          display: callout.visible && !isNaN(callout.value) ? 'inline-block' : 'none',
-          top: callout.y + 5 + 'px',
-          left: callout.x + 5 + 'px',
-        }}
-        class="fixed bg-editorial-surface border border-editorial-border text-xs"
+        data-matrix-details
+        aria-live="polite"
+        hidden={!callout.visible}
+        class="mt-editorial-3 overflow-x-auto bg-editorial-surface border border-editorial-border text-xs"
       >
         <table class="w-full text-sm text-left">
           <tbody>
             <tr class="border-y border-editorial-border text-xs">
-              <th scope="col" class="px-6 py-3 bg-editorial-subtle">
+              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
                 Score
               </th>
-              <td scope="col" class="px-6 py-3">
+              <td class="px-6 py-3">
                 <code
                   class={[
                     'rounded-xs px-8 py-1 inline-block',
@@ -519,18 +508,18 @@ export const CorrelationMatrix = component$<{
               </td>
             </tr>
             <tr class="border-b border-editorial-border text-xs">
-              <th scope="col" class="px-6 py-3 bg-editorial-subtle">
+              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
                 Row
               </th>
-              <td scope="col" class="px-6 py-3">
+              <td class="px-6 py-3">
                 <code>{callout.rowSymbol}</code>
               </td>
             </tr>
             <tr class="border-b border-editorial-border text-xs">
-              <th scope="col" class="px-6 py-3 bg-editorial-subtle">
+              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
                 Column
               </th>
-              <td scope="col" class="px-6 py-3">
+              <td class="px-6 py-3">
                 <code>{callout.colSymbol}</code>
               </td>
             </tr>
@@ -544,7 +533,8 @@ export const CorrelationMatrix = component$<{
 export const MatrixCells = component$<{
   matrix: MatrixCell[][];
   symbols: Symbol[];
-}>(({ matrix, symbols }) => {
+  onSelect$: QRL<(event: Event, cell: HTMLButtonElement) => void>;
+}>(({ matrix, symbols, onSelect$ }) => {
   const size = matrix.length;
   return (
     <>
@@ -555,14 +545,19 @@ export const MatrixCells = component$<{
           key={rowIdx}
           data-row-symbol={symbols[rowIdx].name}
         >
-          {cells(row, symbols)}
+          {cells(row, symbols, symbols[rowIdx].name, onSelect$)}
         </div>
       ))}
     </>
   );
 });
 
-function cells(row: MatrixCell[], symbols: Symbol[]) {
+function cells(
+  row: MatrixCell[],
+  symbols: Symbol[],
+  rowSymbol: string,
+  onSelect$: QRL<(event: Event, cell: HTMLButtonElement) => void>
+) {
   const size = symbols.length;
   const cells: JSXOutput[] = [];
   let nextColumn = 0;
@@ -572,15 +567,22 @@ function cells(row: MatrixCell[], symbols: Symbol[]) {
       cells.push(<div class="h-full inline-block" style={{ width: (gap * 100) / size + '%' }} />);
     }
     cells.push(
-      <div
+      <button
         key={column}
+        type="button"
+        onMouseMove$={onSelect$}
+        onFocus$={onSelect$}
+        onClick$={onSelect$}
+        aria-label={`Row: ${rowSymbol}, Column: ${symbols[column].name}, Score: ${Math.round(value * 100)}%`}
+        class="h-full shrink-0 cursor-pointer border-0 p-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-editorial-accent"
         style={{
           width: 100 / size + '%',
           backgroundColor: getMatrixCellColor(value),
         }}
+        data-row-symbol={rowSymbol}
         data-col-symbol={symbols[column].name}
         data-value={value}
-      ></div>
+      />
     );
     nextColumn = column + 1;
   }

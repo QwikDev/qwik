@@ -236,21 +236,19 @@ Out-of-order (OOOS) invariants:
   variant at another with an `export *` stub: the self-import cycles through the stub. Terser runs per
   chunk, so its mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
   `$props$` must avoid plain property names of every chunk, not just the one being minified.
-- Core's own QRLs (event wrapper, bind handlers, visible tasks, control flow, HMR, eager resume) are
-  `_inlinedQrl(fn, 'q_<hash>', [captures])` calls, with `inlinedQrl as _inlinedQrl` imported from
-  `shared/qrl/library-qrl.ts`; the build turns that import into `@qwik.dev/core`. Never create them
-  with `createQRL(null, '_x', fn)`: the optimizer must see them to give them a chunk and a dev URL.
-  Add each hash to `CORE_QRL_HASHES` and match core QRLs by hash, not symbol (prod renames `q_run`
-  to `s_run`). Pass `fn` as a function declaration (the Rust optimizer's SSR output calls `.s(fn)`
-  at the top of the module) or, so the segment owns the code, as an inline named function
-  expression that reads only module scope and `_capturesObj`; never as a `const` arrow. Give the
-  QRL a name different from `fn`'s, or dev segments redeclare it.
-- Only event/task handler QRLs share the app's `qwik-core` chunk (the `qwik-core` group in
-  `packages/qwik-vite/src/plugins/plugin.ts` lists their hashes), so a cold click doesn't spend a
-  round trip on `_run` before it knows its handler. Core itself has no special preload: it's a
-  static import in the bundle graph like any chunk. Everything else, like the
-  control-flow components, is an ordinary segment: write its function inline at the QRL site and
-  don't export it, or the segment is a one-line re-export and its code stays in every app's core.
+- Write core's own QRLs with `$()`, `component$()` and `useTask$()` imported from their relative
+  modules. `scripts/core-library-qrls.ts` compiles them in library mode, for core's build and for
+  the unit tests (`vitest.config.ts`), so each app's optimizer extracts them like any library's. A
+  `foo$` marker needs `fooQrl` exported from the same module: the optimizer imports it from there.
+  In the unit tests core's modules load unbundled, so a QRL created at the top level of a module
+  that `qrl-class.ts` imports transitively runs before `createQRL` exists: create it on first use.
+- Functions that read their own captures (the qwikloader calls them with the captures as `this`)
+  get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Import them there
+  through `core-handlers.ts`: its file name prefixes their segment names, which the `qwik-core`
+  group in `packages/qwik-vite/src/plugins/plugin.ts` keeps in core's chunk, so a cold click doesn't
+  spend a round trip on `_run` before it knows its handler. Core itself has no special preload: it's
+  a static import in the bundle graph like any chunk. Write every other QRL, like the control-flow
+  components', inline at its `$()` site, so its segment owns the code.
 
 ## Focused Verification
 

@@ -1,6 +1,9 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { useTaskQrl, type TaskFn, type TaskOptions } from './use-task';
 
+// The optimizer turns core's own `useTask$` calls into `useTaskQrl` from this module.
+export { useTaskQrl };
+
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useTask instead and run `pnpm docs.sync`)

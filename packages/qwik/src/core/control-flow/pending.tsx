@@ -1,15 +1,14 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import type { Signal } from '../reactive-primitives/signal.public';
-import { componentQrl, type Component } from '../shared/component.public';
+import { component$, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
-import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QFallbackSlot,
@@ -22,11 +21,11 @@ import { createInternalServerComponent } from '../ssr/internal-server-component'
 import { canRevealRegistration } from '../shared/utils/reveal';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment } from '../ssr/ssr-types';
-import { useComputedQrl } from '../use/use-computed';
+import { useComputed$ } from '../use/use-computed';
 import { tryGetInvokeContext, untrack } from '../use/use-core';
-import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
+import { useCursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
-import { useTaskQrl, type TaskCtx } from '../use/use-task';
+import { useTask$ } from '../use/use-task-dollar';
 import { useRevealBoundary, type RevealRegistration } from './reveal';
 import {
   isOutOfOrderStreaming,
@@ -67,8 +66,8 @@ const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
 const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @public @experimental */
-export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<PendingProps>(
-  /*#__PURE__*/ _inlinedQrl(function pendingCmp(props: PendingProps): JSXNodeInternal<string>[] {
+export const Pending: Component<PendingProps> = /*#__PURE__*/ component$<PendingProps>(
+  (props): JSXNodeInternal<string>[] => {
     if (!__EXPERIMENTAL__.pendingBoundary) {
       throw new Error(
         'Pending is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
@@ -78,54 +77,37 @@ export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<Pendi
     const state = useSignal<PendingState>('content');
     const cursorBoundary = useCursorBoundary();
     const revealRegistration = useRevealBoundary(cursorBoundary);
-    const canReveal = useComputedQrl(
-      /*#__PURE__*/ _inlinedQrl(
-        function revealCanReveal() {
-          const registration = _capturesObj._![0] as RevealRegistration | null;
-          // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
-          if (registration !== null && registration.reveal.version.value < 0) {
-            return false;
-          }
-          if (qTest ? isServerPlatform() : !isBrowser) {
-            const ooos = registration?.reveal.ooos;
-            if (ooos) {
-              return ooos.canReveal(registration);
-            }
-          }
-          return canRevealRegistration(registration);
-        },
-        'q_reR',
-        [revealRegistration]
-      )
-    );
+    const canReveal = useComputed$(() => {
+      // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
+      if (revealRegistration !== null && revealRegistration.reveal.version.value < 0) {
+        return false;
+      }
+      if (qTest ? isServerPlatform() : !isBrowser) {
+        const ooos = revealRegistration?.reveal.ooos;
+        if (ooos) {
+          return ooos.canReveal(revealRegistration);
+        }
+      }
+      return canRevealRegistration(revealRegistration);
+    });
 
-    useTaskQrl(
-      /*#__PURE__*/ _inlinedQrl(
-        function pendingTask({ track, cleanup }: TaskCtx) {
-          const cursorBoundary = _capturesObj._![0] as CursorBoundary,
-            props = _capturesObj._![1] as { delay?: number },
-            state = _capturesObj._![2] as Signal<PendingState>,
-            revealRegistration = _capturesObj._![3] as RevealRegistration | null;
-          const pendingCount = track(cursorBoundary);
-          const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
-          if (revealRegistration !== null && isBrowserEnv) {
-            revealRegistration.reveal.version.value++;
-          }
-          if (!isBrowserEnv || pendingCount === 0) {
-            state.value = 'content';
-            return;
-          }
-          const delayTimer = setTimeout(() => {
-            if (cursorBoundary.value > 0) {
-              state.value = 'fallback';
-            }
-          }, props.delay ?? 0);
-          cleanup(() => clearTimeout(delayTimer));
-        },
-        'q_peT',
-        [cursorBoundary, props, state, revealRegistration]
-      )
-    );
+    useTask$(({ track, cleanup }) => {
+      const pendingCount = track(cursorBoundary);
+      const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+      if (revealRegistration !== null && isBrowserEnv) {
+        revealRegistration.reveal.version.value++;
+      }
+      if (!isBrowserEnv || pendingCount === 0) {
+        state.value = 'content';
+        return;
+      }
+      const delayTimer = setTimeout(() => {
+        if (cursorBoundary.value > 0) {
+          state.value = 'fallback';
+        }
+      }, props.delay ?? 0);
+      cleanup(() => clearTimeout(delayTimer));
+    });
 
     const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
     // Reconcile restored SSR state when no client work is pending.
@@ -216,7 +198,7 @@ export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<Pendi
         null
       ),
     ];
-  }, 'q_peC')
+  }
 );
 
 type SSRFallbackProps = {

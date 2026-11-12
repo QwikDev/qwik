@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createQRL } from '../shared/qrl/qrl-class';
+import { _val } from '../shared/jsx/bind-handlers';
+import { runQrl, valQrl } from '../shared/qrl/handler-qrls';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import { setEvent } from './ssr-events';
 
@@ -20,6 +23,20 @@ describe('setEvent', () => {
   it('wraps a handler that receives moved captures', () => {
     const qrl = createQRL('chunk', 'handler', () => {}).m();
 
-    expect(setEvent(context, 'q-e:click', qrl, true)).toEqual(['runtime#q_run', '#', 0]);
+    expect(setEvent(context, 'q-e:click', qrl, true)).toEqual([
+      `runtime#${runQrl().$symbol$}`,
+      '#',
+      0,
+    ]);
+  });
+
+  it("serializes the optimizer's bind:value handler as core's own handler", () => {
+    const qrl = inlinedQrl(_val, '_val', [{}]) as QRLInternal<unknown>;
+
+    expect(setEvent(context, 'q-e:input', qrl, false)).toEqual([
+      `runtime#${valQrl().$symbol$}`,
+      '#',
+      0,
+    ]);
   });
 });

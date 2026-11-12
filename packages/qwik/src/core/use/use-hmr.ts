@@ -1,6 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { _capturesObj, deserializeCaptureDeltas, setCaptures } from '../shared/qrl/qrl-class';
-import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
+import { hmrQrl } from '../shared/qrl/handler-qrls';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -58,7 +58,7 @@ export function _useHmr(devPath: string): void {
   }
   const hostElement = iCtx.$hostElement$;
   // We must capture the vnode to be able to re-render
-  const qrl = _inlinedQrl(_hmr, 'q_hmr', [hostElement, devPath]) as QRL<
+  const qrl = hmrQrl().w([hostElement, devPath]) as QRL<
     (event: CustomEvent, element: Element) => void
   >;
   useOnDocument('qHmr', qrl);

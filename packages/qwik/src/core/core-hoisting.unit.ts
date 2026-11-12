@@ -53,6 +53,8 @@ describe('core built as a Qwik library', () => {
       if (!existsSync(core)) {
         throw new Error('Build core first: pnpm build.core.dev');
       }
+      // The app's optimizer keeps the hash core's build gave the QRL.
+      const resHash = /"core_handlers_res_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
       const createOptimizer = optimizerName === 'rust' ? createRustOptimizer : createTsOptimizer;
       const optimizer = await createOptimizer();
       const output = await optimizer.transformModules({
@@ -103,7 +105,7 @@ describe('core built as a Qwik library', () => {
       );
       const { each, hash, file } = JSON.parse(result.trim().split('\n').pop()!);
       expect(each).toBe('function');
-      expect(hash).toBe('res');
+      expect(hash).toBe(resHash);
       if (mode === 'dev') {
         // Dev servers map a core QRL to its segment URL through this file.
         expect(file).toBe(`${srcDir}/core.qwik.mjs`);

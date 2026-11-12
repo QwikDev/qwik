@@ -8,6 +8,7 @@ import {
   type QRLInternal,
   type SyncQRLInternal,
 } from '../qrl/qrl-class';
+import { toCoreHandlerQrl } from '../qrl/handler-qrls';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
@@ -29,6 +30,9 @@ export function qrlToString(
   qrl: QRLInternal | SyncQRLInternal,
   raw?: true
 ): string | [string, string, string | null] {
+  if (!isSyncQrl(qrl)) {
+    qrl = toCoreHandlerQrl(qrl);
+  }
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
 

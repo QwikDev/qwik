@@ -665,10 +665,10 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
 
   assert.deepEqual(codeSplitting.includeDependenciesRecursively, false);
   assert.deepEqual(
-    codeSplitting.groups!.map((group) => group.name),
-    ['qwik-core', 'qwik-preloader', codeSplitting.groups![2].name]
+    codeSplitting.groups!.map((group) => typeof group.name),
+    ['function', 'string', 'function']
   );
-  assert.deepEqual(typeof codeSplitting.groups![2].name, 'function');
+  assert.deepEqual(codeSplitting.groups![1].name, 'qwik-preloader');
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
     [false, false, false]
@@ -677,26 +677,38 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
 
 test('the qwik-core group holds the core library, its QRL chunk and its handler segments', async () => {
   const codeSplitting = await clientCodeSplitting({});
-  const coreTest = codeSplitting.groups![0].test as RegExp;
+  const coreGroupOf = codeSplitting.groups![0].name as (id: string, ctx: any) => string | null;
   const core = '/app/node_modules/@qwik.dev/core/dist';
+  const segments: Record<string, string> = {
+    [`${core}/core.min.qwik.mjs_s_2xRpqnukrhk.js`]: 'core.min.qwik.mjs_core_handlers_run',
+    [`${core}/core.qwik.mjs_core_handlers_scheduleTask_PyxK.js`]:
+      'core.qwik.mjs_core_handlers_scheduleTask',
+    [`${core}/core.prod.qwik.mjs_s_4rwP95eV0jk.js`]: 'core.prod.qwik.mjs_Show_component',
+    '/app/src/core_handlers.tsx_core_handlers_run_abc.js': 'core_handlers.tsx_core_handlers_run',
+  };
+  const ctx = {
+    getModuleInfo: (id: string) => ({
+      meta: { segment: segments[id] && { displayName: segments[id] } },
+    }),
+  };
 
   for (const id of [
     `${core}/core.qwik.mjs`,
     `${core}/core.prod.qwik.mjs`,
     `${core}/core-qrl.prod.mjs`,
-    `${core}/core.prod.qwik.mjs_s_run.js`,
-    `${core}/core.qwik.mjs_q_task.js`,
+    `${core}/core.min.qwik.mjs_s_2xRpqnukrhk.js`,
+    `${core}/core.qwik.mjs_core_handlers_scheduleTask_PyxK.js`,
   ]) {
-    assert.ok(coreTest.test(id), id);
+    assert.deepEqual(coreGroupOf(id, ctx), 'qwik-core', id);
   }
   // Control-flow components load like any segment, only on pages that render them.
   for (const id of [
     `${core}/preloader.mjs`,
-    '/app/src/root.tsx_root_component_abc.js',
-    `${core}/core.prod.qwik.mjs_s_shC.js`,
-    `${core}/core.min.qwik.mjs_s_peT.js`,
+    `${core}/core-vnode-render.min.mjs`,
+    `${core}/core.prod.qwik.mjs_s_4rwP95eV0jk.js`,
+    '/app/src/core_handlers.tsx_core_handlers_run_abc.js',
   ]) {
-    assert.notOk(coreTest.test(id), id);
+    assert.deepEqual(coreGroupOf(id, ctx), null, id);
   }
 });
 

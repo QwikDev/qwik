@@ -1,6 +1,5 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
-import { _capturesObj } from '../internal';
 import { createStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
@@ -10,7 +9,8 @@ import {
 import type { ComputeCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { inlinedQrl as _inlinedQrl } from '../shared/qrl/library-qrl';
+import { rscQrl } from '../shared/qrl/handler-qrls';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
@@ -103,7 +103,7 @@ export const useResourceQrl = <T>(
 
   const ref = {} as { r: T };
   // Wrap the function so we can maintain a stable reference to the store
-  const wrapped = _inlinedQrl(_rsc, 'q_rsc', [qrl, ref]);
+  const wrapped = rscQrl().w([qrl, ref]);
   const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
     timeout: opts?.timeout,
     container: iCtx.$container$,

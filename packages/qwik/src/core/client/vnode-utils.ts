@@ -204,6 +204,7 @@ import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { createFastGetter, fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { runQrl } from '../shared/qrl/handler-qrls';
 import { parseQRL } from '../shared/serdes/index';
 import { runEventHandlerQRL } from './run-qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -531,7 +532,7 @@ export const vnode_ensureElementInflated = (container: Container, vnode: VNode) 
 const unwrapEventHandlerQrl = (
   handler: ReturnType<typeof parseQRL>
 ): QRL<(...args: any[]) => void> => {
-  if (handler.$hash$ === 'run') {
+  if (handler.$hash$ === runQrl().$hash$) {
     const innerHandler = handler.getCaptured()?.[0];
     if (isQrl(innerHandler)) {
       return innerHandler as QRL<(...args: any[]) => void>;

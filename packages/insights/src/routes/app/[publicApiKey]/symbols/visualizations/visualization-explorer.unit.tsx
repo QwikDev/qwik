@@ -1,3 +1,4 @@
+import { component$, useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { domRender, trigger } from '@qwik.dev/core/testing';
 import { createBundleViewData } from '../bundles/bundle-view';
@@ -111,5 +112,36 @@ describe('visualization lab', () => {
     expect(document.body.textContent).toContain('Preceding symbols · top 5');
     expect(document.body.textContent).toContain('Later symbols · top 5');
     expect(document.body.textContent).toContain('0.80');
+  });
+  it('replaces a retained symbol when a new dataset does not contain it', async () => {
+    const replacement = {
+      ...data,
+      symbols: data.symbols.map((symbol) => ({
+        ...symbol,
+        name: `new-${symbol.name}`,
+        fullName: `new-${symbol.fullName}`,
+      })),
+      bundles: [],
+    };
+    const Host = component$(() => {
+      const report = useSignal(data);
+      return (
+        <>
+          <button
+            data-replace
+            onClick$={() => {
+              report.value = replacement;
+            }}
+          >
+            Replace report
+          </button>
+          <VisualizationExplorer data={report.value} initialView="neighborhood" />
+        </>
+      );
+    });
+    const { document } = await domRender(<Host />);
+    expect(document.querySelector('.lab-center code')?.textContent).not.toContain('new-');
+    await trigger(document.body, '[data-replace]', 'click');
+    expect(document.querySelector('.lab-center code')?.textContent).toContain('new-');
   });
 });

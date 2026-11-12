@@ -632,3 +632,29 @@ test('keeps the small-change cutoff for speculative hints', async () => {
   expect(bundles.get('entry.js')!.$inverseProbability$).toBeCloseTo(0.195);
   expect(bundles.get('child.js')!.$inverseProbability$).toBe(childInverseProbability);
 });
+
+test("keeps a dependency's probability right when its importer is replayed, then hinted higher", async () => {
+  installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  preload('a.js', 0.8);
+  preload('b.js', 0.8);
+  vi.runAllTimers();
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({
+      text: async () => JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js']),
+    } as Response)
+  );
+  await vi.runAllTimersAsync();
+  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.56);
+
+  preload('b.js', 0.9);
+  await vi.runAllTimersAsync();
+
+  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.55);
+});

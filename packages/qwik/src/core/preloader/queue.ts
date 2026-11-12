@@ -132,7 +132,7 @@ const processAdjustmentFrame = () => {
       const factor = newInverseImportProbability / prevAdjust;
       // limit organic probability to 98%
       newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-      dep.$factor$ = factor;
+      dep.$factor$ = newInverseImportProbability;
     }
 
     adjustmentStack.push({

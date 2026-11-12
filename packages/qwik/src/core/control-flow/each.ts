@@ -26,32 +26,32 @@ export type EachComponent = <T, ITEM extends JSXOutput = JSXOutput>(
   dev?: DevJSX
 ) => JSXOutput;
 
-/** @internal */
-export async function eachCmpTask({ track }: TaskCtx) {
-  const props = _capturesObj._![0] as EachProps<any>;
-  track(() => props.items);
-  const context = tryGetInvokeContext()!;
-  const host = context.$hostElement$!;
-  const container = context.$container$!;
-  const renderPromise = markVNodeDirty(container, host, ChoreBits.RECONCILE);
-  const isSsr = qTest ? isServerPlatform() : isServer;
-  if (isSsr) {
-    await renderPromise;
-  }
-}
-
-/** @internal */
-export function eachCmp(props: EachProps<any>) {
-  if (!__EXPERIMENTAL__.each) {
-    throw new Error(
-      'Each is experimental and must be enabled with `experimental: ["each"]` in the `qwikVite` plugin.'
-    );
-  }
-  useTaskQrl(/*#__PURE__*/ _inlinedQrl(eachCmpTask, 'q_eaT', [props]));
-  return SkipRender;
-}
-
 /** @public @experimental */
 export const Each = /*#__PURE__*/ componentQrl<EachProps<any>>(
-  /*#__PURE__*/ _inlinedQrl(eachCmp, 'q_eaC')
+  /*#__PURE__*/ _inlinedQrl(function eachCmp(props: EachProps<any>) {
+    if (!__EXPERIMENTAL__.each) {
+      throw new Error(
+        'Each is experimental and must be enabled with `experimental: ["each"]` in the `qwikVite` plugin.'
+      );
+    }
+    useTaskQrl(
+      /*#__PURE__*/ _inlinedQrl(
+        async function eachCmpTask({ track }: TaskCtx) {
+          const props = _capturesObj._![0] as EachProps<any>;
+          track(() => props.items);
+          const context = tryGetInvokeContext()!;
+          const host = context.$hostElement$!;
+          const container = context.$container$!;
+          const renderPromise = markVNodeDirty(container, host, ChoreBits.RECONCILE);
+          const isSsr = qTest ? isServerPlatform() : isServer;
+          if (isSsr) {
+            await renderPromise;
+          }
+        },
+        'q_eaT',
+        [props]
+      )
+    );
+    return SkipRender;
+  }, 'q_eaC')
 ) as EachComponent;

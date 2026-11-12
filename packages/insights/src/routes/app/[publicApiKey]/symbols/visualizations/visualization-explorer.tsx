@@ -15,9 +15,11 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
         .map((symbol) => [symbol.name, symbol.fullName!])
     );
     const selectedGroup = useSignal(0);
+    const memberLimit = useSignal(6);
     const showAllGroups = useSignal(false);
     const name = (hash: string) => named.get(hash) || hash;
     const group = data.bundles.at(selectedGroup.value);
+    const namedMembers = group?.symbols.filter((symbol) => symbol.fullName) ?? [];
 
     return (
       <div class="font-editorial-ui text-editorial-primary">
@@ -70,6 +72,7 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
                       aria-pressed={selectedGroup.value === index}
                       onClick$={() => {
                         selectedGroup.value = index;
+                        memberLimit.value = 6;
                       }}
                     >
                       <span class="flex justify-between gap-editorial-4 text-editorial-12">
@@ -99,6 +102,10 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
                     class={[button, 'mt-editorial-4']}
                     onClick$={() => {
                       showAllGroups.value = !showAllGroups.value;
+                      if (!showAllGroups.value && selectedGroup.value >= 8) {
+                        selectedGroup.value = 0;
+                        memberLimit.value = 6;
+                      }
                     }}
                   >
                     {showAllGroups.value
@@ -121,19 +128,28 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
                     executions
                   </p>
                   <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
-                    Members with source metadata
+                    Showing {Math.min(memberLimit.value, namedMembers.length)} of{' '}
+                    {namedMembers.length} members with source metadata
                   </p>
                   <ul class="mt-editorial-2 space-y-editorial-3 text-editorial-12">
-                    {group.symbols
-                      .filter((symbol) => symbol.fullName)
-                      .slice(0, 6)
-                      .map((symbol) => (
-                        <li key={symbol.name} class="break-words">
-                          <code>{name(symbol.name)}</code>
-                          <p class="text-editorial-secondary">{symbol.fileSrc}</p>
-                        </li>
-                      ))}
+                    {namedMembers.slice(0, memberLimit.value).map((symbol) => (
+                      <li key={symbol.name} class="break-words">
+                        <code>{name(symbol.name)}</code>
+                        <p class="text-editorial-secondary">{symbol.fileSrc}</p>
+                      </li>
+                    ))}
                   </ul>
+                  {namedMembers.length > memberLimit.value && (
+                    <button
+                      type="button"
+                      class={button}
+                      onClick$={() => {
+                        memberLimit.value += 6;
+                      }}
+                    >
+                      Show more members
+                    </button>
+                  )}
                   <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
                     A large group can be joined through chains; its members need not all be strongly
                     connected.

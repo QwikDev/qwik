@@ -3,7 +3,13 @@ import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
 
-export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
+interface BundleExplorerProps {
+  data: BundleInfo;
+  comparisonHref?: string;
+}
+
+export const BundleExplorer = component$<BundleExplorerProps>((props) => {
+  const { data, comparisonHref } = props;
   const selectedIndex = useSignal(0);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
@@ -32,7 +38,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
             manifests. These are analysis groups, not emitted build files.
           </p>
           <a
-            href="../visualizations/"
+            href={comparisonHref ?? '../visualizations/'}
             class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
           >
             Explore relationship visualizations

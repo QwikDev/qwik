@@ -145,7 +145,7 @@ export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export type { AsyncFn } from './use/use-computed';
 export { useComputed$ } from './use/use-computed';
-export { Catch, catchCmp as _caC, catchReset as _caR } from './shared/error/catch';
+export { Catch } from './shared/error/catch';
 export type { CatchProps } from './shared/error/catch';
 export { CatchPhase } from './shared/error/catch-phase';
 export type { CatchInfo } from './shared/error/error-handling';
@@ -169,19 +169,11 @@ export type { ComputedOptions } from './reactive-primitives/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // Control flow
 //////////////////////////////////////////////////////////////////////////////////////////
-export { eachCmpTask as _eaT, eachCmp as _eaC } from './control-flow/each';
 export { Each } from './control-flow/each';
-export { showCmpTask as _shT, showCmp as _shC } from './control-flow/show';
 export { Show } from './control-flow/show';
 export type { ShowComponent, ShowProps } from './control-flow/show';
-export {
-  revealCanReveal as _reR,
-  revealCleanupTask as _reT,
-  revealCmp as _reC,
-} from './control-flow/reveal';
 export { Reveal } from './control-flow/reveal';
 export type { RevealOrder, RevealProps } from './control-flow/reveal';
-export { pendingTask as _peT, pendingCmp as _peC } from './control-flow/pending';
 export { Pending } from './control-flow/pending';
 export type { PendingProps } from './control-flow/pending';
 

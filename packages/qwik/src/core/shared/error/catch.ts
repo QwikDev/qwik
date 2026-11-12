@@ -70,17 +70,6 @@ export interface CatchProps {
   onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 }
 
-/** @internal */
-export function catchReset(): void {
-  const [host] = _capturesObj._ as [VNode];
-  // this is executed only on client
-  const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
-  const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
-  if (isBrowserEnv && host && container) {
-    resetCatch(container, host);
-  }
-}
-
 const RESET_KEY_SUFFIX = '\0';
 
 /** @internal */
@@ -193,51 +182,60 @@ const buildSSRCatchHosts = (store: CatchStore, container: SSRContainer | undefin
   ] as unknown as JSXOutput;
 };
 
-/** @internal */
-export function catchCmp(props: CatchProps): JSXOutput {
-  if (!__EXPERIMENTAL__.catchBoundary) {
-    throw new Error(
-      '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
-    );
-  }
-  const store = useCatchStore();
-  const invokeCtx = tryGetInvokeContext();
-  const container = invokeCtx?.$container$;
-  if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
-    store.boundaryId = getNextUniqueIndex(container);
-  }
-  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  if (!isServerEnv && store.error === undefined) {
-    return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
-  }
-
-  const reset = /*#__PURE__*/ _inlinedQrl(catchReset, 'q_caR', [invokeCtx?.$hostElement$]);
-  if (isServerEnv) {
-    const fallbackQrl = props.fallback$;
-    store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
-    const onErrorQrl = props.onError$;
-    if (onErrorQrl) {
-      store.$onError$ = noSerialize((error: unknown, info: CatchInfo) =>
-        onErrorQrl(error as Error, info)
-      );
-    }
-    return buildSSRCatchHosts(store, container as SSRContainer);
-  }
-
-  const displayError = redactBoundaryErrorForDisplay(store.error, true);
-  return /*#__PURE__*/ _jsxSorted(
-    Slot,
-    null,
-    { name: QFallbackSlot },
-    renderFallbackOrLastResort(props.fallback$, displayError, reset),
-    0,
-    null
-  );
-}
-
 /** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
 export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProps>(
-  /*#__PURE__*/ _inlinedQrl(catchCmp, 'q_caC')
+  /*#__PURE__*/ _inlinedQrl(function catchCmp(props: CatchProps): JSXOutput {
+    if (!__EXPERIMENTAL__.catchBoundary) {
+      throw new Error(
+        '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
+      );
+    }
+    const store = useCatchStore();
+    const invokeCtx = tryGetInvokeContext();
+    const container = invokeCtx?.$container$;
+    if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
+      store.boundaryId = getNextUniqueIndex(container);
+    }
+    const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+    if (!isServerEnv && store.error === undefined) {
+      return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
+    }
+
+    const reset = /*#__PURE__*/ _inlinedQrl(
+      function catchReset(): void {
+        const [host] = _capturesObj._ as [VNode];
+        // this is executed only on client
+        const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
+        const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+        if (isBrowserEnv && host && container) {
+          resetCatch(container, host);
+        }
+      },
+      'q_caR',
+      [invokeCtx?.$hostElement$]
+    );
+    if (isServerEnv) {
+      const fallbackQrl = props.fallback$;
+      store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
+      const onErrorQrl = props.onError$;
+      if (onErrorQrl) {
+        store.$onError$ = noSerialize((error: unknown, info: CatchInfo) =>
+          onErrorQrl(error as Error, info)
+        );
+      }
+      return buildSSRCatchHosts(store, container as SSRContainer);
+    }
+
+    const displayError = redactBoundaryErrorForDisplay(store.error, true);
+    return /*#__PURE__*/ _jsxSorted(
+      Slot,
+      null,
+      { name: QFallbackSlot },
+      renderFallbackOrLastResort(props.fallback$, displayError, reset),
+      0,
+      null
+    );
+  }, 'q_caC')
 );
 
 type SSRErrorFallbackProps = {

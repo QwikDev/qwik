@@ -153,7 +153,7 @@ export const RelationshipMatrix = component$<{ data: BundleInfo; selectedIndex: 
                   ? `Self relationship: ${score.toFixed(2)} / 1 (muted in the matrix)`
                   : score === 0
                     ? 'No modeled connection: 0.00 / 1'
-                    : `Relationship score: ${score.toFixed(2)} / 1${score < minimumScore.value ? ' (hidden by minimum score)' : ''}`}
+                    : `Relationship score: ${score.toPrecision(2)} / 1${score < minimumScore.value ? ' (hidden by minimum score)' : ''}`}
               </p>
               <p class="mt-editorial-2 font-editorial-mono text-editorial-secondary">
                 {preceding.name} → {later.name}

@@ -88,4 +88,24 @@ describe('bundle explorer', () => {
     await trigger(document.body, '[data-group="1"]', 'click');
     expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('1 symbol');
   });
+  it('shows weak positive matrix scores without rounding them to zero', async () => {
+    const report = {
+      ...data,
+      matrix: [
+        [
+          { column: 0, value: 1 },
+          { column: 1, value: 0.001 },
+        ],
+        ...data.matrix.slice(1),
+      ],
+    };
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    const column = document.querySelector<HTMLSelectElement>('[data-matrix-column]')!;
+    column.value = '1';
+    await trigger(document.body, column, 'change');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'Relationship score: 0.0010 / 1'
+    );
+  });
 });

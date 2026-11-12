@@ -188,12 +188,19 @@ const processAdjustmentFrame = () => {
   return false;
 };
 
+const scheduleAdjustments = () => {
+  if (!isAdjustmentScheduled) {
+    isAdjustmentScheduled = true;
+    nextAdjustmentMacroTask();
+  }
+};
+
 function processPendingAdjustments() {
+  isAdjustmentScheduled = false;
   if (isProcessingAdjustments || !adjustmentStack.length) {
     return;
   }
 
-  isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
   const deadline = isBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
@@ -202,10 +209,7 @@ function processPendingAdjustments() {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
     if (isBrowser && checkDeadline && performance.now() >= deadline) {
-      if (!isAdjustmentScheduled) {
-        isAdjustmentScheduled = true;
-        nextAdjustmentMacroTask();
-      }
+      scheduleAdjustments();
       break;
     }
   }
@@ -251,7 +255,7 @@ const preloadOne = (bundle: BundleImport) => {
 export const replayBundle = (bundle: BundleImport) => {
   enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
   if (isBrowser) {
-    nextAdjustmentMacroTask();
+    scheduleAdjustments();
   } else {
     processPendingAdjustments();
   }
@@ -279,7 +283,7 @@ export const preload = (item: string | string[], probability?: number) => {
     handleBundle(item, inverseProbability);
   }
   if (isBrowser) {
-    nextAdjustmentMacroTask();
+    scheduleAdjustments();
   } else {
     processPendingAdjustments();
   }

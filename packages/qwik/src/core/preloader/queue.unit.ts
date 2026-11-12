@@ -658,3 +658,27 @@ test("keeps a dependency's probability right when its importer is replayed, then
 
   expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.55);
 });
+
+test('schedules a single adjustment task for many replayed hints', async () => {
+  installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  const hints = Array.from({ length: 50 }, (_, index) => `hint-${index}.js`);
+  preload(hints, 0.8);
+  vi.runAllTimers();
+
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({ text: async () => JSON.stringify(hints) } as Response)
+  );
+  for (let tick = 0; tick < 10; tick++) {
+    await Promise.resolve();
+  }
+
+  const adjustmentTaskAndTriggerTask = 2;
+  expect(vi.getTimerCount()).toBe(adjustmentTaskAndTriggerTask);
+});

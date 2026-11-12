@@ -299,7 +299,7 @@ export const Greeter = component$(() => {
     const options: Array<[EmitMode, EntryStrategy['type'], boolean]> = [];
     for (const transpile of [true, false]) {
       for (const mode of ['test', 'prod', 'dev'] as const) {
-        for (const strategy of ['segment', 'single', 'component'] as const) {
+        for (const strategy of ['segment', 'single'] as const) {
           options.push([mode, strategy, transpile]);
         }
       }

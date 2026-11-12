@@ -67,34 +67,8 @@ describe('resolveEntryField', () => {
       expect(resolveEntryField('segment', segment, undefined)).toBeNull();
     });
 
-    it('returns null for hook strategy (alias of smart)', () => {
-      expect(resolveEntryField('hook', segment, undefined)).toBeNull();
-    });
-
     it('leaves stripped inline segments ungrouped', () => {
       expect(resolveEntryField('inline', segment, undefined)).toBeNull();
-    });
-  });
-
-  describe('component strategy', () => {
-    it('groups inner segments with their root', () => {
-      expect(resolveEntryField('component', { ...segment, ctxName: 'useTask$' }, undefined)).toBe(
-        'test.tsx_entry_App'
-      );
-    });
-
-    it('groups the component segment itself', () => {
-      expect(resolveEntryField('component', segment, undefined)).toBe('test.tsx_entry_App');
-    });
-
-    it('falls back to the shared entry without a root context', () => {
-      expect(
-        resolveEntryField(
-          'component',
-          { ...segment, rootContext: null, ctxKind: 'eventHandler' },
-          undefined
-        )
-      ).toBe('entry_segments');
     });
   });
 

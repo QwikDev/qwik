@@ -83,17 +83,15 @@ describe('SegmentAnalysis', () => {
 });
 
 describe('EntryStrategy', () => {
-  it('covers all 7 variants', () => {
+  it('covers all 5 variants', () => {
     const strategies: EntryStrategy[] = [
       { type: 'inline' },
       { type: 'hoist' },
-      { type: 'hook' },
       { type: 'segment' },
       { type: 'single' },
-      { type: 'component' },
       { type: 'smart' },
     ];
-    expect(strategies).toHaveLength(7);
+    expect(strategies).toHaveLength(5);
 
     const withManual: EntryStrategy = {
       type: 'smart',

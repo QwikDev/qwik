@@ -343,13 +343,11 @@ test.each(
     { tsOptimizer: true, minify: true },
     { tsOptimizer: false, minify: true },
   ].flatMap((options) =>
-    (['smart', 'component'] as const).flatMap((strategy) =>
-      (['native', 'win32'] as const).map((pathStyle) => ({ ...options, strategy, pathStyle }))
-    )
+    (['native', 'win32'] as const).map((pathStyle) => ({ ...options, pathStyle }))
   )
 )(
-  '$strategy separates client-only code ($tsOptimizer, $minify, $pathStyle)',
-  async ({ tsOptimizer, minify, strategy, pathStyle }) => {
+  'smart separates client-only code ($tsOptimizer, $minify, $pathStyle)',
+  async ({ tsOptimizer, minify, pathStyle }) => {
     const fixturePath = pathStyle === 'win32' ? path.win32 : path;
     const rootDir = normalizePath(resolve(cwd, 'fixture'));
     const srcDir = `${rootDir}/src`;
@@ -359,24 +357,14 @@ test.each(
     await plugin.normalizeOptions({
       target: 'client',
       buildMode: 'production',
-      entryStrategy: { type: strategy },
+      entryStrategy: { type: 'smart' },
       rootDir,
       srcDir,
     });
     const parent = `${srcDir}/app.tsx`;
     const transformed = await plugin.transform(
       { addWatchFile() {}, emitFile() {} } as any,
-      strategy === 'component'
-        ? `import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
-     import { clientFeature } from './client-feature';
-     export const App = component$(() => {
-       const state = useSignal(0);
-       const read = $(() => state.value);
-       read();
-       useVisibleTask$(() => clientFeature(state.value));
-       return <div>{state.value}</div>;
-     });`
-        : `import { $, component$, event$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
+      `import { $, component$, event$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
      import { clientFeature } from './client-feature';
      function useCustomHook() {
        const value = 1;
@@ -442,7 +430,7 @@ test.each(
       )![0];
       const render = chunks.find((chunk) => componentId in chunk.modules)!;
       const readId = [...modules].find(([, output]) => output?.meta?.segment?.ctxName === '$')![0];
-      expect(readId in render.modules).toBe(strategy === 'component');
+      expect(readId in render.modules).toBe(false);
       const visited = new Set<string>();
       const visit = (file: string) => {
         if (visited.has(file)) {

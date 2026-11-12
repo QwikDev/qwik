@@ -199,18 +199,16 @@ export interface WithManualEntryMap {
 }
 
 /**
- * How the optimizer lays out lazy-load boundaries. `smart`/`segment`/`hook` emit one file per
- * segment; `inline`/`hoist` keep bodies in the parent; `single` bundles every segment into one
- * `entry_hooks` file; `component` groups by enclosing `component$`. The file-emitting variants
- * accept a per-symbol manual override via {@link WithManualEntryMap}.
+ * How the optimizer lays out lazy-load boundaries. `smart`/`segment` emit one file per segment;
+ * `inline`/`hoist` keep bodies in the parent; `single` bundles every segment into one `entry_hooks`
+ * file. The file-emitting variants accept a per-symbol manual override via
+ * {@link WithManualEntryMap}.
  */
 export type EntryStrategy =
   | { type: 'inline' }
   | { type: 'hoist' }
-  | (WithManualEntryMap & { type: 'hook' })
   | (WithManualEntryMap & { type: 'segment' })
   | (WithManualEntryMap & { type: 'single' })
-  | (WithManualEntryMap & { type: 'component' })
   | (WithManualEntryMap & { type: 'smart' });
 
 export function hasManualEntryMap(s: EntryStrategy): s is EntryStrategy & WithManualEntryMap {

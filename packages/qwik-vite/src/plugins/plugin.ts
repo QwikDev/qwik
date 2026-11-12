@@ -1467,18 +1467,22 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
+              const isSmart = opts.entryStrategy.type === 'smart';
               const isSmartClientOnly =
-                opts.entryStrategy.type === 'smart' &&
+                isSmart &&
                 isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
+              const isSmartComputed = isSmart && segment.ctxName === 'useComputed$';
               // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
+              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly && !isSmartComputed) {
                 return null;
               }
               const { hash } = segment;
+              const isEvent = segment.ctxKind === 'eventHandler' || segment.ctxName === 'event$';
+              const hasOwnChunk = isSmartClientOnly && !(isEvent && segment.entry);
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
                 (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                (isSmartClientOnly ? segment.canonicalFilename : segment.entry);
+                (hasOwnChunk ? segment.canonicalFilename : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }

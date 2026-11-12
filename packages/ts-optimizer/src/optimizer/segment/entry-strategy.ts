@@ -4,14 +4,14 @@ type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' |
 
 interface EntrySegment {
   symbolName: string;
-  canonicalFilename: string;
   rootContext: string | null;
   origin: string;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;
-  isEventOnly?: boolean;
 }
+
+const RENDER_CTX_NAMES = new Set(['component$', 'useStyles$', 'useStylesScoped$']);
 
 const routeParamFileStem = /^\[\[\.\.\.(.+)\]\]$|^\[(.+)\]$/;
 
@@ -26,9 +26,9 @@ function getRootEntryName(segment: EntrySegment): string | null {
   return routeParam === root ? fileStem : root;
 }
 
-function getRootEntry(segment: EntrySegment): string | null {
+function getRootEntry(segment: EntrySegment, group: 'entry' | 'render' = 'entry'): string | null {
   const root = getRootEntryName(segment);
-  return root ? `${segment.origin}_entry_${root}` : null;
+  return root ? `${segment.origin}_${group}_${root}` : null;
 }
 
 export function resolveEntryField(
@@ -51,17 +51,6 @@ export function resolveEntryField(
     case 'component':
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
-      if (segment.isEventOnly) {
-        return segment.canonicalFilename;
-      }
-      // Known events stay separate even when they capture state.
-      if (
-        segment.ctxKind === 'eventHandler' ||
-        segment.ctxName === 'event$' ||
-        (!segment.captures && segment.ctxKind !== 'function')
-      ) {
-        return null;
-      }
-      return getRootEntry(segment);
+      return getRootEntry(segment, RENDER_CTX_NAMES.has(segment.ctxName) ? 'render' : 'entry');
   }
 }

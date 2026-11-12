@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 1662
+assertion_line: 2530
 expression: output
 ---
 ==INPUT==
@@ -160,7 +160,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_0TaiDayHrlo",
-  "entry": "test.tsx_entry_Parent",
+  "entry": "test.tsx_render_Parent",
   "displayName": "test.tsx_Parent_component",
   "hash": "0TaiDayHrlo",
   "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
@@ -176,7 +176,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js (ENTRY POINT)==
+============================= test.tsx_Child_component_div_q_e_click_cROa4sult1s.js ==
 
 export const Child_component_div_q_e_click_cROa4sult1s = ()=>console.log('child');
 
@@ -186,7 +186,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_div_q_e_click_cROa4sult1s",
-  "entry": null,
+  "entry": "test.tsx_entry_Child",
   "displayName": "test.tsx_Child_component_div_q_e_click",
   "hash": "cROa4sult1s",
   "canonicalFilename": "test.tsx_Child_component_div_q_e_click_cROa4sult1s",
@@ -232,7 +232,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_9GyF01GDKqw",
-  "entry": "test.tsx_entry_Child",
+  "entry": "test.tsx_render_Child",
   "displayName": "test.tsx_Child_component",
   "hash": "9GyF01GDKqw",
   "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
@@ -248,7 +248,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA.js ==
 
 export const Parent_component_div_q_e_click_zM9okM0TYrA = ()=>console.log('parent');
 
@@ -258,7 +258,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_div_q_e_click_zM9okM0TYrA",
-  "entry": null,
+  "entry": "test.tsx_entry_Parent",
   "displayName": "test.tsx_Parent_component_div_q_e_click",
   "hash": "zM9okM0TYrA",
   "canonicalFilename": "test.tsx_Parent_component_div_q_e_click_zM9okM0TYrA",

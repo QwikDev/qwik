@@ -21,40 +21,47 @@ describe('resolveEntryField', () => {
     });
     it('groups captured JSX prop callbacks with their root', () => {
       expect(
-        resolveEntryField('smart', { ...segment, ctxKind: 'jSXProp', captures: true }, undefined)
+        resolveEntryField(
+          'smart',
+          { ...segment, ctxKind: 'jSXProp', ctxName: 'onSelect$', captures: true },
+          undefined
+        )
       ).toBe('test.tsx_entry_App');
     });
-    it('keeps capture-free event handlers separate', () => {
+    it('groups capture-free event handlers with their root', () => {
       expect(
-        resolveEntryField('smart', { ...segment, ctxKind: 'eventHandler' }, undefined)
-      ).toBeNull();
+        resolveEntryField(
+          'smart',
+          { ...segment, ctxKind: 'eventHandler', ctxName: 'onClick$' },
+          undefined
+        )
+      ).toBe('test.tsx_entry_App');
     });
 
-    it.each([false, true])('keeps explicit events separate (captures: %s)', (captures) => {
+    it.each([false, true])('groups explicit events with their root (captures: %s)', (captures) => {
       expect(
         resolveEntryField('smart', { ...segment, ctxName: 'event$', captures }, undefined)
-      ).toBeNull();
+      ).toBe('test.tsx_entry_App');
     });
 
-    it('keeps captured JSX handlers separate', () => {
+    it('groups captured JSX handlers with their root', () => {
       expect(
         resolveEntryField(
           'smart',
-          { ...segment, ctxKind: 'eventHandler', captures: true },
+          { ...segment, ctxKind: 'eventHandler', ctxName: 'onClick$', captures: true },
           undefined
         )
-      ).toBeNull();
+      ).toBe('test.tsx_entry_App');
     });
 
-    it('names event-only QRLs after their canonical filename', () => {
-      expect(
-        resolveEntryField(
-          'smart',
-          { ...segment, ctxName: '$', captures: true, isEventOnly: true },
-          undefined
-        )
-      ).toBe('test.tsx_App_component_abc123');
-    });
+    it.each(['component$', 'useStyles$', 'useStylesScoped$'])(
+      'puts a %s segment in the render group',
+      (ctxName) => {
+        expect(resolveEntryField('smart', { ...segment, ctxName }, undefined)).toBe(
+          'test.tsx_render_App'
+        );
+      }
+    );
 
     it('returns null for segment strategy (alias of smart)', () => {
       expect(resolveEntryField('segment', segment, undefined)).toBeNull();
@@ -97,14 +104,9 @@ describe('resolveEntryField', () => {
       expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
     });
 
-    it('prefers the manual entry over event-only separation', () => {
-      const manual = { s_abc123: 'vendor' };
-      expect(resolveEntryField('smart', { ...segment, isEventOnly: true }, manual)).toBe('vendor');
-    });
-
     it('falls back to the selected strategy when symbol is not mapped', () => {
       const manual = { s_other: 'vendor' };
-      expect(resolveEntryField('smart', segment, manual)).toBe('test.tsx_entry_App');
+      expect(resolveEntryField('smart', segment, manual)).toBe('test.tsx_render_App');
     });
   });
 
@@ -116,7 +118,9 @@ describe('resolveEntryField', () => {
 
   describe('smart strategy grouping', () => {
     it('groups function segments by root component', () => {
-      expect(resolveEntryField('smart', segment, undefined)).toBe('test.tsx_entry_App');
+      expect(resolveEntryField('smart', { ...segment, ctxName: 'useTask$' }, undefined)).toBe(
+        'test.tsx_entry_App'
+      );
     });
 
     it('groups the segments of a hook by the hook', () => {
@@ -140,7 +144,7 @@ describe('resolveEntryField', () => {
           { ...segment, rootContext: 'slug', origin: 'routes/[[...slug]].tsx' },
           undefined
         )
-      ).toBe('routes/[[...slug]].tsx_entry_[[...slug]]');
+      ).toBe('routes/[[...slug]].tsx_render_[[...slug]]');
     });
   });
 });

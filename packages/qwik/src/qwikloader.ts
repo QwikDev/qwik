@@ -26,11 +26,12 @@ import type {
   QContainerElement,
   QElement,
   QwikLoaderEventScope,
+  QwikHandlerPromise,
   qWindow,
 } from './core/shared/types';
 
 /** Event handlers get the captured ids as a string `this` */
-type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
+type Handler = (this: string | undefined, ev: Event, el: Element) => void | QwikHandlerPromise;
 type Task = () => void | Promise<void>;
 type QwikEventCommand = typeof QwikEvContainerReady;
 type QwikEventItem = string | (EventTarget & ParentNode) | QwikEventCommand;
@@ -265,7 +266,19 @@ const dispatch = (
   kebabName?: string,
   allowPreventDefault = true
 ) => {
-  let defer = false;
+  let pendingHandler: void | QwikHandlerPromise;
+  // Handler completion only delays this element's remaining handlers.
+  const runHandler = (run: Task) => {
+    if (isPromise(pendingHandler)) {
+      pendingHandler = pendingHandler.then(run);
+    } else {
+      pendingHandler = run();
+      if (isPromise(pendingHandler)) {
+        return pendingHandler._qStart;
+      }
+    }
+  };
+
   if (kebabName) {
     if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();
@@ -278,39 +291,17 @@ const dispatch = (
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
     if (typeof handlers === 'function') {
-      const run = () => handlers(ev, element);
-      if (defer) {
-        tasks.push(async () => {
-          const result = run();
-          if (isPromise(result)) {
-            await result;
-          }
-        });
-      } else {
-        const result = run();
-        if (isPromise(result)) {
-          defer = true;
-          tasks.push(() => result);
-        }
+      const started = runHandler(() => handlers(ev, element));
+      if (started) {
+        tasks.push(() => started);
       }
     } else if (handlers.length) {
       for (let i = 0; i < handlers.length; i++) {
         const handler = handlers[i];
         if (handler) {
-          const run = () => handler(ev, element);
-          if (defer) {
-            tasks.push(async () => {
-              const result = run();
-              if (isPromise(result)) {
-                await result;
-              }
-            });
-          } else {
-            const result = run();
-            if (isPromise(result)) {
-              defer = true;
-              tasks.push(() => result);
-            }
+          const started = runHandler(() => handler(ev, element));
+          if (started) {
+            tasks.push(() => started);
           }
         }
       }
@@ -328,30 +319,35 @@ const dispatch = (
     const base = new URL(qBase, doc.baseURI);
     const qrls = attrValue.split('|');
     const waitForReady = waitForContainerReady(container);
+    let defer = false;
     for (let i = 0; i < qrls.length; i++) {
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const run = (handler: Handler | undefined): void | Promise<void> => {
-        if (handler && element.isConnected) {
-          const onError = (error: any) => {
-            emitEvent<QwikErrorEvent>('qerror', {
-              error,
-              qBase,
-              symbol,
-              element,
-              reqTime,
-            });
-          };
-          try {
-            const result = handler.call(capturedIds, ev, element);
-            if (isPromise(result)) {
-              return result.catch(onError);
+      const run = (handler: Handler | undefined) => {
+        return runHandler(() => {
+          if (handler && element.isConnected) {
+            const onError = (error: any) => {
+              emitEvent<QwikErrorEvent>('qerror', {
+                error,
+                qBase,
+                symbol,
+                element,
+                reqTime,
+              });
+            };
+            try {
+              const result = handler.call(capturedIds, ev, element);
+              if (isPromise(result)) {
+                const completion: QwikHandlerPromise = result.catch(onError);
+                completion._qStart = result._qStart;
+                return completion;
+              }
+            } catch (error) {
+              return onError(error);
             }
-          } catch (error) {
-            return onError(error);
           }
-        }
+        });
       };
       const resolve = (reportSyncError = true) =>
         resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
@@ -366,15 +362,14 @@ const dispatch = (
         defer = true;
         tasks.push(() => handler.then(run));
       } else if (defer) {
-        defer = true;
         tasks.push(async () => {
           await run(handler || (await resolve()));
         });
       } else {
-        const result = run(handler);
-        if (isPromise(result)) {
+        const started = run(handler);
+        if (started) {
           defer = true;
-          tasks.push(() => result);
+          tasks.push(() => started);
         }
       }
     }

@@ -49,7 +49,11 @@ function createEventTarget() {
   };
 }
 
-function bootLoader(document: any, window: any) {
+function bootLoader(
+  document: any,
+  window: any,
+  importModule = (href: string) => import(/* @vite-ignore */ href)
+) {
   const loaderScript = qwikLoader.replace(/\bimport\(/g, '__import__(');
   const CustomEventImpl = class<T = unknown> {
     type: string;
@@ -91,11 +95,14 @@ function bootLoader(document: any, window: any) {
     IntersectionObserverImpl,
     CSSImpl,
     { now: () => 1 },
-    (href: string) => import(/* @vite-ignore */ href)
+    importModule
   );
 }
 
-function createLoaderEnvironment(initialEvents: QwikEventItem[]) {
+function createLoaderEnvironment(
+  initialEvents: QwikEventItem[],
+  importModule?: (href: string) => Promise<unknown>
+) {
   const doc = createEventTarget() as any;
   doc.readyState = 'loading';
   doc.baseURI = 'http://qwik.dev/';
@@ -107,7 +114,7 @@ function createLoaderEnvironment(initialEvents: QwikEventItem[]) {
   win.requestIdleCallback = undefined;
   win.setTimeout = vi.fn();
 
-  bootLoader(doc, win);
+  bootLoader(doc, win, importModule);
 
   return { doc, win };
 }
@@ -697,39 +704,94 @@ describe('qwikloader behavior', () => {
     }
   });
 
-  test('keeps browser event order while an earlier async click handler is still running', async () => {
-    const { doc } = createLoaderEnvironment(['e:click']);
-    const logs: string[] = [];
-    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
-    let finishFirst!: () => void;
-    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-    const first = createMockElement(
-      container,
-      {},
-      () =>
-        new Promise<void>((resolve) => {
-          finishFirst = () => {
-            logs.push('first');
-            resolve();
-          };
-        }),
-      'e:click'
-    );
-    const second = createMockElement(container, { 'q-e:click': stopLogHandlerQrl('second') });
+  test.each(['qrl attributes', 'resumed handlers'])(
+    'runs other elements while an async handler array is pending (%s)',
+    async (handlerSource) => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      const logs: string[] = [];
+      let finishSlow!: () => void;
+      const pending = new Promise<void>((resolve) => {
+        finishSlow = resolve;
+      });
+      doc.qFuncs_async = [
+        async () => {
+          logs.push('slow start');
+          await pending;
+          logs.push('slow end');
+        },
+        () => logs.push('slow last'),
+        async () => {
+          logs.push('fast start');
+          await Promise.resolve();
+          logs.push('fast end');
+        },
+        () => logs.push('fast last'),
+      ];
+      const container = createMockElement(null, {
+        'q:container': 'resumed',
+        'q:base': './',
+        'q:instance': 'async',
+      });
+      const slow = createMockElement(container, { 'q-e:click': '#0#|#1#' });
+      const fast = createMockElement(container, { 'q-e:click': '#2#|#3#' });
+      if (handlerSource === 'resumed handlers') {
+        slow._qDispatch = { 'e:click': doc.qFuncs_async.slice(0, 2) };
+        fast._qDispatch = { 'e:click': doc.qFuncs_async.slice(2) };
+      }
 
-    (globalThis as any).__qwikLoaderStopLogs = logs;
+      try {
+        getSingleListener(doc, 'click').handler(createMockEvent(slow));
+        getSingleListener(doc, 'click').handler(createMockEvent(fast));
+        await flushQueuedTasks();
+
+        expect([...logs]).toEqual(['slow start', 'fast start', 'fast end', 'fast last']);
+
+        finishSlow();
+        await vi.waitFor(() => {
+          expect(logs).toEqual([
+            'slow start',
+            'fast start',
+            'fast end',
+            'fast last',
+            'slow end',
+            'slow last',
+          ]);
+        });
+      } finally {
+        finishSlow();
+        await flushQueuedTasks();
+      }
+    }
+  );
+
+  test('keeps browser event order while handler chunks are loading', async () => {
+    const logs: string[] = [];
+    let finishImport!: () => void;
+    const firstImport = new Promise((resolve) => {
+      finishImport = () => resolve({ handler: () => logs.push('first') });
+    });
+    const { doc } = createLoaderEnvironment(['e:click'], (href) =>
+      href.endsWith('first.js')
+        ? firstImport
+        : Promise.resolve({ handler: () => logs.push('second') })
+    );
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const first = createMockElement(container, { 'q-e:click': 'first.js#handler#' });
+    const second = createMockElement(container, { 'q-e:click': 'second.js#handler#' });
+
     try {
       getSingleListener(doc, 'click').handler(createMockEvent(first));
       getSingleListener(doc, 'click').handler(createMockEvent(second));
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await flushQueuedTasks();
       expect(logs).toEqual([]);
 
-      finishFirst();
+      finishImport();
       await vi.waitFor(() => {
         expect(logs).toEqual(['first', 'second']);
       });
     } finally {
-      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+      finishImport();
+      await flushQueuedTasks();
     }
   });
 });

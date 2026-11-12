@@ -119,6 +119,40 @@ test.describe('nav', () => {
       await expect(navigationStatus).toHaveText('idle');
     });
 
+    test('follows a link while another click handler is waiting for a response', async ({
+      page,
+    }) => {
+      let releaseRequest!: () => void;
+      const requestReleased = new Promise<void>((resolve) => (releaseRequest = resolve));
+      await page.route('**/products/hat/', async (route) => {
+        if (route.request().headers()['accept'] === 'application/json') {
+          await requestReleased;
+        }
+        await route.continue();
+      });
+
+      await page.goto('/qwikrouter-test/products/hat/');
+      await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+      const requestStarted = page.waitForRequest(
+        (request) =>
+          request.url().endsWith('/products/hat/') &&
+          request.headers()['accept'] === 'application/json'
+      );
+
+      try {
+        await page
+          .getByRole('button', { name: 'fetch("/qwikrouter-test/products/hat/") data' })
+          .click();
+        await requestStarted;
+        await page.locator('[data-test-link="products-jacket"]').click();
+
+        await expect(page).toHaveURL(/\/products\/jacket\/$/, { timeout: 5000 });
+        await expect(page.locator('h1')).toHaveText('Product: jacket');
+      } finally {
+        releaseRequest();
+      }
+    });
+
     test('issue9247: keeps Back while the init popstate handler is loading', async ({ page }) => {
       let releasePopstate!: () => void;
       const popstateHeld = new Promise<void>((resolve) => (releasePopstate = resolve));

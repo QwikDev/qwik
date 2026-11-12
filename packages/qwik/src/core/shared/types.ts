@@ -144,6 +144,8 @@ export interface QContainerElement extends Element {
  * - `never`: The value is never serialized. When the component is resumed, the value will be
  *   recalculated when it is first read.
  * - `always`: The value is always serialized. This is the default.
+ * - `auto`: Small values and values already included in the state are serialized when possible. Other
+ *   values are recalculated on first read, like `never`.
  *
  * **IMPORTANT**: When you use `never`, your serialized HTML is smaller, but the recalculation will
  * trigger subscriptions, meaning that other signals using this signal will recalculate, even if
@@ -153,10 +155,7 @@ export interface QContainerElement extends Element {
  *
  * @public
  */
-export type SerializationStrategy =
-  // TODO: implement this in the future
-  // 'auto' |
-  'never' | 'always';
+export type SerializationStrategy = 'never' | 'always' | 'auto';
 
 export const enum SsrNodeFlags {
   Updatable = 1,

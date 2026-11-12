@@ -166,7 +166,7 @@ export interface PluginOptions {
   platform?: Record<string, unknown>;
   /** Configuration to rewrite url paths */
   rewriteRoutes?: RewriteRouteOption[];
-  /** The serialization strategy for route loaders. Defaults to `never`. */
+  /** The serialization strategy for route loaders. Defaults to `auto`. */
   defaultLoadersSerializationStrategy?: SerializationStrategy;
   /**
    * Enable strict mode for route loaders and actions by default.

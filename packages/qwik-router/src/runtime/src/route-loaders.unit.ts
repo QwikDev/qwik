@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   abortRouteLoaderNavigation,
@@ -19,6 +19,33 @@ import {
 import { loadRoute } from './routing';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import type { LoaderInternal, RouteModule } from './types';
+
+describe('loader serialization defaults', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('defaults to auto without a configured global', () => {
+    vi.stubGlobal('__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__', undefined);
+    const loader = routeLoaderQrl(createQrl('default-auto')) as LoaderInternal;
+    expect(loader.__serializationStrategy).toBe('auto');
+  });
+
+  it.each(['always', 'never', 'auto'] as const)('preserves a configured %s default', (strategy) => {
+    vi.stubGlobal('__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__', strategy);
+    const loader = routeLoaderQrl(createQrl('configured-strategy')) as LoaderInternal;
+    expect(loader.__serializationStrategy).toBe(strategy);
+  });
+
+  it.each(['always', 'never', 'auto'] as const)(
+    'preserves an explicit loader strategy %s',
+    (strategy) => {
+      vi.stubGlobal('__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__', 'auto');
+      const loader = routeLoaderQrl(createQrl('explicit-strategy'), {
+        serializationStrategy: strategy,
+      }) as LoaderInternal;
+      expect(loader.__serializationStrategy).toBe(strategy);
+    }
+  );
+});
 
 describe('route loader execution', () => {
   it('keeps client state per context without modifying the context', () => {

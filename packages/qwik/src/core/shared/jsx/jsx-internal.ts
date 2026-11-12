@@ -1,5 +1,5 @@
 import type { OnRenderFn } from '../component.public';
-import { inlinedQrl as _inlinedQrl } from '../qrl/library-qrl';
+import { chkQrl, valQrl } from '../qrl/handler-qrls';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { jsxEventToHtmlAttribute, normalizeJsxEventName } from '../utils/event-names';
 import { logOnceWarn } from '../utils/log';
@@ -273,7 +273,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           delete constProps[BIND_CHECKED];
         }
         varProps.checked = bindCheckedSignal;
-        const handler = _inlinedQrl(_chk, 'q_chk', [bindCheckedSignal]);
+        const handler = chkQrl().w([bindCheckedSignal]);
 
         // Move q-e:input from constProps if it exists
         if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {
@@ -300,7 +300,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           delete constProps[BIND_VALUE];
         }
         varProps.value = bindValueSignal;
-        const handler = _inlinedQrl(_val, 'q_val', [bindValueSignal]);
+        const handler = valQrl().w([bindValueSignal]);
 
         // Move q-e:input from constProps if it exists
         if (constProps && _hasOwnProperty.call(constProps, 'q-e:input')) {

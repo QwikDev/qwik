@@ -17,6 +17,7 @@ export default component$(() => {
   return (
     <VisualizationExplorer
       data={data.value}
+      currentSearch={location.url.search}
       initialView={location.url.searchParams.get('view') || 'groups'}
     />
   );

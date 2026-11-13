@@ -1,5 +1,5 @@
+import { readMatrixRows } from './matrix-paths';
 import type { Bundle, Symbol, SymbolVectors } from '~/stats/edges';
-import { vectorSum } from '~/stats/vector';
 
 export interface MatrixCell {
   column: number;
@@ -12,16 +12,18 @@ export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) 
   );
   return {
     symbols: Array.from(summaries.values()),
-    matrix: vectors.vectors.map((row) => {
-      const total = vectorSum(row);
-      const cells: MatrixCell[] = [];
-      row.forEach((value, column) => {
-        if (value / total > 0.05) {
-          cells.push({ column, value });
-        }
-      });
-      return cells;
-    }),
+    matrixPaths: vectors.paths,
+    matrix: vectors.paths
+      ? []
+      : vectors.vectors.map((row) => {
+          const cells: MatrixCell[] = [];
+          row.forEach((value, column) => {
+            if (value > 0) {
+              cells.push({ column, value });
+            }
+          });
+          return cells;
+        }),
     bundles: bundles.map((bundle) => {
       const relationships = getStrongestRelationships(bundle.symbols, vectors);
       const symbolRelationships: Record<string, Relationship[]> = Object.fromEntries(
@@ -57,7 +59,7 @@ export function getBundleExecutionCount(bundle: {
 
 export function getMatrixCellColor(value: number): string {
   const strength = Math.round(Math.max(0, Math.min(1, value)) * 100);
-  return `color-mix(in srgb, var(--color-editorial-data-current) ${strength}%, var(--color-editorial-data-band))`;
+  return `color-mix(in srgb, var(--color-editorial-data-current) ${strength}%, var(--color-editorial-canvas))`;
 }
 
 export interface Relationship {
@@ -102,3 +104,60 @@ export function getStrongestRelationships(
 }
 
 export type BundleInfo = ReturnType<typeof createBundleViewData>;
+
+export function getMatrixView(
+  data: BundleInfo,
+  selectedIndex: number,
+  showAll: boolean,
+  selectedRow = 0,
+  selectedColumn = 0
+) {
+  const bundles = showAll
+    ? data.bundles.map((bundle, index) => ({ bundle, index }))
+    : data.bundles.at(selectedIndex)
+      ? [{ bundle: data.bundles[selectedIndex], index: selectedIndex }]
+      : [];
+  const symbols = bundles.flatMap(({ bundle }) => bundle.symbols);
+  const originalIndexes = new Map(data.symbols.map((symbol, index) => [symbol.name, index]));
+  const columns = new Map(
+    symbols.map((symbol, index) => [originalIndexes.get(symbol.name), index])
+  );
+  let start = 0;
+  const groups = bundles.map(({ bundle, index }) => {
+    const group = { label: `Group ${index + 1}`, start, size: bundle.symbols.length };
+    start += group.size;
+    return group;
+  });
+  const rowStart = Math.floor(Math.max(0, Math.min(symbols.length - 1, selectedRow)) / 100) * 100;
+  const columnStart =
+    Math.floor(Math.max(0, Math.min(symbols.length - 1, selectedColumn)) / 100) * 100;
+  const rowEnd = Math.min(symbols.length, rowStart + 100);
+  const columnEnd = Math.min(symbols.length, columnStart + 100);
+  const selectedRows = symbols
+    .slice(rowStart, rowEnd)
+    .map((symbol) => originalIndexes.get(symbol.name)!);
+  const selectedColumns = symbols
+    .slice(columnStart, columnEnd)
+    .map((symbol) => originalIndexes.get(symbol.name)!);
+  const decoded = data.matrixPaths
+    ? readMatrixRows(data.matrixPaths, selectedRows, selectedColumns)
+    : undefined;
+  const matrix = symbols.map((symbol, rowIndex) => {
+    if (rowIndex < rowStart || rowIndex >= rowEnd) {
+      return [];
+    }
+    if (decoded) {
+      return decoded[rowIndex - rowStart].flatMap((value, offset) =>
+        value > 0 ? [{ column: columnStart + offset, value }] : []
+      );
+    }
+    const row = data.matrix[originalIndexes.get(symbol.name)!] ?? [];
+    return row.flatMap((cell) => {
+      const column = columns.get(cell.column);
+      return column === undefined || column < columnStart || column >= columnEnd
+        ? []
+        : [{ column, value: cell.value }];
+    });
+  });
+  return { symbols, matrix, groups, rowStart, columnStart, rowEnd, columnEnd };
+}

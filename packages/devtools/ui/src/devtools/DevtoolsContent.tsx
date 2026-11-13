@@ -8,6 +8,7 @@ import { BuildAnalysis } from '../features/BuildAnalysis/BuildAnalysis';
 import { CodeBreak } from '../features/CodeBreak/CodeBreak';
 import { HookTree } from '../features/HookTree/HookTree';
 import { Inspect } from '../features/Inspect/Inspect';
+import { Insights } from '../features/Insights/Insights';
 import { Overview } from '../features/Overview/Overview';
 import { Packages } from '../features/Packages/Packages';
 import { Performance } from '../features/Performance/Performance';
@@ -151,6 +152,17 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
             <ViteOnlyPlaceholder feature="Build Analysis" q:slot="content" />
           ) : (
             <BuildAnalysis q:slot="content" />
+          )}
+        </TabContent>
+      );
+    case 'insights':
+      return (
+        <TabContent>
+          <TabTitle title="Insights" q:slot="title" />
+          {isExtensionMode ? (
+            <ViteOnlyPlaceholder feature="Insights" q:slot="content" />
+          ) : (
+            <Insights q:slot="content" />
           )}
         </TabContent>
       );

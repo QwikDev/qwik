@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
+    "@libsql/client": "0.15.15",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",
@@ -112,6 +113,11 @@
       "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs"
     },
+    "./insights/collector": {
+      "types": "./dist/insights/collector.d.ts",
+      "import": "./dist/insights/collector/index.mjs"
+    },
+    "./insights-pinger.js": "./dist/insights-pinger.js",
     "./optimizer.mjs": "./dist/optimizer.mjs",
     "./optimizer": {
       "types": "./dist/optimizer.d.ts",
@@ -183,11 +189,15 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
+    "@libsql/client": "^0.15.11",
     "prettier": "*",
     "vite": ">=8 <9",
     "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
+    "@libsql/client": {
+      "optional": true
+    },
     "prettier": {
       "optional": true
     },

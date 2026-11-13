@@ -885,6 +885,9 @@ importers:
       '@croct/json5-parser':
         specifier: 0.2.2
         version: 0.2.2
+      '@libsql/client':
+        specifier: 0.15.15
+        version: 0.15.15
       '@qwik.dev/core':
         specifier: workspace:*
         version: 'link:'

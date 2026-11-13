@@ -92,6 +92,38 @@ export interface ModuleLookupResult {
 
 export type ParsedQwikCodeResult = Omit<ParsedStructure, '__start__'>[];
 
+export interface InsightsAppRow {
+  name: string;
+  publicApiKey: string;
+  url: string | null;
+}
+
+export interface InsightsEdgeRow {
+  publicApiKey: string;
+  from: string | null;
+  to: string;
+  interaction: boolean;
+  count: number;
+}
+
+export interface InsightsRouteRow {
+  publicApiKey: string;
+  route: string;
+  symbol: string;
+  count: number;
+}
+
+export interface InsightsDbData {
+  /** LibSQL URL being read (auth token redacted), for display. */
+  dbUrl: string;
+  /** False when falling back to the default local file (no QWIK_INSIGHTS_DB_URL set). */
+  configured: boolean;
+  error?: string;
+  apps: InsightsAppRow[];
+  edges: InsightsEdgeRow[];
+  routes: InsightsRouteRow[];
+}
+
 export interface ServerFunctions {
   healthCheck(): boolean;
   getAssetsFromPublicDir: () => Promise<AssetInfo[]>;
@@ -111,6 +143,7 @@ export interface ServerFunctions {
   buildBuildAnalysisReport: () => Promise<BuildAnalysisRunResult>;
   getModulesByPathIds: (pathIds: string | string[]) => Promise<ModuleLookupResult[]>;
   parseQwikCode: (code: string) => Promise<ParsedQwikCodeResult>;
+  getInsightsData: () => Promise<InsightsDbData>;
 }
 
 export type ServerRpc = BirpcReturn<ClientFunctions, ServerFunctions>;

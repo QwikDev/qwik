@@ -21,6 +21,7 @@ export interface InsightsError {
     manifestHash: string;
     // (undocumented)
     message: string;
+    publicApiKey?: string;
     // (undocumented)
     source: string;
     // (undocumented)
@@ -31,6 +32,11 @@ export interface InsightsError {
     url: string;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "insightsGate" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const insightsGate: SyncQRL<() => void>;
+
 // @public (undocumented)
 export interface InsightsPayload {
     manifestHash: string;
@@ -39,11 +45,6 @@ export interface InsightsPayload {
     qVersion: string;
     symbols: InsightSymbol[];
 }
-
-// Warning: (ae-internal-missing-underscore) The name "insightsPing" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const insightsPing: SyncQRL<() => void>;
 
 // @public (undocumented)
 export interface InsightSymbol {

@@ -1322,3 +1322,49 @@ describe.each([
     expect(readRenderedText(await renderAppOnServer(modules), 'li')).toEqual(texts);
   });
 });
+
+describe('a list row writing a captured local', () => {
+  /** Rows of `items` that run `write` first, then render `prefix` through a nested text segment. */
+  const rowsWriting = (write: string) =>
+    inApp(`const items = useSignal(['a', 'b']);
+  let prefix = 'initial';
+  const run = (action) => action();
+  return <ul>{items.value.map((item) => { ${write} return <li key={item}>{prefix + s.value}</li>; })}</ul>;`);
+
+  describe.each([
+    ['through a callback it passes to a helper', 'run(() => { prefix = item; });', ['a0', 'b0']],
+    ['by an array pattern', '[prefix] = [item];', ['a0', 'b0']],
+    ['by an object pattern', '({ name: prefix } = { name: item });', ['a0', 'b0']],
+    // Each row starts from its own copy, so the second row never sees what the first one added.
+    ['with +=', 'prefix += item;', ['initiala0', 'initialb0']],
+  ])('%s', (_, write, texts) => {
+    test.each([false, true])('compiles to declared, live code (SSR: %s)', async (isServer) => {
+      const modules = await compile(rowsWriting(write), isServer);
+      expect(brokenOrDeadCode(modules, write.includes('run(') ? [] : ['run'])).toEqual([]);
+    });
+
+    test('renders the value each row wrote on the client', async () => {
+      const modules = await compile(rowsWriting(write), false);
+      expect(await renderAppOnClient(modules, 'li')).toEqual(texts);
+    });
+
+    test('renders the value each row wrote on the server', async () => {
+      const modules = await compile(rowsWriting(write), true);
+      expect(readRenderedText(await renderAppOnServer(modules), 'li')).toEqual(texts);
+    });
+  });
+
+  test.each([
+    ['only reads it shares its row events across rows', '', true],
+    ['writes it builds its row events per row', 'prefix = item;', false],
+  ])('a row that %s', async (_, write, isShared) => {
+    const modules = await compile(
+      inApp(`const items = useSignal(['a', 'b']);
+  let prefix = 'initial';
+  return <ul>{items.value.map((item) => { ${write} return <li key={item} onClick$={() => console.log(prefix, item)}>{item}{s.value}</li>; })}</ul>;`),
+      false
+    );
+    expect(brokenOrDeadCode(modules)).toEqual([]);
+    expect(modules.some(({ code }) => code.includes('.rowEvents ??='))).toBe(isShared);
+  });
+});

@@ -249,12 +249,19 @@ function lowerEach(
 
   // The row's segment comes first (legacy order: for_render before for_key), children after.
   const originBody = statements.length === 0 ? body : callback.body!;
-  const rowCaptures = lowerCaptures(
-    [...paramPatterns.values(), originBody],
-    ctx,
-    'a collection row',
-    localBindings
+  const rowNodes = [...paramPatterns.values(), originBody];
+  const rowCaptures = lowerCaptures(rowNodes, ctx, 'a collection row', localBindings);
+  const written = new Set(
+    ctx.bindings
+      .freeReferences(rowNodes)
+      .filter(({ isWrite }) => isWrite)
+      .map(({ binding }) => binding)
   );
+  for (const capture of rowCaptures.captures) {
+    if (written.has(capture.binding)) {
+      capture.isWritten = true;
+    }
+  }
   const rowRange: [number, number] = [originBody.start, originBody.end];
   const { index: rowIndex, use } = pushQrl(
     ctx,
@@ -354,7 +361,10 @@ function promoteRowEventParams(
   ) {
     return;
   }
-  const outer = new Set(captures.map((capture) => capture.binding));
+  // A handler reading a capture the row writes needs that row's value, so it cannot be shared.
+  const outer = new Set(
+    captures.filter(({ isWritten }) => !isWritten).map((capture) => capture.binding)
+  );
   const visit = (element: Extract<Op, { op: OpKind.Element }>) => {
     const candidates = element.props
       .filter((prop) => prop.k === PropKind.Event)

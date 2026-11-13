@@ -127,8 +127,8 @@ export interface Qrl {
         /** `function*`: the head must say so, or `yield` in the copied body is a syntax error. */
         generator?: true;
       };
-  /** Names/kinds read from the binding table. */
-  captures: { binding: LocalId; access: CaptureAccess }[];
+  /** Names/kinds read from the binding table; `isWritten`: a collection row assigns its copy. */
+  captures: { binding: LocalId; access: CaptureAccess; isWritten?: true }[];
   /** Local functions the body calls: their captures ride `captures`, the prelude rebinds them. */
   functions?: { binding: LocalId; use: QrlUse }[];
   /** Invocation ABI. */

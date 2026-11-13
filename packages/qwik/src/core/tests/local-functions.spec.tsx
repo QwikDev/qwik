@@ -770,6 +770,33 @@ describe(`${name}: functions and components declared inside a component`, () => 
       cleanup();
     });
 
+    it('a captured local each list row adds to through a local helper', async () => {
+      const App = component$(() => {
+        const out = useSignal('');
+        const items = useSignal(['a', 'b']);
+        let prefix = '>';
+        const run = (action: () => void) => action();
+        return (
+          <div>
+            {items.value.map((item) => {
+              run(() => {
+                prefix += item;
+              });
+              return <p key={item} id={item} onClick$={() => (out.value = prefix)} />;
+            })}
+            <i id="o">{out.value}</i>
+          </div>
+        );
+      });
+      const { container, cleanup } = await render(App);
+      // Each row adds to its own copy, so no row sees what another row added.
+      await trigger(container, '#b', 'click');
+      expect(text(container, '#o')).toBe('>b');
+      await trigger(container, '#a', 'click');
+      expect(text(container, '#o')).toBe('>a');
+      cleanup();
+    });
+
     it('a $() function, with a signal as the default parameter', async () => {
       const App = component$(() => {
         const count = useSignal(1);

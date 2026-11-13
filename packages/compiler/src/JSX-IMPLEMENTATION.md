@@ -491,7 +491,8 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
   early return stays refused until the row shape and key rules for it are decided
   (`collection-row-statements` snapshots, `collection-row-statements.spec.tsx` in CSR and
   resume). A local function a hole reads lifts to its own segment, as in a component setup
-  (group 11).
+  (group 11). A row that assigns a captured local assigns its own copy, which the row's handlers
+  capture; unlike plain JavaScript, the component's variable never sees what a row assigned.
 - [ ] Async rows and dynamically shaped results. An `async` row callback is diagnosed
       (`async-row`) with a pointer to tasks; support rides with the async
       program emission and pending-row behaviour of group 13, since the keyed reconciler uses

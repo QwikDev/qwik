@@ -1,0 +1,115 @@
+---
+title: deed.page | Deployments
+contributors:
+  - f-o-x11
+updated_at: '2026-11-09T00:00:00Z'
+created_at: '2026-11-09T00:00:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
+
+# deed.page
+
+[deed.page](https://deed.page) is a static host that publishes a folder in one HTTP request. There is no account to create and no Git repository to connect: you upload a tarball of your build with `curl`, and the site is served at `https://<slug>.deed.page/`.
+
+deed.page only serves files, so use the [Static Site](/docs/deployments/static/index.mdx) adapter to pre-render every route to HTML. Anything that needs a server at request time, such as `routeAction$()` form submissions or `server$()` functions, does not run on a static host.
+
+## Installation
+
+Add the Static Site adapter:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add ssg
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add ssg
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add ssg
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add ssg
+```
+</span>
+</PackageManagerTabs>
+
+The command creates `adapters/ssg/vite.config.ts`. Set `origin` to the address the site will have, using the slug you plan to publish under:
+
+```ts title="adapters/ssg/vite.config.ts"
+import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
+import { extendConfig } from '@qwik.dev/router/vite';
+import baseConfig from '../../vite.config.ts';
+
+export default extendConfig(baseConfig, () => {
+  return {
+    build: {
+      ssr: true,
+      rolldownOptions: {
+        input: ['@qwik-router-config'],
+      },
+    },
+    plugins: [
+      ssgAdapter({
+        origin: 'https://my-qwik-site.deed.page',
+      }),
+    ],
+  };
+});
+```
+
+<Note>A slug uses lowercase letters, digits, and hyphens, and must not already be taken by someone else. The generated `sitemap.xml` uses `origin`, so keep it in sync with the slug.</Note>
+
+## Production build
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run build
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
+
+The pre-rendered pages and their assets are written to `dist/`.
+
+## Production deploy
+
+Pack the contents of `dist/` and upload the archive:
+
+```shell
+tar -C dist -czf site.tar.gz .
+curl -T site.tar.gz "https://deed.page/v1/sites?slug=my-qwik-site"
+```
+
+The JSON response contains the live `url` and a `token`. The token is shown only once and is needed for every later deploy to the same slug, so store it as a secret:
+
+```shell
+tar -C dist -czf site.tar.gz .
+curl -T site.tar.gz "https://deed.page/v1/sites?slug=my-qwik-site" \
+  -H "Authorization: Bearer $DEED_PAGE_TOKEN"
+```
+
+A single upload is limited to 4 MB. If your `dist/` archive is larger, the [deed.page docs](https://deed.page/docs) describe a manifest upload that keeps the same URL. Sites on the free plan show a small "Published with deed.page" link in the corner of HTML pages.

@@ -1,7 +1,7 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
 import { _capturesObj } from '../internal';
-import { createStore } from '../reactive-primitives/impl/store';
+import { createStore, unwrapStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
   type ComputedSignalInternal,
@@ -14,6 +14,7 @@ import { createQRL } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
+import { isObject } from '../shared/utils/types';
 import { useSequentialScope } from './use-sequential-scope';
 
 const DEBUG = false;
@@ -65,6 +66,63 @@ export interface ResourceOptions {
   timeout?: number;
 }
 
+const _propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+const assignOwnEnumerableProps = (target: object, source: object): void => {
+  const unwrappedSource = unwrapStore(source);
+  const keys = Reflect.ownKeys(unwrappedSource);
+  const unwrappedTarget = unwrapStore(target);
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    if (!_propertyIsEnumerable.call(unwrappedSource, key)) {
+      continue;
+    }
+    const value = (unwrappedSource as Record<PropertyKey, unknown>)[key];
+    if (key === '__proto__') {
+      Object.defineProperty(unwrappedTarget, key, {
+        value,
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+      continue;
+    }
+    (target as Record<PropertyKey, unknown>)[key] = value;
+  }
+};
+
+const copyResourceResult = <T extends object>(result: T): T => {
+  if (Array.isArray(result)) {
+    return result.slice() as T;
+  }
+  const copy = {} as T;
+  assignOwnEnumerableProps(copy, result);
+  return copy;
+};
+
+const syncResourceStore = (current: object, next: object): void => {
+  if (Array.isArray(current) && Array.isArray(next)) {
+    current.length = unwrapStore(next).length;
+    assignOwnEnumerableProps(current, next);
+    return;
+  }
+  const unwrappedNext = unwrapStore(next);
+  const currentKeys = Object.keys(unwrapStore(current));
+  for (let index = 0; index < currentKeys.length; index++) {
+    const key = currentKeys[index];
+    if (!Object.hasOwn(unwrappedNext, key)) {
+      Reflect.deleteProperty(current, key);
+    }
+  }
+  assignOwnEnumerableProps(current, next);
+};
+
+/** @internal */
+export const _copyResourceResult = copyResourceResult;
+
+/** @internal */
+export const _syncResourceStore = syncResourceStore;
+
 /**
  * The resource function wrapper
  *
@@ -75,16 +133,17 @@ export const _rsc = async <T>(arg: ResourceCtx<T>) => {
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
-  if (result && typeof result === 'object') {
-    if (ref.r) {
-      Object.assign(ref.r, result);
+  if (isObject(result)) {
+    const current = ref.r;
+    if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
+      syncResourceStore(current, result);
     } else {
-      // We need lazy creation because we don't know if it will be an array or an object, and we want to preserve the original reference for reactivity to work
-      ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
+      // Copy so later results never mutate the caller's object.
+      ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
       DEBUG && log('store created', ref.r);
     }
   } else {
-    ref.r = result as any;
+    ref.r = result;
   }
   return { r: ref.r };
 };

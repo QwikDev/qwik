@@ -4,6 +4,7 @@ import type { Rolldown } from 'vite';
 import type { DecoratorOptions, EntryStrategy, SegmentAnalysis } from '../types';
 import {
   BuildMode,
+  DiagnosticCategory,
   DeliveryKind,
   EntryKind,
   Environment,
@@ -286,15 +287,17 @@ export function createLinkedBuild() {
     if (linked.kind === LinkResultKind.Failed) {
       throw new Error(linked.diagnostics.map((diagnostic) => diagnostic.message).join('\n'));
     }
-    if (linked.plan.diagnostics.length > 0) {
-      throw new Error(
-        linked.plan.diagnostics
-          .map(
-            ({ module, diagnostic }) =>
-              `${linked.plan.modules[module]?.path ?? module}: ${diagnostic.message}`
-          )
-          .join('\n')
-      );
+    const errors: string[] = [];
+    for (const { module, diagnostic } of linked.plan.diagnostics) {
+      const message = `${linked.plan.modules[module]?.path ?? module}: ${diagnostic.message}`;
+      if (diagnostic.category === DiagnosticCategory.Warning) {
+        ctx.warn(message);
+      } else {
+        errors.push(message);
+      }
+    }
+    if (errors.length > 0) {
+      throw new Error(errors.join('\n'));
     }
     const presentation = {
       rootDir: config.rootDir,

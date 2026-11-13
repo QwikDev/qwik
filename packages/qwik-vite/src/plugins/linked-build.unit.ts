@@ -934,3 +934,61 @@ test.each([false, true])(
   },
   20000
 );
+
+test('reports a compiler warning without failing the build', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const entry = join(directory, 'application.tsx');
+  await writeFile(
+    entry,
+    `export const Example = () => <p dangerouslySetInnerHTML="<b>markup</b>">ignored</p>;`
+  );
+  const warnings: string[] = [];
+  const compiler = createLinkedBuild();
+  try {
+    const bundle = await rolldown({
+      input: entry,
+      external: (id) => id.startsWith('@qwik.dev/core'),
+      onLog(level, log) {
+        if (level === 'warn') {
+          warnings.push(log.message);
+        }
+      },
+      plugins: [
+        {
+          name: 'linked-build-test',
+          buildStart() {
+            return compiler.buildStart(this, {
+              entries: [entry],
+              rootDir: directory,
+              server: false,
+              library: false,
+              development: false,
+              sourceMaps: false,
+              onOutput() {},
+            });
+          },
+          resolveId(id, importer) {
+            return compiler.resolveId(this, id, importer);
+          },
+          load(id) {
+            return compiler.load(this, id);
+          },
+          transform(code, id) {
+            return compiler.transform(code, id);
+          },
+        },
+      ],
+    });
+    try {
+      const { output } = await bundle.generate({ format: 'es' });
+      const code = output.map((file) => (file.type === 'chunk' ? file.code : '')).join('\n');
+      expect(code).toContain('<b>markup</b>');
+      expect(code).not.toContain('ignored');
+    } finally {
+      await bundle.close();
+    }
+    expect(warnings).toEqual([expect.stringContaining('its children are ignored')]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

@@ -122,7 +122,7 @@ function createResolveRequestHandlers() {
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
       requestHandlers.push(routeResolveHandler());
-      requestHandlers.push(loaderHandler(routeLoaders, route));
+      requestHandlers.push(loaderHandler(routeLoaders, route, serverPlugins));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       requestHandlers.push(route.$notFound$ ? fixStaticTrailingSlash : fixTrailingSlash);

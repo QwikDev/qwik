@@ -110,7 +110,11 @@ export const loadBundleGraph = (
         const resumeReplay = createMacroTask(replayPendingBundles);
         replayPendingBundles();
       })
-      .catch(console.warn);
+      .catch((error) => {
+        console.warn(error);
+        graph ||= new Map();
+        nextTriggerMacroTask();
+      });
   }
 };
 

@@ -682,3 +682,52 @@ test('schedules a single adjustment task for many replayed hints', async () => {
   const adjustmentTaskAndTriggerTask = 2;
   expect(vi.getTimerCount()).toBe(adjustmentTaskAndTriggerTask);
 });
+
+const linkNames = (document: Document) =>
+  Array.from(document.head.querySelectorAll('link'), (link) =>
+    new URL(link.href).pathname.split('/').pop()
+  );
+
+test('holds speculative preloads until the bundle graph has loaded, but not needed ones', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  let deliverGraph!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  preload('needed.js', 1);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual(['needed.js']);
+
+  deliverGraph({
+    text: async () => JSON.stringify(['speculative.js', 'needed.js']),
+  } as Response);
+  document.head.querySelector('link')!.onload!({} as Event);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual(['speculative.js']);
+});
+
+test('starts speculative preloads when the bundle graph fails to load', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  loadBundleGraph('/build/', Promise.reject(new Error('offline')));
+
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['speculative.js']);
+});

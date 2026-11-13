@@ -117,10 +117,6 @@ for (const [name, heldUrl] of [
         ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
       );
       expect(clickLinks.length).toBeGreaterThan(0);
-      test.fail(
-        name === 'the bundle graph',
-        'speculative preloads start before the bundle graph has loaded, so some go out between the needed ones'
-      );
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   });

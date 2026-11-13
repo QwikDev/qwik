@@ -1,5 +1,5 @@
 import { createMacroTask } from '../shared/platform/next-tick';
-import { base, getBundle } from './bundle-graph';
+import { base, getBundle, graph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
@@ -71,7 +71,10 @@ function trigger() {
     const bundle = queue[0];
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
     // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
-    if (isNeeded(bundle) || (inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())) {
+    if (
+      isNeeded(bundle) ||
+      (graph && inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
+    ) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {

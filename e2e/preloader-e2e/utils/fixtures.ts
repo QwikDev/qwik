@@ -61,6 +61,7 @@ const handWritten = (name: string, expected: string): Fixture => ({
 });
 
 export const SLOT = handWritten('slot', '1');
+export const CONDITIONAL_MODAL = handWritten('conditional-modal', 'ready');
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');

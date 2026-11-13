@@ -222,6 +222,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/conditional-modal/',
+    label: 'conditional modal',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

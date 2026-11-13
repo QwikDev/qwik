@@ -1,23 +1,10 @@
-import { createPreviewBundles } from './affinity-preview';
+import { createPreviewBundles, getPreviewBundles } from './affinity-preview';
 import type { MatrixPath } from '~/stats/edges';
 import { groupByAffinity, type AffinityLink } from '~/stats/bundle-affinity';
-import {
-  $,
-  component$,
-  useComputed$,
-  useSignal,
-  useStore,
-  type JSXOutput,
-  type QRL,
-} from '@qwik.dev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 import { SymbolTile } from '~/components/symbol-tile';
-import type { Symbol } from '~/stats/edges';
-import {
-  getBundleExecutionCount,
-  getMatrixCellColor,
-  type MatrixCell,
-  type BundleInfo,
-} from './bundle-view';
+import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
+import { RelationshipMatrix } from './relationship-matrix';
 
 export const BundleExplorer = component$<{
   data: BundleInfo & { affinityTree?: AffinityLink[]; previewPaths?: MatrixPath[] };
@@ -28,7 +15,7 @@ export const BundleExplorer = component$<{
     bundles:
       affinity.value === 50 || !initialData.affinityTree
         ? initialData.bundles
-        : createPreviewBundles(
+        : getPreviewBundles(
             groupByAffinity(initialData.symbols, initialData.affinityTree, affinity.value),
             initialData
           ),
@@ -38,13 +25,24 @@ export const BundleExplorer = component$<{
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
   const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
-  const strongestRelationships = selectedSymbol.value
-    ? (selectedBundle?.symbolRelationships[selectedSymbol.value] ?? [])
-    : (selectedBundle?.relationships ?? []);
+  const strongestRelationships = useComputed$(() => {
+    const bundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+    if (!selectedSymbol.value) {
+      return bundle?.relationships ?? [];
+    }
+    if (bundle && !initialData.bundles.includes(bundle)) {
+      return (
+        createPreviewBundles([bundle], initialData, selectedSymbol.value)[0].symbolRelationships[
+          selectedSymbol.value
+        ] ?? []
+      );
+    }
+    return bundle?.symbolRelationships[selectedSymbol.value] ?? [];
+  });
   const relationship =
     selectedRelationship.value < 0
       ? undefined
-      : strongestRelationships.at(selectedRelationship.value);
+      : strongestRelationships.value.at(selectedRelationship.value);
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -301,9 +299,9 @@ export const BundleExplorer = component$<{
                       )}
                     </div>
                     <div class="grid items-start md:grid-cols-2">
-                      {strongestRelationships.length ? (
+                      {strongestRelationships.value.length ? (
                         <ol>
-                          {strongestRelationships.map((connection, index) => {
+                          {strongestRelationships.value.map((connection, index) => {
                             const from = selectedBundle.symbols.find(
                               (symbol) => symbol.name === connection.from
                             )!;
@@ -478,32 +476,11 @@ export const BundleExplorer = component$<{
                   </section>
                 )}
                 {selectedView.value === 'matrix' && (
-                  <section
-                    data-panel="matrix"
-                    class="border-y border-editorial-border py-editorial-6"
-                    aria-labelledby="matrix-title"
-                  >
-                    <div class="flex flex-wrap items-end justify-between gap-editorial-4">
-                      <div>
-                        <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
-                          Relationship matrix
-                        </p>
-                        <h2
-                          id="matrix-title"
-                          class="mt-editorial-2 text-editorial-20 font-semibold"
-                        >
-                          {data.value.symbols.length.toLocaleString('en')} recorded symbols
-                        </h2>
-                        <p class="mt-editorial-1 text-editorial-12 text-editorial-secondary">
-                          Darker cells indicate stronger observed relationships.
-                        </p>
-                      </div>
-                      <p class="text-editorial-12 text-editorial-secondary">Latest 100 manifests</p>
-                    </div>
-                    <div class="mt-editorial-5">
-                      <CorrelationMatrix matrix={data.value.matrix} symbols={data.value.symbols} />
-                    </div>
-                  </section>
+                  <RelationshipMatrix
+                    key={`${selectedIndex.value}:${affinity.value}`}
+                    data={data.value}
+                    selectedIndex={selectedIndex.value}
+                  />
                 )}
               </div>
             </div>
@@ -520,143 +497,3 @@ export const BundleExplorer = component$<{
     </div>
   );
 });
-
-export const CorrelationMatrix = component$<{
-  matrix: MatrixCell[][];
-  symbols: Symbol[];
-}>(({ matrix, symbols }) => {
-  const callout = useStore({
-    visible: false,
-    value: 0,
-    rowSymbol: '',
-    colSymbol: '',
-  });
-  const selectCell = $((_: Event, cell: HTMLButtonElement) => {
-    callout.value = Number(cell.getAttribute('data-value'));
-    callout.rowSymbol = cell.getAttribute('data-row-symbol')!;
-    callout.colSymbol = cell.getAttribute('data-col-symbol')!;
-    callout.visible = true;
-  });
-  return (
-    <>
-      <div class="border border-editorial-border aspect-square w-full max-w-[calc(70vmin-20px)] flex flex-col justify-evenly">
-        <MatrixCells matrix={matrix} symbols={symbols} onSelect$={selectCell} />
-      </div>
-      <div
-        data-matrix-details
-        aria-live="polite"
-        hidden={!callout.visible}
-        class="mt-editorial-3 overflow-x-auto bg-editorial-surface border border-editorial-border text-xs"
-      >
-        <table class="w-full text-sm text-left">
-          <tbody>
-            <tr class="border-y border-editorial-border text-xs">
-              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
-                Score
-              </th>
-              <td class="px-6 py-3">
-                <code
-                  class={[
-                    'rounded-xs px-8 py-1 inline-block',
-                    {
-                      'bg-editorial-data-current text-editorial-on-accent':
-                        Math.round(callout.value * 100) >= 70,
-                    },
-                    {
-                      'bg-editorial-data-previous':
-                        Math.round(callout.value * 100) >= 50 &&
-                        Math.round(callout.value * 100) < 70,
-                    },
-                    {
-                      'bg-editorial-data-band':
-                        Math.round(callout.value * 100) >= 30 &&
-                        Math.round(callout.value * 100) < 50,
-                    },
-                    { 'bg-editorial-subtle': Math.round(callout.value * 100) < 30 },
-                  ]}
-                >
-                  {Math.round(callout.value * 100)}%
-                </code>
-              </td>
-            </tr>
-            <tr class="border-b border-editorial-border text-xs">
-              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
-                Row
-              </th>
-              <td class="px-6 py-3">
-                <code>{callout.rowSymbol}</code>
-              </td>
-            </tr>
-            <tr class="border-b border-editorial-border text-xs">
-              <th scope="row" class="px-6 py-3 bg-editorial-subtle">
-                Column
-              </th>
-              <td class="px-6 py-3">
-                <code>{callout.colSymbol}</code>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </>
-  );
-});
-
-export const MatrixCells = component$<{
-  matrix: MatrixCell[][];
-  symbols: Symbol[];
-  onSelect$: QRL<(event: Event, cell: HTMLButtonElement) => void>;
-}>(({ matrix, symbols, onSelect$ }) => {
-  const size = matrix.length;
-  return (
-    <>
-      {matrix.map((row, rowIdx) => (
-        <div
-          class="flex"
-          style={{ height: 100 / size + '%' }}
-          key={rowIdx}
-          data-row-symbol={symbols[rowIdx].name}
-        >
-          {cells(row, symbols, symbols[rowIdx].name, onSelect$)}
-        </div>
-      ))}
-    </>
-  );
-});
-
-function cells(
-  row: MatrixCell[],
-  symbols: Symbol[],
-  rowSymbol: string,
-  onSelect$: QRL<(event: Event, cell: HTMLButtonElement) => void>
-) {
-  const size = symbols.length;
-  const cells: JSXOutput[] = [];
-  let nextColumn = 0;
-  for (const { column, value } of row) {
-    const gap = column - nextColumn;
-    if (gap) {
-      cells.push(<div class="h-full inline-block" style={{ width: (gap * 100) / size + '%' }} />);
-    }
-    cells.push(
-      <button
-        key={column}
-        type="button"
-        onMouseMove$={onSelect$}
-        onFocus$={onSelect$}
-        onClick$={onSelect$}
-        aria-label={`Row: ${rowSymbol}, Column: ${symbols[column].name}, Score: ${Math.round(value * 100)}%`}
-        class="h-full shrink-0 cursor-pointer border-0 p-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-editorial-accent"
-        style={{
-          width: 100 / size + '%',
-          backgroundColor: getMatrixCellColor(value),
-        }}
-        data-row-symbol={rowSymbol}
-        data-col-symbol={symbols[column].name}
-        data-value={value}
-      />
-    );
-    nextColumn = column + 1;
-  }
-  return cells;
-}

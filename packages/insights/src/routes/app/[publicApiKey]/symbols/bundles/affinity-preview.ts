@@ -4,7 +4,8 @@ import { createMatrixReader } from './matrix-paths';
 
 export function createPreviewBundles(
   groups: { name: string; symbols: BundleInfo['symbols'] }[],
-  report: BundleInfo & { previewPaths?: MatrixPath[] }
+  report: BundleInfo & { previewPaths?: MatrixPath[] },
+  inspectedSymbol?: string
 ) {
   const symbolIndexes = new Map(report.symbols.map((symbol, index) => [symbol.name, index]));
   const groupIndexes = new Map(
@@ -22,6 +23,9 @@ export function createPreviewBundles(
     symbolIndexes.get(left.from)! - symbolIndexes.get(right.from)! ||
     symbolIndexes.get(left.to)! - symbolIndexes.get(right.to)!;
   const retain = (list: Relationship[], relationship: Relationship, limit: number) => {
+    if (list.length === limit && compare(relationship, list[list.length - 1]) >= 0) {
+      return;
+    }
     list.push(relationship);
     list.sort(compare);
     if (list.length > limit) {
@@ -42,9 +46,11 @@ export function createPreviewBundles(
     }
     const bundle = bundles[groupIndex];
     const relationship = { from, to, score };
-    retain(bundle.relationships, relationship, 10);
-    retain(bundle.symbolRelationships[from], relationship, 5);
-    retain(bundle.symbolRelationships[to], relationship, 5);
+    if (!inspectedSymbol) {
+      retain(bundle.relationships, relationship, 10);
+    } else if (from === inspectedSymbol || to === inspectedSymbol) {
+      retain(bundle.symbolRelationships[inspectedSymbol], relationship, 5);
+    }
   };
   if (!report.previewPaths) {
     report.matrix.forEach((row, laterIndex) =>
@@ -65,5 +71,30 @@ export function createPreviewBundles(
     const [row] = readRows([laterIndex], columns);
     row.forEach((score, index) => append(laterIndex, columns[index], score));
   });
+  return bundles;
+}
+
+const previewCache = new WeakMap<
+  BundleInfo,
+  { partition: string; bundles: BundleInfo['bundles'] }
+>();
+
+export function getPreviewBundles(
+  groups: Parameters<typeof createPreviewBundles>[0],
+  report: Parameters<typeof createPreviewBundles>[1]
+) {
+  const partition = JSON.stringify(
+    groups.map((group) => group.symbols.map((symbol) => symbol.name))
+  );
+  const previous = previewCache.get(report);
+  if (previous?.partition === partition) {
+    return previous.bundles;
+  }
+  const originalPartition = JSON.stringify(
+    report.bundles.map((group) => group.symbols.map((symbol) => symbol.name))
+  );
+  const bundles =
+    originalPartition === partition ? report.bundles : createPreviewBundles(groups, report);
+  previewCache.set(report, { partition, bundles });
   return bundles;
 }

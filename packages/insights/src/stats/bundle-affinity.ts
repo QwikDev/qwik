@@ -1,4 +1,4 @@
-import { hashCode } from './edges';
+import { hashCode } from './hash-code';
 
 export interface AffinityLink {
   from: number;

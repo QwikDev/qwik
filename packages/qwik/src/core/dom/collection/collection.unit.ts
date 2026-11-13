@@ -150,6 +150,21 @@ describe('collection', () => {
     expect(indexes).toEqual([0, 1]);
   });
 
+  it('passes every direct array row the same collection object', () => {
+    const { ctx, list, start, end, run } = setup();
+    const collections: unknown[] = [];
+
+    run(() =>
+      createCollection(ctx, start, end, ['a', 'b'], null, (_ctx, item, _index, collection) => {
+        collections.push(collection);
+        return row(list.ownerDocument, item);
+      })
+    );
+
+    expect(collections[0]).toBeInstanceOf(Object);
+    expect(collections[1]).toBe(collections[0]);
+  });
+
   it('inserts every node from a row fragment', () => {
     const { ctx, list, start, end, run } = setup();
     const first = row(list.ownerDocument, 'first');

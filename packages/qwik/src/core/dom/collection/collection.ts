@@ -22,6 +22,7 @@ import {
   renderSsrForBlock,
   IndexMode,
   type AuthoredForKey,
+  type ForBlock,
   RowOutputShape,
 } from '../for/for';
 
@@ -30,7 +31,8 @@ type CollectionIndex = number | Signal<number> | undefined;
 type CollectionRenderFn<T> = (
   ctx: ContainerContext,
   item: T,
-  index: CollectionIndex
+  index: CollectionIndex,
+  collection: Pick<ForBlock, 'rowEvents'>
 ) => ValueOrPromise<MaybeNodeOutput>;
 type SsrCollectionContext = SsrContentContext & { nextId(): number };
 type SsrCollectionRenderFn<T> = (
@@ -87,12 +89,14 @@ function renderArray<T>(
   transient: boolean
 ): ValueOrPromise<void> {
   const fragment = ctx.document.createDocumentFragment();
+  // Holds what rows share, as a ForBlock does for its rows.
+  const collection = {};
 
   const append = (output: MaybeNodeOutput) => appendRowOutput(fragment, output, rowShape);
   const next = (index: number): ValueOrPromise<void> => {
     for (let i = index; i < items.length; i++) {
       const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
-      const output = invoke(context, render, ctx, items[i], i);
+      const output = invoke(context, render, ctx, items[i], i, collection);
       if (isPromise(output)) {
         return output.then((output) => {
           append(output);

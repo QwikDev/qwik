@@ -494,6 +494,7 @@ const writeMatrix = () => {
 
 const HAND_WRITTEN = [
   { group: 'other', href: '/modal/', label: 'modal' },
+  { group: 'other', href: '/conditional-modal/', label: 'conditional modal' },
   { group: 'other', href: '/user-import/', label: 'user import' },
   { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'other', href: '/slot/', label: 'slot' },

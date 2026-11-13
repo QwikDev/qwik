@@ -69,6 +69,28 @@ or serves from memory must make `isCompiledModule` (in `plugin.ts`) return true,
 the cache through `configureVitest`. A cold run hides a miss: run the render projects twice and keep
 `node_modules/.vitest-cache` between the runs.
 
+## V3 local lifting
+
+`packages/compiler/src/analyse/ast/lift-analysis.ts` decides before lowering which local functions
+and components lift to their own segment; lowering asks `ctx.lifts` and never decides again.
+
+- A new kind of segment boundary in lowering needs its mirror in `collectBoundaries`. Drift fails
+  loudly (a `pipeline:` error or a `<subject> capturing "x"` refusal), so read such a failure as a
+  missing mirror, not as an input to special-case.
+- Code lowering never emits (children under `dangerouslySetInnerHTML`, a dropped `key`) goes into the
+  walk's dropped set, or a read inside it lifts a local nothing rebinds.
+- A function in a capture list never serializes: fix the rule, do not allow it. A shape no segment
+  can hold is refused in the author's words, never captured.
+- Lowering state on the context that a refused custom-hook setup registered must be reset in
+  `lowerHooks`, or the authored fallback lowers against stale entries.
+- A refusal in one component fails its whole module: before adding one, grep the render specs and
+  e2e apps for the shape it refuses.
+- A golden snapshot does not catch an undeclared name, a wrong import between segments or a dead
+  rebind. Prove emitted code with `local-function-output.unit.ts` (it type-checks emitted modules
+  across their imports, reports every unused declaration and runs emitted segments, for CSR and SSR
+  both), and behavior across serialization with `core/tests/local-functions.spec.tsx` in the `resume`
+  project.
+
 ## V2 TypeScript optimizer parity
 
 The following workflow applies to v2 parity work in `packages/ts-optimizer`, not the v3 compiler.

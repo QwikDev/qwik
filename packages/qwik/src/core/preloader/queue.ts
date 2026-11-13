@@ -1,5 +1,5 @@
 import { createMacroTask } from '../shared/platform/next-tick';
-import { base, getBundle, graph } from './bundle-graph';
+import { base, getBundle, isWaitingForGraph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
@@ -73,7 +73,7 @@ function trigger() {
     // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
     if (
       isNeeded(bundle) ||
-      (graph && inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
+      (!isWaitingForGraph && inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
     ) {
       queue.shift();
       preloadOne(bundle);

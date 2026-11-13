@@ -7,6 +7,7 @@ import { BundleImportState_Alias, BundleImportState_None } from './types';
 // Note, making these singletons pulls in too much code and they are ok being module-scoped
 export let base: string | undefined;
 export let graph: BundleGraph;
+export let isWaitingForGraph = false;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
@@ -81,10 +82,12 @@ export const loadBundleGraph = (
   base = basePath;
 
   if (serializedResponse) {
+    isWaitingForGraph = true;
     serializedResponse
       .then((r) => r.text())
       .then((text) => {
         graph = parseBundleGraph(JSON.parse(text));
+        isWaitingForGraph = false;
         // Snapshot hints before dependency propagation adds new bundle records.
         const pendingBundles = Array.from(bundles.values());
         let nextIndex = 0;
@@ -112,7 +115,7 @@ export const loadBundleGraph = (
       })
       .catch((error) => {
         console.warn(error);
-        graph ||= new Map();
+        isWaitingForGraph = false;
         nextTriggerMacroTask();
       });
   }

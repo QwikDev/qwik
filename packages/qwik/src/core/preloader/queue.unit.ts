@@ -731,3 +731,37 @@ test('starts speculative preloads when the bundle graph fails to load', async ()
 
   expect(linkNames(document)).toEqual(['speculative.js']);
 });
+
+test('still preloads a bundle first hinted after the bundle graph failed to load', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  loadBundleGraph('/build/', Promise.reject(new Error('offline')));
+  await vi.runAllTimersAsync();
+
+  preload('hinted-late.js', 1);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['hinted-late.js']);
+});
+
+test('starts speculative preloads when no bundle graph is requested', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  loadBundleGraph('/build/');
+
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['speculative.js']);
+});

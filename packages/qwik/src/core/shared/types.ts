@@ -17,6 +17,9 @@ export type CapturedEventHandler = unknown[] & {
 
 export type QDispatchHandler = EventHandler | CapturedEventHandler;
 
+/** A loader event name with its scope, such as `e:click`. */
+export type ScopedEventName = `${string}:${string}`;
+
 export type qWindow = Window & {
   _qwikEv: {
     events: Set<string>;
@@ -25,6 +28,8 @@ export type qWindow = Window & {
     push: (
       ...events: (string | (EventTarget & ParentNode) | QwikEvContainerReadyCommand)[]
     ) => void;
+    /** Core's re-scan callback per scanned event; the `:` keeps it apart from the members above. */
+    [scannedEvent: ScopedEventName]: (() => void) | undefined;
   };
 };
 
@@ -37,10 +42,6 @@ export const enum QContainerValue {
   RESUMED = 'resumed',
   HTML = 'html',
   TEXT = 'text',
-}
-
-export interface QContainerElement extends Element {
-  _qwikjson_?: unknown;
 }
 
 /** @public */

@@ -19,7 +19,9 @@ import {
   QRenderAttr,
   QRuntimeAttr,
   QVersionAttr,
+  assertElementName,
   escapeHTML,
+  isSafeAttrName,
 } from './qwik-copy';
 import type { RenderToStreamOptions, ResolvedManifest } from './types';
 
@@ -170,11 +172,12 @@ export function injectStyles(
 }
 
 export function createContainerOpenTag(tagName: string, attrs: Record<string, string>): string {
+  assertElementName(tagName);
   let html = tagName === 'html' ? '<!DOCTYPE html>' : '';
   html += `<${tagName}`;
   for (const name in attrs) {
     const value = attrs[name];
-    if (value === undefined) {
+    if (value === undefined || !isSafeAttrName(name)) {
       continue;
     }
     html += ` ${name}="${escapeHTML(value)}"`;

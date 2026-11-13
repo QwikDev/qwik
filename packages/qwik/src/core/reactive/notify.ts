@@ -5,7 +5,7 @@ import { SubscriberKind, type ComputedSubscriber, type Subscriber } from '../run
 import { isSubscriberDisposed } from '../runtime/subscriber';
 
 export function notifySourceSubscribers(source: Source): void {
-  if (resolveLazySubscribers(source, () => notifySourceSubscribers(source))) {
+  if (resolveLazySubscribers(source, notifySourceSubscribers)) {
     return;
   }
 
@@ -19,6 +19,7 @@ export function notifySourceSubscribers(source: Source): void {
     return;
   }
 
+  // A server lane reruns a task synchronously, and the rerun re-subscribes to this list.
   const snapshot = subs.slice() as Subscriber[];
   for (let i = 0; i < snapshot.length; i++) {
     notifySubscriber(snapshot[i]);

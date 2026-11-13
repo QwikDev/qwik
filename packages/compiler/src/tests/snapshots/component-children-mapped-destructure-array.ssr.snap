@@ -60,6 +60,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   renderSsrCollection,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
@@ -124,30 +125,24 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (
     );
     ctx.addRoot(tail);
     const text3 = renderSsrTextExpression(id0, 3, [tail], q_component_text_segment_5_1fh12dh4juuhz);
-    return maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) =>
-        maybeThen(text2, (text2) =>
-          maybeThen(text3, (text3) => [
-            '<h2 q:id="',
-            createSsrNodeId(id0),
-            '"',
-            ctx.eventAttrParts(
-              'q-e:click',
-              q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, first, tail])
-            ),
-            '><!t>',
-            escapeHTML(text0),
-            '<!/t>:<!t>',
-            escapeHTML(text1),
-            '<!/t>:<!t>',
-            escapeHTML(text2),
-            '<!/t>:<!t>',
-            escapeHTML(text3),
-            '<!/t></h2>',
-          ])
-        )
-      )
-    );
+    return maybeThen(promiseAll([text0, text1, text2, text3]), ([text0, text1, text2, text3]) => [
+      '<h2 q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts(
+        'q-e:click',
+        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, first, tail])
+      ),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t>:<!t>',
+      escapeHTML(text1),
+      '<!/t>:<!t>',
+      escapeHTML(text2),
+      '<!/t>:<!t>',
+      escapeHTML(text3),
+      '<!/t></h2>',
+    ]);
   }
   const collection0 = ctx.observeError(
     renderSsrCollection(
@@ -349,6 +344,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   renderSsrCollection,
   _noopQrl,
   _markComponent,
@@ -388,30 +384,24 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __project
     );
     ctx.addRoot(tail);
     const text3 = renderSsrTextExpression(id0, 3, [tail], q_component_text_segment_5_1fh12dh4juuhz);
-    return maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) =>
-        maybeThen(text2, (text2) =>
-          maybeThen(text3, (text3) => [
-            '<h2 q:id="',
-            createSsrNodeId(id0),
-            '"',
-            ctx.eventAttrParts(
-              'q-e:click',
-              q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, first, tail])
-            ),
-            '><!t>',
-            escapeHTML(text0),
-            '<!/t>:<!t>',
-            escapeHTML(text1),
-            '<!/t>:<!t>',
-            escapeHTML(text2),
-            '<!/t>:<!t>',
-            escapeHTML(text3),
-            '<!/t></h2>',
-          ])
-        )
-      )
-    );
+    return maybeThen(promiseAll([text0, text1, text2, text3]), ([text0, text1, text2, text3]) => [
+      '<h2 q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts(
+        'q-e:click',
+        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, first, tail])
+      ),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t>:<!t>',
+      escapeHTML(text1),
+      '<!/t>:<!t>',
+      escapeHTML(text2),
+      '<!/t>:<!t>',
+      escapeHTML(text3),
+      '<!/t></h2>',
+    ]);
   }
   const collection0 = ctx.observeError(
     renderSsrCollection(

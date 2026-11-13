@@ -16,7 +16,6 @@ import { Scheduler } from '../../runtime/scheduler';
 import { useTask } from '../../runtime/task';
 import { setEvent } from '../event/event';
 import type { QElement } from '../../shared/types';
-import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { createCatch, createSsrCatch, CatchContentSubscription } from './catch';
 import { createPending, type ContentFn } from './content';
@@ -47,7 +46,8 @@ function setup(
   const boundary = invoke(newInvokeContext({ owner: createOwner(null), container: ctx }), () =>
     createCatch(
       ctx,
-      new BranchRange(document, start, end),
+      start,
+      end,
       isQrl<ContentFn>(content) ? content : createQRL('chunk', 'content', content),
       fallback
     )
@@ -165,7 +165,8 @@ describe('Catch content', () => {
         element.appendChild(end);
         createCatch(
           ctx,
-          new BranchRange(ctx.document, start, end),
+          start,
+          end,
           createQRL('chunk', 'inner', () => {
             owner = getActiveInvokeContext().owner!;
             return pending;
@@ -197,7 +198,8 @@ describe('Catch content', () => {
       element.appendChild(end);
       createPending(
         ctx,
-        new BranchRange(ctx.document, start, end),
+        start,
+        end,
         createQRL('chunk', 'pending', () => pending),
         createQRL('chunk', 'pendingFallback', () => {
           if (isAsync) {
@@ -234,7 +236,8 @@ describe('Catch content', () => {
         element.appendChild(end);
         subscription = createPending(
           ctx,
-          new BranchRange(ctx.document, start, end),
+          start,
+          end,
           createQRL('chunk', 'pending', () => pending),
           createQRL('chunk', 'pendingFallback', () =>
             fallbackRuns++ === 0 ? fallback : ctx.document.createTextNode('current fallback')
@@ -525,6 +528,9 @@ describe('buffered SSR Catch', () => {
       nextId: () => 1,
       addRoot: () => ({ type: 'root-value' as const, value: null }),
       wrapRange: (_id: number, output: any) => output,
+      eventAttr: () => ({ type: 'event-attr' as const, name: '', valueParts: [] }),
+      markHeadlessCarrier: () => {},
+      registerCatchErrorHandler: () => {},
       markCaughtError: () => {
         caught = true;
       },
@@ -579,6 +585,6 @@ it.each([null, ['not a QRL', null], [null, new Error('invalid')]])(
     ];
     await expect(
       Promise.resolve().then(() => inflate(ctx, subscription, TypeIds.CatchSubscription, payload))
-    ).rejects.toThrow('Invalid serialized Catch state');
+    ).rejects.toThrow(new Error('Code(Q41): Invalid serialized state: Catch state'));
   }
 );

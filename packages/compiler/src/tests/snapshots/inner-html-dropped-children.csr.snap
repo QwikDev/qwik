@@ -1,0 +1,185 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$((props: { rest: Record<string, string> }) => {
+  const count = useSignal(0);
+  return (
+    <section>
+      <div dangerouslySetInnerHTML="<i>kept</i>">
+      </div>
+      <div dangerouslySetInnerHTML={props.rest.html}>
+        <button onClick$={() => count.value++}>{count.value}</button>
+        <Card />
+      </div>
+      <p {...props.rest} dangerouslySetInnerHTML="<b>spread</b>">
+        <span onClick$={() => console.log(count.value)}>dropped</span>
+      </p>
+    </section>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+import { Card } from './card';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.js (ENTRY POINT)==
+
+export const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (props) => {
+  return props.rest.html;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "entry": null,
+  "displayName": "component_dangerouslySetInnerHTML_segment_0",
+  "hash": "x73niz9xuctt",
+  "canonicalFilename": "component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "dangerouslySetInnerHTML",
+  "captures": true,
+  "loc": [
+    314,
+    329
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props.rest, dangerouslySetInnerHTML: '<b>spread</b>' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    439,
+    496
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  _last,
+  createAttrExpressionEffect,
+  createPropsEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt } from './component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+const default_tmpl0 = _createElementTemplate(
+  '<section><div><i>kept</i></div><div></div><p></p></section>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _next(_first(el0));
+  const effect0 = createAttrExpressionEffect(
+    el1,
+    'dangerouslySetInnerHTML',
+    [props],
+    component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const el2 = _last(el0);
+  const effect1 = createPropsEffect(
+    el2,
+    [props],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect1);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    87,
+    603
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "inner-html-children",
+    "file": "src/component.tsx",
+    "message": "<div> renders its dangerouslySetInnerHTML, so its children are ignored.",
+    "highlights": [
+      {
+        "lo": 284,
+        "hi": 431,
+        "startLine": 9,
+        "startCol": 7,
+        "endLine": 12,
+        "endCol": 12
+      }
+    ],
+    "suggestions": null
+  },
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "inner-html-children",
+    "file": "src/component.tsx",
+    "message": "<p> renders its dangerouslySetInnerHTML, so its children are ignored.",
+    "highlights": [
+      {
+        "lo": 438,
+        "hi": 579,
+        "startLine": 13,
+        "startCol": 7,
+        "endLine": 15,
+        "endCol": 10
+      }
+    ],
+    "suggestions": null
+  }
+]

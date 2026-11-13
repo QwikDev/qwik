@@ -18,84 +18,93 @@ type ScalarOperation =
   | Extract<LinkedOp, { op: OpKind.Hole }>
   | Extract<Prop, { k: PropKind.Dynamic }>;
 
-export function effectCounts(ops: LinkedOp[]): Map<number, number> {
-  const counts = new Map<number, number>();
-  const count = (operation: ScalarOperation) => {
-    if (operation.effect !== null) {
-      counts.set(operation.effect, (counts.get(operation.effect) ?? 0) + 1);
+/** Group consecutive scalar computations without crossing rendered program boundaries. */
+export function linkEffects(module: LinkedModule): void {
+  module.programs = module.programs.map((program) => {
+    if (program.body.kind !== ProgramBodyKind.Ops) {
+      return program;
+    }
+    const effects = batchEffects(program.body.ops);
+    if (effects.size === 0) {
+      return program;
+    }
+    const effectSizes: number[] = [];
+    for (const effect of effects.values()) {
+      effectSizes[effect] = (effectSizes[effect] ?? 0) + 1;
+    }
+    return {
+      ...program,
+      body: { kind: ProgramBodyKind.Ops, ops: withEffects(program.body.ops, effects) },
+      effectSizes,
+    };
+  });
+}
+
+function batchEffects(ops: LinkedOp[]): Map<ScalarOperation, number> {
+  const effects = new Map<ScalarOperation, number>();
+  let next = 0;
+  let pending: ScalarOperation[] = [];
+  let key: string | null = null;
+  const finish = () => {
+    if (pending.length >= 2) {
+      for (const operation of pending) {
+        effects.set(operation, next);
+      }
+      next++;
+    }
+    pending = [];
+    key = null;
+  };
+  const append = (operation: ScalarOperation) => {
+    const dependencies = dependencyKey(operation.value);
+    if (dependencies === null || dependencies !== key) {
+      finish();
+    }
+    if (dependencies !== null) {
+      key = dependencies;
+      pending.push(operation);
     }
   };
   const visit = (children: LinkedOp[]) => {
     for (const op of children) {
       if (op.op === OpKind.Element) {
+        if (op.propsEffect !== null) {
+          finish();
+        }
         for (const prop of op.props) {
           if (prop.k === PropKind.Dynamic) {
-            count(prop);
+            append(prop);
+          } else if (prop.k === PropKind.Spread || prop.k === PropKind.InnerHtml) {
+            finish();
           }
         }
         visit(op.children);
-      } else if (op.op === OpKind.Hole) {
-        count(op);
+      } else if (op.op === OpKind.Hole && op.shape === Shape.Text) {
+        append(op);
+      } else if (op.op !== OpKind.Static) {
+        finish();
       }
     }
   };
   visit(ops);
-  return counts;
+  finish();
+  return effects;
 }
 
-/** Group consecutive scalar computations without crossing rendered program boundaries. */
-export function linkEffects(module: LinkedModule): void {
-  for (const program of module.programs) {
-    if (program.body.kind !== ProgramBodyKind.Ops) {
-      continue;
+/** The plan's ops are shared with other links, so a batched operation is copied, not assigned. */
+function withEffects(ops: LinkedOp[], effects: ReadonlyMap<object, number>): LinkedOp[] {
+  return ops.map((op) => {
+    if (op.op === OpKind.Element) {
+      return {
+        ...op,
+        props: op.props.map((prop) =>
+          effects.has(prop) ? { ...prop, effect: effects.get(prop)! } : prop
+        ),
+        children: withEffects(op.children, effects),
+      };
     }
-    let next = 0;
-    let pending: ScalarOperation[] = [];
-    let key: string | null = null;
-    const finish = () => {
-      if (pending.length >= 2) {
-        for (const operation of pending) {
-          operation.effect = next;
-        }
-        next++;
-      }
-      pending = [];
-      key = null;
-    };
-    const append = (operation: ScalarOperation) => {
-      const dependencies = dependencyKey(operation.value);
-      if (dependencies === null || dependencies !== key) {
-        finish();
-      }
-      if (dependencies !== null) {
-        key = dependencies;
-        pending.push(operation);
-      }
-    };
-    const visit = (ops: LinkedOp[]) => {
-      for (const op of ops) {
-        if (op.op === OpKind.Element) {
-          if (op.propsEffect !== null) {
-            finish();
-          }
-          for (const prop of op.props) {
-            if (prop.k === PropKind.Dynamic) {
-              append(prop);
-            } else if (prop.k === PropKind.Spread || prop.k === PropKind.InnerHtml) {
-              finish();
-            }
-          }
-          visit(op.children);
-        } else if (op.op === OpKind.Hole && op.shape === Shape.Text) {
-          append(op);
-        } else if (op.op !== OpKind.Static) {
-          finish();
-        }
-      }
-    };
-    visit(program.body.ops);
-    finish();
-  }
+    return effects.has(op) ? { ...op, effect: effects.get(op)! } : op;
+  });
 }
 
 function dependencyKey(value: Value): string | null {

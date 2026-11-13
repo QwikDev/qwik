@@ -1,4 +1,4 @@
-import { qDev, qRuntimeQrl } from '../utils/qdev';
+import { isRuntimeQrl, qDev } from '../utils/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL, createSyncQRL } from './qrl-class';
 import { SYNC_QRL } from './qrl-utils';
@@ -246,7 +246,7 @@ export type PropFunction<T> = QRL<T>;
  */
 // </docs>
 export const $ = <T>(expression: T): QRL<T> => {
-  if (!qRuntimeQrl && qDev) {
+  if (qDev && !isRuntimeQrl()) {
     throw new Error(
       'Optimizer should replace all usages of $() with some special syntax. If you need to create a QRL manually, use inlinedQrl() instead.'
     );
@@ -284,7 +284,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
  * @public
  */
 export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
-  if (!qRuntimeQrl && qDev) {
+  if (qDev && !isRuntimeQrl()) {
     throw new Error(
       'Optimizer should replace all usages of sync$() with some special syntax. If you need to create a QRL manually, use inlinedSyncQrl() instead.'
     );

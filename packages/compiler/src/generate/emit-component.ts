@@ -1,4 +1,5 @@
 import {
+  BoundaryKind,
   ComponentPropsKind,
   ComponentTargetKind,
   DeclarationKind,
@@ -19,8 +20,9 @@ import {
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { mayBe, readSource } from './emit-setup';
-import { rootArgs } from './captures';
-import { inlineValueJs, valueIrJs } from './print-js';
+import { componentParamName, qrlPropsName, rootArgs } from './captures';
+import { programKind, ProgramKind } from './emit-function';
+import { capturedQrlJs, functionBodyJs, inlineValueJs, valueIrJs } from './print-js';
 import { allocateGeneratedName } from '../names';
 
 export interface ComponentEmission {
@@ -177,7 +179,7 @@ function emitProjectionQrl(use: QrlUse, resolveQrl: ResolveComponentQrl): string
 }
 
 function qrlReferenceJs({ reference, args }: ReturnType<ResolveComponentQrl>): string {
-  return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+  return capturedQrlJs(reference, args);
 }
 
 function emitComponentProps(
@@ -195,7 +197,7 @@ function emitComponentProps(
     }
     imports.add(QwikWord.CreatePropsProxy);
     imports.add(QwikHook.UseComputedQrl);
-    const computeQrl = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    const computeQrl = capturedQrlJs(reference, args);
     return {
       expression: `${QwikWord.CreatePropsProxy}(${QwikHook.UseComputedQrl}(${computeQrl}))`,
       roots: rootArgs(qrl, args),
@@ -210,7 +212,7 @@ function emitComponentProps(
   const inlineQrl = (use: QrlUse) => {
     const { qrl, reference, args } = resolveQrl(use, true);
     roots.push(...rootArgs(qrl, args));
-    return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    return capturedQrlJs(reference, args);
   };
   const flushEntries = () => {
     if (entries.length > 0) {
@@ -281,7 +283,7 @@ function emitComponentProps(
             throw new UnsupportedError('a non-function component event QRL');
           }
           roots.push(...rootArgs(qrl, args));
-          return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+          return capturedQrlJs(reference, args);
         });
         entries.push(
           `${JSON.stringify(prop.name)}: ${handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`}`
@@ -347,9 +349,7 @@ function emitComponentExpression(
   imports.add(QwikWord.ComputedProp);
   imports.add(QwikWord.ReadTrackedValue);
   return {
-    statements: [
-      `const ${prop} = ${QwikWord.ComputedProp}(${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`});`,
-    ],
+    statements: [`const ${prop} = ${QwikWord.ComputedProp}(${capturedQrlJs(reference, args)});`],
     expression: `${QwikWord.ReadTrackedValue}(${prop})`,
     source: prop,
     roots: [prop],
@@ -410,13 +410,70 @@ export function allocateGeneratedNames(module: LinkedModule): GeneratedNames {
   };
 }
 
-/** A nested `component$` prints as the compiled arrow where the call stood. */
-export function inlineComponentText(emission: ComponentEmission, names: GeneratedNames): string {
+/** A component reads its own parameter; other programs read the props they capture. */
+export function programNames(module: LinkedModule, qrl: LinkedQrl): GeneratedNames {
+  return {
+    props:
+      programKind(qrl) === ProgramKind.Component
+        ? componentParamName(module, qrl)
+        : qrlPropsName(module, qrl, QwikGenWord.ComponentProps),
+    ctx: allocateGeneratedNames(module).ctx,
+  };
+}
+
+/** An inline row reads the props of the component it nests in. */
+export function inlineRowNames(module: LinkedModule): GeneratedNames {
+  return { props: QwikGenWord.ComponentProps, ctx: allocateGeneratedNames(module).ctx };
+}
+
+/** An inline row is a function declared in its caller; the render id links declaration and call. */
+export function inlineRowFunctionJs(
+  module: LinkedModule,
+  row: { program: number; renderId: string },
+  params: string,
+  emission: ComponentEmission
+): string {
+  const loopParams = module.programs[row.program].params
+    .map((binding) => `, ${module.bindings[binding].name}`)
+    .join('');
+  const body = functionBodyJs(emission.statements, emission.value);
+  return `function ${row.renderId}(${params}${loopParams}) {\n${body}\n}`;
+}
+
+/** A slot's name: its literal ('' for the default slot), or a local holding the computed one. */
+export function slotNameJs(
+  module: LinkedModule,
+  op: Extract<LinkedOp, { op: OpKind.Slot }>,
+  next: (prefix: string) => string,
+  statements: string[]
+): string {
+  if (op.nameValue === undefined) {
+    return op.name === '' ? '' : JSON.stringify(op.name);
+  }
+  const name = next(QwikGenWord.SlotName);
+  statements.push(`const ${name} = ${inlineValueJs(module, op.nameValue)};`);
+  return name;
+}
+
+/** The JS a payload prints for a QRL it holds: a nested component inline, anything else a reference. */
+export function payloadQrlJs(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  emitProgram: (qrl: LinkedQrl, names: GeneratedNames) => ComponentEmission,
+  reference: () => string
+): string {
+  if (qrl.boundary.kind !== BoundaryKind.Component || qrl.boundary.inline !== true) {
+    return reference();
+  }
+  const names = allocateGeneratedNames(module);
+  const emission = emitProgram(qrl, names);
   const params = [names.props, names.ctx, ...(emission.params ?? [])].join(', ');
-  const body = [...emission.statements, `return ${emission.value};`]
-    .map((statement) => `  ${statement}`)
-    .join('\n');
-  return `${emission.async === true ? 'async ' : ''}(${params}) => {\n${body}\n}`;
+  const body = functionBodyJs(emission.statements, emission.value);
+  const asyncPrefix = emission.async === true ? 'async ' : '';
+  const { functionName } = qrl.boundary;
+  return functionName === undefined
+    ? `${asyncPrefix}(${params}) => {\n${body}\n}`
+    : `${asyncPrefix}function ${functionName}(${params}) {\n${body}\n}`;
 }
 
 /** `component$(X)` of a component: the declaration names `X`, which carries its own marker. */
@@ -442,9 +499,7 @@ export function emitComponentFunction(
   }
   const params = [names.props, names.ctx, ...(emission.params ?? [])].join(', ');
   const exportPrefix = declaration.isExported ? 'export ' : '';
-  const body = [...emission.statements, `return ${emission.value};`]
-    .map((statement) => `  ${statement}`)
-    .join('\n');
+  const body = functionBodyJs(emission.statements, emission.value);
   const asyncPrefix = emission.async === true ? 'async ' : '';
   const arrow = `${asyncPrefix}(${params}) => {\n${body}\n}`;
   if (declaration.expressionOnly) {

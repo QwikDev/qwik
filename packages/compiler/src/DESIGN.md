@@ -3,16 +3,16 @@
 ## Architecture
 
 ```
-analyseModule(file, options)                         -> ModulePlan  (one file, one plan, pure)
-linkPlans(plans, entries, specialization, snapshots) -> LinkedPlan  (per environment + mode)
-generateJsCsr(browserLinkedPlan, options)            -> browser modules
-generateJsSsr(serverLinkedPlan, options)             -> server modules
-generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
+analyseModule(file, options)                                       -> ModulePlan  (one file, one plan, pure)
+linkPlans(plans, entries, specialization, resolver, complete)      -> LinkResult  (a LinkedPlan per environment + mode, or diagnostics)
+generateJsCsr(browserLinkedPlan, options)                          -> browser modules
+generateJsSsr(serverLinkedPlan, options)                           -> server modules
+generateRustSsr(serverLinkedPlan, entry, options)                  -> native project sources (planned, not in the tree)
 ```
 
-`js-ssr` and `rust-ssr` consume the exact same server LinkedPlan; `js-csr` consumes the browser
-one. Generator selection happens outside the plan; `generateRustSsr` additionally names the entry
-it packages, since a LinkedPlan may carry several roots.
+`js-ssr` and the planned `rust-ssr` consume the exact same server LinkedPlan; `js-csr` consumes the
+browser one. Generator selection happens outside the plan; `generateRustSsr` would additionally
+name the entry it packages, since a LinkedPlan may carry several roots.
 
 Rules — one sentence each, enforced by review:
 
@@ -39,6 +39,11 @@ Rules — one sentence each, enforced by review:
    adapters generated outside the core.
 
 ## Model
+
+The sketch below is the design; the compilable schema in `schema/` is the current truth. Vocabulary
+no producer writes yet (the plugin snapshot and implementation table, the `contexts`/`callables`/
+`values` tables, `guard` predicates, read places) is kept here and left out of `schema/` until a
+producer lands.
 
 ### ModulePlan
 
@@ -91,7 +96,7 @@ interface Payload {
   reads: {
     range: Range;
     binding: LocalId;
-    role: 'read' | 'write' | 'call' | 'shorthand';
+    role: 'read' | 'call' | 'shorthand';
     value?: ValueIR;
   }[];
   awaits: { range: Range; argumentRange: Range }[];
@@ -701,6 +706,8 @@ interface ResolverSnapshot {
     >
   >;
 }
+// Planned, not built: today the link takes no plugin snapshot, and the strip/registration
+// policies ride `Specialization.strip`.
 interface PluginSnapshot {
   // claims + policies + emissions, all canonical data
   claims: { plugin: string; module: string; exports: string[] | '*' }[];
@@ -728,9 +735,8 @@ function linkPlans(
   entries: readonly LinkEntry[],
   specialization: Specialization,
   resolver: ResolverSnapshot,
-  plugins: PluginSnapshot,
   complete: boolean
-): LinkResult;
+): LinkResult; // a `plugins: PluginSnapshot` argument joins it once plugins land
 // complete:false → per-module transform link; dangling refs become typed unknowns.
 // complete:true  → artifact link; dangling resolved edges, failed reachable modules, and
 //                  unresolved explicit roots are LinkResult.failed.

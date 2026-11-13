@@ -128,6 +128,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
@@ -182,30 +183,24 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   );
   ctx.addRoot(tail);
   const text3 = renderSsrTextExpression(id0, 3, [tail], q_component_text_segment_6_1fh12ri8gowii);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) =>
-      maybeThen(text2, (text2) =>
-        maybeThen(text3, (text3) => [
-          '<h2 q:id="',
-          createSsrNodeId(id0),
-          '" q:row',
-          ctx.eventAttrParts(
-            'q-e:click',
-            q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, first, tail])
-          ),
-          '><!t>',
-          escapeHTML(text0),
-          '<!/t>:<!t>',
-          escapeHTML(text1),
-          '<!/t>:<!t>',
-          escapeHTML(text2),
-          '<!/t>:<!t>',
-          escapeHTML(text3),
-          '<!/t></h2>',
-        ])
-      )
-    )
-  );
+  return maybeThen(promiseAll([text0, text1, text2, text3]), ([text0, text1, text2, text3]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '" q:row',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, first, tail])
+    ),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t>:<!t>',
+    escapeHTML(text2),
+    '<!/t>:<!t>',
+    escapeHTML(text3),
+    '<!/t></h2>',
+  ]);
 };
 /*
 {
@@ -393,6 +388,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _markComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
@@ -449,30 +445,24 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
   );
   ctx.addRoot(tail);
   const text3 = renderSsrTextExpression(id0, 3, [tail], q_component_text_segment_6_1fh12ri8gowii);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) =>
-      maybeThen(text2, (text2) =>
-        maybeThen(text3, (text3) => [
-          '<h2 q:id="',
-          createSsrNodeId(id0),
-          '" q:row',
-          ctx.eventAttrParts(
-            'q-e:click',
-            q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, first, tail])
-          ),
-          '><!t>',
-          escapeHTML(text0),
-          '<!/t>:<!t>',
-          escapeHTML(text1),
-          '<!/t>:<!t>',
-          escapeHTML(text2),
-          '<!/t>:<!t>',
-          escapeHTML(text3),
-          '<!/t></h2>',
-        ])
-      )
-    )
-  );
+  return maybeThen(promiseAll([text0, text1, text2, text3]), ([text0, text1, text2, text3]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '" q:row',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, first, tail])
+    ),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t>:<!t>',
+    escapeHTML(text2),
+    '<!/t>:<!t>',
+    escapeHTML(text3),
+    '<!/t></h2>',
+  ]);
 };
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'

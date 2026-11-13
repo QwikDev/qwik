@@ -127,7 +127,6 @@ import {
   useSignal,
   _first,
   _next,
-  BranchRange,
   createCatch,
   _withCaptures,
   _createElementTemplate,
@@ -143,7 +142,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end0 = _next(start0);
   createCatch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_catch_content_segment_1_nkto614tyy25, [count]),
     component_catch_fallback_segment_0_3ik9bd623jcyx
   );

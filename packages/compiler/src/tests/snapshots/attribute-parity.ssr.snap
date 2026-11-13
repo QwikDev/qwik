@@ -26,6 +26,7 @@ import {
   renderSsrAttr,
   escapeHTML,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -41,26 +42,16 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const attr1 = renderSsrAttr(id0, 'aria-hidden', on, effect0);
   const attr2 = renderSsrAttr(id0, 'draggable', on, effect0);
   const attr3 = renderSsrAttr(id0, 'spellcheck', on, effect0);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) =>
-      maybeThen(attr2, (attr2) =>
-        maybeThen(attr3, (attr3) => [
-          '<section><input aria-hidden="false" draggable="false" spellcheck="false" tabIndex="-1" data-n="2" hidden><input q:id="',
-          createSsrNodeId(id0),
-          '"',
-          attr0 === null ? '' : ' required' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-          attr1 === null
-            ? ''
-            : ' aria-hidden' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-          attr2 === null ? '' : ' draggable' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
-          attr3 === null
-            ? ''
-            : ' spellcheck' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
-          ' tabIndex="-1" data-n="2"></section>',
-        ])
-      )
-    )
-  );
+  return maybeThen(promiseAll([attr0, attr1, attr2, attr3]), ([attr0, attr1, attr2, attr3]) => [
+    '<section><input aria-hidden="false" draggable="false" spellcheck="false" tabIndex="-1" data-n="2" hidden><input q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' required' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    attr1 === null ? '' : ' aria-hidden' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+    attr2 === null ? '' : ' draggable' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+    attr3 === null ? '' : ' spellcheck' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+    ' tabIndex="-1" data-n="2"></section>',
+  ]);
 }
 /*
 {

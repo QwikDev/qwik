@@ -5,13 +5,7 @@ import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { minify } from 'terser';
 
-const createContext = () =>
-  createSerializationContext(
-    null,
-    () => '',
-    () => {},
-    new WeakMap()
-  );
+const createContext = () => createSerializationContext(null, () => '');
 
 describe('serialization publication transaction', () => {
   it('excludes SSR transaction and recovery code from browser serialization', async () => {
@@ -173,7 +167,6 @@ describe('serialization publication transaction', () => {
     ctx.$addRoot$(shared);
     ctx.$promoteToRoot$(ref, shared, 0);
     ctx.$promoteToRoot$(ref, shared, 0);
-    ctx.$addDuplicateRoot$(shared);
     transaction.rollback();
     expect(ctx.$roots$).toEqual([original]);
     expect(ctx.$rootObjs$).toEqual([original]);

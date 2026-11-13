@@ -17,6 +17,14 @@ describe('node walker', () => {
     expect(findQwikElement(root, 7)).toBeNull();
     expect(findForRange(root, 7)).toBeNull();
   });
+  it("finds a container's own range after the same id in a nested container", () => {
+    const win = createWindow({
+      html: '<div id="root"><div q:container="paused"><!--b=7--><!--/b--><!--s=7,1--><!--/s--></div><!--b=7--><i></i><!--/b--><!--s=7,2--><!--/s--></div>',
+    });
+    const root = win.document.getElementById('root')!;
+    expect(findBranchTextRange(root, 7)![0].parentNode).toBe(root);
+    expect(findProjectionRange(root, 7)![0].data).toBe('s=7,2');
+  });
   it('matches projection ids exactly and skips nested slot closers', () => {
     const root = createWindow({
       html: '<div id="root"><!--s=70,1--><!--/s--><!--s=7,2--><!--s=8,3--><!--/s--><!--/s--></div>',

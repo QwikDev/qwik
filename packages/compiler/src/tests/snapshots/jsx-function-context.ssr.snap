@@ -15,6 +15,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _noopQrl,
 } from '@qwik.dev/core';
 
@@ -39,22 +40,20 @@ const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
     [[..._arguments]],
     q_component_text_segment_3_1fh11lewq6qgx
   );
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts(
-        'q-e:click',
-        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([_this, [..._arguments]])
-      ),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t>:<!t>',
-      escapeHTML(text1),
-      '<!/t></button>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_1_2xwyfnber1kpg.w([_this, [..._arguments]])
+    ),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></button>',
+  ]);
 };
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_0_38vnjku9rukc6'
@@ -97,6 +96,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
@@ -133,22 +133,20 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
     [[..._arguments]],
     q_component_text_segment_3_1fh11lewq6qgx
   );
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts(
-        'q-e:click',
-        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([_this, [..._arguments]])
-      ),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t>:<!t>',
-      escapeHTML(text1),
-      '<!/t></button>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_1_2xwyfnber1kpg.w([_this, [..._arguments]])
+    ),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></button>',
+  ]);
 };
 /*
 {

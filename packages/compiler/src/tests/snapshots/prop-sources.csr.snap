@@ -69,8 +69,7 @@ import {
   createDomBatchEffect,
   _props,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -101,7 +100,7 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
     ctx
   );
   const marker0 = _next(_first(el0));
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker0, component0);
   const text1 = _first(el1);
   const effect0 = createTextExpressionEffect(
     text1,

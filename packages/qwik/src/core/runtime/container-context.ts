@@ -1,5 +1,6 @@
+import { isDev } from '@qwik.dev/core/build';
 import { QContainerSelector, QLocaleAttr } from '../shared/utils/markers';
-import { TypeIds } from '../shared/serdes/type-id';
+import { subscriberTypeIds, TypeIds } from '../shared/serdes/type-id';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { SubscriberFlags } from '../reactive/flags';
 import { LazySerialized, resolveLazySourceSubscriber } from '../reactive/lazy-serialized';
@@ -16,6 +17,7 @@ import { deserializeCaptures } from '../shared/serdes/captures';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { maybeThen } from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
+import { invalidStateError, qError, QError } from '../shared/error/error';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
 const CTX_PROP = '_ctx';
@@ -135,7 +137,7 @@ function createContainerContextRecord(
       const rootId = Number(id);
       state.disposedRoots.add(rootId);
       const root = state.liveRoots.get(rootId);
-      if (root !== undefined && !state.inflatingRoots?.has(root as object)) {
+      if (isLiveSubscriberRoot(context, rootId) && !state.inflatingRoots?.has(root as object)) {
         disposeSubscriber(root as Subscriber);
       }
     },
@@ -143,11 +145,7 @@ function createContainerContextRecord(
       const rootId = Number(id);
       state.disposedRoots.add(rootId);
       const root = await whenRootInflated(context, state.liveRoots.get(rootId));
-      if (
-        root !== null &&
-        typeof root === 'object' &&
-        typeof (root as Subscriber).kind === 'number'
-      ) {
+      if (isLiveSubscriberRoot(context, rootId)) {
         disposeSubscriber(root as Subscriber);
       }
     },
@@ -180,7 +178,7 @@ function createContainerContextRecord(
 function findContainerElement(element: Element): Element {
   const container = element.closest(QContainerSelector);
   if (container === null) {
-    throw new Error('Missing Qwik container.');
+    throw qError(QError.containerNotFound);
   }
   return container;
 }
@@ -283,7 +281,7 @@ export function getStateRoot(context: ContainerContext, id: number): ValueOrProm
 async function loadStateRoot(context: ContainerContext, id: number): Promise<unknown> {
   const chunk = context.state.rootToChunk[id];
   if (chunk === undefined) {
-    throw new Error(`Missing Qwik state root ${id}.`);
+    throw isDev ? invalidStateError(`root ${id}`) : invalidStateError();
   }
 
   const parsed = parseStateChunk(context, chunk);
@@ -301,27 +299,14 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
       context.forwardRefs = value as Array<number | string>;
     }
     if (context.state.disposedRoots.has(id)) {
-      if (
-        type === TypeIds.EffectSubscription ||
-        type === TypeIds.PendingSubscription ||
-        type === TypeIds.CatchSubscription ||
-        type === TypeIds.Task ||
-        type === TypeIds.ComputedSignal ||
-        type === TypeIds.AsyncSignal ||
-        type === TypeIds.SerializerSignal
-      ) {
+      if (subscriberTypeIds.has(type)) {
         (root as Subscriber).flags |= SubscriberFlags.Disposed;
       }
       return false;
     }
   });
 
-  if (
-    context.state.disposedRoots.has(id) &&
-    root !== null &&
-    typeof root === 'object' &&
-    'kind' in root
-  ) {
+  if (context.state.disposedRoots.has(id) && subscriberTypeIds.has(type)) {
     disposeSubscriber(root as Subscriber);
   }
 
@@ -338,6 +323,15 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
   }
 
   return root;
+}
+
+/** The root's parsed type id is what tells a resumed subscriber from user data. */
+function isLiveSubscriberRoot(context: ContainerContext, id: number): boolean {
+  const chunk = context.state.rootToChunk[id];
+  if (chunk === undefined || chunk.parsed === null || !context.state.liveRoots.has(id)) {
+    return false;
+  }
+  return subscriberTypeIds.has(chunk.parsed[(id - chunk.base) * 2] as TypeIds);
 }
 
 function registerSubscriberRoots(context: ContainerContext, subscriptions: number[]): void {
@@ -436,15 +430,25 @@ function promoteDeepRootRef(
 ): void {
   const root = resolveRootRef(context, path, chunk.base + rootTypeIndex / 2);
   if (root.allocation !== undefined) {
-    const slots = context.state.allocatedSlots!;
-    let allocations = slots.get(parsed);
-    if (allocations === undefined) {
-      slots.set(parsed, (allocations = new Map()));
-    }
-    allocations.set(rootTypeIndex, root.allocation);
+    setAllocatedSlot(context, parsed, rootTypeIndex, root.allocation);
   }
   parsed[rootTypeIndex] = root.type;
   parsed[rootTypeIndex + 1] = root.value;
+}
+
+/** Records the shell of an encoded slot, so later root promotions reuse it. */
+export function setAllocatedSlot(
+  context: ContainerContext,
+  data: unknown[],
+  index: number,
+  shell: unknown
+): void {
+  const slots = (context.state.allocatedSlots ??= new WeakMap());
+  let allocations = slots.get(data);
+  if (allocations === undefined) {
+    slots.set(data, (allocations = new Map()));
+  }
+  allocations.set(index, shell);
 }
 
 function resolveRootRef(
@@ -456,7 +460,7 @@ function resolveRootRef(
   const sourceRoot = Number(parts[0]);
   const sourceChunk = context.state.rootToChunk[sourceRoot];
   if (sourceChunk === undefined) {
-    throw new Error(`Missing Qwik state root ${sourceRoot}.`);
+    throw isDev ? invalidStateError(`root ${sourceRoot}`) : invalidStateError();
   }
 
   let object: unknown = parseStateChunk(context, sourceChunk);

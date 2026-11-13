@@ -20,7 +20,7 @@ import {
   propSource,
   createAttrEffect,
   _first,
-  maybeThen,
+  _replaceMarker,
   createSlot,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -32,7 +32,7 @@ export function Child_component_syc3erfxihm7(props0, ctx) {
   const effect0 = createAttrEffect(el0, 'title', prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

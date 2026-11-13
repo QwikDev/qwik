@@ -135,6 +135,7 @@ import {
   createSsrNodeId,
   createSsrOpenTag,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -199,29 +200,26 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     q_component_props_segment_3_208o00da84a64,
     ctx.eventAttr
   );
-  return maybeThen(domProps0, (domProps0) =>
-    maybeThen(domProps1, (domProps1) =>
-      maybeThen(domProps2, (domProps2) =>
-        maybeThen(domProps3, (domProps3) => [
-          '<section>',
-          (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
-          createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
-          domProps0.innerHTML ?? [],
-          '</div>',
-          (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
-          createSsrOpenTag('<style q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
-          domProps1.innerHTML ?? [],
-          '</style>',
-          (domProps2.ref === undefined || ctx.setRef(domProps2.ref, id2), ''),
-          createSsrOpenTag('<script q:id="', createSsrNodeId(id2), '"', ...domProps2.attrs, '>'),
-          domProps2.innerHTML ?? [],
-          '</script>',
-          (domProps3.ref === undefined || ctx.setRef(domProps3.ref, id3), ''),
-          createSsrOpenTag('<input q:id="', createSsrNodeId(id3), '"', ...domProps3.attrs, '>'),
-          '</section>',
-        ])
-      )
-    )
+  return maybeThen(
+    promiseAll([domProps0, domProps1, domProps2, domProps3]),
+    ([domProps0, domProps1, domProps2, domProps3]) => [
+      '<section>',
+      (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+      domProps0.innerHTML ?? [],
+      '</div>',
+      (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
+      createSsrOpenTag('<style q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
+      domProps1.innerHTML ?? [],
+      '</style>',
+      (domProps2.ref === undefined || ctx.setRef(domProps2.ref, id2), ''),
+      createSsrOpenTag('<script q:id="', createSsrNodeId(id2), '"', ...domProps2.attrs, '>'),
+      domProps2.innerHTML ?? [],
+      '</script>',
+      (domProps3.ref === undefined || ctx.setRef(domProps3.ref, id3), ''),
+      createSsrOpenTag('<input q:id="', createSsrNodeId(id3), '"', ...domProps3.attrs, '>'),
+      '</section>',
+    ]
   );
 }
 /*

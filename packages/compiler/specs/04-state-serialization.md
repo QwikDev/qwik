@@ -16,29 +16,23 @@ the same encoding. It is real JSON, parsed with `JSON.parse` (never evaluated).
 
 ```
  0 Plain        1 RootRef      2 ForwardRef   3 Constant     4 Array       5 Object
- 6 URL          7 Date         8 Regex        9 QRL         10 VNode*     11 RefVNode
-12 BigInt      13 URLSearchParams  14 ForwardRefs
-15 TemporalDuration  16 TemporalInstant  17 TemporalPlainDate  18 TemporalPlainDateTime
-19 TemporalPlainMonthDay  20 TemporalPlainTime  21 TemporalPlainYearMonth
-22 TemporalZonedDateTime
-23 Error       24 Promise     25 Set         26 Map        27 Uint8Array
-28 Task        29 Component*  30 Signal      31 WrappedSignal*  32 ComputedSignal
-33 AsyncSignal 34 SerializerSignal  35 Store  36 FormData   37 JSXNode*
-38 PropsProxy  39 Props       40 SubscriptionData*  41 EffectSubscription
-42 SubscriptionPatch*  43 ContextScope  44 SlotScope  45 Projection
-46 BigArray    47 StoreProp   48 Owner
+ 6 URL          7 Date         8 Regex        9 QRL         10 RefVNode   11 BigInt
+12 URLSearchParams  13 ForwardRefs
+14 TemporalDuration  15 TemporalInstant  16 TemporalPlainDate  17 TemporalPlainDateTime
+18 TemporalPlainMonthDay  19 TemporalPlainTime  20 TemporalPlainYearMonth
+21 TemporalZonedDateTime
+22 Error       23 Promise     24 Set         25 Map        26 Uint8Array
+27 Task        28 Signal      29 ComputedSignal  30 AsyncSignal  31 SerializerSignal
+32 Store       33 FormData    34 PropsProxy  35 Props      36 EffectSubscription
+37 ContextScope  38 SlotScope  39 Projection  40 BigArray  41 StoreProp  42 Owner
+43 PropSource  44 PendingSubscription  45 CatchSubscription  46 ComputedStatus
 ```
-
-`*` = **reserved, never emitted or read** (`VNode`, `Component`, `WrappedSignal`, `JSXNode`,
-`SubscriptionData`, `SubscriptionPatch` have no encoder/decoder path; the decoder throws
-`Q16`/`Q18` if they appear). Engines must reserve the numbers and never produce them.
 
 ### Constants (`serdes/constants.ts`, payload of `TypeIds.Constant`)
 
 `0 undefined, 1 null, 2 true, 3 false, 4 EmptyString '', 5 EMPTY_ARRAY, 6 EMPTY_OBJ,
-7 NEEDS_COMPUTATION, 8 STORE_ALL_PROPS, 9 UNINITIALIZED, 10 Slot, 11 Fragment, 12 NaN,
-13 Infinity, 14 -Infinity, 15 MaxSafeInt, 16 AlmostMaxSafeInt (MAX_SAFE_INTEGER-1),
-17 MinSafeInt, 18 ':', 19 '.', 20 'id', 21 'ref'`.
+7 NEEDS_COMPUTATION, 8 UNINITIALIZED, 9 NaN, 10 Infinity, 11 -Infinity, 12 MaxSafeInt,
+13 AlmostMaxSafeInt (MAX_SAFE_INTEGER-1), 14 MinSafeInt, 15 ':', 16 '.', 17 'id', 18 'ref'`.
 
 `EMPTY_ARRAY`/`EMPTY_OBJ` encode as constants **by identity** (the flyweight objects), not by
 emptiness — an ordinary `[]` encodes as `[4,[]]`. `NaN`, `±Infinity`, `MAX_SAFE_INTEGER`,
@@ -53,42 +47,42 @@ Payload = the odd slot; `[a, b, …]` is a nested array whose items are themselv
 | ----- | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0     | Plain              | number \| string                                             | finite non-special number, or an inline string                                                                                                                                                          |
 | 1     | RootRef            | number \| `"i j k"`                                          | root index, or space-joined backref path (see below)                                                                                                                                                    |
-| 2     | ForwardRef         | number                                                       | `$forwardRefOffset$ + localId` — global across streamed chunks                                                                                                                                          |
-| 3     | Constant           | number                                                       | index 0–21                                                                                                                                                                                              |
+| 2     | ForwardRef         | number                                                       | index into the `ForwardRefs` table; one counter (`$forwardRefsId$`) across streamed chunks                                                                                                              |
+| 3     | Constant           | number                                                       | index 0–18                                                                                                                                                                                              |
 | 4     | Array              | `[v0, v1, …]`                                                | **trailing `undefined` JS elements are dropped**                                                                                                                                                        |
 | 5     | Object             | `[k0, v0, …]` \| `0`                                         | `0` = empty object; keys numeric-folded (below); `noSerialize` values omit the key entirely                                                                                                             |
 | 6     | URL                | string                                                       | `url.href`                                                                                                                                                                                              |
 | 7     | Date               | number \| `''`                                               | `valueOf()`; `''` for Invalid Date                                                                                                                                                                      |
 | 8     | Regex              | string                                                       | `re.toString()`; decoder splits on last `/`                                                                                                                                                             |
 | 9     | QRL                | string \| number                                             | see QRL encoding; number = sync-fn index                                                                                                                                                                |
-| 11    | RefVNode           | number \| string                                             | element `q:id`; resolved against the container element first, then `[q:id="…"]`                                                                                                                         |
-| 12    | BigInt             | string                                                       | `v.toString()`                                                                                                                                                                                          |
-| 13    | URLSearchParams    | string                                                       | `params.toString()`                                                                                                                                                                                     |
-| 14    | ForwardRefs        | `[e0, …]`                                                    | entries: root id, path string, or `-1` (unresolved → `UNINITIALIZED`); trailing `-1`s trimmed; occupies a JSON slot but is **not** a root                                                               |
-| 15–22 | Temporal\*         | string                                                       | `value.toJSON()`; decoded with the matching `Temporal.X.from`                                                                                                                                           |
-| 23    | Error              | `[message, k, v, …]`                                         | own enumerable props flattened; dev builds append `'stack'`; keys not numeric-folded                                                                                                                    |
-| 24    | Promise            | `[resolved, value]`                                          | boolean + value/reason; reachable only via the ForwardRefs table                                                                                                                                        |
-| 25    | Set                | `[v0, …]`                                                    | insertion order                                                                                                                                                                                         |
-| 26    | Map                | `[k0, v0, …]`                                                | insertion order, flattened; keys not numeric-folded                                                                                                                                                     |
-| 27    | Uint8Array         | string                                                       | base64, trailing `=` stripped; decoder rejects non-canonical padding (`Q38`)                                                                                                                            |
-| 28    | Task               | `[phase, qrl, deps]`                                         | phase `0 Blocking, 1 Visible, 4 Deferred`; phase forced to Visible for `VisibleTaskSubscription`; `deps` = tracked sources (`EMPTY_ARRAY` if none)                                                      |
-| 30    | Signal             | `[value, ...subs]`                                           | `undefined` value → explicit `Constant.Undefined` (never truncated)                                                                                                                                     |
-| 32    | ComputedSignal     | `[computeQrl, deps, value, ...subs]`                         | value = `NEEDS_COMPUTATION` when uncached/dirty/`noSerialize`d/strategy `'never'`                                                                                                                       |
-| 33    | AsyncSignal        | `[computeQrl, deps, value, options, ...subs]`                | `options` = `null` or object of **non-default** keys only (`clientOnly`, `allowStale:false`, `timeout`, `concurrency`, `eagerCleanup`, `serializationStrategy`, `expires`, `poll:false`)                |
-| 34    | SerializerSignal   | `[argQrl, deps, value, initialized, ...subs]`                | `initialized = value !== NEEDS_COMPUTATION`; a promise-returning serializer routes the record through a ForwardRef                                                                                      |
-| 35    | Store              | `[raw]` \| `[raw, records]` \| `[raw, records\|null, false]` | **1–2 fields = deep; 3 fields ending in literal `false` = shallow.** `records` = source records `[path[], prop, ...subs]` (`path` = key chain from `raw`; decoder tolerates pathless `[prop, ...subs]`) |
-| 36    | FormData           | `[k, v, …]`                                                  | string values only; `File` entries silently dropped; never deduped                                                                                                                                      |
-| 38    | PropsProxy         | `[source]`                                                   | must inflate to Signal or StorePropSource, else `Q20`                                                                                                                                                   |
-| 39    | Props              | `[statics, sources]`                                         | `statics` = flat `[k, v, …]` of own keys not in `sources` (numeric-folded); `sources` = object mapping prop name → Source or expression QRL                                                             |
-| 41    | EffectSubscription | see sub-table                                                | 9 shapes keyed by `payload[0] = EffectKind`                                                                                                                                                             |
-| 43    | ContextScope       | `[parent, k, v, …]`                                          | `parent` = scope or `null`; scope `id` set to its root index on resume                                                                                                                                  |
-| 44    | SlotScope          | `[name, projections, …]`                                     | flat pairs                                                                                                                                                                                              |
-| 45    | Projection         | `[renderQrl, slotScope, idBase]`                             | `slotScope` may be `null`; `idBase` string, `''` default                                                                                                                                                |
-| 46    | BigArray           | `[v0, …]`                                                    | decodes identically to Array; encoder-side flattening only (below)                                                                                                                                      |
-| 47    | StoreProp          | `[targetRootId, prop]`                                       | `targetRootId` is a **Plain number, not a RootRef** — emitting `[1, id]` here breaks resume                                                                                                             |
-| 48    | Owner              | `[item0, …]`                                                 | items are subscribers or child `Owner`s; an owner owning nothing is not emitted. Resume adopts the owner it is given rather than rebuilding one, so the tree keeps its identity                         |
+| 10    | RefVNode           | number \| string                                             | element `q:id`; resolved against the container element first, then `[q:id="…"]`                                                                                                                         |
+| 11    | BigInt             | string                                                       | `v.toString()`                                                                                                                                                                                          |
+| 12    | URLSearchParams    | string                                                       | `params.toString()`                                                                                                                                                                                     |
+| 13    | ForwardRefs        | `[e0, …]`                                                    | entries: the settled promise's root id or path string; occupies a JSON slot but is **not** a root                                                                                                       |
+| 14–21 | Temporal\*         | string                                                       | `value.toJSON()`; decoded with the matching `Temporal.X.from`                                                                                                                                           |
+| 22    | Error              | `[message, k, v, …]`                                         | own enumerable props flattened; dev builds append `'stack'`; keys not numeric-folded                                                                                                                    |
+| 23    | Promise            | `[resolved, value]`                                          | boolean + value/reason; reachable only via the ForwardRefs table                                                                                                                                        |
+| 24    | Set                | `[v0, …]`                                                    | insertion order                                                                                                                                                                                         |
+| 25    | Map                | `[k0, v0, …]`                                                | insertion order, flattened; keys not numeric-folded                                                                                                                                                     |
+| 26    | Uint8Array         | string                                                       | base64, trailing `=` stripped; decoder rejects non-canonical padding (`Q38`)                                                                                                                            |
+| 27    | Task               | `[phase, qrl, deps]`                                         | phase `0 Blocking, 1 Visible, 4 Deferred`; phase forced to Visible for `VisibleTaskSubscription`; `deps` = tracked sources (`EMPTY_ARRAY` if none)                                                      |
+| 28    | Signal             | `[value, ...subs]`                                           | `undefined` value → explicit `Constant.Undefined` (never truncated)                                                                                                                                     |
+| 29    | ComputedSignal     | `[computeQrl, deps, value, ...subs]`                         | value = `NEEDS_COMPUTATION` when uncached/dirty/`noSerialize`d/strategy `'never'`                                                                                                                       |
+| 30    | AsyncSignal        | `[computeQrl, deps, value, options, ...subs]`                | `options` = `null` or object of **non-default** keys only (`clientOnly`, `allowStale:false`, `timeout`, `concurrency`, `eagerCleanup`, `serializationStrategy`, `expires`, `poll:false`)                |
+| 31    | SerializerSignal   | `[argQrl, deps, value, initialized, ...subs]`                | `initialized = value !== NEEDS_COMPUTATION`; a promise-returning serializer routes the record through a ForwardRef                                                                                      |
+| 32    | Store              | `[raw]` \| `[raw, records]` \| `[raw, records\|null, false]` | **1–2 fields = deep; 3 fields ending in literal `false` = shallow.** `records` = source records `[path[], prop, ...subs]` (`path` = key chain from `raw`; decoder tolerates pathless `[prop, ...subs]`) |
+| 33    | FormData           | `[k, v, …]`                                                  | string values only; `File` entries silently dropped; never deduped                                                                                                                                      |
+| 34    | PropsProxy         | `[source]`                                                   | must inflate to Signal or StorePropSource, else `Q20`                                                                                                                                                   |
+| 35    | Props              | `[statics, sources]`                                         | `statics` = flat `[k, v, …]` of own keys not in `sources` (numeric-folded); `sources` = object mapping prop name → Source or expression QRL                                                             |
+| 36    | EffectSubscription | see sub-table                                                | 9 shapes keyed by `payload[0] = EffectKind`                                                                                                                                                             |
+| 37    | ContextScope       | `[parent, k, v, …]`                                          | `parent` = scope or `null`; scope `id` set to its root index on resume                                                                                                                                  |
+| 38    | SlotScope          | `[name, projections, …]`                                     | flat pairs                                                                                                                                                                                              |
+| 39    | Projection         | `[renderQrl, slotScope, idBase]`                             | `slotScope` may be `null`; `idBase` string, `''` default                                                                                                                                                |
+| 40    | BigArray           | `[v0, …]`                                                    | decodes identically to Array; encoder-side flattening only (below)                                                                                                                                      |
+| 41    | StoreProp          | `[targetRootId, prop]`                                       | `targetRootId` is a **Plain number, not a RootRef** — emitting `[1, id]` here breaks resume                                                                                                             |
+| 42    | Owner              | `[item0, …]`                                                 | items are subscribers or child `Owner`s; an owner owning nothing is not emitted. Resume adopts the owner it is given rather than rebuilding one, so the tree keeps its identity                         |
 
-### EffectSubscription(41) sub-layouts
+### EffectSubscription(36) sub-layouts
 
 `EffectKind`: `0 TextNode, 1 TextExpression, 2 Attr, 3 Branch, 4 Props, 5 ForBlock, 6 DomBatch,
 7 Content, 8 Event`. `EffectTargetKind`: `0 ElementText, 1 RangeText, 2 Element`. For scalar
@@ -112,12 +106,11 @@ Note `Branch`/`ForBlock`/`Content` carry a `rangeId` at index 1 and **no** `Effe
 
 ### Encoder dispatch order (observable when a value matches several branches)
 
-`SerializerSignal` → `ComputedQrl` (**async → AsyncSignal 33**, else 32) → `AsyncSignal` →
+`SerializerSignal` → `ComputedQrl` (**async → AsyncSignal 30**, else 29) → `AsyncSignal` →
 `Signal` → `isStore` → `StorePropSource` → SSR subscriptions (Dom/Branch/ForBlock/Content) →
 Task/VisibleTask subscriptions → ContextScope → SlotScope → Projection → DomRef → PropsProxy →
 Props → object-literal (Array/BigArray vs Object) → URL → Date → Temporal×8 → RegExp → Error →
-FormData → URLSearchParams → Set → Map → Promise → PromiseResult → Uint8Array →
-SerializationWeakRef → throw `Q20`.
+FormData → URLSearchParams → Set → Map → Promise → PromiseResult → Uint8Array → throw `Q20`.
 
 ## Traversal, references, cycles
 
@@ -138,9 +131,9 @@ SerializationWeakRef → throw `Q20`.
 - **Streaming duplicate rule**: if a value's root ancestor lives in an already-flushed chunk,
   the encoder allocates a **fresh duplicate root** instead of a backref — the value serializes
   twice and identity is _not_ preserved across chunk boundaries.
-- Promises: `ForwardRef` payload is `$forwardRefOffset$ + localId` (offset is global across
-  streamed chunks); the trailing `ForwardRefs` table drops trailing `-1` entries; `-1` decodes
-  to `UNINITIALIZED`.
+- Promises: `ForwardRef` payload is the promise's index in the `ForwardRefs` table, taken from
+  one counter for the whole container (so it is global across streamed chunks); the trailing
+  `ForwardRefs` table has an entry for every promise, since serialization waits for all of them.
 
 ## Micro-optimizations (mandatory — observable bytes)
 
@@ -173,16 +166,11 @@ SerializationWeakRef → throw `Q20`.
 - A string goes through `JSON.stringify` **only** when it contains a char with code < 32, `"`,
   or `\`; otherwise it is emitted raw with surrounding quotes. Consequence: U+2028/U+2029, DEL,
   and **lone surrogates are emitted raw** (safe only because payloads are `JSON.parse`d).
-- After quoting, every `</` is rewritten to `<\/`.
-- The script emitter applies the _same_ `</` rule (idempotent) for single-script output.
-  `escapeJsonScript` (`<` → `<`) is used **only** for backpatch payloads, never for
-  `qwik/state`. Attribute values use `escapeHTML`.
-- **Chunked re-encoding trap**: when output is chunked (see State scripts), the emitter does
-  `JSON.parse` → slice → `JSON.stringify`, so the serializer's raw-string fast path is replaced
-  by standard JSON encoding — lone surrogates come out as `\udXXX` escapes in chunked scripts
-  but raw in single scripts. A conformance harness must model this re-encoding; see
-  [06-js-semantics-profile.md](./06-js-semantics-profile.md) for the fail-closed policy that
-  removes the divergence.
+- After quoting, every `</` is rewritten to `<\/` and every `<!--` to `\u003C!--`.
+- State script bodies are the serializer's output verbatim, chunked or not: the serializer
+  itself stops after 1024 roots per call, so no state is re-encoded on the server. The emitter's
+  `stringifyScriptJson` (`<` → `\u003C`) covers only the payloads it builds (forward-ref table,
+  `q:sub` edges, backpatch data). Attribute values use `escapeHTML`.
 
 ## QRL encoding
 
@@ -215,7 +203,7 @@ Two layers with different codes — do not conflate them:
 - **The encoder (`serialize.ts`) is the production gate**: unknown types throw **`Q20`**,
   non-QRL functions throw **`Q34`**. Engines must reproduce the _encoder's_ failures; a render
   that throws in JS must fail natively too.
-- There is **no error "downgrade"**: a rejected `Promise` serializes as `[24, [false, reason]]`
+- There is **no error "downgrade"**: a rejected `Promise` serializes as `[23, [false, reason]]`
   and rejects the reconstructed promise on the client; a rejected SerializerSignal promise
   throws `Q33` and aborts the render.
 - Decoder hardening constrains encoders: `__proto__`, and `constructor`/`prototype`/`toString`/
@@ -251,11 +239,6 @@ inside the script tags.)
 
 ## Reserved / out-of-scope encoder surface
 
-- `serializePatch` emits a different top-level shape (`[rootStart, [roots…](, fwdRefs|0)(, extraRootId)]`)
-  — on the public `SerializationContext` interface but unreferenced in-tree; not part of the
-  `qwik/state` contract.
-- `SerializationWeakRef` emits a ForwardRef whose table entry stays `-1` unless the target is
-  serialized elsewhere; decodes to `UNINITIALIZED`. Exported but unreferenced in-tree.
 - The `output()` QRL-with-array branch is unreachable from the state encoder (it serves the SSR
   event-attribute writer). Do not implement it for `qwik/state`.
 

@@ -1,4 +1,3 @@
-import { isDev } from '@qwik.dev/core/build';
 import type { StreamWriter } from '../shared/utils/stream-writer';
 import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
@@ -6,7 +5,6 @@ import {
   isSsrRecordChunk,
   isSsrEventAttrChunk,
   type SsrOutput,
-  type SsrChunk,
   type SsrPublicationChunk,
   type SsrCatchChunk,
   type SsrCatchController,
@@ -17,7 +15,10 @@ import {
 
 type WriteBoundary = (boundary: SsrCatchController) => ValueOrPromise<void>;
 
-type ResolveChunk = (chunk: SsrReferenceChunk | SsrPublicationChunk | SsrCatchChunk) => SsrOutput;
+/** The chunks only the publication can turn into html. */
+type SsrResolvableChunk = SsrReferenceChunk | SsrPublicationChunk | SsrCatchChunk;
+
+type ResolveChunk = (chunk: SsrResolvableChunk) => SsrOutput;
 
 interface OutputOperation {
   sink?: Pick<StreamWriter, 'write'>;
@@ -133,8 +134,8 @@ function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
       operation.indices.push(0);
       continue;
     }
-    if (typeof output === 'object' && !isSsrRecordChunk(output)) {
-      const chunk = output as Exclude<SsrChunk, string | SsrRecordChunk>;
+    if (typeof output === 'object' && !isSsrRecordChunk(output) && !isSsrEventAttrChunk(output)) {
+      const chunk = output as SsrResolvableChunk;
       if (chunk.type === 'catch' && operation.writeBoundary !== undefined) {
         const pendingFlush = flushBefore(operation, output);
         if (pendingFlush !== undefined) {
@@ -146,33 +147,23 @@ function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
         }
         continue;
       }
-      if (
-        chunk.type === 'publication' ||
-        chunk.type === 'catch' ||
-        chunk.type === 'root-value' ||
-        chunk.type === 'event-value' ||
-        chunk.type === 'sync-fn'
-      ) {
-        if (operation.resolveChunk === undefined) {
-          throw new Error('Missing SSR publication writer');
-        }
-        operation.current = operation.resolveChunk(chunk);
-        continue;
+      if (operation.resolveChunk === undefined) {
+        throw new Error('Missing SSR publication writer');
       }
+      operation.current = operation.resolveChunk(chunk);
+      continue;
     }
     const html =
       typeof output === 'string'
         ? output
         : isSsrRecordChunk(output)
           ? materializeRecord(output, operation.resolveChunk)
-          : isSsrEventAttrChunk(output)
-            ? materializeEventAttr(
-                output.name,
-                output.valueParts,
-                operation.resolveChunk,
-                output.errorRoot
-              )
-            : materializeReference(output as SsrReferenceChunk, operation.resolveChunk);
+          : materializeEventAttr(
+              output.name,
+              output.valueParts,
+              operation.resolveChunk,
+              output.errorRoot
+            );
     if (html !== '') {
       operation.buffered.push(html);
     }
@@ -218,22 +209,9 @@ function materializeEventAttr(
 }
 
 function materializeReference(reference: SsrReferenceChunk, resolveChunk?: ResolveChunk): string {
-  if (
-    reference.type === 'root-value' ||
-    reference.type === 'event-value' ||
-    reference.type === 'sync-fn'
-  ) {
-    const value = resolveChunk?.(reference);
-    if (typeof value !== 'string') {
-      throw new Error('An SSR attribute must resolve synchronously');
-    }
-    return value;
+  const value = resolveChunk?.(reference);
+  if (typeof value !== 'string') {
+    throw new Error('An SSR attribute must resolve synchronously');
   }
-  if (reference.type !== 'root-ref-path') {
-    return String(reference.localId);
-  }
-  if (isDev && reference.localPath.length === 0) {
-    throw new Error('An SSR root reference path cannot be empty.');
-  }
-  return reference.localPath.join(' ');
+  return value;
 }

@@ -48,15 +48,30 @@ export function findQwikElement(
     return element as Element;
   }
   for (const candidate of element.querySelectorAll(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`)) {
-    let ancestor: Element | null = candidate;
-    while (ancestor !== null && ancestor !== element && !ancestor.hasAttribute('q:container')) {
-      ancestor = ancestor.parentElement;
-    }
-    if (ancestor === element || ancestor === null) {
+    if (isOwnedBy(element, candidate)) {
       return candidate;
     }
   }
   return null;
+}
+
+/** A node under a nested container belongs to that container, not to `root`'s. */
+function isOwnedBy(root: Element | DocumentFragment, element: Element | null): boolean {
+  let ancestor = element;
+  while (ancestor !== null && ancestor !== root && !ancestor.hasAttribute('q:container')) {
+    ancestor = ancestor.parentElement;
+  }
+  return ancestor === root || ancestor === null;
+}
+
+function isOwnComment(root: Element | DocumentFragment, comment: Comment): boolean {
+  return isOwnedBy(root, comment.parentElement);
+}
+
+/** No filter callback: only a matching comment pays for the nested-container check. */
+function createMarkerWalker(root: Element | DocumentFragment): TreeWalker {
+  // 128 = NodeFilter.SHOW_COMMENT
+  return root.ownerDocument!.createTreeWalker(root, 128);
 }
 
 export function findElementText(parentNode: Node): Text {
@@ -74,28 +89,18 @@ function ensureTextNode(parentNode: Node, candidate: Node | null): Text {
 }
 
 export function findTextNode(parentNode: Node, markerIndex: number): Text | null {
-  let index = 0;
-  let currentNode = fastFirstChild(parentNode);
-  while (currentNode) {
-    if (
-      currentNode.nodeType === NodeType.Comment &&
-      (currentNode as Comment).data === RANGE_TEXT_MARKER
-    ) {
-      if (index === markerIndex) {
-        return ensureTextNode(parentNode, fastNextSibling(currentNode));
-      }
-      index++;
-    }
-    currentNode = fastNextSibling(currentNode);
-  }
-  return null;
+  return findMarkedText(fastFirstChild(parentNode), null, markerIndex);
 }
 
 export function findBranchTextNode(range: BranchMarkerRange, markerIndex: number): Text | null {
-  const [, end] = range;
+  return findMarkedText(fastNextSibling(range[0]), range[1], markerIndex);
+}
+
+/** The text after the `markerIndex`-th text marker among the siblings from `first` to `end`. */
+function findMarkedText(first: Node | null, end: Node | null, markerIndex: number): Text | null {
   let index = 0;
-  let currentNode = fastNextSibling(range[0]);
-  while (currentNode && currentNode !== end) {
+  let currentNode = first;
+  while (currentNode !== null && currentNode !== end) {
     if (
       currentNode.nodeType === NodeType.Comment &&
       (currentNode as Comment).data === RANGE_TEXT_MARKER
@@ -135,11 +140,12 @@ export function findProjectionRange(
   element: Element | DocumentFragment,
   rangeId: number
 ): ContentMarkerRange | null {
-  const walker = createCommentWalker(element);
-  let node: Node | null;
-  while ((node = walker.nextNode()) !== null) {
-    if ((node as Comment).data.startsWith('s=' + String(rangeId) + ',')) {
-      return toRange(node as Comment, SLOT_OPEN, SLOT_CLOSE);
+  const marker = SLOT_OPEN + String(rangeId) + ',';
+  const walker = createMarkerWalker(element);
+  let comment: Comment | null;
+  while ((comment = walker.nextNode() as Comment | null) !== null) {
+    if (comment.data.startsWith(marker) && isOwnComment(element, comment)) {
+      return toRange(comment, SLOT_OPEN, SLOT_CLOSE);
     }
   }
   return null;
@@ -198,7 +204,7 @@ export function findForRows(start: Comment, end: Comment): ForRow[] {
 /** `r=<id>,<key>` keeps the id addressable while the key rides along for resume. */
 function rowMarkerKey(data: string): string | null {
   const comma = data.indexOf(',');
-  return comma === -1 ? null : data.slice(comma + 1);
+  return comma === -1 ? null : unescape(data.slice(comma + 1));
 }
 
 function isRowOpenMarker(data: string): boolean {
@@ -227,11 +233,11 @@ export function createCommentWalker(element: Element | DocumentFragment): TreeWa
 }
 
 function findComment(element: Element | DocumentFragment, data: string): Comment | null {
-  const walker = createCommentWalker(element);
-  let comment: Node | null;
-  while ((comment = walker.nextNode()) !== null) {
-    if ((comment as Comment).data === data) {
-      return comment as Comment;
+  const walker = createMarkerWalker(element);
+  let comment: Comment | null;
+  while ((comment = walker.nextNode() as Comment | null) !== null) {
+    if (comment.data === data && isOwnComment(element, comment)) {
+      return comment;
     }
   }
   return null;
@@ -246,18 +252,18 @@ export function findBranchTextRange(
   rangeId: string | number
 ): readonly [Comment, Comment] | null {
   const id = String(rangeId);
-  const walker = createCommentWalker(element);
-  let comment: Node | null;
-  while ((comment = walker.nextNode()) !== null) {
-    const data = (comment as Comment).data;
-    if (isMarkerFor(data, BRANCH_OPEN, id)) {
-      return toRange(comment as Comment, BRANCH_OPEN, BRANCH_CLOSE);
+  const walker = createMarkerWalker(element);
+  let comment: Comment | null;
+  while ((comment = walker.nextNode() as Comment | null) !== null) {
+    const data = comment.data;
+    if (isMarkerFor(data, BRANCH_OPEN, id) && isOwnComment(element, comment)) {
+      return toRange(comment, BRANCH_OPEN, BRANCH_CLOSE);
     }
-    if (isMarkerFor(data, ROW_OPEN_PREFIX, id)) {
-      return toRange(comment as Comment, ROW_OPEN, ROW_CLOSE);
+    if (isMarkerFor(data, ROW_OPEN_PREFIX, id) && isOwnComment(element, comment)) {
+      return toRange(comment, ROW_OPEN, ROW_CLOSE);
     }
-    if (isMarkerFor(data, SLOT_OPEN, id)) {
-      return toRange(comment as Comment, SLOT_OPEN, SLOT_CLOSE);
+    if (isMarkerFor(data, SLOT_OPEN, id) && isOwnComment(element, comment)) {
+      return toRange(comment, SLOT_OPEN, SLOT_CLOSE);
     }
   }
   return null;

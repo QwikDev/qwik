@@ -130,4 +130,30 @@ describe(`${name}: useId`, () => {
 
     cleanup();
   });
+
+  it('should generate ids for components rendered in signal-backed rows', async () => {
+    const Field = component$((props: { label: string }) => {
+      const id = useId();
+      return <input id={id} name={props.label} />;
+    });
+    const App = component$(() => {
+      const items = useSignal(['first', 'second']);
+      return (
+        <div>
+          {items.value.map((item) => (
+            <Field key={item} label={item} />
+          ))}
+        </div>
+      );
+    });
+
+    const { container, cleanup } = await render(App, { debug });
+    const ids = Array.from(container.querySelectorAll('input'), (input) => input.id);
+
+    expect(ids[0]).toBeTruthy();
+    expect(ids[1]).toBeTruthy();
+    expect(ids[0]).not.toBe(ids[1]);
+
+    cleanup();
+  });
 });

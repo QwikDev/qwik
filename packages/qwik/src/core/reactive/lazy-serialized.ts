@@ -3,8 +3,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import type { Scheduler } from '../runtime/scheduler';
 import type { Subscriber } from '../runtime/subscriber';
 import type { Source, SourceSub } from './source';
-
-const MAX_ARRAY_INDEX_EXCLUSIVE = 0xffffffff;
+import { toArrayIndex } from '../utils/array';
 
 export class LazySerialized<T> {
   private promise: Promise<T> | null = null;
@@ -15,14 +14,6 @@ export class LazySerialized<T> {
     private readonly loader: () => ValueOrPromise<T>,
     readonly scheduler: Scheduler | null = null
   ) {}
-
-  get isResolved(): boolean {
-    return this.resolved;
-  }
-
-  peek(): T | undefined {
-    return this.resolved ? this.value : undefined;
-  }
 
   resolve(): ValueOrPromise<T> {
     if (this.resolved) {
@@ -47,15 +38,18 @@ export function isLazySerialized<T>(value: unknown): value is LazySerialized<T> 
   return value instanceof LazySerialized;
 }
 
+/** Marks a resumed subscriber list whose entries are created on first access. */
+class LazySourceSubs extends Array<SourceSub> {}
+
 export function createLazySourceSubs(
   length: number,
   create: (index: number) => SourceSub
 ): SourceSub[] {
-  return new Proxy(new Array<SourceSub>(length), new LazySourceSubsHandler(length, create));
+  return new Proxy(new LazySourceSubs(length), new LazySourceSubsHandler(create));
 }
 
-/** Await notification so it can register further lazy loads. */
-export function resolveLazySubscribers(source: Source, notify: () => void): boolean {
+/** Await notification so it can register further lazy loads; false means notify now. */
+export function resolveLazySubscribers(source: Source, notify: (source: Source) => void): boolean {
   const subs = source.subs;
   if (subs === null) {
     return false;
@@ -71,44 +65,35 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
       }
       return subscriber;
     });
-    if (isPromise<Subscriber>(value)) {
-      const notified = value.then(notify);
-      subs.scheduler?.waitForResume(notified);
-    } else {
-      notify();
+    if (!isPromise(value)) {
+      return false;
     }
+    subs.scheduler?.waitForResume(value.then(() => notify(source)));
     return true;
   }
 
+  // Materialize the proxy once so later writes, tracks and removals use a plain array.
+  const list = subs instanceof LazySourceSubs ? (source.subs = Array.from(subs)) : subs;
   let pending: Array<Promise<Subscriber>> | null = null;
   let scheduler: Scheduler | null = null;
-  let resolved = false;
-  for (let i = 0; i < subs.length; i++) {
-    const sub = subs[i];
+  for (let i = 0; i < list.length; i++) {
+    const sub = list[i];
     if (!isLazySerialized<Subscriber>(sub)) {
       continue;
     }
-    resolved = true;
     scheduler ??= sub.scheduler;
     const value = maybeThen(sub.resolve(), (subscriber) =>
-      replaceLazySubscriber(source, subs, sub, subscriber)
+      replaceLazySubscriber(source, list, sub, subscriber)
     );
     if (isPromise<Subscriber>(value)) {
-      pending ??= [];
-      pending.push(value);
+      (pending ??= []).push(value);
     }
   }
 
-  if (!resolved) {
+  if (pending === null) {
     return false;
   }
-
-  if (pending === null) {
-    notify();
-  } else {
-    const notified = Promise.all(pending).then(notify);
-    scheduler?.waitForResume(notified);
-  }
+  scheduler?.waitForResume(Promise.all(pending).then(() => notify(source)));
   return true;
 }
 
@@ -152,42 +137,23 @@ function replaceLazySubscriber(
 }
 
 class LazySourceSubsHandler implements ProxyHandler<SourceSub[]> {
-  constructor(
-    private readonly length: number,
-    private readonly create: (index: number) => SourceSub
-  ) {}
+  constructor(private readonly create: (index: number) => SourceSub) {}
 
   get(target: SourceSub[], property: PropertyKey, receiver: object): unknown {
-    const index = toArrayIndex(property);
-    if (index !== -1 && index < this.length && index < target.length) {
-      if (!Object.prototype.hasOwnProperty.call(target, property)) {
-        target[index] = this.create(index);
-      }
-      return target[index];
+    const index = toLazyIndex(target, property);
+    if (index !== -1 && !Object.prototype.hasOwnProperty.call(target, property)) {
+      target[index] = this.create(index);
     }
     return Reflect.get(target, property, receiver);
   }
 
   has(target: SourceSub[], property: PropertyKey): boolean {
-    const index = toArrayIndex(property);
-    return (
-      (index !== -1 && index < this.length && index < target.length) ||
-      Reflect.has(target, property)
-    );
+    return toLazyIndex(target, property) !== -1 || Reflect.has(target, property);
   }
 }
 
-function toArrayIndex(property: PropertyKey): number {
-  if (typeof property === 'number') {
-    return isArrayIndex(property) ? property : -1;
-  }
-  if (typeof property !== 'string') {
-    return -1;
-  }
-  const index = Number(property);
-  return String(index) === property && isArrayIndex(index) ? index : -1;
-}
-
-function isArrayIndex(value: number): boolean {
-  return Number.isInteger(value) && value >= 0 && value < MAX_ARRAY_INDEX_EXCLUSIVE;
+/** Entries pushed past the resumed length are own properties, so the length bounds them too. */
+function toLazyIndex(target: SourceSub[], property: PropertyKey): number {
+  const index = toArrayIndex(property);
+  return index < target.length ? index : -1;
 }

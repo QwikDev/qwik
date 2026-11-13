@@ -26,6 +26,7 @@ import {
   renderSsrAttr,
   _textValue,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -40,21 +41,19 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const text0 = renderSsrTextNode(id0, null, prop0, effect0);
   const id1 = ctx.nextId();
   const attr0 = renderSsrAttr(id1, 'value', prop0, effect0);
-  return maybeThen(text0, (text0) =>
-    maybeThen(attr0, (attr0) => [
-      '<div><pre q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0.replace(/^\n/, '\n\n')),
-      '</pre><pre>\n\nfixed</pre><textarea q:id="',
-      createSsrNodeId(id1),
-      '"',
-      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
-      '</textarea></div>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, attr0]), ([text0, attr0]) => [
+    '<div><pre q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0.replace(/^\n/, '\n\n')),
+    '</pre><pre>\n\nfixed</pre><textarea q:id="',
+    createSsrNodeId(id1),
+    '"',
+    attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
+    '</textarea></div>',
+  ]);
 }
 /*
 {

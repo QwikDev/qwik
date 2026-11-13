@@ -88,7 +88,7 @@ export function patchCachedAttr(
 }
 
 abstract class AttributeEffect extends DomEffect {
-  declare private previousValue: unknown;
+  private previousValue: unknown = undefined;
 
   protected patchAttribute(element: Element, name: string, value: unknown, styleScopedId?: string) {
     if (isPromise(value)) {

@@ -59,6 +59,7 @@ function createTextHole(expression: Expression, ctx: LowerContext, stringify: bo
     shape: Shape.Text,
     effect: null,
     stringify,
+    isAlwaysText: stringify,
     ...(captured === null
       ? {}
       : {

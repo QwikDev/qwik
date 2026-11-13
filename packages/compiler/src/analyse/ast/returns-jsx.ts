@@ -9,7 +9,7 @@ import type {
   Statement,
 } from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
-import { identifierName, isFunctionLike, unwrapExpression } from './utils';
+import { identifierName, isFunctionLike, unwrapExpression, unwrapTypeExpression } from './utils';
 import type { JsxAnalysis } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
 import { BindingScope, VarKind, type LocalId } from '../../schema';
@@ -35,80 +35,111 @@ export function findComponentCandidates(
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string>
 ): ComponentCandidate[] {
-  const markerCall = (value: Node): CallExpression | null => {
-    if (value.type !== 'CallExpression') {
-      return null;
+  const candidates: ComponentCandidate[] = [];
+  const declare = (value: Node, id: Node | null, statement: Statement) => {
+    const node = unwrapExpression(value) ?? value;
+    const name = identifierName(id);
+    if (!isComponentDeclaration(node, bindings, coreBindings)) {
+      if (
+        isHeuristicComponent(node, id === null ? null : bindings.declaration(id), jsx, bindings)
+      ) {
+        candidates.push({ statement, fn: node, name });
+      }
+      return;
     }
-    const binding = bindings.reference(value.callee);
-    return binding !== null && coreBindings.get(binding) === QwikMarker.Component ? value : null;
+    const fn = declaredComponentFunction(node, bindings);
+    if (fn === null) {
+      return;
+    }
+    const argument = unwrapExpression(node.arguments[0])!;
+    candidates.push({ statement, fn, name, ...(fn === argument ? {} : { reference: argument }) });
   };
-  const declared: {
-    value: Node;
-    call: CallExpression | null;
-    name: string | null;
-    statement: Statement;
-  }[] = [];
-  const declare = (value: Node, name: string | null, statement: Statement) =>
-    declared.push({ value, call: markerCall(unwrapExpression(value) ?? value), name, statement });
   forEachModuleDeclaration(program, (declaration, statement) => {
     if (declaration.type !== 'VariableDeclaration') {
-      declare(
-        declaration,
-        isFunctionLike(declaration) ? identifierName(declaration.id) : null,
-        statement
-      );
+      declare(declaration, isFunctionLike(declaration) ? declaration.id : null, statement);
       return;
     }
     for (const declarator of declaration.declarations) {
       if (declarator.init !== null) {
-        declare(declarator.init, identifierName(declarator.id), statement);
+        declare(declarator.init, declarator.id, statement);
       }
     }
   });
-  const candidates: ComponentCandidate[] = [];
-  for (const { value, call, name, statement } of declared) {
-    if (call === null) {
-      const fn = unwrapExpression(value);
-      if (fn !== null && isHeuristicComponent(fn, name, jsx)) {
-        candidates.push({ statement, fn, name });
-      }
-      continue;
-    }
-    const argument = call.arguments[0];
-    if (
-      argument === undefined ||
-      call.arguments.length !== 1 ||
-      argument.type === 'SpreadElement'
-    ) {
-      throw new UnsupportedError('component$ without exactly one argument');
-    }
-    const inline = unwrapExpression(argument);
-    if (inline === null) {
-      continue;
-    }
-    // An import cannot be compiled here: the link checks it and the call stays an identity.
-    if (isFunctionLike(inline)) {
-      candidates.push({ statement, fn: inline, name });
-      continue;
-    }
-    const fn = referencedComponentFunction(inline, bindings);
-    if (fn !== null) {
-      candidates.push({ statement, fn, name, reference: inline });
-    }
-  }
   return candidates;
 }
 
-function isHeuristicComponent(fn: Node, name: string | null, jsx: JsxAnalysis): boolean {
+/** `binding` names the function; null for an anonymous default export. */
+export function isHeuristicComponent(
+  fn: Node,
+  binding: LocalId | null,
+  jsx: JsxAnalysis,
+  bindings: BindingGraph
+): boolean {
+  const name = binding === null ? null : bindings.bindings[binding].name;
   return (
     isFunctionLike(fn) &&
     hasComponentName(name) &&
-    returnPositionContainsJsx(fn, jsx, name === null)
+    returnPositionContainsJsx(fn, jsx, name === null) &&
+    !isCalledDirectly(binding, bindings)
   );
 }
 
+/** A local its code calls as `X(…)` is a plain function, whatever else reads it. */
+function isCalledDirectly(binding: LocalId | null, bindings: BindingGraph): boolean {
+  // Another module may render a module function as a tag, so it stays a component.
+  if (binding === null || bindings.bindings[binding].scope === BindingScope.Module) {
+    return false;
+  }
+  const references = bindings.referencesOf(binding);
+  const isCallee = (node: Node) => {
+    let call = bindings.parentOf(node);
+    while (call !== null && call.type !== 'CallExpression') {
+      call = bindings.parentOf(call);
+    }
+    return call !== null && unwrapTypeExpression(call.callee) === node;
+  };
+  if (!references.some(({ node }) => isCallee(node))) {
+    return false;
+  }
+  // A tag renders a component's output, which a plain function's JSX value is not.
+  if (references.some(({ node }) => bindings.parentOf(node)?.type === 'JSXOpeningElement')) {
+    const { name } = bindings.bindings[binding];
+    throw new UnsupportedError(`"${name}" called as a function and also rendered as <${name} />`);
+  }
+  return true;
+}
+
+/** `component$(…)` through its core import, under any alias: a component declared in place. */
+export function isComponentDeclaration(
+  node: Node,
+  bindings: BindingGraph,
+  coreBindings: ReadonlyMap<LocalId, string>
+): node is CallExpression {
+  if (node.type !== 'CallExpression') {
+    return false;
+  }
+  const binding = bindings.reference(node.callee);
+  return binding !== null && coreBindings.get(binding) === QwikMarker.Component;
+}
+
+/**
+ * The function a `component$(…)` compiles, inline or named; null leaves the call a runtime identity
+ * (an import, a parameter).
+ */
+export function declaredComponentFunction(
+  call: CallExpression,
+  bindings: BindingGraph
+): ArrowFunctionExpression | FunctionNode | null {
+  const [argument] = call.arguments;
+  if (argument === undefined || argument.type === 'SpreadElement' || call.arguments.length !== 1) {
+    throw new UnsupportedError('component$ without exactly one argument');
+  }
+  const value = unwrapExpression(argument);
+  return isFunctionLike(value) ? value : referencedComponentFunction(value, bindings);
+}
+
 /** `component$(X)` compiles the function `X` names as if it were written inline. */
-export function referencedComponentFunction(
+function referencedComponentFunction(
   reference: Node,
   bindings: BindingGraph
 ): ArrowFunctionExpression | FunctionNode | null {

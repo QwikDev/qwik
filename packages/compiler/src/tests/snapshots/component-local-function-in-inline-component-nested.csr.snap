@@ -1,0 +1,124 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const Outer = component$(() => {
+    const Inner = component$(() => { const go = () => 'x'; return <p>{go()}</p>; });
+    return <Inner />;
+  });
+  return <Outer />;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
+export { App };
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
+
+import {
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const App_1_2_tmpl0 = _createElementTemplate('<p> </p>');
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  const Outer = (props, ctx) => {
+    const Inner = (props, ctx) => {
+      const el0 = App_1_2_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextExpressionEffect(
+        text0,
+        [],
+        component_text_segment_1_1fh10tcowimfv,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    };
+    const component0 = createComponent(Inner, null, ctx);
+    return component0;
+  };
+  const component0 = createComponent(Outer, null, ctx);
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    254
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_go_segment_0_tpkrn7oea0q5.js (ENTRY POINT)==
+
+export const component_go_segment_0_tpkrn7oea0q5 = () => {
+  return 'x';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_go_segment_0_tpkrn7oea0q5",
+  "entry": null,
+  "displayName": "component_go_segment_0",
+  "hash": "tpkrn7oea0q5",
+  "canonicalFilename": "component.tsx_component_go_segment_0_tpkrn7oea0q5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "go",
+  "captures": false,
+  "loc": [
+    161,
+    175
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+import { component_go_segment_0_tpkrn7oea0q5 } from './component.tsx_component_go_segment_0_tpkrn7oea0q5';
+
+export const component_text_segment_1_1fh10tcowimfv = () => {
+  const go = component_go_segment_0_tpkrn7oea0q5;
+  return go();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": false,
+  "loc": [
+    188,
+    192
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -321,8 +321,7 @@ import {
   _last,
   qrl,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   createPropsProxy,
   useComputedQrl,
   _createElementTemplate,
@@ -349,13 +348,13 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     ctx
   );
   const marker1 = _first(el0);
-  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
-  const component2 = createComponent(
+  _replaceMarker(marker1, component0);
+  const component1 = createComponent(
     Display,
     createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
     ctx
   );
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  _replaceMarker(marker0, component1);
   return el0;
 }
 /*

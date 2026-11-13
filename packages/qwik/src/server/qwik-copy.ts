@@ -10,7 +10,11 @@ export { SubscriberKind } from '../core/runtime/subscriber';
 export { _SYNC_QRL as SYNC_QRL } from '@qwik.dev/core';
 export { QContainerValue } from '../core/shared/types';
 export { QFuncsPrefix } from '../core/shared/utils/markers';
-export { escapeHTML } from '../core/shared/utils/character-escaping';
+export {
+  assertElementName,
+  escapeHTML,
+  isSafeAttrName,
+} from '../core/shared/utils/character-escaping';
 export {
   EventNameHtmlScope,
   getEventDataFromHtmlAttribute,

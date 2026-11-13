@@ -117,7 +117,6 @@ import {
   qrl,
   _first,
   _next,
-  BranchRange,
   createBranch,
   _withCaptures,
   createTemplate,
@@ -141,7 +140,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [on]),
     q_component_branch_then_segment_2_24n7b7xmnzb3n,
     undefined

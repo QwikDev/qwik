@@ -31,6 +31,7 @@ import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { removeInOrder } from '../../utils/array';
 import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
+import { assertElementName } from '../../shared/utils/character-escaping';
 import {
   ContentBlock,
   ContentSubscription,
@@ -285,19 +286,7 @@ function renderProjections(
   if (projections.length === 1) {
     return project(projections[0], context.container!, context);
   }
-
-  const nodes: Node[] = [];
-  for (let i = 0; i < projections.length; i++) {
-    const output = project(projections[i], context.container!, context);
-    if (isPromise(output)) {
-      return maybeThen(output, (resolved) => {
-        nodes.push(...resolved);
-        return projectRemaining(nodes, projections, i + 1, context.container!, context);
-      });
-    }
-    nodes.push(...output);
-  }
-  return nodes;
+  return projectRemaining([], projections, 0, context.container!, context);
 }
 
 /**
@@ -346,6 +335,7 @@ export function renderSsrDynamicTag(
   if (typeof tag !== 'string') {
     return (tag as SsrTagRender)(props, ctx);
   }
+  assertElementName(tag);
   const invokeContext = getActiveInvokeContextOrNull();
   const nodeId = ctx.nextId();
   const domProps = renderSsrProps(
@@ -436,22 +426,9 @@ function renderSsrProjections(
     return fallback === undefined ? EMPTY_STRING : renderSsrProjection(ctx, fallback, context);
   }
   if (projections.length === 1) {
-    const projection = projections[0];
-    return renderRegisteredSsrProjection(ctx, projection, context);
+    return renderRegisteredSsrProjection(ctx, projections[0], context);
   }
-
-  const output: SsrOutput[] = [];
-  for (let i = 0; i < projections.length; i++) {
-    const projected = renderRegisteredSsrProjection(ctx, projections[i], context);
-    if (isPromise(projected)) {
-      return projected.then((resolved) => {
-        output.push(resolved);
-        return renderRemainingSsrProjections(ctx, output, projections, i + 1, context);
-      });
-    }
-    output.push(projected);
-  }
-  return output;
+  return renderRemainingSsrProjections(ctx, [], projections, 0, context);
 }
 
 /**
@@ -499,14 +476,12 @@ export class ProjectionBlock extends ContentBlock<[]> {
   }
 
   park(): void {
-    const container = this.container!;
+    const container = this.container;
     const holder = (container.state.detachedProjectionNodes ??=
-      this.document.createDocumentFragment());
-    if (this.start.parentNode === holder) {
-      this.setRenderOwner(null);
-      return;
+      container.document.createDocumentFragment());
+    if (this.start.parentNode !== holder) {
+      this.take(holder);
     }
-    this.take(holder);
     this.setRenderOwner(null);
   }
 
@@ -520,20 +495,22 @@ export class ProjectionBlock extends ContentBlock<[]> {
       return null;
     }
     const previousParent = this.start.parentNode;
-    holder ??= this.document.createDocumentFragment();
+    holder ??= this.container.document.createDocumentFragment();
     let node: Node | null = this.start;
     while (node !== null) {
       const next: Node | null = node === this.end ? null : node.nextSibling;
       holder.appendChild(node);
       node = next;
     }
-    if (
-      previousParent === this.container?.state.detachedProjectionNodes &&
-      previousParent?.firstChild === null
-    ) {
-      delete this.container.state.detachedProjectionNodes;
-    }
+    dropEmptyHolder(this.container, previousParent);
     return [holder];
+  }
+}
+
+/** The holder of parked projections goes once the last one has left it. */
+function dropEmptyHolder(container: ContainerContext, parent: ParentNode | null): void {
+  if (parent === container.state.detachedProjectionNodes && parent.firstChild === null) {
+    delete container.state.detachedProjectionNodes;
   }
 }
 
@@ -579,7 +556,6 @@ function projectRestored(
   const start = holder.appendChild(document.createComment(EMPTY_STRING));
   const end = holder.appendChild(document.createComment(EMPTY_STRING));
   const block = new ProjectionBlock(
-    document,
     start,
     end,
     [],
@@ -612,22 +588,15 @@ export class ProjectionSubscription extends ContentSubscription<[]> {
   }
 
   dispose(): void {
-    if (this.block !== null) {
-      this.block.setRenderOwner(null);
-      if (this.block.currentOwner !== null) {
-        delete this.block.currentOwner.projection;
-      }
+    this.block.setRenderOwner(null);
+    if (this.block.currentOwner !== null) {
+      delete this.block.currentOwner.projection;
     }
     super.dispose();
     const parent = this.block.start.parentNode;
     this.block.start.remove();
     this.block.end.remove();
-    if (
-      parent === this.block.container?.state.detachedProjectionNodes &&
-      parent?.firstChild === null
-    ) {
-      delete this.block.container.state.detachedProjectionNodes;
-    }
+    dropEmptyHolder(this.block.container, parent);
   }
 }
 

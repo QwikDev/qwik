@@ -1,0 +1,195 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export const Outer = component$(() => {
+  const label = useSignal('x');
+  const Inner = component$(() => {
+    const count = useSignal(0);
+    return <a onClick$={() => count.value++}>{label.value}{count.value}</a>;
+  });
+  return <p onClick$={() => console.log(Inner)}><Inner /></p>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { Outer_component_1ik9ul0bfrxkq as Outer } from './component.tsx_Outer_component_1ik9ul0bfrxkq';
+export { Outer };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    209,
+    239
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_Inner_segment_1_1pktugwbt9cpc.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  useSignal,
+  setEvent,
+  qrl,
+  _first,
+  _last,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_Inner_segment_1_1pktugwbt9cpc_tmpl0 = _createElementTemplate('<a><!><!></a>');
+
+export const component_Inner_segment_1_1pktugwbt9cpc = (props, ctx) => {
+  const [label] = _capturesObj._;
+  const count = useSignal(0);
+  const el0 = component_Inner_segment_1_1pktugwbt9cpc_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count]));
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextNodeEffect(text0, label, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect1 = createTextNodeEffect(text1, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Inner_segment_1_1pktugwbt9cpc",
+  "entry": null,
+  "displayName": "component_Inner_segment_1",
+  "hash": "1pktugwbt9cpc",
+  "canonicalFilename": "component.tsx_component_Inner_segment_1_1pktugwbt9cpc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Inner",
+  "captures": true,
+  "loc": [
+    130,
+    277
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _capturesObj, _withCaptures } from '@qwik.dev/core';
+import { component_Inner_segment_1_1pktugwbt9cpc } from './component.tsx_component_Inner_segment_1_1pktugwbt9cpc';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [label] = _capturesObj._;
+  const Inner = _withCaptures(component_Inner_segment_1_1pktugwbt9cpc, [label]);
+  return console.log(Inner);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    290,
+    325
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_Outer_component_1ik9ul0bfrxkq.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _withCaptures,
+  setEvent,
+  qrl,
+  _first,
+  createDynamicTag,
+  createComponent,
+  _replaceMarker,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_Inner_segment_1_1pktugwbt9cpc } from './component.tsx_component_Inner_segment_1_1pktugwbt9cpc';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+const Outer_tmpl0 = _createElementTemplate('<p><!></p>');
+
+export function Outer_component_1ik9ul0bfrxkq(props, ctx) {
+  const label = useSignal('x');
+  const Inner = function () {
+    return _withCaptures(component_Inner_segment_1_1pktugwbt9cpc, [label]).apply(this, arguments);
+  };
+  const el0 = Outer_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label]));
+  const component0 = createComponent((props0) => createDynamicTag(Inner, props0, ctx), null, ctx);
+  const marker0 = _first(el0);
+  _replaceMarker(marker0, component0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Outer_component_1ik9ul0bfrxkq",
+  "entry": null,
+  "displayName": "Outer_component",
+  "hash": "1ik9ul0bfrxkq",
+  "canonicalFilename": "component.tsx_Outer_component_1ik9ul0bfrxkq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    344
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

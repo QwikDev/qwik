@@ -20,14 +20,14 @@ import { notifySourceSubscribers } from './notify';
 import { Signal } from './signal';
 import type { Source, SourceSubs } from './source';
 import { isStore } from './store';
-import { getActiveCollector, runWithCollector, track } from './tracking';
+import { getActiveCollector, runWithCollector, runWithCollector1, track } from './tracking';
 import type { RuntimeContainerContext } from '../runtime/invoke-context';
 import { getLiveOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { getFunctionOrResolve } from '../utils/qrl';
-import { invokeCaptured } from '../shared/qrl/qrl-captures';
+import { setCaptures } from '../shared/qrl/qrl-captures';
 import type { AsyncCtx, ComputedOptions, ComputedSignal, ComputeCtx } from './public-types';
 import { isSubscriberDisposed } from '../runtime/subscriber';
 import { handleError } from '../dom/content/catch-boundary';
@@ -55,20 +55,25 @@ class AsyncJob<T> implements AsyncCtx<T> {
     );
   }
 
+  // Getters, so a body that never reads them allocates no callback; both work destructured.
   get track(): AsyncCtx<T>['track'] {
-    return this.signal.trackSource;
+    const computed = this.signal;
+    return ((obj: (() => unknown) | object, prop?: PropertyKey) =>
+      runWithCollector(computed, trackInput, obj, prop)) as AsyncCtx<T>['track'];
   }
 
-  cleanup = (callback: () => ValueOrPromise<void>): void => {
-    if (typeof callback !== 'function') {
-      return;
-    }
-    if (this.isCancelled) {
-      runLateCleanup(callback);
-      return;
-    }
-    (this.cleanups ??= []).push(callback);
-  };
+  get cleanup(): AsyncCtx<T>['cleanup'] {
+    return (callback) => {
+      if (typeof callback !== 'function') {
+        return;
+      }
+      if (this.isCancelled) {
+        runLateCleanup(callback);
+        return;
+      }
+      (this.cleanups ??= []).push(callback);
+    };
+  }
 
   get abortSignal(): AbortSignal {
     return (this.abortController ??= new AbortController()).signal;
@@ -90,7 +95,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   owner: Owner | null = null;
   deps: Source[] | null = null;
   flags = ComputedFlags.Dirty;
-  subs: SourceSubs = null;
   status: ComputedStatus | null = null;
 
   loadingValue = false;
@@ -99,7 +103,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   storedCleanups: Array<() => ValueOrPromise<void>> | null = null;
   cleanupPromise: Promise<void> | null = null;
   declare private cleanupObservation?: { computed?: Computed<T> };
-  declare private nextSettle?: { promise: Promise<void>; resolve: () => void };
+  declare nextSettle?: { promise: Promise<void>; resolve: () => void };
   /** The missing input of the last computation; only that source can settle its readers. */
   declare private missingInput?: NotReadyError;
   info: unknown;
@@ -115,10 +119,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (hasInitial(options)) {
       this.flags |= ComputedFlags.HasValue;
     }
-  }
-
-  compute(): T {
-    return this.value;
   }
 
   override get value(): T {
@@ -165,7 +165,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
   get untrackedPending(): boolean {
     this.computeStatusIfNeeded();
-    if (isServerEnv() && this.current?.promise) {
+    if ((qTest ? isServerPlatform() : isServer) && this.current?.promise) {
       throw this.current.promise;
     }
     return this.loadingValue;
@@ -186,7 +186,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
   get untrackedError(): Error | undefined {
     this.computeStatusIfNeeded();
-    if (isServerEnv() && this.current?.promise) {
+    if ((qTest ? isServerPlatform() : isServer) && this.current?.promise) {
       throw this.current.promise;
     }
     return this.errorValue;
@@ -271,39 +271,17 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.options = options;
   }
 
-  trackSource: AsyncCtx<T>['track'] = ((obj: (() => unknown) | object, prop?: PropertyKey) => {
-    return runWithCollector(this, () => {
-      if (typeof obj === 'function') {
-        return obj();
-      }
-      if (prop !== undefined) {
-        return (obj as Record<PropertyKey, unknown>)[prop];
-      }
-      if (obj instanceof Signal) {
-        return obj.value;
-      }
-      if (isStore(obj)) {
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-          (obj as Record<string, unknown>)[keys[i]];
-        }
-        return obj;
-      }
-      throw new Error('track() requires a function, signal, store, or store property.');
-    });
-  }) as AsyncCtx<T>['track'];
-
   readValue(): T {
     if (isSubscriberDisposed(this)) {
       if (this.flags & ComputedFlags.HasValue) {
         return this.v;
       }
-      throw new Error('Cannot read disposed computed without cached value');
+      throw qError(QError.disposedComputedWithoutValue);
     }
     this.computeIfNeeded();
     const current = this.current;
     if (current?.promise) {
-      if (isServerEnv() || !(this.flags & ComputedFlags.HasValue)) {
+      if ((qTest ? isServerPlatform() : isServer) || !(this.flags & ComputedFlags.HasValue)) {
         throw current.promise;
       }
       return this.v;
@@ -311,7 +289,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (this.errorValue !== undefined) {
       throw this.errorValue;
     }
-    if (isServerEnv() && this.options?.clientOnly && !(this.flags & ComputedFlags.HasValue)) {
+    if (
+      (qTest ? isServerPlatform() : isServer) &&
+      this.options?.clientOnly &&
+      !(this.flags & ComputedFlags.HasValue)
+    ) {
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
     if (!(this.flags & ComputedFlags.HasValue)) {
@@ -341,14 +323,14 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       return;
     }
     if (this.flags & ComputedFlags.Computing) {
-      throw new Error('Circular computed dependency');
+      throw qError(QError.circularComputed);
     }
     if (!(this.flags & ComputedFlags.Dirty) || this.current !== null) {
       return;
     }
-    if (isServerEnv() && this.options?.clientOnly) {
+    if ((qTest ? isServerPlatform() : isServer) && this.options?.clientOnly) {
       this.loadingValue = true;
-      this.addToEagerResume();
+      addToEagerResume(this);
       return;
     }
     const loadingBody = this.loadSyncBody();
@@ -370,7 +352,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       result = thenInLifetime(job, this.runStoredCleanups(), () => {
         cleanupDeps(this);
         const run = this.computeFn ?? getFunctionOrResolve(this.computeQrl!, this.container, false);
-        if (isPromise(run) && !isServerEnv()) {
+        if (isPromise(run) && !(qTest ? isServerPlatform() : isServer)) {
           // Importing the compute chunk is framework work: the flush must outlast it, or the
           // subscribers this computed then notifies land after the interaction has settled.
           (this.container as ContainerContext | undefined)?.scheduler.waitFor(
@@ -378,7 +360,10 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
             readerOwner ?? getOrCreateContextOwner(invokeContext)
           );
         }
-        return thenInLifetime(job, run, (run) => this.evaluate(job, run));
+        // a loaded body skips the wait; evaluate checks the job's lifetime itself
+        return isPromise(run)
+          ? thenInLifetime(job, run, (run) => this.evaluate(job, run))
+          : this.evaluate(job, run);
       });
     } catch (error) {
       this.flags &= ~(ComputedFlags.Dirty | ComputedFlags.Computing);
@@ -461,7 +446,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
   /** The not yet imported body of a sync computed; loading it is no async computation. */
   private loadSyncBody(): Promise<void> | null {
-    if (this.computeFn !== null || this.flags & ComputedFlags.Async || isServerEnv()) {
+    if (
+      this.computeFn !== null ||
+      this.flags & ComputedFlags.Async ||
+      (qTest ? isServerPlatform() : isServer)
+    ) {
       return null;
     }
     const run = getFunctionOrResolve(this.computeQrl!, this.container, false);
@@ -498,7 +487,10 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       if (!job.canWrite || isSubscriberDisposed(this)) {
         return undefined as T;
       }
-      return runWithCollector(this, invokeCaptured, run, captures, this, [job]);
+      if (captures) {
+        setCaptures(captures);
+      }
+      return runWithCollector1(this, run, job, this);
     });
   }
 
@@ -539,16 +531,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.settle();
   }
 
-  /** Settles on the next value or error, for readers that cannot subscribe. */
-  whenSettled(): Promise<void> {
-    if (this.nextSettle === undefined) {
-      let resolve!: () => void;
-      const promise = new Promise<void>((done) => (resolve = done));
-      this.nextSettle = { promise, resolve };
-    }
-    return this.nextSettle.promise;
-  }
-
   private settle(): void {
     const next = this.nextSettle;
     if (next !== undefined) {
@@ -582,15 +564,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.notifyStatus();
   }
 
-  private addToEagerResume(): void {
-    const container = this.container as SsrContentContext | undefined;
-    if (container?.markEagerResume !== undefined) {
-      container.markEagerResume(this);
-    } else {
-      container?.serializationCtx?.$eagerResume$.add(this);
-    }
-  }
-
   private runStoredCleanups(): ValueOrPromise<void> {
     const cleanups = this.storedCleanups;
     this.storedCleanups = null;
@@ -607,7 +580,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       return result;
     }
     if (isSubscriberDisposed(this)) {
-      if (!isServerEnv()) {
+      if (!(qTest ? isServerPlatform() : isServer)) {
         (this.container as ContainerContext | undefined)?.scheduler.waitFor(result, owner);
       }
       return result;
@@ -671,6 +644,26 @@ function runComputedCleanups(
   return pending === null ? run() : pending.then(run);
 }
 
+function trackInput(obj: (() => unknown) | object, prop?: PropertyKey): unknown {
+  if (typeof obj === 'function') {
+    return obj();
+  }
+  if (prop !== undefined) {
+    return (obj as Record<PropertyKey, unknown>)[prop];
+  }
+  if (obj instanceof Signal) {
+    return obj.value;
+  }
+  if (isStore(obj)) {
+    const keys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i++) {
+      (obj as Record<string, unknown>)[keys[i]];
+    }
+    return obj;
+  }
+  throw qError(QError.trackObjectWithoutProp);
+}
+
 function hasInitial<T>(options: ComputedOptions<T> | undefined): boolean {
   return !!options && Object.prototype.hasOwnProperty.call(options, 'initial');
 }
@@ -683,8 +676,26 @@ function readInitialValue<T>(options: ComputedOptions<T> | undefined): T | undef
   return typeof initial === 'function' ? (initial as () => T)() : initial;
 }
 
-function isServerEnv(): boolean {
-  return qTest ? isServerPlatform() : isServer;
+/** Settles on the next value or error, for readers that cannot subscribe. */
+export function whenComputedSettled(
+  computed: Pick<Computed<unknown>, 'nextSettle'>
+): Promise<void> {
+  if (computed.nextSettle === undefined) {
+    let resolve!: () => void;
+    const promise = new Promise<void>((done) => (resolve = done));
+    computed.nextSettle = { promise, resolve };
+  }
+  return computed.nextSettle.promise;
+}
+
+/** A module function, not a method, so client bundles drop this server-only path. */
+function addToEagerResume<T>(computed: Computed<T>): void {
+  const container = computed.container as SsrContentContext | undefined;
+  if (container?.markEagerResume !== undefined) {
+    container.markEagerResume(computed);
+  } else {
+    container?.serializationCtx?.$eagerResume$.add(computed);
+  }
 }
 
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {

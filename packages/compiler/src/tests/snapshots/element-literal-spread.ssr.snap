@@ -112,6 +112,7 @@ import {
   renderSsrAttrExpression,
   escapeHTML,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -148,19 +149,17 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   );
   ctx.addRoot(id);
   const attr1 = renderSsrAttrExpression(id0, 'id', [id], q_component_id_segment_1_2jskr910mfni5);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<div q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' data-clicks' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      ' title="fixed"',
-      attr1 === null ? '' : ' id' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      ' class="box"',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([clicks])),
-      '>x</div>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, attr1]), ([attr0, attr1]) => [
+    '<div q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' data-clicks' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    ' title="fixed"',
+    attr1 === null ? '' : ' id' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+    ' class="box"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([clicks])),
+    '>x</div>',
+  ]);
 }
 /*
 {

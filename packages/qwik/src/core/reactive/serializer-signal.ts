@@ -1,5 +1,5 @@
 import { Brand, brandClass } from '../shared/utils/brand';
-import { isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { isPromise } from '../shared/utils/promises';
 import type { RuntimeContainerContext } from '../runtime/invoke-context';
@@ -10,6 +10,7 @@ import { getFunctionOrResolve } from '../utils/qrl';
 import type { SerializerArg, SerializerArgObject } from './public-types';
 import { NEEDS_COMPUTATION } from './constants';
 import { isSubscriberDisposed } from '../runtime/subscriber';
+import { invalidStateError } from '../shared/error/error';
 
 export type SerializerSignalQrl<T, S> = QRLInternal<SerializerArg<T, S>>;
 export type SerializerArgObjectWithInitial<T, S> = SerializerArgObject<T, S> & { initial: S };
@@ -74,7 +75,7 @@ function computeSerializerValue<T, S>(this: SerializerSignal<T, S>): T {
   const argQrl = this.argQrl;
   let arg = this.arg;
   if (arg === null && argQrl === null) {
-    throw new Error('Serializer QRL is not initialized');
+    throw isDev ? invalidStateError('serializer QRL') : invalidStateError();
   }
 
   if (arg === null) {

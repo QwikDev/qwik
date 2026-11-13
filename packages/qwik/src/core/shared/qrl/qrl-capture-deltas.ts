@@ -1,3 +1,6 @@
+import { isDev } from '@qwik.dev/core/build';
+import { invalidStateError } from '../error/error';
+
 export const parseSerializedQrlRootIds = (value: string) => {
   const [chunkValue, symbolDeltaValue, captureDeltas, extra] = value.split('#');
   const chunkRootId = Number(chunkValue);
@@ -11,7 +14,7 @@ export const parseSerializedQrlRootIds = (value: string) => {
     !Number.isSafeInteger(symbolRootId) ||
     symbolRootId < 0
   ) {
-    throw new Error('Invalid serialized QRL.');
+    throw isDev ? invalidStateError('QRL') : invalidStateError();
   }
   return [chunkRootId, symbolRootId, captureDeltas || null] as const;
 };

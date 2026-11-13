@@ -1,7 +1,8 @@
 /** Golden snapshots: component targets, props and children. */
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
-import { renderCode } from './fixtures';
+import { emittedCodeErrors, qrlChunks, renderCode } from './fixtures';
+import { parseModule } from '../analyse/ast/parse';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should forward an event-named component prop as an ordinary prop', async () => {
@@ -406,6 +407,454 @@ export default component$(() => {
     // Nothing to compile behind a parameter or an import: the marker call stays an identity.
     expect(main).toContain('component$(Param)');
     expect(main).toContain('component$(Imported)');
+  });
+
+  test.each([
+    [
+      'visible task',
+      'component-nested-in-jsx-function-visible-task',
+      ['useVisibleTask$', 'Cmp', 'jsx'],
+      `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    useVisibleTask$(() => {});
+    return <a href="/x">x</a>;
+  });
+  await render(<Cmp />);`,
+    ],
+    [
+      'component value',
+      'component-nested-in-function-visible-task',
+      ['useVisibleTask$'],
+      `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    useVisibleTask$(() => {});
+    return <a href="/x">x</a>;
+  });
+  await render(Cmp);`,
+    ],
+    [
+      'scoped style',
+      'component-nested-in-jsx-function-styles',
+      ['Cmp', 'jsx'],
+      `import { component$, useStylesScoped$ } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    useStylesScoped$('a { color: red; }');
+    return <a href="/x">x</a>;
+  });
+  await render(<Cmp />);`,
+    ],
+    [
+      'task',
+      'component-nested-in-jsx-function-task',
+      ['useTask$', 'Cmp', 'jsx', 'content'],
+      `import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    const count = useSignal(0);
+    useTask$(({ track }) => track(count));
+    return <a href="/x">{count.value}</a>;
+  });
+  await render(<Cmp />);`,
+    ],
+    [
+      'useOn listener',
+      'component-nested-in-jsx-function-use-on',
+      ['$', 'Cmp', 'jsx'],
+      `import { $, component$, useOn } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    useOn('click', $(() => console.log('click')));
+    return <a href="/x">x</a>;
+  });
+  await render(<Cmp />);`,
+    ],
+    [
+      'event handler',
+      'component-nested-in-jsx-function-event',
+      ['onClick$', 'Cmp', 'jsx'],
+      `import { component$, useSignal } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    const count = useSignal(0);
+    return <button onClick$={() => count.value++}>{count.value}</button>;
+  });
+  await render(<Cmp />);`,
+    ],
+    [
+      'second component',
+      'component-nested-in-jsx-function-siblings',
+      ['useVisibleTask$', 'Cmp', 'useVisibleTask$', 'Other', 'jsx'],
+      `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+  const Cmp = component$(() => {
+    useVisibleTask$(() => console.log('a'));
+    return <a href="/a">a</a>;
+  });
+  const Other = component$(() => {
+    useVisibleTask$(() => console.log('b'));
+    return <a href="/b">b</a>;
+  });
+  await render(<><Cmp /><Other /></>);`,
+    ],
+  ])(
+    'should extract the hooks of a component declared in a test callback once (%s)',
+    async (_label, snapshotName, chunkContexts, source) => {
+      const [imports, ...body] = source.split('\n');
+      const output = await testInput(mode, snapshotName, {
+        code: `${imports}
+import { it } from 'vitest';
+import { render } from './render';
+it('renders', async () => {
+${body.join('\n')}
+});
+`,
+      });
+      expect(output.diagnostics).toEqual([]);
+      for (const module of output.modules) {
+        expect(parseModule(module.path, module.code).errors).toEqual([]);
+        const imports = module.code.split('\n').filter((line) => line.startsWith('import '));
+        expect(imports).toEqual([...new Set(imports)]);
+      }
+      expect(qrlChunks(output).map((module) => module.segment!.ctxName)).toEqual(chunkContexts);
+    }
+  );
+
+  test('should lower the JSX of a module-level $() once, in its own segment', async () => {
+    const output = await testInput(mode, 'qrl-module-level-jsx', {
+      code: `import { $ } from '@qwik.dev/core';
+export const view = $(() => <a href="/x">x</a>);
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(qrlChunks(output).map((module) => module.segment!.ctxName)).toEqual(['jsx', '$']);
+  });
+
+  test('should lower a JSX value passed to a module-level $() as that QRL value', async () => {
+    const output = await testInput(mode, 'qrl-module-level-jsx-value', {
+      code: `import { $ } from '@qwik.dev/core';
+export const view = $(<div>a</div>);
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    // The `$` QRL is a factory returning the JSX's own render QRL.
+    expect(qrlChunks(output).map((module) => module.segment!.ctxName)).toEqual(['jsx', 'qrl']);
+  });
+
+  test('should refuse a component$ declared inside a module-level $()', async () => {
+    await expect(
+      testInput(mode, 'component-nested-in-qrl-refused', {
+        code: `import { $, component$, useVisibleTask$ } from '@qwik.dev/core';
+export const view = $(() => {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => {});
+    return <a href="/x">x</a>;
+  });
+  return <Cmp />;
+});
+`,
+      })
+    ).rejects.toThrow('a component$ inside a $ boundary');
+  });
+
+  test.each([
+    [
+      'rendered through JSX',
+      'component-local-in-function',
+      ['Cmp', 'jsx'],
+      `import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => <a href="/x">x</a>);
+  return render(<Cmp />);
+}
+`,
+    ],
+    [
+      'with a visible task',
+      'component-local-in-function-hook',
+      ['useVisibleTask$', 'Cmp', 'jsx'],
+      `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => console.log('visible'));
+    return <a href="/x">x</a>;
+  });
+  return render(<Cmp />);
+}
+`,
+    ],
+    [
+      'with its own state and click handler',
+      'component-local-in-function-event',
+      ['onClick$', 'Cmp', 'jsx'],
+      `import { component$, useSignal } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => {
+    const count = useSignal(0);
+    return <button onClick$={() => count.value++}>{count.value}</button>;
+  });
+  return render(<Cmp />);
+}
+`,
+    ],
+    [
+      'capturing locals of the function',
+      'component-local-in-function-capture',
+      ['title', 'text', 'text', 'Cmp', 'jsx'],
+      `import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+const prefix = 'module';
+export async function show(label: string) {
+  const suffix = label + '!';
+  const Cmp = component$(() => <a href="/x" title={prefix}>{label}{suffix}</a>);
+  return render(<Cmp />);
+}
+`,
+    ],
+    [
+      'rendering another local component',
+      'component-local-in-function-two',
+      ['Inner', 'Outer', 'jsx'],
+      `import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Inner = component$(() => <b>inner</b>);
+  const Outer = component$(() => <p><Inner /></p>);
+  return render(<Outer />);
+}
+`,
+    ],
+    [
+      'used directly and through a $()',
+      'component-local-in-function-direct-and-qrl',
+      ['Cmp', '$', 'jsx'],
+      `import { $, component$ } from '@qwik.dev/core';
+import { mount, render } from './render';
+export async function show() {
+  const Cmp = component$(() => <a href="/x">x</a>);
+  mount(Cmp);
+  const later = $(() => mount(Cmp));
+  return render(<Cmp />, later);
+}
+`,
+    ],
+    [
+      'that no boundary references',
+      'component-local-in-function-unreferenced',
+      ['useVisibleTask$'],
+      `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => console.log('visible'));
+    return <a href="/x">x</a>;
+  });
+  return render(Cmp);
+}
+`,
+    ],
+    [
+      'passed anonymously',
+      'component-local-in-function-anonymous',
+      ['jsx', 'text'],
+      `import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  return render(component$(() => <a href="/x">x</a>));
+}
+export async function captured() {
+  const list = [component$(() => <a href="/y">y</a>)];
+  return render(<div>{list}</div>);
+}
+`,
+    ],
+    [
+      'declared in a setup, with its own state',
+      'component-local-in-setup-hook',
+      ['onClick$', 'Inner', 'onClick$'],
+      `import { component$, useSignal } from '@qwik.dev/core';
+export const Outer = component$(() => {
+  const label = useSignal('x');
+  const Inner = component$(() => {
+    const count = useSignal(0);
+    return <a onClick$={() => count.value++}>{label.value}{count.value}</a>;
+  });
+  return <p onClick$={() => console.log(Inner)}><Inner /></p>;
+});
+`,
+    ],
+    [
+      'declared in a function of a setup statement',
+      'component-local-in-setup-statement-function',
+      ['Cmp', 'jsx', 'text'],
+      `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  let out;
+  for (const f of [function () { const Cmp = component$(() => <b />); return <Cmp />; }]) { out = f; }
+  return <p>{out}</p>;
+});
+`,
+    ],
+  ])(
+    'should lift a local component a boundary references (%s)',
+    async (_label, snapshotName, chunkContexts, code) => {
+      const output = await testInput(mode, snapshotName, { code });
+      expect(output.diagnostics).toEqual([]);
+      for (const module of output.modules) {
+        expect(parseModule(module.path, module.code).errors).toEqual([]);
+        // The component rides its own segment, never a QRL capture.
+        expect(module.code).not.toMatch(/\.w\(\[[^\]]*\b(?:Cmp|Inner|Outer)\b/);
+      }
+      expect(qrlChunks(output).map((module) => module.segment!.ctxName)).toEqual(chunkContexts);
+    }
+  );
+
+  test('should register a lifted local component an inline component handed out as a QRL', async () => {
+    const output = await testInput(mode, 'component-local-in-function-qrl-then-call', {
+      code: `import { $, component$, useSignal } from '@qwik.dev/core';
+import { render } from './render';
+export function show() {
+  const label = useSignal('x');
+  const Cmp = component$(() => <a>{label.value}</a>);
+  return render(component$(() => <button onClick$={$(Cmp)}>b</button>), Cmp);
+}
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    if (mode === 'ssr') {
+      // The main module calls the segment, so the server mirrors and registers it there.
+      const main = output.modules[0].code;
+      expect(main).toMatch(/const (component_Cmp_segment_\w+) = \(props, ctx\) =>/);
+      expect(main).toMatch(/q_component_Cmp_segment_\w+\.s\(component_Cmp_segment_\w+\);/);
+    }
+  });
+
+  test.each([
+    [
+      'in a setup',
+      'component-local-function-in-inline-component',
+      `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const Outer = component$(() => { const go = () => 'x'; return <p>{go()}</p>; });
+  return <Outer />;
+});
+`,
+    ],
+    [
+      'two components deep',
+      'component-local-function-in-inline-component-nested',
+      `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const Outer = component$(() => {
+    const Inner = component$(() => { const go = () => 'x'; return <p>{go()}</p>; });
+    return <Inner />;
+  });
+  return <Outer />;
+});
+`,
+    ],
+    [
+      'in a plain function',
+      'component-local-function-in-function-component',
+      `import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+export function show() {
+  const Outer = component$(() => { const go = () => 'x'; return <p>{go()}</p>; });
+  return render(Outer);
+}
+`,
+    ],
+  ])(
+    'should lift a local function of an inline local component (%s)',
+    async (_label, snapshotName, code) => {
+      const output = await testInput(mode, snapshotName, { code });
+      expect(output.diagnostics).toEqual([]);
+      expect(qrlChunks(output).map((module) => module.segment!.ctxName)).toContain('go');
+    }
+  );
+
+  test.each([
+    [
+      'in a setup',
+      [
+        'component-local-boundary-order-setup-declared-first',
+        `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const go = () => 'x';
+  const Inner = component$(() => <a onClick$={() => go()}>a</a>);
+  return <Inner />;
+});
+`,
+      ],
+      [
+        'component-local-boundary-order-setup-declared-last',
+        `import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const Inner = component$(() => <a onClick$={() => go()}>a</a>);
+  const go = () => 'x';
+  return <Inner />;
+});
+`,
+      ],
+    ],
+    [
+      'in a plain function',
+      [
+        'component-local-boundary-order-function-declared-first',
+        `import { component$ } from '@qwik.dev/core';
+import { mount, render } from './render';
+export function show(label: string) {
+  const A = component$(() => <b>{label}</b>);
+  const B = component$(() => <p onClick$={() => mount(A)} />);
+  return render(B);
+}
+`,
+      ],
+      [
+        'component-local-boundary-order-function-declared-last',
+        `import { component$ } from '@qwik.dev/core';
+import { mount, render } from './render';
+export function show(label: string) {
+  const B = component$(() => <p onClick$={() => mount(A)} />);
+  const A = component$(() => <b>{label}</b>);
+  return render(B);
+}
+`,
+      ],
+    ],
+  ])(
+    'should lift what an inline local component references the same way in either declaration order (%s)',
+    async (_label, [firstName, firstCode], [lastName, lastCode]) => {
+      const chunksOf = async (snapshotName: string, code: string) => {
+        const output = await testInput(mode, snapshotName, { code });
+        expect(output.diagnostics).toEqual([]);
+        for (const module of output.modules) {
+          // A lifted local rides its own segment, never a QRL capture.
+          expect(module.code).not.toMatch(/\.w\(\[[^\]]*\b(?:go|A)\b/);
+        }
+        return qrlChunks(output)
+          .map((module) => module.segment!.ctxName)
+          .sort();
+      };
+      const declaredFirst = await chunksOf(firstName, firstCode);
+      expect(await chunksOf(lastName, lastCode)).toEqual(declaredFirst);
+      expect(declaredFirst.filter((ctxName) => ctxName === 'go' || ctxName === 'A')).toHaveLength(
+        1
+      );
+    }
+  );
+
+  test('should lift local components whose handlers reference each other', async () => {
+    const output = await testInput(mode, 'component-local-boundary-cycle', {
+      code: `import { component$ } from '@qwik.dev/core';
+import { mount, render } from './render';
+export function show() {
+  const A = component$(() => <p onClick$={() => mount(B)} />);
+  const B = component$(() => <p onClick$={() => mount(A)} />);
+  return render(A, B);
+}
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(emittedCodeErrors(output.modules)).toEqual([]);
   });
 
   test('should check component$ of an import against its declaring module', async () => {

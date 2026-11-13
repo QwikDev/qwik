@@ -188,8 +188,7 @@ import {
   setEvent,
   qrl,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
@@ -220,7 +219,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     ctx
   );
   const marker0 = _next(_first(el0));
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker0, component0);
   setEvent(el1, 'q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([props]));
   return el0;
 }

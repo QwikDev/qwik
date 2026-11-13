@@ -9,6 +9,7 @@ import type {
 import {
   ResumeKind,
   BoundaryKind,
+  BoundaryRole,
   ComponentPropsKind,
   ComponentTargetKind,
   ExprKind,
@@ -161,7 +162,6 @@ export function lowerComponentOp(
       : {}),
     id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
     lifetime: 0,
-    blockingPending: false,
   };
 }
 
@@ -225,6 +225,8 @@ export function lowerPropsChunk(
 ): QrlUse {
   const parts: Qrl['propsParts'] = [];
   const expressions: Expression[] = [];
+  /** The chunk's own code: handler and factory values are segments of their own. */
+  const own: Expression[] = [];
   const payloads: number[] = [];
   const addExpression = (
     expression: Expression,
@@ -235,6 +237,7 @@ export function lowerPropsChunk(
       part.kind === PropsPartKind.Expression ? lowerPropFactory(expression, ctx, part.name) : null;
     if (factory === null) {
       recordPayloadJsx(ctx, payload, expression);
+      own.push(expression);
     } else {
       ctx.plan.payloads[payload].qrls.push({
         range: [expression.start, expression.end],
@@ -257,8 +260,14 @@ export function lowerPropsChunk(
     const scope = eventScopeName(name);
     if (scope !== null) {
       const authored = qrlAttributeExpression(attribute);
+      const binding = authored === null ? null : ctx.bindings.reference(authored);
       // A composed handler value (`cond ? [a, $(...)] : b`) is a plain entry; its markers extract.
-      if (authored !== null && !isFunctionLike(authored) && !isHandlerList(authored)) {
+      if (
+        authored !== null &&
+        !isFunctionLike(authored) &&
+        !isHandlerList(authored) &&
+        !(binding !== null && ctx.lifts.isLifted(binding))
+      ) {
         addExpression(authored, { kind: PropsPartKind.Expression, name });
         continue;
       }
@@ -307,7 +316,13 @@ export function lowerPropsChunk(
       throw new UnsupportedError('a dynamic JSX attribute value');
     }
   }
-  const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props');
+  const { captures, functions, args, refs } = lowerCaptures(
+    expressions,
+    ctx,
+    'component props',
+    new Set(),
+    { own }
+  );
   for (const payload of payloads) {
     recordPayloadReads(ctx, payload, refs);
   }
@@ -317,15 +332,15 @@ export function lowerPropsChunk(
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: 'props' },
       ctxName: 'props',
-      boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Expression },
       payloadKind,
       authoredAsync: false,
       body: {
         b: QrlBodyKind.Expr,
         expr: { kind: ExprKind.Js, payload: payloads[0] },
-        initialOnly: false,
       },
       captures,
+      functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,
@@ -347,7 +362,7 @@ function propQrlBoundary(
   expression: Expression,
   name: string,
   subject: string,
-  role: string
+  role: BoundaryRole
 ): QrlArgumentBoundary {
   return {
     nameCtx: name,
@@ -369,13 +384,17 @@ function lowerPropFactory(expression: Expression, ctx: LowerContext, name: strin
     : lowerFunctionQrl(
         factory.fn,
         ctx,
-        propQrlBoundary(expression, name, 'a JSX prop factory', 'jsx-factory')
+        propQrlBoundary(expression, name, 'a JSX prop factory', BoundaryRole.JsxFactory)
       );
 }
 
 /** Any `$` prop of a component is a QRL boundary under its authored key. */
 function lowerQrlProp(expression: Expression, ctx: LowerContext, name: string) {
-  return lowerQrlArgument(expression, ctx, propQrlBoundary(expression, name, 'a QRL prop', 'prop'));
+  return lowerQrlArgument(
+    expression,
+    ctx,
+    propQrlBoundary(expression, name, 'a QRL prop', BoundaryRole.Prop)
+  );
 }
 
 export function lowerComponentPropValue(

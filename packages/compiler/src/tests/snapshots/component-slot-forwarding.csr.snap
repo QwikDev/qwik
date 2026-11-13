@@ -17,13 +17,13 @@ export { Wrapper };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Inner_component_4pzhs2ajjr75.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Inner_tmpl0 = _createElementTemplate('<article><!></article>');
 
 export function Inner_component_4pzhs2ajjr75(props, ctx) {
   const el0 = Inner_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

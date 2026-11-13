@@ -270,8 +270,7 @@ import {
   createCollection,
   qrl,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Display } from './display';
@@ -295,7 +294,7 @@ export function Rows_component_1vadfxnxfhuga(props, ctx) {
       ctx
     );
     const marker0 = _first(el0);
-    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+    _replaceMarker(marker0, component0);
     return el0;
   }
   createCollection(

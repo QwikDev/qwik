@@ -7,6 +7,7 @@ import {
   VarKind,
   VisibleTaskEvent,
   BoundaryKind,
+  BoundaryRole,
   CallTargetKind,
   type CallTarget,
   CoreOperation,
@@ -30,7 +31,7 @@ import {
   resolveQrlBinding,
   tryLowerExprIr,
 } from './lower-expr';
-import { lowerQrlArgument } from './lower-function';
+import { lowerQrlArgument, type MarkerScope } from './lower-function';
 import { lowerSetupBinding } from './lower-setup';
 function lowerHookCallback(
   call: CallExpression,
@@ -75,7 +76,7 @@ export function lowerSetupCallback(
     ctxName: calleeName,
     boundary: isDollarMarker(coreApi)
       ? { kind: BoundaryKind.Explicit }
-      : { kind: BoundaryKind.Implicit, role: 'hook' },
+      : { kind: BoundaryKind.Implicit, role: BoundaryRole.Hook },
     origin: {
       range: [init.start, init.end],
       calleeRange: [init.callee.start, init.callee.end],
@@ -97,10 +98,7 @@ export function isSetupHookCall(callee: ResolvedSetupCall | null): callee is Res
   return callee !== null && (callee.contract !== undefined || /^use.+/.test(callee.name));
 }
 
-export function resolveSetupCall(
-  call: CallExpression,
-  ctx: LowerContext
-): ResolvedSetupCall | null {
+export function resolveSetupCall(call: CallExpression, ctx: MarkerScope): ResolvedSetupCall | null {
   const binding = ctx.bindings.reference(call.callee);
   if (binding === null) {
     return null;
@@ -193,8 +191,17 @@ export function lowerSetupCall(
     ...(isVisibleTask ? { visibleTaskEvent: visibleTaskEvent(call.arguments[1]) } : {}),
     ...(blocksInitialRender ? { blocksInitialRender: true as const } : {}),
     ...(coreApi === QwikHook.UseContextProvider ? { providesContext: true as const } : {}),
+    ...(coreApi !== undefined && EVENT_HOOKS.has(coreApi)
+      ? { registersEvents: true as const }
+      : {}),
   };
 }
+
+const EVENT_HOOKS: ReadonlySet<string> = new Set([
+  QwikHook.UseOn,
+  QwikHook.UseOnDocument,
+  QwikHook.UseOnWindow,
+]);
 
 /** Styles never become QRLs: both environments append the css under a compile-time id. */
 function lowerStyleCall(

@@ -105,13 +105,7 @@ export async function AsyncCmp_component_gw3thccjtr8j(props, ctx) {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  _last,
-  createComponent,
-  _toNodes,
-  maybeThen,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { _last, createComponent, _replaceMarker, _createElementTemplate } from '@qwik.dev/core';
 import { AsyncCmp_component_gw3thccjtr8j as AsyncCmp } from './component.tsx_AsyncCmp_component_gw3thccjtr8j';
 const default_tmpl0 = _createElementTemplate('<div><h1 id="prefix">Prefix</h1><!></div>');
 
@@ -119,7 +113,7 @@ export function default_component_3rg6kq1so9aio(props0, ctx) {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
   const marker0 = _last(el0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker0, component0);
   return el0;
 }
 /*

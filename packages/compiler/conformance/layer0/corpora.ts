@@ -19,6 +19,10 @@ const mulberry32 = (seed: number) => {
 const doubleView = new DataView(new ArrayBuffer(8));
 
 const bitPatternOf = (value: number): string => {
+  // V8 keeps or quiets a NaN payload depending on the JIT tier, so every NaN records one pattern.
+  if (Number.isNaN(value)) {
+    return '7ff8000000000000';
+  }
   doubleView.setFloat64(0, value);
   return doubleView.getBigUint64(0).toString(16).padStart(16, '0');
 };
@@ -69,7 +73,6 @@ export function buildNumbersCorpus(): [string, string][] {
   for (let i = 0; i < 10_000; i++) {
     doubleView.setUint32(0, next());
     doubleView.setUint32(4, next());
-    // round-trip through the value so NaN patterns canonicalize
     push(doubleView.getFloat64(0));
   }
   return entries;

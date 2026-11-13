@@ -1,0 +1,155 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  let out;
+  for (const f of [function () { const Cmp = component$(() => <b />); return <Cmp />; }]) { out = f; }
+  return <p>{out}</p>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
+export { App };
+============================= src/component.tsx_component_Cmp_segment_0_bwglbq6902yn.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_Cmp_segment_0_bwglbq6902yn_tmpl0 = _createElementTemplate('<b></b>');
+
+export const component_Cmp_segment_0_bwglbq6902yn = (props, ctx) => {
+  const el0 = component_Cmp_segment_0_bwglbq6902yn_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Cmp_segment_0_bwglbq6902yn",
+  "entry": null,
+  "displayName": "component_Cmp_segment_0",
+  "hash": "bwglbq6902yn",
+  "canonicalFilename": "component.tsx_component_Cmp_segment_0_bwglbq6902yn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Cmp",
+  "captures": false,
+  "loc": [
+    139,
+    162
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_jsx_segment_1_38vnjyvdoomcp.js (ENTRY POINT)==
+
+import { createDynamicTag, createComponent } from '@qwik.dev/core';
+import { component_Cmp_segment_0_bwglbq6902yn } from './component.tsx_component_Cmp_segment_0_bwglbq6902yn';
+
+export const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
+  const Cmp = component_Cmp_segment_0_bwglbq6902yn;
+  const component0 = createComponent((props0) => createDynamicTag(Cmp, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_1_38vnjyvdoomcp",
+  "entry": null,
+  "displayName": "component_jsx_segment_1",
+  "hash": "38vnjyvdoomcp",
+  "canonicalFilename": "component.tsx_component_jsx_segment_1_38vnjyvdoomcp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    171,
+    178
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (out) => {
+  return out;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    210,
+    213
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "out"
+  ]
+}
+*/
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
+
+import { qrl, _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_jsx_segment_1_38vnjyvdoomcp'),
+  'component_jsx_segment_1_38vnjyvdoomcp'
+);
+const App_tmpl0 = _createElementTemplate('<p> </p>');
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  let out;
+  for (const f of [
+    function () {
+      return q_component_jsx_segment_1_38vnjyvdoomcp;
+    },
+  ]) {
+    out = f;
+  }
+  const el0 = App_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [out],
+    component_text_segment_2_1fh117dstcoge,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    223
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

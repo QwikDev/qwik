@@ -3,12 +3,10 @@ import {
   BindTargetKind,
   BindingScope,
   SetupKind,
-  BoundaryKind,
   ValueKind,
   ProgramBodyKind,
   VarKind,
   type LocalId,
-  type QrlUse,
   type Setup,
   type Value,
 } from '../schema';
@@ -16,7 +14,6 @@ import type {
   BindingPattern,
   Directive,
   Function as FunctionNode,
-  ArrowFunctionExpression,
   BindingIdentifier,
   Statement,
   VariableDeclarator,
@@ -28,7 +25,7 @@ import { identifierName, unwrapExpression } from './ast/utils';
 import { allocateGeneratedName } from '../names';
 import { UnsupportedError } from '../errors';
 import { localReadIr, LocalKind, type SetupLocals } from './locals';
-import { pushPayload, type LowerContext } from './lower-context';
+import { liftedLocal, pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
   lowerInlineExpressionValue,
@@ -54,8 +51,12 @@ import {
   lowerSetupCallback,
   resolveSetupCall,
 } from './lower-setup-call';
-import { lowerComponentValue, lowerQrlArgument } from './lower-function';
-import { recordFunctionJsx } from './lower-function';
+import {
+  enterLiftedLocal,
+  isDeclaredAlias,
+  recordFunctionJsx,
+  recordPayloadQrls,
+} from './lower-function';
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,
   ctx: LowerContext,
@@ -64,7 +65,9 @@ export function lowerConstDeclaration(
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
   }
-  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer', new Set(), false);
+  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer', new Set(), {
+    lift: false,
+  });
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
   return lowerConstBinding(declarator.id, value, ctx, locals);
 }
@@ -101,7 +104,7 @@ export function lowerSetupBinding(
     throw new UnsupportedError('a non-identifier core API binding');
   }
   const bindings = [...ctx.bindings.bindingsOf(pattern)];
-  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', new Set(), false);
+  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', new Set(), { lift: false });
   const target = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
   const defaultValue =
     pattern.type === 'AssignmentPattern'
@@ -114,10 +117,6 @@ export function lowerSetupBinding(
     locals.set(binding, {
       kind: localKind,
       access: CaptureAccess.Direct,
-      slot:
-        localKind === LocalKind.Signal
-          ? [...locals.values()].filter((local) => local.kind === LocalKind.Signal).length
-          : -1,
       binding,
     });
   }
@@ -154,13 +153,12 @@ export function lowerSetup(
         continue;
       }
       if (statement.type === 'FunctionDeclaration') {
-        const localComponent = lowerLocalComponent(statement, ctx, locals);
-        setup.push(
-          localComponent ??
-            lowerLocalFunction(statement, statement.id!, ctx, locals, (scope) =>
-              lowerJsStatement(statement, scope, locals)
-            )
-        );
+        if (!pushLiftedDeclaration(statement.id!, ctx, setup)) {
+          setup.push(
+            lowerLocalComponent(statement, ctx, locals) ??
+              deferAuthoredLocal(ctx, locals, (scope) => lowerJsStatement(statement, scope, locals))
+          );
+        }
         continue;
       }
       if (statement.type === 'ExpressionStatement') {
@@ -177,12 +175,18 @@ export function lowerSetup(
         continue;
       }
       for (const declarator of statement.declarations) {
+        if (
+          declarator.id.type === 'Identifier' &&
+          pushLiftedDeclaration(declarator.id, ctx, setup)
+        ) {
+          continue;
+        }
         const init = declarator.init === null ? null : unwrapExpression(declarator.init);
         // A live alias registers locals and emits nothing.
         const entry =
           lowerLocalComponent({ ...statement, declarations: [declarator] }, ctx, locals) ??
           (init !== null && isFunctionLike(init) && declarator.id.type === 'Identifier'
-            ? lowerLocalFunction(init, declarator.id, ctx, locals, (scope) =>
+            ? deferAuthoredLocal(ctx, locals, (scope) =>
                 lowerConstDeclaration(declarator, scope, locals)
               )
             : lowerAliasOrSetupDeclaration(declarator, ctx, locals));
@@ -197,23 +201,31 @@ export function lowerSetup(
   return { setup, locals };
 }
 
+/** Up front, so a boundary before a declaration still finds the local and lifts it. */
 function registerSetupLocals(
   statements: readonly (Directive | Statement)[],
   ctx: LowerContext,
   locals: SetupLocals
 ): void {
+  const scope = { ...ctx, locals };
   for (const binding of ctx.bindings.declaredWithin(statements)) {
     if (locals.has(binding)) {
       continue;
     }
-    const authored = ctx.plan.bindings[binding];
-    const isMutable = authored.varKind === VarKind.Let || authored.varKind === VarKind.Var;
+    const { varKind } = ctx.plan.bindings[binding];
+    const isLifted = ctx.lifts.isLifted(binding);
     locals.set(binding, {
-      kind: isMutable ? LocalKind.Mutable : LocalKind.Const,
+      kind: isLifted
+        ? LocalKind.Function
+        : varKind === VarKind.Let || varKind === VarKind.Var
+          ? LocalKind.Mutable
+          : LocalKind.Const,
       access: CaptureAccess.Direct,
-      slot: -1,
       binding,
     });
+    if (isLifted) {
+      enterLiftedLocal(ctx, binding, scope);
+    }
   }
 }
 
@@ -224,6 +236,9 @@ function lowerMutableDeclaration(
 ): Setup[] {
   const setup: Setup[] = [];
   for (const declarator of statement.declarations) {
+    if (declarator.id.type === 'Identifier' && pushLiftedDeclaration(declarator.id, ctx, setup)) {
+      continue;
+    }
     const bindings = ctx.bindings.bindingsOf(declarator.id);
     const registered = bindings.map((binding) => locals.get(binding)!);
     const initial: Setup =
@@ -388,7 +403,6 @@ function lowerAliasDeclaration(
     locals.set(ctx.bindings.declaration(node)!, {
       kind: LocalKind.PropMember,
       access: source.access,
-      slot: -1,
       binding: root,
       read,
       defaultValue,
@@ -416,7 +430,6 @@ function lowerAliasDeclaration(
     kind: LocalKind.PropRest,
     access: CaptureAccess.Direct,
     binding: rest,
-    slot: -1,
   });
   const excluded = [...new Set(object.members.map((member) => member.name))];
   return { s: SetupKind.PropRest, result: rest, props: root, excluded };
@@ -454,69 +467,68 @@ function bindResultToTemp(
   locals.set(temp, {
     kind: LocalKind.Const,
     access: CaptureAccess.Direct,
-    slot: -1,
     binding: temp,
   });
   const read: ValueIR = { kind: ValueIrKind.BindingRead, binding: temp };
   return { setup, source: { read, root: temp, access: CaptureAccess.Direct } };
 }
 
-/**
- * A body function stays authored unless a boundary calls it; then it lifts to a segment the callers
- * import statically, and the body binds it to its captures instead of declaring it.
- */
-function lowerLocalFunction(
-  fn: FunctionNode | ArrowFunctionExpression,
-  id: BindingIdentifier,
+/** A lifted local prints only where its own scope reads it; false when it does not lift. */
+function pushLiftedDeclaration(id: BindingIdentifier, ctx: LowerContext, setup: Setup[]): boolean {
+  const binding = ctx.bindings.declaration(id)!;
+  if (!ctx.lifts.isLifted(binding) || isDeclaredAlias(binding, ctx)) {
+    return false;
+  }
+  if (ctx.lifts.isDeclared(binding)) {
+    setup.push({
+      s: SetupKind.LocalFunction,
+      binding,
+      hoisted: ctx.bindings.parentOf(id)?.type === 'FunctionDeclaration',
+      use: ctx.liftedLocals.get(binding)!.rebind.use,
+    });
+  }
+  return true;
+}
+
+/** Lowers once setup locals declared below it have their final kind; the entry fills every copy. */
+function deferAuthoredLocal(
   ctx: LowerContext,
   locals: SetupLocals,
-  lowerAuthored: (scope: LowerContext) => Setup,
-  liftBody?: (scope: LowerContext) => QrlUse
+  lowerAuthored: (scope: LowerContext) => Setup
 ): Setup {
-  const binding = ctx.bindings.declaration(id)!;
-  const name = id.name;
-  const entry: Extract<Setup, { s: SetupKind.LocalFunction }> = {
-    s: SetupKind.LocalFunction,
-    binding,
-    hoisted: fn.type === 'FunctionDeclaration',
-  };
-  // Both forms lower later, in the scope of this statement rather than of the module end.
+  const entry = {} as Setup;
   const scope = { ...ctx, locals };
-  const lift = () =>
-    (entry.use ??=
-      liftBody === undefined
-        ? lowerQrlArgument(fn, scope, {
-            nameCtx: name,
-            subject: `the local function "${name}"`,
-            ctxName: name,
-            boundary: { kind: BoundaryKind.Implicit, role: 'function' },
-            origin: { range: [fn.start, fn.end], calleeRange: null, argumentRanges: [] },
-          })
-        : liftBody(scope));
-  locals.set(binding, {
-    kind: LocalKind.Function,
-    access: CaptureAccess.Direct,
-    slot: -1,
-    binding,
-    lift,
-  });
-  // Never lifted: the authored statement takes the entry's place, in every copy of the setup.
-  ctx.pendingFunctions.push(() => {
-    if (entry.use === undefined) {
-      const authored = lowerAuthored(scope);
-      for (const key of Object.keys(entry)) {
-        delete (entry as Record<string, unknown>)[key];
-      }
-      Object.assign(entry, authored);
-    }
-  });
+  ctx.deferredLocals.push(() => Object.assign(entry, lowerAuthored(scope)));
   return entry;
 }
 
-/** Runs once every boundary has been lowered: unreferenced body functions keep their statement. */
-export function finalizeLocalFunctions(ctx: LowerContext): void {
-  for (const finalize of ctx.pendingFunctions.splice(0)) {
-    finalize();
+/** Prints the deferred locals from `from` on, in the order they were met. */
+export function lowerDeferredLocals(ctx: LowerContext, from = 0): void {
+  const queue = ctx.deferredLocals;
+  while (queue.length > from) {
+    queue.splice(from, 1)[0]();
+  }
+}
+
+/**
+ * Lowers what is still pending once every root is lowered: a local lifted only for boundaries of
+ * its own reference cycle has no outside read to lower it. Then fails closed on any read of a
+ * lifted local that no boundary rebinds.
+ */
+export function finishLocals(ctx: LowerContext): void {
+  lowerDeferredLocals(ctx);
+  for (const binding of ctx.liftedLocals.keys()) {
+    liftedLocal(ctx, binding);
+  }
+  lowerDeferredLocals(ctx);
+  for (const [binding, { home, references }] of ctx.lifts.liftables) {
+    const isStray = (reference: Node) =>
+      !ctx.claimedReads.has(reference) && !ctx.lifts.isOwnRead(reference, home);
+    if (ctx.lifts.isLifted(binding) && references.some(isStray)) {
+      throw new Error(
+        `pipeline: a read of the lifted local "${ctx.plan.bindings[binding].name}" that no boundary rebinds`
+      );
+    }
   }
 }
 
@@ -539,13 +551,8 @@ function lowerLocalComponent(
   if (component.bindingNode === null) {
     return lowerAuthoredComponent(component, ctx, locals);
   }
-  return lowerLocalFunction(
-    component.fn,
-    component.bindingNode,
-    ctx,
-    locals,
-    (scope) => lowerAuthoredComponent(component, scope, locals),
-    (scope) => lowerComponentValue(component, scope, component.name)
+  return deferAuthoredLocal(ctx, locals, (scope) =>
+    lowerAuthoredComponent(component, scope, locals)
   );
 }
 
@@ -566,7 +573,6 @@ function lowerAuthoredComponent(
       nestedLocals.set(outerProps, {
         kind: LocalKind.Const,
         access: CaptureAccess.Direct,
-        slot: -1,
         binding: outerProps,
       });
     }
@@ -583,7 +589,6 @@ function lowerAuthoredComponent(
         setup: [...parameter.setup, ...setup.setup],
         params: [],
         lifetime: 0,
-        needsId: false,
         async: component.fn.async === true,
       }) - 1;
     return {
@@ -682,6 +687,7 @@ function lowerJsStatement(
       return;
     }
     if (isFunctionLike(node)) {
+      recordPayloadQrls(ctx, payload, node);
       recordFunctionJsx(ctx, payload, node);
       return;
     }
@@ -694,7 +700,6 @@ function lowerJsStatement(
           setup: [],
           params: [],
           lifetime: 0,
-          needsId: false,
           async: false,
         }) - 1;
       target.renders.push(
@@ -718,7 +723,13 @@ function lowerJsStatement(
       }
     }
   };
-  visit(statement, true);
+  // Recorded first, so the QRLs extracted below drop the reads they replace.
   recordPayloadReads(ctx, payload, collectCaptures(statement as Node, ctx, new Set()));
+  visit(statement, true);
+  // Nested setups and render programs read through their own payloads.
+  const nested = [...(target.setups ?? []), ...target.renders];
+  target.reads = target.reads.filter(
+    ({ range }) => !nested.some(({ range: [start, end] }) => start <= range[0] && range[1] <= end)
+  );
   return { s: SetupKind.Js, payload };
 }

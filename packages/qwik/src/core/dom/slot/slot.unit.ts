@@ -19,9 +19,12 @@ import {
   createSlot,
   createSlotScope,
   registerProjection,
+  renderSsrDynamicTag,
   renderSsrSlot,
+  type SsrDynamicTagContext,
   type SsrSlotContext,
 } from './slot';
+import { QError } from '../../shared/error/error';
 
 describe('slots', () => {
   it.each(['s=bad,0', 's=0,-1', 's=0,1.5', 's=0,9007199254740992'])(
@@ -204,7 +207,8 @@ describe('slots', () => {
 
   it('wraps SSR projection output in a resumable range', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const captures = createCaptureContainer({}, scheduler);
+    const roots: Record<string, unknown> = {};
+    const captures = createCaptureContainer(roots, scheduler);
     const container = {
       scheduler: captures.scheduler,
       nextId: captures.nextId,
@@ -214,7 +218,7 @@ describe('slots', () => {
     const output: SsrOutput = ['projected'];
     registerProjection(scope, '', (_ctx: unknown, rangeId: number, rootId: SsrReferenceChunk) => [
       '<!s=',
-      { type: 'node-id', localId: rangeId },
+      String(rangeId),
       ',',
       rootId,
       '>',
@@ -223,11 +227,14 @@ describe('slots', () => {
     ]);
     const context = newInvokeContext({ owner: createOwner(null), container, slotScope: scope });
 
-    expect(invoke(context, () => renderSsrSlot(container))).toEqual([
+    const rendered = invoke(context, () => renderSsrSlot(container));
+
+    expect(roots['0']).toBeDefined();
+    expect(rendered).toEqual([
       '<!s=',
-      { type: 'node-id', localId: 0 },
+      '0',
       ',',
-      { type: 'root-ref', localId: 0 },
+      { type: 'root-value', value: roots['0'] },
       '>',
       ...output,
       '<!/s>',
@@ -286,4 +293,18 @@ describe('slots', () => {
     expect(source.subs).toBeNull();
     expect(collector.deps).toBeNull();
   });
+
+  it.each(['', '1section', 'x><script>alert(1)</script><p', 'section demo', 'section"demo'])(
+    'rejects the runtime tag name %j before writing markup',
+    (tag) => {
+      const ctx = {
+        nextId: () => 0,
+        eventAttr: () => '',
+        setRef: () => undefined,
+      } as unknown as SsrDynamicTagContext;
+      expect(() => renderSsrDynamicTag(tag, {}, ctx)).toThrow(
+        `Code(Q${QError.invalidElementName})`
+      );
+    }
+  );
 });

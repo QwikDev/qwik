@@ -341,7 +341,6 @@ _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9ai
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(1);
-  const pick = component_pick_segment_0_3dnf2wesexw1y;
   ctx.addRoot(count);
   const component0 = ctx.observeError(
     createComponent(

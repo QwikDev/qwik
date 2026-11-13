@@ -3,6 +3,7 @@ import { createDocument } from '../../../testing/document';
 import { ForBlockSubscription } from '../effect/effect';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { useSignal } from '../../reactive/public-api';
+import { getStoreSources, useStore } from '../../reactive/store';
 import { OwnerFlags } from '../../reactive/flags';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createOwner, ownerItemsLength, type Owner } from '../../runtime/owner';
@@ -13,7 +14,7 @@ import {
   getNodeLabel,
   toArray,
 } from '../../test-utils';
-import { IndexMode, ForBlock, ForRange } from './for';
+import { IndexMode, ForBlock, createForBlock } from './for';
 
 describe('ForBlock reorder', () => {
   const createElementNode = (label: string): Node =>
@@ -42,11 +43,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal(nextIds.map((id) => ({ id })));
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item.id,
       () => [],
@@ -71,11 +69,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal(nextIds.map((id) => ({ id })));
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item.id,
       (_ctx, item) => [createElementNode(String((item as { id: number }).id))],
@@ -181,7 +176,8 @@ describe('ForBlock reorder', () => {
         return [createTestDomNode(`a${id}`), createTestDomNode(`b${id}`)];
       });
       const block = new ForBlock(
-        new ForRange(start.ownerDocument!, start as unknown as Comment, end as unknown as Comment),
+        start as unknown as Comment,
+        end as unknown as Comment,
         items,
         (id) => id,
         renderRow,
@@ -223,12 +219,7 @@ describe('ForBlock reorder', () => {
 
   it('clears the range when the next rows are empty', () => {
     const { block, parent } = createMeasuredBlock([]);
-    const clear = block.range.clear.bind(block.range);
-    let clearCount = 0;
-    block.range.clear = () => {
-      clearCount++;
-      clear();
-    };
+    const clear = vi.spyOn(block as unknown as { clearRange(): void }, 'clearRange');
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -236,7 +227,7 @@ describe('ForBlock reorder', () => {
       () => []
     );
 
-    expect(clearCount).toBe(1);
+    expect(clear).toHaveBeenCalledOnce();
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
   });
 
@@ -253,7 +244,7 @@ describe('ForBlock reorder', () => {
       }
     });
 
-    new ForRange(document, start, end).clear();
+    createEmptyBlock(document, start, end).dispose();
 
     expect(start.parentNode).toBe(list);
     expect(end.parentNode).toBe(list);
@@ -266,7 +257,7 @@ describe('ForBlock reorder', () => {
     const start = document.createComment('start');
     const end = document.createComment('end');
 
-    expect(() => new ForRange(document, start, end).clear()).not.toThrow();
+    expect(() => createEmptyBlock(document, start, end).dispose()).not.toThrow();
   });
 
   it('disposes all row owners without scanning their siblings', () => {
@@ -289,7 +280,7 @@ describe('ForBlock reorder', () => {
 
   it('does not clear an already empty range', () => {
     const { block } = createKeyedBlock([], []);
-    const clear = vi.spyOn(block.range, 'clear');
+    const clear = vi.spyOn(block as unknown as { clearRange(): void }, 'clearRange');
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -340,7 +331,8 @@ describe('ForBlock reorder', () => {
       return row;
     };
     const block = new ForBlock(
-      new ForRange(document, startNode, endNode),
+      startNode,
+      endNode,
       items,
       (item) => item.id,
       renderRow,
@@ -353,7 +345,14 @@ describe('ForBlock reorder', () => {
     block.rows = oldRows;
     const oldOwners = oldRows.map(() => createOwner(listOwner));
     block.owners = oldOwners;
-    const insertBefore = vi.spyOn(list, 'insertBefore');
+    const rowsInsertedIntoLiveList: Node[] = [];
+    const insertBefore = list.insertBefore.bind(list);
+    const insertSpy = vi.spyOn(list, 'insertBefore').mockImplementation((node, reference) => {
+      if (node.nodeName === 'LI' && list.parentNode !== null) {
+        rowsInsertedIntoLiveList.push(node);
+      }
+      return insertBefore(node, reference);
+    });
     const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
       while (list.firstChild !== null) {
         list.removeChild(list.firstChild);
@@ -365,8 +364,7 @@ describe('ForBlock reorder', () => {
 
       expect(replaceChildren).toHaveBeenCalledOnce();
       expect(replaceChildren).toHaveBeenCalledWith();
-      const fragmentInsertions = insertBefore.mock.calls.filter(([node]) => node.nodeType === 11);
-      expect(fragmentInsertions).toEqual([[expect.objectContaining({ nodeType: 11 }), endNode]]);
+      expect(rowsInsertedIntoLiveList).toEqual([]);
       expect([...list.childNodes].map((node) => node.textContent)).toEqual([
         'start',
         '3',
@@ -375,7 +373,7 @@ describe('ForBlock reorder', () => {
       ]);
       expect(oldOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
     } finally {
-      insertBefore.mockRestore();
+      insertSpy.mockRestore();
       replaceChildren.mockRestore();
     }
   });
@@ -391,7 +389,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([{ id: 3 }, { id: 4 }]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(document, startNode, endNode),
+      startNode,
+      endNode,
       items,
       (item) => item.id,
       () => [],
@@ -415,7 +414,6 @@ describe('ForBlock reorder', () => {
         new ForBlockSubscription(block),
         (item) => item.id,
         (_ctx, item) => {
-          expect(block.rows).toHaveLength(0);
           expect(oldOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
           const row = document.createElement('li');
           row.textContent = String(item.id);
@@ -446,7 +444,8 @@ describe('ForBlock reorder', () => {
     const text = useSignal('row');
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(document, startNode, endNode),
+      startNode,
+      endNode,
       items,
       (item) => item.id,
       () => [],
@@ -510,9 +509,9 @@ describe('ForBlock reorder', () => {
       row.textContent = String(item.id);
       return row;
     };
-    const range = new ForRange(document, startNode, endNode);
     const block = new ForBlock(
-      range,
+      startNode,
+      endNode,
       items,
       (item) => item.id,
       renderRow,
@@ -564,7 +563,7 @@ describe('ForBlock reorder', () => {
     const nextIds = Array.from({ length: 40 }, (_, index) => index + 40);
     const { block, parent } = createKeyedBlock(oldIds, nextIds);
     // One Range is created per range operation, so counting them counts the operations.
-    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
+    const rangeOps = vi.spyOn(block.container.document, 'createRange').mockClear();
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -579,7 +578,7 @@ describe('ForBlock reorder', () => {
   it('removes one element row without allocating a DOM range', () => {
     const { block, parent } = createKeyedBlock([1, 2, 3], [1, 3]);
     const removedOwner = block.owners[1]!;
-    const createRange = vi.spyOn(block.range.document, 'createRange').mockClear();
+    const createRange = vi.spyOn(block.container.document, 'createRange').mockClear();
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -591,6 +590,66 @@ describe('ForBlock reorder', () => {
     expect(createRange).not.toHaveBeenCalled();
     expect(removedOwner.flags & OwnerFlags.Disposed).toBeTruthy();
     createRange.mockRestore();
+  });
+
+  it('drops multi-node rows in a reorder without allocating a DOM range', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    const oldRows = [1, 2, 3, 4, 5].map(
+      (id) => [createTestDomNode(`${id}`), createTestDomNode(`/${id}`)] as const
+    );
+    const parent = createTestParentNode([startNode, ...oldRows.flat(), endNode]);
+    const listOwner = createOwner(null);
+    const block = new ForBlock(
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
+      useSignal([5, 3, 1].map((id) => ({ id }))),
+      (item) => item.id,
+      () => [],
+      IndexMode.None,
+      listOwner,
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+    block.keys = ['1', '2', '3', '4', '5'];
+    block.rows = oldRows as unknown as [Comment, Comment][];
+    block.owners = block.rows.map(() => createOwner(listOwner));
+    const createRange = vi.spyOn(block.container.document, 'createRange').mockClear();
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      () => []
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual([
+      'start',
+      ...['5', '/5', '3', '/3', '1', '/1'],
+      'end',
+    ]);
+    expect(createRange).not.toHaveBeenCalled();
+    createRange.mockRestore();
+  });
+
+  it.each([
+    ['unchanged keys', [1, 2, 3, 4, 5]],
+    ['appended rows', [1, 2, 3, 4, 5, 6]],
+    ['inserted rows', [1, 2, 6, 3, 4, 5]],
+    ['removed rows', [1, 4, 5]],
+    ['swapped rows', [5, 2, 3, 4, 1]],
+  ])('edits the row arrays in place for %s', (_case, nextIds) => {
+    const { block, parent } = createKeyedBlock([1, 2, 3, 4, 5], nextIds);
+    const rows = block.rows;
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String(item.id))]
+    );
+
+    expect(block.rows).toBe(rows);
+    expect(block.keys).toEqual(nextIds.map(String));
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', ...nextIds.map(String), 'end']);
   });
 
   it('trims removed keyed rows from the head and tail', () => {
@@ -609,7 +668,7 @@ describe('ForBlock reorder', () => {
     const { block, parent } = createKeyedBlock([0, 1, 2, 3], [0, 1]);
     const removedOwners = block.owners.slice(2);
     // One Range is created per range operation, so counting them counts the operations.
-    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
+    const rangeOps = vi.spyOn(block.container.document, 'createRange').mockClear();
 
     block.reconcile(
       new ForBlockSubscription(block),
@@ -629,11 +688,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([1, 2, 3]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item,
       (_ctx, item) => [createElementNode(String(item))],
@@ -660,11 +716,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([1]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item,
       (_ctx, item) => createElementNode(String(item)),
@@ -690,11 +743,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([1, 2]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item,
       (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)],
@@ -724,8 +774,8 @@ describe('ForBlock reorder', () => {
       'end',
     ]);
 
-    // One Range is created per range operation, so counting them counts the operations.
-    const rangeOps = vi.spyOn(block.range.document, 'createRange').mockClear();
+    // A single row walks its siblings; only a span of rows pays for a Range.
+    const rangeOps = vi.spyOn(block.container.document, 'createRange').mockClear();
     items.value = [1];
     block.reconcile(
       subscription,
@@ -733,7 +783,7 @@ describe('ForBlock reorder', () => {
       (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)]
     );
 
-    expect(rangeOps).toHaveBeenCalledOnce();
+    expect(rangeOps).not.toHaveBeenCalled();
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'r', 'a1', 'b1', '/r', 'end']);
   });
 
@@ -761,11 +811,8 @@ describe('ForBlock reorder', () => {
     };
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item.id,
       renderRow,
@@ -790,6 +837,14 @@ describe('ForBlock reorder', () => {
     expect(block.indexSignals![1]!.value).toBe(1);
     expect(block.indexSignals![2]!.value).toBe(2);
     expect(positions.slice(0, 2).map((read) => read())).toEqual([1, 2]);
+
+    items.value = [firstItems[0], firstItems[1]];
+    block.reconcile(subscription, (item) => item.id, renderRow);
+    expect(positions.slice(0, 2).map((read) => read())).toEqual([0, 1]);
+
+    items.value = [firstItems[1], firstItems[0]];
+    block.reconcile(subscription, (item) => item.id, renderRow);
+    expect(positions.slice(0, 2).map((read) => read())).toEqual([1, 0]);
   });
 
   it('throws on duplicate keys in dev', () => {
@@ -799,11 +854,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([1, 1]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item,
       (_ctx, item) => [createElementNode(String(item))],
@@ -842,7 +894,8 @@ describe('ForBlock reorder', () => {
     const items = useSignal([1, 2, 3]);
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(document, startNode, endNode),
+      startNode,
+      endNode,
       items,
       (item) => item,
       renderRow,
@@ -882,11 +935,8 @@ describe('ForBlock reorder', () => {
     const keySuffix = useSignal('a');
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => `${item}:${keySuffix.value}`,
       (_ctx, item) => [createElementNode(String(item))],
@@ -907,6 +957,36 @@ describe('ForBlock reorder', () => {
     expect(subscription.deps).not.toContain(keySuffix);
   });
 
+  it('tracks a store array as a whole instead of one source per index', () => {
+    const startNode = createTestDomNode('start');
+    const endNode = createTestDomNode('end');
+    createTestParentNode([startNode, endNode]);
+    const store = useStore(Array.from({ length: 100 }, (_, id) => ({ id })));
+    const items = useSignal(store);
+    const block = new ForBlock(
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
+      items,
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String(item.id))],
+      IndexMode.None,
+      createOwner(null),
+      null,
+      { document: startNode.ownerDocument! } as ContainerContext
+    );
+    const subscription = new ForBlockSubscription(block);
+
+    block.reconcile(
+      subscription,
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String(item.id))]
+    );
+
+    expect(block.keys).toHaveLength(100);
+    expect(subscription.deps!.length).toBeLessThanOrEqual(3);
+    expect([...getStoreSources(store)].map((source) => source.prop)).not.toContain('5');
+  });
+
   it('creates row-owned subscriptions without an extra owner context', () => {
     const startNode = createTestDomNode('start');
     const endNode = createTestDomNode('end');
@@ -915,11 +995,8 @@ describe('ForBlock reorder', () => {
     const text = useSignal('row');
     const listOwner = createOwner(null);
     const block = new ForBlock(
-      new ForRange(
-        startNode.ownerDocument!,
-        startNode as unknown as Comment,
-        endNode as unknown as Comment
-      ),
+      startNode as unknown as Comment,
+      endNode as unknown as Comment,
       items,
       (item) => item,
       (_ctx, item) => {
@@ -943,7 +1020,6 @@ describe('ForBlock reorder', () => {
     );
 
     expect(block.owners[0]).not.toBeNull();
-    expect(block.rowInvokeContext.owner).toBeNull();
     expect(toArray(listOwner.items)).toContain(block.owners[0]);
     expect(ownerItemsLength(block.owners[0]!.items)).toBe(1);
   });
@@ -956,6 +1032,135 @@ describe('ForBlock reorder', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
   });
 
+  it.each([
+    ['removing rows', [1, 4], 2],
+    ['replacing a row', [1, 5, 3, 4], 1],
+  ])(
+    'takes rows out of the document before disposing their nested blocks when %s',
+    (_case, nextIds, removedCount) => {
+      const document = createDocument({ html: '<ul><!--start--><!--end--></ul>' });
+      const list = document.querySelector('ul')!;
+      const container = { document } as ContainerContext;
+      const renderRow = (ctx: ContainerContext, id: number) => {
+        const row = document.createElement('li');
+        row.appendChild(document.createTextNode(String(id)));
+        const start = row.appendChild(document.createComment(''));
+        const end = row.appendChild(document.createComment(''));
+        createForBlock(ctx, start, end, useSignal<number[]>([]), null, () => null);
+        return row;
+      };
+      const items = useSignal([1, 2, 3, 4]);
+      const block = new ForBlock(
+        list.firstChild as Comment,
+        list.lastChild as Comment,
+        items,
+        (id) => id,
+        renderRow,
+        IndexMode.None,
+        createOwner(null),
+        null,
+        container
+      );
+      const subscription = new ForBlockSubscription(block);
+      block.reconcile(subscription, (id) => id, renderRow);
+      const isNestedClearInList: boolean[] = [];
+      const createRange = document.createRange.bind(document);
+      const rangeSpy = vi.spyOn(document, 'createRange').mockImplementation(() => {
+        const range = createRange();
+        const setStartAfter = range.setStartAfter.bind(range);
+        range.setStartAfter = (node: Node) => {
+          isNestedClearInList.push(node.parentNode!.parentNode === list);
+          setStartAfter(node);
+        };
+        return range;
+      });
+
+      try {
+        items.value = nextIds;
+        block.reconcile(subscription, (id) => id, renderRow);
+      } finally {
+        rangeSpy.mockRestore();
+      }
+
+      expect(list.textContent).toBe(nextIds.join(''));
+      expect(isNestedClearInList).toEqual(new Array(removedCount).fill(false));
+    }
+  );
+
+  describe('when a row throws while rendering', () => {
+    const createThrowingList = (html: string, oldIds: number[]) => {
+      const document = createDocument({ html });
+      const list = document.querySelector('ul')!;
+      const startNode = [...list.childNodes].find((node) => node.textContent === 'start')!;
+      const endNode = [...list.childNodes].find((node) => node.textContent === 'end')!;
+      const text = useSignal('row');
+      const listOwner = createOwner(null);
+      const createdOwners: Owner[] = [];
+      const renderRow = (_ctx: ContainerContext, item: { id: number; broken?: boolean }) => {
+        if (item.broken) {
+          throw new Error('row failed');
+        }
+        createdOwners.push(createTextNodeEffect(document.createTextNode(''), text).owner!);
+        const li = document.createElement('li');
+        li.textContent = String(item.id);
+        return li;
+      };
+      const items = useSignal<Array<{ id: number; broken?: boolean }>>([]);
+      const block = new ForBlock(
+        startNode as Comment,
+        endNode as Comment,
+        items,
+        (item) => item.id,
+        renderRow,
+        IndexMode.None,
+        listOwner,
+        null,
+        { document } as ContainerContext
+      );
+      const subscription = new ForBlockSubscription(block);
+      const reconcile = (ids: number[], brokenId?: number) => {
+        items.value = ids.map((id) => ({ id, broken: id === brokenId }));
+        block.reconcile(subscription, (item) => item.id, renderRow);
+      };
+      reconcile(oldIds);
+      createdOwners.length = 0;
+      const rowTexts = () =>
+        [...list.childNodes].filter((node) => node.nodeType === 1).map((li) => li.textContent);
+      return { document, list, block, createdOwners, reconcile, rowTexts };
+    };
+
+    it.each([
+      ['creating every row into a detached parent', [], [1, 2, 3], 2, false],
+      ['appending rows', [1], [1, 2, 3], 3, true],
+      ['inserting rows between existing ones', [1, 4], [1, 2, 3, 4], 3, true],
+      ['moving and creating rows', [1, 2], [2, 3, 4, 1], 3, false],
+    ])('releases the rows it created when %s', (_case, oldIds, nextIds, brokenId, keepsRows) => {
+      const { document, list, block, createdOwners, reconcile, rowTexts } = createThrowingList(
+        '<section><ul><!--start--><!--end--></ul><p>after</p></section>',
+        oldIds
+      );
+      const existingNodes = [...list.childNodes];
+      const existingOwners = block.owners.slice();
+
+      expect(() => reconcile(nextIds, brokenId)).toThrow('row failed');
+
+      expect(list.parentNode).toBe(document.querySelector('section'));
+      expect(createdOwners.length).toBeGreaterThan(0);
+      expect(createdOwners.every((owner) => owner.flags & OwnerFlags.Disposed)).toBe(true);
+      if (keepsRows) {
+        const isSameList = <V>(actual: ArrayLike<V>, expected: V[]) =>
+          actual.length === expected.length && expected.every((value, i) => actual[i] === value);
+        expect(isSameList(list.childNodes, existingNodes)).toBe(true);
+        expect(isSameList(block.owners, existingOwners)).toBe(true);
+        expect(existingOwners.every((owner) => !(owner!.flags & OwnerFlags.Disposed))).toBe(true);
+        expect(block.keys).toEqual(oldIds.map(String));
+      }
+
+      reconcile(nextIds);
+      expect(rowTexts()).toEqual(nextIds.map(String));
+    });
+  });
+
   it('computes keys in production', async () => {
     vi.resetModules();
     vi.doMock('@qwik.dev/core/build', async (importOriginal) => ({
@@ -963,14 +1168,13 @@ describe('ForBlock reorder', () => {
       isDev: false,
     }));
     try {
-      const [build, { ForBlock: ProdForBlock, ForRange: ProdForRange }, effect, reactive, owner] =
-        await Promise.all([
-          import('@qwik.dev/core/build'),
-          import('./for'),
-          import('../effect/effect'),
-          import('../../reactive/public-api'),
-          import('../../runtime/owner'),
-        ]);
+      const [build, { ForBlock: ProdForBlock }, effect, reactive, owner] = await Promise.all([
+        import('@qwik.dev/core/build'),
+        import('./for'),
+        import('../effect/effect'),
+        import('../../reactive/public-api'),
+        import('../../runtime/owner'),
+      ]);
       expect(build.isDev).toBe(false);
       const start = createTestDomNode('start');
       const end = createTestDomNode('end');
@@ -978,11 +1182,8 @@ describe('ForBlock reorder', () => {
       const items = reactive.useSignal([1, 2]);
       const listOwner = owner.createOwner(null);
       const block = new ProdForBlock(
-        new ProdForRange(
-          start.ownerDocument!,
-          start as unknown as Comment,
-          end as unknown as Comment
-        ),
+        start as unknown as Comment,
+        end as unknown as Comment,
         items,
         (item) => item,
         (_ctx, item) => [createElementNode(String(item))],
@@ -1005,3 +1206,17 @@ describe('ForBlock reorder', () => {
     }
   });
 });
+
+function createEmptyBlock(document: Document, start: Comment, end: Comment): ForBlock {
+  return new ForBlock(
+    start,
+    end,
+    useSignal<unknown[]>([]),
+    null,
+    () => [],
+    IndexMode.None,
+    createOwner(null),
+    null,
+    { document } as ContainerContext
+  );
+}

@@ -90,10 +90,10 @@ import {
   _last,
   createTextNodeEffect,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
 } from '@qwik.dev/core';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
@@ -115,7 +115,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
       ctx.scheduler.notify(effect0);
       const component0 = createComponent(Child, null, ctx);
       const marker0 = _last(el0);
-      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+      _replaceMarker(marker0, component0);
       return el0;
     })
   );

@@ -278,9 +278,6 @@ function indexLocalDeclarations(plan: ModulePlan, module: number): Map<LocalId, 
   plan.qrls.forEach((qrl, index) => add(qrl.declaration?.binding ?? null, DeclTable.Qrls, index));
   for (const [table, declarations] of [
     [DeclTable.Hooks, plan.hooks],
-    [DeclTable.Callables, plan.callables],
-    [DeclTable.Values, plan.values],
-    [DeclTable.Contexts, plan.contexts],
     [DeclTable.Natives, plan.natives],
   ] as const) {
     declarations.forEach((declaration, index) => add(declaration.binding, table, index));

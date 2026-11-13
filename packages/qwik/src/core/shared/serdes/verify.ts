@@ -141,7 +141,7 @@ const isKnownSerializableValue = (value: unknown): boolean => {
   if (value == null) {
     return true;
   }
-  // framework sentinels (_UNINITIALIZED, NEEDS_COMPUTATION, Slot, ...) serialize by table index
+  // framework sentinels (_UNINITIALIZED, NEEDS_COMPUTATION, ...) serialize by table index
   if ((_constants as readonly unknown[]).includes(value)) {
     return true;
   }

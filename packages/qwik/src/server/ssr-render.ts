@@ -22,6 +22,7 @@ import {
   isPromise,
   newInvokeContext,
   setPlatform,
+  type CorePlatform,
   SsrOutputWriter,
   type SsrRangeScope,
   type Subscriber,
@@ -38,6 +39,8 @@ import {
   runOwnerCleanups,
   type JSXOutput,
   type QRLInternal,
+  createQRL,
+  createSsrOpenTag,
 } from '@qwik.dev/core';
 import {
   createSerializationContext,
@@ -70,7 +73,7 @@ export interface SsrRenderContext extends SsrRangeScope {
   /** Null when the component ended up providing no context. */
   optionalContextScopeRef(): SsrReferenceChunk | null;
   eventAttr(name: string, value: unknown, needsInvokeContext?: boolean): SsrEventAttrChunk;
-  /** Flat-output form: ` name="…"` as string/reference parts, [] when there are no handlers. */
+  /** Flat-output form: the `eventAttr` chunk as a one-element spread. */
   eventAttrParts(name: string, value: unknown, needsInvokeContext?: boolean): SsrEventAttrChunk[];
   /** The table script of a compiler-placed sync handler, written right before its element. */
   syncFn(qrl: QRLInternal): SsrReferenceChunk;
@@ -144,13 +147,11 @@ export const renderToStreamCompiled = async <Props = undefined>(
   opts: RenderToStreamOptions<Props>,
   outOfOrder = opts.outOfOrder !== false
 ): Promise<RenderToStreamResult> => {
-  const previousPlatform = getPlatform();
   const resolvedManifest = resolveManifest(opts.manifest);
-  const platform = createPlatform(opts, resolvedManifest);
-  setPlatform(platform);
   const rootInvokeContext = newInvokeContext({ ids: { next: 0 } });
   let releaseRuntime: (() => void) | undefined;
-
+  const platform = createPlatform(opts, resolvedManifest);
+  enterRenderPlatform(platform);
   try {
     const containerTagName = opts.containerTagName ?? 'html';
     const buildBase = getBuildBase(opts);
@@ -163,16 +164,13 @@ export const renderToStreamCompiled = async <Props = undefined>(
       locale,
       instanceHash
     );
-    const serializationCtx = createSerializationContext(
-      SsrDomRef,
-      (symbol) => {
-        const hash = getSymbolHash(symbol);
-        const chunk = resolvedManifest?.mapper[hash];
-        return chunk ? chunk[1] : '';
-      },
-      () => {},
-      new WeakMap<any, any>()
-    );
+    // Validates the tag name and attributes before any work is done.
+    const containerOpen = createContainerOpenTag(containerTagName, containerAttributes);
+    const serializationCtx = createSerializationContext(SsrDomRef, (symbol) => {
+      const hash = getSymbolHash(symbol);
+      const chunk = resolvedManifest?.mapper[hash];
+      return chunk ? chunk[1] : '';
+    });
     serializationCtx.$qrlMapper$ = platform.chunkForSymbol;
     const scripts = new SsrScriptEmitter({
       debug: opts.debug,
@@ -249,8 +247,46 @@ export const renderToStreamCompiled = async <Props = undefined>(
         }
       }
     };
-    /** A child range: its work runs on its own lane and ranges opened inside it nest under it. */
     let hasCaughtError = false;
+    let hasHeadlessCarrier = false;
+    // `getLocale()` inside a resumed handler reads the container, so localized apps wrap.
+    const createEventAttr = (
+      boundary: SsrCatchController | undefined,
+      name: string,
+      value: unknown,
+      needsInvokeContext?: boolean
+    ): SsrEventAttrChunk => {
+      const attribute: SsrEventAttrChunk = {
+        type: 'event-attr',
+        name,
+        valueParts: [
+          {
+            type: 'event-value',
+            name,
+            value,
+            needsInvokeContext: needsInvokeContext || locale !== '',
+            boundary,
+          },
+        ],
+      };
+      const errorRoot = catchReference(boundary);
+      return errorRoot === undefined ? attribute : { ...attribute, errorRoot };
+    };
+    // Every Catch shares one document listener, written once with the bytes that carry it.
+    let catchErrorListener: 'requested' | 'written' | undefined;
+    /** A hidden carrier is valid in any parent and outlives every range swap. */
+    const createRequestedCatchErrorListener = (): SsrOutput | undefined =>
+      catchErrorListener === 'requested'
+        ? [
+            createSsrOpenTag(
+              '<script hidden',
+              createEventAttr(undefined, 'q-d:qerror', createQRL(null, '_catchError', null)),
+              '>'
+            ),
+            '</script>',
+          ]
+        : undefined;
+    /** A child range: its work runs on its own lane and ranges opened inside it nest under it. */
     const createRangeScope = (
       parent: SsrRenderContext,
       parentRangeId: number | null,
@@ -261,6 +297,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
       scope.scheduler = lane;
       lane.catchError = (error) => reportError(scope.catchBoundary, error);
       scope.createRangeScope = (childId) => createRangeScope(scope, rangeId, childId);
+      // callers pass `eventAttr` unbound and may call it after an await
+      scope.eventAttr = (name, value, needsInvokeContext) =>
+        createEventAttr(scope.catchBoundary, name, value, needsInvokeContext);
       scope.flush = () => lane.flush();
       scope.cancel = () => {
         scheduler.cancel(lane);
@@ -341,29 +380,10 @@ export const renderToStreamCompiled = async <Props = undefined>(
           ? null
           : { type: 'root-value', value: scope, boundary: this.catchBoundary };
       },
-      // `getLocale()` inside a resumed handler reads the container, so localized apps wrap.
-      eventAttr(name, value, needsInvokeContext = false) {
-        const boundary =
-          this?.catchBoundary ??
-          getActiveInvokeContextOrNull<SsrRenderContext>()?.container?.catchBoundary;
-        const attribute: SsrEventAttrChunk = {
-          type: 'event-attr',
-          name,
-          valueParts: [
-            {
-              type: 'event-value',
-              name,
-              value,
-              needsInvokeContext: needsInvokeContext || locale !== '',
-              boundary,
-            },
-          ],
-        };
-        const errorRoot = catchReference(boundary);
-        return errorRoot === undefined ? attribute : { ...attribute, errorRoot };
-      },
-      eventAttrParts(name, value, needsInvokeContext = false) {
-        return [ctx.eventAttr.call(this, name, value, needsInvokeContext)];
+      eventAttr: (name, value, needsInvokeContext) =>
+        createEventAttr(undefined, name, value, needsInvokeContext),
+      eventAttrParts(name, value, needsInvokeContext) {
+        return [this.eventAttr(name, value, needsInvokeContext)];
       },
       syncFn(qrl) {
         return { type: 'sync-fn', qrl };
@@ -386,6 +406,12 @@ export const renderToStreamCompiled = async <Props = undefined>(
         hasCaughtError = true;
         shellCleanup?.cancel();
       },
+      markHeadlessCarrier() {
+        hasHeadlessCarrier = true;
+      },
+      registerCatchErrorHandler() {
+        catchErrorListener ??= 'requested';
+      },
       inOrder() {
         const inOrderCtx = Object.create(this) as SsrRenderContext;
         inOrderCtx.inOrder = () => inOrderCtx;
@@ -401,13 +427,16 @@ export const renderToStreamCompiled = async <Props = undefined>(
       : invoke(rootInvokeContext, root, opts.props as Props, ctx));
     output = ctx.ownOutput(output, rootInvokeContext);
     if (rootInvokeContext.useOnEvents !== undefined) {
-      output = await applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx.eventAttr);
+      output = await applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx);
     }
     if (containerTagName === 'html') {
       if (!hasDocumentSections(output)) {
         output = await resolveDocumentStart(output);
       }
-      output = relocateHeadlessCarriers(ensureDocument(output));
+      output = ensureDocument(output);
+      if (hasHeadlessCarrier) {
+        output = relocateHeadlessCarriers(output);
+      }
     }
     const qwikLoaderBundle = resolvedManifest?.manifest.qwikLoader;
     const isQwikLoaderModule = scripts.isQwikLoaderModule(qwikLoaderBundle);
@@ -427,7 +456,6 @@ export const renderToStreamCompiled = async <Props = undefined>(
     }
     selectShellStyles(output);
     const styledOutput = publication.injectStyles(output, containerTagName === 'html');
-    const containerOpen = createContainerOpenTag(containerTagName, containerAttributes);
     // The state and loader scripts belong inside the body, so its close waits for them
     const bodyEnd = containerTagName === 'html' ? takeDocumentEnd(styledOutput) : null;
     const shellOutput = bodyEnd === null ? styledOutput : bodyEnd[0];
@@ -544,6 +572,11 @@ export const renderToStreamCompiled = async <Props = undefined>(
       }
       throwIfFailed();
     }
+    const shellCatchErrorListener = createRequestedCatchErrorListener();
+    if (shellCatchErrorListener !== undefined) {
+      await flush(shellCatchErrorListener);
+      catchErrorListener = 'written';
+    }
     const shellTail: SsrOutput[] = [];
     const shellState = publication.publishShellState();
     if (isPromise(shellState)) {
@@ -602,7 +635,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
           await waitForWork();
         }
         throwIfFailed();
-        const published = await publication.publishRange(record);
+        const rangeCatchErrorListener = createRequestedCatchErrorListener();
+        const published = await publication.publishRange(record, rangeCatchErrorListener);
         if (!published) {
           if (!record.cancelled) {
             (ready ??= []).push(record);
@@ -614,6 +648,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
         throwIfFailed();
         emitted.add(record.id);
         record.emitted = true;
+        if (rangeCatchErrorListener !== undefined) {
+          catchErrorListener = 'written';
+        }
         (record.contentRoot as Subscriber).flags &= ~SubscriberFlags.Deferred;
         record.output = undefined;
         record.onEmitted?.();
@@ -662,13 +699,34 @@ export const renderToStreamCompiled = async <Props = undefined>(
       },
     };
   } finally {
-    releaseRuntime?.();
-    if (rootInvokeContext.owner !== null) {
-      disposeOwner(rootInvokeContext.owner);
+    try {
+      releaseRuntime?.();
+      if (rootInvokeContext.owner !== null) {
+        disposeOwner(rootInvokeContext.owner);
+      }
+    } finally {
+      exitRenderPlatform();
     }
-    setPlatform(previousPlatform);
   }
 };
+
+let platformOutsideRenders: CorePlatform | undefined;
+let activeRenders = 0;
+
+/** Code serializing outside a render's own context (`worker$`) maps symbols off the platform. */
+function enterRenderPlatform(platform: CorePlatform): void {
+  if (activeRenders++ === 0) {
+    platformOutsideRenders = getPlatform();
+    setPlatform(platform);
+  }
+}
+
+function exitRenderPlatform(): void {
+  if (--activeRenders === 0) {
+    setPlatform(platformOutsideRenders!);
+    platformOutsideRenders = undefined;
+  }
+}
 
 /**
  * The public root is JSX (the v2 contract), which the compiler hands over as a JSX value; a

@@ -185,6 +185,7 @@ import {
   escapeHTML,
   _chk,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -282,50 +283,31 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     [],
     [inlinedQrl(_chk, '_chk', [checked])]
   );
-  return maybeThen(effect0, (effect0) =>
-    maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) =>
-        maybeThen(effect2, (effect2) =>
-          maybeThen(effect3, (effect3) =>
-            maybeThen(attr2, (attr2) =>
-              maybeThen(attr3, (attr3) =>
-                maybeThen(effect5, (effect5) => [
-                  '<form><input q:id="',
-                  createSsrNodeId(id0),
-                  '"',
-                  createSsrMarkup(effect0),
-                  attr0 === null
-                    ? ''
-                    : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-                  '><input q:id="',
-                  createSsrNodeId(id1),
-                  '"',
-                  attr1 === null
-                    ? ''
-                    : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-                  createSsrMarkup(effect2),
-                  '><input q:id="',
-                  createSsrNodeId(id2),
-                  '" type="checkbox"',
-                  createSsrMarkup(effect3),
-                  attr2 === null
-                    ? ''
-                    : ' checked' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
-                  '><input q:id="',
-                  createSsrNodeId(id3),
-                  '" type="checkbox"',
-                  attr3 === null
-                    ? ''
-                    : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
-                  createSsrMarkup(effect5),
-                  '></form>',
-                ])
-              )
-            )
-          )
-        )
-      )
-    )
+  return maybeThen(
+    promiseAll([effect0, attr0, attr1, effect2, effect3, attr2, attr3, effect5]),
+    ([effect0, attr0, attr1, effect2, effect3, attr2, attr3, effect5]) => [
+      '<form><input q:id="',
+      createSsrNodeId(id0),
+      '"',
+      createSsrMarkup(effect0),
+      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '><input q:id="',
+      createSsrNodeId(id1),
+      '"',
+      attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      createSsrMarkup(effect2),
+      '><input q:id="',
+      createSsrNodeId(id2),
+      '" type="checkbox"',
+      createSsrMarkup(effect3),
+      attr2 === null ? '' : ' checked' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+      '><input q:id="',
+      createSsrNodeId(id3),
+      '" type="checkbox"',
+      attr3 === null ? '' : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+      createSsrMarkup(effect5),
+      '></form>',
+    ]
   );
 }
 /*

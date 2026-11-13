@@ -24,7 +24,7 @@ import {
 } from '../dom/content/content';
 import { findPendingBoundary, registerPendingBoundary } from '../dom/content/pending-boundary';
 import { useSignal } from '../reactive/public-api';
-import { useStore } from '../reactive/store';
+import { unwrapStore, useStore } from '../reactive/store';
 import {
   createOwner,
   registerSubscriberToOwner,
@@ -119,12 +119,7 @@ describe('ContainerContext', () => {
                 : kind === 'promise'
                   ? Promise.resolve({ value: 1 })
                   : { value: 1 };
-        const serialization = createSerializationContext(
-          null,
-          () => '',
-          () => {},
-          new WeakMap()
-        );
+        const serialization = createSerializationContext(null, () => '');
         serialization.$addRoot$({ shared });
         await serialization.$serialize$();
         const container = createContainer(
@@ -152,12 +147,7 @@ describe('ContainerContext', () => {
     async (kind) => {
       const qrl = createQRL('chunk', 'shared', () => 1);
       const shared = kind === 'qrl' ? qrl : { qrl };
-      const serialization = createSerializationContext(
-        null,
-        () => '',
-        () => {},
-        new WeakMap()
-      );
+      const serialization = createSerializationContext(null, () => '');
       serialization.$addRoot$({ shared });
       await serialization.$serialize$();
       const container = createContainer(
@@ -205,6 +195,46 @@ describe('ContainerContext', () => {
     expect(await context.getRoot(0)).toBeUndefined();
   });
 
+  it('leaves user data with a numeric kind untouched when its root is disposed', async () => {
+    const container = createContainer(
+      `<script type="qwik/state" q:base="0" q:len="1">[${TypeIds.Object},[${TypeIds.Plain},"kind",${TypeIds.Plain},1]]</script>`
+    );
+    const context = createContainerContext(container);
+    const root = await context.getRoot(0);
+    await context.disposeRoot(0);
+    expect(root).toEqual({ kind: 1 });
+  });
+
+  it('leaves user data with a numeric kind untouched when its root is discarded', async () => {
+    const container = createContainer(
+      `<script type="qwik/state" q:base="0" q:len="1">[${TypeIds.Object},[${TypeIds.Plain},"kind",${TypeIds.Plain},1]]</script>`
+    );
+    const context = createContainerContext(container);
+    const root = await context.getRoot(0);
+    context.discardRoot(0);
+    expect(root).toEqual({ kind: 1 });
+  });
+
+  it('disposes a resumed subscriber root when it is discarded', async () => {
+    const serialization = createSerializationContext(null, () => '');
+    const computed = registerSubscriberToOwner(
+      new ComputedQrl(createQRL('chunk', 'compute', () => 1)),
+      createOwner(null)
+    );
+    computed.v = 1;
+    computed.flags = ComputedFlags.HasValue;
+    serialization.$addRoot$(computed);
+    await serialization.$serialize$();
+    const container = createContainer(
+      `<script type="qwik/state" q:base="0" q:len="${serialization.$rootStateRootCount$}">${serialization.$writer$.toString()}</script>`
+    );
+    const context = createContainerContext(container);
+    const subscriber = (await context.getRoot(0)) as Subscriber;
+    expect(subscriber.flags & SubscriberFlags.Disposed).toBeFalsy();
+    context.discardRoot(0);
+    expect(subscriber.flags & SubscriberFlags.Disposed).toBeTruthy();
+  });
+
   it('retires an unopened root without reading or resuming it', async () => {
     const context = createContainerContext(createContainer(''));
     const read = vi.spyOn(context, 'getRoot');
@@ -214,12 +244,7 @@ describe('ContainerContext', () => {
   });
 
   it('reuses an inline cached value of an already resumed computed', async () => {
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const shared = { value: 1 };
     const computed = registerSubscriberToOwner(
       new ComputedQrl(createQRL('chunk', 'compute', () => shared)),
@@ -243,12 +268,7 @@ describe('ContainerContext', () => {
   });
 
   it('keeps a promoted object identical after its parent resumed', async () => {
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const shared = { value: 1 };
     serialization.$addRoot$({ shared });
     await serialization.$serialize$();
@@ -265,6 +285,26 @@ describe('ContainerContext', () => {
     expect(await context.getRoot(id)).toBe(parent.shared);
   });
 
+  it('keeps a promoted store row identical after its store resumed', async () => {
+    const serialization = createSerializationContext(null, () => '');
+    const raw = { rows: [{ value: 1 }, { value: 2 }] };
+    serialization.$addRoot$(useStore(raw));
+    await serialization.$serialize$();
+    const container = createContainer(
+      `<script type="qwik/state" q:base="0" q:len="${serialization.$rootStateRootCount$}">${serialization.$writer$.toString()}</script>`
+    );
+    const context = createContainerContext(container);
+    const store = (await context.getRoot(0)) as typeof raw;
+    const id = serialization.$addRoot$(raw.rows[1]);
+    const packet = (await serialization.$serializeNext$())!;
+    context.registerStateScripts!([
+      appendStateScript(container, packet.base, JSON.parse(packet.state), packet.len),
+    ]);
+    const row = await context.getRoot(id);
+    expect(row).toEqual({ value: 2 });
+    expect(row).toBe(unwrapStore(store.rows[1]));
+  });
+
   it('limits saved ancestor contexts to their detached projection range', async () => {
     const container = createContainer('');
     const context = createContainerContext(container);
@@ -279,7 +319,6 @@ describe('ContainerContext', () => {
     const scope = createContextScope(null);
     const owner = createOwner(null);
     owner.projection = new ProjectionBlock(
-      container.ownerDocument,
       start,
       end,
       [],
@@ -307,12 +346,7 @@ describe('ContainerContext', () => {
       new SSRContentSubscription(new SSRContent(1, [], qrl, null)),
       contentOwner
     );
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const childId = serialization.$addRoot$(child);
     const boundaryId = serialization.$addRoot$(boundary);
     await serialization.$serialize$();
@@ -361,12 +395,7 @@ describe('ContainerContext', () => {
           contentOwner
         );
       }
-      const serialization = createSerializationContext(
-        null,
-        () => '',
-        () => {},
-        new WeakMap()
-      );
+      const serialization = createSerializationContext(null, () => '');
       const childId = serialization.$addRoot$(child);
       const boundaryId = serialization.$addRoot$(boundary);
       await serialization.$serialize$();
@@ -403,12 +432,7 @@ describe('ContainerContext', () => {
       new SSRContentSubscription(new SSRContent(1, [], qrl, null)),
       contentOwner
     );
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const childId = serialization.$addRoot$(child);
     const boundaryId = serialization.$addRoot$(boundary);
     await serialization.$serialize$();
@@ -460,12 +484,7 @@ describe('ContainerContext', () => {
           contentOwner
         );
       }
-      const serialization = createSerializationContext(
-        null,
-        () => '',
-        () => {},
-        new WeakMap()
-      );
+      const serialization = createSerializationContext(null, () => '');
       const childId = serialization.$addRoot$(child);
       const boundaryId = serialization.$addRoot$(boundary);
       await serialization.$serialize$();
@@ -483,12 +502,7 @@ describe('ContainerContext', () => {
   );
 
   it('preserves owner order after rollback leaves gaps in cached positions', async () => {
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const parent = createOwner(null);
     const discarded = createOwner(parent);
     const earlier = createOwner(parent);
@@ -610,12 +624,7 @@ describe('ContainerContext', () => {
   });
 
   it('catches up a streamed subscriber when its source changed before the packet', async () => {
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const serverCount = useSignal(0);
     serialization.$addRoot$(serverCount);
     await serialization.$serialize$();

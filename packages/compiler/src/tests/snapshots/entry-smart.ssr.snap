@@ -192,6 +192,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   getActiveInvokeContextOrNull,
   invoke,
   _noopQrl,
@@ -245,18 +246,16 @@ export function App_component_gp60srxdjg41(props, ctx) {
       );
       ctx.addRoot(count);
       const text0 = renderSsrTextNode(id0, null, count);
-      return maybeThen(attr0, (attr0) =>
-        maybeThen(text0, (text0) => [
-          '<button q:id="',
-          createSsrNodeId(id0),
-          '"',
-          ctx.eventAttrParts('q-e:click', q_page_q_e_click_segment_3_1tgmyucprga53.w([count])),
-          attr0 === null ? '' : ' data-log' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-          '>',
-          escapeHTML(text0),
-          '</button>',
-        ])
-      );
+      return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttrParts('q-e:click', q_page_q_e_click_segment_3_1tgmyucprga53.w([count])),
+        attr0 === null ? '' : ' data-log' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ]);
     })
   );
 }

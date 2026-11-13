@@ -19,12 +19,15 @@ export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): neve
   throw error;
 };
 
-export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
-  const err = createAndLogError(qDev, message, ...optionalParams);
-  // eslint-disable-next-line no-debugger
-  debugger;
-  return err;
-};
+// Production drops the debugger stop, which leaves exactly `logError`.
+export const logErrorAndStop = qDev
+  ? (message?: any, ...optionalParams: any[]) => {
+      const err = createAndLogError(true, message, ...optionalParams);
+      // eslint-disable-next-line no-debugger
+      debugger;
+      return err;
+    }
+  : logError;
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   if (qDev) {

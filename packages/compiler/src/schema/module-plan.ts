@@ -3,7 +3,6 @@ import type { ValueIR } from './value-ir';
 import type {
   MODULE_PLAN_VERSION,
   BindingScope,
-  ContextKind,
   Diagnostic,
   Lifetime,
   LocalId,
@@ -11,7 +10,6 @@ import type {
   ModuleSource,
   PayloadId,
   PlanFormat,
-  Predicate,
   ProgramId,
   QrlId,
   Range,
@@ -31,6 +29,30 @@ export const enum BoundaryKind {
   Explicit = 'explicit',
   Implicit = 'implicit',
   Sync = 'sync',
+}
+
+/** What an implicit boundary is for: the emitters and the link dispatch on it. */
+export const enum BoundaryRole {
+  Event = 'event',
+  Prop = 'prop',
+  JsxFactory = 'jsx-factory',
+  Hook = 'hook',
+  Callback = 'callback',
+  Function = 'function',
+  Expression = 'expression',
+  Content = 'content',
+  Branch = 'branch',
+  CollectionRow = 'for',
+  /** A row whose collection is keyed, so its root carries the row id. */
+  KeyedCollectionRow = 'for:keyed',
+  CollectionKey = 'for:key',
+  Slot = 'slot',
+  SlotFallback = 'slot-fallback',
+  Projection = 'projection',
+  JsxValue = 'jsx-value',
+  /** A dynamic slot, dynamic tag, `<Suspense>` or `<Catch>` range's content. */
+  RangeContent = 'range',
+  CatchFallback = 'catch:fallback',
 }
 
 export const enum QrlPayloadKind {
@@ -79,19 +101,23 @@ export interface Qrl {
   /** Only element event handlers read it, so it loads with the event instead of the render. */
   eventOnly?: true;
   /** Neutral boundary facts current emitters require. */
-  boundary: /** `inline` marks a nested `component$` value: it prints where its call stood, never a chunk. */
-    | { kind: BoundaryKind.Component; inline?: true }
+  boundary: /** `inline` marks a nested component value: it prints where it stood, never a chunk. */
+    | {
+        kind: BoundaryKind.Component;
+        inline?: true;
+        /** An inline `function` declaration keeps its hoisted form under this name. */
+        functionName?: string;
+      }
     | { kind: BoundaryKind.Explicit }
-    | { kind: BoundaryKind.Implicit; role: string }
+    | { kind: BoundaryKind.Implicit; role: BoundaryRole }
     | { kind: BoundaryKind.Sync };
-  markerAttributes: { key: string; value: string }[];
   payloadKind: QrlPayloadKind;
   authoredAsync: boolean;
   /** ONE discriminated body — contradictions unrepresentable. */
   body:
     | { b: QrlBodyKind.Program; program: ProgramId }
     | { b: QrlBodyKind.Task; task: TaskBody }
-    | { b: QrlBodyKind.Expr; expr: Expr; initialOnly: boolean }
+    | { b: QrlBodyKind.Expr; expr: Expr }
     | { b: QrlBodyKind.Alias; binding: LocalId }
     | {
         b: QrlBodyKind.Js;
@@ -132,12 +158,11 @@ export interface Qrl {
   )[];
   /**
    * A component's own props parameter — the argument it is CALLED with, never a captured outer
-   * props. A declared component carries the same object on `declaration.parameter`.
+   * props.
    */
   parameter?: ComponentParameter;
   /** Present when the QRL has an authored declaration site (components) — its text splices there. */
   declaration?: QrlDeclaration;
-  guard?: Predicate;
 }
 
 export interface QrlDeclaration {
@@ -145,7 +170,6 @@ export interface QrlDeclaration {
   /** Authored declaration name — distinct from the QRL's wire symbol. */
   name: string;
   binding: LocalId | null;
-  parameter: ComponentParameter | null;
   root: { name: string };
   replacementRange: Range;
   declarationKind: DeclarationKind;
@@ -187,16 +211,6 @@ export interface HookDecl {
   body:
     | { kind: HookBodyKind.Setup; setup: Setup[]; returns: Value | null }
     | { kind: HookBodyKind.Js; payload: PayloadId };
-  guard?: Predicate;
-}
-
-export interface ClaimSite {
-  fnId: string;
-  callee: LocalId;
-  range: Range;
-  argCount: number;
-  async: boolean;
-  args: { value: Value | null; range: Range }[];
 }
 
 export const enum NativeTargetKind {
@@ -211,9 +225,6 @@ export const enum NativeTargetKind {
 export const enum DeclTable {
   Bindings = 'bindings',
   Hooks = 'hooks',
-  Callables = 'callables',
-  Values = 'values',
-  Contexts = 'contexts',
   Natives = 'natives',
   Qrls = 'qrls',
 }
@@ -250,10 +261,6 @@ export interface ModulePlan {
   programs: Program[];
   qrls: Qrl[];
   hooks: HookDecl[];
-  callables: { binding: LocalId | null; payload: PayloadId; async: boolean; guard?: Predicate }[];
-  values: { binding: LocalId | null; payload: PayloadId; guard?: Predicate }[];
-  contexts: { binding: LocalId; name: string; declaredName?: string; guard?: Predicate }[];
-  contextProviders: { context: LocalId; kind: ContextKind; guard?: Predicate }[];
   natives: {
     name: string;
     binding: LocalId | null;
@@ -263,10 +270,8 @@ export interface ModulePlan {
       string,
       { kind: NativeTargetKind.Source; raw: string } | { kind: NativeTargetKind.Path; path: string }
     >;
-    guard?: Predicate;
   }[];
-  defs: { name: string; params: number; body: ValueIR; guard?: Predicate }[];
-  pluginSites: ClaimSite[];
+  defs: { name: string; params: number; body: ValueIR }[];
   edges: EsmEdge[];
   imports: {
     binding: LocalId;
@@ -304,33 +309,12 @@ export const enum AssemblyKind {
   /** Replace a custom hook's body with its compiled setup. */
   Hook = 'hook',
   Payload = 'payload',
-  QrlBoundary = 'qrl-boundary',
-  DeclarationStrip = 'declaration-strip',
-  ModuleReferenceExport = 'module-reference-export',
   NativeMarker = 'native-marker',
   Import = 'import',
-  StrippedExport = 'stripped-export',
-  MarkerRetarget = 'marker-retarget',
-  RuntimeImports = 'runtime-imports',
-  Prelude = 'prelude',
-  FunctionRender = 'function-render',
-  /** Linked-only: decided build constant folded on a preserved span. */
-  ConstantFold = 'constant-fold',
   /** Linked-only: pruned span (dead build-constant import). */
   StripRange = 'strip-range',
   /** Replaces a server-only export's value with a fail-loud stub. */
   StripValue = 'strip-value',
-}
-
-export const enum StripForm {
-  DirectNamedExport = 'direct-named-export',
-  Plain = 'plain',
-}
-
-export const enum StrippedExportForm {
-  Declaration = 'declaration',
-  VariableDeclarator = 'variable-declarator',
-  Specifier = 'specifier',
 }
 
 export type AssemblyIntent =
@@ -344,24 +328,8 @@ export type AssemblyIntent =
       statementExported?: boolean;
       statementRange?: Range;
     }
-  | { a: AssemblyKind.QrlBoundary; range: Range; qrl: QrlId }
-  | { a: AssemblyKind.DeclarationStrip; range: Range; form: StripForm; name: string }
-  | { a: AssemblyKind.ModuleReferenceExport; range: Range; name: string }
   | { a: AssemblyKind.NativeMarker; native: number }
-  | { a: AssemblyKind.Import; edge: number; binding: LocalId | null }
-  /** FAIL-LOUD STUB. */
-  | {
-      a: AssemblyKind.StrippedExport;
-      range: Range;
-      name: string;
-      form: StrippedExportForm;
-      statementRange: Range;
-      siblingSpecifiers: number;
-    }
-  | { a: AssemblyKind.MarkerRetarget; binding: LocalId; edge: number; targetName: string }
-  | { a: AssemblyKind.RuntimeImports; range: Range }
-  | { a: AssemblyKind.Prelude; at: number }
-  | { a: AssemblyKind.FunctionRender; range: Range; program: ProgramId };
+  | { a: AssemblyKind.Import; edge: number; binding: LocalId | null };
 
 // Re-export for convenience — QrlUse rides values but is defined with them.
 export type { QrlUse };

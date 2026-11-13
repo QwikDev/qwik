@@ -1,5 +1,6 @@
-import type { JSXAttribute, JSXAttributeItem, JSXElement } from 'oxc-parser';
+import type { JSXAttribute, JSXAttributeItem, JSXChild, JSXElement } from 'oxc-parser';
 import {
+  DiagnosticCategory,
   HandlerKind,
   ResumeKind,
   ComponentTargetKind,
@@ -109,7 +110,9 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   // Bind writes follow authored handlers, regardless of attribute order.
   for (let i = props.length - 1; i >= 0; i--) {
     const prop = props[i];
-    if (prop.k !== PropKind.Event || prop.handlers[0]?.h !== HandlerKind.Bind) continue;
+    if (prop.k !== PropKind.Event || prop.handlers[0]?.h !== HandlerKind.Bind) {
+      continue;
+    }
     const event = props.find(
       (other) => other !== prop && other.k === PropKind.Event && other.name === prop.name
     );
@@ -142,18 +145,25 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   ctx.namespace =
     tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : elementNamespace;
   ctx.elementStack.push(tag);
-  const content = lowerContentChildren(tag, element.children, ctx);
+  const hasInnerHtml = expanded.some(
+    (attribute) => jsxAttributeName(attribute) === QwikDirective.InnerHtml
+  );
+  if (hasInnerHtml && hasAuthoredChildren(element.children)) {
+    ctx.plan.diagnostics.push({
+      code: 'inner-html-children',
+      message: `<${tag}> renders its dangerouslySetInnerHTML, so its children are ignored.`,
+      span: [element.start, element.end],
+      category: DiagnosticCategory.Warning,
+    });
+  }
+  // innerHTML owns the content, so the children are never lowered and ship nothing.
+  const content = hasInnerHtml ? { ops: [] } : lowerContentChildren(tag, element.children, ctx);
   if (content.innerHtml !== undefined) {
-    if (props.some((prop) => prop.k === PropKind.InnerHtml)) {
-      throw new InvalidModuleError(
-        'raw-text-content',
-        `<${tag}> takes its content once: drop dangerouslySetInnerHTML or the children.`,
-        [element.start, element.end]
-      );
-    }
     props.push(content.innerHtml);
   }
-  const children = lowerFormValue(tag, props, expanded, content.ops, ctx);
+  // A form `value` still moves out of the props, but innerHTML keeps the content.
+  const formChildren = lowerFormValue(tag, props, expanded, content.ops, ctx);
+  const children = hasInnerHtml ? [] : formChildren;
   ctx.elementStack.pop();
   ctx.namespace = namespace;
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
@@ -188,12 +198,20 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
       void: VOID_ELEMENTS.has(tag),
       ...tagNamespace(elementNamespace),
       styleScopedId,
-      runtimeScope: false,
       props,
       propsEffect,
       children,
     },
   ];
+}
+
+/** Whitespace between tags and empty `{}` render nothing, so they are not children. */
+function hasAuthoredChildren(children: readonly JSXChild[]): boolean {
+  return children.some(
+    (child) =>
+      !(child.type === 'JSXText' && child.value.trim() === '') &&
+      !(child.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression')
+  );
 }
 
 /** `order` and `collapsed` follow the Pending `delay` rule: plain expressions over setup values. */
@@ -390,7 +408,6 @@ function lowerPending(
     fallback,
     fallbackId: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
     delay,
-    blocking: false,
     lifetime,
   };
   const reveal = ctx.reveal;

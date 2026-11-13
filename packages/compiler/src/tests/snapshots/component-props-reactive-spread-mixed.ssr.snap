@@ -26,6 +26,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -41,17 +42,15 @@ export function Child_component_syc3erfxihm7(props, ctx) {
   const prop1 = propSource(props, 'count');
   isSource(prop1) && ctx.addRoot(prop1);
   const text1 = renderSsrTextNode(id0, 1, prop1, effect0);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<strong q:id="',
-      createSsrNodeId(id0),
-      '"><!t>',
-      escapeHTML(text0),
-      '<!/t>: <!t>',
-      escapeHTML(text1),
-      '<!/t></strong>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<strong q:id="',
+    createSsrNodeId(id0),
+    '"><!t>',
+    escapeHTML(text0),
+    '<!/t>: <!t>',
+    escapeHTML(text1),
+    '<!/t></strong>',
+  ]);
 }
 /*
 {

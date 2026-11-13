@@ -49,6 +49,11 @@ const codeToText = (code: number, ...parts: any[]): string => {
       'Invalid serialized Uint8Array payload', // 38
       'Uninitialized props proxy', // 39
       'Invalid serialized BigInt payload', // 40
+      'Invalid serialized state: {{0}}', // 41
+      'Cannot read disposed computed without cached value', // 42
+      'Circular computed dependency', // 43
+      'Missing active owner context for subscriber', // 44
+      'Exceeded max retry count in retryOnPromise', // 45
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -108,9 +113,18 @@ export const enum QError {
   invalidUint8ArrayPayload = 38,
   uninitializedPropsProxy = 39,
   invalidBigIntPayload = 40,
+  invalidSerializedState = 41,
+  disposedComputedWithoutValue = 42,
+  circularComputed = 43,
+  missingOwner = 44,
+  maxRetryExceeded = 45,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {
   const text = codeToText(code, ...errorMessageArgs);
   return logErrorAndStop(text, ...errorMessageArgs);
 };
+
+/** `qError` for rejected serialized state, without the log: callers handle it as control flow. */
+export const invalidStateError = (detail?: string): Error =>
+  new Error(codeToText(QError.invalidSerializedState, detail));

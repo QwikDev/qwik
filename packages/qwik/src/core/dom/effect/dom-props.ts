@@ -5,10 +5,13 @@ import {
   jsxEventToHtmlAttribute,
   normalizeJsxEventName,
 } from '../../shared/utils/event-names';
-import { escapeHTML } from '../../shared/utils/character-escaping';
+import { isDev, isServer } from '@qwik.dev/core/build';
+import { escapeHTML, isSafeAttrName } from '../../shared/utils/character-escaping';
 import { isPromise } from '../../shared/utils/promises';
 import { serializeAttribute } from '../../shared/utils/styles';
 import { inlinedQrl } from '../../shared/qrl/qrl';
+import { logWarn } from '../../shared/utils/log';
+import { ELEMENT_ID } from '../../shared/utils/markers';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import type { SsrEventAttrChunk, SsrRecordPart } from '../../ssr/output';
 import { removeEvent, setEvent } from '../event/event';
@@ -63,6 +66,9 @@ function collectDomProps(
         if (isRef) {
           setRef(value, element);
         } else {
+          if (isDev) {
+            warnReplacedChildren(element, prevProps);
+          }
           setInnerHtml(element, value);
         }
       }
@@ -131,6 +137,10 @@ function collectDomProps(
     }
 
     const normalizedKey = key === ClassNameAttr ? ClassAttr : key;
+    if (isUnchangedAttr(prevProps, normalized, normalizedKey, value)) {
+      normalized[normalizedKey] = value;
+      continue;
+    }
     setDomProp(normalized, normalizedKey, value, element, styleScopedId);
   }
   const binding = bindChecked || bindValue;
@@ -153,6 +163,24 @@ function collectDomProps(
     );
   }
   return normalized;
+}
+
+/** Never `value`/`checked`, which users edit, nor `undefined`, the resumed placeholder. */
+function isUnchangedAttr(
+  prevProps: PropMap | null,
+  normalized: PropMap,
+  key: string,
+  value: unknown
+): boolean {
+  return (
+    prevProps !== null &&
+    value !== undefined &&
+    value === prevProps[key] &&
+    (value === null || typeof value !== 'object') &&
+    key !== ValueAttr &&
+    key !== CheckedAttr &&
+    !(key in normalized)
+  );
 }
 
 /**
@@ -198,6 +226,9 @@ export function renderDomPropsToString(
   let ref: unknown;
 
   for (const key in normalized) {
+    if (!isSafeAttrName(key)) {
+      continue;
+    }
     const value = normalized[key];
     if (key === RefAttr) {
       ref = value;
@@ -249,6 +280,16 @@ function appendSsrAttrPart(attrs: SsrRecordPart[], part: SsrRecordPart): void {
     attrs[last] += part;
   } else {
     attrs.push(part);
+  }
+}
+
+/** Content already in a client-rendered element is its children; a server one may hold innerHTML. */
+function warnReplacedChildren(element: Element, prevProps: PropMap | null): void {
+  const hadInnerHtml = prevProps !== null && DangerousInnerHTMLAttr in prevProps;
+  if (element.firstChild !== null && !hadInnerHtml && !element.hasAttribute(ELEMENT_ID)) {
+    logWarn(
+      `<${element.localName}> renders its dangerouslySetInnerHTML, so its children are ignored.`
+    );
   }
 }
 
@@ -322,7 +363,8 @@ export function serializeAttrExpressionValue(
   value: unknown,
   styleScopedId?: string
 ): string | null {
-  if (isPromise(value)) {
+  // Client callers resolve promises first; only SSR can pass one through.
+  if (isServer && isPromise(value)) {
     throw new Error(
       `Promise values are not supported for scalar JSX attribute or component prop "${name}".`
     );

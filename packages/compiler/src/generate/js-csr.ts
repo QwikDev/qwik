@@ -4,12 +4,10 @@ import {
   BoundaryKind,
   Environment,
   HandlerKind,
-  ModuleKind,
   OpKind,
   PropKind,
   ProgramBodyKind,
   QrlBodyKind,
-  QrlPayloadKind,
   ResumeKind,
   RowKind,
   ValueKind,
@@ -21,30 +19,30 @@ import {
   type HookDecl,
   type QrlUse,
 } from '../schema';
-import { QwikDirective, QwikWord, QwikGenWord, SegmentContext } from '../words';
+import { QwikDirective, QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
-import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
+import { generatePlanModules, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   boundReference,
   capturePrelude,
   functionPrelude,
   usedParamPrefix,
-  qrlPropsName,
-  componentParamName,
 } from './captures';
 import {
-  dynamicSlotEmission,
-  aliasEmission,
   emptyFunctionEmission,
   programKind,
   ProgramKind,
   rowShapeCode,
+  sharedQrlFunction,
   type FunctionEmission,
 } from './emit-function';
 import {
   extractPayloadJs,
   bindHandlerJs,
+  boundHandlersJs,
+  capturedQrlJs,
+  computedEventQrl,
   inlineValueJs,
   functionText,
   revealArgsJs,
@@ -54,7 +52,6 @@ import {
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
-  isInlineComponent,
 } from './qrl-chunks';
 import {
   deferRenderAfterTasks,
@@ -65,27 +62,22 @@ import {
   readSource,
   withMarkerEmitter,
 } from './emit-setup';
-import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp } from './fold-static';
-import { effectCounts } from '../link/link-effects';
 import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
-  allocateGeneratedNames,
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
-  inlineComponentText,
+  payloadQrlJs,
+  inlineRowFunctionJs,
+  inlineRowNames,
+  programNames,
+  slotNameJs,
   useOnRootOps,
 } from './emit-component';
 import { createNameAllocator } from '../names';
-import { generateForeignModule } from './foreign';
-import {
-  createFailedModule,
-  makeOutput,
-  type GenerateOutput,
-  type PresentationOptions,
-} from './output';
+import { type GenerateOutput, type PresentationOptions } from './output';
 
 const WORKER_CTX_NAME = 'worker$';
 /** Rewritten by the qwik-vite worker plugin to the chunk's served path. */
@@ -97,49 +89,16 @@ type RangeOp = Extract<
   { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Pending | OpKind.Catch }
 >;
 
-export async function generateJsCsr(
+export function generateJsCsr(
   plan: LinkedPlan,
   options: PresentationOptions
 ): Promise<GenerateOutput> {
-  if (plan.specialization.environment !== Environment.Browser) {
-    throw new Error('generateJsCsr requires a browser LinkedPlan');
-  }
-  const modules: GenerateOutput['modules'] = [];
-  for (const module of plan.modules) {
-    try {
-      modules.push(...(await generateModule(module, options)));
-    } catch (error) {
-      // A refusal names its module, so a whole-app build failure points at the source.
-      if (error instanceof Error && !error.message.includes(module.path)) {
-        error.message = `${error.message} (in ${module.path})`;
-      }
-      throw error;
-    }
-  }
-  return makeOutput(plan, modules);
-}
-
-async function generateModule(
-  module: LinkedModule,
-  options: PresentationOptions
-): Promise<GenerateOutput['modules']> {
-  switch (module.kind) {
-    case ModuleKind.Foreign:
-      return [await generateForeignModule(module, options)];
-    case ModuleKind.Qwik:
-      return generateQwikModule(
-        module,
-        new CsrModuleEmitter(module, options),
-        options,
-        'module-top'
-      );
-    case ModuleKind.Failed:
-      return [createFailedModule(module.path)];
-    case ModuleKind.ExportsOnly:
-      throw new Error(
-        `pipeline.generateJsCsr: ${module.kind} modules not implemented yet (slice 2): ${module.path}`
-      );
-  }
+  return generatePlanModules(plan, options, {
+    name: 'generateJsCsr',
+    environment: Environment.Browser,
+    createEmitter: (module) => new CsrModuleEmitter(module, options),
+    placement: 'module-top',
+  });
 }
 
 interface SharedBatch {
@@ -186,22 +145,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.resolveQrlUse = createQrlResolver(module);
   }
 
-  /** A nested component prints inline; every other use is a reference to its chunk. */
-  private inlineComponentOrRef(
-    use: QrlUse,
-    names: GeneratedNames,
-    reference: (use: QrlUse) => string
-  ): string {
-    const { qrl } = this.resolveQrlUse(use, names.props);
-    if (!isInlineComponent(qrl)) {
-      return reference(use);
-    }
-    return inlineComponentText(
-      this.emitProgram(qrl, allocateGeneratedNames(this.module)),
-      allocateGeneratedNames(this.module)
-    );
-  }
-
   emitPayload(payload: number, names: GeneratedNames): string {
     return extractPayloadJs(
       this.module,
@@ -212,12 +155,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       withMarkerEmitter(
         this.module,
         this.imports,
-        (use) =>
-          this.inlineComponentOrRef(use, names, (use) =>
-            this.lazyRenderReference(use, names.props)
-          ),
-        this.chunkImports
+        (use) => this.payloadQrl(use, names),
+        this.chunkImports,
+        (use) => this.capturedChunkReference(use, names.props)
       )
+    );
+  }
+
+  /** A QRL in authored code: a nested component prints in place, a lifted one bound. */
+  private payloadQrl(use: QrlUse, names: GeneratedNames): string {
+    return payloadQrlJs(
+      this.module,
+      this.resolveQrlUse(use, names.props).qrl,
+      (qrl, names) => this.emitProgram(qrl, names),
+      () => this.lazyRenderReference(use, names.props)
     );
   }
 
@@ -230,13 +181,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         this.module,
         this.imports,
         (use) => this.lazyRenderReference(use, names.props),
-        this.chunkImports
+        this.chunkImports,
+        (use) => this.capturedChunkReference(use, names.props)
       ),
       names,
-      {
-        localFunction: (use) => this.capturedChunkReference(use, names.props),
-        chunkImports: this.chunkImports,
-      }
+      { chunkImports: this.chunkImports }
     );
   }
 
@@ -259,10 +208,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     const pass: RenderPass = {
       batches: new Map(
-        [...effectCounts(program.body.ops)].map(([id, remaining]) => [
-          id,
-          { remaining, patches: [] },
-        ])
+        (program.effectSizes ?? []).map((remaining, id) => [id, { remaining, patches: [] }])
       ),
       names,
       next: createNameAllocator(this.module),
@@ -272,8 +218,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const emitQrl = withMarkerEmitter(
       this.module,
       this.imports,
-      (use) => this.lazyRenderReference(use, names.props),
-      this.chunkImports
+      (use) => this.payloadQrl(use, names),
+      this.chunkImports,
+      (use) => this.capturedChunkReference(use, names.props)
     );
     const statements = emitJsSetup(
       this.module,
@@ -283,10 +230,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
       names,
-      {
-        localFunction: (use) => this.capturedChunkReference(use, names.props),
-        chunkImports: this.chunkImports,
-      }
+      { chunkImports: this.chunkImports }
     );
     const setupCount = statements.length;
     const params = parameterDefaults(this.module, program, this.imports, emitQrl);
@@ -403,7 +347,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Content:
       case OpKind.Catch:
       case OpKind.Pending:
-        return this.rangeRoot(op, ownerName, statements, pass);
+        return this.rangeRoot(op, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${(op as LinkedOp).op}" not implemented yet`);
     }
@@ -467,8 +411,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (pass.row !== undefined) {
       pass.row.root ??= mounted.el;
     }
-    this.elementProps(op, mounted.el, statements, pass);
-    this.walkChildren(elementChildren(op), mounted.el, statements, pass);
+    this.wireElement(op, mounted.el, statements, pass);
     const lazyTextEffects = new Set(
       [...pass.batches]
         .filter(
@@ -486,20 +429,24 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return mounted.el;
   }
 
-  /** Wires an element's non-static props — events and dynamic attributes — onto its node. */
-  private elementProps(
+  /**
+   * Wires an element's props, then its children, then the props effect, so an innerHTML that effect
+   * carries replaces the children instead of being walked.
+   */
+  private wireElement(
     op: Extract<LinkedOp, { op: OpKind.Element }>,
     el: string,
     statements: string[],
     pass: RenderPass
   ): void {
+    const propsEffect: string[] = [];
     if (op.propsEffect !== null) {
       // One effect applies the whole props object, so spreads keep their authored override order.
       const { qrl, args } = this.resolveQrlUse(op.propsEffect, pass.names.props);
       const effect = pass.next(QwikGenWord.Effect);
       const scope = op.styleScopedId === null ? '' : `, ${JSON.stringify(op.styleScopedId)}`;
       this.imports.add(QwikWord.CreatePropsEffect);
-      statements.push(
+      propsEffect.push(
         `const ${effect} = ${QwikWord.CreatePropsEffect}(${el}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${scope});`,
         `${pass.names.ctx}.scheduler.run(${effect});`
       );
@@ -551,6 +498,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
       }
     }
+    this.walkChildren(op.children, el, statements, pass);
+    statements.push(...propsEffect);
   }
 
   /** Dispatches a node's children; nested elements compose the locator path. */
@@ -597,10 +546,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
             child.props.some((prop) => prop.k !== PropKind.Static)
           ) {
             const el = this.bindNode(path, QwikGenWord.Element, statements, pass);
-            this.elementProps(child, el, statements, pass);
-            this.walkChildren(elementChildren(child), el, statements, pass);
+            this.wireElement(child, el, statements, pass);
           } else {
-            this.walkChildren(elementChildren(child), path, statements, pass);
+            this.walkChildren(child.children, path, statements, pass);
           }
           break;
         }
@@ -651,14 +599,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): void {
     const component = this.createComponent(op, statements, pass);
-    this.imports.add(QwikWord.ToNodes);
     // A component body may be async, so the placeholder waits the way a slot's does.
     const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
-    const nodes = pass.next(QwikGenWord.Component);
-    this.imports.add(QwikWord.MaybeThen);
-    statements.push(
-      `${QwikWord.MaybeThen}(${component}, (${nodes}) => ${marker}.replaceWith(...${QwikWord.ToNodes}(${nodes})));`
-    );
+    this.imports.add(QwikWord.ReplaceMarker);
+    statements.push(`${QwikWord.ReplaceMarker}(${marker}, ${component});`);
   }
 
   private mountSlot(
@@ -668,10 +612,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): void {
     const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
-    const slot = pass.next(QwikGenWord.Slot);
-    this.imports.add(QwikWord.MaybeThen);
+    this.imports.add(QwikWord.ReplaceMarker);
     statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => ${marker}.replaceWith(...${slot})));`
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.ReplaceMarker}(${marker}, ${this.createSlot(op, statements, pass)}));`
     );
   }
 
@@ -680,11 +623,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): string {
-    let name = op.name === '' ? '' : JSON.stringify(op.name);
-    if (op.nameValue !== undefined) {
-      name = pass.next(QwikGenWord.SlotName);
-      statements.push(`const ${name} = ${inlineValueJs(this.module, op.nameValue)};`);
-    }
+    const name = slotNameJs(this.module, op, pass.next, statements);
     this.imports.add(QwikWord.CreateSlot);
     return `${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props, name)})`;
   }
@@ -698,20 +637,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       return name;
     }
     const { qrl, args } = this.resolveQrlUse(op.fallback, propsName);
-    const reference = this.lazyQrlReference(qrl);
-    const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
-    return `${name === '' ? "''" : name}, ${fallback}`;
+    return `${name === '' ? "''" : name}, ${capturedQrlJs(this.lazyQrlReference(qrl), args)}`;
   }
 
-  private rangeRoot(
-    op: RangeOp,
-    ownerName: string,
-    statements: string[],
-    pass: RenderPass
-  ): string {
-    const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
-    this.mountRange(op, start, end, statements, pass);
-    return fillsRangeOnMount(op) ? `[...${fragment}.childNodes]` : `[${start}, ${end}]`;
+  private rangeRoot(op: RangeOp, statements: string[], pass: RenderPass): string {
+    const range = pass.next(QwikGenWord.Range);
+    this.imports.add(QwikWord.CreateRangeMarkers);
+    statements.push(`const ${range} = ${QwikWord.CreateRangeMarkers}(${pass.names.ctx}.document);`);
+    const start = `${range}[0]`;
+    this.mountRange(op, start, `${range}[1]`, statements, pass);
+    // Rows filled on mount sit between the markers in the pair's fragment.
+    return fillsRangeOnMount(op) ? `[...${start}.parentNode.childNodes]` : range;
   }
 
   private mountRange(
@@ -742,12 +678,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    this.imports.add(QwikWord.BranchRange);
     this.imports.add(QwikWord.CreateCatch);
     const content = this.capturedChunkReference(op.content, pass.names.props);
     const fallback = this.capturedChunkReference(op.fallback, pass.names.props);
     statements.push(
-      `${QwikWord.CreateCatch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback});`
+      `${QwikWord.CreateCatch}(${pass.names.ctx}, ${start}, ${end}, ${content}, ${fallback});`
     );
   }
 
@@ -759,7 +694,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    this.imports.add(QwikWord.BranchRange);
     this.imports.add(QwikWord.CreatePending);
     // Both sides import statically: the fallback must show synchronously while content is pending.
     const content = this.capturedChunkReference(op.content, pass.names.props);
@@ -770,24 +704,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
     const reveal = revealArgsJs(this.module, op.reveal, { ...pass, statements }, this.imports);
     statements.push(
-      `${QwikWord.CreatePending}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay}${reveal});`
+      `${QwikWord.CreatePending}(${pass.names.ctx}, ${start}, ${end}, ${content}, ${fallback}, ${delay}${reveal});`
     );
-  }
-
-  private createRangeRoot(ownerName: string, statements: string[], pass: RenderPass) {
-    const fragment = pass.next(QwikGenWord.Fragment);
-    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
-    const start = pass.next(QwikGenWord.Start);
-    const end = pass.next(QwikGenWord.End);
-    statements.push(
-      `const ${fragment} = ${template}(${pass.names.ctx}.document);`,
-      `const ${start} = ${QwikWord.FirstChild}(${fragment});`,
-      `const ${end} = ${QwikWord.NextSibling}(${start});`
-    );
-    this.imports.add(QwikWord.FirstChild);
-    this.imports.add(QwikWord.NextSibling);
-    this.hoistTemplate(template, '<!><!>');
-    return { fragment, start, end };
   }
 
   private createContentBlock(
@@ -817,7 +735,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
-    this.imports.add(QwikWord.BranchRange);
     this.imports.add(QwikWord.CreateBranch);
     const condition = this.capturedChunkReference(op.condition.use, pass.names.props);
     const thenRef = this.lazyRenderReference(op.then, pass.names.props);
@@ -826,7 +743,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const branch = pass.next(QwikGenWord.Branch);
     const useOnRoot = this.useOnRoots.has(op) ? ', true' : '';
     statements.push(
-      `const ${branch} = ${QwikWord.CreateBranch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef}${useOnRoot});`
+      `const ${branch} = ${QwikWord.CreateBranch}(${pass.names.ctx}, ${start}, ${end}, ${condition}, ${thenRef}, ${elseRef}${useOnRoot});`
     );
     statements.push(`${pass.names.ctx}.scheduler.notify(${branch});`);
   }
@@ -893,18 +810,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     row: { program: number; renderId: string },
     statements: string[]
   ): string {
-    const names = {
-      props: QwikGenWord.ComponentProps,
-      ctx: allocateGeneratedNames(this.module).ctx,
-    };
-    const emission = this.renderProgram(row.program, row.renderId, names);
-    const loopParams = this.module.programs[row.program].params
-      .map((binding) => `, ${this.module.bindings[binding].name}`)
-      .join('');
-    const bodyText = [...emission.statements, `return ${emission.value};`]
-      .map((statement) => `  ${statement}`)
-      .join('\n');
-    statements.push(`function ${row.renderId}(ctx${loopParams}) {\n${bodyText}\n}`);
+    const emission = this.renderProgram(row.program, row.renderId, inlineRowNames(this.module));
+    statements.push(inlineRowFunctionJs(this.module, row, 'ctx', emission));
     return row.renderId;
   }
 
@@ -915,7 +822,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private lazyRenderReference(use: QrlUse, propsName: string): string {
     const resolved = this.resolveQrlUse(use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
-    return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
+    return capturedQrlJs(ref, resolved.args);
   }
 
   /** A value segment takes its captures positionally, so its static form is a thunk. */
@@ -932,67 +839,45 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
-    if (qrl.ctxName === SegmentContext.SlotContent) {
-      return dynamicSlotEmission(QwikWord.RenderSlotContent);
+    const shared = sharedQrlFunction(this.module, qrl, this.resolveQrlUse, this.options, {
+      slotContent: QwikWord.RenderSlotContent,
+      content: QwikWord.CreateDynamicContent,
+    });
+    if (shared !== null) {
+      return shared;
     }
-    switch (qrl.body.b) {
-      case QrlBodyKind.Alias:
-        return aliasEmission(this.module, qrl.body.binding);
-      case QrlBodyKind.Js:
-      case QrlBodyKind.Expr:
-        return contentFunctionEmission(
-          this.module,
-          qrl,
-          this.resolveQrlUse,
-          QwikWord.CreateDynamicContent,
-          this.options
-        );
-      case QrlBodyKind.Task:
-        throw new UnsupportedError('a task QRL body');
-      case QrlBodyKind.Program: {
-        if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr) {
-          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse, this.options);
-        }
-        if (programKind(qrl) === ProgramKind.CollectionRow) {
-          return this.rowFunction(qrl);
-        }
-        // A fresh emitter keeps the render's imports/hoists out of the main module.
-        const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
-        const isComponent = programKind(qrl) === ProgramKind.Component;
-        const names = {
-          // A component reads its own parameter; other programs read the props they capture.
-          props: isComponent
-            ? componentParamName(this.module, qrl)
-            : qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-          ctx: allocateGeneratedNames(this.module).ctx,
-        };
-        const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
-        // Captures restore from `_capturesObj._` ahead of the render statements.
-        const captures = captureNames(this.module, qrl);
-        const statements = [
-          ...capturePrelude(this.module, qrl),
-          ...functionPrelude(this.module, qrl, (use) =>
-            emitter.capturedChunkReference(use, names.props)
-          ),
-          ...emission.statements,
-        ];
-        return {
-          imports: new Set([
-            ...(captures.length > 0 ? [QwikWord.Captures] : []),
-            ...emitter.imports,
-          ]),
-          chunkImports: emitter.chunkImports,
-          hoists: emitter.hoists,
-          // Declare what the caller passes, used or not: a missing parameter shifts every later one.
-          params: isComponent ? [names.props, names.ctx, ...(emission.params ?? [])] : [names.ctx],
-          statements,
-          value: emission.value,
-          async: emission.async === true,
-          generator: false,
-          uses: [],
-        };
-      }
+    if (programKind(qrl) === ProgramKind.CollectionRow) {
+      return this.rowFunction(qrl);
     }
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      throw new UnsupportedError('a render function without a program');
+    }
+    // A fresh emitter keeps the render's imports/hoists out of the main module.
+    const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
+    const isComponent = programKind(qrl) === ProgramKind.Component;
+    const names = programNames(this.module, qrl);
+    const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
+    // Captures restore from `_capturesObj._` ahead of the render statements.
+    const captures = captureNames(this.module, qrl);
+    const statements = [
+      ...capturePrelude(this.module, qrl),
+      ...functionPrelude(this.module, qrl, (use) =>
+        emitter.capturedChunkReference(use, names.props)
+      ),
+      ...emission.statements,
+    ];
+    return {
+      imports: new Set([...(captures.length > 0 ? [QwikWord.Captures] : []), ...emitter.imports]),
+      chunkImports: emitter.chunkImports,
+      hoists: emitter.hoists,
+      // Declare what the caller passes, used or not: a missing parameter shifts every later one.
+      params: isComponent ? [names.props, names.ctx, ...(emission.params ?? [])] : [names.ctx],
+      statements,
+      value: emission.value,
+      async: emission.async === true,
+      generator: false,
+      uses: [],
+    };
   }
 
   /** A row mounts through an element template — the root element IS the return value. */
@@ -1012,7 +897,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const next = createNameAllocator(this.module);
     const pass: RenderPass = {
       batches: new Map(
-        [...effectCounts(body.ops)].map(([id, remaining]) => [
+        (program.effectSizes ?? []).map((remaining, id) => [
           id,
           {
             remaining,
@@ -1043,10 +928,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
             },
           }
         : {}),
-      names: {
-        props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-        ctx: allocateGeneratedNames(this.module).ctx,
-      },
+      names: programNames(this.module, qrl),
       next,
       propSources: new Map(),
       revealGroups: new Map(),
@@ -1091,8 +973,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       ...functionPrelude(this.module, qrl, (use) =>
         emitter.capturedChunkReference(use, pass.names.props)
       ),
-      ...emitJsSetup(this.module, program, emitter.imports, (use) =>
-        emitter.lazyRenderReference(use, pass.names.props)
+      ...emitJsSetup(
+        this.module,
+        program,
+        emitter.imports,
+        withMarkerEmitter(
+          this.module,
+          emitter.imports,
+          (use) => emitter.lazyRenderReference(use, pass.names.props),
+          emitter.chunkImports,
+          (use) => emitter.capturedChunkReference(use, pass.names.props)
+        )
       ),
       ...eventSetup,
       ...statements,
@@ -1494,25 +1385,10 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
     statements: string[],
     pass: RenderPass
   ): void {
-    const values = handlers.filter((handler) => handler.h === HandlerKind.Value);
-    const dynamic = values.length === 1 ? values[0] : null;
-    if (
-      dynamic?.h === HandlerKind.Value &&
-      dynamic.value.v === ValueKind.Computed &&
-      dynamic.value.resume.r !== ResumeKind.Inline
-    ) {
-      if (dynamic.value.resume.r !== ResumeKind.Qrl) {
-        throw new UnsupportedError('a non-QRL computed event handler');
-      }
-      const { qrl, args } = this.resolveQrlUse(dynamic.value.resume.qrl, pass.names.props);
-      if (qrl.payloadKind !== QrlPayloadKind.Value) {
-        throw new UnsupportedError('a non-value computed event QRL');
-      }
-      const bindings = handlers.filter((handler) => handler.h === HandlerKind.Bind);
-      const after =
-        bindings.length === 0
-          ? ''
-          : `, [], [${bindings.map((handler) => bindHandlerJs(this.module, handler, this.imports)).join(', ')}]`;
+    const computed = computedEventQrl(handlers);
+    if (computed !== null) {
+      const { qrl, args } = this.resolveQrlUse(computed, pass.names.props);
+      const after = boundHandlersJs(this.module, handlers, this.imports);
       const effect = pass.next(QwikGenWord.Effect);
       this.imports.add(QwikWord.CreateEventEffect);
       statements.push(
@@ -1537,12 +1413,11 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
       if (use.qrl.boundary.kind === BoundaryKind.Sync) {
         return this.chunkSymbol(use.qrl);
       }
-      const ref = this.lazyQrlReference(use.qrl);
-      return use.args.length === 0 ? ref : `${ref}.w([${use.args.join(', ')}])`;
+      return capturedQrlJs(this.lazyQrlReference(use.qrl), use.args);
     };
     if (uses.length === 1) {
       const row = pass.row;
-      const use = values[0]?.value;
+      const use = handlers[0].h === HandlerKind.Value ? handlers[0].value : undefined;
       if (row !== undefined && use?.v === ValueKind.Qrl) {
         const { qrl } = this.resolveQrlUse(use.use, pass.names.props);
         if (qrl.params.event !== undefined) {
@@ -1609,13 +1484,8 @@ function templateOp(
         (prop.k === PropKind.InnerHtml && inlineStringValue(prop.value) !== null)
     ),
     propsEffect: null,
-    children: templateChildren(elementChildren(op), lazyTextEffects),
+    children: templateChildren(op.children, lazyTextEffects),
   };
-}
-
-/** Authored children are dropped when innerHTML owns the element's content. */
-function elementChildren(op: Extract<LinkedOp, { op: OpKind.Element }>): readonly LinkedOp[] {
-  return op.props.some((prop) => prop.k === PropKind.InnerHtml) ? [] : op.children;
 }
 
 /** Template form of a child list — holes and boundaries become locator placeholders. */
@@ -1701,7 +1571,7 @@ function hasFixedRowLayout(op: LinkedOp): boolean {
     return (
       op.propsEffect === null &&
       !op.props.some((prop) => prop.k === PropKind.Spread || prop.k === PropKind.InnerHtml) &&
-      elementChildren(op).every(hasFixedRowLayout)
+      op.children.every(hasFixedRowLayout)
     );
   }
   return op.op === OpKind.Hole || op.op === OpKind.Static;

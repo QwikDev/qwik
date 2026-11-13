@@ -248,15 +248,13 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
 ============================= src/component.tsx_Footer_component_d3m2s4mpch0k.js (ENTRY POINT)==
 
 import {
-  _withCaptures,
   _first,
   _next,
-  BranchRange,
   createBranch,
+  _withCaptures,
   qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_Filter_segment_3_2k94mh76leizk } from './component.tsx_component_Filter_segment_3_2k94mh76leizk';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
 const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t'),
@@ -265,15 +263,13 @@ const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ qrl(
 const Footer_tmpl0 = _createElementTemplate('<footer><!><!></footer>');
 
 export function Footer_component_d3m2s4mpch0k(props, ctx) {
-  function Filter() {
-    return _withCaptures(component_Filter_segment_3_2k94mh76leizk, [props]).apply(this, arguments);
-  }
   const el0 = Footer_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [props]),
     q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props]),
     undefined

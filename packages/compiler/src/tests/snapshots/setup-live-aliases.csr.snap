@@ -289,15 +289,7 @@ export const component_text_segment_5_1fh12dh4juuhz = (count) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
-import {
-  _capturesObj,
-  _first,
-  _next,
-  createTemplate,
-  qrl,
-  createContentBlock,
-} from '@qwik.dev/core';
-const component_slot_render_segment_6_3b0t84qbb79rc_tmpl0 = createTemplate('<!><!>');
+import { _capturesObj, _createRangeMarkers, qrl, createContentBlock } from '@qwik.dev/core';
 const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_text_segment_7_1fh135jcdiyj1'),
   'component_text_segment_7_1fh135jcdiyj1'
@@ -305,20 +297,18 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ qrl(
 
 export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
   const [store] = _capturesObj._;
-  const fragment0 = component_slot_render_segment_6_3b0t84qbb79rc_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const content0 = createContentBlock(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [],
     q_component_text_segment_7_1fh135jcdiyj1.w([store]),
     false,
     true
   );
   ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return range0;
 };
 /*
 {
@@ -477,16 +467,7 @@ export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx) => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  useStore,
-  _first,
-  _next,
-  createTemplate,
-  qrl,
-  createContentBlock,
-} from '@qwik.dev/core';
-const default_tmpl0 = createTemplate('<!><!>');
+import { useSignal, useStore, _createRangeMarkers, qrl, createContentBlock } from '@qwik.dev/core';
 const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
   'component_tag_dynamic_segment_0_331xea01t87eh'
@@ -498,20 +479,18 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     item: { label: 'first' },
     nested: { flip: false },
   });
-  const fragment0 = default_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const content0 = createContentBlock(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [],
     q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
     false,
     true
   );
   ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return range0;
 }
 /*
 {

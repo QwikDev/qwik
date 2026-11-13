@@ -16,17 +16,17 @@ and this doc is corrected. "Do not improve" applies throughout.
    `& < > " '` (apostrophe as `&#39;`). Applied to every dynamic text/attribute value at render
    time. Consequence engines must reproduce: the same value produces **different bytes** static
    vs dynamic (`title="it's"` static stays raw; dynamic becomes `it&#39;s`).
-3. **`escapeSsrContent`** (`core/dom/content/content.ts`): wraps every content-effect result —
-   `string|number|bigint` → `escapeHTML(String(v))`, **anything else → `''`** (objects, arrays,
-   booleans, null silently render empty).
+3. **`renderSsrDynamicContent`** (`core/dom/content/content.ts`): every content value the
+   compiler could not classify — arrays render item by item, functions render their output,
+   `null`/`undefined`/booleans → `''`, **anything else → `escapeHTML(String(v))`** (an object
+   renders as `[object Object]`).
 
-Script-content escapers (`ssr-script-emitter.ts`) are three different rules:
+Script-content escapers are two rules:
 
-| escaper            | rule                 | used for                                 |
-| ------------------ | -------------------- | ---------------------------------------- |
-| `escapeScript`     | `</` → `<\/`         | `qwik/state` bodies, `q:sub` payloads    |
-| `escapeJsonScript` | `<` → `<`            | `_qwikB` patch payloads only             |
-| none               | raw `JSON.stringify` | the `_qwikS` instance-hash interpolation |
+| escaper                             | rule                               | used for                                                                 |
+| ----------------------------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `escapeScriptText` (`serialize.ts`) | `</` → `<\/`, `<!--` → `\u003C!--` | `qwik/state` string values, `q:func` sync-fn definitions                 |
+| `stringifyScriptJson` (emitter)     | `<` → `\u003C`                     | `_qwikEv` names, `q:fr`/`q:sub` and `_qwikB` payloads, the `_qwikS` hash |
 
 ## Structural markers
 
@@ -153,7 +153,7 @@ emitted.has(parentId)`), else promise-resolution order.
   delete/insert + `prepareRoot`. Root disposal stamps `q:dispose` (space-separated root ids)
   onto the owning state script — a client-side mutation, never SSR-emitted.
 - `_qwikB` payload is a **flat array** consumed in strides of 3 (`[qId, name, value, qId, …]`),
-  escaped with `escapeJsonScript`; the `w._qwikB=…` installer appears **only in the first**
+  escaped with `stringifyScriptJson`; the `w._qwikB=…` installer appears **only in the first**
   backpatch script of a render.
 - The suspense runtime script interpolates the instance hash and pushes the container-ready
   command `(w._qwikEv||…).push(0, "<hash>")`. Not a pure build constant — engines emit the
@@ -164,7 +164,7 @@ emitted.has(parentId)`), else promise-resolution order.
 
 ## Output model
 
-`SsrOutput` = strings | node-id / root-ref / root-ref-path reference chunks | record chunks |
+`SsrOutput` = strings | root-value / event-value / sync-fn reference chunks | record chunks |
 arrays — **no promises**; content promises are resolved earlier by emitted `maybeThen` chains,
 and the writer awaits only the sink's return value (backpressure). Empty-string skipping applies
 per top-level materialized chunk (empty parts inside records concatenate normally); an event

@@ -22,6 +22,7 @@ import {
   renderSsrAttrExpression,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_class_segment_2_3htuz8wkv4ypl } from './component.tsx_component_class_segment_2_3htuz8wkv4ypl';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
@@ -52,19 +53,17 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
     q_component_text_segment_3_1fh11lewq6qgx,
     effect0
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<li q:id="',
-      createSsrNodeId(id0),
-      '" q:row="',
-      escapeHTML(__rowId),
-      '"',
-      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(text0),
-      '</li>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
+    attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
 /*
 {
@@ -182,6 +181,7 @@ import {
   renderSsrAttrExpression,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -203,19 +203,17 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
     q_component_text_segment_3_1fh11lewq6qgx,
     effect0
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<li q:id="',
-      createSsrNodeId(id0),
-      '" q:row="',
-      escapeHTML(__rowId),
-      '"',
-      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(text0),
-      '</li>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
+    attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
 const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'

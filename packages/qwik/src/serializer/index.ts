@@ -6,6 +6,7 @@ export {
   type SerializationContext,
   type SerializedStateRange,
 } from './serialization-context';
+export { escapeScriptText } from './serialize';
 
 /**
  * Serialize data to string using SerializationContext.
@@ -13,12 +14,7 @@ export {
  * @internal
  */
 export async function _serialize<T>(data: T): Promise<string> {
-  const context = createSerializationContext(
-    null,
-    () => '',
-    () => {},
-    new WeakMap<object, object>()
-  );
+  const context = createSerializationContext(null, () => '');
   context.$addRoot$(data);
   await context.$serialize$();
   return context.$writer$.toString();

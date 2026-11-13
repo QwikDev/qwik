@@ -236,6 +236,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_title_segment_4_2f0r2hnbm1rp1 } from './component.tsx_component_title_segment_4_2f0r2hnbm1rp1';
 import { component_text_segment_6_1fh12ri8gowii } from './component.tsx_component_text_segment_6_1fh12ri8gowii';
@@ -274,22 +275,18 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
     [numbered],
     q_component_text_segment_7_1fh135jcdiyj1
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<h2 q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_5_2xwye36z3pcnc.w([label])),
-        '><!t>',
-        escapeHTML(text0),
-        '<!/t>:<!t>',
-        escapeHTML(text1),
-        '<!/t></h2>',
-      ])
-    )
-  );
+  return maybeThen(promiseAll([attr0, text0, text1]), ([attr0, text0, text1]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_5_2xwye36z3pcnc.w([label])),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></h2>',
+  ]);
 };
 /*
 {
@@ -447,6 +444,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _markComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
@@ -540,22 +538,18 @@ const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
     [numbered],
     q_component_text_segment_7_1fh135jcdiyj1
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<h2 q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_5_2xwye36z3pcnc.w([label])),
-        '><!t>',
-        escapeHTML(text0),
-        '<!/t>:<!t>',
-        escapeHTML(text1),
-        '<!/t></h2>',
-      ])
-    )
-  );
+  return maybeThen(promiseAll([attr0, text0, text1]), ([attr0, text0, text1]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_5_2xwye36z3pcnc.w([label])),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></h2>',
+  ]);
 };
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_3_24n7atwir5934'

@@ -150,20 +150,3 @@ export function runSubscriberCleanups(subscriber: Subscriber): ValueOrPromise<vo
     }
   }
 }
-
-export function disposeSubscribers(
-  subscribers: Subscriber | readonly Subscriber[] | null | undefined
-): void {
-  if (subscribers === null || subscribers === undefined) {
-    return;
-  }
-
-  if (!Array.isArray(subscribers)) {
-    disposeSubscriber(subscribers as Subscriber);
-    return;
-  }
-
-  for (let i = 0; i < subscribers.length; i++) {
-    disposeSubscriber(subscribers[i]);
-  }
-}

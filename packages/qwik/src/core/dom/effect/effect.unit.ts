@@ -1447,6 +1447,10 @@ function createPropsTarget(): {
     getAttributeNames() {
       return [...attrs.keys()];
     },
+    hasAttribute(name: string) {
+      return attrs.has(name);
+    },
+    firstChild: null,
   } as unknown as Element & {
     innerHTML: string;
     className: string;

@@ -69,7 +69,7 @@ import {
   _next,
   qrl,
   createContentBlock,
-  maybeThen,
+  _replaceMarker,
   createSlot,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -95,7 +95,7 @@ export function Counter_component_3h2q15ekklxzt(props, ctx) {
   );
   ctx.scheduler.notify(content0);
   const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*
@@ -120,13 +120,13 @@ export function Counter_component_3h2q15ekklxzt(props, ctx) {
 */
 ============================= src/component.tsx_Plain_component_25y3k1m6p49gx.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Plain_tmpl0 = _createElementTemplate('<p><!></p>');
 
 export function Plain_component_25y3k1m6p49gx(props, ctx) {
   const el0 = Plain_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*
@@ -341,8 +341,7 @@ import {
   registerProjection,
   qrl,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   createTemplate,
 } from '@qwik.dev/core';
 import { Card } from './card';
@@ -391,15 +390,15 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
   const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
   const marker2 = _first(fragment0);
-  maybeThen(component0, (component1) => marker2.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker2, component0);
   const slotScope1 = createSlotScope();
   registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
-  const component2 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
+  _replaceMarker(marker0, component1);
   const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
   registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
-  const component4 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
-  maybeThen(component4, (component5) => marker1.replaceWith(..._toNodes(component5)));
+  const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
+  _replaceMarker(marker1, component2);
   return [...fragment0.childNodes];
 }
 /*

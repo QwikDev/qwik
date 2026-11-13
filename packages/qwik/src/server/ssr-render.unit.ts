@@ -26,6 +26,7 @@ import {
   renderSsrBranch,
   renderSsrCollection,
   useComputedQrl,
+  getPlatform,
   useOnDocument,
   useOn,
   renderSsrDynamicContent,
@@ -42,6 +43,7 @@ import {
   type SsrReferenceChunk,
   type SsrRangeHost,
 } from '@qwik.dev/core';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   renderToStreamCompiled as renderToStream,
   renderToStringCompiled as renderToString,
@@ -387,6 +389,42 @@ describe('SSR context markers', () => {
     expect(chunks.join('')).toMatch(/<button id="late-button" q-e:click="[^"]*late-click/);
     expect(chunks.join('').match(/q-d:click=/g)).toHaveLength(1);
   });
+
+  test.each([
+    ['sync', (tag: SsrOutput) => tag],
+    ['late', (tag: SsrOutput) => Promise.resolve(tag)],
+  ])(
+    'marks a useOn handler spliced into %s output with its Catch boundary',
+    async (_, toOutput) => {
+      const result = await renderToString((_props, ctx) =>
+        createSsrCatch(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'late-root-body', (scope: SsrRangeHost) =>
+            createComponent(
+              () => {
+                useOn(
+                  'click',
+                  createQRL('', 'late-root-click', () => {})
+                );
+                return [
+                  toOutput(createSsrOpenTag('<button id="late-root"', '>')),
+                  'go</button>',
+                ] as never;
+              },
+              null,
+              scope,
+              { container: scope as never }
+            )
+          ),
+          createQRL('', 'late-root-fallback', () => 'fallback')
+        )
+      );
+      expect(result.html).toMatch(
+        /<button id="late-root" q-e:click="[^"]*late-root-click[^"]*" q:catch="/
+      );
+    }
+  );
 
   test('streams many style and eager resume packets without scanning their history', async () => {
     const releases: Array<() => void> = [];
@@ -1156,6 +1194,207 @@ describe('SSR context markers', () => {
     }
   );
 
+  test('streams the Catch error listener when the first Catch renders late inside the shell', async () => {
+    const late = new Promise<void>((resolve) => setTimeout(resolve));
+    const { html } = await renderToString(
+      (_props, ctx) => [
+        '<p>before</p>',
+        _await(late).then((resume) => {
+          resume();
+          return createSsrCatch(
+            ctx,
+            ctx.nextId(),
+            createQRL('', 'late-shell-body', () => '<button>late</button>'),
+            createQRL('', 'late-shell-fallback', () => '<p>late-fallback</p>')
+          );
+        }) as SsrOutput,
+      ],
+      { containerTagName: 'div' }
+    );
+
+    expect(html).toContain('<button>late</button>');
+    expect(html.match(/q-d:qerror="[^"]*_catchError"/g)).toHaveLength(1);
+  });
+
+  test('streams the Catch error listener with a range rendered after the shell', async () => {
+    let release!: () => void;
+    const isReleased = new Promise<void>((resolve) => (release = resolve));
+    const chunks: string[] = [];
+    await renderToStream(
+      (_props, ctx) =>
+        createSsrPending(
+          ctx,
+          ctx.nextId(),
+          // the content chunk loads only after the shell is written
+          createQRL<(scope: SsrRangeHost) => SsrOutput | Promise<SsrOutput>>(
+            'late-chunk',
+            'late-content',
+            null,
+            () =>
+              isReleased.then(() => ({
+                'late-content': (scope: SsrRangeHost) =>
+                  createSsrCatch(
+                    scope,
+                    scope.nextId(),
+                    createQRL('', 'late-body', () => '<button>late</button>'),
+                    createQRL('', 'late-fallback', () => '<p>late-fallback</p>')
+                  ),
+              }))
+          ),
+          createQRL('', 'late-placeholder', () => '<p>waiting</p>')
+        ),
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('waiting')) {
+              release();
+            }
+          },
+        },
+      }
+    );
+    const html = chunks.join('');
+    expect(html.indexOf('<button>late</button>')).toBeGreaterThan(html.indexOf('waiting'));
+    expect(html.match(/q-d:qerror/g)).toHaveLength(1);
+    expect(html.indexOf('q-d:qerror')).toBeGreaterThan(html.indexOf('waiting'));
+  });
+
+  test('streams the Catch error listener with the next packet when the range first publishing it rolls back', async () => {
+    let resolveOuter!: (output: SsrOutput) => void;
+    const outer = new Promise<SsrOutput>((resolve) => (resolveOuter = resolve));
+    let releaseInner!: () => void;
+    const inner = new Promise<void>((resolve) => (releaseInner = resolve));
+    let isPublishing = false;
+    const failingCapture = {
+      get value() {
+        if (isPublishing) {
+          throw new Error('capture getter failed');
+        }
+        return 1;
+      },
+    };
+    const chunks: string[] = [];
+    await renderToStream(
+      (_props, ctx) =>
+        createSsrPending(
+          ctx,
+          ctx.nextId(),
+          createQRL<(scope: SsrRangeHost) => SsrOutput | Promise<SsrOutput>>(
+            'outer-chunk',
+            'outer',
+            null,
+            () =>
+              outer.then(() => ({
+                outer: (scope: SsrRangeHost) =>
+                  createSsrCatch(
+                    scope,
+                    scope.nextId(),
+                    createQRL('', 'outer-body', () => '<button>outer</button>'),
+                    createQRL('', 'outer-fallback', () => '<p>outer-fallback</p>')
+                  ),
+              }))
+          ),
+          createQRL('', 'outer-placeholder', (fallback: SsrRangeHost) =>
+            createSsrPending(
+              fallback,
+              fallback.nextId(),
+              createQRL<(scope: SsrRangeHost) => SsrOutput | Promise<SsrOutput>>(
+                'inner-chunk',
+                'inner',
+                null,
+                () =>
+                  inner.then(() => ({
+                    inner: (scope: SsrRangeHost) =>
+                      createSsrCatch(
+                        scope,
+                        scope.nextId(),
+                        createQRL('', 'inner-body', (body: SsrRangeHost) => {
+                          useTask(({ cleanup }) =>
+                            cleanup(() => {
+                              // the outer range gets ready while this range is published
+                              resolveOuter('');
+                              isPublishing = true;
+                              return new Promise((resolve) => setTimeout(resolve));
+                            })
+                          );
+                          return createSsrMarkup(
+                            '<button',
+                            ...(body as SsrRenderContext).eventAttrParts(
+                              'q-e:click',
+                              createQRL('', 'inner-click', () => {}, null, [failingCapture])
+                            ),
+                            '>inner</button>'
+                          );
+                        }),
+                        createQRL('', 'inner-fallback', () => '<p>inner-fallback</p>')
+                      ),
+                  }))
+              ),
+              createQRL('', 'inner-placeholder', () => '<p>inner-waiting</p>')
+            )
+          )
+        ),
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            // the first Catch renders only after the shell is out
+            if (chunk.includes('w._qwikS=')) {
+              releaseInner();
+            }
+          },
+        },
+      }
+    );
+    const html = chunks.join('');
+    // the inner packet was rolled back, then cancelled when the outer content replaced it
+    expect(html).not.toContain('<button>inner</button>');
+    expect(html).toContain('<button>outer</button>');
+    expect(html.match(/q-d:qerror/g)).toHaveLength(1);
+    expect(html.indexOf('q-d:qerror')).toBeGreaterThan(html.indexOf('w._qwikS='));
+  });
+
+  test('streams the Catch error listener with a later packet when a Catch registers while a range packet is prepared', async () => {
+    let releaseLater!: () => void;
+    const later = new Promise<void>((resolve) => (releaseLater = resolve));
+    const chunks: string[] = [];
+    await renderToStream(
+      (_props, ctx) =>
+        [
+          createSsrPending(
+            ctx,
+            ctx.nextId(),
+            createQRL('', 'first-content', (scope: SsrRangeHost) => {
+              // the cleanup runs while the packet is being prepared
+              useTask(({ cleanup }) => cleanup(() => scope.registerCatchErrorHandler()));
+              return Promise.resolve('<p>first</p>');
+            }),
+            createQRL('', 'first-placeholder', () => '<p>first-waiting</p>')
+          ),
+          createSsrPending(
+            ctx,
+            ctx.nextId(),
+            createQRL('', 'later-content', () => later.then(() => '<p>later</p>')),
+            createQRL('', 'later-placeholder', () => '<p>later-waiting</p>')
+          ),
+        ] as SsrOutput,
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('<p>first</p>')) {
+              releaseLater();
+            }
+          },
+        },
+      }
+    );
+    const html = chunks.join('');
+    expect(html.match(/q-d:qerror/g)).toHaveLength(1);
+    expect(html.indexOf('q-d:qerror')).toBeGreaterThan(html.indexOf('<p>first</p>'));
+  });
+
   test('completes shell cleanup after a Pending Catch fails', async () => {
     let release!: () => void;
     let reject!: (error: Error) => void;
@@ -1244,6 +1483,26 @@ describe('SSR context markers', () => {
     });
     expect(result.html).toContain('q-d:qidle=');
     expect(result.html).toContain('_res');
+  });
+
+  test('writes the idle event attribute on the shell state script', async () => {
+    const { html } = await renderToString(
+      () => {
+        const value = useComputed(() => 2, { initial: 1, clientOnly: true });
+        value.value;
+        return '<p>client-computed</p>';
+      },
+      { containerTagName: 'div', instanceHash: 'idle' }
+    );
+
+    expect(html).toBe(
+      '<div q:container="paused" q:runtime="2" q:version="dev" q:render="ssr-dev" q:base="/build/" q:locale="" q:manifest-hash="" q:instance="idle">' +
+        '<p>client-computed</p>' +
+        '<script type="qwik/state" q:base="0" q:len="1" q-d:qidle="mock-chunk#_res#0">[28,[0,1]]</script>' +
+        '<script id="qwikloader" async type="module"></script>' +
+        '<script>(window._qwikEv||(window._qwikEv=[])).push("d:qidle")</script>' +
+        '</div>'
+    );
   });
 
   test('emits eager resume for clientOnly computed in an OOOS packet', async () => {
@@ -2230,13 +2489,15 @@ describe('SSR context markers', () => {
     const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
     const result = await renderToString(
       (_props, ctx) => {
-        const carrier: SsrOutput = [
-          {
-            ...createSsrOpenTag('<script hidden', ctx.eventAttr('q-d:qinit', handler), '>'),
-            headlessCarrier: true,
+        const carrier = createComponent(
+          () => {
+            useOnDocument('qinit', handler);
+            return '';
           },
-          '</script>',
-        ];
+          null,
+          ctx,
+          { container: ctx as never }
+        ) as SsrOutput;
         return [
           '<!s=',
           createSsrNodeId(ctx.nextId()),
@@ -3378,6 +3639,109 @@ describe('SSR context markers', () => {
   });
 });
 
+describe('platform', () => {
+  test('serializes a QRL outside the render through the manifest while the render runs', async () => {
+    let serialized = '';
+    const { html } = await renderToString(
+      async () => {
+        await Promise.resolve();
+        serialized = await _serialize([createQRL(null, '_worker_fn', () => {}, null, null)]);
+        return '<p>done</p>';
+      },
+      { containerTagName: 'div', symbolMapper: (symbol) => [symbol, 'worker-chunk.js'] }
+    );
+
+    expect(html).toContain('<p>done</p>');
+    expect(serialized).toContain('0,"worker-chunk.js",0,"_worker_fn"');
+  });
+
+  test('overlapping renders keep their own symbol mapper and restore the global platform after the last one', async () => {
+    const before = getPlatform();
+    const seen: unknown[] = [];
+    let releaseLate!: () => void;
+    const lateGate = new Promise<void>((resolve) => (releaseLate = resolve));
+    const render = (app: string, gate?: Promise<void>) =>
+      renderToString(
+        async (_props, ctx) => {
+          await gate;
+          seen.push(getPlatform());
+          const handler = createQRL(null, `_handler_${app}`, () => {}, null, null);
+          return [
+            createSsrOpenTag('<button', ctx.eventAttr('q-e:click', handler), '>'),
+            '</button>',
+          ];
+        },
+        { containerTagName: 'div', symbolMapper: (symbol) => [symbol, `${app}.js`] }
+      );
+
+    const late = render('late', lateGate);
+    const early = await render('early');
+    releaseLate();
+
+    expect(early.html).toContain('q-e:click="early.js#_handler_early"');
+    expect((await late).html).toContain('q-e:click="late.js#_handler_late"');
+    expect(seen[0]).not.toBe(before);
+    expect(seen[0]).toBe(seen[1]);
+    expect(getPlatform()).toBe(before);
+  });
+
+  test('a render that starts first and finishes first leaves the server platform to the one still running', async () => {
+    const before = getPlatform();
+    let releaseFirst!: () => void;
+    const firstGate = new Promise<void>((resolve) => (releaseFirst = resolve));
+    let releaseSecond!: () => void;
+    const secondGate = new Promise<void>((resolve) => (releaseSecond = resolve));
+    let platformAfterFirst: unknown;
+    const first = renderToString(async () => {
+      await firstGate;
+      return '<p>first</p>';
+    });
+    const second = renderToString(async () => {
+      await secondGate;
+      platformAfterFirst = getPlatform();
+      return '<p>second</p>';
+    });
+
+    releaseFirst();
+    expect((await first).html).toContain('<p>first</p>');
+    releaseSecond();
+    expect((await second).html).toContain('<p>second</p>');
+    expect(platformAfterFirst).not.toBe(before);
+    expect(getPlatform()).toBe(before);
+  });
+
+  test('restores the global platform when a disconnected stream meets a throwing task cleanup', async () => {
+    const before = getPlatform();
+    const rendering = renderToStream(
+      () => {
+        useTask(({ cleanup }) =>
+          cleanup(() => {
+            throw new Error('cleanup failed');
+          })
+        );
+        return '<p>shell</p>';
+      },
+      {
+        stream: {
+          write() {
+            throw new Error('client disconnected');
+          },
+        },
+      }
+    );
+
+    await expect(rendering).rejects.toThrow();
+    expect(getPlatform()).toBe(before);
+    let platformDuringNextRender: unknown;
+    await renderToString(() => {
+      platformDuringNextRender = getPlatform();
+      return '<p>next</p>';
+    });
+    expect(platformDuringNextRender).not.toBe(before);
+    expect(getPlatform()).toBe(before);
+  });
+});
+
 describe('deterministic rendering', () => {
   test('uses a provided instanceHash so output is byte-reproducible', async () => {
     const root: SsrRenderRoot = () => '<p>static</p>';
@@ -3460,7 +3824,7 @@ describe('preloader', () => {
     core: 'q-core.js',
     bundleGraphAsset: 'assets/bundle-graph.json',
   };
-  const renderPage = (preloader?: false) =>
+  const renderPage = (preloader?: false, base?: string) =>
     renderToString(
       (_props, ctx) => [
         createSsrSection('head', '<head', '>'),
@@ -3478,8 +3842,15 @@ describe('preloader', () => {
         'go</button>',
         createSsrSection('/body', '</body>'),
       ],
-      { manifest: manifest as never, ...(preloader === false ? { preloader } : {}) }
+      { manifest: manifest as never, base, ...(preloader === false ? { preloader } : {}) }
     );
+
+  test('keeps a base holding a closing script tag inside the preloader script', async () => {
+    const { html } = await renderPage(undefined, '/x</script><script>alert(1)//');
+
+    expect(html).not.toContain('<script>alert(1)');
+    expect(html).toContain('l("/x\\u003C/script>\\u003Cscript>alert(1)//",b)');
+  });
 
   test('starts the preloader in the head and preloads the page bundles at the end', async () => {
     const { html } = await renderPage();
@@ -3596,5 +3967,28 @@ describe('document tail', () => {
 
     expect(html).toMatch(/<html[^>]*><head><\/head><body><p>bare<\/p>/);
     expect(html.endsWith('</body></html>')).toBe(true);
+  });
+});
+
+describe('container options', () => {
+  test('rejects a container tag name that is not an element name', async () => {
+    await expect(
+      renderToString(() => '<p>x</p>', { containerTagName: 'div><script>alert(1)</script' })
+    ).rejects.toThrow(/invalid element name|Code\(Q36\)/i);
+  });
+
+  test('rejects an invalid container tag name before rendering the app', async () => {
+    const root = vi.fn(() => '<p>x</p>');
+    await expect(renderToString(root, { containerTagName: 'div x' })).rejects.toThrow();
+    expect(root).not.toHaveBeenCalled();
+  });
+
+  test('rejects a container attribute name that would end the attribute', async () => {
+    await expect(
+      renderToString(() => '<p>x</p>', {
+        containerTagName: 'div',
+        containerAttributes: { 'x onload=alert(1)': '' },
+      })
+    ).rejects.toThrow(/unsafe attribute|Code\(Q32\)/i);
   });
 });

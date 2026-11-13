@@ -93,9 +93,7 @@ export function materializeModules(
                 }
               : program.body,
           facts: {
-            needsId: { ok: true, value: program.needsId },
             ...setupFacts(module, program.setup),
-            runtimeScope: { ok: true, value: false },
           },
         })
       )
@@ -123,22 +121,18 @@ function materializeModule(
     qrls: plan.qrls.map((qrl) => ({
       ...qrl,
       dependencies: collectQrlDependencies(plan, qrl),
-      delivery: { d: DeliveryKind.Chunk, chunkBase: `${plan.path}_${qrl.name}`, resolved: true },
+      delivery: { d: DeliveryKind.Chunk },
     })),
     hooks: plan.hooks.map((hook) => ({
       ...hook,
       dependencies: collectHookDependencies(plan, hook),
     })),
-    callables: plan.callables,
-    values: plan.values,
-    contexts: [],
-    // No native generator links implementations yet; the plan's target sources stay the record.
+    // No native generator links target sources yet; the plan's natives stay the record.
     natives: plan.natives.map(({ name, binding, markerRange, jsImplementation }) => ({
       name,
       binding,
       markerRange,
       jsImplementation,
-      implementations: {},
     })),
     defs: plan.defs,
     edges,

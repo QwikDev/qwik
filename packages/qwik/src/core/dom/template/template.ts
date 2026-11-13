@@ -35,3 +35,12 @@ export function createElementTemplate(html: string): ElementTemplateFactory {
     return element.cloneNode(true) as Element;
   };
 }
+
+/** A fresh start/end comment pair in its own fragment, so a block can fill it before mounting. */
+export function createRangeMarkers(document: Document): [Comment, Comment] {
+  const fragment = document.createDocumentFragment();
+  return [
+    fragment.appendChild(document.createComment('')),
+    fragment.appendChild(document.createComment('')),
+  ];
+}

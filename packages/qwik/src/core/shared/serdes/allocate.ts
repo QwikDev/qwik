@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { isCatchBoundary } from '../../dom/content/catch-boundary';
 import type { CatchContentSubscription } from '../../dom/content/catch';
 import {
@@ -19,13 +20,13 @@ import { AsyncSignal } from '../../reactive/async-signal';
 import { SerializerSignal } from '../../reactive/serializer-signal';
 import { Signal } from '../../reactive/signal';
 import { useStore, StorePropSource, unwrapStore } from '../../reactive/store';
-import type { ContainerContext } from '../../runtime/container-context';
+import { setAllocatedSlot, type ContainerContext } from '../../runtime/container-context';
 import { createContextScope } from '../../runtime/context-scope';
 import { createProjection, createSlotScope, ProjectionSubscription } from '../../dom/slot/slot';
 import { createOwner } from '../../runtime/owner';
 import { Task, TaskSubscription, VisibleTask, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
-import { qError, QError } from '../error/error';
+import { invalidStateError, qError, QError } from '../error/error';
 import { parseSerializedQrlRootIds } from '../qrl/qrl-capture-deltas';
 import { _UNINITIALIZED } from '../utils/constants';
 import { maybeThen } from '../utils/promises';
@@ -72,13 +73,8 @@ export const allocate = (
     case TypeIds.RootRef:
       return context.getRoot(value as number);
     case TypeIds.ForwardRef: {
-      const forwardRefs = context.forwardRefs ?? context.getForwardRefs();
-      const rootRef = forwardRefs?.[value as number];
-      if (rootRef === -1 || rootRef === undefined) {
-        return _UNINITIALIZED;
-      } else {
-        return context.getRoot(rootRef);
-      }
+      const rootRef = (context.forwardRefs ?? context.getForwardRefs())?.[value as number];
+      return rootRef === undefined ? _UNINITIALIZED : context.getRoot(rootRef);
     }
     case TypeIds.ForwardRefs:
       return value;
@@ -87,7 +83,7 @@ export const allocate = (
         findQwikElement(root, value as string | number)
       );
       if (element === null) {
-        throw new Error(`Missing element ref ${String(value)}.`);
+        throw isDev ? invalidStateError(`element ref ${value}`) : invalidStateError();
       }
       return element;
     }
@@ -163,8 +159,8 @@ export const allocate = (
         if (t >= TypeIds.Error || t === TypeIds.Array || t === TypeIds.Object) {
           pendingStoreTargets.set(target, { t, v });
         }
-        data[0] = TypeIds.Plain;
-        data[1] = target;
+        // root promotions through the store find its raw here and walk the untouched encoding
+        setAllocatedSlot(context, data, 0, target);
         return store;
       });
     }
@@ -264,7 +260,7 @@ export const allocate = (
             context.scheduler
           );
         default:
-          throw new Error(`Invalid serialized task phase ${String(phase)}.`);
+          throw isDev ? invalidStateError(`task phase ${phase}`) : invalidStateError();
       }
     }
     case TypeIds.ContextScope:

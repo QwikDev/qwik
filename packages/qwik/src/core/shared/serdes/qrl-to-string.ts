@@ -5,7 +5,6 @@ import { getPlatform } from '../platform/platform';
 import { createQRL, createSyncQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
-import type { SsrWriteChunk } from '../../../serializer/writer';
 import type { ContainerContext } from '../../runtime/container-context';
 
 /** @internal */
@@ -103,26 +102,6 @@ export function qrlToString(
     qrlStringInline += `#${captureDeltas}`;
   }
   return qrlStringInline;
-}
-
-/** @internal */
-export function qrlToChunks(
-  serializationContext: SerializationContext,
-  qrl: QRLInternal | SyncQRLInternal
-): string | SsrWriteChunk[] {
-  const [chunk, symbol, captures] = qrlToString(serializationContext, qrl, true);
-  const prefix = `${chunk}#${symbol}`;
-  if (!captures) {
-    return prefix;
-  }
-  const chunks: SsrWriteChunk[] = [prefix, '#'];
-  const firstSpace = captures.indexOf(' ');
-  if (firstSpace === -1) {
-    chunks.push(Number(captures));
-  } else {
-    chunks.push(Number(captures.slice(0, firstSpace)), captures.slice(firstSpace));
-  }
-  return chunks;
 }
 
 export function createQRLWithBackChannel(

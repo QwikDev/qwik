@@ -233,6 +233,34 @@ export default component$((props: { dangerouslySetInnerHTML: string }) => (
     }
   });
 
+  test('should run a spread after the children it may replace are wired', async () => {
+    const output = await testInput(mode, 'element-spread-children', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$((props: { attrs: Record<string, string> }) => {
+  const count = useSignal(0);
+  return (
+    <section>
+      <p {...props.attrs}>
+        <b onClick$={() => count.value++}>{count.value}</b>
+        <Card />
+      </p>
+      <hr {...props.attrs} />
+    </section>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    if (mode === 'csr') {
+      const main = renderCode(output);
+      // the props effect may carry innerHTML, so the children are located before it runs
+      expect(main.indexOf('createPropsEffect(el1')).toBeGreaterThan(
+        main.indexOf('_replaceMarker(')
+      );
+    }
+  });
+
   test('should emit dangerouslySetInnerHTML as element content', async () => {
     const output = await testInput(mode, 'element-inner-html', {
       code: `import { component$, useSignal } from '@qwik.dev/core';
@@ -249,7 +277,9 @@ export default component$(() => {
 });
 `,
     });
-    expect(output.diagnostics).toEqual([]);
+    expect(output.diagnostics).toMatchObject([
+      { category: 'warning', code: 'inner-html-children' },
+    ]);
     const main = renderCode(output);
     // Static markup is element content, never an attribute and never escaped.
     expect(main).toContain('<div><span>raw</span></div>');
@@ -428,13 +458,78 @@ export default component$((props: { heading: string }) => (
     }
   });
 
-  test('should refuse content given both as children and as innerHTML', async () => {
+  test('should let innerHTML win over raw-text children and warn', async () => {
     const output = await testInput(mode, 'raw-text-double-content', {
       code: `export default (props: { a: string; b: string }) => (
   <style dangerouslySetInnerHTML={props.a}>{props.b}</style>
 );`,
     });
-    expect(output.diagnostics).toMatchObject([{ code: 'raw-text-content' }]);
+    expect(output.diagnostics).toMatchObject([
+      { category: 'warning', code: 'inner-html-children' },
+    ]);
+    const code = renderCode(output);
+    expect(code).toMatch(/propSource\(props, ["']a["']\)/);
+    expect(code).not.toMatch(/props, ["']b["']/);
+  });
+
+  test('should not compile children that innerHTML replaces', async () => {
+    const output = await testInput(mode, 'inner-html-dropped-children', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$((props: { rest: Record<string, string> }) => {
+  const count = useSignal(0);
+  return (
+    <section>
+      <div dangerouslySetInnerHTML="<i>kept</i>">
+      </div>
+      <div dangerouslySetInnerHTML={props.rest.html}>
+        <button onClick$={() => count.value++}>{count.value}</button>
+        <Card />
+      </div>
+      <p {...props.rest} dangerouslySetInnerHTML="<b>spread</b>">
+        <span onClick$={() => console.log(count.value)}>dropped</span>
+      </p>
+    </section>
+  );
+});
+`,
+    });
+    // One warning per element; whitespace between tags is not a child.
+    expect(output.diagnostics).toMatchObject([
+      {
+        category: 'warning',
+        code: 'inner-html-children',
+        message: expect.stringContaining('<div>'),
+      },
+      { category: 'warning', code: 'inner-html-children', message: expect.stringContaining('<p>') },
+    ]);
+    // The entry keeps every authored import; only the render code drops the dropped child's.
+    const code = output.modules
+      .filter((module) => module.path !== 'src/component.tsx')
+      .map((module) => module.code)
+      .join('\n');
+    expect(code).not.toContain('./card');
+    expect(code).not.toContain('count.value++');
+    expect(code).not.toContain('console.log');
+    expect(code).not.toContain('dropped');
+  });
+
+  test('should write a batched textarea child with JSX text coercion', async () => {
+    const output = await testInput(mode, 'textarea-batched-text', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const open = useSignal(false);
+  return <textarea class={open.value ? 'a' : 'b'}>{open.value ? 'x' : null}</textarea>;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = renderCode(output);
+    // `null` is empty text, as the server and an unbatched client write it, never "null".
+    expect(main).not.toMatch(/patchTextValue\([^;]*, true\);/);
+    if (mode === 'csr') {
+      expect(main).toMatch(/patchTextValue\(text0, component_text_segment_\w+\(open\)\);/);
+    }
   });
 
   test('should keep a dynamic table section beside its static siblings', async () => {

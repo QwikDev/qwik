@@ -222,6 +222,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
@@ -240,17 +241,15 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const text0 = renderSsrTextExpression(id0, 0, [index], q_component_text_segment_4_1fh11zg0n0shg);
   ctx.addRoot(item);
   const text1 = renderSsrTextExpression(id0, 1, [item], q_component_text_segment_5_1fh12dh4juuhz);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<h2 q:id="',
-      createSsrNodeId(id0),
-      '"><!t>',
-      escapeHTML(text0),
-      '<!/t>:<!t>',
-      escapeHTML(text1),
-      '<!/t></h2>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '"><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></h2>',
+  ]);
 };
 /*
 {
@@ -715,6 +714,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _markComponent,
 } from '@qwik.dev/core';
 import { Panel_component_5q1hs6sb6j5z as Panel } from './component.tsx_Panel_component_5q1hs6sb6j5z';
@@ -846,17 +846,15 @@ const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const text0 = renderSsrTextExpression(id0, 0, [index], q_component_text_segment_4_1fh11zg0n0shg);
   ctx.addRoot(item);
   const text1 = renderSsrTextExpression(id0, 1, [item], q_component_text_segment_5_1fh12dh4juuhz);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<h2 q:id="',
-      createSsrNodeId(id0),
-      '"><!t>',
-      escapeHTML(text0),
-      '<!/t>:<!t>',
-      escapeHTML(text1),
-      '<!/t></h2>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<h2 q:id="',
+    createSsrNodeId(id0),
+    '"><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></h2>',
+  ]);
 };
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_3_24n7atwir5934'

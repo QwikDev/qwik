@@ -35,6 +35,7 @@ import {
   _textValue,
   serializeAttrExpressionValue,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -50,25 +51,23 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const attr1 = renderSsrAttr(id1, 'value', text);
   const attr2 = serializeAttrExpressionValue('selected', text.value === 'one');
   const attr3 = serializeAttrExpressionValue('selected', text.value === 'two');
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<form><textarea q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
-      '</textarea><textarea>fixed</textarea><select q:id="',
-      createSsrNodeId(id1),
-      '"',
-      attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      '><option value="one"',
-      attr2 === null ? '' : ' selected' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
-      '>one</option><option value="two"',
-      attr3 === null ? '' : ' selected' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
-      '>two</option></select><select><option value="one">one</option><option value="two" selected>two</option></select></form>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, attr1]), ([attr0, attr1]) => [
+    '<form><textarea q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
+    '</textarea><textarea>fixed</textarea><select q:id="',
+    createSsrNodeId(id1),
+    '"',
+    attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+    '><option value="one"',
+    attr2 === null ? '' : ' selected' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+    '>one</option><option value="two"',
+    attr3 === null ? '' : ' selected' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+    '>two</option></select><select><option value="one">one</option><option value="two" selected>two</option></select></form>',
+  ]);
 }
 /*
 {

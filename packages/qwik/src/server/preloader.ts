@@ -2,6 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { isSyncQrl, qTest, qrlToString } from '@qwik.dev/core';
 import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
 import { escapeHTML } from './qwik-copy';
+import { stringifyScriptJson } from './ssr-script-emitter';
 import type { PreloaderOptions, ServerQwikManifest } from './types';
 
 const DEFAULT_SSR_PRELOADS = 0;
@@ -60,8 +61,8 @@ export function createPreloaderHead(
       `<link rel="preload" href="${escapeHTML(bundleGraph)}" as="fetch" crossorigin="anonymous">` +
       `<script type="module" async crossorigin="anonymous"${nonceAttr(nonce)}>` +
       afterPagePaint(
-        `{let b=fetch(${JSON.stringify(bundleGraph)});` +
-          `import(${JSON.stringify(preloader)}).then(({l})=>l(${JSON.stringify(base)},b${idle}))}`
+        `{let b=fetch(${stringifyScriptJson(bundleGraph)});` +
+          `import(${stringifyScriptJson(preloader)}).then(({l})=>l(${stringifyScriptJson(base)},b${idle}))}`
       ) +
       `</script>`;
   }
@@ -94,13 +95,13 @@ export function createPreloaderTail(
     .filter((bundle) => bundle !== manifest?.preloader && bundle !== manifest?.core)
     .slice(0, options?.ssrPreloads ?? DEFAULT_SSR_PRELOADS);
   let script = eager.length
-    ? `${JSON.stringify(eager)}.map((l,e)=>{e=document.createElement('link');` +
-      `e.rel='modulepreload';e.href=${JSON.stringify(base)}+l;document.head.appendChild(e)});`
+    ? `${stringifyScriptJson(eager)}.map((l,e)=>{e=document.createElement('link');` +
+      `e.rel='modulepreload';e.href=${stringifyScriptJson(base)}+l;document.head.appendChild(e)});`
     : '';
   const preloader = resolveBundle(base, manifest?.preloader);
   if (preloader) {
     script += afterPagePaint(
-      `import(${JSON.stringify(preloader)}).then(({p})=>p(${JSON.stringify(referenced)}))`
+      `import(${stringifyScriptJson(preloader)}).then(({p})=>p(${stringifyScriptJson(referenced)}))`
     );
   }
   return script

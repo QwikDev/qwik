@@ -92,10 +92,10 @@ import {
   useStore,
   _first,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
 } from '@qwik.dev/core';
 import { _waitOn } from '@qwik.dev/core/internal';
@@ -115,7 +115,7 @@ export function default_component_3rg6kq1so9aio(props0, ctx) {
       const el0 = default_tmpl0(ctx.document);
       const component0 = createComponent(Child, { state: state }, ctx);
       const marker0 = _first(el0);
-      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+      _replaceMarker(marker0, component0);
       return el0;
     })
   );

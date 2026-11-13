@@ -1,9 +1,6 @@
-import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive/constants';
+import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import { _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-// Keep last
-import { Slot } from '../../dom/slot/slot';
-import { Fragment } from '../jsx/compiler-runtime';
 export { TypeIds, _typeIdNames } from './type-id';
 import { TypeIds } from './type-id';
 import { qwikSymbol } from '../singletons';
@@ -26,10 +23,7 @@ export const enum Constants {
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
-  STORE_ALL_PROPS,
   UNINITIALIZED,
-  Slot,
-  Fragment,
   NaN,
   PositiveInfinity,
   NegativeInfinity,
@@ -53,10 +47,7 @@ export const _constants = [
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
-  STORE_ALL_PROPS,
   _UNINITIALIZED,
-  Slot,
-  Fragment,
   NaN,
   Infinity,
   -Infinity,
@@ -79,10 +70,7 @@ export const _constantNames = [
   'EMPTY_ARRAY',
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
-  'STORE_ALL_PROPS',
   '_UNINITIALIZED',
-  'Slot',
-  'Fragment',
   'NaN',
   'Infinity',
   '-Infinity',

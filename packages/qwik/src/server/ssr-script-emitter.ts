@@ -1,19 +1,14 @@
+import type { SsrAttributePatch } from '@qwik.dev/core';
 import {
-  createSsrMarkup,
-  type SsrAttributePatch,
-  type SsrOutput,
-  type SsrReferenceChunk,
-} from '@qwik.dev/core';
-import type {
-  SerializationContext,
-  SerializedStateRange,
+  escapeScriptText,
+  type SerializationContext,
+  type SerializedStateRange,
 } from '@qwik.dev/core/internal/serializer';
 import { escapeHTML, QFuncsPrefix, TypeIds } from './qwik-copy';
 import { getQwikLoaderScript } from './scripts';
 import type { QwikLoaderOptions } from './types';
 
 type ScriptAttrValue = string | boolean | undefined;
-const MAX_STATE_ROOTS_PER_SCRIPT = 1024;
 
 interface SsrScriptEmitterOptions {
   debug?: boolean;
@@ -26,111 +21,50 @@ export class SsrScriptEmitter {
 
   constructor(private readonly opts: SsrScriptEmitterOptions = {}) {}
 
-  emitState(
-    serializedState: string,
-    base: number,
-    len: number,
-    eventAttrParts?: readonly (string | SsrReferenceChunk)[],
-    hasForwardRefs = false,
-    boundaryId?: number
-  ): SsrOutput {
-    if (len > MAX_STATE_ROOTS_PER_SCRIPT || hasForwardRefs) {
-      const state = JSON.parse(serializedState) as unknown[];
-      const rootLen = len - (hasForwardRefs ? 1 : 0);
-      const output: SsrOutput[] = [];
-      for (let offset = 0; offset < rootLen; offset += MAX_STATE_ROOTS_PER_SCRIPT) {
-        const chunkLen = Math.min(MAX_STATE_ROOTS_PER_SCRIPT, rootLen - offset);
-        const start = offset * 2;
-        const end = start + chunkLen * 2;
-        output.push(
-          this.emitStateChunk(
-            JSON.stringify(state.slice(start, end)),
-            base + offset,
-            chunkLen,
-            false,
-            offset === 0 ? eventAttrParts : undefined,
-            boundaryId
-          )
-        );
-      }
-      if (hasForwardRefs) {
-        output.push(
-          this.emitStateChunk(
-            JSON.stringify(state.slice(rootLen * 2)),
-            base + rootLen,
-            0,
-            true,
-            undefined,
-            boundaryId
-          )
-        );
-      }
-      return output;
-    }
-
-    return this.emitStateChunk(serializedState, base, len, false, eventAttrParts, boundaryId);
-  }
-
-  emitStateRange(
-    range: SerializedStateRange,
+  /** Ranges are consecutive and each fits one script; the last carries the frame's forward refs. */
+  emitStateRanges(
+    ranges: readonly SerializedStateRange[],
     boundaryId?: number,
     subscriptions?: readonly number[],
-    eventAttrs?: readonly (string | SsrReferenceChunk)[]
-  ): SsrOutput {
-    const output: SsrOutput[] = [
-      this.emitState(range.state, range.base, range.len, eventAttrs, false, boundaryId),
-    ];
-    if (range.forwardRefs !== undefined) {
-      const forwardRefs = range.forwardRefs.map((value) =>
+    eventAttrs = ''
+  ): string {
+    if (ranges.length === 0) {
+      return '';
+    }
+    const boundary = boundaryId === undefined ? undefined : String(boundaryId);
+    let html = '';
+    for (let i = 0; i < ranges.length; i++) {
+      const range = ranges[i];
+      html += this.writeScript(
+        {
+          type: 'qwik/state',
+          'q:s': boundary,
+          'q:base': String(range.base),
+          'q:len': String(range.len),
+        },
+        // the serializer already escapes every script boundary
+        range.state,
+        i === 0 ? eventAttrs : ''
+      );
+    }
+    const last = ranges[ranges.length - 1];
+    const end = String(last.base + last.len);
+    if (last.forwardRefs !== undefined) {
+      const forwardRefs = last.forwardRefs.map((value) =>
         Array.isArray(value) ? value.join(' ') : value
       );
-      output.push(
-        this.emitStateChunk(
-          JSON.stringify([TypeIds.ForwardRefs, forwardRefs]),
-          range.base + range.len,
-          0,
-          true,
-          undefined,
-          boundaryId
-        )
+      html += this.writeScript(
+        { type: 'qwik/state', 'q:s': boundary, 'q:base': end, 'q:len': '0', 'q:fr': true },
+        stringifyScriptJson([TypeIds.ForwardRefs, forwardRefs])
       );
     }
     if (subscriptions !== undefined && subscriptions.length > 0) {
-      output.push(
-        this.writeScript(
-          {
-            type: 'qwik/state',
-            'q:s': String(boundaryId),
-            'q:base': String(range.base + range.len),
-            'q:len': '0',
-            'q:sub': true,
-          },
-          escapeScript(JSON.stringify(subscriptions))
-        )
+      html += this.writeScript(
+        { type: 'qwik/state', 'q:s': boundary, 'q:base': end, 'q:len': '0', 'q:sub': true },
+        stringifyScriptJson(subscriptions)
       );
     }
-    return output;
-  }
-
-  private emitStateChunk(
-    serializedState: string,
-    base: number,
-    len: number,
-    forwardRefs = false,
-    eventAttrParts?: readonly (string | SsrReferenceChunk)[],
-    boundaryId?: number
-  ): SsrOutput {
-    const attrs = {
-      type: 'qwik/state',
-      'q:s': boundaryId === undefined ? undefined : String(boundaryId),
-      'q:base': String(base),
-      'q:len': String(len),
-      'q:fr': forwardRefs,
-    };
-    const body = escapeScript(serializedState);
-    return eventAttrParts === undefined
-      ? this.writeScript(attrs, body)
-      : this.writeScript(attrs, body, eventAttrParts);
+    return html;
   }
 
   /** Module mode loads the manifest's loader chunk from the head; without that chunk it inlines. */
@@ -170,7 +104,7 @@ export class SsrScriptEmitter {
     return this.writeScript(
       { nonce: this.getNonce() },
       `(window._qwikEv||(window._qwikEv=[])).push(${Array.from(eventNames, (eventName) =>
-        JSON.stringify(eventName)
+        stringifyScriptJson(eventName)
       ).join(',')})`
     );
   }
@@ -182,9 +116,9 @@ export class SsrScriptEmitter {
   emitSyncFn(key: string, source: string, instanceHash: string): string {
     const table = JSON.stringify(`${QFuncsPrefix}${instanceHash}`);
     return this.writeScript(
-      // no `type`: the browser must execute this, and `type=qwik/json` is the state script
+      // no `type`: the browser must execute this
       { 'q:func': 'qwik/json', nonce: this.getNonce() },
-      escapeScript(`((d)=>{(d[${table}]??={})[${JSON.stringify(key)}]=${source}})(document)`)
+      escapeScriptText(`((d)=>{(d[${table}]??={})[${JSON.stringify(key)}]=${source}})(document)`)
     );
   }
 
@@ -201,24 +135,24 @@ export class SsrScriptEmitter {
     this.hasBackpatchRuntime = true;
     return this.writeScript(
       { nonce: this.getNonce() },
-      `((s,w,d)=>{${install}const f=()=>w._qwikB(s,d);w._qwikSP?w._qwikSP=w._qwikSP.then(f):f()})(document.currentScript,window,${escapeJsonScript(JSON.stringify(patches.flat()))})`
+      `((s,w,d)=>{${install}const f=()=>w._qwikB(s,d);w._qwikSP?w._qwikSP=w._qwikSP.then(f):f()})(document.currentScript,window,${stringifyScriptJson(patches.flat())})`
     );
   }
 
   emitPendingRuntime(instanceHash: string): string {
     return this.writeScript(
       { nonce: this.getNonce() },
-      `((w)=>{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c},e=[...c.querySelectorAll('script[type="qwik/state"]')].filter(z),h=async(r,m)=>{if(r<0)return;for(let j=0;j<e.length;j++){const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)},p=e.filter(e=>e.getAttribute('q:s')===''+i);if(x)x.registerStateScripts(p);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){if(!z(n))continue;const v=n.data;if(!a){if(v==='d='+i)a=n}else if(v.startsWith('d='))d++;else if(v==='/d'){if(d)d--;else break}}if(!a||!n){await h(u,1);t.remove();s.remove();return}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);let v=0;for(let j=0;j<p.length;j++){const q=p[j].getAttribute('q:idle');if(q!==null){p[j].setAttribute('q-d:qidle',q);p[j].removeAttribute('q:idle');v=1}}if(v)(w._qwikEv||(w._qwikEv=[])).push('d:qidle');t.remove();s.remove()});(w._qwikEv||(w._qwikEv=[])).push(0,${JSON.stringify(instanceHash)})})(window)`
+      `((w)=>{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c},e=[...c.querySelectorAll('script[type="qwik/state"]')].filter(z),h=async(r,m)=>{if(r<0)return;for(let j=0;j<e.length;j++){const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)},p=e.filter(e=>e.getAttribute('q:s')===''+i);if(x)x.registerStateScripts(p);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){if(!z(n))continue;const v=n.data;if(!a){if(v==='d='+i)a=n}else if(v.startsWith('d='))d++;else if(v==='/d'){if(d)d--;else break}}if(!a||!n){await h(u,1);t.remove();s.remove();return}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);let v=0;for(let j=0;j<p.length;j++){const q=p[j].getAttribute('q:idle');if(q!==null){p[j].setAttribute('q-d:qidle',q);p[j].removeAttribute('q:idle');v=1}}if(v)(w._qwikEv||(w._qwikEv=[])).push('d:qidle');t.remove();s.remove()});(w._qwikEv||(w._qwikEv=[])).push(0,${stringifyScriptJson(instanceHash)})})(window)`
     );
   }
 
   emitResolved(
     boundaryId: number,
-    content: SsrOutput,
+    content: string,
     disposePrevious: boolean,
     contentRoot?: number,
     fallbackRoot?: number
-  ): readonly [string, SsrOutput, string, string] {
+  ): readonly [string, string, string, string] {
     return [
       `<template q:s="${boundaryId}">`,
       content,
@@ -230,25 +164,8 @@ export class SsrScriptEmitter {
     ];
   }
 
-  private writeScript(attrs: Record<string, ScriptAttrValue>, body?: string): string;
-  private writeScript(
-    attrs: Record<string, ScriptAttrValue>,
-    body: string,
-    eventAttrParts: readonly (string | SsrReferenceChunk)[]
-  ): SsrOutput;
-  private writeScript(
-    attrs: Record<string, ScriptAttrValue>,
-    body: string = '',
-    eventAttrParts?: readonly (string | SsrReferenceChunk)[]
-  ): SsrOutput {
-    const start = `<script${serializeScriptAttrs(attrs)}`;
-    if (eventAttrParts === undefined || eventAttrParts.length === 0) {
-      return `${start}>${body}</script>`;
-    }
-    if (eventAttrParts.every((part) => typeof part === 'string')) {
-      return `${start}${eventAttrParts.join('')}>${body}</script>`;
-    }
-    return [createSsrMarkup(start, ...eventAttrParts, '>'), `${body}</script>`];
+  private writeScript(attrs: Record<string, ScriptAttrValue>, body = '', eventAttrs = ''): string {
+    return `<script${serializeScriptAttrs(attrs)}${eventAttrs}>${body}</script>`;
   }
 
   private shouldSkipQwikLoader(): boolean {
@@ -263,12 +180,9 @@ export class SsrScriptEmitter {
   }
 }
 
-function escapeScript(value: string): string {
-  return value.replace(/<\//g, '<\\/');
-}
-
-function escapeJsonScript(value: string): string {
-  return value.replace(/</g, '\\u003C');
+/** JSON only has `<` inside strings, so this keeps every script boundary. */
+export function stringifyScriptJson(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003C');
 }
 
 function serializeScriptAttrs(attrs: Record<string, ScriptAttrValue>): string {

@@ -21,6 +21,7 @@ import {
 } from './utils';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
+import { isComponentDeclaration } from './returns-jsx';
 
 export interface JsxFactory {
   fn: ArrowFunctionExpression | FunctionNode;
@@ -256,38 +257,60 @@ export function createJsxAnalysis(
     return fn !== null && isFunctionLike(fn) && !fn.generator ? fn : null;
   }
 
+  /**
+   * Whether a `component$(fn)` with an inline callback stops the JSX root scan: the component
+   * lowers its own JSX. Under a named function there is none; lowering raises any other misuse.
+   */
+  function isComponentBoundary(node: Node): boolean {
+    if (
+      bindings === undefined ||
+      !isComponentDeclaration(node, bindings, coreBindings) ||
+      node.arguments.length !== 1
+    ) {
+      return false;
+    }
+    const callback = unwrapExpression(node.arguments[0]);
+    return callback !== null && isFunctionLike(callback);
+  }
+
   function factory(source: Node): JsxFactory | null {
     const node = unwrapExpression(source)!;
     if (!factories.has(node)) {
-      factories.set(node, readFactory(node, factory));
+      factories.set(node, readFactory(node, scope));
     }
     return factories.get(node)!;
   }
+  const scope: RootScope = { factory, isComponentBoundary };
   return {
     read,
-    expressionRoots: (node) => scopedRoots([node], factory),
+    expressionRoots: (node) => scopedRoots([node], scope),
     factory,
-    scopedRoots: (nodes) => scopedRoots(nodes, factory),
+    scopedRoots: (nodes) => scopedRoots(nodes, scope),
   };
 }
 
-function readFactory(source: Node, factory: JsxAnalysis['factory']): JsxFactory | null {
+interface RootScope {
+  factory: JsxAnalysis['factory'];
+  isComponentBoundary(node: Node): boolean;
+}
+
+function readFactory(source: Node, scope: RootScope): JsxFactory | null {
   const fn = unwrapExpression(source)!;
   if (!isFunctionLike(fn)) {
     return null;
   }
-  const roots = scopedRoots([...fn.params, ...(fn.body === null ? [] : [fn.body])], factory);
+  const roots = scopedRoots([...fn.params, ...(fn.body === null ? [] : [fn.body])], scope);
   return roots.length === 0 ? null : { fn, roots };
 }
 
-function scopedRoots(nodes: readonly Node[], factory: JsxAnalysis['factory']): JsxExpressionRoot[] {
+function scopedRoots(nodes: readonly Node[], scope: RootScope): JsxExpressionRoot[] {
   const roots: JsxExpressionRoot[] = [];
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(visit);
       return;
     }
-    if (!isNode(node)) {
+    if (!isNode(node) || scope.isComponentBoundary(node)) {
       return;
     }
     if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
@@ -295,7 +318,7 @@ function scopedRoots(nodes: readonly Node[], factory: JsxAnalysis['factory']): J
       return;
     }
     if (isFunctionLike(node)) {
-      if (factory(node) !== null) {
+      if (scope.factory(node) !== null) {
         roots.push(node);
       }
       return;

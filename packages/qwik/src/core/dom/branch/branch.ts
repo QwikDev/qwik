@@ -35,7 +35,7 @@ import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import { prepareProjectionRanges, parkProjections, replaceRange } from '../range/range';
+import { prepareProjectionRanges, replaceContent } from '../range/range';
 import { ownSsrOutput, type SsrContentContext, type SsrOutput } from '../../ssr/output';
 import { claimUseOnRoot, reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
@@ -44,19 +44,6 @@ import { handleError } from '../content/catch-boundary';
 type BranchConditionFn = () => ValueOrPromise<boolean>;
 type BranchHandlerFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
 type SSRBranchHandlerFn = (ctx: SsrContentContext, rangeId: number) => ValueOrPromise<SsrOutput>;
-
-/** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
-export class BranchRange {
-  constructor(
-    readonly document: Document,
-    readonly start: Comment,
-    readonly end: Comment
-  ) {}
-
-  replace(nodes: readonly Node[]): void {
-    replaceRange(this.document, this.start, this.end, nodes);
-  }
-}
 
 const enum BranchState {
   Then = 0,
@@ -67,13 +54,14 @@ export class Branch {
   currentOwner: Owner | null;
 
   constructor(
-    readonly range: BranchRange,
+    readonly start: Comment,
+    readonly end: Comment,
     readonly conditionFn: BranchConditionFn | QRL<BranchConditionFn>,
     readonly thenFn: BranchHandlerFn | QRL<BranchHandlerFn>,
     readonly elseFn: BranchHandlerFn | QRL<BranchHandlerFn> | undefined,
     public currentBranch: BranchState | null,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container?: ContainerContext,
+    readonly container: ContainerContext,
     readonly useOnRoot = false
   ) {
     this.currentOwner = null;
@@ -83,13 +71,7 @@ export class Branch {
     const owner = this.currentOwner;
     this.currentOwner = null;
     this.currentBranch = null;
-
-    parkProjections(owner);
-    if (owner !== null) {
-      disposeOwner(owner);
-    }
-
-    this.range.replace(EMPTY_NODES);
+    replaceContent(this, EMPTY_NODES, owner);
   }
 
   commit(
@@ -100,17 +82,13 @@ export class Branch {
     const previousOwner = this.currentOwner;
     const nodes = toNodes(
       this.useOnRoot
-        ? reapplyUseOnContexts(output, this.invokeContext, this.range.document)
+        ? reapplyUseOnContexts(output, this.invokeContext, this.container.document)
         : output
     );
-    parkProjections(previousOwner);
-    this.range.replace(nodes);
     this.currentBranch = nextBranch;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = invokeContext === null ? null : getOrCreateContextOwner(invokeContext);
-    if (previousOwner !== null) {
-      disposeOwner(previousOwner);
-    }
+    replaceContent(this, nodes, previousOwner);
   }
 }
 
@@ -134,8 +112,8 @@ export class BranchSubscription implements BranchSubscriber {
         maybeThen(
           prepareProjectionRanges(
             this.branch.container,
-            this.branch.range.start,
-            this.branch.range.end,
+            this.branch.start,
+            this.branch.end,
             this.branch.currentOwner
           ),
           () => this.runPrepared()
@@ -212,7 +190,11 @@ function renderBranchArm(
       subscription.branch.commit(invokeContext, nextBranch, nodes);
     },
     (error) => {
-      if (invokeContext.owner !== null) {
+      // A commit whose previous arm cleanup threw keeps its arm live.
+      if (
+        invokeContext.owner !== null &&
+        invokeContext.owner !== subscription.branch.currentOwner
+      ) {
         disposeOwner(invokeContext.owner);
         invokeContext.owner = null;
       }
@@ -223,14 +205,16 @@ function renderBranchArm(
 
 export function createBranch(
   ctx: ContainerContext,
-  branchRange: BranchRange,
+  start: Comment,
+  end: Comment,
   condition: BranchConditionFn | QRL<BranchConditionFn>,
   then: BranchHandlerFn | QRL<BranchHandlerFn>,
   elseFn?: BranchHandlerFn | QRL<BranchHandlerFn>,
   useOnRoot = false
 ): BranchSubscriber {
   const branch = new Branch(
-    branchRange,
+    start,
+    end,
     condition,
     then,
     elseFn,

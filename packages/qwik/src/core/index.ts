@@ -45,7 +45,7 @@ export {
   _regSymbol,
 } from './shared/qrl/qrl';
 export { isQrl, isSyncQrl, qrlOfBody, SYNC_QRL as _SYNC_QRL } from './shared/qrl/qrl-utils';
-export { qrlToChunks, qrlToString } from './shared/serdes/qrl-to-string';
+export { qrlToString } from './shared/serdes/qrl-to-string';
 export { qTest } from './shared/utils/qdev';
 export type { QRL, PropFunction } from './shared/qrl/qrl.public';
 export { implicit$FirstArg } from './shared/qrl/implicit_dollar';
@@ -159,12 +159,11 @@ export { escapeHTML, _textValue } from './shared/utils/character-escaping';
 export { isPromise, maybeThen, promiseAll } from './shared/utils/promises';
 export {
   isComputedSource,
-  peekSourceValue,
   readSourceValue,
   type ComputedSource,
   type Source,
 } from './reactive/source';
-export { cleanupDeps, disposeSubscriber, disposeSubscribers } from './reactive/cleanup';
+export { cleanupDeps, disposeSubscriber } from './reactive/cleanup';
 export {
   _await,
   addDependency,
@@ -237,8 +236,6 @@ export {
   createSsrOpenTag,
   createSsrSection,
   createSsrMarkup,
-  createSsrRootRef,
-  createSsrRootRefPath,
   isSsrEventAttrChunk,
   isSsrRecordChunk,
   type SsrContentContext,
@@ -359,8 +356,6 @@ export {
 export {
   _props,
   createPropsProxy,
-  getMemberSource,
-  getPropSource,
   getPropsProxyState,
   getPropsSources,
   isSource,
@@ -372,7 +367,6 @@ export { readExpression } from './utils/qrl';
 
 export {
   Branch,
-  BranchRange,
   BranchSubscription,
   SSRBranch,
   SSRBranchSubscription,
@@ -384,7 +378,6 @@ export {
   createContentBlock,
   createDynamicContent,
   createPending,
-  escapeSsrContent,
   renderSsrDynamicContent,
   renderSsrContent,
   SSRContentSubscription,
@@ -403,7 +396,6 @@ export {
 } from './dom/content/reveal';
 export {
   ForBlock,
-  ForRange,
   SSRForBlock,
   createForBlock,
   renderSsrForBlock,
@@ -461,11 +453,12 @@ export {
 } from './runtime/use-on';
 export {
   createElementTemplate as _createElementTemplate,
+  createRangeMarkers as _createRangeMarkers,
   createTemplate,
   type ElementTemplateFactory,
   type TemplateFactory,
 } from './dom/template/template';
-export { toNodes as _toNodes } from './utils/nodes';
+export { replaceMarker as _replaceMarker } from './utils/nodes';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export {
   EffectTargetKind,

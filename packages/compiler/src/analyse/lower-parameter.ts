@@ -82,7 +82,6 @@ export function lowerComponentParameter(
       access: CaptureAccess.ComponentProp,
       binding: ctx.propsBinding!,
       read: pathReadIr({ kind: ValueIrKind.BindingRead, binding: ctx.propsBinding! }, path, ctx),
-      slot: -1,
     };
     locals.set(ctx.bindings.declaration(node)!, local);
     if (defaultValue === null) {
@@ -112,7 +111,6 @@ export function lowerComponentParameter(
       kind: LocalKind.PropRest,
       access: CaptureAccess.Direct,
       binding,
-      slot: -1,
     });
   }
   return { surface, setup, locals };

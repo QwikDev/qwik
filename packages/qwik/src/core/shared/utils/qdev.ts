@@ -5,4 +5,5 @@ export const qDev = (globalThis as any).qDev !== false;
 export const qInspector = (globalThis as any).qInspector === true;
 export const qDynamicPlatform = (globalThis as any).qDynamicPlatform !== false;
 export const qTest = (globalThis as any).qTest === true;
-export const qRuntimeQrl = (globalThis as any).qRuntimeQrl === true;
+// Read on call: an unused module-level read still ships as a side effect.
+export const isRuntimeQrl = () => (globalThis as any).qRuntimeQrl === true;

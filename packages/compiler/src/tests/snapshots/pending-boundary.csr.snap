@@ -92,7 +92,6 @@ import {
   useSignal,
   _first,
   _next,
-  BranchRange,
   createPending,
   _withCaptures,
   _createElementTemplate,
@@ -108,7 +107,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end0 = _next(start0);
   createPending(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     component_suspense_content_segment_1_oznzhxo2l2hq,
     _withCaptures(component_suspense_fallback_segment_0_1i2rr5w5knxuo, [label]),
     50

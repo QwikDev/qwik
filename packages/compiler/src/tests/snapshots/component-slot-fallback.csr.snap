@@ -43,7 +43,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, qrl, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, qrl, _createElementTemplate } from '@qwik.dev/core';
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -54,9 +54,7 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
   const el0 = Card_tmpl0(ctx.document);
   const marker0 = _first(el0);
   ctx.scheduler.waitFor(
-    maybeThen(createSlot('', q_component_slot_render_segment_0_3b0tagwys7lui), (slot0) =>
-      marker0.replaceWith(...slot0)
-    )
+    _replaceMarker(marker0, createSlot('', q_component_slot_render_segment_0_3b0tagwys7lui))
   );
   return el0;
 }
@@ -116,8 +114,7 @@ import {
   _first,
   _last,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   createSlotScope,
   registerProjection,
   qrl,
@@ -135,11 +132,11 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const marker0 = _last(el0);
   const component0 = createComponent(Card, null, ctx);
   const marker1 = _first(el0);
-  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker1, component0);
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component2 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
-  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  const component1 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
+  _replaceMarker(marker0, component1);
   return el0;
 }
 /*

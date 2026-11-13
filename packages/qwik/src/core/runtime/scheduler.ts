@@ -128,8 +128,10 @@ export class Scheduler {
     this.waitFor(runSubscriber(subscriber));
   }
 
+  /** Filing the same callback again for the same owner keeps the one pending run. */
   onFlushed(callback: () => void): void {
-    let owner = getOrCreateContextOwner(getActiveInvokeContextOrNull());
+    const context = getActiveInvokeContextOrNull();
+    let owner = context === null ? null : (context.owner ?? context.ownerHost);
     while (owner !== null && !(owner.flags & OwnerFlags.Queued)) {
       owner = owner.parent;
     }
@@ -137,7 +139,13 @@ export class Scheduler {
       callback();
       return;
     }
-    (this.afterFlush ??= []).push([callback, owner]);
+    const afterFlush = (this.afterFlush ??= []);
+    for (let i = 0; i < afterFlush.length; i++) {
+      if (afterFlush[i][0] === callback && afterFlush[i][1] === owner) {
+        return;
+      }
+    }
+    afterFlush.push([callback, owner]);
   }
 
   /** The setup-facing form of `waitFor`, shared with the server's range schedulers. */

@@ -18,8 +18,8 @@ export const enum PlanFormat {
 }
 
 // Library artifacts require the complete dependency and invocation facts.
-export const MODULE_PLAN_VERSION = 4;
-export const LINKED_PLAN_VERSION = 4;
+export const MODULE_PLAN_VERSION = 5;
+export const LINKED_PLAN_VERSION = 5;
 
 export const enum Environment {
   Server = 'server',
@@ -30,14 +30,12 @@ export const enum BuildMode {
   Dev = 'dev',
   Prod = 'prod',
   Lib = 'lib',
-  Hmr = 'hmr',
-  Unknown = 'unknown',
 }
 
 // ---------------------------------------------------------------------------------------------
-// Predicates: build-constant guards. Declarations and setup entries carry `guard?: Predicate`;
-// runtime conditionals are ordinary `branch` ops whose condition may be a build constant.
-// Residual isDev (mode 'unknown') stays a live reactive branch.
+// Predicates: build-constant conditions. Runtime conditionals are ordinary `branch` ops whose
+// condition may be a build constant.
+// A host constant the build does not define stays a live read.
 
 export const enum BuildConstant {
   IsServer = 'isServer',
@@ -70,8 +68,8 @@ export interface FoldContext {
 }
 
 /**
- * Three-valued folding: `true`/`false` when decided, `null` when residual. Targets are always
- * concrete, so isServer/isBrowser always decide; isDev decides except under mode 'unknown'.
+ * Three-valued folding: `true`/`false` when decided, `null` when residual. The build constants
+ * always decide; only a host constant the build does not define is residual.
  */
 export function foldPredicate(predicate: Predicate, context: FoldContext): boolean | null {
   switch (predicate.p) {
@@ -88,13 +86,10 @@ export function foldPredicate(predicate: Predicate, context: FoldContext): boole
         case BuildConstant.IsDev:
           switch (context.mode) {
             case BuildMode.Dev:
-            case BuildMode.Hmr:
               return true;
             case BuildMode.Prod:
             case BuildMode.Lib:
               return false;
-            case BuildMode.Unknown:
-              return null;
           }
       }
       break;
@@ -187,13 +182,11 @@ export interface Diagnostic {
   message: string;
   span: Range | null;
   category: DiagnosticCategory;
-  guard?: Predicate;
 }
 
 export const enum ModuleKind {
   Qwik = 'qwik',
   Foreign = 'foreign',
-  ExportsOnly = 'exports-only',
   Failed = 'failed',
 }
 
@@ -203,18 +196,14 @@ export const enum ModuleKind {
 
 export const enum SeedKind {
   Content = 'content',
-  Root = 'root',
   Component = 'c',
   Branch = 'b',
   Projection = 'p',
   Slot = 's',
   For = 'f',
-  Value = 'v',
 }
 
-export type Seed =
-  | { kind: SeedKind.Root; name: string }
-  | { kind: Exclude<SeedKind, SeedKind.Root>; ordinal: number };
+export type Seed = { kind: SeedKind; ordinal: number };
 
 export const enum Shape {
   Text = 'text',
@@ -243,14 +232,6 @@ export type PlaceIR =
   | { at: PlaceKind.Param | PlaceKind.TaskLocal | PlaceKind.DefParam; index: number }
   | { at: PlaceKind.Module; decl: number };
 
-/** Closed union of context value kinds. */
-export const enum ContextKind {
-  Signal = 'signal',
-  Store = 'store',
-  Value = 'value',
-  Unknown = 'unknown',
-}
-
 export const enum VarKind {
   Const = 'const',
   Let = 'let',
@@ -267,15 +248,12 @@ export const enum BindingScope {
 
 export const enum LifetimeOwner {
   Component = 'component',
-  RenderFunction = 'render-function',
   DynamicValue = 'dynamic-value',
-  ComponentCall = 'component-call',
   Branch = 'branch',
   Pending = 'suspense',
   Catch = 'catch',
   Slot = 'slot',
   Collection = 'collection',
-  Effect = 'effect',
 }
 
 export const enum LifetimeCommit {

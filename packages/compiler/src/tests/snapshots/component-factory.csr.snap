@@ -27,8 +27,7 @@ import {
   readTrackedValue,
   createDynamicTag,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
@@ -43,7 +42,7 @@ export function factory(Component) {
       ctx
     );
     const marker0 = _first(el0);
-    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+    _replaceMarker(marker0, component0);
     return el0;
   };
 }
@@ -116,8 +115,7 @@ import {
   _first,
   createDynamicTag,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Wrapped } from './component.tsx';
@@ -131,7 +129,7 @@ export function default_component_3rg6kq1so9aio(props0, ctx) {
     ctx
   );
   const marker0 = _first(el0);
-  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  _replaceMarker(marker0, component0);
   return el0;
 }
 /*

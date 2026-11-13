@@ -29,10 +29,6 @@ export interface Program {
   setup: Setup[];
   params: LocalId[];
   lifetime: LifetimeId;
-  /** JSX as a call argument → deferred root. */
-  argumentPosition?: true;
-  /** Intra-module fact; cross-module joins land on `LinkedProgram.facts`. */
-  needsId: boolean;
   /** The component reads `props.children`, so a parent must describe what it projects. */
   /** Authored syntax; scheduling derives from setup at link. */
   async: boolean;
@@ -118,7 +114,6 @@ export type Op =
       /** The foreign namespace this element is parsed in; a chunk root needs it for its template. */
       namespace?: 'svg' | 'math';
       styleScopedId: string | null;
-      runtimeScope: boolean;
       props: Prop[];
       eventParams?: LocalId[];
       propsEffect: QrlUse | null;
@@ -131,6 +126,8 @@ export type Op =
       effect: number | null;
       /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
       stringify: boolean;
+      /** Content the HTML parser keeps as text (a concat operand, RCDATA) whatever the value's kind. */
+      isAlwaysText: boolean;
       /** Lexical reads need captures only if linking selects a content range. */
       contentCaptures?: {
         captures: Qrl['captures'];
@@ -152,7 +149,6 @@ export type Op =
       dynamicSlot?: QrlUse;
       id: Seed;
       lifetime: LifetimeId;
-      blockingPending: boolean;
     }
   | {
       op: OpKind.Branch;
@@ -201,7 +197,6 @@ export type Op =
       fallback: QrlUse | null;
       fallbackId: Seed;
       delay: Value | null;
-      blocking: boolean;
       lifetime: LifetimeId;
       /** Membership in the enclosing `<Reveal>` of the same program: lexical index and size. */
       reveal?: RevealMembership;
@@ -221,7 +216,6 @@ export const enum PropKind {
   Dynamic = 'dynamic',
   Spread = 'spread',
   Event = 'event',
-  Bind = 'bind',
   Ref = 'ref',
   InnerHtml = 'inner-html',
 }
@@ -244,7 +238,6 @@ export type Prop =
   | {
       k: PropKind.Event;
       name: string;
-      passive: boolean;
       handlers: (
         | { h: HandlerKind.Value; value: Value }
         /** `bind:value`/`bind:checked` write-back: the runtime handler captures the signal. */
@@ -299,7 +292,6 @@ export const enum SetupKind {
   PropDefault = 'prop-default',
   Const = 'const',
   Call = 'call',
-  UseId = 'use-id',
   Style = 'style',
   LocalComponent = 'local-component',
   /** A body function lifted to a segment; the body binds its captures to the imported function. */
@@ -370,7 +362,6 @@ export type Setup =
       /** The member's read, whose `undefined` selects the initializer. */
       read: ValueIR;
       initializer: Expr;
-      guard?: Predicate;
     }
   /** Authored declarations, including uninitialized locals and QRL values. */
   | {
@@ -380,7 +371,6 @@ export type Setup =
       value?: Value;
       /** Fallback for an already-bound argument, evaluated only for undefined. */
       defaultValue?: Value;
-      guard?: Predicate;
     }
   | {
       s: SetupKind.Call;
@@ -394,10 +384,9 @@ export type Setup =
       blocksInitialRender?: true;
       /** SSR marks the output so descendants resumed later find the provided scope. */
       providesContext?: true;
-      guard?: Predicate;
+      /** The call registers `useOn*` events, which the output's root element carries. */
+      registersEvents?: true;
     }
-  /** Compiler intrinsic. */
-  | { s: SetupKind.UseId; result: BindTarget; ordinal: number; guard?: Predicate }
   /** THE single style owner — module-level styles too. */
   | {
       s: SetupKind.Style;
@@ -406,7 +395,6 @@ export type Setup =
       scoped: boolean;
       css: string | { dynamic: PayloadId };
       result: BindTarget | null;
-      guard?: Predicate;
     }
   | {
       s: SetupKind.LocalComponent;
@@ -416,26 +404,23 @@ export type Setup =
       id: string;
       name: string;
       parameter: ComponentParameter | null;
-      guard?: Predicate;
     }
-  /** A body function a boundary lifted; one never lifted is replaced by its authored statement. */
+  /** A lifted local its own scope also reads: the scope binds it to the segment. */
   | {
       s: SetupKind.LocalFunction;
       binding: LocalId;
       /** A function declaration hoists, so its binding is a hoisted wrapper. */
       hoisted: boolean;
-      use?: QrlUse;
-      guard?: Predicate;
+      use: QrlUse;
     }
   | {
       s: SetupKind.RenderValue;
       result: BindTarget;
       program: ProgramId;
       id: string;
-      guard?: Predicate;
     }
   /** Runtime needs derive from the payload rewrites — no second op list to maintain. */
-  | { s: SetupKind.Js; payload: PayloadId; guard?: Predicate };
+  | { s: SetupKind.Js; payload: PayloadId };
 
 export const enum SurfaceKind {
   Object = 'object',

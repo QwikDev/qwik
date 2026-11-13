@@ -1,0 +1,223 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+const prefix = 'module';
+export async function show(label: string) {
+  const suffix = label + '!';
+  const Cmp = component$(() => <a href="/x" title={prefix}>{label}{suffix}</a>);
+  return render(<Cmp />);
+}
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
+  'component_jsx_segment_4_38vnl4ypf6sea'
+);
+import { qrl } from '@qwik.dev/core';
+import { render } from './render';
+const prefix = 'module';
+export async function show(label) {
+  const suffix = label + '!';
+
+  return render(q_component_jsx_segment_4_38vnl4ypf6sea.w([label, suffix]));
+}
+
+export { prefix as __qwik_prefix };
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
+
+import { __qwik_prefix as prefix } from './component.tsx';
+
+export const component_title_segment_0_2f0r0xivypjmx = () => {
+  return prefix;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": false,
+  "loc": [
+    230,
+    236
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (label) => {
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    239,
+    244
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (suffix) => {
+  return suffix;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    246,
+    252
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "suffix"
+  ]
+}
+*/
+============================= src/component.tsx_component_Cmp_segment_3_bwglpra5u4z6.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  createAttrExpressionEffect,
+  _first,
+  _last,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+const component_Cmp_segment_3_bwglpra5u4z6_tmpl0 =
+  _createElementTemplate('<a href="/x"><!><!></a>');
+
+export const component_Cmp_segment_3_bwglpra5u4z6 = (props, ctx) => {
+  const [label, suffix] = _capturesObj._;
+  const el0 = component_Cmp_segment_3_bwglpra5u4z6_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'title',
+    [],
+    component_title_segment_0_2f0r0xivypjmx,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect1 = createTextExpressionEffect(
+    text0,
+    [label],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect2 = createTextExpressionEffect(
+    text1,
+    [suffix],
+    component_text_segment_2_1fh117dstcoge,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect2);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Cmp_segment_3_bwglpra5u4z6",
+  "entry": null,
+  "displayName": "component_Cmp_segment_3",
+  "hash": "bwglpra5u4z6",
+  "canonicalFilename": "component.tsx_component_Cmp_segment_3_bwglpra5u4z6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Cmp",
+  "captures": true,
+  "loc": [
+    193,
+    258
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label",
+    "suffix"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_4_38vnl4ypf6sea.js (ENTRY POINT)==
+
+import { _capturesObj, createDynamicTag, createComponent, _withCaptures } from '@qwik.dev/core';
+import { component_Cmp_segment_3_bwglpra5u4z6 } from './component.tsx_component_Cmp_segment_3_bwglpra5u4z6';
+
+export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
+  const [label, suffix] = _capturesObj._;
+  const Cmp = _withCaptures(component_Cmp_segment_3_bwglpra5u4z6, [label, suffix]);
+  const component0 = createComponent((props0) => createDynamicTag(Cmp, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_4_38vnl4ypf6sea",
+  "entry": null,
+  "displayName": "component_jsx_segment_4",
+  "hash": "38vnl4ypf6sea",
+  "canonicalFilename": "component.tsx_component_jsx_segment_4_38vnl4ypf6sea",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    276,
+    283
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label",
+    "suffix"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

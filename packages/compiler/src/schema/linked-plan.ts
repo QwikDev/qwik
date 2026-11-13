@@ -6,7 +6,6 @@
 import type {
   LINKED_PLAN_VERSION,
   BuildMode,
-  ContextKind,
   Diagnostic,
   Environment,
   Lifetime,
@@ -79,26 +78,19 @@ export interface LinkedModule {
   programs: LinkedProgram[];
   qrls: LinkedQrl[];
   hooks: LinkedHook[];
-  callables: ModulePlan['callables'];
-  values: ModulePlan['values'];
-  /** `id` is the CANONICAL runtime context id — the lookup key. */
-  contexts: { id: string; name: string; kind: Maybe<ContextKind> }[];
   natives: {
     name: string;
     binding: LocalId | null;
     markerRange: Range;
     jsImplementation: PayloadId;
-    /** (native, language) → index into `LinkedPlan.implementations`. */
-    implementations: Record<string, { impl: number }>;
   }[];
   defs: ModulePlan['defs'];
   edges: (EsmEdge & { target: Maybe<number>; runtime: boolean })[];
   imports: LinkedImport[];
   exports: ModulePlan['exports'];
-  /** Plus linked edits on preserved spans: constant folds and pruned ranges (dead imports). */
+  /** Plus linked edits on preserved spans: pruned ranges (dead imports) and stripped values. */
   assembly: (
     | AssemblyIntent
-    | { a: AssemblyKind.ConstantFold; range: Range; value: 'true' | 'false' }
     | { a: AssemblyKind.StripRange; range: Range }
     | { a: AssemblyKind.StripValue; range: Range; form: StripValueForm }
   )[];
@@ -133,15 +125,15 @@ export interface LinkedProgram extends Omit<Program, 'body'> {
     | Extract<Program['body'], { kind: ProgramBodyKind.Expr }>;
   /** Cross-module joins land HERE — the owner the raw plan cannot have. */
   facts: {
-    needsId: Maybe<boolean>;
     waitForTasks: Maybe<boolean>;
     providesContextEffective: Maybe<boolean>;
-    runtimeScope: Maybe<boolean>;
     /** Whether the setup registers `useOn*` events; unknown when a callee's body is not linked. */
     registersEvents: Maybe<boolean>;
     /** Whether the setup calls `useChildrenInfo()`, so the parent must describe its children. */
     readsChildrenInfo: Maybe<boolean>;
   };
+  /** How many scalar writes each batched effect groups, by effect id. */
+  effectSizes?: number[];
 }
 
 export const enum ImportTargetKind {
@@ -165,9 +157,6 @@ export const enum StripValueForm {
 
 export const enum DeliveryKind {
   Chunk = 'chunk',
-  Inline = 'inline',
-  Reference = 'reference',
-  Noop = 'noop',
   Omit = 'omit',
   Stripped = 'stripped',
   Register = 'register',
@@ -180,10 +169,7 @@ export interface LinkedQrl extends Qrl {
   dependencies: { bindings: LocalId[]; qrls: QrlId[] };
   /** Full delivery states, per environment link; chunk naming decided at link, not in neutral data. */
   delivery:
-    | { d: DeliveryKind.Chunk; chunkBase: string; resolved: boolean }
-    | { d: DeliveryKind.Inline }
-    | { d: DeliveryKind.Reference }
-    | { d: DeliveryKind.Noop }
+    | { d: DeliveryKind.Chunk }
     | { d: DeliveryKind.Omit }
     | { d: DeliveryKind.Stripped }
     | { d: DeliveryKind.Register; symbol: string };
@@ -192,12 +178,6 @@ export interface LinkedQrl extends Qrl {
 export const enum EntryKind {
   Module = 'module',
   Export = 'export',
-}
-
-export const enum ImplementationContentKind {
-  Files = 'files',
-  ExternalPackage = 'external-package',
-  Registration = 'registration',
 }
 
 export interface LinkedPlan {
@@ -214,28 +194,6 @@ export interface LinkedPlan {
     | { kind: EntryKind.Export; module: number; export: string; target: Maybe<DeclRef> }
   )[];
   modules: LinkedModule[];
-  /**
-   * ONE provider-qualified implementation table (native sources/packages, plugin emissions,
-   * framework registrations). The generator selects what it supports by (provider, key, language);
-   * packages carry content or an explicit external-dependency contract, never a bare filesystem
-   * path.
-   */
-  implementations: {
-    provider: string;
-    key: string;
-    language: string | null;
-    content:
-      | { kind: ImplementationContentKind.Files; files: { path: string; source: string }[] }
-      | {
-          kind: ImplementationContentKind.ExternalPackage;
-          dependency: { name: string; version: string; fingerprint: string };
-        }
-      | { kind: ImplementationContentKind.Registration; symbol: string };
-    dependencies: Record<string, string>;
-    /** Signature identity for plugin-call entrypoints. */
-    argCount?: number;
-    async?: boolean;
-  }[];
   diagnostics: { module: number; diagnostic: Diagnostic }[];
 }
 

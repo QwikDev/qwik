@@ -1,6 +1,7 @@
 /** Children and render expressions: flattening, text merging, branches. */
-import type { Expression, JSXChild } from 'oxc-parser';
+import type { ArrayExpression, Expression, JSXChild, Node } from 'oxc-parser';
 import {
+  BoundaryRole,
   Shape,
   LifetimeCommit,
   LifetimeOwner,
@@ -27,7 +28,7 @@ import {
 } from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { lowerArray } from './lower-array';
-import { QwikDirective } from '../words';
+import { QwikDirective, SegmentContext } from '../words';
 import { lowerJsx } from './lower-jsx';
 import { findDirective } from './lower-projection';
 /**
@@ -69,11 +70,26 @@ export function lowerContentChildren(
     const value =
       single === null
         ? lowerTemplateValue(folded, ctx, range)
-        : lowerExpressionValue(single, ctx, QwikDirective.InnerHtml);
+        : lowerExpressionValue(
+            single,
+            ctx,
+            isRawText ? QwikDirective.InnerHtml : SegmentContext.Text
+          );
     // Raw text is never decoded, so it is element content; RCDATA is text and stays escaped.
     return isRawText
       ? { ops: [], innerHtml: { k: PropKind.InnerHtml, value, effect: null } }
-      : { ops: [{ op: OpKind.Hole, value, shape: Shape.Text, effect: null, stringify: true }] };
+      : {
+          ops: [
+            {
+              op: OpKind.Hole,
+              value,
+              shape: Shape.Text,
+              effect: null,
+              stringify: false,
+              isAlwaysText: true,
+            },
+          ],
+        };
   }
   const text = folded as string[];
   if (isRawText) {
@@ -96,7 +112,8 @@ export function lowerContentChildren(
         value: lowerTemplateValue(parts, ctx, range),
         shape: Shape.Text,
         effect: null,
-        stringify: true,
+        stringify: false,
+        isAlwaysText: true,
       },
     ],
   };
@@ -239,11 +256,7 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     case JsxValueKind.Collection:
       return [lowerArray(value.node, ctx)];
   }
-  // A literal array in render position is a fragment spelled differently.
-  if (
-    expression.type === 'ArrayExpression' &&
-    expression.elements.every((element) => element !== null && element.type !== 'SpreadElement')
-  ) {
+  if (isFragmentArray(expression)) {
     return expression.elements.flatMap((element) =>
       lowerRenderExpression(element as Expression, ctx)
     );
@@ -254,7 +267,7 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
       ctx,
       'content',
       QrlPayloadKind.Function,
-      'content'
+      BoundaryRole.Content
     );
     const lifetime = ctx.plan.lifetimes.length;
     ctx.plan.lifetimes.push({
@@ -273,6 +286,14 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     ];
   }
   return lowerText(expression, ctx);
+}
+
+/** A literal array in render position is a fragment spelled differently. */
+export function isFragmentArray(node: Node): node is ArrayExpression {
+  return (
+    node.type === 'ArrayExpression' &&
+    node.elements.every((element) => element !== null && element.type !== 'SpreadElement')
+  );
 }
 
 export function readRenderBranch(value: JsxValue) {

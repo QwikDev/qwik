@@ -817,6 +817,22 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['sibling', 'blocked']);
   });
 
+  it('runs a commit callback filed several times in one flush once', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    const scan = () => order.push('scan');
+    const effect = createOrderTextExpressionEffect(scheduler, 'effect', order);
+    effect.execute = () =>
+      runWithOwner(effect.owner, () => {
+        scheduler.onFlushed(scan);
+        scheduler.onFlushed(scan);
+        order.push('commit');
+      });
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(order).toEqual(['commit', 'scan']);
+  });
+
   it('runs commit callbacks for a ready owner while another owner waits', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];

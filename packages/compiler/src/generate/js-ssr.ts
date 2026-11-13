@@ -2,12 +2,12 @@
 import { getSegmentSymbolHash } from '../segment-identity';
 import {
   BoundaryKind,
+  BoundaryRole,
   DeliveryKind,
   Environment,
   HandlerKind,
   QrlBodyKind,
   QrlPayloadKind,
-  ModuleKind,
   OpKind,
   PropKind,
   ProgramBodyKind,
@@ -25,10 +25,10 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { QwikAttr, QwikDirective, QwikGenWord, QwikWord, SegmentContext } from '../words';
+import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, NEWLINE_EATING_ELEMENTS, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
-import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
+import { generatePlanModules, type QwikModuleEmitter } from './assemble-module';
 import { noopQrlJs } from './noop-qrl';
 import {
   captureNames,
@@ -37,21 +37,22 @@ import {
   functionPrelude,
   rootArgs,
   usedParamPrefix,
-  qrlPropsName,
-  componentParamName,
 } from './captures';
 import {
-  dynamicSlotEmission,
   programKind,
   ProgramKind,
   rowShapeCode,
-  aliasEmission,
   emptyFunctionEmission,
+  sharedQrlFunction,
   type FunctionEmission,
+  type QrlUsage,
 } from './emit-function';
 import {
   extractPayloadJs,
   bindHandlerJs,
+  boundHandlersJs,
+  capturedQrlJs,
+  computedEventQrl,
   inlineValueJs,
   functionText,
   revealArgsJs,
@@ -74,73 +75,33 @@ import {
   readSource,
   withMarkerEmitter,
 } from './emit-setup';
-import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { requestBindingImport } from './emit-import';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp } from './fold-static';
 import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
-  allocateGeneratedNames,
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
-  inlineComponentText,
+  payloadQrlJs,
+  inlineRowFunctionJs,
+  inlineRowNames,
+  programNames,
+  slotNameJs,
   useOnRootOps,
 } from './emit-component';
 import { createNameAllocator } from '../names';
-import { generateForeignModule } from './foreign';
-import {
-  createFailedModule,
-  makeOutput,
-  moduleBasename,
-  type GenerateOutput,
-  type PresentationOptions,
-} from './output';
+import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 
-export async function generateJsSsr(
+export function generateJsSsr(
   plan: LinkedPlan,
   options: PresentationOptions
 ): Promise<GenerateOutput> {
-  if (plan.specialization.environment !== Environment.Server) {
-    throw new Error('generateJsSsr requires a server LinkedPlan');
-  }
-  const modules: GenerateOutput['modules'] = [];
-  for (const module of plan.modules) {
-    try {
-      modules.push(...(await generateModule(module, options)));
-    } catch (error) {
-      // A refusal names its module, so a whole-app build failure points at the source.
-      if (error instanceof Error && !error.message.includes(module.path)) {
-        error.message = `${error.message} (in ${module.path})`;
-      }
-      throw error;
-    }
-  }
-  return makeOutput(plan, modules);
-}
-
-async function generateModule(
-  module: LinkedModule,
-  options: PresentationOptions
-): Promise<GenerateOutput['modules']> {
-  switch (module.kind) {
-    case ModuleKind.Foreign:
-      return [await generateForeignModule(module, options)];
-    case ModuleKind.Qwik:
-      return generateQwikModule(module, new SsrModuleEmitter(module, options), options);
-    case ModuleKind.Failed:
-      return [createFailedModule(module.path)];
-    case ModuleKind.ExportsOnly:
-      throw new Error(
-        `pipeline.generateJsSsr: ${module.kind} modules not implemented yet (slice 1): ${module.path}`
-      );
-  }
-}
-
-interface QrlUsage {
-  qrl: LinkedQrl;
-  /** Invoked segments (render expressions) get an in-module mirror registered via `.s()`. */
-  invoked: boolean;
+  return generatePlanModules(plan, options, {
+    name: 'generateJsSsr',
+    environment: Environment.Server,
+    createEmitter: (module) => new SsrModuleEmitter(module, options),
+  });
 }
 
 interface SsrProgramEmission extends ComponentEmission {
@@ -198,26 +159,6 @@ interface SsrRenderOptions {
   fence?: 'r' | 's';
 }
 
-/** Derive keyed rows before emitting branches or standalone chunks. */
-function keyedCollectionRows(module: LinkedModule): ReadonlySet<string> {
-  const rows = new Set<string>();
-  const visit = (ops: readonly LinkedOp[]): void => {
-    for (const op of ops) {
-      if (op.op === OpKind.Element) {
-        visit(op.children);
-      } else if (op.op === OpKind.Each && op.key !== null && op.row.r === RowKind.Chunk) {
-        rows.add(op.row.use.qrl);
-      }
-    }
-  };
-  for (const program of module.programs) {
-    if (program.body.kind === ProgramBodyKind.Ops) {
-      visit(program.body.ops);
-    }
-  }
-  return rows;
-}
-
 class SsrModuleEmitter implements QwikModuleEmitter {
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
@@ -231,7 +172,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   constructor(
     private readonly module: LinkedModule,
     private readonly options: PresentationOptions,
-    private readonly keyedRowQrls = keyedCollectionRows(module),
     private readonly useOnRoots = useOnRootOps(module),
     /** Segments under a Catch or structural `useOn` root keep a first open-tag record. */
     private readonly useOnRootLifetimes = new Set(
@@ -257,33 +197,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.module,
         this.imports,
         (use) => this.useQrl({ names }, use, true).ref,
-        this.chunkImports
+        this.chunkImports,
+        (use) => this.localFunctionReference({ names }, use)
       ),
       names,
-      {
-        isServer: true,
-        localFunction: (use) => this.localFunctionReference({ names }, use),
-        chunkImports: this.chunkImports,
-      }
+      { isServer: true, chunkImports: this.chunkImports }
     );
     this.flushQrlHoists();
     return source;
-  }
-
-  /** A nested component prints inline; every other use is a reference to its chunk. */
-  private inlineComponentOrRef(
-    use: QrlUse,
-    names: GeneratedNames,
-    reference: (use: QrlUse) => string
-  ): string {
-    const { qrl } = this.resolveQrlUse(use, names.props);
-    if (!isInlineComponent(qrl)) {
-      return reference(use);
-    }
-    return inlineComponentText(
-      this.emitProgram(qrl, allocateGeneratedNames(this.module)),
-      allocateGeneratedNames(this.module)
-    );
   }
 
   emitPayload(payload: number, names: GeneratedNames): string {
@@ -296,13 +217,24 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       withMarkerEmitter(
         this.module,
         this.imports,
-        (use) =>
-          this.inlineComponentOrRef(use, names, (use) => this.useQrl({ names }, use, true).ref),
-        this.chunkImports
+        (use) => this.payloadQrl({ names }, use),
+        this.chunkImports,
+        (use) => this.localFunctionReference({ names }, use)
       )
     );
     this.flushQrlHoists();
     return source;
+  }
+
+  /** A QRL in authored code: a nested component prints in place, a lifted one bound. */
+  private payloadQrl(pass: Pick<RenderPass, 'names'>, use: QrlUse): string {
+    return payloadQrlJs(
+      this.module,
+      this.resolveQrlUse(use, pass.names.props).qrl,
+      // One flush per payload: an inline component's uses are decided with the rest.
+      (qrl, names) => this.renderProgram(qrl, names),
+      () => this.useQrl(pass, use, true).ref
+    );
   }
 
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
@@ -348,8 +280,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const emitQrl = withMarkerEmitter(
       this.module,
       this.imports,
-      (use) => this.useQrl(pass, use, true).ref,
-      this.chunkImports
+      (use) => this.payloadQrl(pass, use),
+      this.chunkImports,
+      (use) => this.localFunctionReference({ names }, use)
     );
     pass.statements.push(
       ...emitJsSetup(
@@ -359,11 +292,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         emitQrl,
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
         names,
-        {
-          isServer: true,
-          localFunction: (use) => this.localFunctionReference({ names }, use),
-          chunkImports: this.chunkImports,
-        }
+        { isServer: true, chunkImports: this.chunkImports }
       )
     );
     const setupCount = pass.statements.length;
@@ -435,12 +364,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const lastStep = pass.asyncSteps[pass.asyncSteps.length - 1];
     const stepsToSequence = value === lastStep ? pass.asyncSteps.slice(0, -1) : pass.asyncSteps;
-    if (stepsToSequence.length > 0) {
+    if (stepsToSequence.length === 1) {
       this.imports.add(QwikWord.MaybeThen);
-      value = stepsToSequence.reduceRight(
-        (inner, step) => `${QwikWord.MaybeThen}(${step}, (${step}) => ${inner})`,
-        value
-      );
+      value = `${QwikWord.MaybeThen}(${stepsToSequence[0]}, (${stepsToSequence[0]}) => ${value})`;
+    } else if (stepsToSequence.length > 1) {
+      // One continuation for every step: sync steps skip the promise, async ones await together.
+      const steps = `[${stepsToSequence.join(', ')}]`;
+      this.imports.add(QwikWord.MaybeThen);
+      this.imports.add(QwikWord.PromiseAll);
+      value = `${QwikWord.MaybeThen}(${QwikWord.PromiseAll}(${steps}), (${steps}) => ${value})`;
     }
     let statements = pass.statements;
     if (mayBe(program.facts.waitForTasks)) {
@@ -465,40 +397,25 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** One context-neutral producer per QRL — its `uses` are satisfied by the placement. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
-    if (qrl.ctxName === SegmentContext.SlotContent) {
-      return dynamicSlotEmission(QwikWord.RenderSsrSlotContent);
+    const shared = sharedQrlFunction(this.module, qrl, this.resolveQrlUse, this.options, {
+      slotContent: QwikWord.RenderSsrSlotContent,
+      content: QwikWord.RenderSsrDynamicContent,
+    });
+    if (shared !== null) {
+      return shared;
     }
-    switch (qrl.body.b) {
-      case QrlBodyKind.Alias:
-        return aliasEmission(this.module, qrl.body.binding);
-      case QrlBodyKind.Js:
-      case QrlBodyKind.Expr:
-        return contentFunctionEmission(
-          this.module,
-          qrl,
-          this.resolveQrlUse,
-          QwikWord.RenderSsrDynamicContent,
-          this.options
-        );
-      case QrlBodyKind.Task:
-        throw new UnsupportedError('a task QRL body');
-      case QrlBodyKind.Program:
-        if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr) {
-          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse, this.options);
-        }
-        switch (programKind(qrl)) {
-          case ProgramKind.BranchArm:
-            return this.armEmission(qrl);
-          case ProgramKind.CollectionRow:
-            return this.rowEmission(qrl);
-          case ProgramKind.Content:
-            return this.contentEmission(qrl);
-          case ProgramKind.Projection:
-          case ProgramKind.SlotFallback:
-            return this.slotContentEmission(qrl);
-          case ProgramKind.Component:
-            return this.componentEmission(qrl);
-        }
+    switch (programKind(qrl)) {
+      case ProgramKind.BranchArm:
+        return this.armEmission(qrl);
+      case ProgramKind.CollectionRow:
+        return this.rowEmission(qrl);
+      case ProgramKind.Content:
+        return this.contentEmission(qrl);
+      case ProgramKind.Projection:
+      case ProgramKind.SlotFallback:
+        return this.slotContentEmission(qrl);
+      case ProgramKind.Component:
+        return this.componentEmission(qrl);
     }
   }
 
@@ -519,7 +436,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   private rowEmission(qrl: LinkedQrl): FunctionEmission {
     const ops = this.programOps(qrl);
     const elementRoot = ops.length === 1 && ops[0].op === OpKind.Element;
-    const keyed = this.keyedRowQrls.has(qrl.id);
+    const keyed =
+      qrl.boundary.kind === BoundaryKind.Implicit &&
+      qrl.boundary.role === BoundaryRole.KeyedCollectionRow;
     const { emission, core, names } = this.renderEmission(
       qrl,
       elementRoot
@@ -580,18 +499,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const emitter = new SsrModuleEmitter(
       this.module,
       this.options,
-      this.keyedRowQrls,
       this.useOnRoots,
       this.useOnRootLifetimes
     );
-    const names = {
-      // A component reads its own parameter; other programs read the props they capture.
-      props:
-        programKind(qrl) === ProgramKind.Component
-          ? componentParamName(this.module, qrl)
-          : qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-      ctx: allocateGeneratedNames(this.module).ctx,
-    };
+    const names = programNames(this.module, qrl);
     const core = emitter.renderProgram(qrl, names, options);
     const captures = captureNames(this.module, qrl);
     const emission = emptyFunctionEmission();
@@ -638,15 +549,21 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       if (this.hoistSyncQrl(nested, emission)) {
         continue;
       }
+      // Only invoked uses need the function itself; references stay name-only.
+      const isInvoked = usage.invoked && nested.delivery.d !== DeliveryKind.Stripped;
+      if (isInvoked) {
+        emission.chunkImports.push(
+          `import { ${nested.name} } from ${JSON.stringify(chunkImportSpecifier(this.module, nested, this.options))};`
+        );
+      }
+      if (usage.isMirrorOnly) {
+        continue;
+      }
       const standIn = noopQrlJs(this.module, nested);
       // Registration requests the stand-in helper ahead of the body's own imports.
       emission.imports = new Set([standIn.word, ...emission.imports]);
       emission.hoists.push(`const q_${nested.name} = /*#__PURE__*/ ${standIn.code};`);
-      // Only invoked uses need the function itself; references stay name-only.
-      if (usage.invoked && nested.delivery.d !== DeliveryKind.Stripped) {
-        emission.chunkImports.push(
-          `import { ${nested.name} } from ${JSON.stringify(chunkImportSpecifier(this.module, nested, this.options))};`
-        );
+      if (isInvoked) {
         emission.hoists.push(`q_${nested.name}.s(${nested.name});`);
       }
     }
@@ -848,7 +765,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
 
     let textRangeCount = 0;
-    for (const child of innerHtml === null ? op.children : []) {
+    for (const child of op.children) {
       switch (child.op) {
         case OpKind.Static: {
           pushMergedStatic(children, foldStaticOp(child));
@@ -1023,18 +940,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts: string[]
   ): void {
     const slot = pass.next(QwikGenWord.Slot);
-    let name = op.name === '' ? '' : JSON.stringify(op.name);
-    if (op.nameValue !== undefined) {
-      name = pass.next(QwikGenWord.SlotName);
-      pass.statements.push(`const ${name} = ${inlineValueJs(this.module, op.nameValue)};`);
-    }
+    const name = slotNameJs(this.module, op, pass.next, pass.statements);
     this.imports.add(QwikWord.RenderSsrSlot);
     let fallback = 'undefined';
     let roots: string[] = [];
     if (op.fallback !== null) {
       const { qrl, args } = this.resolveQrlUse(op.fallback, pass.names.props);
-      const reference = this.qrlReference(qrl, true);
-      fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+      fallback = capturedQrlJs(this.qrlReference(qrl, true), args);
       roots = rootArgs(qrl, args);
     }
     const call =
@@ -1187,19 +1099,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Inline row: a function declared in the component; renderId links declaration and call. */
   private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
     // Rendered on THIS emitter: hole QRLs hoist to the module scope the function nests in.
-    const names = {
-      props: QwikGenWord.ComponentProps,
-      ctx: allocateGeneratedNames(this.module).ctx,
-    };
-    const core = this.renderProgramById(row.program, names);
-    const loopParams = this.module.programs[row.program].params
-      .map((binding) => `, ${this.module.bindings[binding].name}`)
-      .join('');
-    const body = [...core.statements, `return ${core.value};`]
-      .map((statement) => `  ${statement}`)
-      .join('\n');
+    const core = this.renderProgramById(row.program, inlineRowNames(this.module));
     pass.statements.push(
-      `function ${row.renderId}(ctx, ${RangeIdParam}, ${RowIdParam}${loopParams}) {\n${body}\n}`
+      inlineRowFunctionJs(this.module, row, `ctx, ${RangeIdParam}, ${RowIdParam}`, core)
     );
     return row.renderId;
   }
@@ -1375,20 +1277,20 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** The server mirrors an invoked segment in-module, so a lifted function binds to that mirror. */
   localFunctionReference(pass: Pick<RenderPass, 'names'>, use: QrlUse): string {
     const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
-    this.qrlReference(qrl, true);
+    this.qrlReference(qrl, true, true);
     return boundReference(qrl.name, args, this.imports);
   }
 
   private useQrl(pass: Pick<RenderPass, 'names'>, use: QrlUse, invoked: boolean) {
     const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
-    let ref = this.qrlReference(qrl, invoked);
-    if (qrl.payloadKind === QrlPayloadKind.Function && args.length > 0) {
-      ref = `${ref}.w([${args.join(', ')}])`;
-      if (invoked) {
-        this.imports.add(QwikWord.Captures);
-      }
+    const ref = this.qrlReference(qrl, invoked);
+    if (qrl.payloadKind !== QrlPayloadKind.Function) {
+      return { qrl, ref, args };
     }
-    return { qrl, ref, args };
+    if (invoked && args.length > 0) {
+      this.imports.add(QwikWord.Captures);
+    }
+    return { qrl, ref: capturedQrlJs(ref, args), args };
   }
 
   /** A sync handler's table entry goes right before its element, so no event can outrun it. */
@@ -1460,25 +1362,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Event: {
-        const values = prop.handlers.filter((handler) => handler.h === HandlerKind.Value);
-        const singleHandler = values.length === 1 ? values[0] : null;
-        const value = singleHandler?.h === HandlerKind.Value ? singleHandler.value : null;
-        if (value?.v === ValueKind.Computed && value.resume.r !== ResumeKind.Inline) {
-          if (value.resume.r !== ResumeKind.Qrl) {
-            throw new UnsupportedError('a non-QRL computed event handler');
-          }
+        const computed = computedEventQrl(prop.handlers);
+        if (computed !== null) {
           if (idVariable === null) {
             throw new Error('pipeline: a dynamic event requires an element id');
           }
-          const { qrl, ref, args } = this.useQrl(pass, value.resume.qrl, true);
-          if (qrl.payloadKind !== QrlPayloadKind.Value) {
-            throw new UnsupportedError('a non-value computed event QRL');
-          }
-          const bindings = prop.handlers.filter((handler) => handler.h === HandlerKind.Bind);
-          const after =
-            bindings.length === 0
-              ? ''
-              : `, [], [${bindings.map((handler) => bindHandlerJs(this.module, handler, this.imports)).join(', ')}]`;
+          const { qrl, ref, args } = this.useQrl(pass, computed, true);
+          const after = boundHandlersJs(this.module, prop.handlers, this.imports);
           const step = pass.next(QwikGenWord.Effect);
           this.imports.add(QwikWord.RenderSsrEvent);
           this.imports.add(QwikWord.CreateSsrMarkup);
@@ -1504,12 +1394,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
-  private qrlReference(qrl: LinkedQrl, invoked = false): string {
+  private qrlReference(qrl: LinkedQrl, invoked = false, isMirrorOnly = false): string {
     const usage = this.usedQrls.get(qrl.id);
     if (usage === undefined) {
-      this.usedQrls.set(qrl.id, { qrl, invoked });
+      this.usedQrls.set(qrl.id, { qrl, invoked, isMirrorOnly });
     } else {
-      usage.invoked = usage.invoked || invoked;
+      usage.invoked ||= invoked;
+      usage.isMirrorOnly &&= isMirrorOnly;
     }
     return `q_${qrl.name}`;
   }
@@ -1530,7 +1421,41 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return true;
   }
 
+  /** A registered boundary is called over RPC, never during render: always mirror it. */
+  private isMirrored({ qrl, invoked }: QrlUsage): boolean {
+    return (
+      (invoked || qrl.delivery.d === DeliveryKind.Register) &&
+      qrl.delivery.d !== DeliveryKind.Stripped &&
+      qrl.boundary.kind !== BoundaryKind.Sync &&
+      !isInlineComponent(qrl)
+    );
+  }
+
+  /**
+   * Mirrors register their own uses first, which may still flip an earlier entry to invoked or
+   * QRL-used; only the settled flags print.
+   */
   private flushQrlHoists(): void {
+    const mirrors = new Map<string, FunctionEmission>();
+    let isSettled = false;
+    while (!isSettled) {
+      isSettled = true;
+      for (const usage of this.usedQrls.values()) {
+        if (!this.isMirrored(usage) || mirrors.has(usage.qrl.id)) {
+          continue;
+        }
+        isSettled = false;
+        const emission = this.qrlFunction(usage.qrl);
+        mirrors.set(usage.qrl.id, emission);
+        for (const use of emission.uses) {
+          this.qrlReference(use.qrl, use.invoked, use.isMirrorOnly);
+        }
+        // Its prelude and its body bind lifted locals by name, so those mirror here too.
+        for (const use of boundLiftedLocals(this.module, usage.qrl)) {
+          this.qrlReference(this.resolveQrlUse(use, QwikGenWord.ComponentProps).qrl, true, true);
+        }
+      }
+    }
     for (const usage of this.usedQrls.values()) {
       const { qrl } = usage;
       if (this.hoistSyncQrl(qrl, this)) {
@@ -1540,12 +1465,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       if (isInlineComponent(qrl)) {
         continue;
       }
-      // A registered boundary is called over RPC, never during render: always mirror it.
-      // A stripped one keeps only its symbol — this environment must not be able to run it.
-      const registered = qrl.delivery.d === DeliveryKind.Register;
-      if ((usage.invoked || registered) && qrl.delivery.d !== DeliveryKind.Stripped) {
+      // A stripped boundary keeps only its symbol — this environment must not be able to run it.
+      const emission = mirrors.get(qrl.id);
+      if (emission !== undefined) {
         // The server invokes render expressions in-module: mirror fn + `.s()` registration.
-        const emission = this.qrlFunction(qrl);
+        const registered = qrl.delivery.d === DeliveryKind.Register;
         for (const binding of qrl.dependencies.bindings) {
           requestBindingImport(this.module, binding, this.imports);
           this.mirroredBindings.add(binding);
@@ -1560,15 +1484,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             this.chunkImports.push(line);
           }
         }
-        // The mirror's uses land on the outer module — this very flush registers them next.
-        for (const use of emission.uses) {
-          const existing = this.usedQrls.get(use.qrl.id);
-          if (existing === undefined) {
-            this.usedQrls.set(use.qrl.id, use);
-          } else {
-            existing.invoked = existing.invoked || use.invoked;
-          }
-        }
         if (registered) {
           this.imports.add(QwikWord.RegSymbol);
         }
@@ -1576,14 +1491,25 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           ? `/*#__PURE__*/ ${QwikWord.RegSymbol}(${functionText(emission)}, ${JSON.stringify(getSegmentSymbolHash(qrl.name))})`
           : functionText(emission);
         this.hoists.push(`const ${qrl.name} = ${mirror};`);
-        this.hoistNoopQrl(qrl);
-        this.hoists.push(`q_${qrl.name}.s(${qrl.name});`);
+        if (!usage.isMirrorOnly) {
+          this.hoistNoopQrl(qrl);
+          this.hoists.push(`q_${qrl.name}.s(${qrl.name});`);
+        }
       } else {
         this.hoistNoopQrl(qrl);
       }
     }
     this.usedQrls.clear();
   }
+}
+
+/** The lifted locals a QRL rebinds in its prelude or declares in its body. */
+function boundLiftedLocals(module: LinkedModule, qrl: LinkedQrl): QrlUse[] {
+  const declared =
+    qrl.body.b === QrlBodyKind.Js
+      ? module.payloads[qrl.body.payload].qrls.filter(({ local }) => local !== undefined)
+      : [];
+  return [...(qrl.functions ?? []), ...declared].map(({ use }) => use);
 }
 
 function pushMergedStatic(parts: string[], text: string): void {
@@ -1604,15 +1530,7 @@ function isInlineHole(op: Extract<LinkedOp, { op: OpKind.Hole }>): boolean {
 }
 
 function isDynamicEvent(prop: Prop): boolean {
-  return (
-    prop.k === PropKind.Event &&
-    prop.handlers.some(
-      (handler) =>
-        handler.h === HandlerKind.Value &&
-        handler.value.v === ValueKind.Computed &&
-        !isInlineValue(handler.value)
-    )
-  );
+  return prop.k === PropKind.Event && computedEventQrl(prop.handlers) !== null;
 }
 
 /** The runtime inserts scripts and styles around these tags, so they render as anchors. */

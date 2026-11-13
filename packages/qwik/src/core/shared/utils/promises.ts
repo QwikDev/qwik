@@ -1,5 +1,6 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import type { ValueOrPromise } from './types';
+import { qError, QError } from '../error/error';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
@@ -111,7 +112,7 @@ export function retryOnPromise<T>(
       } catch (err) {
         if (isPromise<void>(err)) {
           if (!--retryCount) {
-            p = new Error('Exceeded max retry count in retryOnPromise');
+            p = qError(QError.maxRetryExceeded);
             break;
           } else {
             p = err;
@@ -213,7 +214,7 @@ export function retryAfterPromise<T>(
     return throwRetryError(error);
   }
   if (remaining === 0) {
-    throw new Error('Exceeded max retry count in retryOnPromise');
+    throw qError(QError.maxRetryExceeded);
   }
   return thenInLifetime(
     lifetime,

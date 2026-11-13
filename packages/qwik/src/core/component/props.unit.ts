@@ -5,13 +5,10 @@ import {
   _props,
   allocatePropsProxy,
   createPropsProxy,
-  getMemberSource,
-  getPropSource,
   getPropsSources,
   PropSource,
   propSource,
 } from './props';
-import { getStoreSource, useStore } from '../reactive/store';
 import { createQRL } from '../shared/qrl/qrl-class';
 import { readTrackedValue } from '../dom/effect/text-effect';
 
@@ -67,23 +64,6 @@ describe('component props', () => {
 
     // an undefined entry means the caller passed a static value: snapshot path
     expect(getPropsSources(props)).toEqual({ id });
-    expect(getPropSource(props, 'id')).toBe(id);
-    expect(getPropSource(props, 'label')).toBeUndefined();
-    expect(getPropSource({}, 'id')).toBeUndefined();
-  });
-
-  it('resolves member sources by what the slot actually holds', () => {
-    const signal = useSignal(0);
-    const store = useStore({ foo: 10, signal });
-
-    // a store target yields its slot source, whatever the slot holds
-    expect(getMemberSource(store, 'foo')).toBe(getStoreSource(store, 'foo'));
-    // a signal target yields itself for .value reads only
-    expect(getMemberSource(signal, 'value')).toBe(signal);
-    expect(getMemberSource(signal, 'other')).toBeUndefined();
-    // plain data has no source: the snapshot path is correct
-    expect(getMemberSource({ value: 1 }, 'value')).toBeUndefined();
-    expect(getMemberSource(undefined, 'value')).toBeUndefined();
   });
 
   it('reads and tracks the current props source', () => {
@@ -99,6 +79,26 @@ describe('component props', () => {
 
     expect(count.value).toBe(2);
     expect(props.value).toBe('next value');
+  });
+
+  it('keeps reading its source after props named like its internals are written or deleted', () => {
+    const source = useSignal({ source: 'prop', excluded: 'prop' });
+    const props = createPropsProxy(source) as Record<string, unknown>;
+    const rest = createPropsProxy(props, ['excluded']) as Record<string, unknown>;
+
+    props.source = 'written';
+    delete props.excluded;
+    rest.source = 'written';
+    Object.defineProperty(rest, 'excluded', { value: 'defined' });
+
+    expect([props.source, props.excluded, rest.source, rest.excluded]).toEqual([
+      'prop',
+      'prop',
+      'prop',
+      undefined,
+    ]);
+    source.value = { source: 'next', excluded: 'next' };
+    expect([props.source, rest.source]).toEqual(['next', 'next']);
   });
 
   it('is never a thenable, so resolving it as a state root never reads its source', async () => {

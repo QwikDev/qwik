@@ -15,6 +15,7 @@ import {
   ResultKind,
   type Result,
   BoundaryKind,
+  BoundaryRole,
   CaptureAccess,
   EachSourceKind,
   ExprKind,
@@ -209,7 +210,6 @@ function lowerEach(
     setup: [],
     params: paramBindings,
     lifetime,
-    needsId: false,
     async: false,
   });
   // A static array's row renders inline in the component: lexical scope, no key, no chunk.
@@ -261,7 +261,10 @@ function lowerEach(
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.ForRender },
       ctxName: SegmentContext.ForRender,
-      boundary: { kind: BoundaryKind.Implicit, role: 'for' },
+      boundary: {
+        kind: BoundaryKind.Implicit,
+        role: hasRowKey(body, ctx) ? BoundaryRole.KeyedCollectionRow : BoundaryRole.CollectionRow,
+      },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
@@ -369,7 +372,7 @@ function promoteRowEventParams(
         if (
           position === -1 ||
           qrl.boundary.kind !== BoundaryKind.Implicit ||
-          qrl.boundary.role !== 'event' ||
+          qrl.boundary.role !== BoundaryRole.Event ||
           qrl.params.hasRest ||
           (qrl.body.b !== QrlBodyKind.Js && qrl.body.b !== QrlBodyKind.Expr) ||
           (qrl.body.b === QrlBodyKind.Js && qrl.body.functionName !== undefined) ||
@@ -477,10 +480,16 @@ function isLiteralTree(node: Expression | null | undefined): boolean {
   }
 }
 
+/** A literal array source renders its rows inline, in the component's lexical scope. */
+export function isLiteralArray(node: Expression): boolean {
+  const unwrapped = unwrapExpression(node);
+  return unwrapped?.type === 'ArrayExpression' && isLiteralTree(unwrapped);
+}
+
 /** Literal arrays render inline; other expressions become direct or derived Sources. */
 function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; value: Value } {
   const unwrapped = unwrapExpression(node);
-  if (unwrapped?.type === 'ArrayExpression' && isLiteralTree(unwrapped)) {
+  if (isLiteralArray(unwrapped)) {
     const payload = pushPayload(ctx, [unwrapped.start, unwrapped.end]);
     return {
       s: EachSourceKind.Array,
@@ -488,7 +497,6 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
         v: ValueKind.Computed,
         expr: { kind: ExprKind.Js, payload },
         resume: { r: ResumeKind.Inline },
-        compilerString: false,
       },
     };
   }
@@ -526,7 +534,8 @@ function deriveIndexMode(
     ) {
       continue;
     }
-    const escapes = qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'event';
+    const escapes =
+      qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === BoundaryRole.Event;
     if (escapes) {
       return IndexMode.Escapes;
     }
@@ -557,7 +566,6 @@ function lowerRowProgram(
       // Inline params are plain iteration values — the index is a number, not a signal.
       kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
       access: !lexical && position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
-      slot: -1,
       binding,
     });
   });
@@ -566,7 +574,6 @@ function lowerRowProgram(
     rowLocals.set(binding, {
       kind: LocalKind.PropMember,
       access: CaptureAccess.LoopValue,
-      slot: -1,
       binding: base,
       read: memberReadIr(base, member),
     });
@@ -622,7 +629,6 @@ function lowerParameterPatterns(
           },
         },
         resume: { r: ResumeKind.Inline },
-        compilerString: false,
       },
       ctx,
       locals
@@ -668,7 +674,7 @@ function lowerKey(
       }
     });
   }
-  const { captures, args, refs } = lowerCaptures(
+  const { captures, functions, args, refs } = lowerCaptures(
     [...keyPatterns.values(), ...declarations, ...expressions],
     ctx,
     'a collection key',
@@ -684,11 +690,12 @@ function lowerKey(
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.ForKey },
       ctxName: SegmentContext.ForKey,
-      boundary: { kind: BoundaryKind.Implicit, role: 'for' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.CollectionKey },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: keyBody,
       captures,
+      functions,
       params: { authored: callback.params.length, used: [], sources: [] },
       origin: {
         range,
@@ -707,13 +714,18 @@ function lowerKey(
   return { v: ValueKind.Qrl, use };
 }
 
-function selectRowKey(value: JsxValue, sources: Map<Node, Expression>): JsxValue | null {
+function hasRowKey(row: Expression, ctx: LowerContext): boolean {
+  const keyed = selectRowKey(ctx.jsx.read(row), new Map());
+  return keyed !== null && keyed.kind !== JsxValueKind.Empty;
+}
+
+export function selectRowKey(value: JsxValue, keys: Map<Node, Expression>): JsxValue | null {
   if (value.kind === JsxValueKind.Conditional) {
-    sources.set(value.node, value.node.test);
-    const then = selectRowKey(value.then, sources);
-    const otherwise = selectRowKey(value.else, sources);
+    keys.set(value.node, value.node.test);
+    const then = selectRowKey(value.then, keys);
+    const otherwise = selectRowKey(value.else, keys);
     if (then?.kind === JsxValueKind.Empty || otherwise?.kind === JsxValueKind.Empty) {
-      sources.delete(value.node);
+      keys.delete(value.node);
       return then?.kind === JsxValueKind.Empty ? otherwise : then;
     }
     if ((then === null) !== (otherwise === null)) {
@@ -727,7 +739,7 @@ function selectRowKey(value: JsxValue, sources: Map<Node, Expression>): JsxValue
       : { ...value, then, else: otherwise };
   }
   if (value.kind === JsxValueKind.Logical && value.node.operator === '&&') {
-    return selectRowKey(value.right, sources);
+    return selectRowKey(value.right, keys);
   }
   if (value.kind === JsxValueKind.Empty) {
     return value;
@@ -736,7 +748,7 @@ function selectRowKey(value: JsxValue, sources: Map<Node, Expression>): JsxValue
   if (key === null) {
     return null;
   }
-  sources.set(value.node, key);
+  keys.set(value.node, key);
   return value;
 }
 
@@ -782,7 +794,7 @@ function lowerKeyBody(
   ctx: LowerContext
 ): Qrl['body'] {
   if (paramPatterns.size === 0 && declarations.length === 0) {
-    return { b: QrlBodyKind.Expr, expr, initialOnly: false };
+    return { b: QrlBodyKind.Expr, expr };
   }
   const outerLocals = ctx.locals;
   const keyLocals = new Map(outerLocals);
@@ -793,7 +805,6 @@ function lowerKeyBody(
         kind: LocalKind.LoopValue,
         access: CaptureAccess.LoopValue,
         binding,
-        slot: -1,
       });
     }
     const setup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, keyLocals);
@@ -806,7 +817,6 @@ function lowerKeyBody(
       setup,
       params: paramBindings,
       lifetime: 0,
-      needsId: false,
       async: false,
     });
     return { b: QrlBodyKind.Program, program };

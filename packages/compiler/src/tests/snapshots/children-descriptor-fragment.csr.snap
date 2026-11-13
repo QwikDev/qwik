@@ -60,7 +60,7 @@ import {
   _next,
   qrl,
   createContentBlock,
-  maybeThen,
+  _replaceMarker,
   createSlot,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -86,7 +86,7 @@ export function List_component_3heyy58kmhk1z(props, ctx) {
   );
   ctx.scheduler.notify(content0);
   const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

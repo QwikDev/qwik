@@ -1,0 +1,125 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Inner = component$(() => <b>inner</b>);
+  const Outer = component$(() => <p><Inner /></p>);
+  return render(<Outer />);
+}
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
+  'component_jsx_segment_2_38vniss1y6gb4'
+);
+import { qrl } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  return render(q_component_jsx_segment_2_38vniss1y6gb4);
+}
+============================= src/component.tsx_component_Inner_segment_0_1pktuuxfq3epv.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_Inner_segment_0_1pktuuxfq3epv_tmpl0 = _createElementTemplate('<b>inner</b>');
+
+export const component_Inner_segment_0_1pktuuxfq3epv = (props, ctx) => {
+  const el0 = component_Inner_segment_0_1pktuuxfq3epv_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Inner_segment_0_1pktuuxfq3epv",
+  "entry": null,
+  "displayName": "component_Inner_segment_0",
+  "hash": "1pktuuxfq3epv",
+  "canonicalFilename": "component.tsx_component_Inner_segment_0_1pktuuxfq3epv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Inner",
+  "captures": false,
+  "loc": [
+    127,
+    157
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_Outer_segment_1_2welf3wg17h9f.js (ENTRY POINT)==
+
+import {
+  _first,
+  createDynamicTag,
+  createComponent,
+  _replaceMarker,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_Inner_segment_0_1pktuuxfq3epv } from './component.tsx_component_Inner_segment_0_1pktuuxfq3epv';
+const component_Outer_segment_1_2welf3wg17h9f_tmpl0 = _createElementTemplate('<p><!></p>');
+
+export const component_Outer_segment_1_2welf3wg17h9f = (props, ctx) => {
+  const Inner = component_Inner_segment_0_1pktuuxfq3epv;
+  const el0 = component_Outer_segment_1_2welf3wg17h9f_tmpl0(ctx.document);
+  const component0 = createComponent((props0) => createDynamicTag(Inner, props0, ctx), null, ctx);
+  const marker0 = _first(el0);
+  _replaceMarker(marker0, component0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Outer_segment_1_2welf3wg17h9f",
+  "entry": null,
+  "displayName": "component_Outer_segment_1",
+  "hash": "2welf3wg17h9f",
+  "canonicalFilename": "component.tsx_component_Outer_segment_1_2welf3wg17h9f",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Outer",
+  "captures": false,
+  "loc": [
+    175,
+    209
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+
+import { createDynamicTag, createComponent } from '@qwik.dev/core';
+import { component_Outer_segment_1_2welf3wg17h9f } from './component.tsx_component_Outer_segment_1_2welf3wg17h9f';
+
+export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const Outer = component_Outer_segment_1_2welf3wg17h9f;
+  const component0 = createComponent((props0) => createDynamicTag(Outer, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "entry": null,
+  "displayName": "component_jsx_segment_2",
+  "hash": "38vniss1y6gb4",
+  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    227,
+    236
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

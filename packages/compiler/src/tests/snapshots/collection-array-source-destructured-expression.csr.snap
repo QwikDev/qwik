@@ -56,8 +56,7 @@ import {
   createCollection,
   patchAttrValue,
   createComponent,
-  _toNodes,
-  maybeThen,
+  _replaceMarker,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Item_component_33lzeq7ebrquo as Item } from './component.tsx_Item_component_33lzeq7ebrquo';
@@ -74,7 +73,7 @@ export function default_component_3rg6kq1so9aio(props0, ctx) {
     patchAttrValue(el0, 'id', `row-${item.kind}`);
     const component0 = createComponent(Item, { href: `/list/${item.search}` }, ctx);
     const marker0 = _first(el0);
-    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+    _replaceMarker(marker0, component0);
     return el0;
   }
   createCollection(

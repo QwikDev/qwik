@@ -17,15 +17,15 @@ export { Panel };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Panel_component_5q1hs6sb6j5z.js (ENTRY POINT)==
 
-import { _first, _last, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _last, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Panel_tmpl0 = _createElementTemplate('<main><!><!></main>');
 
 export function Panel_component_5q1hs6sb6j5z(props, ctx) {
   const el0 = Panel_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const marker1 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker1.replaceWith(...slot0)));
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
+  ctx.scheduler.waitFor(_replaceMarker(marker1, createSlot('header')));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*
@@ -50,14 +50,17 @@ export function Panel_component_5q1hs6sb6j5z(props, ctx) {
 */
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _first, _next, createTemplate, createCollection, _textValue } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
+import {
+  _createRangeMarkers,
+  createCollection,
+  _first,
+  _textValue,
+  createTemplate,
+} from '@qwik.dev/core';
 const semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0 = createTemplate('<h2> </h2><b>!</b>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, item) {
     const fragment0 = semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0(ctx.document);
     _first(_first(fragment0)).data = _textValue(item.title);
@@ -65,8 +68,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   }
   createCollection(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [
       {
         title: 'Title',
@@ -79,7 +82,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
     2,
     true
   );
-  return [...fragment0.childNodes];
+  return [...range0[0].parentNode.childNodes];
 };
 /*
 {
@@ -104,20 +107,16 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import {
-  _first,
-  _next,
-  createTemplate,
+  _createRangeMarkers,
   createCollection,
+  _first,
   _textValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
-const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<!><!>');
 const semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
-  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, item) {
     const el0 = semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0(ctx.document);
     _first(el0).data = _textValue(item.description);
@@ -125,8 +124,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   }
   createCollection(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [
       {
         title: 'Title',
@@ -139,7 +138,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
     0,
     true
   );
-  return [...fragment0.childNodes];
+  return [...range0[0].parentNode.childNodes];
 };
 /*
 {

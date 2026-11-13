@@ -11,12 +11,14 @@ import {
   type CallTarget,
   type DeclRef,
   type HookTwin,
+  type LinkedImport,
   type LinkedModule,
+  type LocalId,
   type Maybe,
   type ModulePlan,
   type Setup,
 } from '../schema';
-import { QRL_TWIN_SUFFIX, QWIK_CORE_IMPORT, QwikWord } from '../words';
+import { QRL_TWIN_SUFFIX } from '../words';
 import type { LinkDiagnostic } from './link-plans';
 
 type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
@@ -25,11 +27,15 @@ type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
  * Resolves each custom `$` hook's twins from the hook's own source, adding imports the module
  * lacks.
  */
-export function linkHookTwins(module: LinkedModule, diagnostics: LinkDiagnostic[]): void {
+export function linkHookTwins(
+  module: LinkedModule,
+  importsByBinding: ReadonlyMap<LocalId, LinkedImport>,
+  diagnostics: LinkDiagnostic[]
+): void {
   const taken = new Set(module.bindings.map((binding) => binding.name));
   const added = new Map<string, HookTwin>();
   const resolve = (binding: number, twin: string): HookTwin | null => {
-    const source = module.imports.find((entry) => entry.source.binding === binding)?.source;
+    const source = importsByBinding.get(binding)?.source;
     if (source === undefined) {
       const exported = module.exports.find(
         (entry) => entry.e === ExportKind.Local && entry.exported === twin
@@ -103,12 +109,6 @@ export function linkHookTwins(module: LinkedModule, diagnostics: LinkDiagnostic[
   }));
 }
 
-const useOnHooks: readonly string[] = [
-  QwikWord.UseOn,
-  QwikWord.UseOnDocument,
-  QwikWord.UseOnWindow,
-];
-
 type SetupCall = Extract<Setup, { s: SetupKind.Call }>;
 
 export interface SetupFacts {
@@ -126,11 +126,6 @@ export function createSetupFacts(
   plans: readonly ModulePlan[],
   resolveBinding: (module: number, binding: number) => Maybe<DeclRef>
 ): (module: number, setup: readonly Setup[]) => SetupFacts {
-  const isCoreBinding = (module: number, binding: number): boolean =>
-    plans[module].imports.some(
-      (entry) =>
-        entry.binding === binding && plans[module].edges[entry.edge].specifier === QWIK_CORE_IMPORT
-    );
   const fact = (direct: (module: number, call: SetupCall) => boolean) => {
     const visiting = new Set<string>();
     const walk = (module: number, setup: readonly Setup[]): Maybe<boolean> => {
@@ -186,11 +181,7 @@ export function createSetupFacts(
     return walk;
   };
   const registersEvents = fact(
-    (module, call) =>
-      call.visibleTaskEvent !== undefined ||
-      (call.target.kind === CallTargetKind.Binding &&
-        isCoreBinding(module, call.target.binding) &&
-        useOnHooks.includes(plans[module].bindings[call.target.binding].name))
+    (_module, call) => call.visibleTaskEvent !== undefined || call.registersEvents === true
   );
   const waitForTasks = fact(
     (_module, call) => call.target.kind === CallTargetKind.Core && call.blocksInitialRender === true

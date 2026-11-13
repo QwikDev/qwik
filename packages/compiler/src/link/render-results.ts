@@ -138,8 +138,8 @@ export function linkRenderResults(
       }
     }
     module.qrls.forEach((qrl, index) => {
-      const parameter = qrl.declaration?.parameter;
-      if (parameter?.surface.binding == null) {
+      const parameter = qrl.parameter;
+      if (qrl.declaration === undefined || parameter?.surface.binding == null) {
         return;
       }
       componentProps.set(`${moduleIndex}:${DeclTable.Qrls}:${index}`, parameter.surface.binding);
@@ -209,7 +209,7 @@ export function linkRenderResults(
           if (binding !== undefined) {
             inputs.get(bindingKey(target.module, binding))!.push({
               module,
-              result: propsResult(modules[module], op),
+              result: propsResult(modules[module], qrlIndexes[module], op),
             });
           }
           if (target.table === DeclTable.Qrls) {
@@ -1003,7 +1003,7 @@ export function linkRenderResults(
     if (op.op !== OpKind.Hole) {
       return op;
     }
-    const kinds = op.stringify
+    const kinds = op.isAlwaysText
       ? Kind.Text
       : evaluate(module, valueResult(modules[module], op.value));
     const shape =
@@ -1066,11 +1066,11 @@ function valueResult(module: LinkedModule, value: Value): Result {
 
 function propsResult(
   module: LinkedModule,
+  qrlIndex: ReadonlyMap<string, number>,
   op: Extract<LinkedOp, { op: OpKind.Component }>
 ): Result {
   if (op.props.c === ComponentPropsKind.Proxy) {
-    const id = op.props.compute.qrl;
-    const qrl = module.qrls.find((qrl) => qrl.id === id)!;
+    const qrl = module.qrls[qrlIndex.get(op.props.compute.qrl)!];
     return {
       kind: ResultKind.Spread,
       parts: qrl.propsParts.map((part) => {

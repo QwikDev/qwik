@@ -22,7 +22,6 @@ export { Level };
 import {
   _first,
   _next,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
@@ -45,7 +44,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [item]),
     q_component_branch_then_segment_2_24n7b7xmnzb3n.w([item]),
     q_component_branch_else_segment_4_19dvrvh6znjhf

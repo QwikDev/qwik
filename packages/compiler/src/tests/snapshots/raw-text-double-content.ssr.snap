@@ -7,16 +7,67 @@ export default (props: { a: string; b: string }) => (
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  propSource,
+  isSource,
+  renderSsrAttr,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'a');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', prop0);
+  return maybeThen(attr0, (attr0) => [
+    '<style q:id="',
+    createSsrNodeId(id0),
+    '">',
+    attr0 ?? '',
+    '</style>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    115
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 [
   {
     "scope": "compiler",
-    "category": "error",
-    "code": "raw-text-content",
+    "category": "warning",
+    "code": "inner-html-children",
     "file": "src/component.tsx",
-    "message": "<style> takes its content once: drop dangerouslySetInnerHTML or the children.",
+    "message": "<style> renders its dangerouslySetInnerHTML, so its children are ignored.",
     "highlights": [
       {
         "lo": 56,

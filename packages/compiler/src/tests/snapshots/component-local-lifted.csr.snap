@@ -171,15 +171,13 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 
 import {
   useSignal,
-  _withCaptures,
   _first,
   _next,
-  BranchRange,
   createBranch,
+  _withCaptures,
   qrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
-import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
@@ -189,15 +187,13 @@ const Footer_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 
 export function Footer_component_d3m2s4mpch0k(props0, ctx) {
   const n = useSignal(0);
-  function Filter() {
-    return _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]).apply(this, arguments);
-  }
   const el0 = Footer_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [n]),
     q_component_branch_then_segment_3_24n7atwir5934.w([n]),
     undefined

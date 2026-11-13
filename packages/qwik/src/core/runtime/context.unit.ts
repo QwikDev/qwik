@@ -164,7 +164,7 @@ describe('context runtime', () => {
     const contextId = createTestContextId<string>('context-branch');
     const visible = useSignal(true);
     const branchNode = createNode('branch');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const invokeContext = newInvokeContext();
     let branchContext!: RuntimeInvokeContext;
     let branchValue = '';
@@ -172,8 +172,9 @@ describe('context runtime', () => {
     const branch = invoke(invokeContext, () => {
       useContextProvider(contextId, 'branch-value');
       return createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => visible.value,
         () => {
           createComponent(() => {

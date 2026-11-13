@@ -91,7 +91,6 @@ import {
   _prev,
   propSource,
   createTextNodeEffect,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
@@ -117,7 +116,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [isOpen]),
     q_component_branch_then_segment_1_24n7blyqktd46,
     undefined

@@ -18,13 +18,13 @@ import { default_component_3rg6kq1so9aio } from './component.tsx_default_compone
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Link_component_3fobl8j4gp0c3.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Link_tmpl0 = _createElementTemplate('<a><!></a>');
 
 export function Link_component_3fobl8j4gp0c3(props0, ctx) {
   const el0 = Link_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*
@@ -162,7 +162,6 @@ import {
   qrl,
   createComponent,
 } from '@qwik.dev/core';
-import { component_Label_segment_1_2vosupxtbn33m } from './component.tsx_component_Label_segment_1_2vosupxtbn33m';
 import { Link_component_3fobl8j4gp0c3 as Link } from './component.tsx_Link_component_3fobl8j4gp0c3';
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
@@ -171,7 +170,6 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ qrl(
 
 export function default_component_3rg6kq1so9aio(props0, ctx) {
   const on = useSignal(false);
-  const Label = component_Label_segment_1_2vosupxtbn33m;
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([on]));
   const component0 = createComponent(Link, null, ctx, { slotScope: slotScope0 });

@@ -1,0 +1,188 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$((props: { attrs: Record<string, string> }) => {
+  const count = useSignal(0);
+  return (
+    <section>
+      <p {...props.attrs}>
+        <b onClick$={() => count.value++}>{count.value}</b>
+        <Card />
+      </p>
+      <hr {...props.attrs} />
+    </section>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+import { Card } from './card';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+export const component_props_segment_0_208o16glymg7p = (props) => {
+  return { ...props.attrs };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    223,
+    241
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    254,
+    284
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+export const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return { ...props.attrs };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    338,
+    357
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  _first,
+  _last,
+  createPropsEffect,
+  setEvent,
+  qrl,
+  createTextNodeEffect,
+  createComponent,
+  _replaceMarker,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
+import { Card } from './card';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const default_tmpl0 = _createElementTemplate('<section><p><b> </b><!></p><hr></section>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const el2 = _first(el1);
+  setEvent(el2, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]));
+  const text0 = _first(el2);
+  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  const component0 = createComponent(Card, null, ctx);
+  const marker0 = _last(el1);
+  _replaceMarker(marker0, component0);
+  const effect0 = createPropsEffect(
+    el1,
+    [props],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect0);
+  const el3 = _last(el0);
+  const effect2 = createPropsEffect(
+    el3,
+    [props],
+    component_props_segment_2_208o0eee4yc6n,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect2);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    87,
+    384
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,155 @@
+==INPUT==
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+import { render } from './render';
+export function show() {
+  const label = useSignal('x');
+  const Cmp = component$(() => <a>{label.value}</a>);
+  return render(component$(() => <button onClick$={$(Cmp)}>b</button>), Cmp);
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_Cmp_segment_1_bwgkxp2c60y4 = (props, ctx) => {
+  const [label] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [label],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<a q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</a>',
+  ]);
+};
+const q_component_Cmp_segment_1_bwgkxp2c60y4 = /*#__PURE__*/ _noopQrl(
+  'component_Cmp_segment_1_bwgkxp2c60y4'
+);
+q_component_Cmp_segment_1_bwgkxp2c60y4.s(component_Cmp_segment_1_bwgkxp2c60y4);
+const component_text_segment_0_1fh10fbkzokfc = (label) => {
+  return label.value;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+import {
+  _withCaptures,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  useSignal,
+} from '@qwik.dev/core';
+import { render } from './render';
+export function show() {
+  const label = useSignal('x');
+  const Cmp = function () {
+    return _withCaptures(component_Cmp_segment_1_bwgkxp2c60y4, [label]).apply(this, arguments);
+  };
+  return render((props, ctx) => {
+    return [
+      '<button',
+      ctx.eventAttrParts('q-e:click', q_component_Cmp_segment_1_bwgkxp2c60y4.w([label])),
+      '>b</button>',
+    ];
+  }, Cmp);
+}
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (label) => {
+  return label.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    186,
+    197
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_Cmp_segment_1_bwgkxp2c60y4.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+
+export const component_Cmp_segment_1_bwgkxp2c60y4 = (props, ctx) => {
+  const [label] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [label],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<a q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</a>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Cmp_segment_1_bwgkxp2c60y4",
+  "entry": null,
+  "displayName": "component_Cmp_segment_1",
+  "hash": "bwgkxp2c60y4",
+  "canonicalFilename": "component.tsx_component_Cmp_segment_1_bwgkxp2c60y4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Cmp",
+  "captures": true,
+  "loc": [
+    165,
+    203
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

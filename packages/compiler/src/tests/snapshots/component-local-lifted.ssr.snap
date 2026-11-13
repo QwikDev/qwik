@@ -136,18 +136,8 @@ export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
 */
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _capturesObj,
-  renderSsrDynamicTag,
-  createComponent,
-  _withCaptures,
-} from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicTag, createComponent, _withCaptures } from '@qwik.dev/core';
 import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
-const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
-  'component_Filter_segment_2_2k94mv8ai8l03'
-);
-q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [n] = _capturesObj._;
@@ -184,40 +174,20 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 
 import {
   useSignal,
-  _withCaptures,
   _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
+  _noopQrl,
+  renderSsrDynamicTag,
+  createComponent,
+  _withCaptures,
   escapeHTML,
   propSource,
   isSource,
   renderSsrTextNode,
   maybeThen,
-  _noopQrl,
-  renderSsrDynamicTag,
-  createComponent,
   _markComponent,
 } from '@qwik.dev/core';
-const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
-  const [n] = _capturesObj._;
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'filter');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<li q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([n])),
-    '>',
-    escapeHTML(text0),
-    '</li>',
-  ]);
-};
-const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
-  'component_Filter_segment_2_2k94mv8ai8l03'
-);
-q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [n] = _capturesObj._;
   return n.value > 0;
@@ -240,6 +210,22 @@ const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_3_24n7atwir5934'
 );
 q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
+  const [n] = _capturesObj._;
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'filter');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([n])),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
@@ -248,9 +234,6 @@ _markComponent(Footer_component_d3m2s4mpch0k, q_Footer_component_d3m2s4mpch0k);
 
 export function Footer_component_d3m2s4mpch0k(props0, ctx) {
   const n = useSignal(0);
-  function Filter() {
-    return _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]).apply(this, arguments);
-  }
   const branchId0 = ctx.nextId();
   ctx.addRoot(n);
   const branch0 = ctx.observeError(

@@ -2,6 +2,7 @@
 import type { Expression, JSXChild, JSXElement, Node } from 'oxc-parser';
 import {
   BoundaryKind,
+  BoundaryRole,
   ExprKind,
   FnBodyKind,
   LifetimeCommit,
@@ -26,7 +27,7 @@ export function lowerRenderQrl(
   ctx: LowerContext,
   subject: string,
   nameCtx: SegmentContext,
-  role: string,
+  role: BoundaryRole,
   lowerBody: (ctx: LowerContext) => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
@@ -37,7 +38,6 @@ export function lowerRenderQrl(
     setup: [],
     params: [],
     lifetime: 0,
-    needsId: false,
     async: false,
   });
   const { use } = pushQrl(
@@ -117,7 +117,6 @@ export function lowerRangeProgram(
     setup: [],
     params: [],
     lifetime,
-    needsId: false,
     async: false,
   });
   const { use } = pushQrl(
@@ -125,7 +124,7 @@ export function lowerRangeProgram(
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx },
       ctxName: nameCtx,
-      boundary: { kind: BoundaryKind.Implicit, role: nameCtx },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.RangeContent },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
@@ -167,7 +166,7 @@ export function lowerCatchFallback(expression: Expression, ctx: LowerContext): Q
       nameCtx: 'catch:callback',
       subject: 'a catch fallback',
       ctxName: 'fallback$',
-      boundary: { kind: BoundaryKind.Implicit, role: 'callback' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Callback },
       origin: { range, calleeRange: null, argumentRanges: [] },
     });
     ctx.plan.payloads[payload].qrls.push({ range, use });
@@ -179,10 +178,10 @@ export function lowerCatchFallback(expression: Expression, ctx: LowerContext): Q
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.CatchFallback },
       ctxName: SegmentContext.CatchFallback,
-      boundary: { kind: BoundaryKind.Implicit, role: SegmentContext.CatchFallback },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.CatchFallback },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Expr, expr: { kind: ExprKind.Js, payload }, initialOnly: false },
+      body: { b: QrlBodyKind.Expr, expr: { kind: ExprKind.Js, payload } },
       captures: lowered.captures,
       functions: lowered.functions,
       params: { authored: 0, used: [], sources: [] },

@@ -11,7 +11,7 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { parseModule } from '../analyse/ast/parse';
-import { finalizeLocalFunctions, lowerSetup } from '../analyse/lower-setup';
+import { lowerDeferredLocals, lowerSetup } from '../analyse/lower-setup';
 import { LocalKind } from '../analyse/locals';
 import { createTestLowerContext, serverSpecialization } from './fixtures';
 import { linkPlans } from '../link/link-plans';
@@ -43,7 +43,7 @@ function lower(statement: string, coreBindings: [string, string][] = [['useSigna
   ctx.coreBindings = imported;
   const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
   const lowered = lowerSetup(statements, ctx);
-  finalizeLocalFunctions(ctx);
+  lowerDeferredLocals(ctx);
   return { ...lowered, ctx, count };
 }
 
@@ -65,12 +65,11 @@ describe('lowerSetup / useSignal', () => {
     ]);
   });
 
-  test('registers a kinded Signal local at slot 0', () => {
+  test('registers a kinded Signal local', () => {
     const { locals, count } = lower('const count = useSignal(0);');
     expect(locals.get(count)).toEqual({
       kind: LocalKind.Signal,
       access: CaptureAccess.Direct,
-      slot: 0,
       binding: count,
     });
   });

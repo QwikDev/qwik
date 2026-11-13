@@ -62,7 +62,6 @@ export function Done_component_4ncehzxsp7d7(props, ctx) {
 import {
   _first,
   _next,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
@@ -88,7 +87,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_2_2fzrhmrz1xde7, [visible]),
     q_component_branch_then_segment_3_24n7atwir5934.w([props, item]),
     q_component_branch_else_segment_4_19dvrvh6znjhf.w([index, item, props])

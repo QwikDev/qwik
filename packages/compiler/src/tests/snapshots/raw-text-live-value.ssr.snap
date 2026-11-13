@@ -50,6 +50,7 @@ import {
   renderSsrAttr,
   renderSsrAttrExpression,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -76,19 +77,17 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<div><script q:id="',
-      createSsrNodeId(id0),
-      '">',
-      attr0 ?? '',
-      '</script><style q:id="',
-      createSsrNodeId(id1),
-      '">',
-      attr1 ?? '',
-      '</style></div>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, attr1]), ([attr0, attr1]) => [
+    '<div><script q:id="',
+    createSsrNodeId(id0),
+    '">',
+    attr0 ?? '',
+    '</script><style q:id="',
+    createSsrNodeId(id1),
+    '">',
+    attr1 ?? '',
+    '</style></div>',
+  ]);
 }
 /*
 {

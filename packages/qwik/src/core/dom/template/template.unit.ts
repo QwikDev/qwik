@@ -1,5 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createElementTemplate, createTemplate } from './template';
+import { createDocument } from '../../../testing/document';
+import { NodeType } from '../../utils/consts';
+import { createElementTemplate, createRangeMarkers, createTemplate } from './template';
+
+describe('createRangeMarkers', () => {
+  it('returns two fresh comments that share a fragment of the given document', () => {
+    const document = createDocument();
+    const [start, end] = createRangeMarkers(document);
+    const [nextStart] = createRangeMarkers(document);
+
+    expect(start.nodeType).toBe(NodeType.Comment);
+    expect(start.nextSibling).toBe(end);
+    expect(start.parentNode!.nodeType).toBe(NodeType.DocumentFragment);
+    expect(start.ownerDocument).toBe(document);
+    expect(nextStart).not.toBe(start);
+  });
+});
 
 describe('createTemplate', () => {
   it('caches templates per document and returns fresh clones', () => {

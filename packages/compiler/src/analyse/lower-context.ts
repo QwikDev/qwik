@@ -1,7 +1,9 @@
+import type { Node, Program } from 'oxc-parser';
 import type { LocalId, ModulePlan, Op, Payload, Qrl, QrlUse, Range, Value } from '../schema';
 import type { OpKind } from '../schema';
 import type { BindingGraph } from './ast/bindings';
 import { createJsxAnalysis, type JsxAnalysis } from './ast/jsx-analysis';
+import { createLiftAnalysis, type LiftAnalysis } from './ast/lift-analysis';
 import type { SetupLocal } from './locals';
 import type { AnalyseOptions } from './analyse-module';
 import {
@@ -25,8 +27,16 @@ export interface LowerContext {
   sourceName: string;
   sourceIdentity: string;
   segmentCounter: { next: number };
-  /** Body functions decide at module end whether they were lifted or stay authored. */
-  pendingFunctions: (() => void)[];
+  /** Which locals lift to a segment of their own, decided before lowering. */
+  lifts: LiftAnalysis;
+  /** Lifted locals of the scopes entered so far. */
+  liftedLocals: Map<LocalId, LiftedLocal>;
+  /** References of lifted locals some boundary rebinds or passes as a QRL. */
+  claimedReads: Set<Node>;
+  /** Calls and declarations a payload already replaced; a nested scan must not replace them twice. */
+  extracted: Set<Node>;
+  /** Authored locals, lowered once later setup locals they read have their final kind. */
+  deferredLocals: (() => void)[];
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
   componentCounter: { next: number };
@@ -62,13 +72,39 @@ export interface LowerContext {
   returnsRender: boolean;
 }
 
+export type FunctionRebind = NonNullable<Qrl['functions']>[number];
+
+/** A local with a segment of its own, lowered on its first boundary read. */
+export interface LiftedLocal {
+  /** The prelude entry every rebind shares; its `use` fills once the segment is pushed. */
+  rebind: FunctionRebind;
+  /** Lowers the segment in its declaring scope; null once started. */
+  lower: (() => void) | null;
+}
+
+/** A lifted local's prelude entry; its segment lowers on the first call. */
+export function liftedLocal(ctx: LowerContext, binding: LocalId): FunctionRebind {
+  const lifted = ctx.liftedLocals.get(binding);
+  if (lifted === undefined) {
+    throw new Error(
+      `pipeline: a read of the lifted local "${ctx.plan.bindings[binding].name}" outside its scope`
+    );
+  }
+  // A recursive read takes the entry before its segment is pushed.
+  const lower = lifted.lower;
+  lifted.lower = null;
+  lower?.();
+  return lifted.rebind;
+}
+
 export function createLowerContext(
   plan: ModulePlan,
   path: string,
   options: AnalyseOptions,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string> = new Map(),
-  jsx: JsxAnalysis = createJsxAnalysis(bindings, coreBindings)
+  jsx: JsxAnalysis = createJsxAnalysis(bindings, coreBindings),
+  program: Pick<Program, 'body'> = { body: [] }
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
@@ -79,7 +115,11 @@ export function createLowerContext(
     sourceName: basename.replace(/\.[cm]?[jt]sx?$/, ''),
     sourceIdentity,
     segmentCounter: { next: 0 },
-    pendingFunctions: [],
+    lifts: createLiftAnalysis(program, { plan, bindings, coreBindings, jsx, locals: new Map() }),
+    liftedLocals: new Map(),
+    claimedReads: new Set(),
+    extracted: new Set(),
+    deferredLocals: [],
     branchCounter: { next: 0 },
     componentCounter: { next: 0 },
     contentCounter: { next: 0 },
@@ -118,9 +158,7 @@ export function pushPayload(ctx: LowerContext, range: Range): number {
     qrls: [],
     reads: [],
     awaits: [],
-    useIds: [],
     renders: [],
-    temps: [],
   };
   ctx.plan.payloads.push(payload);
   return ctx.plan.payloads.length - 1;
@@ -133,7 +171,7 @@ export const enum QrlIdentityKind {
   Declared = 'declared',
 }
 
-type QrlInput = Omit<Qrl, 'id' | 'parent' | 'name' | 'markerAttributes' | 'propsParts'> & {
+type QrlInput = Omit<Qrl, 'id' | 'parent' | 'name' | 'propsParts'> & {
   propsParts?: Qrl['propsParts'];
   identity:
     | { kind: QrlIdentityKind.Segment; nameCtx: string }
@@ -154,7 +192,6 @@ export function pushQrl(
     id: resolved.id,
     parent: null,
     name: resolved.name,
-    markerAttributes: [],
     propsParts,
   };
   ctx.plan.qrls.push(qrl);

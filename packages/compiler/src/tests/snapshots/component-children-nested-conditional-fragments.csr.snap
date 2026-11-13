@@ -14,15 +14,15 @@ export { Panel };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Panel_component_5q1hs6sb6j5z.js (ENTRY POINT)==
 
-import { _first, _last, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _last, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Panel_tmpl0 = _createElementTemplate('<main><!><!></main>');
 
 export function Panel_component_5q1hs6sb6j5z(props0, ctx) {
   const el0 = Panel_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const marker1 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker1.replaceWith(...slot0)));
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
+  ctx.scheduler.waitFor(_replaceMarker(marker1, createSlot('header')));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*
@@ -49,16 +49,12 @@ export function Panel_component_5q1hs6sb6j5z(props0, ctx) {
 
 import {
   _capturesObj,
-  _first,
-  _next,
-  createTemplate,
-  BranchRange,
+  _createRangeMarkers,
   createBranch,
   _withCaptures,
   qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
@@ -66,18 +62,17 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const [props] = _capturesObj._;
-  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    range0[0],
+    range0[1],
     _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [props]),
     q_component_branch_then_segment_2_24n7b7xmnzb3n.w([props]),
     undefined
   );
   ctx.scheduler.notify(branch0);
-  return [start0, end0];
+  return range0;
 };
 /*
 {
@@ -171,16 +166,12 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
 
 import {
   _capturesObj,
-  _first,
-  _next,
-  createTemplate,
-  BranchRange,
+  _createRangeMarkers,
   createBranch,
   _withCaptures,
   qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
-const component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_5_24n7d63685l6a'),
   'component_branch_then_segment_5_24n7d63685l6a'
@@ -188,18 +179,17 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ qrl(
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   const [props] = _capturesObj._;
-  const fragment0 = component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    range0[0],
+    range0[1],
     _withCaptures(component_branch_condition_segment_4_2fzrgupr899d5, [props]),
     q_component_branch_then_segment_5_24n7d63685l6a.w([props]),
     undefined
   );
   ctx.scheduler.notify(branch0);
-  return [start0, end0];
+  return range0;
 };
 /*
 {
@@ -259,16 +249,12 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
 
 import {
   _capturesObj,
-  _first,
-  _next,
-  createTemplate,
-  BranchRange,
+  _createRangeMarkers,
   createBranch,
   _withCaptures,
   qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_6_2fzrg2njel5c3 } from './component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3';
-const component_branch_then_segment_5_24n7d63685l6a_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_7_24n7ce0yehh58'),
   'component_branch_then_segment_7_24n7ce0yehh58'
@@ -276,18 +262,17 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ qrl(
 
 export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   const [props] = _capturesObj._;
-  const fragment0 = component_branch_then_segment_5_24n7d63685l6a_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    range0[0],
+    range0[1],
     _withCaptures(component_branch_condition_segment_6_2fzrg2njel5c3, [props]),
     q_component_branch_then_segment_7_24n7ce0yehh58,
     undefined
   );
   ctx.scheduler.notify(branch0);
-  return [start0, end0];
+  return range0;
 };
 /*
 {

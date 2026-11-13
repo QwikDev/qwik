@@ -8,7 +8,13 @@ import {
   newInvokeContext,
 } from '../../runtime/invoke-context';
 import { setCaptures } from '../../shared/qrl/qrl-captures';
-import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '../../shared/types';
+import type {
+  CapturedEventHandler,
+  qWindow,
+  QDispatchHandler,
+  QElement,
+  ScopedEventName,
+} from '../../shared/types';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import { OwnerFlags } from '../../reactive/flags';
@@ -16,7 +22,7 @@ import { getActiveCollector } from '../../reactive/tracking';
 import { handleError } from '../content/catch-boundary';
 
 type EventHandler = (event: Event, element: Element, ...params: unknown[]) => unknown;
-const scopedEventNames = Object.create(null) as Record<string, string | undefined>;
+const scopedEventNames = Object.create(null) as Record<string, ScopedEventName | undefined>;
 
 // Qwikloader calls _qDispatch entries bare, so the invoke context is established here.
 function invokeDispatchHandler(
@@ -97,7 +103,7 @@ export function setEvent(
   handler: QDispatchHandler | QDispatchHandler[],
   captures?: readonly unknown[] | null
 ): void {
-  const scopedKebabName = (scopedEventNames[key] ??= key.slice(2));
+  const scopedKebabName = (scopedEventNames[key] ??= key.slice(2) as ScopedEventName);
   const target = element as QElement;
   const context = getActiveInvokeContextOrNull<ContainerContext>();
   const owner = context?.owner ?? context?.ownerHost ?? getActiveCollector()?.owner;
@@ -129,21 +135,23 @@ export function removeEvent(element: Element, key: string): void {
 
 const needsLoaderAttribute = (key: string) => key.charAt(2) !== 'e' || key === 'q-e:qvisible';
 
-function registerQwikLoaderEvent(element: Element, eventName: string) {
+function registerQwikLoaderEvent(element: Element, eventName: ScopedEventName) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
-  const loader = (qWindow._qwikEv ||= [] as any);
-  const push = () => loader.push(eventName);
+  const loader: qWindow['_qwikEv'] | string[] = (qWindow._qwikEv ||= [] as any);
   if (Array.isArray(loader)) {
     // not booted yet: the loader scans the whole document when it starts
-    push();
+    loader.push(eventName);
     return;
   }
   if (SCANNED_EVENTS.includes(eventName)) {
     // The loader scans the document, so the push waits until this flush has inserted the element.
     const scheduler = getActiveInvokeContextOrNull<ContainerContext>()?.container?.scheduler;
-    scheduler === undefined ? push() : scheduler.onFlushed(push);
+    // Kept on the loader so every element of one flush files the same re-scan callback.
+    scheduler === undefined
+      ? loader.push(eventName)
+      : scheduler.onFlushed((loader[eventName] ||= () => loader.push(eventName)));
   } else if (!loader.events.has(eventName)) {
-    push();
+    loader.push(eventName);
   }
 }
 

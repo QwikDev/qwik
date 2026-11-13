@@ -11,9 +11,9 @@ import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import { useTask } from '../../runtime/task';
 import { findPendingBoundary } from './pending-boundary';
-import { BranchRange } from '../branch/branch';
 import { replaceContent } from '../range/range';
 import { OwnerFlags } from '../../reactive/flags';
+import { TypeIds } from '../../shared/serdes/type-id';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
 import {
@@ -59,16 +59,20 @@ it('preserves nested array order when JSX QRL chunks resolve out of order', asyn
 });
 
 describe('ContentBlock', () => {
-  it.each([false, true])('replaces a range with disposePrevious=%s', (disposePrevious) => {
+  it('replaces a range and then disposes the previous owner', () => {
     const document = createDocument({ html: '<div><!--start-->old<!--end--></div>' });
     const host = document.querySelector('div')!;
-    const range = new BranchRange(document, host.firstChild as Comment, host.lastChild as Comment);
+    const block = {
+      container: { document } as ContainerContext,
+      start: host.firstChild as Comment,
+      end: host.lastChild as Comment,
+    };
     const owner = createOwner(null);
     const child = createOwner(owner);
-    replaceContent(range, [document.createTextNode('next')], owner, disposePrevious);
+    replaceContent(block, [document.createTextNode('next')], owner);
     expect(host.textContent).toBe('next');
-    expect(Boolean(owner.flags & OwnerFlags.Disposed)).toBe(disposePrevious);
-    expect(Boolean(child.flags & OwnerFlags.Disposed)).toBe(disposePrevious);
+    expect(owner.flags & OwnerFlags.Disposed).toBeTruthy();
+    expect(child.flags & OwnerFlags.Disposed).toBeTruthy();
     expect(owner.parent).toBeNull();
   });
 
@@ -243,6 +247,36 @@ describe('ContentBlock', () => {
     expect(effects[0].owner).toBeNull();
     expect(toArray(nested.subs)).not.toContain(effects[0]);
     expect(toArray(nested.subs)).toContain(effects[1]);
+  });
+
+  it('keeps the committed content owned when the previous content cleanup throws', async () => {
+    const version = useSignal(0);
+    const cleanups: number[] = [];
+    const { content, host } = setup([version], (document, _scheduler, signal) => {
+      const rendered = signal.value;
+      useTask(({ cleanup }) =>
+        cleanup(() => {
+          cleanups.push(rendered);
+          if (rendered === 0) {
+            throw new Error('cleanup failed');
+          }
+        })
+      );
+      return text(document, `content-${rendered}`);
+    });
+
+    content.run();
+    await content.scheduler.flushInteraction();
+    version.value = 1;
+    await content.scheduler.flushInteraction().catch(() => {});
+    expect(host.textContent).toBe('content-1');
+    expect(cleanups).toEqual([0]);
+
+    version.value = 2;
+    await content.scheduler.flushInteraction();
+
+    expect(host.textContent).toBe('content-2');
+    expect(cleanups).toEqual([0, 1]);
   });
 });
 
@@ -559,6 +593,13 @@ describe('createPending', () => {
         return textNode('loading');
       })
     );
+    // Register the root as a parsed pending subscription, the way resume does.
+    setup.ctx.state.rootToChunk[0] = {
+      base: 0,
+      len: 1,
+      script: null!,
+      parsed: [TypeIds.PendingSubscription, null],
+    };
     setup.ctx.state.liveRoots.set(0, setup.content);
 
     await setup.ctx.disposeRoot(0);
@@ -708,7 +749,7 @@ function setupPending(contentQrl: QRL<RenderFn>, fallbackQrl?: QRL<RenderFn>, de
   const ctx = createContainerContext(host, scheduler);
   const context = newInvokeContext({ owner: createOwner(null), container: ctx });
   const content = invoke(context, () =>
-    createPending(ctx, new BranchRange(document, start, end), contentQrl, fallbackQrl, delay)
+    createPending(ctx, start, end, contentQrl, fallbackQrl, delay)
   );
   return { content, ctx, document, host, start, end, scheduler };
 }

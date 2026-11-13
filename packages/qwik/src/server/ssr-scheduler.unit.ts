@@ -78,12 +78,7 @@ describe('SsrScheduler', () => {
     const { lane } = createLane();
     createDom(lane, Promise.resolve('PRIVATE_DISCARDED_PATCH'));
     await lane.settle();
-    const serialization = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serialization = createSerializationContext(null, () => '');
     const transaction = serialization.$beginTransaction$();
     expect(lane.takePatches(serialization.$journal$)).toEqual([
       [0, 'title', 'PRIVATE_DISCARDED_PATCH'],

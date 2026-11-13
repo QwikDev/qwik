@@ -102,8 +102,8 @@ Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-value` CSR/SSR
 and `jsx-value.spec.tsx` in CSR and resume. Direct element/fragment initializers work with
 `const`, `let` and `var`, aliases, block scope, and collection rows. Each use has its own content
 range; hiding one instance disposes its subscriptions without affecting its sibling.
-Local component targets captured by a JSX value remain unsupported and are diagnosed explicitly;
-module-level component targets work.
+A local component a JSX value renders lifts to its own segment like any local a boundary reads;
+module-level component targets are plain references.
 
 Arrays and nested objects preserve native construction, spreads, computed keys and destructuring.
 Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-structures` CSR/SSR snapshots,
@@ -326,8 +326,12 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       own attributes, minus runtime `q:*` markers and event attributes (`attributes.spec.tsx`
       "removes keys that disappear from a reactive spread", CSR and resume).
 - [x] Events, refs, bindings and HTML supplied through spreads. The runtime reads them from the
-      props object; a `ref` binds the element id on the server, `innerHTML` replaces the authored
-      children. Proven by `ref.spec.tsx` (forwarded opaque props) and `attributes.spec.tsx`
+      props object; a `ref` binds the element id on the server. The CSR props effect runs after
+      the element's children are wired, so an `innerHTML` it carries replaces them and the DOM
+      holds only the innerHTML (`inner-html-children.spec.tsx`, `element-spread-children`).
+      Accepted gaps: those children are still created and run once before being replaced (CSR
+      warns in dev); the server still evaluates them and drops them in `innerHTML ?? [...]`; a
+      spread that later stops carrying innerHTML leaves the element empty. Proven by `ref.spec.tsx` (forwarded opaque props) and `attributes.spec.tsx`
       (last-write-wins) in CSR and resume; `bind:*` and innerHTML ride the same runtime path.
 - [x] Static/dynamic parity for boolean/enumerated attributes, `aria-*` and `data-*`. A literal
       expression attribute (`{false}`, `{-1}`, `{'x'}`) is a static prop, so it folds to the
@@ -407,7 +411,8 @@ Share prop classification; deliver the following in small increments.
 - [x] Emit `dangerouslySetInnerHTML` as element content, not an attribute. A literal folds into
       the static markup and the CSR template as written; a live value is an attribute step whose
       name the runtime already routes to `innerHTML`, rendered as the element's content on the
-      server and patched on the client. Authored children yield to it.
+      server and patched on the client. Authored children, raw-text ones included, are never
+      lowered and draw one `inner-html-children` warning (`inner-html-dropped-children`).
 - [x] Preserve its subtree when unrelated props change. Nothing re-renders the content: only its
       own effect touches `innerHTML` (`attributes.spec.tsx` in CSR and resume).
 - [x] Static text is HTML exactly once. Authored JSX text keeps its entities as written, a
@@ -485,8 +490,8 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
   (`expression-hook`, shared with every lifted body), since a row has no component owner; an
   early return stays refused until the row shape and key rules for it are decided
   (`collection-row-statements` snapshots, `collection-row-statements.spec.tsx` in CSR and
-  resume). A local function captured by a hole is not serializable, the same limit as in
-  component setup (group 6).
+  resume). A local function a hole reads lifts to its own segment, as in a component setup
+  (group 11).
 - [ ] Async rows and dynamically shaped results. An `async` row callback is diagnosed
       (`async-row`) with a pointer to tasks; support rides with the async
       program emission and pending-row behaviour of group 13, since the keyed reconciler uses
@@ -536,9 +541,28 @@ and dynamic `Slot name`.
         and by sibling chunks; the server marks the function with that segment's QRL, and a
         local alias of a component is captured as a value or read live when it indexes a signal
         (`#3727`). `useConstant` calls every function; docs must say `useConstant(() => Cmp)`.
-  - [x] A body function a boundary calls lifts to a segment its callers import statically; the
-        caller captures the function's captures and rebinds it, so calls stay sync and only
-        loading is lazy (`#7000`). Unreferenced body functions keep their statement.
+  - [x] Local functions and components lift to segments their readers import statically, so
+        calls stay sync and only loading is lazy (`#7000`). `analyse/ast/lift-analysis.ts`
+        decides before lowering, from the AST: a never-written local function, `function`
+        declaration or component (`const`, `let` or `var`; setups, plain functions, `$()` and
+        handler bodies alike) lifts once a segment boundary reads it or passes it as a QRL
+        (`$(f)`, `x$={f}`). A boundary whose own code reads it rebinds it in its prelude and
+        captures what the segment captures; its scope declares it only where its own code reads
+        it, otherwise the declaration is removed. A component written as a plain function
+        (uppercase name, returns JSX) is a component wherever `component$` would be, except in
+        `$()` and handler bodies, where it stays a plain function; below module level, one its
+        code calls directly (`Row(1)`) is a plain function too, and also rendering it as a tag
+        is refused. Payload lowering asks
+        `ctx.lifts.componentFunction` for both spellings. A named component in the body of a lifted local function always
+        lifts, since a function segment cannot print a component in place; an unnamed one there
+        is refused with a hint to name it. A never-written alias in the
+        same function (`const g = f`) is a second name for its target: its reads lift `f`, a
+        boundary rebinds `g` to `f`'s segment, and an alias nothing reads loses its declaration;
+        a conditional alias (`c ? A : B`) is refused. Lowering asks `ctx.lifts` and
+        never re-decides. It fails closed: a boundary reading a reassigned local function or component is an
+        `UnsupportedError`, and a lifted read that no boundary rebinds is an internal `pipeline:`
+        error. Proven by `lift-analysis.unit.ts` and `local-function-output.unit.ts`, which
+        type-checks emitted modules and runs emitted segments.
 - [x] Combine slots with dynamic content, namespaces and async: covered by the projection corpus
       (branches, rows, holes, content blocks, promise children, svg and foreignObject slots, the
       live-slot swap). Error boundaries move to group 13 with Suspense.
@@ -1151,7 +1175,7 @@ their checkboxes; do not silently reinterpret the original completion estimate a
 - 2026-09-11: Runtime: `serializeSsrEvent` now wraps a handler in `_run` whenever the caller
   needs an invoke context, not only when the QRL moved captures, so capture-less handlers in a
   localized container can read `getLocale()` after resume. The pipeline exposed this because it
-  imports module bindings instead of capturing them. Verification: `ssr-event-attr.unit.ts` and
+  imports module bindings instead of capturing them. Verification: `ssr-events.unit.ts` and
   `use-locale.spec.tsx` in resume. Core spec corpus: resume 3 → 2 failed, CSR unchanged at 4.
 
 - 2026-09-11: SSR output of a component that calls `useContextProvider` records

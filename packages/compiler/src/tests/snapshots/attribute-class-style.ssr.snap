@@ -122,6 +122,7 @@ import {
   renderSsrAttrExpression,
   escapeHTML,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -172,17 +173,15 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     q_component_style_segment_1_cgm3c4qw0vql,
     effect0
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
-      '></button>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, attr1]), ([attr0, attr1]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+    '></button>',
+  ]);
 }
 /*
 {

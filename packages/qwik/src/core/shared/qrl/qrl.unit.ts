@@ -7,7 +7,7 @@ import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { _qrlSync, type QRL } from './qrl.public';
-import { isQrlImportError, isSyncQrl } from './qrl-utils';
+import { isQrlImportError, isSyncQrl, qrlOfBody } from './qrl-utils';
 import { allocate } from '../serdes/allocate';
 import { TypeIds } from '../serdes/constants';
 
@@ -130,12 +130,7 @@ describe('serialization', () => {
   });
 
   test('a keyed sync qrl serializes the compiler-provided source', () => {
-    const serializationContext = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap<any, any>()
-    );
+    const serializationContext = createSerializationContext(null, () => '');
     const handler = _qrlSync(
       (event: Event) => event.preventDefault(),
       'key',
@@ -147,12 +142,7 @@ describe('serialization', () => {
   });
 
   test('serialize qrls', () => {
-    const serializationContext = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap<any, any>()
-    );
+    const serializationContext = createSerializationContext(null, () => '');
     assert.equal(
       qrlToString(serializationContext, createQRL('./chunk', '', null, null, null)),
       'chunk#'
@@ -176,12 +166,7 @@ describe('serialization', () => {
   });
 
   test('resolves a preload chunk without registering captures', () => {
-    const context = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const context = createSerializationContext(null, () => '');
     context.$qrlMapper$ = (symbol) => [symbol, './mapped.js'];
     const handler = createQRL('./original.js', 'preload', null, null, [{}]);
     assert.equal(qrlToString(context, handler, 'chunk'), 'mapped.js');
@@ -488,6 +473,11 @@ describe('w (with captures)', () => {
       'b',
       'c',
     ]);
+  });
+
+  test('a qrl with captures on a loaded body is the qrl its resolved body points back to', () => {
+    const qrl = createQRL('chunk', 'symbol', capFn, null).w(['row']);
+    assert.strictEqual(qrlOfBody(qrl.resolved), qrl);
   });
 
   test('should share the same LazyRef', () => {

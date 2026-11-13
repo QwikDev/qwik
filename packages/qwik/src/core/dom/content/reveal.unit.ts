@@ -6,7 +6,6 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
-import { BranchRange } from '../branch/branch';
 import { createPending } from './content';
 import { createRevealGroup, type RevealOrder } from './reveal';
 
@@ -27,13 +26,13 @@ function deferred() {
 function setupHost(boundaryCount: number) {
   const document = createDocument({ html: '<div></div>' });
   const host = document.querySelector('div')!;
-  const ranges: BranchRange[] = [];
+  const ranges: Array<[Comment, Comment]> = [];
   for (let index = 0; index < boundaryCount; index++) {
     const start = document.createComment(`s${index}`);
     const end = document.createComment(`e${index}`);
     host.appendChild(start);
     host.appendChild(end);
-    ranges.push(new BranchRange(document, start, end));
+    ranges.push([start, end]);
   }
   const scheduler = new Scheduler(() => {});
   const ctx = createContainerContext(host, scheduler);
@@ -58,7 +57,7 @@ function mount(
     pendings.forEach((pending, index) => {
       createPending(
         ctx,
-        ranges[index],
+        ...ranges[index],
         renderQrl(() => pending.promise),
         renderQrl(() => document.createTextNode(`loading-${index}`)),
         0,

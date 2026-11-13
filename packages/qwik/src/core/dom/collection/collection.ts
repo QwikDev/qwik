@@ -19,7 +19,6 @@ import {
   appendRowOutput,
   createForBlock,
   finalizeSsrRows,
-  ForRange,
   renderSsrForBlock,
   IndexMode,
   type AuthoredForKey,
@@ -57,7 +56,8 @@ export function createCollection<T>(
   if (!Array.isArray(collection)) {
     return createForBlock(
       ctx,
-      new ForRange(ctx.document, start, end),
+      start,
+      end,
       collection as Source<readonly T[]>,
       keyFn,
       renderFn as never,
@@ -148,9 +148,10 @@ export function renderSsrCollection<T>(
             if (owner.flags & OwnerFlags.Disposed) {
               return '';
             }
-            const rowId = usesRowId ? ctx.nextId() : 0;
+            // No one reconciles a plain array, so a keyed row root stamps this id as its marker.
+            const rowMarker = String(usesRowId ? ctx.nextId() : 0);
             const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
-            const row = invoke(context, render, ctx, rangeId!, rowId, collection[i], i);
+            const row = invoke(context, render, ctx, rangeId!, rowMarker, collection[i], i);
             if (isPromise(row)) {
               return thenInLifetime(owner, row, (row) => {
                 output.push(ownSsrOutput(row, context));

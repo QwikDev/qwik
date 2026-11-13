@@ -42,13 +42,15 @@ export function lowerHooks(candidates: readonly HookCandidate[], ctx: LowerConte
         locals.set(binding, {
           kind: LocalKind.Const,
           access: CaptureAccess.Direct,
-          slot: -1,
           binding,
         });
         return { binding, pattern: null, hasDefault: param.type === 'AssignmentPattern' };
       })
     );
     const mark = planMark(ctx.plan);
+    const registries = [ctx.liftedLocals, ctx.claimedReads, ctx.extracted];
+    const sizes = registries.map((entries) => entries.size);
+    const deferredCount = ctx.deferredLocals.length;
     ctx.returnsRender = false;
     try {
       const setup = lowerSetup(statements, ctx, locals);
@@ -78,12 +80,20 @@ export function lowerHooks(candidates: readonly HookCandidate[], ctx: LowerConte
       if (!(error instanceof UnsupportedError)) {
         throw error;
       }
+      // The authored fallback lowers the body again from the start.
       restorePlan(ctx.plan, mark);
+      ctx.deferredLocals.length = deferredCount;
+      registries.forEach((entries, index) => forgetAddedSince(entries, sizes[index]));
     } finally {
       ctx.returnsRender = true;
     }
   }
   return lowered;
+}
+
+/** Sets and maps keep insertion order, so what came after `size` is what this attempt added. */
+function forgetAddedSince(entries: Set<unknown> | Map<unknown, unknown>, size: number): void {
+  [...entries.keys()].slice(size).forEach((key) => entries.delete(key));
 }
 
 type PlanMark = [keyof ModulePlan, number][];

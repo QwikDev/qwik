@@ -1,296 +1,82 @@
 # `src/` — the compiler (analyse → link → generate)
 
-Implementation of [DESIGN.md](./DESIGN.md). The legacy compiler it replaced was deleted at the
-cutover (2026-09-18); "the oracle" and "legacy" below refer to that history only.
-
-Follow [CUTOVER-PLAN.md](./CUTOVER-PLAN.md) for the decided route to delete legacy and freeze the
-linked-plan contract; [JSX-IMPLEMENTATION.md](./JSX-IMPLEMENTATION.md) keeps the per-feature checklist
-and its progress ledger.
+Implementation of [DESIGN.md](./DESIGN.md); [CONTEXT.md](../CONTEXT.md) holds the vocabulary.
+[JSX-IMPLEMENTATION.md](./JSX-IMPLEMENTATION.md) keeps the per-feature checklist and progress
+ledger.
 
 ```
-analyseModule(file, options)                         -> ModulePlan  (one file, one plan, pure)
-linkPlans(plans, entries, specialization, snapshots) -> LinkedPlan  (per environment + mode)
-generateJsCsr(browserLinkedPlan, options)            -> browser modules
-generateJsSsr(serverLinkedPlan, options)             -> server modules
+analyseModule(input, options)                                   -> ModulePlan  (one file, pure)
+linkPlans(plans, entries, specialization, resolver, complete)   -> LinkResult  (per environment + mode)
+generateJsCsr(browserLinkedPlan, options)                       -> browser modules
+generateJsSsr(serverLinkedPlan, options)                        -> server modules
+transformModules(options)                                       -> TransformOutput (all three, one call)
 ```
 
 ## Layout
 
-| path        | contents                                                                                                                                                                                                                                                                                                                                                          |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DESIGN.md` | the authoritative design: model rationale, rules, phases, verification                                                                                                                                                                                                                                                                                            |
-| `schema/`   | the plan model as compilable TypeScript — `shared` (scalars, `Predicate` + `foldPredicate`, `Maybe`), `value` (payloads, edges, `Value`, `TaskBody`), `program` (`Program`, `Op`, `Prop`, typed `Invoke`/`Setup`), `module-plan` (`Qrl`, declarations, envelope, `AssemblyIntent`), `linked-plan` (materialized `LinkedModule`s, delivery, implementations table) |
-| `analyse/`  | `analyseModule` — pure, no batch registries; one concern per file like the ts-optimizer (PR #8872): `ast/` (types, parse, walkers, capture-analysis, jsx-text), `normalize`, `discover`, `lower-context`, `lower-jsx`/`lower-event`/`lower-hole`, `events`, `plan`                                                                                                |
-| `link/`     | `linkPlans` + `ResolverSnapshot`/`PluginSnapshot`/`LinkEntry`; `complete` flag semantics                                                                                                                                                                                                                                                                          |
-| `generate/` | `generateJsSsr` (baseline), `generateJsCsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                                     |
-| `compat/`   | `transformModules` wrapper (hostless snapshots, `{kind:'module'}` roots)                                                                                                                                                                                                                                                                                          |
-| `tests/`    | schema gates, flow smoke, per-unit tests, and full-output file snapshots (`tests/snapshots/`, `test.todo` per pending slice)                                                                                                                                                                                                                                      |
+| path                   | contents                                                                                                                                                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema/`              | the plan model as compilable TypeScript: `shared` (scalars, `Predicate` + `foldPredicate`), `value` (payloads, edges, `Value`, `TaskBody`), `program` (`Program`, `Op`, `Prop`, `Setup`), `module-plan` (`Qrl`, envelope, `AssemblyIntent`), `linked-plan` (`LinkedModule`, delivery) |
+| `analyse/`             | `analyseModule`: `ast/` (parse, binding graph, capture analysis), `normalize`, `discover`, `lower-*` (one concern per file: `lower-jsx`, `lower-element`, `lower-event`, `lower-text`, `lower-children`, `lower-array`, …), `events`, `plan`                                          |
+| `link/`                | `linkPlans`, `ResolverSnapshot`, `LinkEntry`; resolution, reachability, build-constant and branch folding, stripping, hook twins, render results, content and effect batching                                                                                                         |
+| `generate/`            | `generateJsSsr`, `generateJsCsr`, and what they share: module assembly (`assemble-module`), components, functions, setup, imports, QRL chunks, source assembly, `GenerateOutput`                                                                                                      |
+| `transform-modules.ts` | the optimizer-shaped entry the Vite plugin calls: analyse its inputs, link them incompletely (`complete: false`), generate                                                                                                                                                            |
+| `library-plan.ts`      | the neutral `.qwik-plan.json` a library build publishes and an app build links                                                                                                                                                                                                        |
+| `tests/`               | schema gates, per-unit tests, and full-output file snapshots (`tests/snapshots/<name>.{ssr,csr}.snap`)                                                                                                                                                                                |
 
-## Current state
+## Contracts
 
-Lexical analysis belongs to `BindingGraph`: declaration owners, pattern bindings and reference
-spans are indexed independently of lowering. `freeReferences()` queries that index without
-walking the AST again; `dependenciesOf()` selects transitive declarations within a caller-supplied
-boundary, preserving candidate order. Capture policy remains context-dependent and is not cached
-in the graph. These AST indexes stay out of the serializable `ModulePlan`.
+- Analysis is pure: one file in, one `ModulePlan` out, JSON-safe and never mutated afterwards.
+  `linkPlans` copies whatever it writes, so the same plans link for both environments and a
+  library plan built from them carries no environment's decisions (`link-plans.unit.ts` links a
+  deep-frozen plan).
+- Generators consume the `LinkedPlan` and nothing else: no re-analysis, no import resolution.
+- Unsupported input throws `UnsupportedError`; invalid authored code becomes an
+  `InvalidModuleError` diagnostic on a failed module. Nothing silently produces different output.
+- Plan format changes bump `MODULE_PLAN_VERSION` / `LINKED_PLAN_VERSION` (`schema/shared.ts`), so a
+  stale library plan is refused instead of misread.
 
-`JsxAnalysis` owns render-value structure, indexed by original AST nodes per module. Discovery,
-render lowering, projections and collection keys share these results, including branch arms and
-collection callback bodies. Element children and arbitrary call arguments remain separate boundaries.
-Consumers decide which shapes they support and how to interpret `key` or `q:slot`; the analysis
-does not emit IR or collect captures. Its index stays out of `ModulePlan`.
+## Workflow
 
-Block event handlers reuse the authored QRL emitter and binding-graph capture analysis.
-Local declarations, control flow, returns and async bodies remain JavaScript; no statement IR is added.
-The shared function printer omits an implicit return for statement-only bodies. JSX inside handlers
-is rejected before chunk emission for both expression and block bodies.
-
-Component setup and collection rows share `lowerConstDeclaration()` and `Setup.Const` emission.
-Declarations run in authored order, including multiple declarators and destructuring patterns.
-Setup reads see preceding locals; extracted expressions and handlers capture their computed values.
-Core and custom hooks share call plans; mutable declarations and JSX initializers remain rejected.
-A plain const reading a signal stores a snapshot, not a computed signal.
-
-Simple component parameter fields, including aliases and string keys, remain live props reads.
-Discovery and collection parameters share the same field classification; lowering records aliases
-against one generated props binding. Captures retain that object rather than field snapshots.
-`children` aliases remain slot markers without reading or capturing the children value.
-Literal defaults remain inline, with strict `undefined` checks rather than nullish coalescing.
-Other defaults initialize once before component setup, only when the prop starts as `undefined`.
-Only that initial prop check is untracked; the initializer keeps its authored tracking context.
-Later reads select between the live prop and the cached fallback, and QRLs capture both bindings.
-`Setup.PropDefault` describes initialization; `ValueIR.PropRead` describes a live read with fallback.
-Only the backend chooses their control flow and tracking implementation. Payload alias reads use
-the same IR as extracted expressions.
-Defaults referencing parameter bindings or names shadowed by component setup are rejected using
-the binding graph. Children defaults, nested patterns and computed keys remain deferred.
-
-Component parameter rest is a filtered props view, preserving getters and key changes without copying.
-`Setup.PropRest` carries the source binding and excluded keys; no computed or QRL is needed.
-Explicit fields are excluded by property name, and `children` always remains a projection.
-Rest bindings reuse ordinary captures and props-proxy serialization, including in user callbacks.
-
-Linking indexes declaration targets and imports by binding once per module. Component linking and
-reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
-emitter owns a QRL resolver shared with source-function emission. Its symbol index is reused across
-uses, while capture arguments are resolved per use site. Neither phase stores indexes in the plan
-or shares them across runs.
-
-Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle) spans: foreign
-passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
-sibling statements, generated-name allocation, authored param reuse); element event handlers
-(QRL identity, chunks, `_noopQrl` hoists, `setEvent` wiring); dynamic text holes (invoked-segment
-mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder templates +
-`createTextExpressionEffect`); `useSignal` setup + signal-read holes (subscription, no QRL);
-event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
-`_capturesObj._` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
-composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
-markers, CSR `<!>` comment placeholder + marker swap, shortest-path child navigation);
-holes in nested elements (recursive SSR emission with per-element ids/markers, recursive
-CSR template placeholders + level-composed locator paths); dynamic attributes (`renderSsrAttr`/
-`renderSsrAttrExpression` steps with the null/bare/quoted ternary, CSR `createAttrEffect`/
-`createAttrExpressionEffect` against the element, shared `lowerExpressionValue` classification
-with per-attr segment identity). Expressions lower to ValueIR when the
-vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
-IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
-pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
-`InvalidModuleError` diagnostics.
-
-## Setup hook boundaries
-
-Plain `use*` calls share `SetupKind.Call` without callback extraction, including `useStore`,
-custom hooks and named import aliases. Arguments, factories and spreads remain ordinary JS;
-runtime semantics determine whether returned values are reactive.
-
-Direct `use*$` calls in component setup share first-argument QRL extraction, including local
-hooks and aliased named imports. Generic calls use `SetupKind.Call`: they keep the authored
-callee, return binding and remaining arguments, including spreads. `implicit$FirstArg` accepts
-the compiled QRL without wrapping or resolving it again. Core-specific result semantics remain
-separate (`useComputed$` produces a signal).
-
-`analyse/setup-api.ts` owns core call contracts: semantic operations, result classification and
-argument limits. `analyse/locals.ts` exposes the resulting binding facts to expression and capture
-lowering. Calls share one emitter; it does not recognize hook names. `$()` remains a compiler
-marker producing a QRL value, not a runtime call. Direct calls to setup locals use the same call
-plan; other authored expressions retain their JS payloads.
-
-Each setup call has one target: an authored binding, a core operation, or a `ValueIR` callable
-read without a receiver. The linker follows binding imports; generators map core operations to
-their own implementations. Only the JS emitter selects runtime export names or emits `(0, fn)`.
-An IR callable read does not guarantee native execution support for the resulting function.
-
-This slice supports inline first callbacks and local QRL bindings created by `$()`; forwarding
-keeps the existing instance and captures without another segment. Member calls, ordinary function references and boundary
-extraction inside otherwise untouched module functions remain deferred.
-
-Callback-owned await expressions use the existing `_await` runtime to restore tracking and invoke
-context on fulfillment or rejection. Lexical scope analysis records await ownership; payload
-emission composes those edits with capture aliases for both CSR chunks and SSR mirrors. Nested
-ordinary functions retain their own awaits. Implicit suspension in `for await` remains deferred.
-Async `useComputed$` callbacks use the same QRL lowering and computed runtime as synchronous
-callbacks; SSR waits for their values through the existing signal-read retry path.
-Computed options share ordinary hook argument lowering, including spreads and existing QRLs;
-the runtime owns option semantics, including initial values and factories.
-
-## Workflow (vertical slices — DESIGN.md "Phases")
-
-Each slice implements analyse → link → generate end-to-end for a fixture family. Per fixture the gate is one
-file snapshot of the full `TransformOutput` PER MODE (`tests/snapshots/<name>.{ssr,csr}.snap`),
-SEEDED from the legacy oracle (`../src`) while it exists — write the failing snapshot first, implement until green.
-The rust target is REMOVED for iteration speed (git history has `generate/rust-ssr.ts` +
-its crate goldens through eb9287f79): examples implement `generateJsSsr` + `generateJsCsr` only;
-a later dedicated pass reintroduces the rust generator and recaptures crate bytes per family.
-`vitest -u` regenerates from the STAGED pipeline, so review every snapshot diff against the
-fixture's intent (and the oracle, until cutover) before accepting. No reverse adapter, no feature
-flag: once the fixture corpus is covered the switch is a hard cutover commit.
-
-Slice gates, always:
+Each feature lands analyse → link → generate end to end for a fixture family. The gate per fixture
+is one file snapshot of the full `TransformOutput` per mode; write the failing snapshot first, then
+implement until green. A refactor leaves every snapshot byte-identical; `vitest -u` regenerates from
+the current pipeline, so review every snapshot diff against the fixture's intent before accepting
+it.
 
 ```bash
-pnpm build.compiler                                          # oracle fixtures load dist
 npx tsc --noEmit -p packages/compiler/tsconfig.json
-pnpm vitest run packages/compiler/src                        # schema + flow + oracle harness
-pnpm vitest run packages/compiler                            # legacy suites stay green
+pnpm vitest run --project compiler packages/compiler/src
 ```
 
-Schema gates per slice: JSON round-trip, deep-freeze, shuffled-batch determinism, and generation
-from a deserialized frozen plan in a fresh process.
+## Decided output conventions
 
-## Parity traps learned from the oracle (keep for slice 1)
+These are decisions, not parity bugs; a differential comparison against v2 output diverges here
+by design.
 
-- Seed snapshot bytes from a LIVE legacy run — never from the prettier snapshots in
-  `../src/snapshots` (those are formatted, not raw output).
-- Import order in the emitted `@qwik.dev/core` line is REQUEST order, not alphabetical.
-- Static component text: whole-declaration rewrite via `emit-component.ts` forms; static text is
-  NOT escaped, attrs go through `escapeAttr`; `<br/>` → `<br>`; `JSON.stringify` quoting.
-- Segment naming: FNV-1a over `${scope}\0${path}` identity (`../src/segment-identity.ts`) — port
-  byte-for-byte, verify hashes against captured oracle output.
-- The `.s()` mirror hoist exists only for INVOKED segments (render expressions); event handlers
-  hoist the bare `_noopQrl` and ship the chunk only.
-- Element text targets: sole hole child → element target; siblings → range targets + `<!t>`
-  markers with a per-element marker counter.
-- Multi-step renders (LEGACY ONLY — see the divergence ledger): legacy defers later steps into
-  `invoke(invokeCtx, …)` thunks; the staged pipeline evaluates all steps eagerly instead.
-- Capture placement follows payload kind: Function-payload QRLs (events) carry captures in the
-  reference (`.w([...])`, `setEvent` 4th arg, rust `QrlValue.captures`) and read them via a
-  `_capturesObj._` chunk prelude; Value-payload QRLs (expressions) take captures as chunk params and
-  keep `QrlValue.captures` empty.
-- When an authored core import is replaced in place, a chunk-import block ends with a blank line
-  before module-top hoists; a lone core import does not.
-- CSR template placeholders: a sole hole is a single-space TEXT node (bindable directly); a hole
-  among siblings must be an empty COMMENT — a text placeholder would merge with adjacent text
-  runs. Analysis merges adjacent static text ops so locators count parsed DOM nodes correctly.
-- Rust child placement follows the props: with dynamic props, ALL children (holes included)
-  pre-render into a `children_N` buffer BEFORE the open tag; a hole on a prop-less element emits
-  inline after `>`. CSR orders per element: node lookups, then `setEvent`, then effects.
-
-## Deliberate divergences from the legacy oracle
-
+- Component candidates require an Uppercased name (anonymous default exports exempt). JSX left
+  outside any candidate fails closed with `unsupported-runtime-jsx`, never the oxc JSX fallback.
 - Child-list fragments are transparent: analysis expands them before slot assignment and reuses
-  ordinary child lowering for elements and fallback. Expansion stops at element boundaries;
-  empty fragments allocate no projection or fallback QRL. Fragment snapshots also compare emitted
-  code against the same input without fragment wrappers.
-- Branch arms reuse render-expression lowering, including fragments and nested conditions.
-  Projection names are collected recursively through fragments and condition arms, never element
-  descendants. Selection keeps the authored branch structure; text-only ternaries remain expressions.
-  Projection lowering owns selection and delegates selected leaves to JSX lowering. Generic JSX
-  and branch lowerers receive no slot name; branch construction remains shared through arm callbacks.
-- Mapped projections collect static slot names through row fragments, stopping at element boundaries.
-  Selection reuses projected-child lowering; collections receive a row-lowering callback, not a slot
-  name. Row shapes derive from selected operations. CSR inline rows reuse program emission, and
-  collection roots return all fragment nodes because initial rendering can synchronously insert rows
-  and remove transient markers.
-- Collection callbacks reuse render-expression lowering, including ternaries and logical-and branches.
-  Projected rows select each arm by slot name. Conditions use expression lowering for destructured
-  fields and reactive index reads. Concise callbacks and blocks ending in a single return share
-  body extraction. `const` declarations before the return lower to ordered `Setup.Const`
-  entries, evaluated once per row render; descendant QRLs capture their results directly.
-  Object and array binding patterns retain native defaults, rest and evaluation order; pattern
-  expressions participate in capture analysis and parameter-read rewriting.
-  Setup-only parameter reads stay in the row ABI. Row-local keys select transitive `const`
-  dependencies by binding identity and evaluate them in source order, separately from row rendering.
-  Unrelated row setup is omitted from key functions; selected declarations retain native patterns.
-  Ternary rows with an explicit key on both JSX arms reuse `ValueIR.Cond`; the key QRL
-  evaluates the condition once and only the selected key expression. Condition and arm dependencies
-  share declaration selection. Expression programs reuse the same emission with local setup.
-  `ExpressionIR` extends the shared value vocabulary with explicit opaque JS payload leaves;
-  portable `ValueIR` keeps excluding those leaves, without a second conditional representation.
-  Keys are excluded from element and component props, including props proxies. Partially keyed
-  non-empty arms are unsupported. Nested ternaries preserve their authored
-  branch structure and evaluate only conditions and key expressions on the selected path.
-  Empty arms and logical-and visibility guards do not choose row identity: key selection omits
-  them without changing render lowering. Each source item, including a hidden one, requires a
-  stable synchronous string or number key. Key expressions must be valid independently of visibility;
-  errors propagate without an implicit index fallback. Conditions choosing between keys remain lazy.
-  Async callbacks, non-const statements and early returns remain deferred.
-- Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
-  properties, array holes and rest retain native evaluation order. Render and key functions restore
-  captures before binding parameters; descendants capture the resulting locals directly.
-  Simple object aliases retain their member-read fast path. Whole-parameter defaults use an
-  undefined-only conditional initializer after capture restoration, without intermediate containers.
-  The runtime always supplies the index, so index defaults are omitted without losing reactivity.
-  References to later parameters remain unsupported.
-- Expression collection sources reuse `_wrapArray` with a captured function QRL and require a key.
-  Sources without dependencies can become plain arrays; rows using an index retain a reactive source.
-  CSR and SSR materialize the wrapper once, with SSR rooting that same source for resume.
-  Literal arrays and direct signal reads retain their existing fast paths.
-- Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
-  compiler has no such rule — a differential fixture with a lowercase-named component will
-  diverge; that is this decision, not a parity bug.
-- Candidate detection and discovery share one list of JSX-returning functions. Top-level const
-  arrows and synchronous function declarations retain their local/exported forms and bindings.
-  Named default functions retain their local name; separate export aliases stay authored.
-  Modules with function components initialize generated hoists before authored statements.
-- Component returns use the shared render-expression lowering, including fragments and conditional
-  JSX with empty or text alternatives. CSR multi-root output shares fragment mounting with rows.
-- Candidate detection is the routing gate; JSX left outside any candidate fails closed with
-  `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
-  Legacy additionally embeds function renders for JSX in call arguments — resolve when that
-  fixture family lands.
-- CSR child navigation picks the SHORTEST path: `_first`+n×`_next` vs `_last`+m×`_prev`, ties
-  preferring the front walk. Legacy only ever front-walks, so fixtures with a long front path
-  diverge from legacy bytes by design.
-- CSR emits a hole's target resolution together with its effect, after `setEvent` wiring. Legacy
-  splits them around `setEvent` (lookups first) — same behavior, one call site; the counter's
-  csr snapshot is regenerated from the staged pipeline accordingly.
-- FLAT SSR OUTPUT (landed 2026-08-26, staged only — legacy ignored, records die at cutover):
-  staged SSR emits flat arrays of strings + reference chunks; no `createSsrOpenTag`/
-  `createSsrMarkup`. Events emit `ctx.eventAttrParts(name, qrlRef)` — a string/ref parts array,
-  `[]` when there are no handlers (attribute elision). Statics merge across element boundaries.
-  `useOn*` (future slice): the compiler statically merges hook events into the ROOT element's
-  event attr (analysis sees hooks — unconditional setup + capability closure); a `<script>`
-  carrier is emitted only for element-less roots. No runtime slots, no post-render surgery: the
-  legacy record machinery (`applyToFirstElement`/`appendEvent`, `recordOpensTag`, headless
-  carriers, `materializeRecord`) serves only legacy-compiled output and is deleted at cutover.
-- SSR multi-step renders evaluate ALL steps eagerly (before the first await, ambient context
-  still live), then chain `maybeThen` in authored order — promises run in parallel. Legacy
-  defers later steps into `invoke(invokeCtx, …)` thunks; that machinery exists only to restore
-  the context its own deferral kills, and is deliberately not ported. Revisit only if a step
-  ever needs a PRIOR step's result as input. Marker locators walked from the element stay valid
-  across `replaceWith` swaps (positions are preserved), so per-hole emission needs no
-  resolve-all-markers-first phase; the multi-hole snapshots are staged-authored under this
-  ledger entry, not oracle-seeded.
-- QRL extraction conventions follow the ts-optimizer (PR #8872) / rust optimizer, not legacy
-  `src`: a chunk reaches a non-exported module binding via an appended
-  `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via
-  `_capturesObj._`. Legacy's bare `export { x }` is its own drift; diverge from it on this fixture
-  family.
-- `useOnDocument$`/`useOnWindow$`/element-less `useVisibleTask$` carriers are emitted STATICALLY
-  when that slice lands: hook presence is always compile-time knowledge (hooks are unconditional
-  setup statements; custom hooks resolve via the linker capability closure), and a
-  `<script hidden q-d:…>` is valid in any parent, so the generators emit it inline in the
-  component's own markup (SSR bytes + CSR template — re-renders recreate it). No runtime
-  splicing, no head relocation: legacy's `applyToFirstElement`/`headlessCarrier`/
-  `relocateHeadlessCarriers` machinery existed only because a runtime-invented, unmanaged node
-  had to survive re-renders, and it dies at cutover (taking the `openTag` record flag's last
-  consumer with it).
-
-## Pending prerequisites from DESIGN.md Phase 0 (not yet done)
-
-- CSR golden suite over all 58 conformance fixtures (whole `GenerateOutput` shape).
-- `tsconfig.check.json` for the compiler + a qwik-vite check config including unit/spec files —
-  verify green before relying on them.
-- Widen e2e `testMatch` so the three excluded Router `.spec.ts` files run; e2e end state is zero
-  failures with `--fail-on-flaky-tests`.
-- `ValueIR` gains its `build-constant` leaf in `../src/expr-ir.ts` with the first slice that
-  folds IR (`schema/value.ts` notes this).
+  ordinary child lowering; empty fragments allocate no projection or fallback QRL.
+- CSR child navigation picks the shortest path: `_first` + n×`_next` vs `_last` + m×`_prev`, ties
+  preferring the front walk. A hole's target resolves together with its effect, after `setEvent`.
+- CSR template placeholders: a sole hole is a single-space text node; a hole among siblings is an
+  empty comment, since a text placeholder would merge with adjacent text.
+- SSR output is flat: arrays of strings and reference chunks, with statics merged across element
+  boundaries. An open tag ships as a `createSsrOpenTag` record only where the runtime must splice
+  into it (a `useOn*` or `<Catch>` root, a runtime props object) and as `createSsrSection` for
+  `<head>`/`<body>`; a computed event handler outside a record wraps its step in
+  `createSsrMarkup`. An element-less root keeps the runtime's script carrier for `useOn*` events.
+- SSR multi-step renders evaluate all steps eagerly, while the ambient context is still live, then
+  chain `maybeThen` in authored order, so independent promises run in parallel.
+- A chunk reaches a non-exported module binding through an appended alias export,
+  `export { x as __qwik_x };`, and imports it back as `import { __qwik_x as x }`; module bindings
+  never ride `_capturesObj._`.
+- Import order in the emitted `@qwik.dev/core` line is request order, not alphabetical. Event
+  handlers hoist a bare `_noopQrl` and ship only their chunk; the `.s()` mirror exists only for
+  invoked segments.
+- Capture placement follows payload kind: function-payload QRLs (events) carry captures in the
+  reference (`.w([...])`) and read them through a `_capturesObj._` prelude; value-payload QRLs
+  (expressions) take captures as chunk parameters.
+- Emitted functions keep their authored sync/async shape; pending work rides the scheduler or a
+  `maybeThen` return.

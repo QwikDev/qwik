@@ -6,6 +6,9 @@ import {
   CallTargetKind,
   type CallTarget,
   ExprKind,
+  HandlerKind,
+  PropKind,
+  type Prop,
   ReadRole,
   ResumeKind,
   ValueKind,
@@ -22,11 +25,14 @@ import { ValueIrKind } from '../schema/value-ir';
 import { QwikGenWord, QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
 import type { FunctionEmission } from './emit-function';
+import { liftedFunctionJs } from './captures';
 type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
 
 /** Prints a QRL use; `marker` also prints a custom `$` hook call as its twin plus callback. */
 export type EmitQrl = ((use: QrlUse) => string) & {
   marker?: (target: MarkerTarget, use: QrlUse) => { callee: string; argument: string };
+  /** The segment a lifted local's scope binds it to, captures applied. */
+  local?: (use: QrlUse) => string;
 };
 
 /** Materializes payload edits together so nested source ranges remain valid. */
@@ -38,9 +44,14 @@ export function extractPayloadJs(
   edits: { range: Range; value: string }[] = [],
   emitQrl?: EmitQrl
 ): string {
-  const { reads, awaits, constants } = module.payloads[payload];
+  const { reads, awaits, constants, removed = [] } = module.payloads[payload];
   const [start, end] = range;
-  const replacements: { range: Range; value: string }[] = [...edits];
+  const replacements: { range: Range; value: string }[] = [
+    ...edits,
+    ...removed
+      .filter((removal) => removal[0] >= start && removal[1] <= end)
+      .map((removal) => ({ range: removal, value: '' })),
+  ];
   for (const entry of module.payloads[payload].qrls) {
     if (
       entry.range[0] < start ||
@@ -51,6 +62,21 @@ export function extractPayloadJs(
     }
     if (emitQrl === undefined) {
       throw new UnsupportedError('an embedded QRL without an emitter');
+    }
+    if (entry.local !== undefined) {
+      if (emitQrl.local === undefined) {
+        throw new UnsupportedError('a lifted local function in this payload');
+      }
+      const reference = emitQrl.local(entry.use);
+      replacements.push({
+        range: entry.range,
+        value: liftedFunctionJs(
+          entry.use,
+          reference,
+          entry.local.hoisted ? module.bindings[entry.local.binding].name : undefined
+        ),
+      });
+      continue;
     }
     if (entry.marker === undefined) {
       replacements.push({ range: entry.range, value: emitQrl(entry.use) });
@@ -176,6 +202,52 @@ export function bindHandlerJs(
   return `${QwikWord.InlinedQrl}(${symbol}, '${symbol}', [${module.bindings[handler.signal].name}])`;
 }
 
+type EventHandlers = Extract<Prop, { k: PropKind.Event }>['handlers'];
+
+/** The one computed handler an element evaluates and rewires (a Value QRL); a list cannot hold one. */
+export function computedEventQrl(handlers: EventHandlers): QrlUse | null {
+  const values = handlers.flatMap((handler) =>
+    handler.h === HandlerKind.Value ? [handler.value] : []
+  );
+  const computed = values.find(
+    (value) => value.v === ValueKind.Computed && value.resume.r !== ResumeKind.Inline
+  );
+  if (computed?.v !== ValueKind.Computed) {
+    return null;
+  }
+  if (values.length > 1) {
+    throw new UnsupportedError('a computed handler in an event handler list');
+  }
+  if (computed.resume.r !== ResumeKind.Qrl) {
+    throw new UnsupportedError('a non-QRL computed event handler');
+  }
+  return computed.resume.qrl;
+}
+
+/** The trailing write-back handlers a computed event's effect re-attaches with it. */
+export function boundHandlersJs(
+  module: LinkedModule,
+  handlers: EventHandlers,
+  imports: Set<string>
+): string {
+  const bindings = handlers.filter((handler) => handler.h === HandlerKind.Bind);
+  return bindings.length === 0
+    ? ''
+    : `, [], [${bindings.map((handler) => bindHandlerJs(module, handler, imports)).join(', ')}]`;
+}
+
+/** A QRL reference wearing its captures, restored from `_capturesObj._` where it runs. */
+export function capturedQrlJs(reference: string, args: readonly string[]): string {
+  return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+}
+
+/** A function body: its statements, then the returned value (none when null), indented. */
+export function functionBodyJs(statements: readonly string[], value: string | null): string {
+  return [...statements, ...(value === null ? [] : [`return ${value};`])]
+    .map((statement) => `  ${statement}`)
+    .join('\n');
+}
+
 export function expressionJs(module: LinkedModule, expr: Expr, emitQrl?: EmitQrl): string {
   switch (expr.kind) {
     case ExprKind.Ir:
@@ -206,12 +278,7 @@ export function functionText(emission: FunctionEmission): string {
   if (emission.alias !== undefined) {
     return emission.alias;
   }
-  const body = [
-    ...emission.statements,
-    ...(emission.value === '' ? [] : [`return ${emission.value};`]),
-  ]
-    .map((statement) => `  ${statement}`)
-    .join('\n');
+  const body = functionBodyJs(emission.statements, emission.value === '' ? null : emission.value);
   const params = `(${emission.params.join(', ')})`;
   const head =
     emission.functionName === undefined

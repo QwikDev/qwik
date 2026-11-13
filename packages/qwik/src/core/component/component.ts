@@ -13,13 +13,14 @@ import type { SlotScope } from '../dom/slot/slot';
 import { disposeOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { untrack } from '../reactive/tracking';
 import { isNotReadyError } from '../reactive/not-ready';
+import { whenComputedSettled } from '../reactive/computed';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
 import { applyUseOnToCsrOutput } from '../runtime/use-on';
 import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
-import { ownSsrOutput, type SsrContentContext, type SsrOutput } from '../ssr/output';
+import { ownSsrOutput, type SsrOutput, type SsrRangeHost } from '../ssr/output';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { handleError } from '../dom/content/catch-boundary';
 import { OwnerFlags } from '../reactive/flags';
@@ -186,7 +187,7 @@ function settleComponent(
 
 /** A setup read of a computed without a value waits for its next one, as a pending read does. */
 const toRetryRequest = (error: unknown): unknown =>
-  isNotReadyError(error) ? error.source.whenSettled() : error;
+  isNotReadyError(error) ? whenComputedSettled(error.source) : error;
 
 function runSetup(
   invokeContext: RuntimeInvokeContext,
@@ -263,11 +264,11 @@ function finalizeOutput(
     return normalized;
   }
   if (qTest ? isServerPlatform() : isServer) {
-    const eventAttr = (container as SsrContentContext).eventAttr!;
     return applyUseOnToSsrOutput(
       normalized as SsrOutput,
       useOnEvents,
-      eventAttr
+      // a server render always runs inside the render context, a range host
+      container as SsrRangeHost
     ) as ComponentOutput;
   }
   if (invokeContext.hasUseOnRoot) {

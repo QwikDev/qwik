@@ -19,7 +19,7 @@ const q_use_counter_useComputedqrl_segment_0_17tyklczwyk76 = /*#__PURE__*/ _noop
 q_use_counter_useComputedqrl_segment_0_17tyklczwyk76.s(
   use_counter_useComputedqrl_segment_0_17tyklczwyk76
 );
-import { useSignal, _capturesObj, _noopQrl, useComputed$ } from '@qwik.dev/core';
+import { useSignal, _capturesObj, _noopQrl } from '@qwik.dev/core';
 import { useComputedQrl } from '@qwik.dev/core';
 export function useCounter() {
   const count = useSignal(0);

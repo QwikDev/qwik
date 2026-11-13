@@ -50,6 +50,8 @@ export function createPlatform(
   opts: SerializeDocumentOptions,
   resolvedManifest: ResolvedManifest | undefined
 ) {
+  // the platform outlives the request while renders overlap, so it keeps no `opts`
+  const symbolMapper = opts.symbolMapper;
   const mapper = resolvedManifest?.mapper;
   const mapFromManifest = (
     symbolName: string,
@@ -92,8 +94,8 @@ export function createPlatform(
     },
     chunkForSymbol(symbolName, chunk, parent) {
       // a caller-supplied SymbolMapperFn takes the manifest mapper; ours takes the chunk
-      return opts.symbolMapper
-        ? opts.symbolMapper(symbolName, mapper, parent)
+      return symbolMapper
+        ? symbolMapper(symbolName, mapper, parent)
         : mapFromManifest(symbolName, chunk, parent);
     },
   };

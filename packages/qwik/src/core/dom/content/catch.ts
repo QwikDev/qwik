@@ -1,6 +1,5 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
-import { createQRL } from '../../shared/qrl/qrl-class';
 import type { Component } from '../../shared/component.public';
 import type { JSXOutput } from '../../shared/jsx/types/jsx-node';
 import { Brand, brandClass } from '../../shared/utils/brand';
@@ -19,7 +18,6 @@ import type { Scheduler } from '../../runtime/scheduler';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 import type { SsrOutput, SsrCatchController } from '../../ssr/output';
 import { EMPTY_NODES } from '../../utils/consts';
-import type { BranchRange } from '../branch/branch';
 import {
   ContentBlock,
   ContentSubscription,
@@ -30,8 +28,6 @@ import {
 } from './content';
 import { registerCatchBoundary, handleError } from './catch-boundary';
 import type { SsrRangeHost } from '../../ssr/output';
-import { useOnDocument } from '../../runtime/use-on';
-import { _catchError } from './catch-event';
 
 /** @public */
 export interface CatchProps {
@@ -69,7 +65,6 @@ export class CatchContentSubscription extends ContentSubscription {
     } finally {
       cleanupDeps(this);
       this.block = new ContentBlock<unknown[]>(
-        previous.document,
         previous.start,
         previous.end,
         [this.error],
@@ -90,15 +85,14 @@ export class CatchContentSubscription extends ContentSubscription {
 
 export function createCatch(
   ctx: ContainerContext,
-  range: BranchRange,
+  start: Comment,
+  end: Comment,
   contentQrl: QRL<ContentFn>,
   fallbackQrl: QRL<ContentFn>
 ): CatchContentSubscription {
-  registerCatchErrorHandler();
   const block = new ContentBlock<unknown[]>(
-    ctx.document,
-    range.start,
-    range.end,
+    start,
+    end,
     [],
     contentQrl,
     getActiveInvokeContextOrNull(),
@@ -149,7 +143,7 @@ export function createSsrCatch(
   contentQrl: QRL<(ctx: SsrRangeHost) => ValueOrPromise<SsrOutput>>,
   fallbackQrl: QRL<SsrContentFn>
 ): ValueOrPromise<SsrOutput> {
-  registerCatchErrorHandler();
+  host.registerCatchErrorHandler();
   const invokeContext = getActiveInvokeContextOrNull();
   let scope = host.createRangeScope(rangeId);
   let boundary = createBoundary(contentQrl as QRL<SsrContentFn>, [], scope);
@@ -238,14 +232,6 @@ export function createSsrCatch(
     (error) => maybeThen(handleError(controller.owner ?? null, error), () => controller.output)
   );
   return maybeThen(initial, () => ({ type: 'catch', boundary: controller }));
-}
-
-function registerCatchErrorHandler(): void {
-  const context = getActiveInvokeContextOrNull();
-  if (context !== null && !context.hasCatchErrorHandler) {
-    context.hasCatchErrorHandler = true;
-    useOnDocument('qerror', createQRL(null, '_catchError', isServer ? null : _catchError));
-  }
 }
 
 function toCatchError(error: unknown): Error {

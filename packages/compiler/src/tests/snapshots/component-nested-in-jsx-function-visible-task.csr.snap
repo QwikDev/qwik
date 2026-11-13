@@ -1,0 +1,117 @@
+==INPUT==
+
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { it } from 'vitest';
+import { render } from './render';
+it('renders', async () => {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => {});
+    return <a href="/x">x</a>;
+  });
+  await render(<Cmp />);
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
+  'component_jsx_segment_2_38vniss1y6gb4'
+);
+import { qrl } from '@qwik.dev/core';
+import { it } from 'vitest';
+import { render } from './render';
+it('renders', async () => {
+  await render(q_component_jsx_segment_2_38vniss1y6gb4);
+});
+============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
+
+export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "entry": null,
+  "displayName": "component_useVisibleTaskqrl_segment_0",
+  "hash": "rykj3v0khy38",
+  "canonicalFilename": "component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": false,
+  "loc": [
+    191,
+    216
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_Cmp_segment_1_bwgkxp2c60y4.js (ENTRY POINT)==
+
+import { useVisibleTaskQrl, qrl, _createElementTemplate } from '@qwik.dev/core';
+const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38'),
+  'component_useVisibleTaskqrl_segment_0_rykj3v0khy38'
+);
+const component_Cmp_segment_1_bwgkxp2c60y4_tmpl0 = _createElementTemplate('<a href="/x">x</a>');
+
+export const component_Cmp_segment_1_bwgkxp2c60y4 = (props, ctx) => {
+  useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38);
+  const el0 = component_Cmp_segment_1_bwgkxp2c60y4_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Cmp_segment_1_bwgkxp2c60y4",
+  "entry": null,
+  "displayName": "component_Cmp_segment_1",
+  "hash": "bwgkxp2c60y4",
+  "canonicalFilename": "component.tsx_component_Cmp_segment_1_bwgkxp2c60y4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Cmp",
+  "captures": false,
+  "loc": [
+    168,
+    253
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+
+import { createDynamicTag, createComponent } from '@qwik.dev/core';
+import { component_Cmp_segment_1_bwgkxp2c60y4 } from './component.tsx_component_Cmp_segment_1_bwgkxp2c60y4';
+
+export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const Cmp = component_Cmp_segment_1_bwgkxp2c60y4;
+  const component0 = createComponent((props0) => createDynamicTag(Cmp, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "entry": null,
+  "displayName": "component_jsx_segment_2",
+  "hash": "38vniss1y6gb4",
+  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    270,
+    277
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

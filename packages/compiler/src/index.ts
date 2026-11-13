@@ -1,8 +1,7 @@
 /**
- * The staged compiler pipeline: `analyseModule` → `linkPlans` → per-target generators.
+ * The compiler pipeline: `analyseModule` → `linkPlans` → per-target generators.
  *
- * See ./DESIGN.md for the full architecture, model rationale, phases, and verification gates. The
- * legacy pipeline in `../src` is the differential oracle until the cutover commit.
+ * See ./DESIGN.md for the architecture and model rationale, ./README.md for the layout.
  */
 export * from './schema';
 export { createLibraryPlan, readLibraryPlan, type LibraryPlan } from './library-plan';

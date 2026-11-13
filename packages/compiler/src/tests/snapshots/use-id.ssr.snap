@@ -57,6 +57,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
 } from '@qwik.dev/core';
 import { component_id_segment_2_2jskq2xovxhgk } from './component.tsx_component_id_segment_2_2jskq2xovxhgk';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
@@ -81,17 +82,15 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __ro
     [item],
     q_component_text_segment_3_1fh11lewq6qgx
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<li q:id="',
-      createSsrNodeId(id0),
-      '" q:row',
-      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(text0),
-      '</li>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row',
+    attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
 /*
 {
@@ -184,6 +183,7 @@ import {
   maybeThen,
   _noopQrl,
   renderSsrTextExpression,
+  promiseAll,
   _markComponent,
 } from '@qwik.dev/core';
 const component_id_segment_0_2jskquzwpllhm = (id) => {
@@ -205,17 +205,15 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
     [item],
     q_component_text_segment_3_1fh11lewq6qgx
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<li q:id="',
-      createSsrNodeId(id0),
-      '" q:row',
-      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(text0),
-      '</li>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row',
+    attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'

@@ -65,7 +65,6 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
     source.qrls.forEach((entry) => visitQrlUse(entry.use));
     source.renders.forEach((entry) => visitProgram(entry.program));
     source.setups?.forEach((entry) => entry.setup.forEach(visitSetup));
-    source.temps.forEach((entry) => visitPayload(entry.init));
   }
 
   function visitExpressionIr(value: ExpressionIR) {
@@ -336,8 +335,8 @@ export function collectQrlDependencies(
       break;
   }
   qrl.params.sources.forEach(visitPayload);
-  if (qrl.declaration?.parameter != null) {
-    visitPayload(qrl.declaration.parameter.pattern);
+  if (qrl.declaration !== undefined && qrl.parameter !== undefined) {
+    visitPayload(qrl.parameter.pattern);
   }
   for (const part of qrl.propsParts) {
     if (part.kind === PropsPartKind.Event) {

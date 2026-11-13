@@ -1,3 +1,9 @@
+/** The canonical array index a property key names, or -1. */
+export function toArrayIndex(key: PropertyKey): number {
+  const index = typeof key === 'symbol' ? -1 : Number(key);
+  return index >>> 0 === index && String(index) === String(key) ? index : -1;
+}
+
 /** Order-preserving removal; disposal removes from either end, so both are checked first. */
 export function removeInOrder<T>(array: T[], item: T): boolean {
   if (array[array.length - 1] === item) {

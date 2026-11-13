@@ -227,7 +227,7 @@ export default () => {
       );
       expect(projections).toHaveLength(3);
       for (const projection of projections) {
-        expect(projection.code).toContain('return [...fragment0.childNodes];');
+        expect(projection.code).toContain('return [...range0[0].parentNode.childNodes];');
       }
     }
   });

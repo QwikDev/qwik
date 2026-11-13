@@ -1,12 +1,11 @@
 import { Brand, brandClass } from '../shared/utils/brand';
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { Computed } from '../reactive/computed';
 import { Signal } from '../reactive/signal';
-import { getStoreSource, isStore, StorePropSource } from '../reactive/store';
+import { StorePropSource } from '../reactive/store';
 import { readSourceValue, type Source, type SourceSubs } from '../reactive/source';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import { track } from '../reactive/tracking';
-import { qError, QError } from '../shared/error/error';
+import { invalidStateError, qError, QError } from '../shared/error/error';
 import { registerSingleton } from '../shared/singletons';
 import { logWarn } from '../shared/utils/log';
 
@@ -43,11 +42,6 @@ export function getPropsSources(props: object): Record<string, unknown> | undefi
   return propsSources.get(props);
 }
 
-/** The source a caller registered for a prop key, for forwarding it further down. */
-export function getPropSource(props: object, key: string): unknown {
-  return propsSources.get(props)?.[key];
-}
-
 /** A prop read through its record: the member can change with a computed key or a spread. */
 export class PropSource<T = unknown> implements Source<T> {
   subs: SourceSubs = null;
@@ -81,21 +75,6 @@ export function propSource<T>(props: object, key: string): Source<T> | T {
   }
   const value = (props as Record<string, T>)[key];
   return isSource(value) ? new PropSource<T>(props, key) : value;
-}
-
-/**
- * The source behind reading `prop` off `target`, whatever target turns out to be. Property slots
- * are runtime facts — a store prop can hold a signal, a nested store, or plain data — so the
- * compiler emits this probe wherever the chain cannot be proven statically.
- */
-export function getMemberSource(target: unknown, prop: string): unknown {
-  if (isStore(target)) {
-    return getStoreSource(target as object, prop);
-  }
-  if (prop === 'value' && (target instanceof Signal || target instanceof Computed)) {
-    return target;
-  }
-  return undefined;
 }
 
 export function mergeProps(
@@ -135,60 +114,83 @@ export function getPropsProxyState(proxy: object): PropsProxyState<object> | und
 export function restorePropsProxyState(proxy: object, restored: PropsProxyState<object>): void {
   const state = propsProxyStates.get(proxy);
   if (state === undefined) {
-    throw new Error('Invalid props proxy');
+    throw isDev ? invalidStateError('props proxy') : invalidStateError();
   }
   Object.assign(state, restored);
 }
 
-function createPropsProxyState<T extends object>(state: PropsProxyState<T>): T {
-  let isThenPropReported = false;
-  const readProps = (): T => {
-    if (state.source === null) {
-      throw qError(QError.uninitializedPropsProxy);
+const reportedThenProps = /*#__PURE__*/ new WeakSet<object>();
+
+function readProps<T extends object>(state: PropsProxyState<T>): T {
+  if (state.source === null) {
+    throw qError(QError.uninitializedPropsProxy);
+  }
+  let props: T;
+  if (state.excluded !== null) {
+    props = state.source;
+  } else {
+    track(state.source);
+    props = readSourceValue(state.source);
+  }
+  if (
+    isDev &&
+    !reportedThenProps.has(state) &&
+    Object.prototype.hasOwnProperty.call(props, 'then')
+  ) {
+    reportedThenProps.add(state);
+    logWarn('A prop named "then" always reads as undefined: props are never thenables.');
+  }
+  return props;
+}
+
+/** Shared by every props proxy, whose target is its own state. */
+const ignoreWrite = () => true;
+
+const propsProxyHandler: ProxyHandler<PropsProxyState<object>> = {
+  get(state, property) {
+    // a props record is never a thenable; Promise.resolve must not read its source
+    if (property === 'then') {
+      return undefined;
     }
-    let props: T;
-    if (state.excluded !== null) {
-      props = state.source;
-    } else {
-      track(state.source);
-      props = readSourceValue(state.source);
+    const props = readProps(state);
+    return isIncludedProp(props, property, state.excluded)
+      ? Reflect.get(props, property, props)
+      : undefined;
+  },
+  has(state, property) {
+    const props = readProps(state);
+    return isIncludedProp(props, property, state.excluded) && Reflect.has(props, property);
+  },
+  ownKeys(state) {
+    const props = readProps(state);
+    const keys = Reflect.ownKeys(props);
+    if (state.excluded === null) {
+      return keys;
     }
-    if (isDev && !isThenPropReported && Object.prototype.hasOwnProperty.call(props, 'then')) {
-      isThenPropReported = true;
-      logWarn('A prop named "then" always reads as undefined: props are never thenables.');
-    }
-    return props;
-  };
-  const proxy = new Proxy(Object.create(null), {
-    get: (_target, property) => {
-      // a props record is never a thenable; Promise.resolve must not read its source
-      if (property === 'then') {
-        return undefined;
+    const included: (string | symbol)[] = [];
+    for (let i = 0; i < keys.length; i++) {
+      if (isIncludedProp(props, keys[i], state.excluded)) {
+        included.push(keys[i]);
       }
-      const props = readProps();
-      return isIncludedProp(props, property, state.excluded)
-        ? Reflect.get(props, property, props)
-        : undefined;
-    },
-    has: (_target, property) => {
-      const props = readProps();
-      return isIncludedProp(props, property, state.excluded) && Reflect.has(props, property);
-    },
-    ownKeys: () => {
-      const props = readProps();
-      const keys = Reflect.ownKeys(props);
-      return state.excluded === null
-        ? keys
-        : keys.filter((key) => isIncludedProp(props, key, state.excluded));
-    },
-    getOwnPropertyDescriptor: (_target, property) => {
-      const props = readProps();
-      const descriptor = isIncludedProp(props, property, state.excluded)
-        ? Reflect.getOwnPropertyDescriptor(props, property)
-        : undefined;
-      return descriptor === undefined ? undefined : { ...descriptor, configurable: true };
-    },
-  }) as T;
+    }
+    return included;
+  },
+  getOwnPropertyDescriptor(state, property) {
+    const props = readProps(state);
+    const descriptor = isIncludedProp(props, property, state.excluded)
+      ? Reflect.getOwnPropertyDescriptor(props, property)
+      : undefined;
+    return descriptor === undefined ? undefined : { ...descriptor, configurable: true };
+  },
+  getPrototypeOf: () => null,
+  // A write to props must not reach the state; it never showed through the proxy anyway.
+  set: ignoreWrite,
+  deleteProperty: ignoreWrite,
+  defineProperty: ignoreWrite,
+};
+
+function createPropsProxyState<T extends object>(state: PropsProxyState<T>): T {
+  const proxy = new Proxy(state as PropsProxyState<object>, propsProxyHandler) as T;
   propsProxyStates.set(proxy, state as PropsProxyState<object>);
   return proxy;
 }

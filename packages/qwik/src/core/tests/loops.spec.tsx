@@ -1,5 +1,13 @@
-import { component$, untrack, useSignal, useStore, useTask$, type Signal } from '@qwik.dev/core';
-import { describe, expect, it, onTestFinished } from 'vitest';
+import {
+  Slot,
+  component$,
+  untrack,
+  useSignal,
+  useStore,
+  useTask$,
+  type Signal,
+} from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
 import { triggerAll } from './test-hooks';
 import { trigger } from '@qwik.dev/core/testing';
@@ -23,6 +31,13 @@ const List = component$((props: { tick: Signal<number> }) => {
     </ul>
   );
 });
+
+const labelOrThrow = (id: string) => {
+  if (id === 'c') {
+    throw new Error('row failed');
+  }
+  return id;
+};
 
 describe(`${name}: loops`, () => {
   it('should renumber moved keyed rows after resume', async () => {
@@ -245,6 +260,104 @@ describe(`${name}: loops`, () => {
     cleanup();
   });
 
+  it('keeps the existing rows while an appended row waits for a promise', async () => {
+    type RowGlobals = { rowPending?: Promise<void>; isRowLoaded?: boolean; rowWaits?: number };
+    const globals = globalThis as RowGlobals;
+    let release!: () => void;
+    globals.rowPending = new Promise<void>((resolve) => (release = resolve));
+    globals.isRowLoaded = false;
+    globals.rowWaits = 0;
+    onTestFinished(() => {
+      globals.rowPending = undefined;
+      globals.isRowLoaded = undefined;
+      globals.rowWaits = undefined;
+    });
+    const Cmp = component$(() => {
+      const items = useSignal(['a', 'b']);
+      return (
+        <div>
+          <button onClick$={() => (items.value = [...items.value, 'c'])}></button>
+          <ul>
+            {items.value.map((item) => {
+              const globals = globalThis as RowGlobals;
+              if (item === 'c' && !globals.isRowLoaded) {
+                globals.rowWaits!++;
+                throw globals.rowPending;
+              }
+              return (
+                <li key={item}>
+                  <input value={item} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    const existingRows = Array.from(container.querySelectorAll('li'));
+    existingRows[0].querySelector('input')!.value = 'edited';
+
+    const clicked = qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    await vi.waitFor(() => expect(globals.rowWaits).toBe(1));
+    globals.isRowLoaded = true;
+    release();
+    await clicked;
+    await flush();
+
+    const rows = Array.from(container.querySelectorAll('li'));
+    expect(rows.map((row) => row.querySelector('input')!.value)).toEqual(['edited', 'b', 'c']);
+    expect(rows[0]).toBe(existingRows[0]);
+    expect(rows[1]).toBe(existingRows[1]);
+  });
+
+  it('updates a store-backed list for every kind of array write', async () => {
+    const MyComp = () => {
+      const items = useStore([
+        { id: 'b', label: 'b' },
+        { id: 'a', label: 'a' },
+        { id: 'c', label: 'c' },
+      ]);
+      return (
+        <section>
+          <button id="sort" onClick$={() => items.sort((x, y) => x.id.localeCompare(y.id))} />
+          <button id="splice" onClick$={() => items.splice(1, 1, { id: 'd', label: 'd' })} />
+          <button id="rename" onClick$={() => (items[0].label = 'A')} />
+          <button id="unshift" onClick$={() => items.unshift({ id: 'e', label: 'e' })} />
+          <button id="truncate" onClick$={() => (items.length = 2)} />
+          <output>{items[1]?.label}</output>
+          <ul>
+            {items.map((item) => (
+              <li key={item.id}>{item.label}</li>
+            ))}
+          </ul>
+        </section>
+      );
+    };
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    onTestFinished(cleanup);
+    const rows = () => Array.from(container.querySelectorAll('li'), (node) => node.textContent);
+    const second = () => container.querySelector('output')!.textContent;
+
+    expect(rows()).toEqual(['b', 'a', 'c']);
+    expect(second()).toBe('a');
+    const steps = [
+      ['sort', ['a', 'b', 'c']],
+      ['splice', ['a', 'd', 'c']],
+      ['rename', ['A', 'd', 'c']],
+      ['unshift', ['e', 'A', 'd', 'c']],
+      ['truncate', ['e', 'A']],
+    ] as const;
+    for (let i = 0; i < steps.length; i++) {
+      const [button, expected] = steps[i];
+      await qwikLoader?.dispatch(container.querySelector(`#${button}`)!, 'click');
+      expect(rows()).toEqual([...expected]);
+      expect(second()).toBe(expected[1]);
+    }
+  });
+
   it('rebuilds a keyless reactive collection', async () => {
     const MyComp = () => {
       const items = useSignal(['a', 'b']);
@@ -305,6 +418,81 @@ describe(`${name}: loops`, () => {
 
     expect(container.querySelector('p')?.textContent).toBe('Alpha!Beta!');
     cleanup();
+  });
+
+  it('keeps markup in the key of a multi-node row out of the page', async () => {
+    const Row = component$((props: { label: string }) => <b>{props.label.length}</b>);
+    const keys = [
+      'a><img src=x>',
+      '--><script>x</script>',
+      'c,d',
+      '\uD83D',
+      '\uDE00',
+      '%',
+      '%3E',
+      '>',
+      '-->',
+      ',',
+      '',
+    ];
+    const MyComp = component$(() => {
+      const items = useSignal(keys);
+      return (
+        <p>
+          <button onClick$={() => (items.value = [...items.value].reverse())}></button>
+          {items.value.map((key) => (
+            <Row key={key} label={key} />
+          ))}
+        </p>
+      );
+    });
+
+    const { container, cleanup } = await render(MyComp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelector('p')!.innerHTML).not.toMatch(/<img|<script/);
+    const rows = Array.from(container.querySelectorAll('b'));
+    expect(rows.map((row) => row.textContent)).toEqual(keys.map((key) => String(key.length)));
+
+    await triggerAll(container, 'button', 'click');
+    expect(Array.from(container.querySelectorAll('b'))).toEqual(rows.reverse());
+  });
+
+  it('keeps a projection in sync while a failed row insert holds it', async () => {
+    const Rows = component$((props: { ids: Signal<string[]> }) => (
+      <ul>
+        {props.ids.value.map((id) => {
+          const label = labelOrThrow(id);
+          return (
+            <li key={id}>
+              {label}
+              <Slot />
+            </li>
+          );
+        })}
+      </ul>
+    ));
+    const MyComp = component$(() => {
+      const ids = useSignal(['x']);
+      const count = useSignal(0);
+      return (
+        <main>
+          <button id="fail" onClick$={() => (ids.value = ['x', 'a', 'c'])}></button>
+          <button id="inc" onClick$={() => count.value++}></button>
+          <button id="ok" onClick$={() => (ids.value = ['x', 'a'])}></button>
+          <Rows ids={ids}>
+            <b>{count.value}</b>
+          </Rows>
+        </main>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    onTestFinished(cleanup);
+    // Row `a` takes the projection from row `x`, then row `c` fails and the insert rolls back.
+    await qwikLoader!.dispatch(container.querySelector('#fail')!, 'click').catch(() => {});
+    await qwikLoader!.dispatch(container.querySelector('#inc')!, 'click');
+    await qwikLoader!.dispatch(container.querySelector('#ok')!, 'click');
+    expect(container.querySelector('b')?.textContent).toBe('1');
   });
 
   it('stops updating a removed row', async () => {

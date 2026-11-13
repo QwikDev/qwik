@@ -707,6 +707,37 @@ import { linkPrefetchInit } from './link-prefetch';
     expect(chunks).toBe(1);
   });
 
+  test('a spread in a handler list is refused rather than dropped', async () => {
+    await expect(
+      main(`<button onClick$={[...spaInit, $(() => { document.title = 'a'; })]}></button>`)
+    ).rejects.toThrow('pipeline does not support: a spread in an event handler list');
+  });
+
+  test.each([false, true])(
+    'a computed handler in a list is refused on both sides (SSR: %s)',
+    async (isServer) => {
+      await expect(
+        transformModules({
+          srcDir: 'src',
+          transpileTs: true,
+          transpileJsx: true,
+          isServer,
+          input: [
+            {
+              path: 'src/component.tsx',
+              code: `import { $, useSignal } from '@qwik.dev/core';
+export default () => {
+  const enabled = useSignal(false);
+  return <button onClick$={[enabled.value ? $(() => console.log(1)) : undefined, $(() => console.log(2))]} />;
+};
+`,
+            },
+          ],
+        })
+      ).rejects.toThrow('pipeline does not support: a computed handler in an event handler list');
+    }
+  );
+
   test('the server prints the same list through its event attribute', async () => {
     const { code } = await main(
       `<script document:onQCInit$={[spaInit, linkPrefetchInit]}></script>`,

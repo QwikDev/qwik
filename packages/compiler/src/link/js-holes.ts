@@ -8,6 +8,7 @@
 import {
   BindingScope,
   BoundaryKind,
+  BoundaryRole,
   DiagnosticCategory,
   Environment,
   PlanEngine,
@@ -23,7 +24,12 @@ import {
 } from '../schema';
 
 /** Roles the server never opens: it writes the symbol into the HTML and the browser runs the body. */
-const SERIALIZED_ONLY = new Set(['event', 'prop', 'slot', 'projection']);
+const SERIALIZED_ONLY: ReadonlySet<BoundaryRole> = new Set([
+  BoundaryRole.Event,
+  BoundaryRole.Prop,
+  BoundaryRole.Slot,
+  BoundaryRole.Projection,
+]);
 
 /** Markers whose role does not say it: they wrap a handler, so only the browser runs the body. */
 const CLIENT_ONLY_HOOKS = new Set([
@@ -43,18 +49,20 @@ export function reportJsHoles(modules: LinkedModule[], specialization: Specializ
   }
   const invoked = collectInvokedProps(modules);
   for (const module of modules) {
+    const holes: Diagnostic[] = [];
     for (const qrl of module.qrls) {
       if (qrl.body.b === QrlBodyKind.Js && isServerReachable(qrl, invoked)) {
-        module.diagnostics.push(hole(`the ${qrl.ctxName} body`, qrl.origin.range));
+        holes.push(hole(`the ${qrl.ctxName} body`, qrl.origin.range));
       }
     }
     for (const program of module.programs) {
       for (const entry of program.setup) {
         if (entry.s === SetupKind.Js) {
-          module.diagnostics.push(hole('a setup statement', module.payloads[entry.payload].range));
+          holes.push(hole('a setup statement', module.payloads[entry.payload].range));
         }
       }
     }
+    module.diagnostics = [...module.diagnostics, ...holes];
   }
 }
 

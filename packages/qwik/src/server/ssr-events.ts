@@ -3,37 +3,22 @@ import {
   createQRL,
   isQrl,
   isSyncQrl,
-  qrlToChunks,
+  qrlToString,
   type QRL,
   type QRLInternal,
 } from '@qwik.dev/core';
 import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
-import { getEventDataFromHtmlAttribute, getScopedEventName } from './qwik-copy';
+import { escapeHTML, getEventDataFromHtmlAttribute, getScopedEventName } from './qwik-copy';
 
-export type SsrEventWriteChunk = string | number | { readonly path: number[] };
-
+/** The html-escaped attribute value of an event's handlers, or null without handlers. */
 export function serializeSsrEvent(
   serializationCtx: SerializationContext,
   key: string,
   rawValue: unknown,
   /** Wrap even capture-less handlers so they run under a container invoke context. */
   needsInvokeContext: boolean
-): string | SsrEventWriteChunk[] | null {
-  let value: string | SsrEventWriteChunk[] | null = null;
-
-  const append = (next: string | SsrEventWriteChunk[]) => {
-    if (value === null) {
-      value = next;
-    } else if (typeof value === 'string' && typeof next === 'string') {
-      value += '|' + next;
-    } else {
-      value = [
-        ...(typeof value === 'string' ? [value] : value),
-        '|',
-        ...(typeof next === 'string' ? [next] : next),
-      ];
-    }
-  };
+): string | null {
+  let value: string | null = null;
 
   const appendQrl = (qrl: QRLInternal<unknown>) => {
     // sync handlers have no captures to move — wrapping would lose their sync dispatch
@@ -42,7 +27,8 @@ export function serializeSsrEvent(
       !qrl.$symbol$.startsWith('_') &&
       (qrl.$captures$?.length || qrl.$hasMovedCaptures$ || needsInvokeContext);
     const attrQrl = needsRunWrapper ? createQRL(null, '_run', _run, null, [qrl]) : qrl;
-    append(qrlToChunks(serializationCtx, attrQrl));
+    const serialized = escapeHTML(qrlToString(serializationCtx, attrQrl));
+    value = value === null ? serialized : value + '|' + serialized;
     // the preloader needs the handler's own chunk, not the core-owned _run
     addEvent(serializationCtx, key, qrl);
   };

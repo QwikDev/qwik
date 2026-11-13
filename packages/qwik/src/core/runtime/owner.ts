@@ -17,6 +17,7 @@ import { runWithCollector } from '../reactive/tracking';
 
 import type { ProjectionBlock } from '../dom/slot/slot';
 import type { CatchBoundary } from '../dom/content/catch-boundary';
+import { qError, QError } from '../shared/error/error';
 
 export type OwnerItem = Owner | Subscriber;
 export type OwnerItems = OwnerItem | OwnerItem[] | null;
@@ -118,7 +119,7 @@ export function registerSubscriberToOwner<T extends Subscriber>(
   const resolvedOwner = arguments.length === 1 ? getOrCreateActiveOwnerOrThrow() : (owner ?? null);
 
   if (resolvedOwner === null) {
-    throw new Error('Missing owner for subscriber');
+    throw qError(QError.missingOwner);
   }
 
   if (resolvedOwner.flags & OwnerFlags.Disposed) {
@@ -296,7 +297,7 @@ function getOrCreateActiveOwnerOrNull(): Owner | null {
 function getOrCreateActiveOwnerOrThrow(): Owner {
   const owner = getOrCreateActiveOwnerOrNull();
   if (owner === null) {
-    throw new Error('Missing active owner context for subscriber');
+    throw qError(QError.missingOwner);
   }
   return owner;
 }

@@ -1,0 +1,123 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const open = useSignal(false);
+  return <textarea class={open.value ? 'a' : 'b'}>{open.value ? 'x' : null}</textarea>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (open) => {
+  return open.value ? 'a' : 'b';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    149,
+    171
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "open"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (open) => {
+  return open.value ? 'x' : null;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    174,
+    197
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "open"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  patchCachedAttr,
+  _first,
+  patchTextValue,
+  createDomBatchEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const default_tmpl0 = _createElementTemplate('<textarea> </textarea>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const open = useSignal(false);
+  const el0 = default_tmpl0(ctx.document);
+  let written0;
+  const text0 = _first(el0);
+  createDomBatchEffect(() => {
+    written0 = patchCachedAttr(
+      el0,
+      'class',
+      component_class_segment_0_3htuygud1guoj(open),
+      written0
+    );
+    patchTextValue(text0, component_text_segment_1_1fh10tcowimfv(open));
+  }, ctx.scheduler);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    214
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

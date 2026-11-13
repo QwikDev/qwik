@@ -175,7 +175,6 @@ export default () => {
     if (isServer) {
       expect(renderer).toContain('q:p=');
       expect(renderer).toContain('ctx.addRoot(row)');
-      expect(renderer).not.toContain('createSsrRootRef');
       expect(renderer).toContain('.m()');
     } else {
       expect(renderer).toContain('._qEventParam = row;');

@@ -308,7 +308,6 @@ import {
   _next,
   _last,
   _prev,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
@@ -346,7 +345,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [show]),
     q_component_branch_then_segment_1_24n7blyqktd46,
     undefined
@@ -371,7 +371,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end2 = _next(start2);
   const branch1 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start2, end2),
+    start2,
+    end2,
     _withCaptures(component_branch_condition_segment_5_2fzrggonbf7cm, [show]),
     q_component_branch_then_segment_6_24n7cs22bbj5r,
     undefined
@@ -381,7 +382,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end3 = _next(start3);
   const branch2 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start3, end3),
+    start3,
+    end3,
     _withCaptures(component_branch_condition_segment_7_2fzrfomfhr3bk, [show]),
     q_component_branch_then_segment_8_24n7f48psbv8x,
     undefined

@@ -21,9 +21,11 @@ import {
   type SsrOutput,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
-import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
+import type {
+  SerializationContext,
+  SerializedStateRange,
+} from '@qwik.dev/core/internal/serializer';
 import { SubscriberKind, SubscriberFlags, escapeHTML, type ValueOrPromise } from './qwik-copy';
-import { createSsrEventAttrParts } from './ssr-event-attr';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import { serializeSsrEvent } from './ssr-events';
 import { injectStyles, insertAtSection, ensureDocument, splitAtSection } from './ssr-document';
@@ -293,44 +295,29 @@ export function createSsrPublication(
       return String(serializationCtx.$addRoot$(chunk.value));
     }
     if (chunk.type === 'event-value') {
-      const serialized = serializeSsrEvent(
-        serializationCtx,
-        chunk.name,
-        chunk.value,
-        chunk.needsInvokeContext
+      return (
+        serializeSsrEvent(serializationCtx, chunk.name, chunk.value, chunk.needsInvokeContext) ?? ''
       );
-      const value =
-        serialized === null
-          ? ''
-          : typeof serialized === 'string'
-            ? serialized
-            : serialized
-                .map((part) => (typeof part === 'object' ? part.path.join(' ') : String(part)))
-                .join('');
-      return escapeHTML(value);
     }
-    if (chunk.type === 'sync-fn') {
-      const key = chunk.qrl.$symbol$;
-      const { serialized } = chunk.qrl.resolved as { serialized: string };
-      if (preparing !== undefined) {
-        serializationCtx.$requireSyncFn$(key, serialized);
-        return '';
-      }
-      if (emittedSyncFns.has(key)) {
-        return '';
-      }
-      if (serializationCtx.$journal$ === undefined) {
-        emittedSyncFns.add(key);
-      } else {
-        serializationCtx.$journal$.add(emittedSyncFns, key);
-      }
-      return scripts.emitSyncFn(key, serialized, instanceHash);
+    const key = chunk.qrl.$symbol$;
+    const { serialized } = chunk.qrl.resolved as { serialized: string };
+    if (preparing !== undefined) {
+      serializationCtx.$requireSyncFn$(key, serialized);
+      return '';
     }
-    return chunk.type === 'root-ref-path' ? chunk.localPath.join(' ') : String(chunk.localId);
+    if (emittedSyncFns.has(key)) {
+      return '';
+    }
+    if (serializationCtx.$journal$ === undefined) {
+      emittedSyncFns.add(key);
+    } else {
+      serializationCtx.$journal$.add(emittedSyncFns, key);
+    }
+    return scripts.emitSyncFn(key, serialized, instanceHash);
   };
   const materializeChunk: typeof materializeValue = (chunk) => {
     const previous = materializingBoundary;
-    if ('boundary' in chunk) {
+    if (chunk.type !== 'sync-fn') {
       materializingBoundary = chunk.boundary;
       if (materializingBoundary !== undefined && bindBoundary === undefined) {
         enableCatch();
@@ -552,24 +539,29 @@ export function createSsrPublication(
 
   const writeShellState = async (): Promise<void> => {
     while (
-      !(await publishFrame(async (transaction) => {
+      !(await publishFrame(async () => {
         const eventAttrs = createStateScriptEventAttrs(serializationCtx);
-        const state = await serializationCtx.$serializeNext$();
-        const frame = takeSyncDefinitions();
-        if (state !== null) {
-          await writeBufferedOutput(
-            scripts.emitStateRange(state, undefined, undefined, eventAttrs),
-            frame,
-            transaction.cancelled
-          );
-        }
-        return frame.join('');
+        const ranges = await serializeStateRanges();
+        return (
+          takeSyncDefinitions().join('') +
+          scripts.emitStateRanges(ranges, undefined, undefined, eventAttrs)
+        );
       }))
     ) {
       throwIfFailed();
     }
   };
-  const publishRange = (record: SsrPublicationRange): Promise<boolean> => {
+  /** The serializer stops at each state script's root limit, so one frame may need several. */
+  const serializeStateRanges = async (): Promise<SerializedStateRange[]> => {
+    const ranges: SerializedStateRange[] = [];
+    let range: SerializedStateRange | null;
+    while ((range = await serializationCtx.$serializeNext$()) !== null) {
+      ranges.push(range);
+    }
+    return ranges;
+  };
+  /** `trailer` rides the packet outside the swapped content, so later swaps keep it. */
+  const publishRange = (record: SsrPublicationRange, trailer?: SsrOutput): Promise<boolean> => {
     const boundary = (record.contentRoot as { content?: { container?: SsrPublicationScope } })
       ?.content?.container?.catchBoundary;
     return publishFrame(
@@ -582,6 +574,10 @@ export function createSsrPublication(
         addSelectedRoot(record.contentRoot);
         collectSyncFunctions(record.output!);
         await writeBufferedOutput(record.output!, html, transaction.cancelled);
+        const trailerHtml: string[] = [];
+        if (trailer !== undefined) {
+          await writeBufferedOutput(trailer, trailerHtml, transaction.cancelled);
+        }
         if (transaction.isCancelled) {
           throw new Error('Serialization cancelled');
         }
@@ -591,12 +587,10 @@ export function createSsrPublication(
           serializationCtx.$rootStateRootCount$
         );
         const eventAttrs = createStateScriptEventAttrs(serializationCtx, selectedSubscribers);
-        const state = await serializationCtx.$serializeNext$();
+        const ranges = await serializeStateRanges();
         throwIfFailed();
-        const packet: SsrOutput[] = takeSyncDefinitions();
-        if (state !== null) {
-          packet.push(scripts.emitStateRange(state, record.id, subscriptions, eventAttrs));
-        }
+        const packet = takeSyncDefinitions();
+        packet.push(scripts.emitStateRanges(ranges, record.id, subscriptions, eventAttrs));
         packet.push(styleIds.emit(serializationCtx.$journal$));
         packet.push(
           scripts.emitQwikEvents(
@@ -608,7 +602,8 @@ export function createSsrPublication(
           )
         );
         packet.push(
-          scripts.emitResolved(
+          ...trailerHtml,
+          ...scripts.emitResolved(
             record.id,
             html.join(''),
             true,
@@ -622,9 +617,7 @@ export function createSsrPublication(
         if (patches !== null) {
           packet.push(scripts.emitBackpatch(patches));
         }
-        const frame: string[] = [];
-        await writeBufferedOutput(packet, frame);
-        return frame.join('');
+        return packet.join('');
       },
       boundary,
       record
@@ -759,7 +752,7 @@ function wasSerializedBefore(
 export function createStateScriptEventAttrs(
   serializationCtx: SerializationContext,
   selected?: ReadonlySet<Subscriber>
-): readonly (string | SsrReferenceChunk)[] | undefined {
+): string {
   const eagerResume: unknown[] = [];
   for (const value of selected ?? serializationCtx.$eagerResume$) {
     const subscriber = value as Subscriber;
@@ -774,17 +767,15 @@ export function createStateScriptEventAttrs(
     eagerResume.push(value);
   }
   if (eagerResume.length === 0) {
-    return undefined;
+    return '';
   }
-  const serialized = serializeSsrEvent(
+  const value = serializeSsrEvent(
     serializationCtx,
     'q-d:qidle',
     createQRL(null, '_res', _res, null, eagerResume),
     false
   );
-  return serialized === null
-    ? undefined
-    : createSsrEventAttrParts(selected === undefined ? 'q-d:qidle' : 'q:idle', serialized);
+  return value === null ? '' : ` ${selected === undefined ? 'q-d:qidle' : 'q:idle'}="${value}"`;
 }
 
 class SsrStyles extends Map<string, string> {

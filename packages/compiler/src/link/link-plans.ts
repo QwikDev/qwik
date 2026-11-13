@@ -90,7 +90,7 @@ export function linkPlans(
   const { qrlIndexes, importsByBinding, resolveLocalBinding } = resolution;
   const linkedModules = materializeModules(plans, resolution);
   foldConstants(linkedModules, specialization);
-  foldBranches(linkedModules, specialization);
+  foldBranches(linkedModules, specialization, qrlIndexes);
   reportJsHoles(linkedModules, specialization);
   applyStripping(linkedModules, specialization);
   const linkedEntries = resolveEntries(plans, entries, resolution, diagnostics);
@@ -102,9 +102,16 @@ export function linkPlans(
     complete,
     diagnostics
   );
-  linkedModules.forEach((module) => linkHookTwins(module, diagnostics));
+  linkedModules.forEach((module, index) =>
+    linkHookTwins(module, importsByBinding[index], diagnostics)
+  );
   // A refused reference is known, not missing, so it fails an incomplete link too.
-  const refused = linkComponentReferences(plans, linkedModules, resolveLocalBinding);
+  const refused = linkComponentReferences(
+    plans,
+    linkedModules,
+    importsByBinding,
+    resolveLocalBinding
+  );
   if (refused.length > 0) {
     return failed(refused, plans);
   }
@@ -118,13 +125,12 @@ export function linkPlans(
     complete,
     entries: linkedEntries,
     modules: linkedModules,
-    implementations: [],
-    diagnostics: plans.flatMap((plan, module) =>
-      plan.diagnostics.map((diagnostic) => ({ module, diagnostic }))
+    diagnostics: linkedModules.flatMap((linked, module) =>
+      linked.diagnostics.map((diagnostic) => ({ module, diagnostic }))
     ),
   };
   linkRenderResults(plan, visited, qrlIndexes, importsByBinding, resolveLocalBinding);
-  plan.modules.forEach(linkContent);
+  plan.modules.forEach((module, index) => linkContent(module, qrlIndexes[index]));
   plan.modules.forEach(linkEffects);
   return { kind: LinkResultKind.Linked, plan };
 }

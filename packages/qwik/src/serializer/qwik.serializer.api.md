@@ -7,8 +7,6 @@
 import type { SerializationContext as SerializationContext_2 } from '@qwik.dev/core/internal/serializer';
 
 // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SerdesWriter" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createSerializationContext" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -17,7 +15,12 @@ DomRefConstructor: {
     new (...rest: any[]): {
         __brand__: "DomRef";
     };
-} | null, symbolToChunkResolver: SymbolToChunkResolver, setProp: (obj: any, prop: string, value: any) => void, storeProxyMap: ObjToProxyMap, writer?: SerdesWriter) => SerializationContext;
+} | null, symbolToChunkResolver: SymbolToChunkResolver) => SerializationContext;
+
+// Warning: (ae-internal-missing-underscore) The name "escapeScriptText" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const escapeScriptText: (text: string) => string;
 
 // Warning: (ae-internal-missing-underscore) The name "SeenRef" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -31,16 +34,12 @@ export type SeenRef = {
 //
 // @internal (undocumented)
 export interface SerializationContext {
-    // (undocumented)
-    $addDuplicateRoot$: (obj: unknown) => SeenRef;
     // Warning: (ae-forgotten-export) The symbol "AddRootFn" needs to be exported by the entry point index.d.ts
     $addRoot$: AddRootFn;
     // Warning: (ae-forgotten-export) The symbol "SerializationTransaction" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     $beginTransaction$(canRollback?: boolean): SerializationTransaction;
-    // (undocumented)
-    $commitRoot$: (root: unknown, obj: unknown) => number;
     // (undocumented)
     $eagerResume$: Set<unknown>;
     // (undocumented)
@@ -49,8 +48,6 @@ export interface SerializationContext {
     //
     // (undocumented)
     $eventQrls$: Set<QRL>;
-    // (undocumented)
-    $forwardRefOffset$: number;
     $hasRootId$: (obj: unknown) => number | undefined;
     // Warning: (ae-forgotten-export) The symbol "DomRef" needs to be exported by the entry point index.d.ts
     //
@@ -77,8 +74,6 @@ export interface SerializationContext {
     // (undocumented)
     $qrlMapper$?: QrlMapper;
     // (undocumented)
-    $renderSymbols$: Set<string>;
-    // (undocumented)
     $requireSyncFn$(key: string, source: string): void;
     // (undocumented)
     $retireRoot$(id: number): void;
@@ -97,21 +92,13 @@ export interface SerializationContext {
     // (undocumented)
     $serialize$: () => ValueOrPromise<void>;
     // (undocumented)
-    $serializedForwardRefCount$: number;
-    // (undocumented)
-    $serializedRootCount$: number;
-    // (undocumented)
     $serializeNext$: () => ValueOrPromise<SerializedStateRange | null>;
-    // (undocumented)
-    $serializePatch$: (rootStart: number, rootIds: number[], extraRootId?: number | string | number[], streamedRootLimit?: number) => ValueOrPromise<void>;
-    // (undocumented)
-    $setProp$: (obj: any, prop: string, value: any) => void;
     // (undocumented)
     $setWriter$(writer: SerdesWriter): void;
     // (undocumented)
-    $storeProxyMap$: ObjToProxyMap;
-    // (undocumented)
     $symbolToChunkResolver$: SymbolToChunkResolver;
+    // Warning: (ae-forgotten-export) The symbol "SerdesWriter" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     $writer$: SerdesWriter;
     getSeenRef: (obj: unknown) => SeenRef | undefined;
@@ -126,7 +113,6 @@ export function _serialize<T>(data: T): Promise<string>;
 export interface SerializedStateRange {
     // (undocumented)
     readonly base: number;
-    // (undocumented)
     readonly forwardRefs?: readonly (number | string | number[])[];
     // (undocumented)
     readonly len: number;

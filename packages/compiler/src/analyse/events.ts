@@ -29,6 +29,16 @@ export function eventScopeName(
   return null;
 }
 
+/** `passive:x` itself, and a `preventdefault:x` a passive `x` cancels: neither is emitted. */
+export function isDroppedEventAttribute(name: string, passiveEvents: ReadonlySet<string>): boolean {
+  const modifier = 'preventdefault:';
+  return (
+    name.startsWith(PASSIVE_PREFIX) ||
+    (name.startsWith(modifier) &&
+      passiveEvents.has(normalizeEventName(name.slice(modifier.length))))
+  );
+}
+
 /** `preventdefault:dblClick` → `preventdefault:dblclick`, the attribute qwikloader reads. */
 export function eventModifierName(jsxName: string): string | null {
   const modifier = eventModifiers.find((prefix) => jsxName.startsWith(prefix));

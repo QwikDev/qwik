@@ -155,8 +155,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     await Promise.all([slot.resolve(), slot.resolve()]);
 
+    expect(slot.resolve()).toBe('value');
     expect(calls).toBe(1);
-    expect(slot.peek()).toBe('value');
   });
 
   it('creates lazy source subscriber slots on access', () => {

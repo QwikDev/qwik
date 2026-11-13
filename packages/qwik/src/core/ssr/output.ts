@@ -7,6 +7,7 @@ import type { ServerDataContext } from '../runtime/use-server-data';
 import type { RuntimeInvokeContext } from '../runtime/invoke-context';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { SsrUseOnHost } from './use-on';
 
 export interface SsrContentContext extends ServerDataContext {
   readonly element?: never;
@@ -27,7 +28,9 @@ export interface SsrContentContext extends ServerDataContext {
 }
 
 /** Shared services for streaming content ranges. */
-export interface SsrRangeHost extends SsrContentContext {
+export interface SsrRangeHost extends SsrContentContext, SsrUseOnHost {
+  // Restated because `SsrContentContext` declares it optional.
+  eventAttr(name: string, value: unknown): SsrEventAttrChunk;
   nextId(): number;
   addRoot(value: unknown): SsrReferenceChunk;
   catchBoundary?: SsrCatchController;
@@ -37,6 +40,8 @@ export interface SsrRangeHost extends SsrContentContext {
   createRangeScope(rangeId: number): SsrRangeScope;
   /** False under in-order rendering: the owner must await its content instead of deferring. */
   canDefer: boolean;
+  /** Requests the one document listener that routes event errors to every Catch. */
+  registerCatchErrorHandler(): void;
 }
 
 export interface SsrRangeScope extends SsrRangeHost {
@@ -50,8 +55,6 @@ export interface SsrRangeScope extends SsrRangeHost {
 }
 
 export type SsrReferenceChunk =
-  | { readonly type: 'node-id'; readonly localId: number | string }
-  | { readonly type: 'root-ref'; readonly localId: number }
   | { readonly type: 'root-value'; readonly value: unknown; readonly boundary?: SsrCatchController }
   | {
       readonly type: 'event-value';
@@ -60,8 +63,7 @@ export type SsrReferenceChunk =
       readonly needsInvokeContext: boolean;
       readonly boundary?: SsrCatchController;
     }
-  | { readonly type: 'sync-fn'; readonly qrl: QRLInternal }
-  | { readonly type: 'root-ref-path'; readonly localPath: readonly number[] };
+  | { readonly type: 'sync-fn'; readonly qrl: QRLInternal };
 
 export interface SsrEventAttrChunk {
   readonly type: 'event-attr';
@@ -210,8 +212,8 @@ export function createSsrEventAttr(
 }
 
 /** A row marker may carry its key beside the id (`r=<id>,<key>`), so the id is text there. */
-export function createSsrNodeId(localId: number | string): SsrReferenceChunk {
-  return { type: 'node-id', localId };
+export function createSsrNodeId(localId: number | string): string {
+  return String(localId);
 }
 
 /** @internal */
@@ -222,14 +224,6 @@ export function _createSsrSlotMarker(
   return projectionRootId === undefined
     ? ['<!s=', createSsrNodeId(rangeId), '>']
     : ['<!s=', createSsrNodeId(rangeId), ',', projectionRootId, '>'];
-}
-
-export function createSsrRootRef(localId: number): SsrReferenceChunk {
-  return { type: 'root-ref', localId };
-}
-
-export function createSsrRootRefPath(localPath: readonly number[]): SsrReferenceChunk {
-  return { type: 'root-ref-path', localPath };
 }
 
 export function isSsrRecordChunk(value: SsrOutput): value is SsrRecordChunk {

@@ -48,7 +48,7 @@ function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => 
 function withSignalLocal(ctx: LowerContext): void {
   const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
   ctx.locals = new Map([
-    [count, { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: count }],
+    [count, { kind: LocalKind.Signal, access: CaptureAccess.Direct, binding: count }],
   ]);
 }
 

@@ -329,7 +329,7 @@ import {
   _prev,
   createContentBlock,
   createCollection,
-  createTemplate,
+  _createRangeMarkers,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { wrap, consume } from './wrappers';
@@ -349,7 +349,6 @@ const q_component_content_segment_5_18525souwghet = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_5_18525souwghet'),
   'component_content_segment_5_18525souwghet'
 );
-const semantic_collectionRender_342_381_3pmr3rjnp9sp9_tmpl0 = createTemplate('<!><!>');
 const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_7_185250mn2sddr'),
   'component_content_segment_7_185250mn2sddr'
@@ -388,20 +387,18 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const start2 = _prev(_last(el0));
   const end2 = _next(start2);
   function semantic_collectionRender_342_381_3pmr3rjnp9sp9(ctx, row) {
-    const fragment0 = semantic_collectionRender_342_381_3pmr3rjnp9sp9_tmpl0(ctx.document);
-    const start0 = _first(fragment0);
-    const end0 = _next(start0);
+    const range0 = _createRangeMarkers(ctx.document);
     const content0 = createContentBlock(
       ctx,
-      start0,
-      end0,
+      range0[0],
+      range0[1],
       [],
       q_component_content_segment_7_185250mn2sddr.w([row]),
       false,
       true
     );
     ctx.scheduler.notify(content0);
-    return [start0, end0];
+    return range0;
   }
   createCollection(
     ctx,

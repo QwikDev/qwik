@@ -1,6 +1,7 @@
 import {
   ArgPass,
   BoundaryKind,
+  BoundaryRole,
   CaptureAccess,
   DeliveryKind,
   FnBodyKind,
@@ -27,7 +28,7 @@ import { createSegmentSourceIdentity, createSegmentSymbolName } from '../segment
 import { collectQrlDependencies } from './qrl-dependencies';
 
 /** Final render strategy selection shares the existing content operation and ABI. */
-export function linkContent(module: LinkedModule): void {
+export function linkContent(module: LinkedModule, qrlIndex: ReadonlyMap<string, number>): void {
   let ordinal = 0;
   const scan = (op: LinkedOp): void => {
     if (op.op === OpKind.Element) {
@@ -54,11 +55,11 @@ export function linkContent(module: LinkedModule): void {
     const value = op.value;
     if (value.v === ValueKind.Computed && value.resume.r === ResumeKind.Qrl) {
       render = value.resume.qrl;
-      const index = module.qrls.findIndex((qrl) => qrl.id === render.qrl);
+      const index = qrlIndex.get(render.qrl)!;
       module.qrls[index] = {
         ...module.qrls[index],
         payloadKind: QrlPayloadKind.Function,
-        boundary: { kind: BoundaryKind.Implicit, role: 'content' },
+        boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Content },
       };
     } else if (
       readBinding(value) !== null ||
@@ -87,11 +88,10 @@ export function linkContent(module: LinkedModule): void {
         name,
         parent: null,
         ctxName: 'content',
-        boundary: { kind: BoundaryKind.Implicit, role: 'content' },
-        markerAttributes: [],
+        boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Content },
         payloadKind: QrlPayloadKind.Function,
         authoredAsync: false,
-        body: { b: QrlBodyKind.Expr, expr: expr!, initialOnly: false },
+        body: { b: QrlBodyKind.Expr, expr: expr! },
         captures,
         functions,
         params: { authored: 0, used: [], sources: [] },
@@ -106,7 +106,7 @@ export function linkContent(module: LinkedModule): void {
         },
         propsParts: [],
         dependencies: { bindings: captures.map((capture) => capture.binding), qrls: [] },
-        delivery: { d: DeliveryKind.Chunk, chunkBase: `${module.path}_${name}`, resolved: true },
+        delivery: { d: DeliveryKind.Chunk },
       };
       module.qrls.push(qrl);
       render = { qrl: id, args };

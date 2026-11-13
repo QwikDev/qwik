@@ -131,17 +131,12 @@ export const component_Label_segment_1_2vosupxtbn33m = (props, ctx) => {
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
 import {
-  _noopQrl,
   _capturesObj,
   _createSsrSlotMarker,
   renderSsrDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
 import { component_Label_segment_1_2vosupxtbn33m } from './component.tsx_component_Label_segment_1_2vosupxtbn33m';
-const q_component_Label_segment_1_2vosupxtbn33m = /*#__PURE__*/ _noopQrl(
-  'component_Label_segment_1_2vosupxtbn33m'
-);
-q_component_Label_segment_1_2vosupxtbn33m.s(component_Label_segment_1_2vosupxtbn33m);
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (
   ctx,
@@ -185,17 +180,29 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrDynamicTag,
+  _noopQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  _noopQrl,
-  _capturesObj,
-  _createSsrSlotMarker,
-  renderSsrDynamicTag,
   _markComponent,
 } from '@qwik.dev/core';
 import { Link_component_3fobl8j4gp0c3 as Link } from './component.tsx_Link_component_3fobl8j4gp0c3';
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
+  const [on] = _capturesObj._;
+  const Label = component_Label_segment_1_2vosupxtbn33m;
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Label, props0, ctx), { on: on }, ctx)
+  );
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 const component_Label_segment_1_2vosupxtbn33m = (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
@@ -213,22 +220,6 @@ const component_Label_segment_1_2vosupxtbn33m = (props, ctx) => {
     '</b>',
   ]);
 };
-const q_component_Label_segment_1_2vosupxtbn33m = /*#__PURE__*/ _noopQrl(
-  'component_Label_segment_1_2vosupxtbn33m'
-);
-q_component_Label_segment_1_2vosupxtbn33m.s(component_Label_segment_1_2vosupxtbn33m);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
-  const [on] = _capturesObj._;
-  const Label = component_Label_segment_1_2vosupxtbn33m;
-  const component0 = ctx.observeError(
-    createComponent((props0) => renderSsrDynamicTag(Label, props0, ctx), { on: on }, ctx)
-  );
-  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
-};
-const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
   return String(props.on.value);
 };
@@ -241,7 +232,6 @@ _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9ai
 
 export function default_component_3rg6kq1so9aio(props0, ctx) {
   const on = useSignal(false);
-  const Label = component_Label_segment_1_2vosupxtbn33m;
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([on]));
   ctx.addRoot(slotScope0);

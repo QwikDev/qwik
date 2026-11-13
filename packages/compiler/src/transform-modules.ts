@@ -46,7 +46,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
   const specialization: Specialization = {
     environment: options.isServer === false ? Environment.Browser : Environment.Server,
     mode:
-      options.mode === 'dev'
+      options.mode === 'dev' || options.mode === 'hmr'
         ? BuildMode.Dev
         : options.mode === 'lib'
           ? BuildMode.Lib

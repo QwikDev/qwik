@@ -65,7 +65,7 @@ const compilerProject: TestProjectInlineConfiguration = {
     name: 'compiler',
     // Rooted at the repo so a path filter (`vitest packages`) still selects these files.
     root: fromRoot('.'),
-    include: ['packages/compiler/src/**/*.unit.ts'],
+    include: ['packages/compiler/src/**/*.unit.ts', 'packages/compiler/conformance/**/*.unit.ts'],
     exclude: [...configDefaults.exclude, 'packages/compiler/dist/**'],
     setupFiles: [fromRoot('./vitest-setup.ts')],
     testTimeout: 120000,

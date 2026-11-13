@@ -1,5 +1,5 @@
 import type { SsrContentContext } from './ssr/output';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { _capturesObj } from './shared/qrl/qrl-captures';
 import type { ComputedQrl } from './reactive/computed-qrl';
@@ -112,6 +112,8 @@ type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: SsrContentContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
+const invalidState = (detail: string) =>
+  new Error(`Code(Q41): Invalid serialized state: ${detail}`);
 
 class CustomSerializable {
   constructor(public n = 3) {}
@@ -158,7 +160,7 @@ describe('serdes emit-only', () => {
     expect(await allocate(container, TypeIds.RefVNode, 7)).toBe(node);
     const other = createContainerContext(window.document.createElement('div'));
     await expect(async () => allocate(other, TypeIds.RefVNode, 7)).rejects.toThrow(
-      'Missing element ref'
+      invalidState('element ref 7')
     );
   });
 
@@ -170,12 +172,7 @@ describe('serdes emit-only', () => {
     const last = makeComputed('last');
     first.value;
     last.value;
-    const serializer = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serializer = createSerializationContext(null, () => '');
     const firstId = serializer.$addRoot$(first);
     await serializer.$serialize$();
     const initial = serializer.$writer$.toString();
@@ -250,12 +247,7 @@ describe('serdes emit-only', () => {
       if (stateKind === 'initial') {
         registerStateData(container, await serialize(owner, computed));
       } else {
-        const serializer = createSerializationContext(
-          null,
-          () => '',
-          () => {},
-          new WeakMap()
-        );
+        const serializer = createSerializationContext(null, () => '');
         serializer.$addRoot$(owner);
         await serializer.$serialize$();
         registerStateData(container, JSON.parse(serializer.$writer$.toString()));
@@ -332,7 +324,7 @@ describe('serdes emit-only', () => {
           TypeIds.Plain,
           false,
         ])
-      ).rejects.toThrow('Invalid serialized owner');
+      ).rejects.toThrow(invalidState('owner'));
     }
   );
 
@@ -347,7 +339,7 @@ describe('serdes emit-only', () => {
         TypeIds.Plain,
         false,
       ])
-    ).rejects.toThrow('Invalid serialized owner');
+    ).rejects.toThrow(invalidState('owner'));
     await expect(async () =>
       inflateState(
         container,
@@ -355,7 +347,7 @@ describe('serdes emit-only', () => {
         TypeIds.ComputedSignal,
         [TypeIds.Plain, {}, TypeIds.Plain, 0]
       )
-    ).rejects.toThrow('Invalid serialized ownership');
+    ).rejects.toThrow(invalidState('ownership'));
   });
 
   it('restores owner ancestry without serializing unrelated work', async () => {
@@ -506,7 +498,7 @@ describe('serdes emit-only', () => {
     const data = values.flatMap((value) => [TypeIds.Plain, value]);
     await expect(async () =>
       inflate(createCaptureContainer({}), proxy, TypeIds.PropsProxy, data)
-    ).rejects.toThrow('Invalid PropsProxy view');
+    ).rejects.toThrow(invalidState('PropsProxy view'));
   });
 
   it('round-trips reactive props keeping their sources live', async () => {
@@ -535,7 +527,35 @@ describe('serdes emit-only', () => {
   it('rejects a props proxy without a reactive source', async () => {
     await expect(
       _deserialize(JSON.stringify([TypeIds.PropsProxy, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD]]))
-    ).rejects.toThrow('Invalid PropsProxy source');
+    ).rejects.toThrow(invalidState('PropsProxy source'));
+  });
+
+  it.each([
+    ['a non-array payload', '{}'],
+    ['a payload without a root', '[]'],
+    [
+      'a props proxy without a reactive source',
+      JSON.stringify([TypeIds.PropsProxy, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD]]),
+    ],
+  ])('rejects %s without logging an error', async (_case, payload) => {
+    vi.resetModules();
+    // Unit tests silence Qwik's error log, so the logging path is switched back on.
+    vi.doMock('./shared/utils/qdev', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('./shared/utils/qdev')>()),
+      qTest: false,
+    }));
+    vi.useFakeTimers();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { _deserialize } = await import('./shared/serdes/standalone');
+      await expect(_deserialize(payload)).rejects.toThrow('Code(Q41)');
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+      vi.useRealTimers();
+      vi.doUnmock('./shared/utils/qdev');
+      vi.resetModules();
+    }
   });
 
   it('serializes a marked component as the QRL of its segment', async () => {
@@ -630,16 +650,11 @@ describe('serdes emit-only', () => {
 
     expect(qrl.$captures$).toEqual([first, second]);
     expect(handler()).toEqual([first, second]);
-    expect(() => allocate(context, TypeIds.QRL, 'invalid')).toThrow('Invalid serialized QRL');
+    expect(() => allocate(context, TypeIds.QRL, 'invalid')).toThrow(invalidState('QRL'));
   });
 
   it('serializes a DOM ref as its node id', async () => {
-    const ctx = createSerializationContext(
-      TestDomRef,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const ctx = createSerializationContext(TestDomRef, () => '');
     ctx.$addRoot$(new TestDomRef(6));
 
     await ctx.$serialize$();
@@ -648,12 +663,7 @@ describe('serdes emit-only', () => {
   });
 
   it('serializes only roots added after the initial state', async () => {
-    const ctx = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const ctx = createSerializationContext(null, () => '');
     const initialRoot = { value: 1 };
     ctx.$addRoot$(initialRoot);
 
@@ -671,12 +681,7 @@ describe('serdes emit-only', () => {
   });
 
   it('returns incremental forward refs outside the real-root state', async () => {
-    const ctx = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const ctx = createSerializationContext(null, () => '');
     ctx.$addRoot$('initial');
     await ctx.$serialize$();
     ctx.$addRoot$(Promise.resolve('later'));
@@ -1766,12 +1771,7 @@ describe('serdes emit-only', () => {
 });
 
 async function serialize(...roots: unknown[]): Promise<unknown[]> {
-  const sCtx = createSerializationContext(
-    null,
-    () => '',
-    () => {},
-    new WeakMap<any, any>()
-  );
+  const sCtx = createSerializationContext(null, () => '');
   for (let i = 0; i < roots.length; i++) {
     sCtx.$addRoot$(roots[i]);
   }

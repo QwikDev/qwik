@@ -85,9 +85,15 @@ with nested heads while keeping references typed:
 type MultiHeadSsrOutput = SsrChunk | SsrHead | readonly MultiHeadSsrOutput[];
 
 type SsrReferenceChunk =
-  | { readonly type: 'node-id'; readonly localId: number }
-  | { readonly type: 'root-ref'; readonly localId: number }
-  | { readonly type: 'root-ref-path'; readonly localPath: readonly number[] };
+  | { readonly type: 'root-value'; readonly value: unknown; readonly boundary?: SsrCatchController }
+  | {
+      readonly type: 'event-value';
+      readonly name: string;
+      readonly value: unknown;
+      readonly needsInvokeContext: boolean;
+      readonly boundary?: SsrCatchController;
+    }
+  | { readonly type: 'sync-fn'; readonly qrl: QRLInternal };
 ```
 
 Head-local IDs and roots are remapped during ordered commit. The writer materializes complete
@@ -232,7 +238,7 @@ identify fallback rendering by `fallback$`, a generated symbol name, or a Suspen
 Compiler output uses the existing comment range and one thin wrapper:
 
 ```ts
-createPending(ctx, new BranchRange(ctx.document, start, end), contentQrl, fallbackQrl, delay);
+createPending(ctx, start, end, contentQrl, fallbackQrl, delay);
 ```
 
 `createPending()` lives beside `ContentBlock`; it is not a standalone runtime subsystem. Its initial

@@ -1,0 +1,85 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+export const view = $(<div>a</div>);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_qrl_segment_1_2fpox8kpy8lvx = () => {
+  return q_component_jsx_segment_0_38vnjku9rukc6;
+};
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  return '<div>a</div>';
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+import { _noopQrl } from '@qwik.dev/core';
+export const view = q_component_qrl_segment_1_2fpox8kpy8lvx;
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  return '<div>a</div>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    58,
+    70
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
+
+import { _noopQrl } from '@qwik.dev/core';
+import { component_jsx_segment_0_38vnjku9rukc6 } from './component.tsx_component_jsx_segment_0_38vnjku9rukc6';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+
+export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
+  return q_component_jsx_segment_0_38vnjku9rukc6;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_1_2fpox8kpy8lvx",
+  "entry": null,
+  "displayName": "component_qrl_segment_1",
+  "hash": "2fpox8kpy8lvx",
+  "canonicalFilename": "component.tsx_component_qrl_segment_1_2fpox8kpy8lvx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qrl",
+  "captures": false,
+  "loc": [
+    58,
+    70
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

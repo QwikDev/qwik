@@ -14,7 +14,7 @@ export default () => {
 };
 `;
 
-async function taskChunk(isServer: boolean, mode?: 'dev' | 'lib') {
+async function taskChunk(isServer: boolean, mode?: 'dev' | 'hmr' | 'lib') {
   const output = await transformModules({
     srcDir: 'src',
     sourceMaps: false,
@@ -60,6 +60,7 @@ export default () => {
 
   test('dev answers isDev true, production false', async () => {
     expect(await taskChunk(true, 'dev')).toContain('observe(true, true)');
+    expect(await taskChunk(false, 'hmr')).toContain('observe(false, true)');
     expect(await taskChunk(true)).toContain('observe(true, false)');
   });
 

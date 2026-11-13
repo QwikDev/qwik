@@ -16,13 +16,13 @@ export { Wrapper };
 export { Shell };
 ============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, createTemplate } from '@qwik.dev/core';
 const Wrapper_tmpl0 = createTemplate('<!>');
 
 export function Wrapper_component_1yrb0pezcavja(props0, ctx) {
   const fragment0 = Wrapper_tmpl0(ctx.document);
   const marker0 = _first(fragment0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return [...fragment0.childNodes];
 }
 /*
@@ -53,7 +53,7 @@ import {
   _first,
   _next,
   _last,
-  maybeThen,
+  _replaceMarker,
   createSlot,
   createTextNodeEffect,
   _createElementTemplate,
@@ -68,8 +68,8 @@ export function Shell_component_kl94bsx1hn6b(props, ctx) {
   const marker0 = _next(_first(el0));
   const el1 = _last(el0);
   const marker1 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('start'), (slot0) => marker1.replaceWith(...slot0)));
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
+  ctx.scheduler.waitFor(_replaceMarker(marker1, createSlot('start')));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   const text0 = _first(el1);
   const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect1);

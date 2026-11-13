@@ -99,4 +99,23 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
 */
 == CSR DIAGNOSTICS ==
 
-[]
+[
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "inner-html-children",
+    "file": "src/component.tsx",
+    "message": "<p> renders its dangerouslySetInnerHTML, so its children are ignored.",
+    "highlights": [
+      {
+        "lo": 221,
+        "hi": 338,
+        "startLine": 7,
+        "startCol": 7,
+        "endLine": 9,
+        "endCol": 10
+      }
+    ],
+    "suggestions": null
+  }
+]

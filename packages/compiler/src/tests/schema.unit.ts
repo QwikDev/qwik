@@ -16,60 +16,47 @@ const isBrowser: Predicate = { p: PredicateKind.Const, name: BuildConstant.IsBro
 const isDev: Predicate = { p: PredicateKind.Const, name: BuildConstant.IsDev };
 
 describe('foldPredicate', () => {
-  test('targets are always concrete, even under mode "unknown"', () => {
-    expect(
-      foldPredicate(isServer, { environment: Environment.Server, mode: BuildMode.Unknown })
-    ).toBe(true);
-    expect(
-      foldPredicate(isServer, { environment: Environment.Browser, mode: BuildMode.Unknown })
-    ).toBe(false);
-    expect(
-      foldPredicate(isBrowser, { environment: Environment.Browser, mode: BuildMode.Unknown })
-    ).toBe(true);
-    expect(
-      foldPredicate(isBrowser, { environment: Environment.Server, mode: BuildMode.Unknown })
-    ).toBe(false);
+  const server = { environment: Environment.Server, mode: BuildMode.Prod };
+  /** A host constant the build does not define stays a read. */
+  const residual: Predicate = { p: PredicateKind.Host, name: 'VITE_FLAG' };
+
+  test('targets are always concrete', () => {
+    expect(foldPredicate(isServer, server)).toBe(true);
+    expect(foldPredicate(isServer, { ...server, environment: Environment.Browser })).toBe(false);
+    expect(foldPredicate(isBrowser, { ...server, environment: Environment.Browser })).toBe(true);
+    expect(foldPredicate(isBrowser, server)).toBe(false);
   });
 
-  test('isDev decides per mode; dev and hmr agree; unknown is residual', () => {
-    expect(foldPredicate(isDev, { environment: Environment.Server, mode: BuildMode.Dev })).toBe(
-      true
-    );
-    expect(foldPredicate(isDev, { environment: Environment.Server, mode: BuildMode.Hmr })).toBe(
-      true
-    );
-    expect(foldPredicate(isDev, { environment: Environment.Server, mode: BuildMode.Prod })).toBe(
-      false
-    );
-    expect(foldPredicate(isDev, { environment: Environment.Server, mode: BuildMode.Lib })).toBe(
-      false
-    );
-    expect(foldPredicate(isDev, { environment: Environment.Server, mode: BuildMode.Unknown })).toBe(
-      null
-    );
+  test('isDev decides per mode', () => {
+    expect(foldPredicate(isDev, { ...server, mode: BuildMode.Dev })).toBe(true);
+    expect(foldPredicate(isDev, server)).toBe(false);
+    expect(foldPredicate(isDev, { ...server, mode: BuildMode.Lib })).toBe(false);
+  });
+
+  test('a host constant decides when defined and is residual otherwise', () => {
+    expect(foldPredicate(residual, { ...server, constants: { VITE_FLAG: true } })).toBe(true);
+    expect(foldPredicate(residual, server)).toBe(null);
   });
 
   test('residual survives negation', () => {
-    const notDev: Predicate = { p: PredicateKind.Not, operand: isDev };
-    expect(
-      foldPredicate(notDev, { environment: Environment.Server, mode: BuildMode.Unknown })
-    ).toBe(null);
-    expect(foldPredicate(notDev, { environment: Environment.Server, mode: BuildMode.Dev })).toBe(
-      false
-    );
+    expect(foldPredicate({ p: PredicateKind.Not, operand: residual }, server)).toBe(null);
+    expect(foldPredicate({ p: PredicateKind.Not, operand: isDev }, server)).toBe(true);
   });
 
   test('three-valued and/or short-circuit through residual', () => {
-    const unknownCtx = { environment: Environment.Server, mode: BuildMode.Unknown };
-    const devAndServer: Predicate = { p: PredicateKind.And, left: isDev, right: isServer };
-    const devAndBrowser: Predicate = { p: PredicateKind.And, left: isDev, right: isBrowser };
-    const devOrServer: Predicate = { p: PredicateKind.Or, left: isDev, right: isServer };
-    const devOrBrowser: Predicate = { p: PredicateKind.Or, left: isDev, right: isBrowser };
-    expect(foldPredicate(devAndServer, unknownCtx)).toBe(null);
-    expect(foldPredicate(devAndBrowser, unknownCtx)).toBe(false);
-    expect(foldPredicate(devOrServer, unknownCtx)).toBe(true);
-    expect(foldPredicate(devOrBrowser, unknownCtx)).toBe(null);
-    expect(foldPredicate({ p: PredicateKind.Lit, value: true }, unknownCtx)).toBe(true);
+    const residualAndServer: Predicate = { p: PredicateKind.And, left: residual, right: isServer };
+    const residualAndBrowser: Predicate = {
+      p: PredicateKind.And,
+      left: residual,
+      right: isBrowser,
+    };
+    const residualOrServer: Predicate = { p: PredicateKind.Or, left: residual, right: isServer };
+    const residualOrBrowser: Predicate = { p: PredicateKind.Or, left: residual, right: isBrowser };
+    expect(foldPredicate(residualAndServer, server)).toBe(null);
+    expect(foldPredicate(residualAndBrowser, server)).toBe(false);
+    expect(foldPredicate(residualOrServer, server)).toBe(true);
+    expect(foldPredicate(residualOrBrowser, server)).toBe(null);
+    expect(foldPredicate({ p: PredicateKind.Lit, value: true }, server)).toBe(true);
   });
 });
 

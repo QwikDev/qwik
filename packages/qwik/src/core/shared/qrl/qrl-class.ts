@@ -235,6 +235,8 @@ export class QRLClass<TYPE> {
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
   $container$?: RuntimeContainerContext | null;
+  /** The one callable that stands for this QRL. */
+  readonly $fn$: QRLInternal<TYPE>;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
@@ -251,6 +253,13 @@ export class QRLClass<TYPE> {
         this.$container$ = container;
       }
     }
+    // The QRL has to be callable, so a function carries the per-instance state.
+    const qrlFn = async function (this: unknown, ...args: QrlArgs<TYPE>) {
+      return qrlCallFn.call(qrlFn, this, ...args);
+    } as QRLCallable<TYPE>;
+    qrlFn[QRL_STATE] = this;
+    Object.setPrototypeOf(qrlFn, QRL_FUNCTION_PROTO);
+    this.$fn$ = qrlFn;
 
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
@@ -266,7 +275,7 @@ export class QRLClass<TYPE> {
  */
 const bindResolved = <TYPE>(qrl: QRLClass<TYPE>, resolved: TYPE): TYPE => {
   if (typeof resolved === 'function') {
-    rememberQrlOfBody(resolved as object, makeQrlFn(qrl));
+    rememberQrlOfBody(resolved as object, qrl.$fn$);
   }
   return resolved;
 };
@@ -307,12 +316,8 @@ const qrlWithCaptures = function <TYPE>(
   captures: QrlCaptures
 ): QRLInternal<TYPE> {
   const qrl = getInstance<TYPE>(this);
-  const newQrl = new QRLClass<TYPE>(
-    qrl.$lazy$,
-    captures!,
-    qrl.$captures$ ? qrl.$container$ : undefined
-  );
-  return makeQrlFn(newQrl);
+  return new QRLClass<TYPE>(qrl.$lazy$, captures!, qrl.$captures$ ? qrl.$container$ : undefined)
+    .$fn$;
 };
 
 const qrlWithMovedCaptures = function <TYPE>(this: QRLCallable<TYPE>): QRLInternal<TYPE> {
@@ -594,7 +599,7 @@ export const createSyncQRL = <TYPE>(
   fn?: null | TYPE,
   container?: RuntimeContainerContext
 ): QRLInternal<TYPE> =>
-  makeQrlFn(new QRLClass<TYPE>(new SyncLazyRef<TYPE>(key, fn, container), undefined, container));
+  new QRLClass<TYPE>(new SyncLazyRef<TYPE>(key, fn, container), undefined, container).$fn$;
 
 export const createQRL = <TYPE>(
   chunk: string | null,
@@ -605,19 +610,7 @@ export const createQRL = <TYPE>(
   container?: RuntimeContainerContext
 ): QRLInternal<TYPE> => {
   const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);
-  const qrl = new QRLClass<TYPE>(lazy, captures!, container);
-
-  return makeQrlFn(qrl);
-};
-
-const makeQrlFn = <TYPE>(qrl: QRLClass<TYPE>): QRLInternal<TYPE> => {
-  // The QRL has to be callable, so we create a function and attach the per-instance state to it.
-  const qrlFn = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    return qrlCallFn.call(qrlFn as QRLCallable<TYPE>, this, ...args);
-  } as QRLCallable<TYPE>;
-  qrlFn[QRL_STATE] = qrl;
-  Object.setPrototypeOf(qrlFn, QRL_FUNCTION_PROTO);
-  return qrlFn;
+  return new QRLClass<TYPE>(lazy, captures!, container).$fn$;
 };
 
 const EMITTED = /*#__PURE__*/ new Set();

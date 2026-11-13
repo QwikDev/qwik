@@ -9,6 +9,7 @@
 import {
   AssemblyKind,
   BoundaryKind,
+  BoundaryRole,
   DeliveryKind,
   Environment,
   ExportKind,
@@ -21,9 +22,16 @@ import {
 } from '../schema';
 import { QWIK_CORE_IMPORT } from '../words';
 
-/** A boundary a listed prefix claims; only an implicit one has a twin to keep calling. */
-function matches(prefixes: readonly string[], ctxName: string): boolean {
-  return prefixes.some((prefix) => ctxName.startsWith(prefix));
+/**
+ * A boundary a listed prefix claims; only an implicit one has a twin to keep calling. A lifted
+ * local's ctxName is its own name, not a marker callee.
+ */
+function matches(prefixes: readonly string[], qrl: Pick<Qrl, 'boundary' | 'ctxName'>): boolean {
+  return (
+    qrl.boundary.kind === BoundaryKind.Implicit &&
+    qrl.boundary.role !== BoundaryRole.Function &&
+    prefixes.some((prefix) => qrl.ctxName.startsWith(prefix))
+  );
 }
 
 export function applyStripping(modules: LinkedModule[], specialization: Specialization): void {
@@ -56,14 +64,27 @@ function stripBoundaries(
   const stripped = new Set<string>();
   for (const qrl of module.qrls) {
     if (
-      qrl.boundary.kind === BoundaryKind.Implicit &&
-      (matches(prefixes, qrl.ctxName) || (eventHandlers && qrl.boundary.role === 'event'))
+      matches(prefixes, qrl) ||
+      (eventHandlers &&
+        qrl.boundary.kind === BoundaryKind.Implicit &&
+        qrl.boundary.role === BoundaryRole.Event)
     ) {
       stripped.add(qrl.id);
     }
   }
   if (stripped.size === 0) {
     return;
+  }
+  const owners = new Map<string, string[]>();
+  for (const owner of module.qrls) {
+    for (const id of owner.dependencies.qrls) {
+      const referencedBy = owners.get(id);
+      if (referencedBy === undefined) {
+        owners.set(id, [owner.id]);
+      } else {
+        referencedBy.push(owner.id);
+      }
+    }
   }
   // A QRL the stripped body referenced vanishes with it, and so on transitively.
   for (let changed = true; changed; ) {
@@ -72,8 +93,8 @@ function stripBoundaries(
       if (stripped.has(qrl.id) || qrl.declaration !== undefined) {
         continue;
       }
-      const owners = module.qrls.filter((owner) => owner.dependencies.qrls.includes(qrl.id));
-      if (owners.length > 0 && owners.every((owner) => stripped.has(owner.id))) {
+      const referencedBy = owners.get(qrl.id) ?? [];
+      if (referencedBy.length > 0 && referencedBy.every((owner) => stripped.has(owner))) {
         stripped.add(qrl.id);
         changed = true;
       }
@@ -93,11 +114,12 @@ function stripBoundaries(
       },
       prefixes
     );
-    for (const edge of module.edges) {
-      if (dead.has(edge.id)) {
-        module.assembly.push({ a: AssemblyKind.StripRange, range: edge.ownerRange });
-      }
-    }
+    module.assembly = [
+      ...module.assembly,
+      ...module.edges
+        .filter((edge) => dead.has(edge.id))
+        .map((edge) => ({ a: AssemblyKind.StripRange as const, range: edge.ownerRange })),
+    ];
   }
 }
 
@@ -120,7 +142,7 @@ export function deadStrippedEdges(
   const dead = new Set<number>();
   // A transitively stripped QRL nests inside its owner's body, so matched boundaries cover it.
   const strippedBodies = module.qrls
-    .filter((qrl) => qrl.boundary.kind === BoundaryKind.Implicit && matches(prefixes, qrl.ctxName))
+    .filter((qrl) => matches(prefixes, qrl))
     .map((qrl) => qrl.origin.bodyRange);
   if (strippedBodies.length === 0) {
     return dead;
@@ -148,7 +170,7 @@ export function deadStrippedEdges(
 /** A registered boundary keeps its implementation and publishes the symbol the server resolves. */
 function registerBoundaries(module: LinkedModule, prefixes: readonly string[]): void {
   for (const qrl of module.qrls) {
-    if (qrl.boundary.kind === BoundaryKind.Implicit && matches(prefixes, qrl.ctxName)) {
+    if (matches(prefixes, qrl)) {
       qrl.delivery = { d: DeliveryKind.Register, symbol: qrl.name };
     }
   }
@@ -156,17 +178,18 @@ function registerBoundaries(module: LinkedModule, prefixes: readonly string[]): 
 
 /** A stripped export keeps its name so importers still link; its body becomes a fail-loud stub. */
 function stripExports(module: LinkedModule, names: readonly string[]): void {
-  for (const entry of module.exports) {
-    if (entry.e !== ExportKind.Local || !names.includes(entry.exported)) {
-      continue;
-    }
-    const range = entry.valueRange;
-    if (range !== undefined) {
-      module.assembly.push({
-        a: AssemblyKind.StripValue,
-        range,
-        form: entry.valueIsBody === true ? StripValueForm.Body : StripValueForm.Initializer,
-      });
-    }
-  }
+  const stubs = module.exports.flatMap((entry): LinkedModule['assembly'] =>
+    entry.e !== ExportKind.Local ||
+    !names.includes(entry.exported) ||
+    entry.valueRange === undefined
+      ? []
+      : [
+          {
+            a: AssemblyKind.StripValue,
+            range: entry.valueRange,
+            form: entry.valueIsBody === true ? StripValueForm.Body : StripValueForm.Initializer,
+          },
+        ]
+  );
+  module.assembly = [...module.assembly, ...stubs];
 }

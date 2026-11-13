@@ -3,6 +3,7 @@ import {
   ResultKind,
   ValueIrKind,
   type DeclRef,
+  type LinkedImport,
   type LinkedModule,
   type LocalId,
   type Maybe,
@@ -18,6 +19,7 @@ import type { LinkDiagnostic } from './link-plans';
 export function linkComponentReferences(
   plans: readonly ModulePlan[],
   modules: readonly LinkedModule[],
+  importsByBinding: readonly ReadonlyMap<LocalId, LinkedImport>[],
   resolveBinding: (module: number, binding: LocalId) => Maybe<DeclRef>
 ): LinkDiagnostic[] {
   const diagnostics: LinkDiagnostic[] = [];
@@ -31,8 +33,10 @@ export function linkComponentReferences(
       }
     }
     const plan = plans[moduleIndex];
-    const importOf = (binding: LocalId) =>
-      plan.imports.find((entry) => entry.binding === binding && !entry.typeOnly);
+    const importOf = (binding: LocalId) => {
+      const source = importsByBinding[moduleIndex].get(binding)?.source;
+      return source?.typeOnly === false ? source : undefined;
+    };
     for (const { callee, args } of module.invocations ?? []) {
       const marker = callee.kind === ValueIrKind.BindingRead ? importOf(callee.binding) : undefined;
       const argument = args[0];
@@ -55,9 +59,7 @@ export function linkComponentReferences(
       while (declared?.kind === ResultKind.Union && declared.values.length === 1) {
         declared = declared.values[0];
       }
-      const isFunction =
-        target.value.table === DeclTable.Callables || declared?.kind === ResultKind.Function;
-      if (!isFunction) {
+      if (declared?.kind !== ResultKind.Function) {
         continue;
       }
       const name = plan.bindings[argument.binding].name;

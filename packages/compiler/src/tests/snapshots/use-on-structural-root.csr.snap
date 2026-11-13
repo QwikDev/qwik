@@ -147,10 +147,7 @@ import {
   useSignal,
   useOn,
   qrl,
-  _first,
-  _next,
-  createTemplate,
-  BranchRange,
+  _createRangeMarkers,
   createBranch,
   _withCaptures,
 } from '@qwik.dev/core';
@@ -159,7 +156,6 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
   'component_qrl_segment_0_2fpowujm1ejve'
 );
-const Toggle_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
@@ -172,19 +168,18 @@ const q_component_branch_else_segment_3_19dvttmqjttk2 = /*#__PURE__*/ qrl(
 export function Toggle_component_2xfpeoso4coab(props, ctx) {
   const button = useSignal(true);
   useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([button]));
-  const fragment0 = Toggle_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    range0[0],
+    range0[1],
     _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [button]),
     q_component_branch_then_segment_2_24n7b7xmnzb3n,
     q_component_branch_else_segment_3_19dvttmqjttk2,
     true
   );
   ctx.scheduler.notify(branch0);
-  return [start0, end0];
+  return range0;
 }
 /*
 {
@@ -313,20 +308,11 @@ export const component_content_segment_6_18524mlj5ybd8 = (ctx0) => {
 */
 ============================= src/component.tsx_Later_component_b8ywkqr4dicz.js (ENTRY POINT)==
 
-import {
-  useSignal,
-  useOn,
-  qrl,
-  _first,
-  _next,
-  createTemplate,
-  createContentBlock,
-} from '@qwik.dev/core';
+import { useSignal, useOn, qrl, _createRangeMarkers, createContentBlock } from '@qwik.dev/core';
 const q_component_qrl_segment_4_2fpovaf6e2bta = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_qrl_segment_4_2fpovaf6e2bta'),
   'component_qrl_segment_4_2fpovaf6e2bta'
 );
-const Later_tmpl0 = createTemplate('<!><!>');
 const q_component_content_segment_6_18524mlj5ybd8 = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_content_segment_6_18524mlj5ybd8'),
   'component_content_segment_6_18524mlj5ybd8'
@@ -335,20 +321,18 @@ const q_component_content_segment_6_18524mlj5ybd8 = /*#__PURE__*/ qrl(
 export function Later_component_b8ywkqr4dicz(props, ctx) {
   const label = useSignal('empty');
   useOn('click', q_component_qrl_segment_4_2fpovaf6e2bta.w([label]));
-  const fragment0 = Later_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const content0 = createContentBlock(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [],
     q_component_content_segment_6_18524mlj5ybd8.w([label]),
     true,
     true
   );
   ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return range0;
 }
 /*
 {

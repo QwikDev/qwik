@@ -1,0 +1,62 @@
+==INPUT==
+
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => console.log('visible'));
+    return <a href="/x">x</a>;
+  });
+  return render(Cmp);
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
+  return console.log('visible');
+};
+const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ _noopQrl(
+  'component_useVisibleTaskqrl_segment_0_rykj3v0khy38'
+);
+q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.s(
+  component_useVisibleTaskqrl_segment_0_rykj3v0khy38
+);
+import { useVisibleTaskQrl, createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = (props, ctx) => {
+    useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38);
+    return [createSsrOpenTag('<a href="/x"', '>'), 'x</a>'];
+  };
+  return render(Cmp);
+}
+============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
+
+export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
+  return console.log('visible');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "entry": null,
+  "displayName": "component_useVisibleTaskqrl_segment_0",
+  "hash": "rykj3v0khy38",
+  "canonicalFilename": "component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": false,
+  "loc": [
+    165,
+    210
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -16,13 +16,13 @@ import { default_component_3rg6kq1so9aio } from './component.tsx_default_compone
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Item_component_33lzeq7ebrquo.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Item_tmpl0 = _createElementTemplate('<li><!></li>');
 
 export function Item_component_33lzeq7ebrquo(props, ctx) {
   const el0 = Item_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

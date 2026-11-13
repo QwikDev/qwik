@@ -20,13 +20,14 @@ import {
   HookBodyKind,
   type Maybe,
   DeliveryKind,
+  VarKind,
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { UnsupportedError } from '../errors';
 import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs, type EmitQrl } from './print-js';
 import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
-import { captureNames } from './captures';
+import { captureNames, liftedFunctionJs } from './captures';
 import { noopQrlJs } from './noop-qrl';
 import { allocateGeneratedName } from '../names';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
@@ -114,16 +115,17 @@ export function emitJsSetup(
       return extractPayloadJs(module, entry.payload, payload.range, undefined, edits, emitQrl);
     }
     if (entry.s === SetupKind.LocalFunction) {
-      if (target.localFunction === undefined || entry.use === undefined) {
+      if (emitQrl.local === undefined) {
         throw new UnsupportedError('a local function without a static reference');
       }
-      const name = module.bindings[entry.binding].name;
-      const reference = target.localFunction(entry.use);
+      const { name, varKind } = module.bindings[entry.binding];
+      const reference = emitQrl.local(entry.use);
       // Captures are read at call time, so a signal declared below the function still works.
       if (entry.hoisted) {
-        return `function ${name}() {\n  return ${reference}.apply(this, arguments);\n}`;
+        return liftedFunctionJs(entry.use, reference, name);
       }
-      return `const ${name} = ${entry.use.args.length === 0 ? reference : `(...args) => ${reference}(...args)`};`;
+      // A `var` keeps its function scope; a never-written `let` is a `const`.
+      return `${varKind === VarKind.Var ? 'var' : 'const'} ${name} = ${liftedFunctionJs(entry.use, reference)};`;
     }
     if (entry.s === SetupKind.LocalComponent) {
       if (render === undefined || names === undefined) {
@@ -200,8 +202,6 @@ export function emitJsSetup(
 export interface SetupEmitTarget {
   /** SSR registers visible tasks as events and keeps task hooks on their QRLs. */
   isServer?: boolean;
-  /** A lifted body function, bound to its captures, in this module's scope. */
-  localFunction?: (use: QrlUse) => string;
   /** Header import lines of the module emitter, for hook twins outside `@qwik.dev/core`. */
   chunkImports?: string[];
 }
@@ -312,9 +312,11 @@ export function withMarkerEmitter(
   module: LinkedModule,
   imports: Set<string>,
   emitQrl: EmitQrl,
-  chunkImports: string[] | undefined
+  chunkImports: string[] | undefined,
+  local?: EmitQrl['local']
 ): EmitQrl {
   return Object.assign(emitQrl, {
+    local,
     marker: (target: Extract<CallTarget, { kind: CallTargetKind.Marker }>, use: QrlUse) => ({
       callee: markerTwinJs(module, target, chunkImports),
       argument: strippedQrlJs(module, use, imports) ?? emitQrl(use),

@@ -14,7 +14,7 @@ import {
 } from '../schema';
 import { escapeText, normalizeAttributeName } from '../html';
 import { UnsupportedError } from '../errors';
-import { eventModifierName, eventScopeName, normalizeEventName, PASSIVE_PREFIX } from './events';
+import { eventModifierName, eventScopeName, isDroppedEventAttribute } from './events';
 import { handlersAreDirect, lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import {
@@ -85,8 +85,9 @@ export function lowerFormValue(
         value: ir === null ? value : { ...value, expr: { kind: ExprKind.Ir, ir } },
         shape: Shape.Text,
         effect: null,
+        stringify: false,
         // A textarea's content is text whatever the value's inferred kind.
-        stringify: true,
+        isAlwaysText: true,
       },
     ];
   }
@@ -118,7 +119,6 @@ export function lowerFormValue(
           v: ValueKind.Computed,
           expr: { kind: ExprKind.Ir, ir: selected },
           resume: { r: ResumeKind.Inline },
-          compilerString: false,
         },
         effect: null,
       });
@@ -141,7 +141,6 @@ export function lowerBinding(attribute: JSXAttribute, ctx: LowerContext): Prop[]
     {
       k: PropKind.Event,
       name: eventScopeName('onInput$')!,
-      passive: false,
       handlers: [{ h: HandlerKind.Bind, signal, checked }],
     },
   ];
@@ -267,14 +266,7 @@ export function lowerAttribute(
   if (
     authored === QwikDirective.Slot ||
     authored === QwikDirective.Type ||
-    authored.startsWith(PASSIVE_PREFIX)
-  ) {
-    return null;
-  }
-  if (
-    target === 'element' &&
-    authored.startsWith('preventdefault:') &&
-    passiveEvents.has(normalizeEventName(authored.slice('preventdefault:'.length)))
+    isDroppedEventAttribute(authored, passiveEvents)
   ) {
     return null;
   }

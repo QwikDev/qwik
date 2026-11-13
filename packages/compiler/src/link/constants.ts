@@ -1,6 +1,6 @@
 /**
  * Build constants are decided per environment, so the link answers every read a module made. A read
- * the mode cannot decide (`isDev` in a neutral library plan) keeps its source text.
+ * the specialization cannot decide (a host constant it does not define) keeps its source text.
  */
 import { foldPredicate, type LinkedModule, type Specialization } from '../schema';
 
@@ -11,13 +11,16 @@ export function foldConstants(modules: LinkedModule[], specialization: Specializ
     constants: specialization.constants,
   };
   for (const module of modules) {
-    for (const payload of module.payloads) {
-      for (const constant of payload.constants) {
-        const value = foldPredicate(constant.predicate, context);
-        if (value !== null) {
-          constant.value = value;
-        }
-      }
-    }
+    module.payloads = module.payloads.map((payload) =>
+      payload.constants.length === 0
+        ? payload
+        : {
+            ...payload,
+            constants: payload.constants.map((constant) => {
+              const value = foldPredicate(constant.predicate, context);
+              return value === null ? constant : { ...constant, value };
+            }),
+          }
+    );
   }
 }

@@ -14,7 +14,7 @@ export { Switch };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
-import { _capturesObj, _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, _replaceMarker, createSlot, createTemplate } from '@qwik.dev/core';
 const component_slot_dynamic_segment_0_2ikf7n1jp8rfp_tmpl0 = createTemplate('<!>');
 
 export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
@@ -22,7 +22,7 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const fragment0 = component_slot_dynamic_segment_0_2ikf7n1jp8rfp_tmpl0(ctx.document);
   const marker0 = _first(fragment0);
   const slotName0 = props.name;
-  ctx.scheduler.waitFor(maybeThen(createSlot(slotName0), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot(slotName0)));
   return [...fragment0.childNodes];
 };
 /*
@@ -50,28 +50,25 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
 */
 ============================= src/component.tsx_Switch_component_1uyn3u3j9umgv.js (ENTRY POINT)==
 
-import { _first, _next, createTemplate, qrl, createContentBlock } from '@qwik.dev/core';
-const Switch_tmpl0 = createTemplate('<!><!>');
+import { _createRangeMarkers, qrl, createContentBlock } from '@qwik.dev/core';
 const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp'),
   'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
 );
 
 export function Switch_component_1uyn3u3j9umgv(props, ctx) {
-  const fragment0 = Switch_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const content0 = createContentBlock(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [],
     q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
     false,
     true
   );
   ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return range0;
 }
 /*
 {

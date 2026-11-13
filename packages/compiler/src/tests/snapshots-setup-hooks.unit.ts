@@ -2,6 +2,7 @@
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 import { renderCode, qrlChunks } from './fixtures';
+import { transformModules } from '../transform-modules';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should give a $ that only event handlers read its own smart chunk', async () => {
@@ -838,6 +839,36 @@ export const Maybe = component$((props: { flag: boolean }) => {
     }
   });
 
+  test('should register an aliased useOn like the unaliased one', async () => {
+    const compile = async (specifier: string, callee: string) =>
+      renderCode(
+        await transformModules({
+          srcDir: 'src',
+          sourceMaps: false,
+          transpileTs: true,
+          transpileJsx: true,
+          isServer: mode === 'ssr',
+          input: [
+            {
+              path: 'src/component.tsx',
+              code: `import { ${specifier}, useSignal, $ } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  ${callee}('click', $(() => count.value++));
+  return <button>{count.value}</button>;
+};
+`,
+            },
+          ],
+        })
+      );
+    const aliased = await compile('useOn as on', 'on');
+
+    expect(aliased.replace('useOn as on', 'useOn').replace('on("click"', 'useOn("click"')).toBe(
+      await compile('useOn', 'useOn')
+    );
+  });
+
   test('should merge setup useOn events into the root element on the server', async () => {
     const output = await testInputs(mode, 'setup-use-on', [
       {
@@ -1028,15 +1059,15 @@ export default component$(() => {
     expect(output.diagnostics).toEqual([]);
     const main = renderCode(output);
     const code = output.modules.map((module) => module.code).join('\n');
-    // The body binds each function to its statically imported segment with its captures.
+    // The body binds a function it calls itself to its statically imported segment.
     expect(main).toMatch(
-      /function suffix\(\) \{\n\s*return component_suffix_segment_\w+\.apply\(this, arguments\);/
+      /const label = function \(\) \{\s*return _withCaptures\(component_label_segment_\w+, \[count\]\)\.apply\(this, arguments\);/
     );
-    expect(main).toMatch(
-      /const label = \(\.\.\.args\) => _withCaptures\(component_label_segment_\w+, \[count\]\)\(\.\.\.args\);/
-    );
-    expect(main).toMatch(/function load\(\) \{\n\s*return component_load_segment_\w+\.apply/);
     expect(main).toMatch(/const direct = label\(["']d["']\);/);
+    // Only boundaries call these: each rebinds the segment, so the body neither declares nor imports it.
+    expect(main).not.toMatch(
+      /^\s*(async )?function (suffix|load)\b|^import \{ component_(suffix|load)_segment/m
+    );
     // A caller captures the function's captures, never the function, and rebinds it in its prelude.
     expect(code).not.toMatch(/\.w\(\[[^\]]*\b(label|suffix|load)\b[^\]]*\]\)/);
     expect(code).toMatch(
@@ -1044,6 +1075,6 @@ export default component$(() => {
     );
     expect(code).toMatch(/const suffix = component_suffix_segment_\w+;/);
     // The lifted async function keeps its authored shape.
-    expect(code).toMatch(/export const component_load_segment_\w+ = async \(key\)/);
+    expect(code).toMatch(/export const component_load_segment_\w+ = async function load\(key\)/);
   });
 });

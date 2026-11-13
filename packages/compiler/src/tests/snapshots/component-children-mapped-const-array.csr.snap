@@ -22,13 +22,13 @@ export { Panel };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Panel_component_5q1hs6sb6j5z.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Panel_tmpl0 = _createElementTemplate('<main><!></main>');
 
 export function Panel_component_5q1hs6sb6j5z(props, ctx) {
   const el0 = Panel_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot('header')));
   return el0;
 }
 /*
@@ -55,18 +55,13 @@ export function Panel_component_5q1hs6sb6j5z(props, ctx) {
 
 import {
   _capturesObj,
-  _first,
-  _next,
-  createTemplate,
+  _createRangeMarkers,
   createCollection,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_233_523_ndy4cqkboyx4_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
   'component_branch_then_segment_2_24n7b7xmnzb3n'
@@ -74,30 +69,27 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ qrl(
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const [suffix] = _capturesObj._;
-  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   function semantic_collectionRender_233_523_ndy4cqkboyx4(ctx, item, index) {
     const label = item.title.toUpperCase() + suffix.value;
     const numbered = index + ':' + label;
     const visible = label.length > 0;
-    const fragment0 = semantic_collectionRender_233_523_ndy4cqkboyx4_tmpl0(ctx.document);
-    const start0 = _first(fragment0);
-    const end0 = _next(start0);
+    const range0 = _createRangeMarkers(ctx.document);
     const branch0 = createBranch(
       ctx,
-      new BranchRange(ctx.document, start0, end0),
+      range0[0],
+      range0[1],
       _withCaptures(component_branch_condition_segment_1_2fzri0t2yrfeq, [visible]),
       q_component_branch_then_segment_2_24n7b7xmnzb3n.w([numbered, label]),
       undefined
     );
     ctx.scheduler.notify(branch0);
-    return [start0, end0];
+    return range0;
   }
   createCollection(
     ctx,
-    start0,
-    end0,
+    range0[0],
+    range0[1],
     [{ title: 'Title' }],
     null,
     semantic_collectionRender_233_523_ndy4cqkboyx4,
@@ -105,7 +97,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
     3,
     true
   );
-  return [...fragment0.childNodes];
+  return [...range0[0].parentNode.childNodes];
 };
 /*
 {

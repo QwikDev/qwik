@@ -1,3 +1,28 @@
+import { isDev } from '@qwik.dev/core/build';
+import { QError, qError } from '../error/error';
+
+/** Characters that end an attribute name: https://html.spec.whatwg.org/#attributes-2 */
+const UNSAFE_ATTR_NAME = /[\t\n\f\r "'/=>]/;
+const VALID_ELEMENT_NAME = /^[A-Za-z][A-Za-z0-9._:-]*$/;
+
+/** A runtime tag name is written raw into the HTML, so anything but a name is rejected. */
+export function assertElementName(tagName: string): void {
+  if (!VALID_ELEMENT_NAME.test(tagName)) {
+    throw qError(QError.invalidElementName, [JSON.stringify(tagName)]);
+  }
+}
+
+/** An attribute name that would end its own name is dropped, and throws in dev. */
+export function isSafeAttrName(name: string): boolean {
+  if (!UNSAFE_ATTR_NAME.test(name)) {
+    return true;
+  }
+  if (isDev) {
+    throw qError(QError.unsafeAttr, [name]);
+  }
+  return false;
+}
+
 export function escapeHTML(html: string): string {
   let escapedHTML = '';
   const length = html.length;

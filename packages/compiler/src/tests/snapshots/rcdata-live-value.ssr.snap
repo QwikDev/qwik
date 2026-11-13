@@ -51,6 +51,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -76,20 +77,18 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const id1 = ctx.nextId();
   const prop0 = propSource(props, 'draft');
   isSource(prop0) && ctx.addRoot(prop0);
-  const text1 = renderSsrTextNode(id1, null, prop0, undefined, true);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<div><title q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</title><textarea q:id="',
-      createSsrNodeId(id1),
-      '">',
-      escapeHTML(text1.replace(/^\n/, '\n\n')),
-      '</textarea></div>',
-    ])
-  );
+  const text1 = renderSsrTextNode(id1, null, prop0);
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<div><title q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</title><textarea q:id="',
+    createSsrNodeId(id1),
+    '">',
+    escapeHTML(text1.replace(/^\n/, '\n\n')),
+    '</textarea></div>',
+  ]);
 }
 /*
 {

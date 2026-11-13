@@ -62,11 +62,7 @@ export function namedSpecifier(imported: string, local: string): string {
 /** Only imports replaced during assembly need their authored bindings restored. */
 export function requestBindingImport(module: LinkedModule, binding: LocalId, imports: Set<string>) {
   const source = module.imports.find((entry) => entry.source.binding === binding)?.source;
-  if (
-    source === undefined ||
-    !replacedCoreImports(module).includes(module.edges[source.edge]) ||
-    source.typeOnly
-  ) {
+  if (source === undefined || source.typeOnly || !isReplacedCoreImport(module, source.edge)) {
     return;
   }
   const name = module.bindings[binding].name;
@@ -75,13 +71,20 @@ export function requestBindingImport(module: LinkedModule, binding: LocalId, imp
 
 export function replacedCoreImports(module: LinkedModule) {
   return module.edges.filter(
-    (edge, index) =>
-      edge.specifier === QWIK_CORE_IMPORT &&
+    (_edge, index) =>
       module.imports.some((entry) => entry.source.edge === index) &&
-      module.imports.every(
-        ({ source }) =>
-          source.edge !== index || (source.imported !== '*' && source.imported !== 'default')
-      )
+      isReplacedCoreImport(module, index)
+  );
+}
+
+/** A named-only core import statement: assembly rewrites it with the requested names. */
+function isReplacedCoreImport(module: LinkedModule, edge: number): boolean {
+  return (
+    module.edges[edge].specifier === QWIK_CORE_IMPORT &&
+    module.imports.every(
+      ({ source }) =>
+        source.edge !== edge || (source.imported !== '*' && source.imported !== 'default')
+    )
   );
 }
 

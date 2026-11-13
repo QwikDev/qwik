@@ -131,6 +131,44 @@ describe(`${name}: useSignal`, () => {
     expect(container.querySelectorAll('button')).toHaveLength(1);
     expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
   });
+  it('updates every place a signal is shown on each write, skipping a removed place', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      const show = useSignal(true);
+      return (
+        <div>
+          <button id="increment" onClick$={() => count.value++} />
+          <button id="hide" onClick$={() => (show.value = false)} />
+          <p>{count.value}</p>
+          {show.value && <span>{count.value}</span>}
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    const increment = async () => {
+      await triggerAll(container, '#increment', 'click');
+      await flush();
+    };
+    const span = container.querySelector('span')!;
+
+    await increment();
+    expect(container.querySelector('p')!.textContent).toBe('1');
+    expect(span.textContent).toBe('1');
+
+    await increment();
+    expect(container.querySelector('p')!.textContent).toBe('2');
+    expect(span.textContent).toBe('2');
+
+    await triggerAll(container, '#hide', 'click');
+    await flush();
+    expect(container.querySelectorAll('span')).toHaveLength(0);
+
+    await increment();
+    expect(container.querySelector('p')!.textContent).toBe('3');
+    expect(span.textContent).toBe('2');
+  });
   it('should rerender child', async () => {
     (globalThis as any).__mainTestLog = [];
     const Display = component$((props: { dValue: number }) => {

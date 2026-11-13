@@ -557,6 +557,48 @@ describe(`${name}: Catch behavior`, () => {
     expect(container.querySelector('#content')).toBeFalsy();
   });
 
+  it.each(['branch', 'row'] as const)(
+    'catches an event handler error under a boundary inside a %s',
+    async (mode) => {
+      const Child = component$(() => (
+        <button
+          id="content"
+          onClick$={() => {
+            throw new Error('event failed');
+          }}
+        >
+          throw
+        </button>
+      ));
+      const App = component$<{ mode: string }>(({ mode }) => {
+        const show = useSignal(true);
+        const rows = useSignal(['a']);
+        return (
+          <div>
+            {mode === 'branch' && show.value && (
+              <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+                <Child />
+              </Catch>
+            )}
+            {mode === 'row' &&
+              rows.value.map((row) => (
+                <section key={row}>
+                  <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+                    <Child />
+                  </Catch>
+                </section>
+              ))}
+          </div>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(App, { props: { mode } });
+      onTestFinished(cleanup);
+      await qwikLoader!.dispatch(container.querySelector('#content')!, 'click');
+      expect(container.querySelector('#fallback')?.textContent).toBe('event failed');
+      expect(container.querySelector('#content')).toBeFalsy();
+    }
+  );
+
   it('an event handler throwing a revoked Proxy still renders the fallback', async () => {
     const Child = component$(() => (
       <button

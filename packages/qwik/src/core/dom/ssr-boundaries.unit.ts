@@ -322,7 +322,7 @@ function createSsrContext(): SsrSlotContext {
   return {
     scheduler: { notify() {}, waitOn() {} },
     nextId: () => nextId++,
-    addRoot: () => ({ type: 'root-ref', localId: 0 }),
+    addRoot: (value) => ({ type: 'root-value', value }),
   };
 }
 

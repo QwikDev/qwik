@@ -1,0 +1,207 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$((props: { rest: Record<string, string> }) => {
+  const count = useSignal(0);
+  return (
+    <section>
+      <div dangerouslySetInnerHTML="<i>kept</i>">
+      </div>
+      <div dangerouslySetInnerHTML={props.rest.html}>
+        <button onClick$={() => count.value++}>{count.value}</button>
+        <Card />
+      </div>
+      <p {...props.rest} dangerouslySetInnerHTML="<b>spread</b>">
+        <span onClick$={() => console.log(count.value)}>dropped</span>
+      </p>
+    </section>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+import { Card } from './card';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.js (ENTRY POINT)==
+
+export const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (props) => {
+  return props.rest.html;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "entry": null,
+  "displayName": "component_dangerouslySetInnerHTML_segment_0",
+  "hash": "x73niz9xuctt",
+  "canonicalFilename": "component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "dangerouslySetInnerHTML",
+  "captures": true,
+  "loc": [
+    314,
+    329
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props.rest, dangerouslySetInnerHTML: '<b>spread</b>' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    439,
+    496
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  renderSsrAttrExpression,
+  renderSsrProps,
+  createSsrOpenTag,
+  maybeThen,
+  promiseAll,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (props) => {
+  return props.rest.html;
+};
+const q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = /*#__PURE__*/ _noopQrl(
+  'component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt'
+);
+q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.s(
+  component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt
+);
+const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props.rest, dangerouslySetInnerHTML: '<b>spread</b>' };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const count = useSignal(0);
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'dangerouslySetInnerHTML',
+    [props],
+    q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt
+  );
+  const id1 = ctx.nextId();
+  const domProps0 = renderSsrProps(
+    id1,
+    [props],
+    q_component_props_segment_1_208o0sfi1se76,
+    ctx.eventAttr
+  );
+  return maybeThen(promiseAll([attr0, domProps0]), ([attr0, domProps0]) => [
+    '<section><div><i>kept</i></div><div q:id="',
+    createSsrNodeId(id0),
+    '">',
+    attr0 ?? '',
+    '</div>',
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id1), ''),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id1), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? [],
+    '</p></section>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    87,
+    603
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "inner-html-children",
+    "file": "src/component.tsx",
+    "message": "<div> renders its dangerouslySetInnerHTML, so its children are ignored.",
+    "highlights": [
+      {
+        "lo": 284,
+        "hi": 431,
+        "startLine": 9,
+        "startCol": 7,
+        "endLine": 12,
+        "endCol": 12
+      }
+    ],
+    "suggestions": null
+  },
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "inner-html-children",
+    "file": "src/component.tsx",
+    "message": "<p> renders its dangerouslySetInnerHTML, so its children are ignored.",
+    "highlights": [
+      {
+        "lo": 438,
+        "hi": 579,
+        "startLine": 13,
+        "startCol": 7,
+        "endLine": 15,
+        "endCol": 10
+      }
+    ],
+    "suggestions": null
+  }
+]

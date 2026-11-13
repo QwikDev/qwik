@@ -1,6 +1,7 @@
 import type { Expression } from 'oxc-parser';
 import {
   BoundaryKind,
+  BoundaryRole,
   FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
@@ -67,7 +68,7 @@ export function lowerBranch(
 
 /** The condition is a Function-payload QRL over the test expression — captures via `_capturesObj._`. */
 function lowerCondition(test: Expression, ctx: LowerContext): Value {
-  const { captures, args, refs } = lowerCaptures(test, ctx, 'a branch condition');
+  const { captures, functions, args, refs } = lowerCaptures(test, ctx, 'a branch condition');
   const range: [number, number] = [test.start, test.end];
   const { expr } = lowerInlineExpressionValue(test, ctx, refs);
   const { use } = pushQrl(
@@ -75,11 +76,12 @@ function lowerCondition(test: Expression, ctx: LowerContext): Value {
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.BranchCondition },
       ctxName: SegmentContext.BranchCondition,
-      boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Branch },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
+      body: { b: QrlBodyKind.Expr, expr },
       captures,
+      functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,
@@ -115,7 +117,6 @@ function lowerArm(
     setup: [],
     params: [],
     lifetime,
-    needsId: false,
     async: false,
   });
   const { use } = pushQrl(
@@ -123,7 +124,7 @@ function lowerArm(
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx },
       ctxName: nameCtx,
-      boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Branch },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },

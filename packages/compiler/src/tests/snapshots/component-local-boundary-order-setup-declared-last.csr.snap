@@ -1,0 +1,109 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const Inner = component$(() => <a onClick$={() => go()}>a</a>);
+  const go = () => 'x';
+  return <Inner />;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { App_component_d9hqa5uju2ca as App } from './component.tsx_App_component_d9hqa5uju2ca';
+export { App };
+============================= src/component.tsx_App_component_d9hqa5uju2ca.js (ENTRY POINT)==
+
+import { setEvent, qrl, _createElementTemplate, createComponent } from '@qwik.dev/core';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const App_1_tmpl0 = _createElementTemplate('<a>a</a>');
+
+export function App_component_d9hqa5uju2ca(props, ctx) {
+  const Inner = (props, ctx) => {
+    const el0 = App_1_tmpl0(ctx.document);
+    setEvent(el0, 'q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg);
+    return el0;
+  };
+  const component0 = createComponent(Inner, null, ctx);
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "App_component_d9hqa5uju2ca",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "d9hqa5uju2ca",
+  "canonicalFilename": "component.tsx_App_component_d9hqa5uju2ca",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    45,
+    196
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_go_segment_0_tpkrn7oea0q5.js (ENTRY POINT)==
+
+export const component_go_segment_0_tpkrn7oea0q5 = () => {
+  return 'x';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_go_segment_0_tpkrn7oea0q5",
+  "entry": null,
+  "displayName": "component_go_segment_0",
+  "hash": "tpkrn7oea0q5",
+  "canonicalFilename": "component.tsx_component_go_segment_0_tpkrn7oea0q5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "go",
+  "captures": false,
+  "loc": [
+    157,
+    171
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { component_go_segment_0_tpkrn7oea0q5 } from './component.tsx_component_go_segment_0_tpkrn7oea0q5';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const go = component_go_segment_0_tpkrn7oea0q5;
+  return go();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    119,
+    140
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

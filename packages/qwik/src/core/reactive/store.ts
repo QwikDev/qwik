@@ -5,6 +5,8 @@ import { notifySourceSubscribers } from './notify';
 import { dropWriterDependency } from './cleanup';
 import { getActiveCollector, track, untrack } from './tracking';
 import { registerSingleton } from '../shared/singletons';
+import { toArrayIndex } from '../utils/array';
+import { EMPTY_ARRAY } from '../utils/consts';
 
 /** @public */
 export type Store<T extends object> = T;
@@ -144,7 +146,7 @@ export function bindStoreSource<T>(
 }
 
 export function getStoreSources(target: object): Iterable<StorePropSource> {
-  return rawToSources.get(unwrapStore(target) as object)?.values() ?? [];
+  return rawToSources.get(unwrapStore(target) as object)?.values() ?? EMPTY_ARRAY;
 }
 
 // An untracked read needs no source, and creating one would retain it for the store's lifetime.
@@ -156,6 +158,16 @@ function trackStoreProp(target: StoreTarget, prop: PropertyKey): void {
 
 /** The source a key enumeration reads; a string so it serializes like any store prop. */
 export const STORE_KEYS = '\0keys';
+/** The source any array item write notifies, so a list can track all items with one source. */
+const STORE_ITEMS = '\0items';
+
+/** Copies a store array, tracking its items and length instead of one source per index. */
+export function readStoreItems<T>(store: readonly T[]): T[] {
+  const raw = unwrapStore(store) as unknown as StoreTarget;
+  trackStoreProp(raw, STORE_ITEMS);
+  trackStoreProp(raw, 'length');
+  return untrack(() => store.slice());
+}
 
 const storeHandler: ProxyHandler<StoreTarget> = {
   get(target, prop, receiver) {
@@ -180,6 +192,7 @@ const storeHandler: ProxyHandler<StoreTarget> = {
       (!Array.isArray(target) || prop !== 'length')
     ) {
       notifyStoreProp(target, prop);
+      notifyArrayItems(target);
     }
     if (!had) {
       notifyStoreProp(target, STORE_KEYS);
@@ -197,6 +210,7 @@ const storeHandler: ProxyHandler<StoreTarget> = {
     if (had) {
       notifyStoreProp(target, prop);
       notifyStoreProp(target, STORE_KEYS);
+      notifyArrayItems(target);
     }
     return true;
   },
@@ -233,6 +247,12 @@ function notifyStoreProp(target: StoreTarget, prop: PropertyKey): void {
   }
 }
 
+function notifyArrayItems(target: StoreTarget): void {
+  if (Array.isArray(target)) {
+    notifyStoreProp(target, STORE_ITEMS);
+  }
+}
+
 function notifyArrayLengthChanges(target: StoreTarget, prop: PropertyKey, oldLength: number): void {
   if (!Array.isArray(target) || oldLength === target.length) {
     return;
@@ -248,25 +268,12 @@ function notifyArrayLengthChanges(target: StoreTarget, prop: PropertyKey, oldLen
     return;
   }
   for (const source of sources.values()) {
-    if (isArrayIndex(source.prop)) {
-      const index = Number(source.prop);
-      if (index >= target.length && index < oldLength) {
-        dropWriterDependency(source);
-        source.notify();
-      }
+    const index = toArrayIndex(source.prop);
+    if (index >= target.length && index < oldLength) {
+      dropWriterDependency(source);
+      source.notify();
     }
   }
-}
-
-function isArrayIndex(prop: PropertyKey): boolean {
-  if (typeof prop === 'number') {
-    return Number.isInteger(prop) && prop >= 0;
-  }
-  if (typeof prop !== 'string') {
-    return false;
-  }
-  const value = Number(prop);
-  return String(value) === prop && Number.isInteger(value) && value >= 0;
 }
 
 function isWrappable(value: unknown): value is object {

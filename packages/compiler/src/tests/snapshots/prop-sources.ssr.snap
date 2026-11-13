@@ -71,6 +71,7 @@ import {
   createComponent,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -115,27 +116,23 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) =>
-      maybeThen(text1, (text1) => [
-        '<section q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '><h2 q:id="',
-        createSsrNodeId(id1),
-        '">',
-        escapeHTML(text0),
-        '</h2>',
-        component0,
-        '<b q:id="',
-        createSsrNodeId(id2),
-        '">',
-        escapeHTML(text1),
-        '</b></section>',
-      ])
-    )
-  );
+  return maybeThen(promiseAll([attr0, text0, text1]), ([attr0, text0, text1]) => [
+    '<section q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '><h2 q:id="',
+    createSsrNodeId(id1),
+    '">',
+    escapeHTML(text0),
+    '</h2>',
+    component0,
+    '<b q:id="',
+    createSsrNodeId(id2),
+    '">',
+    escapeHTML(text1),
+    '</b></section>',
+  ]);
 }
 /*
 {

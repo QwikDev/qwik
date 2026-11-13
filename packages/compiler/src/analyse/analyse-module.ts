@@ -21,7 +21,7 @@ import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { pushComponentQrl } from './lower-component-body';
-import { finalizeLocalFunctions } from './lower-setup';
+import { finishLocals, lowerDeferredLocals } from './lower-setup';
 import { createLowerContext, pushPayload, QrlIdentityKind } from './lower-context';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
@@ -102,7 +102,15 @@ export async function analyseModule(
         )
       : [];
   });
-  const lowerContext = createLowerContext(plan, input.path, options, bindings, coreBindings, jsx);
+  const lowerContext = createLowerContext(
+    plan,
+    input.path,
+    options,
+    bindings,
+    coreBindings,
+    jsx,
+    parsed.program
+  );
   if (options.inspector) {
     const file = (input.devPath ?? input.path).replace(/\\/g, '/');
     const readPosition = createOriginalPositionReader(normalized.code, input.code, normalized.map);
@@ -141,16 +149,21 @@ export async function analyseModule(
       const [start, end] = plan.natives[native].markerRange;
       return node.start >= start && node.end <= end;
     });
-  const jsxRoots = jsx.scopedRoots(authoredStatements).filter((root) => !loweredHooks.has(root));
+  const qrlRoots = explicitQrlRoots(authoredStatements, lowerContext).filter(
+    (root) =>
+      !loweredHooks.has(root) &&
+      // A marker's implementation is emitted from its own payload, not a second helper root.
+      !inNativeMarker(root)
+  );
+  // JSX inside a module-level `$()` lowers with that QRL's own payload.
+  const isInQrlRoot = (root: Node) =>
+    qrlRoots.some((qrl) => qrl !== root && qrl.start <= root.start && root.end <= qrl.end);
+  const jsxRoots = jsx
+    .scopedRoots(authoredStatements)
+    .filter((root) => !loweredHooks.has(root) && !isInQrlRoot(root));
   const helperRoots = [
     ...jsxRoots,
-    ...explicitQrlRoots(authoredStatements, lowerContext).filter(
-      (root) =>
-        !(jsxRoots as readonly Node[]).includes(root) &&
-        !loweredHooks.has(root) &&
-        // A marker's implementation is emitted from its own payload, not a second helper root.
-        !inNativeMarker(root)
-    ),
+    ...qrlRoots.filter((root) => !(jsxRoots as readonly Node[]).includes(root)),
   ];
   const leftoverJsx = jsxRoots.find((root) => !isFunctionLike(root));
   if (leftoverJsx !== undefined) {
@@ -214,11 +227,14 @@ export async function analyseModule(
   });
   try {
     for (const root of helperRoots) {
+      const queued = lowerContext.deferredLocals.length;
       const payload = pushPayload(lowerContext, [root.start, root.end]);
       recordPayloadQrls(lowerContext, payload, root);
       if (isFunctionLike(root)) {
         recordFunctionJsx(lowerContext, payload, root);
       }
+      // Every boundary of a plain function lies inside it, so its locals print here.
+      lowerDeferredLocals(lowerContext, queued);
       plan.assembly.push({ a: AssemblyKind.Payload, payload });
     }
     for (const { native } of nativeSites) {
@@ -234,9 +250,10 @@ export async function analyseModule(
     ...plan.assembly.flatMap((intent) =>
       intent.a === AssemblyKind.Hook ? [plan.hooks[intent.hook].range] : []
     ),
-    ...plan.payloads.flatMap((payload) =>
-      payload.qrls.map((entry) => entry.marker?.calleeRange ?? entry.range)
-    ),
+    ...plan.payloads.flatMap((payload) => [
+      ...payload.qrls.map((entry) => entry.marker?.calleeRange ?? entry.range),
+      ...(payload.removed ?? []),
+    ]),
     ...nativeSites.flatMap((site) => site.replacedRanges),
   ];
   const retainedBindings = new Set(
@@ -275,10 +292,9 @@ export async function analyseModule(
         },
         ctxName: QwikMarker.Component,
         captures: [],
-        declaration: (parameter) => ({
+        declaration: {
           name: component.name,
           binding: componentBinding,
-          parameter,
           root: { name: `q${component.name}-` },
           replacementRange: component.replacementRange,
           ...(component.expressionOnly ? { expressionOnly: true } : {}),
@@ -297,7 +313,7 @@ export async function analyseModule(
                   'component'
                 ),
               }),
-        }),
+        },
       }).index;
     } catch (error) {
       recordModuleError(plan, error);
@@ -316,7 +332,7 @@ export async function analyseModule(
     }
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
-  finalizeLocalFunctions(lowerContext);
+  finishLocals(lowerContext);
   recordBindingResults(lowerContext);
   recordEnvConstants(parsed.program, plan);
   recordRootContexts(plan, parsed.program, input.path);

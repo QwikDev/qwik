@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import { registerCatchBoundary, isCatchBoundary } from '../../dom/content/catch-boundary';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
-import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
+import { Branch, BranchSubscription } from '../../dom/branch/branch';
 import {
   attachPending,
   ContentBlock,
@@ -10,7 +10,7 @@ import {
   PendingContentSubscription,
   type ContentOutput,
 } from '../../dom/content/content';
-import { ForBlock, ForRange, IndexMode } from '../../dom/for/for';
+import { ForBlock, IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -47,6 +47,7 @@ import { appendSourceSubscriber, type Source, type SourceSub } from '../../react
 import { addDependency } from '../../reactive/tracking';
 import {
   getContextScopeForNode,
+  setAllocatedSlot,
   whenRootInflated,
   type ContainerContext,
 } from '../../runtime/container-context';
@@ -101,13 +102,14 @@ import { isQrl } from '../qrl/qrl-utils';
 import { readTrackedSourceValue } from '../../dom/effect/text-effect';
 import type { QRL } from '../qrl/qrl.public';
 import { assertDefined, assertNumber } from '../error/assert';
-import { qError, QError } from '../error/error';
+import { invalidStateError, qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { allocate, allocateDomEffect, pendingStoreTargets, resolvers } from './allocate';
 import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
+import { subscriberTypeIds } from './type-id';
 import { needsInflation } from './constants';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { findContainerNode } from '../../dom/range/range';
@@ -117,7 +119,7 @@ export { allocate, needsInflation };
 
 function readOwner(value: unknown): Owner | null {
   if (value !== null && !(value instanceof Owner)) {
-    throw new Error('Invalid serialized owner reference');
+    throw isDev ? invalidStateError('owner reference') : invalidStateError();
   }
   return value;
 }
@@ -178,27 +180,17 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
   );
 };
 
-const ownedTypes = new Set([
-  TypeIds.EffectSubscription,
-  TypeIds.PendingSubscription,
-  TypeIds.CatchSubscription,
-  TypeIds.Task,
-  TypeIds.ComputedSignal,
-  TypeIds.AsyncSignal,
-  TypeIds.SerializerSignal,
-]);
-
 export const inflate = (
   container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
   data: unknown
 ): ValueOrPromise<void> => {
-  if (!ownedTypes.has(typeId)) {
+  if (!subscriberTypeIds.has(typeId)) {
     return inflatePayload(container, target, typeId, data);
   }
   if (!Array.isArray(data) || data.length < 4) {
-    throw new Error('Missing serialized ownership');
+    throw isDev ? invalidStateError('missing ownership') : invalidStateError();
   }
   const payloadEnd = data.length - 4;
   return maybeThen(
@@ -209,7 +201,7 @@ export const inflate = (
         !Number.isSafeInteger(position) ||
         (position as number) < 0
       ) {
-        throw new Error('Invalid serialized ownership');
+        throw isDev ? invalidStateError('ownership') : invalidStateError();
       }
       return maybeThen(owner === null ? null : whenRootInflated(container, owner), () => {
         const subscriber = target as Subscriber;
@@ -252,7 +244,7 @@ const inflatePayload = (
     return;
   }
   if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
-    throw new Error('Invalid Object payload');
+    throw isDev ? invalidStateError('Object payload') : invalidStateError();
   }
   // Restore the complex data, special case for Array
   if (
@@ -269,7 +261,7 @@ const inflatePayload = (
     Array.isArray(data)
   ) {
     return maybeThen(_eagerDeserializeArray(container, data, undefined, 0, end), (data) => {
-      if (ownedTypes.has(typeId) && rejectDisposedInflation(target as Subscriber)) {
+      if (subscriberTypeIds.has(typeId) && rejectDisposedInflation(target as Subscriber)) {
         return;
       }
       return inflateResolved(container, target, typeId, data, end);
@@ -356,7 +348,7 @@ const inflateResolved = (
           typeof source !== 'object' ||
           !excluded.every((key) => typeof key === 'string')
         ) {
-          throw new Error('Invalid PropsProxy view');
+          throw isDev ? invalidStateError('PropsProxy view') : invalidStateError();
         }
         restorePropsProxyState(target as object, { source, excluded });
         break;
@@ -365,7 +357,7 @@ const inflateResolved = (
         values.length !== 1 ||
         (!(source instanceof ReactiveSignal) && !(source instanceof StorePropSource))
       ) {
-        throw new Error('Invalid PropsProxy source');
+        throw isDev ? invalidStateError('PropsProxy source') : invalidStateError();
       }
       restorePropsProxyState(target as object, {
         source: source as Source<object>,
@@ -582,7 +574,7 @@ const inflateResolved = (
         (position as number) < 0 ||
         typeof shows !== 'boolean'
       ) {
-        throw new Error('Invalid serialized owner');
+        throw isDev ? invalidStateError('owner') : invalidStateError();
       }
       const owner = target as Owner;
       owner.flags |= shows
@@ -604,7 +596,7 @@ const inflateResolved = (
       const projection = target as Projection;
       const d = data as unknown[];
       if (d.length !== 2 && d.length !== 4) {
-        throw new Error('Invalid serialized projection');
+        throw isDev ? invalidStateError('projection') : invalidStateError();
       }
       projection.name = d[0] as Projection['name'];
       if (d.length === 4) {
@@ -615,7 +607,7 @@ const inflateResolved = (
       } else {
         const subscription = d[1];
         if (!(subscription instanceof ProjectionSubscription)) {
-          throw new Error('Invalid serialized projection subscription');
+          throw isDev ? invalidStateError('projection subscription') : invalidStateError();
         }
         projection.subscription = subscription;
         return maybeThen(whenRootInflated(container, subscription), () => {
@@ -723,7 +715,9 @@ const inflateResolved = (
           case Phase.BlockingTask:
           case Phase.DeferredTask:
             if (!(subscription instanceof TaskSubscription)) {
-              throw new Error(`Invalid task subscription for phase ${phase}.`);
+              throw isDev
+                ? invalidStateError(`task subscription for phase ${phase}`)
+                : invalidStateError();
             }
             (subscription as Writeable<TaskSubscription>).task = new Task(
               undefined,
@@ -734,7 +728,9 @@ const inflateResolved = (
             break;
           case Phase.VisibleTask:
             if (!(subscription instanceof VisibleTaskSubscription)) {
-              throw new Error(`Invalid task subscription for phase ${phase}.`);
+              throw isDev
+                ? invalidStateError(`task subscription for phase ${phase}`)
+                : invalidStateError();
             }
             (subscription as Writeable<VisibleTaskSubscription>).task = new VisibleTask(
               undefined,
@@ -743,7 +739,7 @@ const inflateResolved = (
             );
             break;
           default:
-            throw new Error(`Invalid serialized task phase ${String(phase)}.`);
+            throw isDev ? invalidStateError(`task phase ${phase}`) : invalidStateError();
         }
         restoreDependencies(subscription, deps);
       });
@@ -769,16 +765,16 @@ async function restoreBranchSubscription(
   const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[9] as UseOnMap[] | null | undefined;
   const markerRange = findContainerNode(container, (root) => findBranchRange(root, rangeId));
-  isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
-    throw new Error(`Missing branch range ${rangeId}.`);
+    throw isDev ? invalidStateError(`branch range ${rangeId}`) : invalidStateError();
   }
 
   const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
   invokeContext.slotScope = slotScope;
   restoreUseOnScopes(invokeContext, useOnScopes);
   subscription.branch = new Branch(
-    new BranchRange(container.document, markerRange[0], markerRange[1]),
+    markerRange[0],
+    markerRange[1],
     conditionQrl,
     thenQrl,
     elseQrl,
@@ -810,7 +806,7 @@ async function restoreForBlockSubscription(
   const rowOwners = (parts[7] as Array<Owner | null> | null | undefined) ?? null;
   if (rowOwners !== null) {
     if (!Array.isArray(rowOwners)) {
-      throw new Error('Invalid serialized row owners');
+      throw isDev ? invalidStateError('row owners') : invalidStateError();
     }
     for (let i = 0; i < rowOwners.length; i++) {
       const rowOwner = rowOwners[i];
@@ -821,22 +817,22 @@ async function restoreForBlockSubscription(
   const indexSignals = hasIndexSignals ? (parts[10] as Array<ReactiveSignal<number> | null>) : null;
   const rowShape = (parts[8] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
   const markerRange = findContainerNode(container, (root) => findForRange(root, rangeId));
-  isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
-    throw new Error(`Missing for range ${rangeId}.`);
+    throw isDev ? invalidStateError(`for range ${rangeId}`) : invalidStateError();
   }
   if (!Array.isArray(deps) || deps.length === 0) {
-    throw new Error('ForBlock subscription requires a source dependency.');
+    throw isDev ? invalidStateError('ForBlock source') : invalidStateError();
   }
 
   const listOwner = parts[9];
   if (!(listOwner instanceof Owner)) {
-    throw new Error('Missing serialized list owner');
+    throw isDev ? invalidStateError('list owner') : invalidStateError();
   }
   const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
   invokeContext.slotScope = slotScope;
   const block = new ForBlock(
-    new ForRange(container.document, markerRange[0], markerRange[1]),
+    markerRange[0],
+    markerRange[1],
     deps[0] as Source<readonly unknown[]>,
     keyQrl,
     renderQrl,
@@ -875,13 +871,12 @@ async function restoreContentSubscription(
   const catchState = isCatchBoundary(subscription) ? parts[9] : undefined;
   const pending = (
     parts[0] === EffectKind.Projection || catchState !== undefined ? undefined : parts[9]
-  ) as [Parameters<typeof attachPending>[4] | null, number] | null | undefined;
+  ) as [Parameters<typeof attachPending>[3] | null, number] | null | undefined;
   const markerRange = findContainerNode(container, (root) =>
     isProjection ? findProjectionRange(root, rangeId) : findContentRange(root, rangeId)
   );
-  isDev && assertDefined(markerRange, `Missing content range ${rangeId}.`);
   if (markerRange === null) {
-    throw new Error(`Missing content range ${rangeId}.`);
+    throw isDev ? invalidStateError(`content range ${rangeId}`) : invalidStateError();
   }
 
   const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
@@ -889,7 +884,6 @@ async function restoreContentSubscription(
   restoreUseOnScopes(invokeContext, useOnScopes);
   const Block = isProjection ? ProjectionBlock : ContentBlock;
   subscription.block = new Block(
-    container.document,
     markerRange[0],
     markerRange[1],
     args as [],
@@ -906,11 +900,11 @@ async function restoreContentSubscription(
       !isQrl(catchState[0]) ||
       (catchState[1] !== null && !(catchState[1] instanceof Error))
     ) {
-      throw new Error('Invalid serialized Catch state.');
+      throw isDev ? invalidStateError('Catch state') : invalidStateError();
     }
     Object.assign(subscription, { fallbackQrl: catchState[0], error: catchState[1] ?? undefined });
     if (owner === null) {
-      throw new Error('Catch requires a content owner.');
+      throw isDev ? invalidStateError('Catch owner') : invalidStateError();
     }
     if (subscription.error === undefined) {
       registerCatchBoundary(owner, subscription);
@@ -930,18 +924,11 @@ async function restoreContentSubscription(
   }
   if (pending != null) {
     if (!(subscription instanceof PendingContentSubscription)) {
-      throw new Error('Suspense data requires a suspense subscription.');
+      throw isDev ? invalidStateError('suspense subscription') : invalidStateError();
     }
-    attachPending(
-      container,
-      new BranchRange(container.document, markerRange[0], markerRange[1]),
-      subscription,
-      EMPTY_NODES,
-      pending[0] ?? undefined,
-      pending[1]
-    );
+    attachPending(container, subscription, EMPTY_NODES, pending[0] ?? undefined, pending[1]);
   } else if (subscription instanceof PendingContentSubscription) {
-    throw new Error('Suspense subscription requires suspense data.');
+    throw isDev ? invalidStateError('suspense data') : invalidStateError();
   }
 }
 
@@ -1075,7 +1062,7 @@ function restoreContentBoundary(
         !(boundary instanceof PendingContentSubscription) &&
         !isCatchBoundary(boundary)
       ) {
-        throw new Error('Content owner requires a boundary subscription.');
+        throw isDev ? invalidStateError('content owner boundary') : invalidStateError();
       }
     }
   );
@@ -1263,14 +1250,14 @@ function readDomEffectTarget(
 
 function readRequiredDomSource(deps: Source[], targetKind: EffectTargetKind): Source {
   if (targetKind !== EffectTargetKind.Element) {
-    throw new Error(`Unsupported element target kind ${targetKind}.`);
+    throw isDev ? invalidStateError(`DOM source target kind ${targetKind}`) : invalidStateError();
   }
   return readRequiredSource(deps);
 }
 
 function readRequiredSource(deps: Source[]): Source {
   if (!Array.isArray(deps) || deps.length === 0) {
-    throw new Error('DOM subscription requires a source dependency.');
+    throw isDev ? invalidStateError('DOM source') : invalidStateError();
   }
   return deps[0];
 }
@@ -1281,7 +1268,7 @@ function resolveElementTarget(
   elementId: number
 ): Element | null {
   if (targetKind !== EffectTargetKind.Element) {
-    throw new Error(`Unsupported element target kind ${targetKind}.`);
+    throw isDev ? invalidStateError(`element target kind ${targetKind}`) : invalidStateError();
   }
   return findContainerNode(container, (root) => findQwikElement(root, elementId));
 }
@@ -1310,7 +1297,7 @@ function resolveTextTarget(
     isDev && assertDefined(text, `Missing range text target ${elementId}:${markerIndex}.`);
     return text!;
   }
-  throw new Error(`Unsupported text target kind ${targetKind}.`);
+  throw isDev ? invalidStateError(`text target kind ${targetKind}`) : invalidStateError();
 }
 
 function resolveBranchTextTarget(
@@ -1411,7 +1398,7 @@ export function readSerializedSlot(
     return maybeThen(existing, (shell) => {
       beforeInflate?.(shell);
       if (isPromise(existing)) {
-        slots!.get(data)!.set(index, shell);
+        setAllocatedSlot(container, data, index, shell);
       }
       return whenRootInflated(container, shell);
     });
@@ -1422,14 +1409,9 @@ export function readSerializedSlot(
       return value;
     });
   }
-  const cache = (container.state.allocatedSlots ??= new WeakMap());
-  let allocations = cache.get(data);
-  if (allocations === undefined) {
-    cache.set(data, (allocations = new Map()));
-  }
   const allocated = allocate(container, type, value);
   const read = maybeThen(allocated, (shell) => {
-    allocations.set(index, shell);
+    setAllocatedSlot(container, data, index, shell);
     if (beforeInflate?.(shell) === false || !needsInflation(type)) {
       return shell;
     }
@@ -1442,7 +1424,7 @@ export function readSerializedSlot(
     return inflation.then(() => shell).finally(() => inflating.delete(shell));
   });
   if (isPromise(allocated)) {
-    allocations.set(index, read);
+    setAllocatedSlot(container, data, index, read);
   }
   return read;
 }

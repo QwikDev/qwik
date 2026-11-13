@@ -13,7 +13,6 @@ import type { Result } from './result';
 
 export const enum ReadRole {
   Read = 'read',
-  Write = 'write',
   Call = 'call',
   Shorthand = 'shorthand',
 }
@@ -30,6 +29,8 @@ export interface Payload {
     use: QrlUse;
     /** A custom `$` hook call in expression position: its callee prints as the resolved twin. */
     marker?: { calleeRange: Range; target: Extract<CallTarget, { kind: CallTargetKind.Marker }> };
+    /** A lifted local its scope reads: the range is its value, or its declaration when hoisted. */
+    local?: { binding: LocalId; hoisted: boolean };
   }[];
   reads: {
     range: Range;
@@ -38,10 +39,10 @@ export interface Payload {
     value?: ValueIR;
   }[];
   awaits: { range: Range; argumentRange: Range }[];
-  useIds: { range: Range; ordinal: number }[];
   renders: { range: Range; program: ProgramId; statement?: true }[];
   setups?: { range: Range; setup: Setup[]; block: boolean }[];
-  temps: { binding: LocalId; statementStart: number; init: PayloadId }[];
+  /** Declarations of lifted locals no printed code reads: each boundary rebinds the segment. */
+  removed?: Range[];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -70,8 +71,6 @@ export interface EsmEdge {
 
 // ---------------------------------------------------------------------------------------------
 // Expressions and task bodies.
-// NOTE: `ValueIR` gains a `build-constant` leaf in ../../src/expr-ir.ts with the first slice
-// that folds IR (see DESIGN.md).
 
 export const enum ExprKind {
   Ir = 'ir',
@@ -131,7 +130,6 @@ export const enum ValueKind {
 
 export const enum ResumeKind {
   Qrl = 'qrl',
-  InitialOnly = 'initial-only',
   Inline = 'inline',
 }
 
@@ -142,15 +140,11 @@ export type Value = { result?: Result; range?: Range } & (
       value?: string | number | boolean | null;
     }
   /** Resumes by subscription. */
-  | { v: ValueKind.Read; place: PlaceIR; expr: Expr }
+  | { v: ValueKind.Read; expr: Expr }
   | {
       v: ValueKind.Computed;
       expr: Expr;
-      resume:
-        | { r: ResumeKind.Qrl; qrl: QrlUse }
-        | { r: ResumeKind.InitialOnly }
-        | { r: ResumeKind.Inline };
-      compilerString: boolean;
+      resume: { r: ResumeKind.Qrl; qrl: QrlUse } | { r: ResumeKind.Inline };
     }
   | { v: ValueKind.Qrl; use: QrlUse; expr?: Expr }
   | { v: ValueKind.Render; program: ProgramId }
@@ -161,7 +155,6 @@ export const enum ArgPass {
   This = 'this',
   Arguments = 'arguments',
   Props = 'props',
-  StyleScope = 'style-scope',
 }
 
 /**
@@ -175,6 +168,5 @@ export interface QrlUse {
     | { pass: ArgPass.This }
     | { pass: ArgPass.Arguments; binding: LocalId | null }
     | { pass: ArgPass.Props }
-    | { pass: ArgPass.StyleScope }
   )[];
 }

@@ -247,6 +247,7 @@ import {
   renderSsrAttrExpression,
   escapeHTML,
   maybeThen,
+  promiseAll,
   _noopQrl,
   renderSsrDynamicContent,
   _markComponent,
@@ -331,27 +332,25 @@ export function Probe_component_2pbw965ggevv(props, ctx) {
     [helper],
     q_component_data_x_segment_6_1rjzaall3g6me
   );
-  return maybeThen(effect0, (effect0) =>
-    maybeThen(attr0, (attr0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      createSsrMarkup(effect0),
-      '>alias</button><button',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([click])),
-      '>inside</button><button',
-      ctx.eventAttrParts('q-e:click', read),
-      '>mixed</button><!d=',
-      createSsrNodeId(id1),
-      '>',
-      content0,
-      '<!/d><b q:id="',
-      createSsrNodeId(id2),
-      '"',
-      attr0 === null ? '' : ' data-x' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '></b>',
-    ])
-  );
+  return maybeThen(promiseAll([effect0, attr0]), ([effect0, attr0]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    createSsrMarkup(effect0),
+    '>alias</button><button',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([click])),
+    '>inside</button><button',
+    ctx.eventAttrParts('q-e:click', read),
+    '>mixed</button><!d=',
+    createSsrNodeId(id1),
+    '>',
+    content0,
+    '<!/d><b q:id="',
+    createSsrNodeId(id2),
+    '"',
+    attr0 === null ? '' : ' data-x' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '></b>',
+  ]);
 }
 /*
 {

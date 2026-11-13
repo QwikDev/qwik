@@ -77,6 +77,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -116,19 +117,17 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     q_component_text_segment_1_1fh10tcowimfv,
     effect0
   );
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<div><title q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</title><textarea q:id="',
-      createSsrNodeId(id1),
-      '">',
-      escapeHTML(text1.replace(/^\n/, '\n\n')),
-      '</textarea></div>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<div><title q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</title><textarea q:id="',
+    createSsrNodeId(id1),
+    '">',
+    escapeHTML(text1.replace(/^\n/, '\n\n')),
+    '</textarea></div>',
+  ]);
 }
 /*
 {

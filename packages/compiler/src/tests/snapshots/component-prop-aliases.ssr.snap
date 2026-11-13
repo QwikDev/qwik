@@ -55,6 +55,7 @@ import {
   renderSsrTextNode,
   renderSsrSlot,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -75,23 +76,21 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
   isSource(prop1) && ctx.addRoot(prop1);
   const text1 = renderSsrTextNode(id1, null, prop1, effect0);
   const slot0 = ctx.observeError(renderSsrSlot(ctx));
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<section><h2 q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</h2><button q:id="',
-      createSsrNodeId(id1),
-      '"',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([props])),
-      '>',
-      escapeHTML(text1),
-      '</button>',
-      slot0,
-      '</section>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<section><h2 q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</h2><button q:id="',
+    createSsrNodeId(id1),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([props])),
+    '>',
+    escapeHTML(text1),
+    '</button>',
+    slot0,
+    '</section>',
+  ]);
 }
 /*
 {

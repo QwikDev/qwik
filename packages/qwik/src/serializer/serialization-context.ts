@@ -5,7 +5,7 @@ import type { QRL, Subscriber, ValueOrPromise } from './qwik-types';
 import { Serializer } from './serialize';
 import { SerializationBackRef } from './serialization-back-ref';
 import { SerializationJournal } from './serialization-journal';
-import { createStringSerdesWriter, type SerdesWriter } from './writer';
+import type { SerdesWriter } from './writer';
 
 type DomRef = { $nodeId$: string | number };
 type SymbolToChunkResolver = (symbol: string) => string;
@@ -14,7 +14,6 @@ type QrlMapper = (
   chunk: string | null,
   parent?: string
 ) => readonly [symbol: string, chunk: string] | undefined;
-type ObjToProxyMap = WeakMap<object, object>;
 
 /**
  * Stores the location of an object. If no parent, it's a root.
@@ -31,10 +30,9 @@ export interface SerializedStateRange {
   readonly base: number;
   readonly len: number;
   readonly state: string;
+  /** The frame's forward-ref table, on its last range only. */
   readonly forwardRefs?: readonly (number | string | number[])[];
 }
-
-export let isDomRef = (obj: unknown): obj is DomRef => false;
 
 interface AddRootFn {
   (obj: unknown, returnRef?: never): number;
@@ -59,12 +57,6 @@ export interface SerializationContext {
   $beginTransaction$(canRollback?: boolean): SerializationTransaction;
   $serialize$: () => ValueOrPromise<void>;
   $serializeNext$: () => ValueOrPromise<SerializedStateRange | null>;
-  $serializePatch$: (
-    rootStart: number,
-    rootIds: number[],
-    extraRootId?: number | string | number[],
-    streamedRootLimit?: number
-  ) => ValueOrPromise<void>;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
   $qrlMapper$?: QrlMapper;
@@ -93,8 +85,6 @@ export interface SerializationContext {
    * Returns the index of the root object.
    */
   $addRoot$: AddRootFn;
-  $addDuplicateRoot$: (obj: unknown) => SeenRef;
-  $commitRoot$: (root: unknown, obj: unknown) => number;
 
   /** Mark an object as seen during serialization. This is used to handle backreferences and cycles */
   $markSeen$: (obj: unknown, parent: SeenRef | undefined, index: number) => SeenRef;
@@ -102,9 +92,6 @@ export interface SerializationContext {
   $roots$: unknown[];
   $rootObjs$: unknown[];
   $onAddRoot$?: (id: number, root: unknown, obj: unknown, isNew: boolean) => void;
-  $forwardRefOffset$: number;
-  $serializedRootCount$: number;
-  $serializedForwardRefCount$: number;
   $rootStateRootCount$: number;
 
   $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
@@ -122,11 +109,7 @@ export interface SerializationContext {
 
   $eventQrls$: Set<QRL>;
   $eventNames$: Set<string>;
-  $renderSymbols$: Set<string>;
-  $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
-
-  $setProp$: (obj: any, prop: string, value: any) => void;
 }
 
 class SerializationContextImpl implements SerializationContext {
@@ -166,15 +149,9 @@ class SerializationContextImpl implements SerializationContext {
       });
       journal.assign(this.$roots$, 'length', this.$roots$.length);
       journal.assign(this.$rootObjs$, 'length', this.$rootObjs$.length);
-      const forwardRefOffset = this.$forwardRefOffset$;
-      const serializedRootCount = this.$serializedRootCount$;
-      const serializedForwardRefCount = this.$serializedForwardRefCount$;
       const rootStateRootCount = this.$rootStateRootCount$;
       const hasRetiredRoots = this.hasRetiredRoots;
       journal.record(() => {
-        this.$forwardRefOffset$ = forwardRefOffset;
-        this.$serializedRootCount$ = serializedRootCount;
-        this.$serializedForwardRefCount$ = serializedForwardRefCount;
         this.$rootStateRootCount$ = rootStateRootCount;
         this.hasRetiredRoots = hasRetiredRoots;
       });
@@ -245,14 +222,10 @@ class SerializationContextImpl implements SerializationContext {
   public $onAddRoot$:
     | ((id: number, root: unknown, obj: unknown, isNew: boolean) => void)
     | undefined;
-  public $forwardRefOffset$ = 0;
-  public $serializedRootCount$ = 0;
-  public $serializedForwardRefCount$ = 0;
   public $rootStateRootCount$ = 0;
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
-  public $renderSymbols$: Set<string> = new Set();
   private $serializer$: Serializer;
   constructor(
     /** DomRef constructor, for instanceof checks. */
@@ -260,8 +233,6 @@ class SerializationContextImpl implements SerializationContext {
       new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     public $symbolToChunkResolver$: SymbolToChunkResolver,
-    public $setProp$: (obj: any, prop: string, value: any) => void,
-    public $storeProxyMap$: ObjToProxyMap,
     public $writer$: SerdesWriter
   ) {
     if (isServer) {
@@ -280,31 +251,25 @@ class SerializationContextImpl implements SerializationContext {
       return null;
     }
     const chunks: string[] = [];
-    const writer = createStringSerdesWriter((chunk) => {
-      chunks.push(chunk);
-    });
+    const writer: SerdesWriter = {
+      write: (chunk) => {
+        chunks.push(chunk);
+      },
+    };
     const previousWriter = this.$writer$;
     this.$setWriter$(writer);
     try {
       const forwardRefs = await this.$serializer$.serializeNext();
+      const isLastRange = this.$rootStateRootCount$ === this.$roots$.length;
       return {
         base,
         len: this.$rootStateRootCount$ - base,
         state: chunks.join(''),
-        ...(forwardRefs ? { forwardRefs: forwardRefs.slice() } : {}),
+        ...(forwardRefs && isLastRange ? { forwardRefs: forwardRefs.slice() } : {}),
       };
     } finally {
       this.$setWriter$(previousWriter);
     }
-  }
-
-  async $serializePatch$(
-    rootStart: number,
-    rootIds: number[],
-    extraRootId?: number | string | number[],
-    streamedRootLimit?: number
-  ): Promise<void> {
-    await this.$serializer$.serializePatch(rootStart, rootIds, extraRootId, streamedRootLimit);
   }
 
   $setWriter$(writer: SerdesWriter): void {
@@ -427,27 +392,6 @@ class SerializationContextImpl implements SerializationContext {
     return returnRef ? seen : index;
   }
 
-  $addDuplicateRoot$(obj: unknown): SeenRef {
-    const index = this.$roots$.length;
-    const ref = { $index$: index };
-    this.setSeen(obj, ref, true);
-    this.$roots$.push(obj);
-    this.$rootObjs$.push(obj);
-    if (isServer) {
-      this.$onAddRoot$?.(index, obj, obj, true);
-    }
-    return ref;
-  }
-
-  $commitRoot$(root: unknown, obj: unknown): number {
-    const index = this.$roots$.length;
-    const ref = { $index$: index };
-    this.setSeen(obj, ref, true);
-    this.$roots$.push(root);
-    this.$rootObjs$.push(obj);
-    return index;
-  }
-
   $isDomRef$(obj: unknown): obj is DomRef {
     return this.DomRefConstructor ? obj instanceof this.DomRefConstructor : false;
   }
@@ -472,32 +416,13 @@ export const createSerializationContext = (
   DomRefConstructor: {
     new (...rest: any[]): { __brand__: 'DomRef' };
   } | null,
-  symbolToChunkResolver: SymbolToChunkResolver,
-  setProp: (obj: any, prop: string, value: any) => void,
-  storeProxyMap: ObjToProxyMap,
-  writer?: SerdesWriter
+  symbolToChunkResolver: SymbolToChunkResolver
 ): SerializationContext => {
-  if (!writer) {
-    const buffer: string[] = [];
-    writer = Object.assign(
-      createStringSerdesWriter((text: string) => {
-        buffer.push(text);
-      }),
-      {
-        toString: () => buffer.join(''),
-      }
-    );
-  }
-
-  isDomRef = (
-    DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
-  ) as (obj: unknown) => obj is DomRef;
-
-  return new SerializationContextImpl(
-    DomRefConstructor,
-    symbolToChunkResolver,
-    setProp,
-    storeProxyMap,
-    writer
-  );
+  const buffer: string[] = [];
+  return new SerializationContextImpl(DomRefConstructor, symbolToChunkResolver, {
+    write: (chunk) => {
+      buffer.push(chunk);
+    },
+    toString: () => buffer.join(''),
+  });
 };

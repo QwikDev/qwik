@@ -7,16 +7,52 @@ export default (props: { a: string; b: string }) => (
 
 ============================= src/component.tsx ==
 
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
 
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { propSource, createAttrEffect, _createElementTemplate } from '@qwik.dev/core';
+const default_tmpl0 = _createElementTemplate('<style></style>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'a');
+  const effect0 = createAttrEffect(el0, 'dangerouslySetInnerHTML', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    115
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
 == CSR DIAGNOSTICS ==
 
 [
   {
     "scope": "compiler",
-    "category": "error",
-    "code": "raw-text-content",
+    "category": "warning",
+    "code": "inner-html-children",
     "file": "src/component.tsx",
-    "message": "<style> takes its content once: drop dangerouslySetInnerHTML or the children.",
+    "message": "<style> renders its dangerouslySetInnerHTML, so its children are ignored.",
     "highlights": [
       {
         "lo": 56,

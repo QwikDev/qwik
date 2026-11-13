@@ -212,7 +212,6 @@ import {
   _next,
   _last,
   _prev,
-  BranchRange,
   createPending,
   createRevealGroup,
   _createElementTemplate,
@@ -234,7 +233,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const reveal0 = createRevealGroup('sequential', true, 2);
   createPending(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     component_suspense_content_segment_1_oznzhxo2l2hq,
     component_suspense_fallback_segment_0_1i2rr5w5knxuo,
     0,
@@ -245,7 +245,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const end1 = _next(start1);
   createPending(
     ctx,
-    new BranchRange(ctx.document, start1, end1),
+    start1,
+    end1,
     component_suspense_content_segment_3_oznypvg8wygo,
     component_suspense_fallback_segment_2_1i2rrxydec1vq,
     10,
@@ -256,7 +257,8 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const reveal1 = createRevealGroup(undefined, undefined, 1);
   createPending(
     ctx,
-    new BranchRange(ctx.document, marker0, end2),
+    marker0,
+    end2,
     component_suspense_content_segment_5_ozo1223pxaju,
     component_suspense_fallback_segment_4_1i2rsq0l805ws,
     0,

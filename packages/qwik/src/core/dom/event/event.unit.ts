@@ -224,6 +224,34 @@ describe('setEvent', () => {
     expect(push).toHaveBeenCalledWith('e:qvisible');
   });
 
+  test('re-scans once for all the visible elements one flush inserts', async () => {
+    const first = createElementTarget();
+    const second = { ...first } as Element;
+    const push = vi.fn();
+    (first.ownerDocument.defaultView as unknown as qWindow)._qwikEv = {
+      events: new Set(),
+      roots: new Set(),
+      push,
+    };
+    const scheduler = new Scheduler(() => {});
+    const container = { scheduler } as unknown as NonNullable<
+      ReturnType<typeof getActiveInvokeContextOrNull>
+    >['container'];
+    let release!: () => void;
+    scheduler.waitFor(new Promise<void>((resolve) => (release = resolve)));
+    const flush = scheduler.flushInteraction();
+    await Promise.resolve();
+
+    invoke(newInvokeContext({ container }), () => {
+      setEvent(first, 'q-e:qvisible', () => {});
+      setEvent(second, 'q-e:qvisible', () => {});
+    });
+    release();
+    await flush;
+
+    expect(push.mock.calls).toEqual([['e:qvisible']]);
+  });
+
   test('removes local and carrier event handlers', () => {
     const element = createElementTarget();
     const handler = vi.fn();

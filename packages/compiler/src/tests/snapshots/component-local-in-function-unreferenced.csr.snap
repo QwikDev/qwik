@@ -1,0 +1,60 @@
+==INPUT==
+
+import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = component$(() => {
+    useVisibleTask$(() => console.log('visible'));
+    return <a href="/x">x</a>;
+  });
+  return render(Cmp);
+}
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38'),
+  'component_useVisibleTaskqrl_segment_0_rykj3v0khy38'
+);
+const component_component_segment_1_1wtreduzn0bln_tmpl0 =
+  _createElementTemplate('<a href="/x">x</a>');
+import { useVisibleTaskQrl, qrl, _createElementTemplate } from '@qwik.dev/core';
+import { render } from './render';
+export async function show() {
+  const Cmp = (props, ctx) => {
+    useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38);
+    const el0 = component_component_segment_1_1wtreduzn0bln_tmpl0(ctx.document);
+    return el0;
+  };
+  return render(Cmp);
+}
+============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
+
+export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
+  return console.log('visible');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "entry": null,
+  "displayName": "component_useVisibleTaskqrl_segment_0",
+  "hash": "rykj3v0khy38",
+  "canonicalFilename": "component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": false,
+  "loc": [
+    165,
+    210
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

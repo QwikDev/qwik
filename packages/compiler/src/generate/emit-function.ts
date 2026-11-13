@@ -1,5 +1,6 @@
 import {
   BoundaryKind,
+  BoundaryRole,
   FnBodyKind,
   ProgramBodyKind,
   PropsPartKind,
@@ -22,7 +23,7 @@ import {
   staticFunctionReference,
   qrlPropsName,
 } from './captures';
-import { extractPayloadJs, expressionJs, type EmitQrl } from './print-js';
+import { capturedQrlJs, extractPayloadJs, expressionJs, type EmitQrl } from './print-js';
 import { type QrlResolver } from './qrl-chunks';
 import type { PresentationOptions } from './output';
 import { emitJsSetup, withMarkerEmitter } from './emit-setup';
@@ -41,18 +42,19 @@ export function sourceFunctionEmission(
     emission.imports.add(QwikWord.Captures);
   }
   const propsName = qrlPropsName(module, qrl, 'props');
+  const localFunction = (use: QrlUse) =>
+    staticFunctionReference(module, use, propsName, emission, resolveQrlUse, options, qrl);
   emission.statements.push(
     ...capturePrelude(module, qrl),
-    ...functionPrelude(module, qrl, (use) =>
-      staticFunctionReference(module, use, propsName, emission, resolveQrlUse, options)
-    )
+    ...functionPrelude(module, qrl, localFunction)
   );
   const emitQrl = withMarkerEmitter(
     module,
     emission.imports,
     (use: QrlUse) =>
       emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true),
-    emission.chunkImports
+    emission.chunkImports,
+    localFunction
   );
   const body = qrl.body;
   let awaitName: string = QwikWord.Await;
@@ -157,8 +159,7 @@ function emitFunctionQrl(
   } else {
     usage.invoked ||= invoked;
   }
-  const reference = `q_${qrl.name}`;
-  return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+  return capturedQrlJs(`q_${qrl.name}`, args);
 }
 
 /** Content expressions render inside their caller-owned range. */
@@ -170,12 +171,13 @@ export function contentFunctionEmission(
   options: PresentationOptions
 ): FunctionEmission {
   const emission = sourceFunctionEmission(module, qrl, resolveQrlUse, options);
-  if (qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'content') {
+  const role = qrl.boundary.kind === BoundaryKind.Implicit ? qrl.boundary.role : null;
+  if (role === BoundaryRole.Content) {
     const ctx = createNameAllocator(module)('ctx');
     emission.params = [ctx];
     emission.imports.add(helper);
     emission.value = `${helper}(${emission.value}, ${ctx})`;
-  } else if (qrl.ctxName === SegmentContext.CatchFallback) {
+  } else if (role === BoundaryRole.CatchFallback) {
     const allocateName = createNameAllocator(module);
     const ctx = allocateName('ctx');
     const error = allocateName('error');
@@ -184,6 +186,46 @@ export function contentFunctionEmission(
     emission.value = `${helper}((0, ${emission.value})(${error}), ${ctx})`;
   }
   return emission;
+}
+
+export interface QrlUsage {
+  qrl: LinkedQrl;
+  /** Invoked segments (render expressions) get an in-module mirror registered via `.s()`. */
+  invoked: boolean;
+  /** A lifted local reads the mirror function itself, never its `q_` stand-in. */
+  isMirrorOnly?: boolean;
+}
+
+/**
+ * The function of a QRL both targets print alike; null for a render program, whose function is the
+ * target's own.
+ */
+export function sharedQrlFunction(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  resolveQrlUse: QrlResolver,
+  options: PresentationOptions,
+  helpers: {
+    slotContent: QwikWord;
+    content: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent;
+  }
+): FunctionEmission | null {
+  if (qrl.ctxName === SegmentContext.SlotContent) {
+    return dynamicSlotEmission(helpers.slotContent);
+  }
+  switch (qrl.body.b) {
+    case QrlBodyKind.Alias:
+      return aliasEmission(module, qrl.body.binding);
+    case QrlBodyKind.Js:
+    case QrlBodyKind.Expr:
+      return contentFunctionEmission(module, qrl, resolveQrlUse, helpers.content, options);
+    case QrlBodyKind.Task:
+      throw new UnsupportedError('a task QRL body');
+    case QrlBodyKind.Program:
+      return module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr
+        ? sourceFunctionEmission(module, qrl, resolveQrlUse, options)
+        : null;
+  }
 }
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
@@ -205,7 +247,7 @@ export interface FunctionEmission {
   functionName?: string | null;
   generator: boolean;
   /** QRLs the function's body references — the placement satisfies them. */
-  uses: { qrl: LinkedQrl; invoked: boolean }[];
+  uses: QrlUsage[];
   /** Module bindings the in-chunk mirrors of its QRL uses read. */
   mirroredBindings?: readonly LocalId[];
 }
@@ -251,33 +293,12 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
   if (qrl.boundary.kind === BoundaryKind.Component) {
     return ProgramKind.Component;
   }
-  if (qrl.boundary.kind === BoundaryKind.Implicit) {
-    if (qrl.ctxName === SegmentContext.ForRender) {
-      return ProgramKind.CollectionRow;
-    }
-    if (qrl.boundary.role === 'branch') {
-      return ProgramKind.BranchArm;
-    }
-    if (qrl.boundary.role === 'projection') {
-      return ProgramKind.Projection;
-    }
-    if (qrl.boundary.role === 'slot-fallback') {
-      return ProgramKind.SlotFallback;
-    }
-    if (
-      [
-        SegmentContext.DynamicSlot,
-        SegmentContext.DynamicTag,
-        SegmentContext.PendingContent,
-        SegmentContext.CatchContent,
-        SegmentContext.PendingFallback,
-        'jsx-value',
-      ].includes(qrl.boundary.role)
-    ) {
-      return ProgramKind.Content;
-    }
+  const role = qrl.boundary.kind === BoundaryKind.Implicit ? qrl.boundary.role : null;
+  const kind = role === null ? undefined : PROGRAM_KINDS[role];
+  if (kind === undefined) {
+    throw new UnsupportedError(`a program qrl with the boundary "${role ?? qrl.boundary.kind}"`);
   }
-  throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
+  return kind;
 }
 
 /** What a Program-bodied QRL renders — each kind has its own emission wrapper per target. */
@@ -289,6 +310,16 @@ export const enum ProgramKind {
   Projection = 'projection',
   SlotFallback = 'slot-fallback',
 }
+
+const PROGRAM_KINDS: Partial<Record<BoundaryRole, ProgramKind>> = {
+  [BoundaryRole.CollectionRow]: ProgramKind.CollectionRow,
+  [BoundaryRole.KeyedCollectionRow]: ProgramKind.CollectionRow,
+  [BoundaryRole.Branch]: ProgramKind.BranchArm,
+  [BoundaryRole.Projection]: ProgramKind.Projection,
+  [BoundaryRole.SlotFallback]: ProgramKind.SlotFallback,
+  [BoundaryRole.RangeContent]: ProgramKind.Content,
+  [BoundaryRole.JsxValue]: ProgramKind.Content,
+};
 
 /** A `$(Name)` segment: nothing to build, the binding itself is the value. */
 export function aliasEmission(module: LinkedModule, binding: number): FunctionEmission {

@@ -21,6 +21,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -35,17 +36,15 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   const text0 = renderSsrTextNode(id0, 0, name);
   ctx.addRoot(count);
   const text1 = renderSsrTextNode(id0, 1, count);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<p q:id="',
-      createSsrNodeId(id0),
-      '"><!t>',
-      escapeHTML(text0),
-      '<!/t> count: <!t>',
-      escapeHTML(text1),
-      '<!/t>!</p>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '"><!t>',
+    escapeHTML(text0),
+    '<!/t> count: <!t>',
+    escapeHTML(text1),
+    '<!/t>!</p>',
+  ]);
 }
 /*
 {

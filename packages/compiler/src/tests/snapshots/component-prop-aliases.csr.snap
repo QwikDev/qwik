@@ -56,7 +56,7 @@ import {
   setEvent,
   qrl,
   createDomBatchEffect,
-  maybeThen,
+  _replaceMarker,
   createSlot,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -79,7 +79,7 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
     patchTextValue(text1, readTrackedValue(prop1));
   }, ctx.scheduler);
   const marker0 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

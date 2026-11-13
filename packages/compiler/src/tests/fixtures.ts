@@ -7,6 +7,7 @@ import {
   type Specialization,
 } from '../schema';
 import type { Program } from 'oxc-parser';
+import ts from 'typescript';
 import { compileFunction, runInNewContext } from 'node:vm';
 import { parseModule } from '../analyse/ast/parse';
 import { createBindingGraph } from '../analyse/ast/bindings';
@@ -145,6 +146,101 @@ export function loadChunkFunction(
   });
 }
 
+interface EmittedDiagnostic {
+  code: number;
+  /** The name the message quotes: the unused binding, the missing module. */
+  subject: string;
+  text: string;
+}
+
+const checkerOptions: ts.CompilerOptions = {
+  allowJs: true,
+  checkJs: true,
+  noEmit: true,
+  noUnusedLocals: true,
+  module: ts.ModuleKind.ESNext,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  target: ts.ScriptTarget.ESNext,
+  types: [],
+  lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
+};
+const checkerHost = ts.createCompilerHost(checkerOptions);
+const libFiles = new Map<string, ts.SourceFile | undefined>();
+
+/** Type-checks emitted modules together, as one JS program whose relative imports resolve. */
+function diagnoseEmitted(modules: readonly OutputModule[]): EmittedDiagnostic[] {
+  const files = new Map(
+    modules.map((module) => [
+      `/out/${module.path.endsWith('.js') ? module.path : `${module.path}.js`}`,
+      module,
+    ])
+  );
+  const host: ts.CompilerHost = {
+    ...checkerHost,
+    fileExists: (name) => files.has(name) || checkerHost.fileExists(name),
+    directoryExists: (name) => name.startsWith('/out') || checkerHost.directoryExists!(name),
+    readFile: (name) => files.get(name)?.code ?? checkerHost.readFile(name),
+    getSourceFile: (name, language) => {
+      const code = files.get(name)?.code;
+      if (code !== undefined) {
+        return ts.createSourceFile(name, code, language, true, ts.ScriptKind.JS);
+      }
+      if (!libFiles.has(name)) {
+        libFiles.set(name, checkerHost.getSourceFile(name, language));
+      }
+      return libFiles.get(name);
+    },
+  };
+  const program = ts.createProgram([...files.keys()], checkerOptions, host);
+  return program.getSourceFiles().flatMap((file) => {
+    const path = files.get(file.fileName)?.path;
+    if (path === undefined) {
+      return [];
+    }
+    return [...program.getSyntacticDiagnostics(file), ...program.getSemanticDiagnostics(file)].map(
+      ({ code, start = 0, messageText }) => {
+        const line = file.getLineAndCharacterOfPosition(start).line;
+        const message = ts.flattenDiagnosticMessageText(messageText, ' ');
+        return {
+          code,
+          subject: /'([^']*)'/.exec(message)?.[1] ?? '',
+          text: `${path}: ${message} | ${file.text.split('\n')[line].trim()}`,
+        };
+      }
+    );
+  });
+}
+
+const UNUSED_CODES = new Set([6133, 6192, 6198]);
+const UNDECLARED_CODES = new Set([2304, 2305, 2448, 2552]);
+const MISSING_MODULE = 2307;
+
+/** Declarations an emitted module never reads, except the `authored` names the input leaves unused. */
+export function unusedDeclarations(
+  modules: readonly OutputModule[],
+  authored: readonly string[] = []
+): string[] {
+  return diagnoseEmitted(modules)
+    .filter(({ code, subject }) => UNUSED_CODES.has(code) && !authored.includes(subject))
+    .map(({ text }) => text);
+}
+
+/** Syntax errors, undeclared names, and imports of chunks or exports nothing emitted. */
+export function emittedCodeErrors(modules: readonly OutputModule[]): string[] {
+  // A chunk is named after its source module, so `./app.tsx_…` is one this output must hold.
+  const chunkPrefixes = modules
+    .filter((module) => !module.segment)
+    .map(({ path }) => `./${path.slice(path.lastIndexOf('/') + 1)}_`);
+  return diagnoseEmitted(modules)
+    .filter(
+      ({ code, subject }) =>
+        code < 2000 ||
+        UNDECLARED_CODES.has(code) ||
+        (code === MISSING_MODULE && chunkPrefixes.some((prefix) => subject.startsWith(prefix)))
+    )
+    .map(({ text }) => text);
+}
+
 export function createTestLowerContext(program: Program, source: string, path = 't.tsx') {
   const plan = emptyPlan(path, source);
   const bindings = createBindingGraph(program);
@@ -168,7 +264,6 @@ export function emptyLinkedPlan(specialization: Specialization): LinkedPlan {
     complete: true,
     entries: [],
     modules: [],
-    implementations: [],
     diagnostics: [],
   };
 }

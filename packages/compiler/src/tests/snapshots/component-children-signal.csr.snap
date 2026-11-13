@@ -17,13 +17,13 @@ export { Wrapper };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Wrapper_component_1yrb0pezcavja.js (ENTRY POINT)==
 
-import { _first, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Wrapper_tmpl0 = _createElementTemplate('<section><!></section>');
 
 export function Wrapper_component_1yrb0pezcavja(props, ctx) {
   const el0 = Wrapper_tmpl0(ctx.document);
   const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot()));
   return el0;
 }
 /*

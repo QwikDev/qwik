@@ -87,6 +87,7 @@ import {
   renderSsrTextExpression,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -119,22 +120,20 @@ export function Card_component_1j4wd08arm0n5(props, ctx) {
     q_component_text_segment_1_1fh10tcowimfv
   );
   const text1 = renderSsrTextNode(id0, 1, count);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts(
-        'q-e:click',
-        q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count, label])
-      ),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t>:<!t>',
-      escapeHTML(text1),
-      '<!/t></button>',
-    ])
-  );
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count, label])
+    ),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t>:<!t>',
+    escapeHTML(text1),
+    '<!/t></button>',
+  ]);
 }
 /*
 {

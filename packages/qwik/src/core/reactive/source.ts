@@ -22,10 +22,6 @@ export function readSourceValue<T>(source: Source<T>): T {
   return isComputedSource(source) ? source.value : source.v;
 }
 
-export function peekSourceValue<T>(source: Source<T>): T {
-  return source.v;
-}
-
 export function appendSourceSubscriber(source: Source, subscriber: SourceSub): void {
   const subs = source.subs;
   if (subs === null) {

@@ -19,16 +19,12 @@ export function findContainerNode<T>(
 }
 
 export function prepareProjectionRanges(
-  container: ContainerContext | undefined,
+  container: ContainerContext,
   start: Comment,
   end: Comment,
   owner: Owner | null
 ): ValueOrPromise<void> {
-  if (
-    container === undefined ||
-    owner === null ||
-    (owner.flags & OwnerFlags.ResumeProjection) === 0
-  ) {
+  if (owner === null || (owner.flags & OwnerFlags.ResumeProjection) === 0) {
     return;
   }
   return restoreProjectionRanges(container, start, end, owner);
@@ -54,7 +50,6 @@ async function restoreProjectionRanges(
     owner.flags &= ~OwnerFlags.ResumeProjection;
     return;
   }
-  const { ProjectionSubscription } = await import('../slot/slot');
   for (let i = 0; i < markers.length; i++) {
     const marker = markers[i];
     const parts = marker.data.slice(2).split(',');
@@ -68,13 +63,18 @@ async function restoreProjectionRanges(
     ) {
       throw new Error('Invalid projection marker');
     }
-    const id = Number(parts[1]);
-    const subscription = await whenRootInflated(container, await container.getRoot(id));
-    if (!(subscription instanceof ProjectionSubscription)) {
-      throw new Error('Projection marker requires a projection subscription');
-    }
-    if (subscription.block !== null && subscription.block.start !== marker) {
-      throw new Error('Projection marker references a different range');
+    const subscription = await whenRootInflated(
+      container,
+      await container.getRoot(Number(parts[1]))
+    );
+    if (isDev) {
+      const { ProjectionSubscription } = await import('../slot/slot');
+      if (!(subscription instanceof ProjectionSubscription)) {
+        throw new Error('Projection marker requires a projection subscription');
+      }
+      if (subscription.block.start !== marker) {
+        throw new Error('Projection marker references a different range');
+      }
     }
   }
   owner.flags &= ~OwnerFlags.ResumeProjection;
@@ -126,21 +126,16 @@ export function getRangeParent(start: Comment, end: Comment): Node {
   return parent!;
 }
 
+/** Swaps a block's nodes, then disposes the owner of the nodes it took out. */
 export function replaceContent(
-  range: { readonly document: Document; readonly start: Comment; readonly end: Comment },
+  block: { readonly container: ContainerContext; readonly start: Comment; readonly end: Comment },
   nodes: readonly Node[],
-  previousOwner: Owner | null,
-  disposePrevious: boolean
+  previousOwner: Owner | null
 ): void {
-  try {
-    if (disposePrevious) {
-      parkProjections(previousOwner);
-      if (previousOwner !== null) {
-        disposeOwner(previousOwner);
-      }
-    }
-  } finally {
-    replaceRange(range.document, range.start, range.end, nodes);
+  parkProjections(previousOwner);
+  replaceRange(block.container.document, block.start, block.end, nodes);
+  if (previousOwner !== null) {
+    disposeOwner(previousOwner);
   }
 }
 

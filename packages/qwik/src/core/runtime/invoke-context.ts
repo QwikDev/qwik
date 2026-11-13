@@ -28,7 +28,6 @@ export interface RuntimeInvokeContext<C extends RuntimeContainerContext = Runtim
   styleScopes?: string[];
   /** Work that hooks chain here, which a compiled render waits on before it commits. */
   pendingSetup?: Promise<void>;
-  hasCatchErrorHandler?: boolean;
   /** The server render's `useId` counter; a client render counts on its container instead. */
   ids?: { next: number };
 }

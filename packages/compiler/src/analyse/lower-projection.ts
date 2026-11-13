@@ -2,6 +2,7 @@
 import type { Expression, JSXAttributeItem, JSXChild, JSXElement } from 'oxc-parser';
 import {
   BoundaryKind,
+  BoundaryRole,
   ExprKind,
   FnBodyKind,
   LifetimeOwner,
@@ -39,13 +40,12 @@ export function lowerDynamicSlotSegment(element: JSXElement, ctx: LowerContext):
   return pushQrl(ctx, {
     identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.SlotContent },
     ctxName: SegmentContext.SlotContent,
-    boundary: { kind: BoundaryKind.Implicit, role: 'slot' },
+    boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Slot },
     payloadKind: QrlPayloadKind.Function,
     authoredAsync: false,
     body: {
       b: QrlBodyKind.Expr,
       expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.Undef } },
-      initialOnly: false,
     },
     captures: [],
     params: { authored: 4, used: [], sources: [] },
@@ -103,7 +103,7 @@ function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): Qr
         ctx,
         'a slot fallback',
         SegmentContext.Projection,
-        'slot-fallback',
+        BoundaryRole.SlotFallback,
         (renderContext) => lowerJsxChildren(fallbackChildren, renderContext)
       );
 }
@@ -158,7 +158,7 @@ export function lowerProjection(
     ctx,
     'a component projection',
     SegmentContext.Projection,
-    'projection',
+    BoundaryRole.Projection,
     (renderContext) => lowerProjectedChildren([child], name, renderContext)
   );
   const childType = readChildType(child);

@@ -55,7 +55,6 @@ export interface ComputedSubscriber<T = unknown>
   flags: ComputedFlags;
   /** Readers of the pending and error state, when any tracked them. */
   readonly status: Source | null;
-  compute: () => T;
   dispose(): void;
 }
 

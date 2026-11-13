@@ -47,7 +47,6 @@ import { isQrl } from '../../shared/qrl/qrl-utils';
 import { ownSsrOutput, resolveSsrOutput, type SsrOutput } from '../../ssr/output';
 import { replaceContent, prepareProjectionRanges } from '../range/range';
 import { claimUseOnRoot, reapplyUseOnContexts } from '../../runtime/use-on';
-import type { BranchRange } from '../branch/branch';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 export type ContentOutput = MaybeNodeOutput | string | number | bigint | boolean;
@@ -119,18 +118,6 @@ export const createDynamicContent = (
           : [ctx.document.createTextNode(String(v))]
   );
 
-/** Content results are user values, so they must never reach the stream as markup. */
-export function escapeSsrContent(output: ContentOutput): string {
-  switch (typeof output) {
-    case 'string':
-    case 'number':
-    case 'bigint':
-      return escapeHTML(String(output));
-    default:
-      return '';
-  }
-}
-
 function normalizeContentOutput(document: Document, output: ContentOutput): MaybeNodeOutput {
   switch (typeof output) {
     case 'string':
@@ -153,13 +140,12 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   private pendingContext: RuntimeInvokeContext | null = null;
 
   constructor(
-    readonly document: Document,
     readonly start: Comment,
     readonly end: Comment,
     readonly args: TArgs,
     readonly fn: ContentFn<TArgs> | QRL<ContentFn<TArgs>>,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container?: ContainerContext,
+    readonly container: ContainerContext,
     readonly useOnRoot = false,
     readonly contextArg = false
   ) {}
@@ -199,7 +185,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
           if (this.pendingContext === invokeContext) {
             this.pendingContext = null;
           }
-          if (invokeContext.owner !== null) {
+          // A commit whose previous content cleanup threw keeps its content live.
+          if (invokeContext.owner !== null && invokeContext.owner !== this.currentOwner) {
             disposeOwner(invokeContext.owner);
             invokeContext.owner = null;
           }
@@ -249,25 +236,26 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     const pendingContext = this.pendingContext;
     this.pendingContext = null;
     try {
+      replaceContent(this, EMPTY_NODES, owner);
+    } finally {
       if (pendingContext !== null && pendingContext.owner !== null) {
         disposeOwner(pendingContext.owner);
         pendingContext.owner = null;
       }
-    } finally {
-      replaceContent(this, EMPTY_NODES, owner, true);
     }
   }
 
   private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
     const previousOwner = this.currentOwner;
     // Expression segments may return primitives; SSR emits them as text.
-    output = normalizeContentOutput(this.document, output);
+    const document = this.container.document;
+    output = normalizeContentOutput(document, output);
     const nodes = toNodes(
-      this.useOnRoot ? reapplyUseOnContexts(output, this.invokeContext, this.document) : output
+      this.useOnRoot ? reapplyUseOnContexts(output, this.invokeContext, document) : output
     );
-    replaceContent(this, nodes, previousOwner, true);
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = getOrCreateContextOwner(invokeContext);
+    replaceContent(this, nodes, previousOwner);
     return nodes;
   }
 }
@@ -297,7 +285,6 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   }
 
   dispose(): void {
-    // a root that was retired before inflation never got its block
     this.block.dispose();
   }
 }
@@ -321,7 +308,6 @@ export function createContentBlock<TArgs extends unknown[]>(
   contextArg = false
 ): ContentSubscription<TArgs> {
   const block = new ContentBlock(
-    ctx.document,
     start,
     end,
     args,
@@ -336,7 +322,8 @@ export function createContentBlock<TArgs extends unknown[]>(
 
 export function createPending(
   ctx: ContainerContext,
-  range: BranchRange,
+  start: Comment,
+  end: Comment,
   contentQrl: QRL<PendingContentFn>,
   fallbackQrl?: QRL<PendingContentFn>,
   delay = 0,
@@ -344,9 +331,8 @@ export function createPending(
   index = 0
 ): PendingContentSubscription<[]> {
   const block = new ContentBlock(
-    ctx.document,
-    range.start,
-    range.end,
+    start,
+    end,
     [],
     contentQrl as QRL<ContentFn<[]>>,
     getActiveInvokeContextOrNull(),
@@ -357,13 +343,12 @@ export function createPending(
   const subscription = registerSubscriberToOwner(
     new PendingContentSubscription(block, ctx.scheduler)
   );
-  attachPending(ctx, range, subscription, subscription.run(), fallbackQrl, delay, group, index);
+  attachPending(ctx, subscription, subscription.run(), fallbackQrl, delay, group, index);
   return subscription;
 }
 
 export function attachPending(
   ctx: ContainerContext,
-  range: BranchRange,
   subscription: PendingContentSubscription,
   content: ValueOrPromise<readonly Node[]>,
   fallbackQrl?: QRL<PendingContentFn>,
@@ -371,6 +356,7 @@ export function attachPending(
   group?: RevealGroup,
   index = 0
 ): void {
+  const block = subscription.block;
   // committed content may still have to wait for its reveal group
   const holdForReveal = (nodes: readonly Node[]) => {
     if (group === undefined) {
@@ -380,10 +366,10 @@ export function attachPending(
     if (group.canReveal(index) || isSubscriberDisposed(subscription)) {
       return;
     }
-    range.replace(EMPTY_NODES);
+    replaceContent(block, EMPTY_NODES, null);
     group.whenRevealable(index, () => {
       if (!isSubscriberDisposed(subscription)) {
-        range.replace(nodes);
+        replaceContent(block, nodes, null);
       }
     });
   };
@@ -407,16 +393,11 @@ export function attachPending(
     if (preservedContent !== null) {
       const content = preservedContent;
       preservedContent = null;
-      replaceContent(
-        range,
-        isSubscriberDisposed(subscription) ? EMPTY_NODES : [content],
-        owner,
-        true
-      );
+      replaceContent(block, isSubscriberDisposed(subscription) ? EMPTY_NODES : [content], owner);
     } else if (owner !== null) {
-      if (subscription.block.currentOwner === owner) {
-        subscription.block.currentOwner = null;
-        replaceContent(range, EMPTY_NODES, owner, true);
+      if (block.currentOwner === owner) {
+        block.currentOwner = null;
+        replaceContent(block, EMPTY_NODES, owner);
       } else {
         disposeOwner(owner);
       }
@@ -437,10 +418,10 @@ export function attachPending(
       group.whenRevealable(index, showFallback);
       return;
     }
-    const invokeContext = (fallbackContext = newChildInvokeContext(
-      subscription.block.invokeContext,
-      { ownerHost: subscription.owner, container: ctx }
-    ));
+    const invokeContext = (fallbackContext = newChildInvokeContext(block.invokeContext, {
+      ownerHost: subscription.owner,
+      container: ctx,
+    }));
     const work = safeCall(
       () =>
         maybeThen(getFunctionOrResolve(fallbackQrl, ctx), (fallback) => {
@@ -454,7 +435,7 @@ export function attachPending(
           const output = invoke(invokeContext, fallback, ctx);
           // The fallback may still be rendering, so materialize the owner instead of reading it.
           if (!hasCommittedContent) {
-            subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
+            block.currentOwner = getOrCreateContextOwner(invokeContext);
           }
           return maybeThen(output, (output) => {
             if (fallbackContext !== invokeContext) {
@@ -466,12 +447,12 @@ export function attachPending(
             }
             if (hasCommittedContent) {
               const fragment = ctx.document.createDocumentFragment();
-              while (range.start.nextSibling !== range.end) {
-                fragment.appendChild(range.start.nextSibling!);
+              while (block.start.nextSibling !== block.end) {
+                fragment.appendChild(block.start.nextSibling!);
               }
               preservedContent = fragment;
             }
-            replaceContent(range, toNodes(output), subscription.block.currentOwner, false);
+            replaceContent(block, toNodes(output), null);
           });
         }),
       () => {},
@@ -509,7 +490,7 @@ export function attachPending(
       (error) => {
         finish();
         group?.resolve(index);
-        subscription.block.dispose();
+        block.dispose();
         ctx.scheduler.waitFor(Promise.reject(error));
       }
     );
@@ -524,8 +505,8 @@ export function attachPending(
   }
 
   if (!isPromise(content)) {
-    if (subscription.block.currentOwner !== null) {
-      registerPendingBoundary(subscription.block.currentOwner, subscription);
+    if (block.currentOwner !== null) {
+      registerPendingBoundary(block.currentOwner, subscription);
     }
     return;
   }
@@ -540,14 +521,14 @@ export function attachPending(
       finish();
       hasCommittedContent = true;
       holdForReveal(nodes);
-      if (subscription.block.currentOwner !== null) {
-        registerPendingBoundary(subscription.block.currentOwner, subscription);
+      if (block.currentOwner !== null) {
+        registerPendingBoundary(block.currentOwner, subscription);
       }
     },
     (error) => {
       finish();
       group?.resolve(index);
-      subscription.block.dispose();
+      block.dispose();
       // Only the rejection goes to the scheduler; awaiting the content would block the fallback.
       ctx.scheduler.waitFor(Promise.reject(error));
     }

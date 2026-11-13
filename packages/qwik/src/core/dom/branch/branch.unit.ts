@@ -35,12 +35,13 @@ import {
   type Owner,
 } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
+import { useTask } from '../../runtime/task';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
 import type { ContainerContext } from '../../runtime/container-context';
+import { replaceRange } from '../range/range';
 import {
   Branch,
-  BranchRange,
   BranchSubscription,
   SSRBranchSubscription,
   createBranch,
@@ -63,13 +64,15 @@ describe('branches', () => {
     const nextA = createTestDomNode('next-a');
     const nextB = createTestDomNode('next-b');
     const parent = createTestParentNode([start, oldA, oldB, end]);
-    const range = new BranchRange(
-      start.ownerDocument!,
-      start as unknown as Comment,
-      end as unknown as Comment
-    );
+    const replace = (nodes: Node[]) =>
+      replaceRange(
+        start.ownerDocument!,
+        start as unknown as Comment,
+        end as unknown as Comment,
+        nodes
+      );
 
-    range.replace([nextA, nextB]);
+    replace([nextA, nextB]);
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'next-a', 'next-b', 'end']);
     expect(oldA.parentNode).toBeNull();
@@ -77,7 +80,7 @@ describe('branches', () => {
     expect(start.parentNode).toBe(parent);
     expect(end.parentNode).toBe(parent);
 
-    range.replace([]);
+    replace([]);
 
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
     expect(nextA.parentNode).toBeNull();
@@ -90,15 +93,11 @@ describe('branches', () => {
     const next = createTestDomNode('next');
     const templateParent = createTestParentNode([start, end]);
     const mountedParent = createTestParentNode([]);
-    const range = new BranchRange(
-      start.ownerDocument!,
-      start as unknown as Comment,
-      end as unknown as Comment
-    );
-
     mountedParent.insertBefore(start, null);
     mountedParent.insertBefore(end, null);
-    range.replace([next]);
+    replaceRange(start.ownerDocument!, start as unknown as Comment, end as unknown as Comment, [
+      next,
+    ]);
 
     expect(mountedParent.nodes.map(getNodeLabel)).toEqual(['start', 'next', 'end']);
     expect(templateParent.nodes).toEqual([]);
@@ -125,14 +124,15 @@ describe('branches', () => {
     const visible = useSignal(true);
     const branchNode = createNode('branch');
     const componentNode = createNode('component');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let conditionContext: RuntimeInvokeContext | null = null;
     let componentContext!: RuntimeInvokeContext;
 
     const branch = invoke(branchContext, () =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => {
           conditionContext = getActiveInvokeContextOrNull();
           return visible.value;
@@ -161,7 +161,7 @@ describe('branches', () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);
     const branchText = useSignal('then');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const thenNode = createNode('then');
     const elseNode = createNode('else');
     const text = createText();
@@ -170,8 +170,9 @@ describe('branches', () => {
 
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => visible.value,
         () => {
           thenRuns++;
@@ -218,14 +219,55 @@ describe('branches', () => {
     expect(elseRuns).toBe(1);
   });
 
+  it('keeps the committed arm owned when the previous arm cleanup throws', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const visible = useSignal(true);
+    const { document, start, end } = createBranchRange();
+    const cleanups: string[] = [];
+    const renderArm = (label: string) => () => {
+      useTask(({ cleanup }) =>
+        cleanup(() => {
+          cleanups.push(label);
+          if (label === 'then') {
+            throw new Error('cleanup failed');
+          }
+        })
+      );
+      return [createNode(label)];
+    };
+    const branch = createOwned(() =>
+      createBranch(
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
+        () => visible.value,
+        renderArm('then'),
+        renderArm('else')
+      )
+    ) as BranchSubscriber;
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+    visible.value = false;
+    await scheduler.flushInteraction().catch(() => {});
+
+    expect(cleanups).toEqual(['then']);
+    expect(branch.branch.currentOwner!.flags & OwnerFlags.Disposed).toBe(0);
+
+    visible.value = true;
+    await scheduler.flushInteraction();
+    expect(cleanups).toEqual(['then', 'else']);
+  });
+
   it('runs CSR branches with scalar node output', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const node = createNode('then');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => true,
         () => node
       )
@@ -240,13 +282,14 @@ describe('branches', () => {
   it('does not rerender CSR branches when branch state is unchanged', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(1);
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const node = createNode('positive');
     let renderRuns = 0;
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => count.value > 0,
         () => {
           renderRuns++;
@@ -270,13 +313,14 @@ describe('branches', () => {
     const count = useSignal(0);
     const zeroNode = createNode('zero');
     const positiveNode = createNode('positive');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let zeroRuns = 0;
     let positiveRuns = 0;
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => count.value > 0,
         () => {
           positiveRuns++;
@@ -309,13 +353,14 @@ describe('branches', () => {
   it('flushes branches before scalar DOM effects', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];
-    const { range } = createBranchRange();
+    const { document, start, end } = createBranchRange();
     let branch!: BranchSubscriber;
     let effect!: DomSubscriber;
     runWithOwner(createOwner(null), () => {
       branch = createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => true,
         () => {
           order.push('branch');
@@ -342,12 +387,13 @@ describe('branches', () => {
 
   it('skips disposed branches that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let runs = 0;
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => true,
         () => {
           runs++;
@@ -372,11 +418,12 @@ describe('branches', () => {
     const local = useSignal('local');
     const text = createText();
     const node = createNode('branch');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => visible.value,
         () => {
           const effect = createTextNodeEffect(text, local, scheduler);
@@ -412,15 +459,11 @@ describe('branches', () => {
     const end = createTestDomNode('end');
     const node = createTestDomNode('branch');
     const parent = createTestParentNode([start, end]);
-    const range = new BranchRange(
-      start.ownerDocument!,
-      start as unknown as Comment,
-      end as unknown as Comment
-    );
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document: start.ownerDocument! } as ContainerContext,
+        start as unknown as Comment,
+        end as unknown as Comment,
         () => visible.value,
         () => {
           const effect = createTextNodeEffect(text, local, scheduler);
@@ -451,7 +494,7 @@ describe('branches', () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);
     const node = createNode('then');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let resolved = false;
     const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', null, () => {
       resolved = true;
@@ -461,7 +504,7 @@ describe('branches', () => {
     });
     const thenQrl = createQRL<BranchRenderFn>('chunk', 'then', () => [node]);
     const branch = createOwned(() =>
-      createBranch({ scheduler } as ContainerContext, range, conditionQrl, thenQrl)
+      createBranch({ scheduler, document } as ContainerContext, start, end, conditionQrl, thenQrl)
     );
 
     scheduler.notify(branch);
@@ -482,7 +525,7 @@ describe('branches', () => {
     const visible = useSignal(true);
     const thenNode = createNode('then');
     const elseNode = createNode('else');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let thenResolved = false;
     let elseResolved = false;
     const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
@@ -498,7 +541,14 @@ describe('branches', () => {
       });
     });
     const branch = createOwned(() =>
-      createBranch({ scheduler } as ContainerContext, range, () => visible.value, thenQrl, elseQrl)
+      createBranch(
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
+        () => visible.value,
+        thenQrl,
+        elseQrl
+      )
     );
 
     scheduler.notify(branch);
@@ -519,7 +569,7 @@ describe('branches', () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);
     const thenNode = createNode('then');
-    const { range } = createBranchRange();
+    const { document, start, end } = createBranchRange();
     const materialized = deferred<Owner>();
     // Projections resolve their QRL asynchronously, so they claim the render owner after the commit.
     const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', () => {
@@ -528,7 +578,13 @@ describe('branches', () => {
       return [thenNode];
     });
     const branch = createOwned(() =>
-      createBranch({ scheduler } as ContainerContext, range, () => visible.value, thenQrl)
+      createBranch(
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
+        () => visible.value,
+        thenQrl
+      )
     );
 
     scheduler.notify(branch);
@@ -545,7 +601,7 @@ describe('branches', () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);
     const thenNode = createNode('then');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let thenResolved = false;
     const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
       thenResolved = true;
@@ -557,13 +613,14 @@ describe('branches', () => {
       registerSubscriberToOwner(
         new BranchSubscription(
           new Branch(
-            range,
+            start,
+            end,
             () => visible.value,
             thenQrl,
             undefined,
             BRANCH_THEN,
             getActiveInvokeContextOrNull(),
-            { scheduler } as ContainerContext
+            { scheduler, document } as ContainerContext
           ),
           scheduler
         )
@@ -586,7 +643,7 @@ describe('branches', () => {
     const local = useSignal('mounted');
     const text = createText();
     const elseNode = createNode('else');
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     let thenResolved = false;
     let elseResolved = false;
     let effect!: DomSubscriber;
@@ -594,7 +651,8 @@ describe('branches', () => {
       registerSubscriberToOwner(
         new BranchSubscription(
           new Branch(
-            range,
+            start,
+            end,
             () => visible.value,
             createQRL<BranchRenderFn>('chunk', 'renderThen', null, () => {
               thenResolved = true;
@@ -610,7 +668,7 @@ describe('branches', () => {
             }),
             BRANCH_THEN,
             getActiveInvokeContextOrNull(),
-            { scheduler } as ContainerContext
+            { scheduler, document } as ContainerContext
           ),
           scheduler
         )
@@ -651,7 +709,7 @@ describe('branches', () => {
       0: 'branch',
       1: 'capture',
     });
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const thenQrl = createQRL<BranchRenderFn>(
       'chunk',
       'renderThen',
@@ -664,7 +722,7 @@ describe('branches', () => {
       container
     );
     const branch = createOwned(() =>
-      createBranch({ scheduler } as ContainerContext, range, () => true, thenQrl)
+      createBranch({ scheduler, document } as ContainerContext, start, end, () => true, thenQrl)
     );
 
     await branch.run();
@@ -679,11 +737,12 @@ describe('branches', () => {
     const currentNode = createNode('current');
     const stale = deferred<boolean>();
     const current = deferred<boolean>();
-    const { range, replacements } = createBranchRange();
+    const { document, start, end, replacements } = createBranchRange();
     const branch = createOwned(() =>
       createBranch(
-        { scheduler } as ContainerContext,
-        range,
+        { scheduler, document } as ContainerContext,
+        start,
+        end,
         () => (version.value === 0 ? true : version.value === 1 ? stale.promise : current.promise),
         () => [oldNode],
         () => [currentNode]

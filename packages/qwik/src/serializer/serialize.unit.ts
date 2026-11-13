@@ -18,3 +18,10 @@ describe('serialized state script', () => {
     }
   );
 });
+
+describe('Uint8Array serialization', () => {
+  it('round-trips bytes longer than one encoding chunk', async () => {
+    const value = Uint8Array.from({ length: 70_000 }, (_, i) => (i * 31) % 256);
+    expect(await _deserialize(await _serialize(value))).toEqual(value);
+  });
+});

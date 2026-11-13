@@ -65,7 +65,6 @@ test('emits mixed multi-root programs as an array', async () => {
         tag: 'span',
         void: false,
         styleScopedId: null,
-        runtimeScope: false,
         props: [],
         propsEffect: null,
         children: [],

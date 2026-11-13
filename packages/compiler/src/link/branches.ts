@@ -12,44 +12,54 @@ import {
   type LinkedModule,
   type LinkedOp,
   type LinkedProgram,
+  type LinkedQrl,
   ValueKind,
   type QrlUse,
   type Specialization,
 } from '../schema';
 
-export function foldBranches(modules: LinkedModule[], specialization: Specialization): void {
+export function foldBranches(
+  modules: LinkedModule[],
+  specialization: Specialization,
+  qrlIndexes: readonly QrlIndex[]
+): void {
   const context = {
     environment: specialization.environment,
     mode: specialization.mode,
     constants: specialization.constants,
   };
-  for (const module of modules) {
+  modules.forEach((module, index) => {
+    const qrlById = (id: string) => module.qrls[qrlIndexes[index].get(id) ?? -1];
     const dropped = new Set<string>();
     for (const program of module.programs) {
       if (program.body.kind === ProgramBodyKind.Ops) {
-        program.body.ops = foldOps(module, program.body.ops, context, dropped);
+        program.body.ops = foldOps(module, qrlById, program.body.ops, context, dropped);
       }
     }
     if (dropped.size === 0) {
-      continue;
+      return;
     }
     for (const qrl of module.qrls) {
       if (dropped.has(qrl.id)) {
         qrl.delivery = { d: DeliveryKind.Omit };
       }
     }
-  }
+  });
 }
+
+type QrlIndex = ReadonlyMap<string, number>;
+type QrlById = (id: string) => LinkedQrl | undefined;
 
 function foldOps(
   module: LinkedModule,
+  qrlById: QrlById,
   ops: LinkedOp[],
   context: Parameters<typeof foldPredicate>[1],
   dropped: Set<string>
 ): LinkedOp[] {
   return ops.flatMap((op): LinkedOp[] => {
     if (op.op === OpKind.Element) {
-      op.children = foldOps(module, op.children, context, dropped);
+      op.children = foldOps(module, qrlById, op.children, context, dropped);
       return [op];
     }
     if (op.op !== OpKind.Branch || op.predicate === undefined) {
@@ -62,15 +72,15 @@ function foldOps(
     const kept = taken ? op.then : op.else;
     const lost = taken ? op.else : op.then;
     if (op.condition.v === ValueKind.Qrl) {
-      dropQrl(module, op.condition.use.qrl, dropped);
+      dropQrl(qrlById, op.condition.use.qrl, dropped);
     }
     if (lost !== null) {
-      dropQrl(module, lost.qrl, dropped);
+      dropQrl(qrlById, lost.qrl, dropped);
     }
     if (kept === null) {
       return [];
     }
-    const arm = armProgram(module, kept);
+    const arm = armProgram(module, qrlById, kept);
     if (arm === null) {
       return [op];
     }
@@ -80,8 +90,8 @@ function foldOps(
 }
 
 /** The arm's own program, when it is one: an expression arm keeps its chunk. */
-function armProgram(module: LinkedModule, use: QrlUse): LinkedProgram | null {
-  const qrl = module.qrls.find((entry) => entry.id === use.qrl);
+function armProgram(module: LinkedModule, qrlById: QrlById, use: QrlUse): LinkedProgram | null {
+  const qrl = qrlById(use.qrl);
   if (qrl === undefined || qrl.body.b !== QrlBodyKind.Program) {
     return null;
   }
@@ -89,13 +99,12 @@ function armProgram(module: LinkedModule, use: QrlUse): LinkedProgram | null {
 }
 
 /** A dropped boundary takes with it whatever only it could reach. */
-function dropQrl(module: LinkedModule, id: string, dropped: Set<string>): void {
+function dropQrl(qrlById: QrlById, id: string, dropped: Set<string>): void {
   if (dropped.has(id)) {
     return;
   }
   dropped.add(id);
-  const qrl = module.qrls.find((entry) => entry.id === id);
-  for (const nested of qrl?.dependencies.qrls ?? []) {
-    dropQrl(module, nested, dropped);
+  for (const nested of qrlById(id)?.dependencies.qrls ?? []) {
+    dropQrl(qrlById, nested, dropped);
   }
 }

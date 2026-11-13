@@ -1,0 +1,78 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+export const view = $(() => <a href="/x">x</a>);
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+import { qrl } from '@qwik.dev/core';
+export const view = q_component_qrl_segment_1_2fpox8kpy8lvx;
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<a href="/x">x</a>');
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    64,
+    82
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
+
+import { qrl } from '@qwik.dev/core';
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+
+export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
+  return q_component_jsx_segment_0_38vnjku9rukc6;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_1_2fpox8kpy8lvx",
+  "entry": null,
+  "displayName": "component_qrl_segment_1",
+  "hash": "2fpox8kpy8lvx",
+  "canonicalFilename": "component.tsx_component_qrl_segment_1_2fpox8kpy8lvx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    56,
+    83
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

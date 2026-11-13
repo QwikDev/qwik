@@ -54,6 +54,10 @@ export function assembleGeneratedModule(
   sourceMaps: boolean,
   normalizedMap: SourceMap | null
 ): AssembledModule {
+  // Without a map, everything around the anchor goes and the chunk is exactly its code.
+  if (!sourceMaps) {
+    return { code, map: null };
+  }
   const magic = new MagicString(source, { filename: sourcePath });
   const [start, end] = anchor;
   if (start > 0) {

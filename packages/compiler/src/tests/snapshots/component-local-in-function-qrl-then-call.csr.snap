@@ -1,0 +1,112 @@
+==INPUT==
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+import { render } from './render';
+export function show() {
+  const label = useSignal('x');
+  const Cmp = component$(() => <a>{label.value}</a>);
+  return render(component$(() => <button onClick$={$(Cmp)}>b</button>), Cmp);
+}
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_Cmp_segment_1_bwgkxp2c60y4 = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_Cmp_segment_1_bwgkxp2c60y4'),
+  'component_Cmp_segment_1_bwgkxp2c60y4'
+);
+const component_component_segment_2_1wtrerw3judm6_tmpl0 =
+  _createElementTemplate('<button>b</button>');
+import { _withCaptures, setEvent, qrl, _createElementTemplate, useSignal } from '@qwik.dev/core';
+import { component_Cmp_segment_1_bwgkxp2c60y4 } from './component.tsx_component_Cmp_segment_1_bwgkxp2c60y4';
+import { render } from './render';
+export function show() {
+  const label = useSignal('x');
+  const Cmp = function () {
+    return _withCaptures(component_Cmp_segment_1_bwgkxp2c60y4, [label]).apply(this, arguments);
+  };
+  return render((props, ctx) => {
+    const el0 = component_component_segment_2_1wtrerw3judm6_tmpl0(ctx.document);
+    setEvent(el0, 'q-e:click', q_component_Cmp_segment_1_bwgkxp2c60y4.w([label]));
+    return el0;
+  }, Cmp);
+}
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (label) => {
+  return label.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    186,
+    197
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_Cmp_segment_1_bwgkxp2c60y4.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const component_Cmp_segment_1_bwgkxp2c60y4_tmpl0 = _createElementTemplate('<a> </a>');
+
+export const component_Cmp_segment_1_bwgkxp2c60y4 = (props, ctx) => {
+  const [label] = _capturesObj._;
+  const el0 = component_Cmp_segment_1_bwgkxp2c60y4_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [label],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Cmp_segment_1_bwgkxp2c60y4",
+  "entry": null,
+  "displayName": "component_Cmp_segment_1",
+  "hash": "bwgkxp2c60y4",
+  "canonicalFilename": "component.tsx_component_Cmp_segment_1_bwgkxp2c60y4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Cmp",
+  "captures": true,
+  "loc": [
+    165,
+    203
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

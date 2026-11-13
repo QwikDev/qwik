@@ -92,8 +92,7 @@ generators did. No Suspense-specific QRL role, no host element. Gate: the known 
    `packages/qwik/native/**`, root scripts `build.native`/`build.native.apps`/`serve.native`/
    `start.native`, `e2e/qwik-e2e/native-build.ts`, `native-serve.ts`, `playwright.native.config.ts`,
    CI jobs `test-native`/`save-native-cache`/`check cache: native engine` and their cache keys.
-   Core dead code: `createDomBatchEffect`, `patchTextValue`, `getPropSource`, `getMemberSource`,
-   plus the stray index exports of `renderDomPropsToString` and `createVisibleTaskHandlerQrl`.
+   Core dead code: the stray index exports of `renderDomPropsToString` and `createVisibleTaskHandlerQrl`.
    Keep: `conformance/layer0`, specs 04/05/06/10, `MULTI_HEAD_SSR.md`, the record layer and headless
    carriers (pipeline output still uses them).
 3. Flat exports from the package entry: `transformModules`, `analyseModule`, `linkPlans`,

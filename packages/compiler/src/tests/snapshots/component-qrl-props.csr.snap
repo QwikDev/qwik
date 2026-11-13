@@ -254,7 +254,6 @@ export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
 import { useSignal, qrl, createComponent } from '@qwik.dev/core';
-import { component_pick_segment_0_3dnf2wesexw1y } from './component.tsx_component_pick_segment_0_3dnf2wesexw1y';
 import { Child } from './child';
 const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_pick_segment_0_3dnf2wesexw1y'),
@@ -275,7 +274,6 @@ const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ qrl(
 
 export function default_component_3rg6kq1so9aio(props, ctx) {
   const count = useSignal(1);
-  const pick = component_pick_segment_0_3dnf2wesexw1y;
   const component0 = createComponent(
     Child,
     {

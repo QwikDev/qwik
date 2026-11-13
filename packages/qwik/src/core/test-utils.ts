@@ -1,4 +1,4 @@
-import { createSsrRootRef, type SsrReferenceChunk } from './ssr/output';
+import type { SsrReferenceChunk } from './ssr/output';
 import type { RenderRoot } from '@qwik.dev/core';
 import {
   Scheduler,
@@ -22,7 +22,6 @@ import {
   settleScheduler,
 } from '../testing/resume-session';
 import type { CsrRenderRoot } from './csr-render';
-import type { BranchRange } from './dom/branch/branch';
 import { createTextExpressionEffect, type TextExpressionEffect } from './dom/effect/text-effect';
 import { SubscriberFlags } from './reactive/flags';
 import { runWithCollector } from './reactive/tracking';
@@ -84,14 +83,39 @@ export function getNodeLabel(node: Node): string {
   return (node as unknown as { label: string }).label;
 }
 
-export function createBranchRange(): { range: BranchRange; replacements: Node[][] } {
+/** Range markers in a test parent whose document records every replacement between them. */
+export function createBranchRange(): {
+  document: Document;
+  start: Comment;
+  end: Comment;
+  replacements: Node[][];
+} {
   const replacements: Node[][] = [];
+  const start = createTestDomNode('start');
+  const end = createTestDomNode('end');
+  createTestParentNode([start, end]);
+  const document = {
+    ...testDocument,
+    createRange(): Range {
+      const range = createTestRange();
+      const { deleteContents, insertNode } = range;
+      range.deleteContents = () => {
+        replacements.push([]);
+        deleteContents();
+      };
+      range.insertNode = (node) => {
+        replacements[replacements.length - 1] = isTestDocumentFragment(node)
+          ? [...node.nodes]
+          : [node];
+        insertNode(node);
+      };
+      return range;
+    },
+  } as Document;
   return {
-    range: {
-      replace(nodes: readonly Node[]) {
-        replacements.push([...nodes]);
-      },
-    } as unknown as BranchRange,
+    document,
+    start: start as unknown as Comment,
+    end: end as unknown as Comment,
     replacements,
   };
 }
@@ -162,7 +186,7 @@ function createTestDocumentFragment(): TestDocumentFragment {
       }
 
       const currentParent = child.parent;
-      if (currentParent !== null) {
+      if (currentParent != null) {
         if (currentParent === fragment && fragment.nodes.indexOf(child) < beforeIndex) {
           beforeIndex--;
         }
@@ -308,7 +332,7 @@ export function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
       }
 
       const currentParent = child.parent;
-      if (currentParent !== null) {
+      if (currentParent != null) {
         if (currentParent === parent && parent.nodes.indexOf(child) < beforeIndex) {
           beforeIndex--;
         }
@@ -397,7 +421,7 @@ export function createCaptureContainer(
     addRoot(value) {
       const id = nextRootId++;
       captures[String(id)] = value;
-      return createSsrRootRef(id);
+      return { type: 'root-value', value };
     },
   };
   return container;

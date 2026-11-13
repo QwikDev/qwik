@@ -2,6 +2,7 @@
 import {
   ArgPass,
   BoundaryKind,
+  BoundaryRole,
   DeliveryKind,
   type LinkedModule,
   type LinkedQrl,
@@ -32,6 +33,7 @@ export function emitQrlChunks(
   moduleExports: ReadonlyMap<LocalId, string>,
   segments: ReadonlyMap<LocalId, LinkedQrl>
 ): GenerateOutput['modules'] {
+  const mapRange = originalRangeMapper(module);
   // A declaration without a symbol splices over its authored range; a nested component prints
   // inline where its `component$` call stood.
   return module.qrls
@@ -60,30 +62,36 @@ export function emitQrlChunks(
         map: assembled.map,
         isEntry: true,
         origPath: module.path,
-        segment: getSegmentAnalysis(module, qrl, options),
+        segment: getSegmentAnalysis(module, qrl, options, mapRange),
       };
     });
+}
+
+/** Maps a normalized range to the authored source; built once per module, it scans the source. */
+function originalRangeMapper(module: LinkedModule): (range: [number, number]) => [number, number] {
+  return module.source.normalizationMap === null
+    ? (range) => range
+    : createOriginalRangeMapper(
+        module.source.code,
+        module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
+        module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
+      );
 }
 
 /** Segment identity survives stripping its executable body. */
 export function getSegmentAnalysis(
   module: LinkedModule,
   qrl: LinkedQrl,
-  options: PresentationOptions = {}
+  options: PresentationOptions = {},
+  mapRange = originalRangeMapper(module)
 ): NonNullable<GenerateOutput['modules'][number]['segment']> {
-  const mapRange =
-    module.source.normalizationMap === null
-      ? (range: [number, number]) => range
-      : createOriginalRangeMapper(
-          module.source.code,
-          module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
-          module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
-        );
   const name = chunkSymbolName(qrl);
   const origin = segmentOrigin(module, options.srcDir);
   const canonicalFilename = chunkCanonicalFilename(module, qrl);
   const ctxKind =
-    qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event' ? 'eventHandler' : 'function';
+    qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === BoundaryRole.Event
+      ? 'eventHandler'
+      : 'function';
   const captures = qrl.captures.length > 0;
   return {
     origin,
@@ -223,25 +231,32 @@ function chunkModuleCode(
       bindingImports.push(componentSegmentImport(module, component, name, options));
     }
   }
+  const name = chunkSymbolName(qrl);
+  // A chunk passing its own QRL (`$(f)` in `f`) never imports itself, and registers once declared.
+  const selfImport = `import { ${name} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
+  const selfRegistration = `q_${name}.s(${name});`;
   const importLines = [
     ...(emission.imports.size === 0
       ? []
       : [
           `import { ${[...emission.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`,
         ]),
-    ...emission.chunkImports,
+    ...emission.chunkImports.filter((line) => line !== selfImport),
     ...bindingImports,
   ];
   const header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n`;
-  const allHoists = [...selfAliases, ...emission.hoists];
+  const allHoists = [
+    ...selfAliases,
+    ...emission.hoists.filter((line) => line !== selfRegistration),
+  ];
   const hoists = allHoists.length === 0 ? '' : `${allHoists.join('\n')}\n`;
   const separator = header === '' && hoists === '' ? '' : '\n';
-  const name = chunkSymbolName(qrl);
   // A function declaration is initialized before a module cycle evaluates the parent.
   const declaration = isComponentSegment(qrl)
     ? `export ${functionText({ ...emission, functionName: name })}`
     : `export const ${name} = ${functionText(emission)};`;
-  return `${header}${hoists}${separator}${declaration}\n`;
+  const trailer = emission.hoists.includes(selfRegistration) ? `${selfRegistration}\n` : '';
+  return `${header}${hoists}${separator}${declaration}\n${trailer}`;
 }
 
 export type QrlResolver = ReturnType<typeof createQrlResolver>;
@@ -274,8 +289,6 @@ export function createQrlResolver(module: LinkedModule) {
             return `[...${arg.binding === null ? 'arguments' : module.bindings[arg.binding].name}]`;
           case ArgPass.Props:
             return propsName;
-          case ArgPass.StyleScope:
-            throw new UnsupportedError('a style-scope QRL argument');
         }
       }),
     };

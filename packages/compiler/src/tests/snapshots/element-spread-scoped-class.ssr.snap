@@ -83,6 +83,7 @@ import {
   createSsrNodeId,
   createSsrOpenTag,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -125,18 +126,16 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     undefined,
     '⚡️f5nwzpjzm8yb-0'
   );
-  return maybeThen(domProps0, (domProps0) =>
-    maybeThen(domProps1, (domProps1) => [
-      (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
-      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
-      domProps0.innerHTML ?? ['a'],
-      '</div>',
-      (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
-      createSsrOpenTag('<div q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
-      domProps1.innerHTML ?? ['b'],
-      '</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>',
-    ])
-  );
+  return maybeThen(promiseAll([domProps0, domProps1]), ([domProps0, domProps1]) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? ['a'],
+    '</div>',
+    (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
+    createSsrOpenTag('<div q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
+    domProps1.innerHTML ?? ['b'],
+    '</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>',
+  ]);
 }
 /*
 {

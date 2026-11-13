@@ -1,0 +1,151 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { mount, render } from './render';
+export function show(label: string) {
+  const A = component$(() => <b>{label}</b>);
+  const B = component$(() => <p onClick$={() => mount(A)} />);
+  return render(B);
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+import { _noopQrl } from '@qwik.dev/core';
+import { mount, render } from './render';
+export function show(label) {
+  const B = (props, ctx) => {
+    return [
+      '<p',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label])),
+      '></p>',
+    ];
+  };
+  return render(B);
+}
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (label) => {
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    158,
+    163
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_A_segment_1_ctrs543iq9kb.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+
+export const component_A_segment_1_ctrs543iq9kb = (props, ctx) => {
+  const [label] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [label],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_A_segment_1_ctrs543iq9kb",
+  "entry": null,
+  "displayName": "component_A_segment_1",
+  "hash": "ctrs543iq9kb",
+  "canonicalFilename": "component.tsx_component_A_segment_1_ctrs543iq9kb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "A",
+  "captures": true,
+  "loc": [
+    137,
+    169
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _capturesObj, _withCaptures } from '@qwik.dev/core';
+import { component_A_segment_1_ctrs543iq9kb } from './component.tsx_component_A_segment_1_ctrs543iq9kb';
+import { mount } from './render';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [label] = _capturesObj._;
+  const A = _withCaptures(component_A_segment_1_ctrs543iq9kb, [label]);
+  return mount(A);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    203,
+    228
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

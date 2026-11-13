@@ -1,3 +1,4 @@
+import { types } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL } from '../shared/qrl/qrl-class';
 import {
@@ -10,6 +11,7 @@ import {
 import { cleanupDeps, disposeSubscriber } from './cleanup';
 import { Computed } from './computed';
 import { ComputedQrl } from './computed-qrl';
+import { createLazySourceSubs, LazySerialized } from './lazy-serialized';
 import type { Signal } from './signal';
 import {
   _wrapArray,
@@ -109,6 +111,32 @@ describe('reactive primitives', () => {
 
     cleanupDeps(first);
     expect(source.subs).toBeNull();
+  });
+
+  it('turns resumed lazy subscribers into a plain array once they resolve', async () => {
+    const source = useSignal(0);
+    const scheduler = new Scheduler(noopSchedule);
+    let notifications = 0;
+    const subscribers = [0, 1].map(() =>
+      createIdleSubscriber(() => {
+        notifications++;
+      }, scheduler)
+    );
+    source.subs = createLazySourceSubs(2, (index) => {
+      return new LazySerialized(async () => subscribers[index], scheduler);
+    });
+
+    source.value = 1;
+    await scheduler.flushInteraction();
+
+    expect(notifications).toBe(2);
+    expect(types.isProxy(source.subs)).toBe(false);
+    expect(source.subs).toEqual(subscribers);
+
+    source.value = 2;
+    await scheduler.flushInteraction();
+
+    expect(notifications).toBe(4);
   });
 
   it('creates store sources only for tracked reads', () => {

@@ -1,6 +1,7 @@
 import {
   BindingScope,
   BoundaryKind,
+  BoundaryRole,
   HandlerKind,
   PropKind,
   ValueKind,
@@ -12,7 +13,7 @@ import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import type { LowerContext } from './lower-context';
 import { lowerExpressionValue, lowerInlineExpressionValue, resolveQrlBinding } from './lower-expr';
-import { lowerFunctionQrl, lowerMarkerQrl, markerQrlCall } from './lower-function';
+import { liftedLocalQrl, lowerFunctionQrl, lowerMarkerQrl, markerQrlCall } from './lower-function';
 import { isFunctionLike, unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
@@ -34,6 +35,10 @@ export function lowerEventAttribute(
       }
     }
     if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
+      const lifted = liftedLocalQrl(handler, ctx);
+      if (lifted !== null) {
+        return { v: ValueKind.Qrl, use: lifted };
+      }
       return isStaticHandler(handler, ctx)
         ? lowerInlineExpressionValue(
             handler,
@@ -46,7 +51,7 @@ export function lowerEventAttribute(
       nameCtx: scope,
       subject: 'an event handler',
       ctxName: authored,
-      boundary: { kind: BoundaryKind.Implicit, role: 'event' },
+      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Event },
       origin: {
         range: [attribute.start, attribute.end],
         calleeRange: null,
@@ -66,7 +71,7 @@ export function lowerEventAttribute(
   }
   return {
     expression,
-    event: { k: PropKind.Event, name: scope, passive: false, handlers },
+    event: { k: PropKind.Event, name: scope, handlers },
   };
 }
 
@@ -86,20 +91,29 @@ export function handlersAreDirect(expression: Expression, ctx: LowerContext): bo
   });
 }
 
-/** A handler that already is one: a local QRL, or a module binding the module keeps in scope. */
+/**
+ * A handler that already is one: a local QRL, a lifted local (its segment's QRL), or a module
+ * binding the module keeps in scope.
+ */
 function isStaticHandler(handler: Expression, ctx: LowerContext): boolean {
   if (resolveQrlBinding(handler, ctx) !== null) {
     return true;
   }
   const binding = ctx.bindings.reference(handler);
   const scope = binding === null ? null : ctx.plan.bindings[binding].scope;
-  return scope === BindingScope.Import || scope === BindingScope.Module;
+  return (
+    scope === BindingScope.Import ||
+    scope === BindingScope.Module ||
+    (binding !== null && ctx.lifts.isLifted(binding))
+  );
 }
 
 function flattenHandlers(array: ArrayExpression): Expression[] {
   return array.elements.flatMap((element) => {
-    const entry =
-      element === null || element.type === 'SpreadElement' ? null : unwrapExpression(element);
+    if (element?.type === 'SpreadElement') {
+      throw new UnsupportedError('a spread in an event handler list');
+    }
+    const entry = element === null ? null : unwrapExpression(element);
     if (entry === null || isEmptyLiteral(entry)) {
       return [];
     }

@@ -28,6 +28,20 @@ export function unwrapExpression(node: unknown): Node | null {
   return isNode(current) ? current : null;
 }
 
+/** `x as T`, `x satisfies T` and `x!` evaluate `x`; TypeScript is not always stripped first. */
+export function unwrapTypeExpression(node: Node): Node {
+  let current = unwrapExpression(node)!;
+  while (
+    current.type === 'TSAsExpression' ||
+    current.type === 'TSSatisfiesExpression' ||
+    current.type === 'TSNonNullExpression' ||
+    current.type === 'TSTypeAssertion'
+  ) {
+    current = unwrapExpression(current.expression);
+  }
+  return current;
+}
+
 export function identifierName(node: unknown): string | null {
   return isNode(node) && node.type === 'Identifier' ? node.name : null;
 }

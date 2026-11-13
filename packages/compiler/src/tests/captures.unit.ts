@@ -44,9 +44,7 @@ function moduleWith(qrl: LinkedQrl): LinkedModule {
         qrls: [],
         reads: [],
         awaits: [],
-        useIds: [],
         renders: [],
-        temps: [],
       },
     ],
   } as LinkedModule;
@@ -59,7 +57,6 @@ function qrlWith(overrides: Partial<LinkedQrl>): LinkedQrl {
     name: 'sym',
     ctxName: 'onClick$',
     boundary: { kind: BoundaryKind.Implicit, role: 'event' },
-    markerAttributes: [],
     payloadKind: QrlPayloadKind.Function,
     authoredAsync: false,
     body: { b: QrlBodyKind.Js, payload: 0 },

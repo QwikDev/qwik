@@ -2,12 +2,14 @@ import { describe, expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
 import {
+  AssemblyKind,
   ComponentTargetKind,
   DeclTable,
   EntryKind,
   ImportTargetKind,
   LinkResultKind,
   OpKind,
+  PlanEngine,
   ProjectionKind,
   ProgramBodyKind,
   UnknownWhy,
@@ -132,7 +134,13 @@ export default () => <Child />;`
     if (kind === 'same-table') {
       child.qrls.push({ ...declaration, id: 'duplicate', name: 'duplicate' });
     } else {
-      child.contexts.push({ binding, name: 'Child' });
+      child.natives.push({
+        name: 'Child',
+        binding,
+        markerRange: [0, 0],
+        jsImplementation: 0,
+        targets: {},
+      });
     }
     const plans = deepFreeze([app, child]);
     const entries = [{ kind: EntryKind.Export as const, module: app.path, export: 'default' }];
@@ -213,6 +221,48 @@ export default () => <Child />;`
       },
     });
     expect(JSON.stringify(plans)).toBe(serialized);
+  });
+
+  test('links a frozen plan that folds a constant, strips an export and batches two props', async () => {
+    const module = await analyse(
+      'src/app.tsx',
+      `import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
+export const loader = () => 1;
+export default component$(() => {
+  const count = useSignal(0);
+  const label = 'x';
+  useTask$(() => observe(isServer));
+  return <div class={count.value} title={count.value}>{label}</div>;
+});`
+    );
+    const serialized = JSON.stringify(module);
+    const plans = deepFreeze([module]);
+    const result = linkPlans(
+      plans,
+      [{ kind: EntryKind.Module, module: module.path, exposeExports: true }],
+      {
+        ...serverSpecialization(),
+        engine: PlanEngine.Native,
+        strip: { exports: ['loader'], ctxName: [], regCtxName: [] },
+      },
+      { edges: {} },
+      true
+    );
+
+    expect(result.kind).toBe(LinkResultKind.Linked);
+    if (result.kind !== LinkResultKind.Linked) {
+      return;
+    }
+    const linked = result.plan.modules[0];
+    expect(linked.assembly).toContainEqual(expect.objectContaining({ a: AssemblyKind.StripValue }));
+    expect(linked.payloads.flatMap((payload) => payload.constants)).toContainEqual(
+      expect.objectContaining({ value: true })
+    );
+    expect(JSON.stringify(linked.programs)).toContain('"effect":0');
+    expect(result.plan.diagnostics).toContainEqual(
+      expect.objectContaining({ diagnostic: expect.objectContaining({ code: 'js-hole' }) })
+    );
+    expect(JSON.stringify(plans[0])).toBe(serialized);
   });
 
   test('keeps unresolved imports typed in an incomplete link', async () => {

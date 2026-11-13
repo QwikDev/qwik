@@ -193,6 +193,78 @@ export default component$((props) => { ${body} });`,
   });
 
   test.each([
+    [
+      'a captured parameter named args',
+      `export default function show(args) {
+  const Cmp = component$(() => <p>{args}</p>);
+  return [Cmp, <Cmp />];
+}`,
+      'ok',
+    ],
+    [
+      'a capture declared after it',
+      `export default function show(label) {
+  const Cmp = component$(() => <p>{label}{suffix}</p>);
+  const suffix = '!';
+  return [Cmp, <Cmp />];
+}`,
+      'ok!',
+    ],
+    [
+      'a lifted local function capturing a signal named args',
+      `export default function show() {
+  return component$(() => {
+    const args = useSignal('ok');
+    const read = () => args.value;
+    const value = read();
+    return <p onClick$={() => read()}>{value}</p>;
+  });
+}`,
+      'ok',
+    ],
+    [
+      'a lifted local function only boundaries read',
+      `export default function show() {
+  return component$(() => {
+    const label = useSignal('ok');
+    const read = () => label.value;
+    return <p onClick$={() => read()}>{read()}</p>;
+  });
+}`,
+      'ok',
+    ],
+  ])(
+    'a lifted local renders through its main-module binding with %s',
+    async (_name, code, text) => {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer: true,
+        input: [
+          {
+            path: 'src/body.tsx',
+            code: `import { component$, useSignal } from '@qwik.dev/core';\n${code}`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const show = loadDefaultFunction(
+        output.modules,
+        {
+          ...core,
+          get _capturesObj() {
+            return core._capturesObj;
+          },
+        },
+        true
+      );
+      const shown = show('ok');
+      const Cmp = Array.isArray(shown) ? shown[0] : shown;
+      const result = await renderToStringCompiled((_, ctx) => Cmp({}, ctx));
+      expect(readRenderedText(result.html, 'p')).toEqual([text]);
+    }
+  );
+
+  test.each([
     'return null;',
     'return undefined;',
     'return;',

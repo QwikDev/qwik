@@ -235,6 +235,7 @@ import {
   createSsrOpenTag,
   renderSsrTextNode,
   maybeThen,
+  promiseAll,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -281,20 +282,18 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
   );
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      createSsrOpenTag(
-        '<button q:id="',
-        createSsrNodeId(id0),
-        '"',
-        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count])),
-        attr0 === null ? '' : ' data-n' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '>'
-      ),
-      escapeHTML(text0),
-      '</button>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    createSsrOpenTag(
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count])),
+      attr0 === null ? '' : ' data-n' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>'
+    ),
+    escapeHTML(text0),
+    '</button>',
+  ]);
 }
 /*
 {

@@ -53,7 +53,6 @@ export function lowerComponentBody(
     setup: [...loweredParameter.setup, ...setup.setup],
     params: [],
     lifetime: 0,
-    needsId: false,
     async: component.fn.async === true,
   });
   if (component.param !== null) {
@@ -63,9 +62,7 @@ export function lowerComponentBody(
       qrls: [],
       reads: [],
       awaits: [],
-      useIds: [],
       renders: [],
-      temps: [],
     });
   }
   return {
@@ -131,8 +128,7 @@ export function pushComponentQrl(
     args?: QrlUse['args'];
     /** Bindings the body closes over: its own setup locals from the start. */
     scoped?: SetupLocals;
-    /** Needs the lowered parameter, so it is built once the body is down. */
-    declaration?: (parameter: LoweredComponentBody['parameter']) => Qrl['declaration'];
+    declaration?: Qrl['declaration'];
   }
 ): { index: number; use: QrlUse } {
   const fn = component.fn;
@@ -153,6 +149,9 @@ export function pushComponentQrl(
       boundary: {
         kind: BoundaryKind.Component,
         ...(delivery.inline === undefined ? {} : { inline: delivery.inline }),
+        ...(delivery.inline && fn.type === 'FunctionDeclaration'
+          ? { functionName: fn.id!.name }
+          : {}),
       },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: fn.async === true,
@@ -161,9 +160,7 @@ export function pushComponentQrl(
       ...(delivery.functions === undefined ? {} : { functions: delivery.functions }),
       // The chunk is called with this parameter, so the QRL keeps it even without a declaration.
       ...(parameter === null ? {} : { parameter }),
-      ...(delivery.declaration === undefined
-        ? {}
-        : { declaration: delivery.declaration(parameter) }),
+      ...(delivery.declaration === undefined ? {} : { declaration: delivery.declaration }),
       params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
       origin: {
         range: [component.statement.start, component.statement.end],

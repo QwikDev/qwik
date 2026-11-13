@@ -1,9 +1,9 @@
 import {
   ResultKind,
   BoundaryKind,
+  BoundaryRole,
   ExprKind,
   FnBodyKind,
-  PlaceKind,
   QrlBodyKind,
   QrlPayloadKind,
   ResumeKind,
@@ -33,7 +33,7 @@ import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr, memberReadIr } from './locals';
 import type { Expression, Node, ObjectExpression } from 'oxc-parser';
-import { recordFunctionJsx, recordPayloadQrls } from './lower-function';
+import { isReplaced, recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { expressionResult } from './results';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
@@ -134,7 +134,6 @@ export function tryPropMemberRead(expression: Expression, ctx: LowerContext): Re
     v: ValueKind.Read,
     range: [expression.start, expression.end],
     result: expressionResult(expression, ctx),
-    place: { at: PlaceKind.Prop, name },
     expr: { kind: ExprKind.Ir, ir: memberReadIr(props!, name) },
   };
 }
@@ -164,7 +163,7 @@ export function lowerComputedExpressionValue(
   ctx: LowerContext,
   nameCtx: string,
   payloadKind = QrlPayloadKind.Value,
-  role = 'expression'
+  role = BoundaryRole.Expression
 ) {
   const result = expressionResult(expression, ctx);
   const lowered = lowerCaptures(expression, ctx, 'an expression');
@@ -214,7 +213,7 @@ function computedQrlValue(
   range: Range,
   nameCtx: string,
   payloadKind = QrlPayloadKind.Value,
-  role = 'expression'
+  role = BoundaryRole.Expression
 ) {
   const { use } = pushQrl(
     ctx,
@@ -224,7 +223,7 @@ function computedQrlValue(
       boundary: { kind: BoundaryKind.Implicit, role },
       payloadKind,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
+      body: { b: QrlBodyKind.Expr, expr },
       captures: lowered.captures,
       functions: lowered.functions,
       params: { authored: 0, used: [], sources: [] },
@@ -245,7 +244,6 @@ function computedQrlValue(
     result,
     expr,
     resume: { r: ResumeKind.Qrl as const, qrl: use },
-    compilerString: false,
   };
 }
 
@@ -336,7 +334,6 @@ export function lowerInlineExpressionValue(
     result: expressionResult(expression, ctx),
     expr: ir === null ? { kind: ExprKind.Js, payload } : { kind: ExprKind.Ir, ir },
     resume: { r: ResumeKind.Inline },
-    compilerString: false,
   };
 }
 
@@ -360,10 +357,9 @@ export function recordPayloadJsx(
 ): void {
   ctx.plan.payloads[payload].result = expressionResult(expression, ctx);
   recordPayloadQrls(ctx, payload, expression);
-  const extracted = ctx.plan.payloads[payload].qrls;
   for (const root of ctx.jsx.expressionRoots(expression)) {
     // A root inside an extracted `$()` belongs to that QRL's own payload.
-    if (extracted.some(({ range }) => range[0] <= root.start && root.end <= range[1])) {
+    if (isReplaced(ctx.plan.payloads[payload], root)) {
       continue;
     }
     if (isFunctionLike(root)) {
@@ -375,7 +371,7 @@ export function recordPayloadJsx(
       ctx,
       'a JSX value',
       SegmentContext.JsxValue,
-      'jsx-value',
+      BoundaryRole.JsxValue,
       (renderContext) => lowerRenderExpression(root, renderContext)
     );
     ctx.plan.payloads[payload].qrls.push({ range: [root.start, root.end], use });
@@ -429,7 +425,6 @@ export function trySignalReadValue(
           expression.type === 'Identifier'
             ? { kind: ValueIrKind.Member, obj: expressionResult(expression, ctx), name: 'value' }
             : expressionResult(expression, ctx),
-        place: { at: PlaceKind.Slot, index: local.slot },
         expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: local.binding } },
       };
     default:

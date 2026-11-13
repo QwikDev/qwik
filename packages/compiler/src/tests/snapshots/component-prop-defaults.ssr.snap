@@ -119,6 +119,7 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  promiseAll,
   untrack,
   _noopQrl,
   _markComponent,
@@ -171,21 +172,19 @@ export function default_component_3rg6kq1so9aio(
     q_component_text_segment_2_1fh117dstcoge,
     effect0
   );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      ctx.eventAttrParts(
-        'q-e:click',
-        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props, defaultValue0, defaultValue])
-      ),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ])
-  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props, defaultValue0, defaultValue])
+    ),
+    '>',
+    escapeHTML(text0),
+    '</button>',
+  ]);
 }
 /*
 {

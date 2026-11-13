@@ -5,10 +5,13 @@ import type {
   IdentifierReference as Identifier,
   Function as FunctionNode,
   Node,
+  VariableDeclaration,
+  VariableDeclarator,
 } from 'oxc-parser';
 import {
   BindingScope,
   BoundaryKind,
+  BoundaryRole,
   CallTargetKind,
   CaptureAccess,
   FnBodyKind,
@@ -16,18 +19,26 @@ import {
   QrlPayloadKind,
   type CallTarget,
   type LocalId,
+  type Payload,
   type PayloadId,
   type Qrl,
   type QrlUse,
+  type Range,
 } from '../schema';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
-import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import {
+  pushPayload,
+  pushQrl,
+  QrlIdentityKind,
+  liftedLocal,
+  type LowerContext,
+} from './lower-context';
 import { readComponentFunction } from './discover';
-import { referencedComponentFunction } from './ast/returns-jsx';
+import { declaredComponentFunction, isComponentDeclaration } from './ast/returns-jsx';
 import { pushComponentQrl } from './lower-component-body';
 import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
-import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
+import { LocalKind, type SetupLocals } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QRL_SUFFIX, QRL_TWIN_SUFFIX, QwikMarker } from '../words';
@@ -49,17 +60,26 @@ export function lowerQrlArgument(
   if (isFunctionLike(argument)) {
     return lowerFunctionQrl(argument, ctx, boundary);
   }
-  // A body function passed by name is that function's own segment.
-  const binding = argument.type === 'Identifier' ? ctx.bindings.reference(argument) : null;
-  const local = binding === null ? undefined : ctx.locals.get(binding);
-  if (local?.kind === LocalKind.Function) {
-    return local.lift();
+  const lifted = liftedLocalQrl(argument, ctx);
+  if (lifted !== null) {
+    return lifted;
   }
-  if (binding !== null && local === undefined && isModuleBinding(ctx, binding)) {
+  const binding = argument.type === 'Identifier' ? ctx.bindings.reference(argument) : null;
+  if (binding !== null && !ctx.locals.has(binding) && isModuleBinding(ctx, binding)) {
     return aliasQrl(argument as Identifier, binding, ctx, boundary);
   }
   return lowerComputedExpressionValue(argument, ctx, boundary.nameCtx, QrlPayloadKind.Function)
     .resume.qrl;
+}
+
+/** A lifted local passed by name is that local's own segment; null for any other value. */
+export function liftedLocalQrl(argument: Expression, ctx: LowerContext): QrlUse | null {
+  const binding = argument.type === 'Identifier' ? ctx.bindings.reference(argument) : null;
+  if (binding === null || !ctx.lifts.isLifted(binding)) {
+    return null;
+  }
+  ctx.claimedReads.add(argument);
+  return liftedLocal(ctx, binding).use;
 }
 
 const isModuleBinding = (ctx: LowerContext, binding: LocalId): boolean => {
@@ -111,13 +131,15 @@ export function lowerFunctionQrl(
       refs.capturedWrite.range
     );
   }
+  // A default parameter reading a capture or a rebound lifted local needs the prelude around it.
   const capturesBeforeParams =
     refs.propsReads.some(([start]) => start < body.start) ||
-    refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
+    refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start)) ||
+    ctx.bindings.freeReferences(fn.params).some(({ binding }) => ctx.lifts.isLifted(binding));
   const payload = pushPayload(ctx, [fn.start, fn.end]);
   recordPayloadReads(ctx, payload, refs);
   // Scanning the function itself puts its parameters and locals in scope for nested markers.
-  recordPayloadQrls(ctx, payload, fn, 'qrl');
+  recordPayloadQrls(ctx, payload, fn, boundary);
   recordFunctionJsx(ctx, payload, fn, true);
   return pushQrl(
     ctx,
@@ -130,8 +152,9 @@ export function lowerFunctionQrl(
       body: {
         b: QrlBodyKind.Js,
         payload,
-        ...(fn.type === 'FunctionExpression' ? { functionName: fn.id?.name ?? null } : {}),
-        ...(fn.type === 'FunctionExpression' && fn.generator ? { generator: true as const } : {}),
+        // `this`, `arguments`, `new` and `yield` need the authored function form.
+        ...(fn.type === 'ArrowFunctionExpression' ? {} : { functionName: fn.id?.name ?? null }),
+        ...(fn.generator ? { generator: true as const } : {}),
       },
       captures,
       functions,
@@ -156,35 +179,37 @@ export function lowerFunctionQrl(
   ).use;
 }
 
-function isComponentMarkerCall(call: CallExpression, ctx: LowerContext): boolean {
-  const binding = ctx.bindings.reference(call.callee);
-  return binding !== null && ctx.coreBindings.get(binding) === QwikMarker.Component;
-}
-
-/**
- * `component$(fn)` below module level: a compiled component value closing over its scope. It prints
- * inline where the call stood, so it needs no chunk and carries no serializable symbol.
- */
-function nestedComponentFunction(call: CallExpression, ctx: LowerContext) {
-  const first = call.arguments[0];
-  const argument =
-    first === undefined || first.type === 'SpreadElement' ? null : unwrapExpression(first);
-  if (argument === null || call.arguments.length !== 1) {
-    throw new UnsupportedError('component$ without exactly one argument');
+/** Records a lifted local of the scope being entered; its segment waits for a boundary read. */
+export function enterLiftedLocal(ctx: LowerContext, binding: LocalId, scope: LowerContext): void {
+  if (ctx.liftedLocals.has(binding)) {
+    return;
   }
-  return isFunctionLike(argument) ? argument : referencedComponentFunction(argument, ctx.bindings);
+  const target = ctx.lifts.liftables.get(binding)!.binding;
+  if (target !== binding) {
+    // An alias rebinds under its own name to its target's segment.
+    enterLiftedLocal(ctx, target, scope);
+    const rebind = { binding, use: ctx.liftedLocals.get(target)!.rebind.use };
+    ctx.liftedLocals.set(binding, { rebind, lower: () => liftedLocal(ctx, target) });
+    return;
+  }
+  const rebind = { binding, use: { qrl: '', args: [] } };
+  const lower = () => Object.assign(rebind.use, lowerLiftedLocal(binding, scope));
+  ctx.liftedLocals.set(binding, { rebind, lower });
 }
 
-function lowerNestedComponent(
-  call: CallExpression,
-  fn: ArrowFunctionExpression | FunctionNode,
-  ctx: LowerContext
-): QrlUse {
-  return lowerComponentValue(
-    { ...readComponentFunction(fn), statement: call },
-    functionScope(ctx, fn),
-    null
-  );
+function lowerLiftedLocal(binding: LocalId, scope: LowerContext): QrlUse {
+  const { fn, component } = scope.lifts.liftables.get(binding)!;
+  const name = scope.plan.bindings[binding].name;
+  if (component !== null) {
+    return lowerComponentValue({ ...readComponentFunction(fn), statement: component }, scope, name);
+  }
+  return lowerFunctionQrl(fn, scope, {
+    nameCtx: name,
+    subject: `the local function "${name}"`,
+    ctxName: name,
+    boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Function },
+    origin: { range: [fn.start, fn.end], calleeRange: null, argumentRanges: [] },
+  });
 }
 
 /**
@@ -199,26 +224,20 @@ export function lowerComponentValue(
   const inline = name === null;
   const ctxName = name ?? QwikMarker.Component;
   const subject = inline ? 'a nested component' : `the local component "${name}"`;
-  const { captures, functions, args, refs } = lowerCaptures(
-    component.fn,
-    ctx,
-    subject,
-    new Set(),
-    !inline
-  );
+  const { captures, functions, args, refs } = lowerCaptures(component.fn, ctx, subject, new Set(), {
+    lift: !inline,
+    ownsHooks: true,
+  });
   refuseCapturedWrite(refs);
-  // Setup locals keep their kind; anything else arrives as a plain value.
-  const scoped: SetupLocals = new Map(
-    captures.map(({ binding }): [number, SetupLocal] => [
+  // Setup locals keep their kind; anything else arrives as a plain value. An inline component
+  // closes over the live scope, so a local component it renders can still lift from it.
+  const scoped: SetupLocals = new Map(inline ? ctx.locals : []);
+  for (const { binding } of [...captures, ...refs.functions]) {
+    scoped.set(
       binding,
-      ctx.locals.get(binding) ?? {
-        kind: LocalKind.Const,
-        access: CaptureAccess.Direct,
-        slot: -1,
-        binding,
-      },
-    ])
-  );
+      ctx.locals.get(binding) ?? { kind: LocalKind.Const, access: CaptureAccess.Direct, binding }
+    );
+  }
   return pushComponentQrl(component, ctx, {
     identity: { kind: QrlIdentityKind.Segment, nameCtx: name ?? 'component' },
     ctxName,
@@ -261,8 +280,16 @@ export function recordFunctionJsx(
   }
   const callbackContext = functionScope(ctx, fn);
   for (const root of factory.roots) {
-    recordPayloadJsx(callbackContext, payload, root, preserveAsyncContext);
+    if (!isReplaced(ctx.plan.payloads[payload], root)) {
+      recordPayloadJsx(callbackContext, payload, root, preserveAsyncContext);
+    }
   }
+}
+
+/** Code the payload no longer prints: an extracted QRL or a removed lifted declaration. */
+export function isReplaced({ qrls, removed = [] }: Payload, node: Node): boolean {
+  const isWithin = ([start, end]: Range) => start <= node.start && node.end <= end;
+  return qrls.some(({ range }) => isWithin(range)) || removed.some(isWithin);
 }
 
 /** A native function's parameters and declarations are plain locals for the QRLs it contains. */
@@ -275,57 +302,75 @@ function functionScope(
     return ctx;
   }
   const locals = new Map(ctx.locals);
+  const scope = { ...ctx, locals, inlineParams: null };
   const parameters = fn.params.flatMap((param) => ctx.bindings.bindingsOf(parameterPattern(param)));
   const declarations = ctx.bindings.declaredWithin(
     body.type === 'BlockStatement' ? body.body : [body]
   );
   for (const binding of [...parameters, ...declarations]) {
+    const isLifted = ctx.lifts.isLifted(binding);
     locals.set(binding, {
-      kind: LocalKind.Const,
+      kind: isLifted ? LocalKind.Function : LocalKind.Const,
       access: CaptureAccess.Direct,
-      slot: -1,
       binding,
     });
+    if (isLifted) {
+      enterLiftedLocal(ctx, binding, scope);
+    }
   }
-  return { ...ctx, locals, inlineParams: null };
+  return scope;
 }
-
-const extractedCalls = new WeakSet<Node>();
 
 /** Every `$(fn)` under `node` becomes an explicit QRL that replaces the call in the payload. */
 export function recordPayloadQrls(
   ctx: LowerContext,
   payload: PayloadId,
   node: Node,
-  owner: 'module' | 'qrl' = 'module'
+  /** The QRL whose body `node` is; null for module code. */
+  owner: QrlArgumentBoundary | null = null
 ): void {
+  // A lifted local's body is code of its scope, so a component$ in it lifts too.
+  const isQrlBody =
+    owner !== null &&
+    !(
+      owner.boundary.kind === BoundaryKind.Implicit && owner.boundary.role === BoundaryRole.Function
+    );
   const visit = (current: unknown, scope: LowerContext, twinCtxName: string | null): void => {
     if (Array.isArray(current)) {
       current.forEach((child) => visit(child, scope, twinCtxName));
       return;
     }
-    if (!isNode(current) || extractedCalls.has(current)) {
+    if (!isNode(current) || ctx.extracted.has(current)) {
       return;
     }
     // JSX lowers as a render program that extracts its own `$()`; splicing both would overlap.
     if (current.type === 'JSXElement' || current.type === 'JSXFragment') {
       return;
     }
-    const componentFn =
-      current.type === 'CallExpression' && isComponentMarkerCall(current, scope)
-        ? nestedComponentFunction(current, scope)
-        : null;
-    // An unresolved reference (an import, a parameter) keeps the runtime identity call.
-    if (current.type === 'CallExpression' && componentFn !== null) {
-      if (owner === 'qrl') {
+    // The root is the body a lifted function's own segment compiles.
+    const lifted = current === node ? null : liftedDeclaration(current, scope);
+    if (lifted !== null) {
+      if (isQrlBody && scope.lifts.liftables.get(lifted.binding)!.component !== null) {
         throw new UnsupportedError('a component$ inside a $ boundary');
       }
-      const use = lowerNestedComponent(current, componentFn, scope);
-      extractedCalls.add(current);
+      ctx.extracted.add(current);
+      recordLiftedDeclaration(ctx.plan.payloads[payload], lifted, scope);
+      return;
+    }
+    const componentFn = scope.lifts.componentFunction(current);
+    if (componentFn !== null) {
+      // A nested component prints where it stands, which no QRL function can do.
+      if (owner !== null) {
+        throw new UnsupportedError(nestedComponentRefusal(current, scope, owner, isQrlBody));
+      }
+      ctx.extracted.add(current);
       const target = ctx.plan.payloads[payload];
       target.reads = target.reads.filter(
         ({ range }) => !(range[0] >= current.start && range[1] <= current.end)
       );
+      // Its own declarations belong to its setup lowering, not to the enclosing function's scope.
+      const component = { ...readComponentFunction(componentFn), statement: current };
+      const use = lowerComponentValue(component, { ...scope, inlineParams: null }, null);
       target.qrls.push({ range: [current.start, current.end], use });
       return;
     }
@@ -337,7 +382,7 @@ export function recordPayloadQrls(
           ? call
           : { ...call, ctxName: twinCtxName };
       const use = lowerMarkerQrl(current, named, scope);
-      extractedCalls.add(current);
+      ctx.extracted.add(current);
       // The callee and callback are replaced, so their reads belong to no payload of this module.
       const target = ctx.plan.payloads[payload];
       target.reads = target.reads.filter(
@@ -376,12 +421,102 @@ export function recordPayloadQrls(
   visit(node, ctx, null);
 }
 
+/** A named component$ in a lifted function lifts, so an unnamed one only needs a name. */
+function nestedComponentRefusal(
+  value: Node,
+  ctx: LowerContext,
+  owner: QrlArgumentBoundary,
+  isQrlBody: boolean
+): string {
+  if (isQrlBody) {
+    return 'a component$ inside a $ boundary';
+  }
+  const isNamed = [...ctx.lifts.liftables.values()].some(({ component }) => component === value);
+  return isNamed
+    ? `a nested component$ in ${owner.subject}`
+    : `an unnamed component$ in ${owner.subject}; declare it with a name first (const Name = component$(…))`;
+}
+
 /** `fooQrl(...)` → `foo$`; the direct `$()` arguments of that call carry it as ctxName. */
 function qrlTwinCtxName(call: CallExpression): string | null {
   const callee = call.callee;
   return callee.type === 'Identifier' && callee.name.endsWith(QRL_TWIN_SUFFIX)
     ? callee.name.slice(0, -QRL_TWIN_SUFFIX.length) + QRL_SUFFIX
     : null;
+}
+
+/**
+ * The declaration of a lifted local: its segment compiles the body, so the payload skips it. A
+ * declared alias prints as authored.
+ */
+function liftedDeclaration(node: Node, ctx: LowerContext): LiftedDeclaration | null {
+  const id =
+    node.type === 'FunctionDeclaration' || node.type === 'VariableDeclarator' ? node.id : null;
+  const binding = id?.type === 'Identifier' ? ctx.bindings.declaration(id) : null;
+  return binding !== null && ctx.lifts.isLifted(binding) && !isDeclaredAlias(binding, ctx)
+    ? { declaration: node as LiftedDeclaration['declaration'], binding }
+    : null;
+}
+
+export function isDeclaredAlias(binding: LocalId, ctx: LowerContext): boolean {
+  return ctx.lifts.liftables.get(binding)!.binding !== binding && ctx.lifts.isDeclared(binding);
+}
+
+interface LiftedDeclaration {
+  declaration: FunctionNode | VariableDeclarator;
+  binding: LocalId;
+}
+
+/** Removed when no code of its scope reads it; otherwise its value binds to the segment. */
+function recordLiftedDeclaration(
+  target: Payload,
+  { declaration, binding }: LiftedDeclaration,
+  ctx: LowerContext
+): void {
+  target.reads = target.reads.filter(
+    ({ range }) => !(range[0] >= declaration.start && range[1] <= declaration.end)
+  );
+  const removed = ctx.lifts.isDeclared(binding) ? null : unreadDeclarationRange(declaration, ctx);
+  if (removed !== null) {
+    (target.removed ??= []).push(removed);
+    return;
+  }
+  const value = declaration.type === 'VariableDeclarator' ? declaration.init! : declaration;
+  target.qrls.push({
+    range: [value.start, value.end],
+    use: ctx.liftedLocals.get(binding)!.rebind.use,
+    local: { binding, hoisted: value === declaration },
+  });
+}
+
+/** The declarator and one adjoining comma, or the whole statement once all its declarators go. */
+function unreadDeclarationRange(
+  declaration: FunctionNode | VariableDeclarator,
+  ctx: LowerContext
+): Range | null {
+  if (declaration.type !== 'VariableDeclarator') {
+    return [declaration.start, declaration.end];
+  }
+  const statement = ctx.bindings.parentOf(declaration) as VariableDeclaration;
+  const siblings = statement.declarations;
+  const isRemoved = (sibling: VariableDeclarator) => {
+    const lifted = liftedDeclaration(sibling, ctx);
+    return lifted !== null && !ctx.lifts.isDeclared(lifted.binding);
+  };
+  const index = siblings.indexOf(declaration);
+  const next = siblings[index + 1];
+  // The ranges of removed neighbours tile without overlap, keeping one comma between kept ones.
+  if (!siblings.every(isRemoved)) {
+    return siblings.slice(0, index).every(isRemoved)
+      ? [declaration.start, next.start]
+      : [siblings[index - 1].end, declaration.end];
+  }
+  // `if (x) var f = …;` would take the next statement as its body.
+  const parent = ctx.bindings.parentOf(statement)?.type;
+  if (parent !== 'BlockStatement' && parent !== 'SwitchCase') {
+    return null;
+  }
+  return [index === 0 ? statement.start : declaration.start, next?.start ?? statement.end];
 }
 
 /**
@@ -400,7 +535,8 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
       if (
         current.type === 'CallExpression' &&
         (markerQrlCall(current, ctx) !== null ||
-          (isComponentMarkerCall(current, ctx) && nestedComponentFunction(current, ctx) !== null))
+          (isComponentDeclaration(current, ctx.bindings, ctx.coreBindings) &&
+            declaredComponentFunction(current, ctx.bindings) !== null))
       ) {
         found = true;
         return;
@@ -436,7 +572,8 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
   return roots;
 }
 
-type MarkerScope = LowerContext;
+/** What marker resolution reads: the lift analysis resolves markers before lowering starts. */
+export type MarkerScope = Pick<LowerContext, 'plan' | 'bindings' | 'coreBindings' | 'locals'>;
 
 export interface MarkerQrlCall {
   argument: Expression;
@@ -483,7 +620,7 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
     argument,
     name: callee.name,
     ctxName: callee.name,
-    boundary: { kind: BoundaryKind.Implicit, role: 'hook' },
+    boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Hook },
     marker: { kind: CallTargetKind.Marker, binding: callee.binding, stem },
   };
 }
@@ -505,12 +642,13 @@ export function lowerMarkerQrl(
       argumentRanges: call.arguments.map((arg) => [arg.start, arg.end]),
     },
   });
+  // A recursive `$(f)` gets f's QRL before its segment is pushed, so only `sync$` looks it up.
+  if (boundary.kind !== BoundaryKind.Sync) {
+    return use;
+  }
   const qrl = ctx.plan.qrls.find((entry) => entry.id === use.qrl)!;
   const reads = qrl.body.b === QrlBodyKind.Js ? ctx.plan.payloads[qrl.body.payload].reads : [];
-  if (
-    boundary.kind === BoundaryKind.Sync &&
-    (!isFunctionLike(argument) || qrl.captures.length > 0 || reads.length > 0)
-  ) {
+  if (!isFunctionLike(argument) || qrl.captures.length > 0 || reads.length > 0) {
     throw new InvalidModuleError(
       'sync-capture',
       'A sync$ handler cannot use variables from its scope.',

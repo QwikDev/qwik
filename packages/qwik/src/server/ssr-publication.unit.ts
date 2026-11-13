@@ -12,12 +12,7 @@ import { SsrScriptEmitter } from './ssr-script-emitter';
 import { SsrScheduler } from './ssr-scheduler';
 
 function setup(write = vi.fn<(frame: string) => void>()) {
-  const serializationCtx = createSerializationContext(
-    null,
-    () => '',
-    () => {},
-    new WeakMap()
-  );
+  const serializationCtx = createSerializationContext(null, () => '');
   const takePatches = vi.fn<() => null>(() => null);
   const reportError = vi.fn();
   const publication = createSsrPublication(serializationCtx, new SsrScriptEmitter(), 'test', {
@@ -304,7 +299,7 @@ describe('SSR publication', () => {
     serializationCtx.$eagerResume$.add(selected);
     const scan = vi.spyOn(serializationCtx.$eagerResume$, Symbol.iterator);
     const attrs = createStateScriptEventAttrs(serializationCtx, new Set([selected]));
-    expect(attrs).toBeDefined();
+    expect(attrs).toMatch(/^ q:idle="[^"]+"$/);
     expect(scan).not.toHaveBeenCalled();
     scan.mockRestore();
   });

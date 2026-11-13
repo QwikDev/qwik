@@ -12,22 +12,25 @@ import {
   type SsrRecordPart,
 } from './output';
 
+/** What splicing `useOn` events needs from the render. */
+export interface SsrUseOnHost {
+  eventAttr(name: string, value: unknown): SsrEventAttrChunk;
+  /** Tells the document pass a carrier may sit outside `<head>`/`<body>`. */
+  markHeadlessCarrier(): void;
+}
+
 export function applyUseOnToSsrOutput(
   output: SsrOutput,
   useOnEvents: UseOnMap,
-  eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
+  host: SsrUseOnHost
 ): SsrOutput {
-  const result = maybeThen(applyToFirstElement(output, useOnEvents, eventAttr), (applied) =>
-    applied.found ? applied.output : appendCarrier(output, useOnEvents, eventAttr)
+  const result = maybeThen(applyToFirstElement(output, useOnEvents, host), (applied) =>
+    applied.found ? applied.output : appendCarrier(output, useOnEvents, host)
   );
   return isPromise(result) ? Promise.resolve(result) : result;
 }
 
-function appendCarrier(
-  output: SsrOutput,
-  useOnEvents: UseOnMap,
-  eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
-): SsrOutput {
+function appendCarrier(output: SsrOutput, useOnEvents: UseOnMap, host: SsrUseOnHost): SsrOutput {
   const parts: SsrRecordPart[] = ['<script hidden', '>'];
   let hasCarrier = false;
   for (const key in useOnEvents) {
@@ -39,12 +42,13 @@ function appendCarrier(
     }
     const event = useOnEvents[key];
     const eventKey = key === 'q-e:qvisible' ? 'q-d:qinit' : key;
-    appendEvent(parts, eventAttr(eventKey, event.qrls), event);
+    appendEvent(parts, host.eventAttr(eventKey, event.qrls), event);
     hasCarrier = true;
   }
   if (!hasCarrier) {
     return output;
   }
+  host.markHeadlessCarrier();
   const placeholder: SsrOutput = [
     { ...createSsrOpenTag(...parts), headlessCarrier: true },
     '</script>',
@@ -55,10 +59,10 @@ function appendCarrier(
 function applyToFirstElement(
   output: SsrOutput,
   useOnEvents: UseOnMap,
-  eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
+  host: SsrUseOnHost
 ): ValueOrPromise<{ output: SsrOutput; found: boolean }> {
   if (isPromise(output)) {
-    return output.then((resolved) => applyToFirstElement(resolved, useOnEvents, eventAttr));
+    return output.then((resolved) => applyToFirstElement(resolved, useOnEvents, host));
   }
   if (Array.isArray(output)) {
     const replace = (i: number, child: { output: SsrOutput; found: boolean }) => {
@@ -68,7 +72,7 @@ function applyToFirstElement(
     };
     const scan = (start: number): ValueOrPromise<{ output: SsrOutput; found: boolean }> => {
       for (let i = start; i < output.length; i++) {
-        const child = applyToFirstElement(output[i], useOnEvents, eventAttr);
+        const child = applyToFirstElement(output[i], useOnEvents, host);
         if (isPromise(child)) {
           return child.then((child) => (child.found ? replace(i, child) : scan(i + 1)));
         }
@@ -87,7 +91,7 @@ function applyToFirstElement(
     output.type === 'catch'
   ) {
     const boundary = output.boundary;
-    return maybeThen(applyToFirstElement(boundary.output, useOnEvents, eventAttr), (applied) => {
+    return maybeThen(applyToFirstElement(boundary.output, useOnEvents, host), (applied) => {
       const fallbackEvents: UseOnMap = applied.found ? useOnEvents : {};
       if (applied.found) {
         boundary.output = applied.output;
@@ -103,7 +107,7 @@ function applyToFirstElement(
         applyUseOnToSsrOutput(
           previous === undefined ? output : previous(output),
           fallbackEvents,
-          eventAttr
+          host
         );
       return { output, found: applied.found };
     });
@@ -116,7 +120,7 @@ function applyToFirstElement(
   for (const key in useOnEvents) {
     // A script never intersects: its visible task wakes with the document instead.
     const eventKey = key === 'q-e:qvisible' && isScript ? 'q-d:qinit' : key;
-    appendEvent(parts, eventAttr(eventKey, useOnEvents[key].qrls), useOnEvents[key]);
+    appendEvent(parts, host.eventAttr(eventKey, useOnEvents[key].qrls), useOnEvents[key]);
   }
   return { output: { ...output, parts }, found: true };
 }

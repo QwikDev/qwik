@@ -1,43 +1,86 @@
 import { describe, expect, it } from 'vitest';
-import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
+import {
+  createSerializationContext,
+  type SerializationContext,
+  type SerializedStateRange,
+} from '@qwik.dev/core/internal/serializer';
 import { TypeIds } from '../core/shared/serdes/constants';
-import { isSsrRecordChunk, type SsrOutput } from '../core/ssr/output';
 import { getQwikLoaderScript } from './scripts';
-import { createSsrEventAttrParts } from './ssr-event-attr';
 import { SsrScriptEmitter } from './ssr-script-emitter';
 import { createDocument } from '../testing/document';
+import { createContainerContext } from '../core/runtime/container-context';
 
 describe('SsrScriptEmitter', () => {
-  it('produces state scripts synchronously with at most 1024 roots', () => {
-    const emitter = new SsrScriptEmitter();
-    const state = Array.from({ length: 1025 * 2 }, (_, i) => i);
+  it('splits a state over 1024 roots into scripts of at most 1024 roots', async () => {
+    const serializationCtx = createSerializationContext(null, () => '');
+    for (let i = 0; i < 1025; i++) {
+      serializationCtx.$addRoot$(`root-${i}`);
+    }
+    const ranges = await serializeRanges(serializationCtx);
 
-    const output = emitter.emitState(JSON.stringify(state), 0, 1025);
-
-    expect(output).not.toBeInstanceOf(Promise);
-    const scripts = getScripts(output);
+    expect(ranges.map(({ base, len }) => [base, len])).toEqual([
+      [0, 1024],
+      [1024, 1],
+    ]);
+    const scripts = getScripts(new SsrScriptEmitter().emitStateRanges(ranges));
     expect(scripts).toHaveLength(2);
-    expect(scripts[0]).toContain('q:base="0"');
-    expect(scripts[0]).toContain('q:len="1024"');
+    expect(scripts[0]).toContain('q:base="0" q:len="1024"');
     expect(JSON.parse(readScriptBody(scripts[0]))).toHaveLength(2048);
-    expect(scripts[1]).toContain('q:base="1024"');
-    expect(scripts[1]).toContain('q:len="1"');
-    expect(JSON.parse(readScriptBody(scripts[1]))).toEqual([2048, 2049]);
+    expect(scripts[1]).toContain('q:base="1024" q:len="1"');
+    expect(JSON.parse(readScriptBody(scripts[1]))).toEqual([0, 'root-1024']);
   });
 
-  it('emits forward refs as separate metadata without consuming a root id', () => {
-    const emitter = new SsrScriptEmitter();
-    const state = [TypeIds.Plain, 'root', TypeIds.ForwardRefs, [0]];
+  it.each([2, 1100])(
+    'keeps state scripts of %i roots intact around comment and script markup',
+    async (rootCount) => {
+      const serializationCtx = createSerializationContext(null, () => '');
+      const values = Array.from({ length: rootCount }, (_, i) =>
+        i % 2 ? `${i}<!--<script>` : `</script>${i}`
+      );
+      for (let i = 0; i < values.length; i++) {
+        serializationCtx.$addRoot$({ value: values[i] });
+      }
+      const html = new SsrScriptEmitter().emitStateRanges(await serializeRanges(serializationCtx));
+      const document = createDocument({
+        html: `<div q:container="paused">${html}<script id="after"></script></div>`,
+      });
 
-    const output = emitter.emitState(JSON.stringify(state), 0, 2, undefined, true);
+      expect(document.querySelectorAll('script[type="qwik/state"]')).toHaveLength(
+        Math.ceil(rootCount / 1024)
+      );
+      expect(document.querySelector('#after')).not.toBeNull();
+      const context = createContainerContext(document.querySelector('[q\\:container]')!);
+      for (let i = 0; i < values.length; i++) {
+        expect(await context.getRoot(i)).toEqual({ value: values[i] });
+      }
+    }
+  );
 
-    const scripts = getScripts(output);
-    expect(scripts).toHaveLength(2);
-    expect(scripts[0]).toContain('q:len="1"');
-    expect(scripts[1]).toContain('q:base="1"');
-    expect(scripts[1]).toContain('q:len="0"');
-    expect(scripts[1]).toContain('q:fr');
-    expect(JSON.parse(readScriptBody(scripts[1]))).toEqual([TypeIds.ForwardRefs, [0]]);
+  it('escapes script markup in event names', () => {
+    expect(new SsrScriptEmitter().emitQwikEvents(new Set(['</script><!--']))).toBe(
+      '<script>(window._qwikEv||(window._qwikEv=[])).push("\\u003C/script>\\u003C!--")</script>'
+    );
+  });
+
+  it('keeps a sync$ definition one script when its source holds script or comment markup', () => {
+    const source = `()=>"<!-- <script></script>"`;
+    const html = new SsrScriptEmitter().emitSyncFn('k', source, 'h');
+    const document = createDocument({
+      html: `<div>${html}<script id="after"></script></div>`,
+    });
+
+    expect(document.querySelectorAll('script')).toHaveLength(2);
+    const defined: Record<string, Record<string, () => string>> = {};
+    // eslint-disable-next-line no-new-func
+    Function('document', document.querySelector('script')!.textContent!)(defined);
+    expect(defined['qFuncs_h'].k()).toBe('<!-- <script></script>');
+  });
+
+  it('escapes script markup in the pending runtime instance hash', () => {
+    const html = new SsrScriptEmitter().emitPendingRuntime('</script><!--');
+
+    expect(html).not.toContain('</script><!--');
+    expect(html).toContain('"\\u003C/script>\\u003C!--"');
   });
 
   it('preserves loader and event script HTML with a nonce', () => {
@@ -52,39 +95,34 @@ describe('SsrScriptEmitter', () => {
     );
   });
 
-  it('keeps qidle root references typed in the state script record', () => {
-    const emitter = new SsrScriptEmitter();
-    const eventAttrParts = createSsrEventAttrParts('q-d:qidle', ['resume#', 2]);
+  it('writes the idle event attribute on the first state script only', () => {
+    const html = new SsrScriptEmitter().emitStateRanges(
+      [
+        { base: 0, len: 1024, state: '[]' },
+        { base: 1024, len: 1, state: '[]' },
+      ],
+      undefined,
+      undefined,
+      ' q-d:qidle="resume#2"'
+    );
 
-    const output = emitter.emitState('[]', 0, 1, eventAttrParts);
-
-    expect(Array.isArray(output) && isSsrRecordChunk(output[0])).toBe(true);
-    expect(output).toEqual([
-      {
-        type: 'record',
-        openTag: false,
-        headlessCarrier: false,
-        parts: [
-          '<script type="qwik/state" q:base="0" q:len="1"',
-          ' q-d:qidle="resume#',
-          { type: 'root-ref', localId: 2 },
-          '"',
-          '>',
-        ],
-      },
-      '[]</script>',
-    ]);
+    expect(html).toBe(
+      '<script type="qwik/state" q:base="0" q:len="1024" q-d:qidle="resume#2">[]</script>' +
+        '<script type="qwik/state" q:base="1024" q:len="1">[]</script>'
+    );
   });
 
   it('emits append-only packet state and forward refs for one boundary', () => {
     const emitter = new SsrScriptEmitter();
-    const output = emitter.emitStateRange(
-      {
-        base: 4,
-        len: 1,
-        state: JSON.stringify([TypeIds.Plain, 'value']),
-        forwardRefs: [4, [4, 1]],
-      },
+    const output = emitter.emitStateRanges(
+      [
+        {
+          base: 4,
+          len: 1,
+          state: JSON.stringify([TypeIds.Plain, 'value']),
+          forwardRefs: [4, [4, 1]],
+        },
+      ],
       7
     );
 
@@ -97,12 +135,14 @@ describe('SsrScriptEmitter', () => {
 
   it('emits subscription edges as zero-root packet metadata', () => {
     const emitter = new SsrScriptEmitter();
-    const output = emitter.emitStateRange(
-      {
-        base: 4,
-        len: 1,
-        state: JSON.stringify([TypeIds.Plain, 'value']),
-      },
+    const output = emitter.emitStateRanges(
+      [
+        {
+          base: 4,
+          len: 1,
+          state: JSON.stringify([TypeIds.Plain, 'value']),
+        },
+      ],
       7,
       [0, 4, 2, 4]
     );
@@ -303,12 +343,7 @@ describe('SsrScriptEmitter', () => {
 
   it.each([false, true])('restores backpatch installation state %j after rollback', (installed) => {
     const emitter = new SsrScriptEmitter();
-    const serializationCtx = createSerializationContext(
-      null,
-      () => '',
-      () => {},
-      new WeakMap()
-    );
+    const serializationCtx = createSerializationContext(null, () => '');
     const transaction = serializationCtx.$beginTransaction$();
     const emitPatch = () => emitter.emitBackpatch([[0, 'title', 'final']]);
     if (installed) {
@@ -357,12 +392,17 @@ describe('SsrScriptEmitter', () => {
   );
 });
 
-function getScripts(output: SsrOutput): string[] {
-  if (!Array.isArray(output) || output.some((chunk) => typeof chunk !== 'string')) {
-    throw new Error('Expected literal script output.');
-  }
-  const html = output.join('');
+function getScripts(html: string): string[] {
   return html.match(/<script[^>]*>.*?<\/script>/g) ?? [];
+}
+
+async function serializeRanges(serializationCtx: SerializationContext) {
+  const ranges: SerializedStateRange[] = [];
+  let range: SerializedStateRange | null;
+  while ((range = await serializationCtx.$serializeNext$()) !== null) {
+    ranges.push(range);
+  }
+  return ranges;
 }
 
 function readScriptBody(script: string): string {

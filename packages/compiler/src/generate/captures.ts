@@ -62,14 +62,27 @@ export function staticFunctionReference(
   propsName: string,
   emission: Pick<FunctionEmission, 'imports' | 'chunkImports'>,
   resolveQrlUse: QrlResolver,
-  options: PresentationOptions
+  options: PresentationOptions,
+  /** The segment being emitted: a recursive one reads its own export, never imports it. */
+  self: LinkedQrl
 ): string {
   const { qrl, args } = resolveQrlUse(use, propsName);
   const line = `import { ${qrl.name} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
-  if (!emission.chunkImports.includes(line)) {
+  if (qrl !== self && !emission.chunkImports.includes(line)) {
     emission.chunkImports.push(line);
   }
   return boundReference(qrl.name, args, emission.imports);
+}
+
+/**
+ * A lifted local its scope reads. Bound to captures, it forwards `this` and `arguments` and binds
+ * them at call time, so later declarations resolve; a hoisted declaration is always that function.
+ */
+export function liftedFunctionJs(use: QrlUse, reference: string, hoistedName?: string): string {
+  if (hoistedName === undefined && use.args.length === 0) {
+    return reference;
+  }
+  return `function ${hoistedName ?? ''}() {\n  return ${reference}.apply(this, arguments);\n}`;
 }
 
 /** A statically imported segment, bound to its captures when it has any. */

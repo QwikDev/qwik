@@ -9,7 +9,6 @@ import { createTestLowerContext } from './fixtures';
 const COUNT_LOCAL: SetupLocal = {
   kind: LocalKind.Signal,
   access: CaptureAccess.Direct,
-  slot: 0,
   binding: 1,
 };
 

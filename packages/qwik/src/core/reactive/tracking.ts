@@ -65,27 +65,30 @@ export function runWithCollector<T, TArgs extends unknown[]>(
   }
 }
 
+// The fixed-arity frame skips the array the rest-args frame allocates per call.
+export function runWithCollector1<T, TArg>(
+  collector: CollectorSubscriber | null,
+  run: (arg: TArg) => T,
+  arg: TArg,
+  receiver?: unknown
+): T {
+  const previous = trackingState.current;
+  trackingState.current = collector;
+
+  try {
+    return run.call(receiver, arg);
+  } finally {
+    trackingState.current = previous;
+  }
+}
+
+/** Calls with no argument: a batch closure tells its first run from an update by its arguments. */
 export function runWithCollector0<T>(collector: CollectorSubscriber | null, run: () => T): T {
   const previous = trackingState.current;
   trackingState.current = collector;
 
   try {
     return run();
-  } finally {
-    trackingState.current = previous;
-  }
-}
-
-export function runWithCollector1<T, TArg>(
-  collector: CollectorSubscriber | null,
-  run: (arg: TArg) => T,
-  arg: TArg
-): T {
-  const previous = trackingState.current;
-  trackingState.current = collector;
-
-  try {
-    return run(arg);
   } finally {
     trackingState.current = previous;
   }

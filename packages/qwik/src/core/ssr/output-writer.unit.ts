@@ -6,17 +6,23 @@ import {
   createSsrEventAttr,
   createSsrNodeId,
   createSsrMarkup,
-  createSsrRootRef,
-  createSsrRootRefPath,
+  type SsrReferenceChunk,
 } from './output';
 import { SsrOutputWriter } from './output-writer';
+
+const rootRef = (id: number): SsrReferenceChunk => ({ type: 'root-value', value: id });
+/** Stands in for the publication, which turns a root value into its root id. */
+const writeRootIds = (chunks: string[]) =>
+  new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) }, undefined, (chunk) =>
+    String((chunk as { value: unknown }).value)
+  );
 
 describe('SsrOutputWriter', () => {
   it('writes standalone event attributes and one Catch reference per element', () => {
     const chunks: string[] = [];
-    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
-    const click = { ...createSsrEventAttr('q-e:click', ['click']), errorRoot: createSsrRootRef(4) };
-    const input = { ...createSsrEventAttr('q-e:input', ['input']), errorRoot: createSsrRootRef(4) };
+    const writer = writeRootIds(chunks);
+    const click = { ...createSsrEventAttr('q-e:click', ['click']), errorRoot: rootRef(4) };
+    const input = { ...createSsrEventAttr('q-e:input', ['input']), errorRoot: rootRef(4) };
     writer.finish([click, createSsrMarkup('<button', click, input, '>')]);
     expect(chunks.join('')).toBe(
       ' q-e:click="click" q:catch="4"<button q-e:click="click" q:catch="4" q-e:input="input">'
@@ -73,16 +79,14 @@ describe('SsrOutputWriter', () => {
     [7, '<!s=3,7>'],
   ])('writes a slot marker with optional projection root %s', (rootId, expected) => {
     const chunks: string[] = [];
-    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
-    writer.finish(
-      _createSsrSlotMarker(3, rootId === undefined ? undefined : createSsrRootRef(rootId))
-    );
+    const writer = writeRootIds(chunks);
+    writer.finish(_createSsrSlotMarker(3, rootId === undefined ? undefined : rootRef(rootId)));
     expect(chunks.join('')).toBe(expected);
   });
 
   it('omits null markup parts while preserving references and event attributes', () => {
     const chunks: string[] = [];
-    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+    const writer = writeRootIds(chunks);
 
     writer.finish(
       createSsrMarkup(
@@ -91,7 +95,7 @@ describe('SsrOutputWriter', () => {
         createSsrNodeId(0),
         '"',
         null,
-        createSsrEventAttr('q-e:click', ['listener#handler#', createSsrRootRef(2)]),
+        createSsrEventAttr('q-e:click', ['listener#handler#', rootRef(2)]),
         '>',
         null
       )
@@ -111,17 +115,17 @@ describe('SsrOutputWriter', () => {
 
   it('batches synchronous output into one sink write', () => {
     const chunks: string[] = [];
-    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+    const writer = writeRootIds(chunks);
 
     const result = writer.finish([
       'before',
-      [createSsrMarkup('<!r=', createSsrNodeId(3), ' ', createSsrRootRef(7), '>')],
-      createSsrRootRefPath([4, 2]),
+      [createSsrMarkup('<!r=', createSsrNodeId(3), ' ', rootRef(7), '>')],
+      rootRef(4),
       'after',
     ]);
 
     expect(result).toBeUndefined();
-    expect(chunks).toEqual(['before<!r=3 7>4 2after']);
+    expect(chunks).toEqual(['before<!r=3 7>4after']);
   });
 
   it('writes the prefix while a nested output promise is pending', async () => {
@@ -164,12 +168,12 @@ describe('SsrOutputWriter', () => {
 
   it('materializes a typed event attribute in the element record write', () => {
     const chunks: string[] = [];
-    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+    const writer = writeRootIds(chunks);
 
     writer.finish(
       createSsrOpenTag(
         '<button',
-        createSsrEventAttr('q-e:click', ['listener#handler#', createSsrRootRef(2)]),
+        createSsrEventAttr('q-e:click', ['listener#handler#', rootRef(2)]),
         '>'
       )
     );

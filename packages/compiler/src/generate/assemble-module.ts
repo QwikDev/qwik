@@ -2,10 +2,12 @@ import {
   AssemblyKind,
   DeclarationKind,
   DeliveryKind,
+  type Environment,
   type HookDecl,
   type LinkedModule,
+  type LinkedPlan,
+  ModuleKind,
   type LinkedQrl,
-  type QrlDeclaration,
   StripValueForm,
 } from '../schema';
 import { EsmEdgeKind } from '../schema';
@@ -21,7 +23,13 @@ import {
   isComponentSegment,
 } from './qrl-chunks';
 import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
-import { type GenerateOutput, type PresentationOptions } from './output';
+import {
+  createFailedModule,
+  makeOutput,
+  type GenerateOutput,
+  type PresentationOptions,
+} from './output';
+import { generateForeignModule } from './foreign';
 import {
   allocateGeneratedNames,
   emitComponentAlias,
@@ -53,6 +61,50 @@ export interface QwikModuleEmitter {
   qrlFunction(qrl: LinkedQrl): FunctionEmission;
   /** Satisfy the emission's QRL uses for a standalone chunk file (target policy). */
   resolveChunkUses(emission: FunctionEmission): FunctionEmission;
+}
+
+/** Every module of a plan linked for the target's environment, each through a fresh emitter. */
+export async function generatePlanModules(
+  plan: LinkedPlan,
+  options: PresentationOptions,
+  target: {
+    name: string;
+    environment: Environment;
+    createEmitter: (module: LinkedModule) => QwikModuleEmitter;
+    placement?: 'component' | 'module-top';
+  }
+): Promise<GenerateOutput> {
+  if (plan.specialization.environment !== target.environment) {
+    throw new Error(`${target.name} requires a ${target.environment} LinkedPlan`);
+  }
+  const modules: GenerateOutput['modules'] = [];
+  for (const module of plan.modules) {
+    try {
+      modules.push(...(await generateModule(module, options, target)));
+    } catch (error) {
+      // A refusal names its module, so a whole-app build failure points at the source.
+      if (error instanceof Error && !error.message.includes(module.path)) {
+        error.message = `${error.message} (in ${module.path})`;
+      }
+      throw error;
+    }
+  }
+  return makeOutput(plan, modules);
+}
+
+async function generateModule(
+  module: LinkedModule,
+  options: PresentationOptions,
+  target: Parameters<typeof generatePlanModules>[2]
+): Promise<GenerateOutput['modules']> {
+  switch (module.kind) {
+    case ModuleKind.Foreign:
+      return [await generateForeignModule(module, options)];
+    case ModuleKind.Qwik:
+      return generateQwikModule(module, target.createEmitter(module), options, target.placement);
+    case ModuleKind.Failed:
+      return [createFailedModule(module.path)];
+  }
 }
 
 /** The main module (assembled over the source) plus one chunk per QRL. */
@@ -185,7 +237,7 @@ export function assembleQwikModule(
           declaration.declarationKind === DeclarationKind.DefaultFunction;
         const componentNames = {
           ...names,
-          props: componentPropsName(module, declaration) ?? names.props,
+          props: componentPropsName(module, qrl) ?? names.props,
         };
         const text =
           qrl.aliasOf === undefined
@@ -199,8 +251,6 @@ export function assembleQwikModule(
         firstComponentEdit ??= edit;
         break;
       }
-      default:
-        throw new Error(`pipeline: assembly intent "${intent.a}" not implemented yet`);
     }
   }
   let prefix = '';
@@ -293,7 +343,7 @@ function componentSegmentReference(
   };
 }
 
-function componentPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {
-  const surface = declaration.parameter?.surface;
+function componentPropsName(module: LinkedModule, qrl: LinkedQrl): string | null {
+  const surface = qrl.parameter?.surface;
   return surface?.binding == null ? null : module.bindings[surface.binding].name;
 }

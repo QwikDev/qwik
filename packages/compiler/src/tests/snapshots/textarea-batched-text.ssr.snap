@@ -1,0 +1,153 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const open = useSignal(false);
+  return <textarea class={open.value ? 'a' : 'b'}>{open.value ? 'x' : null}</textarea>;
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (open) => {
+  return open.value ? 'a' : 'b';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    149,
+    171
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "open"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (open) => {
+  return open.value ? 'x' : null;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    174,
+    197
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "open"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  createSsrDomBatchEffect,
+  renderSsrAttrExpression,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  promiseAll,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_class_segment_0_3htuygud1guoj = (open) => {
+  return open.value ? 'a' : 'b';
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const component_text_segment_1_1fh10tcowimfv = (open) => {
+  return open.value ? 'x' : null;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const open = useSignal(false);
+  const id0 = ctx.nextId();
+  const effect0 = createSsrDomBatchEffect();
+  ctx.addRoot(open);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'class',
+    [open],
+    q_component_class_segment_0_3htuygud1guoj,
+    effect0
+  );
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [open],
+    q_component_text_segment_1_1fh10tcowimfv,
+    effect0
+  );
+  return maybeThen(promiseAll([attr0, text0]), ([attr0, text0]) => [
+    '<textarea q:id="',
+    createSsrNodeId(id0),
+    '"',
+    attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+    '>',
+    escapeHTML(text0.replace(/^\n/, '\n\n')),
+    '</textarea>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    56,
+    214
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

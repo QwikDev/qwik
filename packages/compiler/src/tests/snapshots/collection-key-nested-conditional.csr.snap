@@ -51,7 +51,6 @@ export function Primary_component_3sl9ajjkdr62n(props0, ctx) {
 import {
   _first,
   _next,
-  BranchRange,
   createBranch,
   _withCaptures,
   qrl,
@@ -77,7 +76,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    start0,
+    end0,
     _withCaptures(component_branch_condition_segment_2_2fzrhmrz1xde7, [item]),
     q_component_branch_then_segment_3_24n7atwir5934.w([key]),
     q_component_branch_else_segment_4_19dvrvh6znjhf.w([item, index])
@@ -216,16 +216,12 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 
 import {
   _capturesObj,
-  _first,
-  _next,
-  createTemplate,
-  BranchRange,
+  _createRangeMarkers,
   createBranch,
   _withCaptures,
   qrl,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_5_2fzrggonbf7cm } from './component.tsx_component_branch_condition_segment_5_2fzrggonbf7cm';
-const component_branch_else_segment_4_19dvrvh6znjhf_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ qrl(
   () => import('./component.tsx_component_branch_then_segment_6_24n7cs22bbj5r'),
   'component_branch_then_segment_6_24n7cs22bbj5r'
@@ -237,18 +233,17 @@ const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ qrl(
 
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const [item, index] = _capturesObj._;
-  const fragment0 = component_branch_else_segment_4_19dvrvh6znjhf_tmpl0(ctx.document);
-  const start0 = _first(fragment0);
-  const end0 = _next(start0);
+  const range0 = _createRangeMarkers(ctx.document);
   const branch0 = createBranch(
     ctx,
-    new BranchRange(ctx.document, start0, end0),
+    range0[0],
+    range0[1],
     _withCaptures(component_branch_condition_segment_5_2fzrggonbf7cm, [item]),
     q_component_branch_then_segment_6_24n7cs22bbj5r.w([item]),
     q_component_branch_else_segment_7_19dvs9iawhlhy.w([index])
   );
   ctx.scheduler.notify(branch0);
-  return [start0, end0];
+  return range0;
 };
 /*
 {

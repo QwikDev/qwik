@@ -22,12 +22,7 @@ import type {
   QwikSymbolEvent,
   QwikVisibleEvent,
 } from './core/shared/jsx/types/jsx-qwik-events';
-import type {
-  QContainerElement,
-  QElement,
-  QwikLoaderEventScope,
-  qWindow,
-} from './core/shared/types';
+import type { QElement, QwikLoaderEventScope, qWindow } from './core/shared/types';
 
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => unknown;
@@ -142,28 +137,12 @@ const queueTasks = (tasks: Task[], eventName: string) => {
   }
 };
 
-const resolveContainer = (containerEl: QContainerElement) => {
-  if (containerEl._qwikjson_ === undefined) {
-    const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-    let script = parentJSON.lastElementChild;
-    while (script) {
-      if (script.tagName === 'SCRIPT' && script.getAttribute('type') === 'qwik/json') {
-        containerEl._qwikjson_ = JSON.parse(
-          script.textContent!.replace(/\\x3C(\/?script)/gi, '<$1')
-        );
-        break;
-      }
-      script = script.previousElementSibling;
-    }
-  }
-};
-
 const markContainerReady = (hash: string) => {
   readyContainers[hash] = 1;
   emitEvent(readyStateChange);
 };
 
-const waitForContainerReady = (container: QContainerElement) => {
+const waitForContainerReady = (container: Element) => {
   const hash = container.getAttribute('q:instance')!;
   return (
     container.getAttribute('q:container') === 'paused' &&
@@ -216,7 +195,7 @@ const isCaptureHandlerElement = (
     element.hasAttribute('q-' + scopedKebabName));
 
 const resolveHandler = (
-  container: QContainerElement,
+  container: Element,
   element: Element,
   qBase: string,
   base: URL,
@@ -250,7 +229,6 @@ const resolveHandler = (
 
   const href = new URL(chunk, base).href;
   const module = import(/* @vite-ignore */ href);
-  resolveContainer(container);
   return module.then(
     (module) => {
       const handler = module[symbol] as Handler | undefined;
@@ -333,7 +311,7 @@ const dispatch = (
   if (attrValue) {
     const container = element.closest(
       '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
-    )! as QContainerElement;
+    )!;
     const qBase = container.getAttribute('q:base')!;
     const base = new URL(qBase, doc.baseURI);
     const qrls = attrValue.split('|');

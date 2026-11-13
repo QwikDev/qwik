@@ -42,7 +42,7 @@ function lower(jsx: string) {
   const { ctx } = createTestLowerContext(parsed.program, source);
   const items = ctx.plan.bindings.find((binding) => binding.name === 'items')!.id;
   ctx.locals = new Map([
-    [items, { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: items }],
+    [items, { kind: LocalKind.Signal, access: CaptureAccess.Direct, binding: items }],
   ]);
   return { op: lowerJsx(element, ctx)[0], ctx, element };
 }

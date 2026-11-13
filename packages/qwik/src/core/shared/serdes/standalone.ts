@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { defaultScheduler } from '../../runtime/scheduler';
 import {
   getStateRoot,
@@ -5,12 +6,13 @@ import {
   type ContainerContext,
 } from '../../runtime/container-context';
 import { deserializeCaptures } from './captures';
+import { invalidStateError } from '../error/error';
 
 /** @internal */
 export async function _deserialize<T>(raw: string): Promise<T> {
   const data = JSON.parse(raw);
   if (!Array.isArray(data) || (data.length & 1) !== 0) {
-    throw new Error('Invalid serialized state.');
+    throw isDev ? invalidStateError('payload') : invalidStateError();
   }
 
   const context = {

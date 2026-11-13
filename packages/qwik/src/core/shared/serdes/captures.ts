@@ -1,6 +1,8 @@
+import { isDev } from '@qwik.dev/core/build';
 import { parseSerializedQrlRootIds } from '../qrl/qrl-capture-deltas';
 import type { ContainerContext } from '../../runtime/container-context';
 import { unwrapPromiseRoot } from './promise-root';
+import { invalidStateError } from '../error/error';
 
 export const deserializeCaptures = (
   container: ContainerContext,
@@ -20,7 +22,7 @@ export const deserializeCaptures = (
     .map((delta) => {
       previousRootId += Number(delta);
       if (!Number.isSafeInteger(previousRootId) || previousRootId < 0) {
-        throw new Error('Invalid serialized QRL captures.');
+        throw isDev ? invalidStateError('QRL captures') : invalidStateError();
       }
       return previousRootId;
     });

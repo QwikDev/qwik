@@ -1,4 +1,4 @@
-/** Generator output — a true superset of the legacy `TransformOutput` data. */
+/** Generator output — a superset of the optimizer's `TransformOutput` data. */
 import type { EntryStrategy, SegmentAnalysis } from '@qwik.dev/optimizer';
 import type { Diagnostic, LinkedModule, LinkedPlan } from '../schema';
 import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';

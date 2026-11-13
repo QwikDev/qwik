@@ -17,15 +17,15 @@ export { Card };
 export { default_component_3rg6kq1so9aio as default };
 ============================= src/component.tsx_Card_component_1j4wd08arm0n5.js (ENTRY POINT)==
 
-import { _first, _last, maybeThen, createSlot, _createElementTemplate } from '@qwik.dev/core';
+import { _first, _last, _replaceMarker, createSlot, _createElementTemplate } from '@qwik.dev/core';
 const Card_tmpl0 = _createElementTemplate('<article><header><!></header><!></article>');
 
 export function Card_component_1j4wd08arm0n5(props, ctx) {
   const el0 = Card_tmpl0(ctx.document);
   const marker0 = _first(_first(el0));
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker0.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(_replaceMarker(marker0, createSlot('header')));
   const marker1 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker1.replaceWith(...slot1)));
+  ctx.scheduler.waitFor(_replaceMarker(marker1, createSlot()));
   return el0;
 }
 /*

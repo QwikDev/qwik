@@ -13,9 +13,11 @@ import {
 } from '../../schema';
 import { InvalidModuleError, UnsupportedError } from '../../errors';
 import { QRL_SUFFIX } from '../../words';
-import type { LowerContext } from '../lower-context';
+import { liftedLocal, type FunctionRebind, type LowerContext } from '../lower-context';
 import { LocalKind, type SetupLocal } from '../locals';
 import { collectIrBindingIds } from '../../schema/value-ir';
+import { isComponentDeclaration, isHeuristicComponent } from './returns-jsx';
+import { isFunctionLike, unwrapExpression } from './utils';
 
 export interface CollectedCaptures {
   capturedWrite: { name: string; range: Range } | null;
@@ -29,8 +31,8 @@ export interface CollectedCaptures {
   }[];
   /** A referenced binding no capture mechanism covers yet. */
   other: string | null;
-  /** Lifted body functions the node calls; their own captures are merged into `locals`. */
-  functions: { binding: LocalId; use: QrlUse }[];
+  /** Lifted locals the node's own code reads, so its prelude rebinds them. */
+  functions: FunctionRebind[];
   /** A called function reads props, so the boundary must capture them too. */
   propsRequired: boolean;
 }
@@ -40,8 +42,10 @@ export function collectCaptures(
   node: Node | Node[],
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>,
-  /** A boundary lifts the body functions it calls; an inline read leaves them authored. */
-  lift = false
+  /** A boundary rebinds the lifted locals it reads; an inline read leaves them to its scope. */
+  lift = false,
+  /** The boundary's own code, when part of `node` lowers to segments of its own. */
+  own: Node | Node[] = node
 ): CollectedCaptures {
   const propsReads: Range[] = [];
   const locals: CollectedCaptures['locals'] = [];
@@ -62,23 +66,66 @@ export function collectCaptures(
       entry.reads.push(read);
     }
   };
-  // A lifted function is never a value: the caller captures what it captures and rebinds it.
-  const addFunction = (name: string, local: Extract<SetupLocal, { kind: LocalKind.Function }>) => {
-    if (functions.some((entry) => entry.binding === local.binding)) {
+  const spliced = new Set<LocalId>();
+  // A lifted local is never a value: the boundary captures what its segment captures, wherever the
+  // read sits, and rebinds it only where its own code reads it.
+  const addLifted = (reference: Node, binding: LocalId) => {
+    const rebind = liftedLocal(ctx, binding);
+    if (ctx.lifts.isOwnRead(reference, own)) {
+      ctx.claimedReads.add(reference);
+      if (!functions.includes(rebind)) {
+        functions.push(rebind);
+      }
+    }
+    if (spliced.has(binding)) {
       return;
     }
-    const use = local.lift();
-    functions.push({ binding: local.binding, use });
-    for (const arg of use.args) {
-      if (arg.pass === ArgPass.Props) {
+    spliced.add(binding);
+    for (const captured of liveReferences(ctx.lifts.liftables.get(binding)!.fn, ctx)) {
+      const local = ctx.locals.get(captured.binding);
+      if (ctx.lifts.isLifted(captured.binding)) {
+        addLifted(captured.node, captured.binding);
+      } else if (captured.binding === ctx.propsBinding) {
         propsRequired = true;
-      } else if (arg.pass === ArgPass.Binding) {
-        const captured = ctx.locals.get(arg.binding)!;
-        addLocal(ctx.plan.bindings[arg.binding].name, captured);
+      } else if (local !== undefined) {
+        addLocal(ctx.plan.bindings[captured.binding].name, local);
+      } else if (ctx.bindings.implicitKind(captured.binding) !== null) {
+        // The rebind is bound where the local is declared; a boundary has no such `this`.
+        const read = captured.node.type === 'ThisExpression' ? 'this' : captured.node.name;
+        const local = `the local ${liftableKind(binding, ctx)} "${ctx.plan.bindings[binding].name}"`;
+        throw new UnsupportedError(`a boundary reading ${local}, which reads "${read}"`);
       }
     }
   };
-  for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
+  const references = liveReferences(node, ctx);
+  // A function declaration declares its own name, so its recursive calls are not free in it.
+  const fn = !Array.isArray(node) && node.type === 'FunctionDeclaration' ? node : null;
+  const self = lift && fn !== null ? ctx.bindings.declaration(fn.id!) : null;
+  if (self !== null && ctx.lifts.isLifted(self)) {
+    const selfReads = ctx.bindings
+      .referencesOf(self)
+      .filter(({ node: reference }) => fn!.start <= reference.start && reference.end <= fn!.end);
+    // A function segment keeps the authored head, whose name reaches itself; a component's does not.
+    if (ctx.lifts.liftables.get(self)!.component === null) {
+      selfReads.forEach(({ node }) => ctx.claimedReads.add(node));
+    } else {
+      references.push(...selfReads);
+    }
+  }
+  for (const { node: current, binding, role, isWrite } of references) {
+    if (lift && ctx.lifts.isLifted(binding)) {
+      addLifted(current, binding);
+      continue;
+    }
+    const unliftable = lift ? unliftableFunction(binding, ctx) : null;
+    if (unliftable !== null) {
+      throw new UnsupportedError(`a boundary reading ${unliftable}`);
+    }
+    // A boundary the analysis does not see, such as a key copying row constants, cannot rebind it.
+    if (lift && ctx.lifts.liftables.has(binding)) {
+      other ??= ctx.plan.bindings[binding].name;
+      continue;
+    }
     // A module component tag is a reference, not a capture; a body one lifts to its own segment.
     const isTag =
       current.type === 'JSXIdentifier' &&
@@ -90,11 +137,6 @@ export function collectCaptures(
       continue;
     }
     const name = current.type === 'ThisExpression' ? 'this' : current.name;
-    const local = ctx.locals.get(binding);
-    if (local?.kind === LocalKind.Function && lift && !isWrite) {
-      addFunction(name, local);
-      continue;
-    }
     const setupLocal =
       ctx.locals.get(binding) ??
       (ctx.bindings.implicitKind(binding) === null
@@ -102,7 +144,6 @@ export function collectCaptures(
         : {
             kind: LocalKind.Const,
             access: CaptureAccess.Direct,
-            slot: -1,
             binding,
           });
     if (isWrite && (setupLocal !== undefined || binding === ctx.propsBinding)) {
@@ -127,6 +168,66 @@ export function collectCaptures(
   return { propsReads, locals, moduleReads, other, capturedWrite, functions, propsRequired };
 }
 
+/** Free references in code lowering emits. */
+function liveReferences(node: Node | Node[], ctx: LowerContext) {
+  return ctx.bindings.freeReferences(node).filter(({ node }) => !ctx.lifts.isDropped(node));
+}
+
+/**
+ * How the author wrote a local holding a local function no segment can hold: reassigned, declared
+ * twice, or an alias of one. Null for any other binding.
+ */
+function unliftableFunction(binding: LocalId, ctx: LowerContext): string | null {
+  const { scope, name } = ctx.plan.bindings[binding];
+  if (
+    scope === BindingScope.Module ||
+    scope === BindingScope.Import ||
+    ctx.lifts.liftables.has(binding)
+  ) {
+    return null;
+  }
+  const declarations = ctx.bindings.declarationsOf(binding);
+  const values = [
+    ...declarations.filter(({ type }) => type === 'FunctionDeclaration'),
+    ...ctx.bindings.assignedValuesOf(binding),
+  ].map((value) => unwrapExpression(value)!);
+  const isWritten = ctx.bindings.referencesOf(binding).some(({ isWrite }) => isWrite);
+  if (!isWritten && declarations.length === 1) {
+    const target = values.length === 1 ? aliasedLiftable(values[0], ctx) : null;
+    return target === null
+      ? null
+      : `"${name}", an alias of the local ${liftableKind(target, ctx)} "${ctx.plan.bindings[target].name}"`;
+  }
+  const isComponent = (value: Node) =>
+    isComponentDeclaration(value, ctx.bindings, ctx.coreBindings) ||
+    isHeuristicComponent(value, binding, ctx.jsx, ctx.bindings);
+  const isFunction = (value: Node) => isFunctionLike(value) || aliasedLiftable(value, ctx) !== null;
+  if (values.length === 0 || !values.every((value) => isFunction(value) || isComponent(value))) {
+    return null;
+  }
+  const kind = values.some(isComponent) ? 'component' : 'function';
+  return isWritten
+    ? `the reassigned local ${kind} "${name}"`
+    : `the local ${kind} "${name}" declared twice`;
+}
+
+/** The liftable `value` may name: `f`, `c ? A : B`, `a ?? f`. */
+function aliasedLiftable(value: Node, ctx: LowerContext): LocalId | null {
+  const node = unwrapExpression(value)!;
+  if (node.type === 'ConditionalExpression') {
+    return aliasedLiftable(node.consequent, ctx) ?? aliasedLiftable(node.alternate, ctx);
+  }
+  if (node.type === 'LogicalExpression') {
+    return aliasedLiftable(node.left, ctx) ?? aliasedLiftable(node.right, ctx);
+  }
+  const binding = node.type === 'Identifier' ? ctx.bindings.reference(node) : null;
+  return binding !== null && ctx.lifts.liftables.has(binding) ? binding : null;
+}
+
+function liftableKind(binding: LocalId, ctx: LowerContext): string {
+  return ctx.lifts.liftables.get(binding)!.component === null ? 'function' : 'component';
+}
+
 export interface LoweredCaptures {
   captures: Qrl['captures'];
   functions: Qrl['functions'];
@@ -141,12 +242,22 @@ export function lowerCaptures(
   /** Refusal-message subject, e.g. 'a branch arm'. */
   subject: string,
   localBindings: ReadonlySet<LocalId> = new Set(),
-  lift = true
+  {
+    lift = true,
+    ownsHooks = !lift,
+    own = node,
+  }: {
+    lift?: boolean;
+    /** A lifted component body is its own setup, so its hooks have an owner. */
+    ownsHooks?: boolean;
+    own?: Node | Node[];
+  } = {}
 ): LoweredCaptures {
-  const refs = collectCaptures(node, ctx, localBindings, lift);
+  const refs = collectCaptures(node, ctx, localBindings, lift, own);
   // A lifted body runs outside setup, where a hook has no component owner. `useId` is a plain
   // counter read and a `$` hook is a marker call the compiler rewrites wherever it appears.
-  const hookCall = lift
+  // A nested segment (a lifted component's setup) checks its own hooks.
+  const hookCall = !ownsHooks
     ? ctx.bindings
         .freeReferences(node)
         .find(
@@ -155,7 +266,8 @@ export function lowerCaptures(
             node.type === 'Identifier' &&
             /^use[A-Z]/.test(node.name) &&
             node.name !== 'useId' &&
-            !node.name.endsWith(QRL_SUFFIX)
+            !node.name.endsWith(QRL_SUFFIX) &&
+            ctx.lifts.isOwnRead(node, own)
         )
     : undefined;
   if (hookCall !== undefined) {
@@ -172,6 +284,10 @@ export function lowerCaptures(
   const captures: Qrl['captures'] = [];
   const args: QrlUse['args'] = [];
   const addCapture = (binding: LocalId, access: CaptureAccess) => {
+    if (lift && ctx.lifts.liftables.has(binding)) {
+      const { name } = ctx.plan.bindings[binding];
+      throw new Error(`pipeline: the local function "${name}" in a capture list`);
+    }
     if (!captures.some((capture) => capture.binding === binding)) {
       const implicit = ctx.bindings.implicitKind(binding);
       const isCaptured = ctx.locals.has(binding);
@@ -218,7 +334,6 @@ export function createCapturedContext(ctx: LowerContext, captures: Qrl['captures
       locals.set(binding, {
         kind: LocalKind.Const,
         access: CaptureAccess.Direct,
-        slot: -1,
         binding,
       });
     }

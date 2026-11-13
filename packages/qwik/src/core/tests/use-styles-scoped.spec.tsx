@@ -4,13 +4,21 @@ import {
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
+  Resource,
   Slot,
   useComputed$,
+  useResource$,
   useSignal,
   useStylesScoped$,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
-import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import {
+  createDocument,
+  domRender,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '..';
@@ -20,6 +28,13 @@ import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const InlineCounter = (props: { count: number }) => (
+  <>
+    <span class={props.count % 2 ? 'inline odd' : 'inline even'}>{props.count}</span>
+    {props.count > 0 && <em class="added">added</em>}
+  </>
+);
 
 const STYLE_RED = `.container {background-color: red;}`;
 const STYLE_BLUE = `.container {background-color: blue;}`;
@@ -615,6 +630,104 @@ describe.each([
         <div class={(globalThis as any).rawStyleId + ' red'}>this should be red</div>
       </Component>
     );
+  });
+
+  describe('inline components', () => {
+    const getClass = (container: { document: Document }, selector: string) =>
+      container.document.querySelector(selector)?.getAttribute('class');
+
+    it('should keep scoped style on inline component output after re-render', async () => {
+      (globalThis as any).rawStyleId = '';
+      const StyledComponent = component$(() => {
+        (globalThis as any).rawStyleId = useStylesScoped$(STYLE_RED).scopeId;
+        const count = useSignal(0);
+        return (
+          <div class="container">
+            <button onClick$={() => count.value++}>increment</button>
+            <InlineCounter count={count.value} />
+          </div>
+        );
+      });
+
+      const { container } = await render(<StyledComponent />, { debug });
+      const scopeId = (globalThis as any).rawStyleId;
+      expect(getClass(container, '.inline')).toEqual(`${scopeId} inline even`);
+      expect(getClass(container, '.added')).toBeUndefined();
+      await trigger(container.element, 'button', 'click');
+      expect(container.document.querySelector('.inline')?.textContent).toEqual('1');
+      expect(getClass(container, '.inline')).toEqual(`${scopeId} inline odd`);
+      expect(getClass(container, '.added')).toEqual(`${scopeId} added`);
+    });
+
+    it('should keep scoped style on <Resource> output resolved on the client', async () => {
+      (globalThis as any).rawStyleId = '';
+      const StyledComponent = component$(() => {
+        (globalThis as any).rawStyleId = useStylesScoped$(STYLE_RED).scopeId;
+        const count = useSignal(0);
+        const resource = useResource$(({ track }) => track(count));
+        return (
+          <div class="container">
+            <button onClick$={() => count.value++}>increment</button>
+            <Resource
+              value={resource}
+              onResolved={(value) => (
+                <div class={value % 2 ? 'resolved odd' : 'resolved even'}>
+                  {value}
+                  {value > 0 && <em class="added">added</em>}
+                </div>
+              )}
+            />
+          </div>
+        );
+      });
+
+      const { container } = await render(<StyledComponent />, { debug });
+      const scopeId = (globalThis as any).rawStyleId;
+      expect(getClass(container, '.resolved')).toEqual(`${scopeId} resolved even`);
+      await trigger(container.element, 'button', 'click');
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+      expect(container.document.querySelector('.resolved')?.textContent).toEqual('1added');
+      expect(getClass(container, '.resolved')).toEqual(`${scopeId} resolved odd`);
+      expect(getClass(container, '.added')).toEqual(`${scopeId} added`);
+    });
+
+    it('should keep the authoring component scope on projected inline component output', async () => {
+      (globalThis as any).rawStyleId1 = '';
+      (globalThis as any).rawStyleId2 = '';
+      const Child = component$(() => {
+        (globalThis as any).rawStyleId2 = useStylesScoped$(STYLE_BLUE).scopeId;
+        return (
+          <section>
+            <Slot />
+          </section>
+        );
+      });
+
+      const Parent = component$(() => {
+        (globalThis as any).rawStyleId1 = useStylesScoped$(STYLE_RED).scopeId;
+        const count = useSignal(0);
+        return (
+          <>
+            <button onClick$={() => count.value++}>increment</button>
+            <Child>
+              <InlineCounter count={count.value} />
+            </Child>
+          </>
+        );
+      });
+
+      const { container } = await render(<Parent />, { debug });
+      const parentScopeId = (globalThis as any).rawStyleId1;
+      const childScopeId = (globalThis as any).rawStyleId2;
+      expect(getClass(container, 'section')).toEqual(childScopeId);
+      expect(getClass(container, '.inline')).toEqual(`${parentScopeId} inline even`);
+      await trigger(container.element, 'button', 'click');
+      expect(container.document.querySelector('.inline')?.textContent).toEqual('1');
+      expect(getClass(container, '.inline')).toEqual(`${parentScopeId} inline odd`);
+      expect(getClass(container, '.added')).toEqual(`${parentScopeId} added`);
+    });
   });
 
   describe('regression', () => {

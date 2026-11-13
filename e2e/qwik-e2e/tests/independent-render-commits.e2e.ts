@@ -71,6 +71,11 @@ test('does not restore a pending subtree removed by its parent', async ({ page }
   await page.locator('#independent-remove').click();
   await expect(page.locator('#independent-removed')).toHaveText('removed');
   await page.evaluate(() => (window as any).__independentRenderCommit.release());
+  await page.waitForFunction(() => (window as any).__independentRenderCommit.resumed);
+  await page.evaluate(async () => {
+    const container = (document.querySelector('[q\\:container]') as any).qContainer;
+    await container.$renderPromise$;
+  });
   await expect(page.locator('#independent-toast')).toHaveCount(0);
   await expect(page.locator('#independent-removed')).toHaveText('removed');
 });

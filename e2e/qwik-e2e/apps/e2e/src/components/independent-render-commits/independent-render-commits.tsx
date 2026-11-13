@@ -20,7 +20,10 @@ const Gated = component$<{ value: number; id: string }>(({ value, id }) => {
   }
   const gate = (globalThis as any).__independentRenderCommit;
   gate.entered = true;
-  return gate.wait.then(() => <span id={id}>toast {count}</span>);
+  return gate.wait.then(() => {
+    gate.resumed = true;
+    return <span id={id}>toast {count}</span>;
+  });
 });
 
 const Tail = component$<{ value: number }>(({ value }) => {

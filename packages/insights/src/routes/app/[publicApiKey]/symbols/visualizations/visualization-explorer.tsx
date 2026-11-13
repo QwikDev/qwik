@@ -6,8 +6,14 @@ const views = [['groups', 'Group sizes']];
 const button =
   'cursor-pointer rounded-editorial-md border border-editorial-border px-editorial-4 py-editorial-2 text-editorial-12 hover:bg-editorial-selected focus-visible:outline-2 focus-visible:outline-editorial-accent';
 
-export const VisualizationExplorer = component$<{ data: LabData; initialView?: string }>(
-  ({ data, initialView }) => {
+interface VisualizationExplorerProps {
+  data: LabData;
+  initialView?: string;
+  currentSearch?: string;
+}
+
+export const VisualizationExplorer = component$<VisualizationExplorerProps>(
+  ({ data, initialView, currentSearch = '' }) => {
     const activeView = views.some(([key]) => key === initialView) ? initialView! : 'groups';
     const named = new Map(
       data.symbols
@@ -40,7 +46,11 @@ export const VisualizationExplorer = component$<{ data: LabData; initialView?: s
           {views.map(([key, label]) => (
             <a
               key={key}
-              href={`?view=${key}`}
+              href={(() => {
+                const params = new URLSearchParams(currentSearch);
+                params.set('view', key);
+                return `?${params.toString()}`;
+              })()}
               aria-current={activeView === key ? 'page' : undefined}
               class={[button, activeView === key ? 'bg-editorial-selected font-semibold' : '']}
             >

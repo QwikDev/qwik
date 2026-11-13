@@ -29,6 +29,21 @@ const data = {
 };
 
 describe('visualization lab', () => {
+  it('preserves the report query when switching visualization views', async () => {
+    const { document } = await domRender(
+      <VisualizationExplorer data={data} currentSearch="?limit=25&view=unknown&filter=a%26b" />
+    );
+    const links = document.querySelectorAll<HTMLAnchorElement>('a[href^="?"]');
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      const params = new URLSearchParams(link.getAttribute('href')!);
+      expect(params.get('limit')).toBe('25');
+      expect(params.get('filter')).toBe('a&b');
+      expect(params.getAll('view')).toHaveLength(1);
+      expect(params.get('view')).not.toBe('unknown');
+    }
+  });
+
   it('shows symbol shares and updates the selected group', async () => {
     const { document } = await domRender(<VisualizationExplorer data={data} />);
     expect(document.body.textContent).toContain('How is this application divided?');

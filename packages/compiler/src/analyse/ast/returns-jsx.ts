@@ -10,7 +10,7 @@ import type {
 } from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression, unwrapTypeExpression } from './utils';
-import type { JsxAnalysis } from './jsx-analysis';
+import { JsxValueKind, type JsxAnalysis, type JsxValue } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
 import { BindingScope, VarKind, type LocalId } from '../../schema';
 import { QwikMarker } from '../../words';
@@ -278,10 +278,24 @@ function isJsxReturnValue(node: unknown): boolean {
   }
 }
 
+/** JSX, or a list of it in any arm: a returned list renders as a component's output does. */
+function rendersJsx(value: JsxValue): boolean {
+  switch (value.kind) {
+    case JsxValueKind.Collection:
+      return value.row !== null && rendersJsx(value.row);
+    case JsxValueKind.Conditional:
+      return rendersJsx(value.then) || rendersJsx(value.else);
+    case JsxValueKind.Logical:
+      return rendersJsx(value.left) || rendersJsx(value.right);
+    default:
+      return value.hasJsxValue;
+  }
+}
+
 function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis, anonymous: boolean): boolean {
   const returnsJsx = anonymous
     ? isJsxReturnValue
-    : (value: unknown) => isNode(value) && jsx.read(unwrapExpression(value) ?? value).hasJsxValue;
+    : (value: unknown) => isNode(value) && rendersJsx(jsx.read(unwrapExpression(value) ?? value));
   const body = unwrapExpression((fn as WalkableNode).body);
   if (body?.type !== 'BlockStatement') {
     return returnsJsx(body);

@@ -1368,3 +1368,44 @@ describe('a list row writing a captured local', () => {
     expect(modules.some(({ code }) => code.includes('.rowEvents ??='))).toBe(isShared);
   });
 });
+
+describe('an uppercase function returning a list', () => {
+  const list = 'items.value.map((item) => <li key={item}>{item}{s.value}</li>)';
+  const footer = `function Footer() { return ${list}; }`;
+  const items = "const items = useSignal(['a', 'b']);";
+
+  describe.each([
+    ['declared before the return', `${items}\n  ${footer}\n  return <ul><Footer /></ul>;`],
+    ['declared after the return', `${items}\n  return <ul><Footer /></ul>;\n  ${footer}`],
+  ])('rendered as a tag, %s', (_, body) => {
+    test.each([false, true])('compiles as a component (SSR: %s)', async (isServer) => {
+      const modules = await compile(inApp(body), isServer);
+      expect(brokenOrDeadCode(modules)).toEqual([]);
+      expect(modules.map(({ code }) => code).join('\n')).toMatch(componentOf('Footer\\w*'));
+    });
+
+    test('renders its rows on the client', async () => {
+      const modules = await compile(inApp(body), false);
+      expect(await renderAppOnClient(modules, 'li')).toEqual(['a0', 'b0']);
+    });
+
+    test('renders its rows on the server', async () => {
+      const modules = await compile(inApp(body), true);
+      expect(readRenderedText(await renderAppOnServer(modules), 'li')).toEqual(['a0', 'b0']);
+    });
+  });
+
+  test.each([
+    ['a lowercase twin', `function footer() { return ${list}; }`, 'footer'],
+    ['called directly', footer, 'Footer'],
+  ])('%s stays a plain function', async (_, declaration, name) => {
+    for (const isServer of [false, true]) {
+      const modules = await compile(
+        inApp(`${items}\n  ${declaration}\n  return <ul>{${name}()}</ul>;`),
+        isServer
+      );
+      expect(emittedCodeErrors(modules)).toEqual([]);
+      expect(modules.map(({ code }) => code).join('\n')).not.toMatch(componentOf(`${name}\\w*`));
+    }
+  });
+});

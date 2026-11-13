@@ -612,6 +612,56 @@ describe.each([
     (global as any).resourceCache = undefined;
   });
 
+  it('should drop object keys missing when the next resource result is a store proxy', async () => {
+    const ResourceCmp = component$(() => {
+      const mode = useSignal<'a' | 'b'>('a');
+      const storeA = useStore({ name: 'Case A', items: ['knife', 'gloves'], featured: true });
+      const storeB = useStore({ name: 'Case B', items: ['sticker'] });
+      const resource = useResource$(async ({ track }) => {
+        track(mode);
+        return mode.value === 'a' ? storeA : storeB;
+      });
+      return (
+        <button
+          onClick$={() => {
+            mode.value = mode.value === 'a' ? 'b' : 'a';
+          }}
+        >
+          <Resource value={resource} onResolved={(value) => <span>{JSON.stringify(value)}</span>} />
+        </button>
+      );
+    });
+
+    const { vNode, container } = await render(<ResourceCmp />, { debug });
+    const settle = async () => {
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+      await waitForDrain(container);
+    };
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>{'{"name":"Case A","items":["knife","gloves"],"featured":true}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+
+    await trigger(container.element, 'button', 'click');
+    await settle();
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>{'{"name":"Case B","items":["sticker"]}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+  });
+
   it('should drop object keys missing from the next resource result', async () => {
     const ResourceCmp = component$(() => {
       const showFeatured = useSignal(true);

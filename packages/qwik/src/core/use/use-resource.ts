@@ -66,28 +66,62 @@ export interface ResourceOptions {
   timeout?: number;
 }
 
+const _propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+const assignOwnEnumerableProps = (target: object, source: object): void => {
+  const unwrappedSource = unwrapStore(source);
+  const keys = Reflect.ownKeys(unwrappedSource);
+  const unwrappedTarget = unwrapStore(target);
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    if (!_propertyIsEnumerable.call(unwrappedSource, key)) {
+      continue;
+    }
+    const value = (unwrappedSource as Record<PropertyKey, unknown>)[key];
+    if (key === '__proto__') {
+      Object.defineProperty(unwrappedTarget, key, {
+        value,
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+      continue;
+    }
+    (target as Record<PropertyKey, unknown>)[key] = value;
+  }
+};
+
 const copyResourceResult = <T extends object>(result: T): T => {
   if (Array.isArray(result)) {
     return result.slice() as T;
   }
-  return Object.assign({} as T, result);
+  const copy = {} as T;
+  assignOwnEnumerableProps(copy, result);
+  return copy;
 };
 
 const syncResourceStore = (current: object, next: object): void => {
   if (Array.isArray(current) && Array.isArray(next)) {
-    current.length = next.length;
-    Object.assign(current, next);
+    current.length = unwrapStore(next).length;
+    assignOwnEnumerableProps(current, next);
     return;
   }
+  const unwrappedNext = unwrapStore(next);
   const currentKeys = Object.keys(unwrapStore(current));
   for (let index = 0; index < currentKeys.length; index++) {
     const key = currentKeys[index];
-    if (!Object.hasOwn(next, key)) {
+    if (!Object.hasOwn(unwrappedNext, key)) {
       Reflect.deleteProperty(current, key);
     }
   }
-  Object.assign(current, next);
+  assignOwnEnumerableProps(current, next);
 };
+
+/** @internal */
+export const _copyResourceResult = copyResourceResult;
+
+/** @internal */
+export const _syncResourceStore = syncResourceStore;
 
 /**
  * The resource function wrapper

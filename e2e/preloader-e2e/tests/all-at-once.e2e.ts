@@ -36,7 +36,11 @@ const clickFixture = (page: Page, fixture: Fixture) => () => startFixture(page, 
 
 const clickEachFixtureCold = async (
   page: Page,
-  onClick: (fixture: Fixture, roundTrips: RoundTrip[]) => Promise<void> | void
+  onClick: (
+    fixture: Fixture,
+    roundTrips: RoundTrip[],
+    stillOngoing: string[]
+  ) => Promise<void> | void
 ) => {
   await recordSpeculativePreloads(page);
   const gate = await createGate(page);
@@ -48,7 +52,8 @@ const clickEachFixtureCold = async (
       clickFixture(page, fixture),
       resultIsDone(fixtureResult(page, fixture))
     );
-    await onClick(fixture, roundTrips);
+    const stillOngoing = gate.held.map((route) => route.request().url());
+    await onClick(fixture, roundTrips, stillOngoing);
   }
   await releaseAll(gate);
 };
@@ -76,12 +81,16 @@ test.describe('all at once', () => {
   test("sequential cold clicks: each click fetches only its own fixture's chunks", async ({
     page,
   }) => {
-    await clickEachFixtureCold(page, (fixture, roundTrips) => {
-      const fromOtherFixtures = roundTrips
-        .flatMap((roundTrip) => roundTrip.urls)
-        .filter(
-          (url) => chunkHoldsSegmentsFrom(url, ['src/']) && !chunkComesFrom(url, fixture.sources)
-        );
+    const fetchedByEarlierClicks = new Set<string>();
+    await clickEachFixtureCold(page, (fixture, roundTrips, stillOngoing) => {
+      const fetched = [
+        ...roundTrips.flatMap((roundTrip) => roundTrip.urls),
+        ...stillOngoing,
+      ].filter((url) => !fetchedByEarlierClicks.has(url));
+      const fromOtherFixtures = fetched.filter(
+        (url) => chunkHoldsSegmentsFrom(url, ['src/']) && !chunkComesFrom(url, fixture.sources)
+      );
+      fetched.forEach((url) => fetchedByEarlierClicks.add(url));
       expect.soft(fromOtherFixtures, fixture.id).toEqual([]);
     });
   });

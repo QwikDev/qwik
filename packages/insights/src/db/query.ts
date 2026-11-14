@@ -142,6 +142,9 @@ export async function getSymbolDetails(
   publicApiKey: string,
   { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
+  if (manifestHashes.length === 0) {
+    return [];
+  }
   return time('symbolDetailTable.getSymbolDetails', async () => {
     return db
       .select({
@@ -158,7 +161,6 @@ export async function getSymbolDetails(
           inArray(symbolDetailTable.manifestHash, manifestHashes)
         )
       )
-      .limit(1000)
       .all();
   });
 }

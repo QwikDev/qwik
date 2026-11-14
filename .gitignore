@@ -60,3 +60,4 @@ packages/coverage/*
 visualizer.html
 **/lib-types/**/*
 
+.scratch

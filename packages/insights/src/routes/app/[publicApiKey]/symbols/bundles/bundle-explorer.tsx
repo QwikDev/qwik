@@ -1,21 +1,48 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { createPreviewBundles, getPreviewBundles } from './affinity-preview';
+import type { MatrixPath } from '~/stats/edges';
+import { groupByAffinity, type AffinityLink } from '~/stats/bundle-affinity';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
 
-export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
+export const BundleExplorer = component$<{
+  data: BundleInfo & { affinityTree?: AffinityLink[]; previewPaths?: MatrixPath[] };
+}>(({ data: initialData }) => {
+  const affinity = useSignal(50);
+  const data = useComputed$(() => ({
+    ...initialData,
+    bundles:
+      affinity.value === 50 || !initialData.affinityTree
+        ? initialData.bundles
+        : getPreviewBundles(
+            groupByAffinity(initialData.symbols, initialData.affinityTree, affinity.value),
+            initialData
+          ),
+  }));
   const selectedIndex = useSignal(0);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
-  const selectedBundle = data.bundles.at(selectedIndex.value) ?? data.bundles.at(0);
-  const strongestRelationships = selectedSymbol.value
-    ? (selectedBundle?.symbolRelationships[selectedSymbol.value] ?? [])
-    : (selectedBundle?.relationships ?? []);
+  const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+  const strongestRelationships = useComputed$(() => {
+    const bundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+    if (!selectedSymbol.value) {
+      return bundle?.relationships ?? [];
+    }
+    if (bundle && !initialData.bundles.includes(bundle)) {
+      return (
+        createPreviewBundles([bundle], initialData, selectedSymbol.value)[0].symbolRelationships[
+          selectedSymbol.value
+        ] ?? []
+      );
+    }
+    return bundle?.symbolRelationships[selectedSymbol.value] ?? [];
+  });
   const relationship =
     selectedRelationship.value < 0
       ? undefined
-      : strongestRelationships.at(selectedRelationship.value);
+      : strongestRelationships.value.at(selectedRelationship.value);
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -45,12 +72,60 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
         )}
       </header>
 
+      <section
+        class="mt-editorial-6 rounded-editorial-md border border-editorial-border p-editorial-5"
+        aria-labelledby="affinity-title"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-editorial-4">
+          <label id="affinity-title" for="bundle-affinity" class="text-editorial-14 font-semibold">
+            Clustering affinity
+          </label>
+          <button
+            type="button"
+            class="cursor-pointer text-editorial-12 text-editorial-link"
+            onClick$={() => {
+              affinity.value = 50;
+              selectedIndex.value = 0;
+              selectedSymbol.value = '';
+              selectedRelationship.value = -1;
+            }}
+          >
+            Reset to automatic
+          </button>
+        </div>
+        <input
+          id="bundle-affinity"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={affinity.value}
+          class="mt-editorial-4 w-full cursor-pointer accent-[var(--color-editorial-accent)]"
+          aria-describedby="affinity-help"
+          aria-valuetext={`${affinity.value}% affinity, ${data.value.bundles.length} suggested bundles`}
+          onInput$={(_, input) => {
+            affinity.value = Number(input.value);
+            selectedIndex.value = 0;
+            selectedSymbol.value = '';
+            selectedRelationship.value = -1;
+          }}
+        />
+        <div class="flex justify-between text-editorial-12 text-editorial-secondary">
+          <span>Fewer, larger bundles</span>
+          <span>{affinity.value}% affinity</span>
+          <span>More, smaller bundles</span>
+        </div>
+        <p id="affinity-help" class="mt-editorial-3 text-editorial-12 text-editorial-muted">
+          Preview only. Drag to explore suggested groups. Build recommendations stay unchanged.
+        </p>
+      </section>
+
       <div class="flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 py-editorial-6">
         <strong class="text-editorial-24 font-semibold">
-          {data.bundles.length.toLocaleString('en')} suggested groups
+          {data.value.bundles.length.toLocaleString('en')} suggested groups
         </strong>
         <span class="text-editorial-14 text-editorial-secondary">
-          across {data.symbols.length.toLocaleString('en')} recorded symbols
+          across {data.value.symbols.length.toLocaleString('en')} recorded symbols
         </span>
       </div>
 
@@ -73,7 +148,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                 selectedRelationship.value = -1;
               }}
             >
-              {data.bundles.map((bundle, index) => (
+              {data.value.bundles.map((bundle, index) => (
                 <option
                   key={bundle.name}
                   value={index}
@@ -95,7 +170,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                 </h2>
               </div>
               <ol class="p-editorial-2">
-                {data.bundles.map((bundle, index) => {
+                {data.value.bundles.map((bundle, index) => {
                   const isSelected = index === selectedIndex.value;
                   return (
                     <li key={bundle.name}>
@@ -121,8 +196,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           {getBundleExecutionCount(bundle).toLocaleString('en')} executions
                         </span>
                         <span class="mt-editorial-2 block text-editorial-11 text-editorial-secondary">
-                          {Math.round((bundle.symbols.length / data.symbols.length) * 100)}% of
-                          recorded symbols
+                          {Math.round((bundle.symbols.length / data.value.symbols.length) * 100)}%
+                          of recorded symbols
                         </span>
                         <span
                           class="mt-editorial-2 block h-1 bg-editorial-data-band"
@@ -131,7 +206,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           <span
                             class="block h-full bg-editorial-data-current"
                             style={{
-                              width: `${(bundle.symbols.length / data.symbols.length) * 100}%`,
+                              width: `${(bundle.symbols.length / data.value.symbols.length) * 100}%`,
                             }}
                           />
                         </span>
@@ -224,9 +299,9 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                       )}
                     </div>
                     <div class="grid items-start md:grid-cols-2">
-                      {strongestRelationships.length ? (
+                      {strongestRelationships.value.length ? (
                         <ol>
-                          {strongestRelationships.map((connection, index) => {
+                          {strongestRelationships.value.map((connection, index) => {
                             const from = selectedBundle.symbols.find(
                               (symbol) => symbol.name === connection.from
                             )!;
@@ -402,8 +477,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                 )}
                 {selectedView.value === 'matrix' && (
                   <RelationshipMatrix
-                    key={selectedIndex.value}
-                    data={data}
+                    key={`${selectedIndex.value}:${affinity.value}`}
+                    data={data.value}
                     selectedIndex={selectedIndex.value}
                   />
                 )}

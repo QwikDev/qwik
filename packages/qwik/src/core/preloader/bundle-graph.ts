@@ -87,7 +87,6 @@ export const loadBundleGraph = (
       .then((r) => r.text())
       .then((text) => {
         graph = parseBundleGraph(JSON.parse(text));
-        isWaitingForGraph = false;
         // Snapshot hints before dependency propagation adds new bundle records.
         const pendingBundles = Array.from(bundles.values());
         let nextIndex = 0;
@@ -108,6 +107,7 @@ export const loadBundleGraph = (
             }
           }
           resumeReplay.$destroy$?.();
+          isWaitingForGraph = false;
           nextTriggerMacroTask();
         };
         const resumeReplay = createMacroTask(replayPendingBundles);

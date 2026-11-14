@@ -806,3 +806,66 @@ test('starts speculative preloads when no bundle graph is requested', async () =
 
   expect(linkNames(document)).toEqual(['speculative.js']);
 });
+
+test('keeps a dependency at needed priority when its importer is replayed in a later slice', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  let now = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  let deliverGraph!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+  preload('dependency.js', 0.8);
+  preload(['filler-1.js', 'filler-2.js', 'filler-3.js'], 0.5);
+  preload('importer.js', 1);
+  await vi.runAllTimersAsync();
+  document.head.querySelector('link')!.onload!({} as Event);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  clock.mockImplementation(() => (now += 6));
+  deliverGraph({
+    text: async () =>
+      JSON.stringify([
+        'dependency.js',
+        'filler-1.js',
+        'filler-2.js',
+        'filler-3.js',
+        'importer.js',
+        0,
+      ]),
+  } as Response);
+  await vi.runAllTimersAsync();
+
+  const dependencyLink = document.head.querySelector('link[href$="/dependency.js"]')!;
+  expect(dependencyLink.getAttribute('fetchpriority')).toBeNull();
+});
+
+test('sends a bundle needed before the preloader started ahead of speculative ones once the graph arrives', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { nextTriggerMacroTask, preload } = await import('./queue');
+
+  preload('needed.js', 1);
+  await vi.runAllTimersAsync();
+  let deliverGraph!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+  preload('speculative.js', 0.6);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  nextTriggerMacroTask();
+  deliverGraph({
+    text: async () => JSON.stringify(['needed.js', 'speculative.js']),
+  } as Response);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['needed.js']);
+});

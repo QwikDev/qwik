@@ -73,7 +73,10 @@ function trigger() {
     // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
     if (
       isNeeded(bundle) ||
-      (!isWaitingForGraph && inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
+      (!isWaitingForGraph &&
+        !adjustmentStack.length &&
+        inFlight.size < config.$maxIdlePreloads$ &&
+        !isNeededInFlight())
     ) {
       queue.shift();
       preloadOne(bundle);

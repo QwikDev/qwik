@@ -214,7 +214,7 @@ async function clientCodeSplitting(output: Rolldown.OutputOptions) {
 }
 
 test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }])(
-  'smart groups by entry, keeps visible tasks apart and honours manual groups (%s)',
+  'smart groups by entry and honours manual groups (%s)',
   async (manual) => {
     const plugin = qwikRolldown({
       optimizerOptions: mockOptimizerOptions(),

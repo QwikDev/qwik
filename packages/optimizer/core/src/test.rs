@@ -10831,3 +10831,31 @@ export const List = component$((props: { outputs: Output[] }) => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn fn_signal_deps_carry_computed_keys() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$((props: { outputs: any[] }) => {
+  const sig = useSignal(false);
+  return (
+    <div>
+      {props.outputs.map((o) => (
+        <button
+          class={{ [o.name]: sig.value }}
+          data-flags={{ [o]: sig.value }}
+          aria-busy={(o.a || { [o.name]: sig }).shorten.value}
+        />
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

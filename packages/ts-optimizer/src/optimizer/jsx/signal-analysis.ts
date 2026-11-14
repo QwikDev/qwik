@@ -404,6 +404,9 @@ function collectSignalDeps(
   function visitVariableChildren(n: AstNode, visit: (child: AstNode) => void): void {
     forEachAstChild(n, (child, key, parent) => {
       if (key === 'key' && parent.type === 'Property') {
+        if (parent.computed) {
+          walkKey(child);
+        }
         return;
       }
       if (key === 'property' && parent.type === 'MemberExpression' && !parent.computed) {
@@ -559,10 +562,12 @@ function rootReplacementsCollector(
       return { replacements: keyRewrites, skipSubtree: true };
     }
 
+    const isComputedObjectKey =
+      ctx.parentKey === 'key' && ctx.parentNode?.type === 'Property' && ctx.parentNode.computed;
     if (
       n.type === 'Identifier' &&
       rootToParam.has(n.name) &&
-      isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode)
+      (isComputedObjectKey || isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode))
     ) {
       return {
         replacements: [

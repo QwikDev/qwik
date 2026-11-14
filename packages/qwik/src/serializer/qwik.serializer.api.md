@@ -44,6 +44,7 @@ export interface SerializationContext {
     $commitRoot$: (root: unknown, obj: unknown) => number;
     // (undocumented)
     $eagerResume$: Set<unknown>;
+    $eventHandlerQrls$: QRL[];
     // (undocumented)
     $eventNames$: Set<string>;
     // Warning: (ae-forgotten-export) The symbol "QRL" needs to be exported by the entry point index.d.ts

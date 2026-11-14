@@ -25,10 +25,6 @@ const getDevSegmentPath = (
     return [symbolName, ''];
   }
   if (!parent) {
-    // Core symbols
-    if (symbolName.startsWith('_') && symbolName.length < 6) {
-      return [symbolName, `${import.meta.env?.BASE_URL}@qwik-handlers`];
-    }
     console.error('qwik symbolMapper: unknown qrl requested without parent:', symbolName);
     return [symbolName, `${import.meta.env?.BASE_URL}${symbolName}.js`];
   }

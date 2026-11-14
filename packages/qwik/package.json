@@ -40,23 +40,22 @@
     ".": {
       "types": "./public.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./cli": {
       "require": "./dist/cli.mjs"
     },
-    "./handlers.mjs": "./handlers.mjs",
     "./internal": {
       "types": "./dist/core-internal.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./internal/serializer": {
@@ -64,26 +63,26 @@
       "import": {
         "development": "./dist/serializer.mjs",
         "production": "./dist/serializer.prod.mjs",
-        "min": "./dist/serializer.prod.mjs",
+        "min": "./dist/serializer.min.mjs",
         "default": "./dist/serializer.prod.mjs"
       }
     },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.qwik.mjs"
       }
     },
     "./build": {
@@ -126,6 +125,7 @@
       "import": {
         "development": "./dist/server.mjs",
         "production": "./dist/server.prod.mjs",
+        "min": "./dist/server.min.mjs",
         "default": "./dist/server.prod.mjs"
       }
     },
@@ -150,7 +150,6 @@
     "dist",
     "build.d.ts",
     "cli.d.ts",
-    "handlers.mjs",
     "jsx-dev-runtime.d.ts",
     "jsx-runtime.d.ts",
     "loader.d.ts",

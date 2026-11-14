@@ -1,13 +1,14 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
-import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { taskQrl } from '../shared/qrl/handler-qrls';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
-import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';
+import { Task, TaskFlags, type TaskFn } from './use-task';
 
 /** @public */
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
@@ -70,5 +71,5 @@ export const useRegisterTaskEvents = (task: Task, eagerness: VisibleTaskStrategy
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
-  return createQRL<EventHandler>(null, '_task', scheduleTask, null, [task]);
+  return taskQrl().w([task]) as QRL<EventHandler>;
 };

@@ -223,7 +223,7 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
     await plugin.options!({});
     const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
     const groups = (output.codeSplitting as CodeSplitting).groups!;
-    const name = groups[2].name as Rolldown.CodeSplittingNameFunction;
+    const name = groups[1].name as Rolldown.CodeSplittingNameFunction;
     const ctx = {
       getModuleInfo: () => ({
         meta: {
@@ -665,13 +665,13 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
 
   assert.deepEqual(codeSplitting.includeDependenciesRecursively, false);
   assert.deepEqual(
-    codeSplitting.groups!.map((group) => group.name),
-    ['qwik-core', 'qwik-preloader', codeSplitting.groups![2].name]
+    codeSplitting.groups!.map((group) => typeof group.name),
+    ['string', 'function']
   );
-  assert.deepEqual(typeof codeSplitting.groups![2].name, 'function');
+  assert.deepEqual(codeSplitting.groups![0].name, 'qwik-preloader');
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
-    [false, false, false]
+    [false, false]
   );
 });
 
@@ -679,8 +679,8 @@ test('codeSplitting appends the user groups after the qwik groups', async () => 
   const vendor = { name: 'vendor', test: /node_modules/ };
   const codeSplitting = await clientCodeSplitting({ codeSplitting: { groups: [vendor] } });
 
-  assert.deepEqual(codeSplitting.groups!.length, 4);
-  assert.deepEqual(codeSplitting.groups![3], vendor);
+  assert.deepEqual(codeSplitting.groups!.length, 3);
+  assert.deepEqual(codeSplitting.groups![2], vendor);
 });
 
 test('codeSplitting keeps the user top-level options without touching the qwik groups', async () => {
@@ -692,14 +692,14 @@ test('codeSplitting keeps the user top-level options without touching the qwik g
   assert.deepEqual(codeSplitting.minSize, 20000);
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
-    [false, false, false]
+    [false, false]
   );
 });
 
 test('codeSplitting true is the default and keeps the qwik groups', async () => {
   const codeSplitting = await clientCodeSplitting({ codeSplitting: true });
 
-  assert.deepEqual(codeSplitting.groups!.length, 3);
+  assert.deepEqual(codeSplitting.groups!.length, 2);
 });
 
 test('codeSplitting false throws', async () => {

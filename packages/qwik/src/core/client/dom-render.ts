@@ -2,7 +2,7 @@ import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node'
 import { isDocument, isElement } from '../shared/utils/element';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
-import { cleanup } from './vnode-diff';
+import { cleanup } from './vnode-cleanup';
 import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
 import { qDev } from '../shared/utils/qdev';

@@ -1,5 +1,5 @@
-import { _run } from '../client/run-qrl';
-import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { readsOwnCaptures, runQrl, toCoreHandlerQrl } from '../shared/qrl/handler-qrls';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
@@ -35,23 +35,30 @@ export function setEvent(
      * If there are captures we need to schedule so everything is executed in the right order + qrls
      * are resolved.
      *
-     * For internal qrls (starting with `_`) we assume that they do the right thing.
+     * Internal qrls (starting with `_`) and core's own handlers deserialize their own captures.
      */
     if (
       !qrl.$symbol$.startsWith('_') &&
+      !readsOwnCaptures(qrl) &&
       (Array.isArray(qrl.$captures$) || (hasMovedCaptures && qrl.$hasMovedCaptures$))
     ) {
-      qrl = createQRL(null, '_run', _run, null, [qrl]);
+      qrl = runQrl().w([qrl]);
     }
+    serializationCtx.$eventHandlerQrls$.push(qrl);
     return qrlToChunks(serializationCtx, qrl);
+  };
+  const appendQrl = (qrl: QRLInternal<unknown>) => {
+    // The optimizer's `bind:` handlers serialize and preload as core's own.
+    qrl = toCoreHandlerQrl(qrl);
+    appendToValue(getQrlString(qrl));
+    addQwikEventToSerializationContext(serializationCtx, key, qrl);
   };
 
   if (Array.isArray(qrls)) {
     for (let i = 0; i < qrls.length; i++) {
       const qrl: unknown = qrls[i];
       if (isQrl(qrl)) {
-        appendToValue(getQrlString(qrl));
-        addQwikEventToSerializationContext(serializationCtx, key, qrl);
+        appendQrl(qrl);
       } else if (qrl != null) {
         // nested arrays etc.
         const nestedValue = setEvent(serializationCtx, key, qrl, hasMovedCaptures);
@@ -61,8 +68,7 @@ export function setEvent(
       }
     }
   } else if (isQrl(qrls)) {
-    value = getQrlString(qrls);
-    addQwikEventToSerializationContext(serializationCtx, key, qrls);
+    appendQrl(qrls);
   }
 
   return value;

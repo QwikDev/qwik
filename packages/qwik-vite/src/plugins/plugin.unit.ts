@@ -4,7 +4,12 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
+import {
+  ExperimentalFeatures,
+  QWIK_PRELOADER_ID,
+  createQwikPlugin,
+  mightContainDecorators,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -701,6 +706,44 @@ export default component$(() => {
   expect(result?.meta?.qwikdeps).toContain('/root/libs/server-fn.ts');
 });
 
+test.each([false, true])(
+  'transforms prebuilt libraries without HMR instrumentation (tsOptimizer: %s)',
+  async (tsOptimizer) => {
+    const plugin = await mockPlugin(process.platform, true, tsOptimizer);
+    await plugin.normalizeOptions({ rootDir: '/root' });
+    plugin.configureServer({
+      hot: {},
+      moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    } as any);
+    const ctx = { addWatchFile: () => undefined, emitFile: () => undefined } as any;
+    const transformWithSegments = async (code: string, id: string) => {
+      const result = await plugin.transform(ctx, code, id);
+      const segments = await Promise.all(
+        (result?.meta?.qwikdeps ?? []).map((segmentId: string) => plugin.load({} as any, segmentId))
+      );
+      return [result?.code, ...segments.map((segment) => (segment as { code: string }).code)].join(
+        '\n'
+      );
+    };
+
+    const app = await transformWithSegments(
+      `import { component$ } from '@qwik.dev/core';
+export const Cmp = component$(() => null);
+`,
+      '/root/src/routes/index.tsx'
+    );
+    const library = await transformWithSegments(
+      `import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+export const Cmp = componentQrl(inlinedQrl(() => null, 'Cmp_component_abc123'));
+`,
+      '/root/node_modules/lib/index.qwik.mjs'
+    );
+
+    expect(app).toContain('_useHmr');
+    expect(library).not.toContain('_useHmr');
+  }
+);
+
 test('load skips HMR wrapper for worker$ segments', async () => {
   const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
@@ -819,6 +862,15 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+test('bundler annotations are not mistaken for decorators', () => {
+  expect(mightContainDecorators('@Entity()\nclass User {}')).toBe(true);
+  expect(mightContainDecorators('const a = (@Inject() b) => b;')).toBe(true);
+  expect(mightContainDecorators('export const Each = /* @__PURE__ */ componentQrl(q);')).toBe(
+    false
+  );
+  expect(mightContainDecorators('const f = /* @__NO_SIDE_EFFECTS__ */ () => 1;')).toBe(false);
+});
+
 describe('decorators follow tsconfig', () => {
   const decoratedComponent = `import { component$ } from '@qwik.dev/core';
 const Entity = (): ClassDecorator => (target) => target;
@@ -854,6 +906,23 @@ export default component$(() => {
     expect(code).not.toContain('@Entity');
     expect(code).not.toContain('@Inject');
     expect(code).toContain('_decorate(');
+  });
+
+  test('transforms prebuilt libraries without importing vite, as in the browser REPL', async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    const plugin = await mockPlugin(process.platform, true, true);
+    plugin.getSys().dynamicImport = async (id) => {
+      throw new Error(`no ${id} in the browser`);
+    };
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      `/** @public */
+export const greet = () => 'hi';
+`,
+      path.join(rootDir, 'node_modules/lib/index.qwik.mjs')
+    );
+    expect(result?.code).toContain('greet');
   });
 
   test('keeps standard decorators without experimentalDecorators', async () => {

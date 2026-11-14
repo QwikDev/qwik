@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
+import { chunkComesFrom, getCoreBundle, getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
@@ -27,7 +27,7 @@ const TO_TREE: Fixture = {
   expected: '5',
 };
 
-const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
+const coreUrl = () => `${ORIGIN}/build/${getCoreBundle()}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
 

@@ -3,7 +3,7 @@ import { initPreloader, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
-const simplifyPath = (base: string, path: string | null | undefined) => {
+export const simplifyPath = (base: string, path: string | null | undefined) => {
   if (path == null) {
     return null;
   }
@@ -100,16 +100,6 @@ export const preloaderPre = (
     }
     container.writeScript(scriptAttrs, script);
   }
-
-  const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
-  if (corePath) {
-    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
-    if (nonce) {
-      linkAttrs['nonce'] = nonce;
-    }
-    container.openElement('link', null, linkAttrs, null, null, null);
-    container.closeElement();
-  }
 };
 
 export const includePreloader = (
@@ -134,11 +124,10 @@ export const includePreloader = (
   const { resolvedManifest } = container;
   if (allowedSsrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
-    const coreBundle = resolvedManifest?.manifest.core;
     for (let i = 0; i < referencedBundles.length; i++) {
       const href = referencedBundles[i];
-      // we already preload the preloader and core bundles
-      if (href === preloaderBundle || href === coreBundle) {
+      // we already preload the preloader bundle
+      if (href === preloaderBundle) {
         continue;
       }
       links.push(href);
@@ -200,6 +189,41 @@ function normalizePreLoaderOptions(
 ): Required<PreloaderOptions> {
   return { ...preLoaderOptionsDefault, ...input };
 }
+
+const staticImportsByGraph = new WeakMap<(string | number)[], Map<string, string[]>>();
+
+/**
+ * Each bundle's static imports, which a modulepreload does not fetch. They are the deps before the
+ * first negative probability marker, since a likely dynamic import can also parse as probability
+ * 1.
+ */
+export const getStaticImports = (bundleGraph: (string | number)[] | undefined) => {
+  if (!bundleGraph) {
+    return undefined;
+  }
+  let staticImports = staticImportsByGraph.get(bundleGraph);
+  if (staticImports) {
+    return staticImports;
+  }
+  staticImports = new Map();
+  let i = 0;
+  while (i < bundleGraph.length) {
+    const name = bundleGraph[i++] as string;
+    const imports: string[] = [];
+    let isStatic = true;
+    while (typeof bundleGraph[i] === 'number') {
+      const index = bundleGraph[i++] as number;
+      if (index < 0) {
+        isStatic = false;
+      } else if (isStatic) {
+        imports.push(bundleGraph[index] as string);
+      }
+    }
+    staticImports.set(name, imports);
+  }
+  staticImportsByGraph.set(bundleGraph, staticImports);
+  return staticImports;
+};
 
 export const getBundles = (qrls: QRLInternal[]) => {
   const platform = getPlatform();

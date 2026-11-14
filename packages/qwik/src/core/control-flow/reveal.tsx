@@ -2,19 +2,17 @@ import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { createSignal } from '../reactive-primitives/signal.public';
-import { componentQrl } from '../shared/component.public';
+import { component$, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
-import { inlinedQrl } from '../shared/qrl/qrl';
-import { _capturesObj } from '../shared/qrl/qrl-class';
 import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
-import { canRevealRegistration, type RevealOrder } from '../shared/utils/reveal';
+import type { RevealOrder } from '../shared/utils/reveal';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { createContextId, useContext, useContextProvider } from '../use/use-context';
 import type { CursorBoundary } from '../use/use-cursor-boundary';
 import { useConstant } from '../use/use-signal';
-import { useTaskQrl, type TaskCtx } from '../use/use-task';
+import { useTask$ } from '../use/use-task-dollar';
 import {
   createOutOfOrderRevealCoordinator,
   isOutOfOrderStreaming,
@@ -57,39 +55,6 @@ const createRevealContext = (props: RevealProps): RevealContext => {
   };
 };
 
-/** @internal */
-export const revealCanReveal = () => {
-  const registration = _capturesObj._![0] as RevealRegistration | null;
-  // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
-  if (registration !== null && registration.reveal.version.value < 0) {
-    return false;
-  }
-  if (qTest ? isServerPlatform() : !isBrowser) {
-    const ooos = registration?.reveal.ooos;
-    if (ooos) {
-      return ooos.canReveal(registration);
-    }
-  }
-  return canRevealRegistration(registration);
-};
-
-/** @internal */
-export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
-  const registration = _capturesObj._![0] as RevealRegistration;
-  cleanup(() => {
-    // Keep the SSR registry intact so `reveal.items` serializes for resume.
-    if (qTest ? isServerPlatform() : !isBrowser) {
-      return;
-    }
-    const items = registration.reveal.items;
-    const index = items.indexOf(registration.item);
-    if (index !== -1) {
-      items.splice(index, 1);
-      registration.reveal.version.value++;
-    }
-  });
-};
-
 export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration | null => {
   const reveal = useContext(RevealContext, null);
   const registration = useConstant(() => {
@@ -102,9 +67,25 @@ export const useRevealBoundary = (boundary: CursorBoundary): RevealRegistration 
   });
 
   if (registration !== null) {
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(revealCleanupTask, '_reT', [registration]), {
-      deferUpdates: false,
-    });
+    useTask$(
+      ({ cleanup }) => {
+        cleanup(() => {
+          // Keep the SSR registry intact so `reveal.items` serializes for resume.
+          if (qTest ? isServerPlatform() : !isBrowser) {
+            return;
+          }
+          const items = registration.reveal.items;
+          const index = items.indexOf(registration.item);
+          if (index !== -1) {
+            items.splice(index, 1);
+            registration.reveal.version.value++;
+          }
+        });
+      },
+      {
+        deferUpdates: false,
+      }
+    );
   }
 
   return registration;
@@ -125,8 +106,8 @@ const getOutOfOrderCoordinator = (
   return nextCoordinator;
 };
 
-/** @internal */
-export const revealCmp = (props: RevealProps) => {
+/** @public @experimental */
+export const Reveal: Component<RevealProps> = /*#__PURE__*/ component$<RevealProps>((props) => {
   if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
       'Reveal is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
@@ -152,12 +133,7 @@ export const revealCmp = (props: RevealProps) => {
   }
 
   return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0');
-};
-
-/** @public @experimental */
-export const Reveal = /*#__PURE__*/ componentQrl<RevealProps>(
-  /*#__PURE__*/ inlinedQrl(revealCmp, '_reC')
-) as typeof revealCmp;
+});
 
 type SSRRevealSlotProps = {
   coordinator: OutOfOrderRevealCoordinator;

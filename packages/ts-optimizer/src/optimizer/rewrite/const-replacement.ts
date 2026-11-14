@@ -103,6 +103,10 @@ export function replaceResolvedConstIdentifiers(
       if (parent?.type === 'ImportSpecifier' && parent.imported === node) {
         return;
       }
+      // `export { isServer }` re-exports the binding; a literal is not a valid export name.
+      if (parent?.type === 'ExportSpecifier') {
+        return;
+      }
       const decl = tracker.getDeclaration(node.name);
       if (decl && decl.type !== 'Import') {
         return;

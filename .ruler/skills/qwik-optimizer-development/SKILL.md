@@ -80,6 +80,19 @@ DCE'd. Lower such syntax inside `stripTypeScript` itself, threading the option t
 (see `decorator`); lowering later in the Vite plugin is too late. Segments are served as `.js`, so
 Vite's own `vite:oxc` pass never touches them.
 
+JSX analysis still runs on the TypeScript AST, while Rust strips types first. So any helper that
+walks a member chain (signal and store detection, capture roots) must look through `!`, `as` and
+`satisfies` (`peelExpressionWrappers` in `jsx/signal-analysis.ts`), or `a.b!.value` falls back to
+collecting every identifier, property names included.
+
+## Moving module-level declarations
+
+The TS optimizer moves a declaration into the one segment that uses it, but always moves its whole
+statement. So a statement declaring several bindings (destructuring, or `const a = …, b = …`, which
+minifiers produce everywhere) moves only when every binding goes to that segment; otherwise it stays
+and the segment imports `_auto_` re-exports. Rust instead splits the declarators, so prebuilt
+minified libraries such as core move more helpers into segments under Rust.
+
 ## JSX tag names
 
 Rust transpiles JSX before its Qwik transform, so SWC's rule decides what a tag is: only a tag

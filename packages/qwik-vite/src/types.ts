@@ -27,8 +27,6 @@ export interface QwikManifest {
   bundleGraphAsset?: string;
   /** The preloader bundle fileName */
   preloader?: string;
-  /** The Qwik core bundle fileName */
-  core?: string;
   /** The Qwik loader bundle fileName */
   qwikLoader?: string;
   /** CSS etc to inject in the document head */
@@ -57,7 +55,6 @@ export type ServerQwikManifest = Pick<
   | 'bundleGraphAsset'
   | 'mapping'
   | 'preloader'
-  | 'core'
   | 'qwikLoader'
 >;
 

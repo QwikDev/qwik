@@ -2171,7 +2171,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nReveal: typeof revealCmp\n```",
+      "content": "```typescript\nReveal: Component<RevealProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
       "mdFile": "core.reveal.md"
     },

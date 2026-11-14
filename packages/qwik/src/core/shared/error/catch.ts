@@ -1,12 +1,11 @@
 import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { useCatchStore } from '../../use/use-catch-store';
-import { componentQrl, type Component } from '../component.public';
+import { component$, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
-import { inlinedQrl } from '../qrl/qrl';
-import type { QRL } from '../qrl/qrl.public';
+import { $, type QRL } from '../qrl/qrl.public';
 import { noSerialize } from '../serdes/verify';
 import {
   OnRenderProp,
@@ -35,7 +34,6 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import {
   ERROR_CONTEXT,
-  CATCH_QRL_SYMBOL,
   getOwnCatchStore,
   isErrorFromDeferredSegment,
   markBoundaryErrored,
@@ -44,7 +42,6 @@ import {
   type CatchStore,
   CatchPhase,
 } from './error-handling';
-import { _capturesObj } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import type { VNode } from '../vnode/vnode';
@@ -70,17 +67,6 @@ export interface CatchProps {
    */
   onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 }
-
-/** @internal */
-export const catchReset = (): void => {
-  const [host] = _capturesObj._ as [VNode];
-  // this is executed only on client
-  const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
-  const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
-  if (isBrowserEnv && host && container) {
-    resetCatch(container, host);
-  }
-};
 
 const RESET_KEY_SUFFIX = '\0';
 
@@ -194,51 +180,56 @@ const buildSSRCatchHosts = (store: CatchStore, container: SSRContainer | undefin
   ] as unknown as JSXOutput;
 };
 
-/** @internal */
-export const catchCmp = (props: CatchProps): JSXOutput => {
-  if (!__EXPERIMENTAL__.catchBoundary) {
-    throw new Error(
-      '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
-    );
-  }
-  const store = useCatchStore();
-  const invokeCtx = tryGetInvokeContext();
-  const container = invokeCtx?.$container$;
-  if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
-    store.boundaryId = getNextUniqueIndex(container);
-  }
-  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  if (!isServerEnv && store.error === undefined) {
-    return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
-  }
-
-  const reset = /*#__PURE__*/ inlinedQrl(catchReset, '_caR', [invokeCtx?.$hostElement$]);
-  if (isServerEnv) {
-    const fallbackQrl = props.fallback$;
-    store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
-    const onErrorQrl = props.onError$;
-    if (onErrorQrl) {
-      store.$onError$ = noSerialize((error: unknown, info: CatchInfo) =>
-        onErrorQrl(error as Error, info)
+/** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
+export const Catch: Component<CatchProps> = /*#__PURE__*/ component$<CatchProps>(
+  (props): JSXOutput => {
+    if (!__EXPERIMENTAL__.catchBoundary) {
+      throw new Error(
+        '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
       );
     }
-    return buildSSRCatchHosts(store, container as SSRContainer);
+    const store = useCatchStore();
+    const invokeCtx = tryGetInvokeContext();
+    const container = invokeCtx?.$container$;
+    if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
+      store.boundaryId = getNextUniqueIndex(container);
+    }
+    const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+    if (!isServerEnv && store.error === undefined) {
+      return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
+    }
+
+    const host = invokeCtx?.$hostElement$ as VNode;
+    const reset = $((): void => {
+      // this is executed only on client
+      const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
+      const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+      if (isBrowserEnv && host && container) {
+        resetCatch(container, host);
+      }
+    });
+    if (isServerEnv) {
+      const fallbackQrl = props.fallback$;
+      store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
+      const onErrorQrl = props.onError$;
+      if (onErrorQrl) {
+        store.$onError$ = noSerialize((error: unknown, info: CatchInfo) =>
+          onErrorQrl(error as Error, info)
+        );
+      }
+      return buildSSRCatchHosts(store, container as SSRContainer);
+    }
+
+    const displayError = redactBoundaryErrorForDisplay(store.error, true);
+    return /*#__PURE__*/ _jsxSorted(
+      Slot,
+      null,
+      { name: QFallbackSlot },
+      renderFallbackOrLastResort(props.fallback$, displayError, reset),
+      0,
+      null
+    );
   }
-
-  const displayError = redactBoundaryErrorForDisplay(store.error, true);
-  return /*#__PURE__*/ _jsxSorted(
-    Slot,
-    null,
-    { name: QFallbackSlot },
-    renderFallbackOrLastResort(props.fallback$, displayError, reset),
-    0,
-    null
-  );
-};
-
-/** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
-export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProps>(
-  /*#__PURE__*/ inlinedQrl(catchCmp, CATCH_QRL_SYMBOL)
 );
 
 type SSRErrorFallbackProps = {

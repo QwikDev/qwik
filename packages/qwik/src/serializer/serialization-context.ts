@@ -111,6 +111,8 @@ export interface SerializationContext {
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
+  /** The QRLs that event attributes reference, in the order SSR wrote them. */
+  $eventHandlerQrls$: QRL[];
   $eventNames$: Set<string>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
@@ -135,6 +137,7 @@ class SerializationContextImpl implements SerializationContext {
   public $hasRootStateForwardRefs$ = false;
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
+  public $eventHandlerQrls$: QRL[] = [];
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
   private $serializer$: Serializer;

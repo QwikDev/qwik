@@ -98,7 +98,10 @@ export const replResolver = (
           pkgName === '/jsx-dev-runtime' ||
           pkgName === '/internal'
         ) {
-          return resolveQwik('/dist/core.mjs');
+          // Published versions before core shipped as a Qwik library enter through core.mjs.
+          return resolveQwik(
+            deps[QWIK_PKG_NAME_V1]['/dist/core.qwik.mjs'] ? '/dist/core.qwik.mjs' : '/dist/core.mjs'
+          );
         }
         if (pkgName === '/server') {
           return resolveQwik('/dist/server.mjs');

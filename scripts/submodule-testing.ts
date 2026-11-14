@@ -31,7 +31,7 @@ export async function submoduleTesting(config: BuildConfig) {
     banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
-      importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
+      importPath(/^@qwik\.dev\/core$/, '../core.qwik.mjs'),
       importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
       externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),

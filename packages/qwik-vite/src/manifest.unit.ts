@@ -18,8 +18,7 @@ describe('generateManifestFromBundles', () => {
   const generate = (
     bundles: Record<string, ReturnType<typeof chunk>>,
     qwikLoaderFileName?: string,
-    preloaderFileName?: string,
-    handlersFileName?: string
+    preloaderFileName?: string
   ) =>
     generateManifestFromBundles(
       path as any,
@@ -31,16 +30,15 @@ describe('generateManifestFromBundles', () => {
       (p) => p,
       () => null,
       qwikLoaderFileName,
-      preloaderFileName,
-      handlersFileName
+      preloaderFileName
     );
 
-  test('identifies core/preloader by group name and the loader by its emit file name', () => {
+  test('identifies the preloader by group name and the loader by its emit file name', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
-          '/app/node_modules/@qwik.dev/core/handlers.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
+          '/app/node_modules/@qwik.dev/core/dist/core-qrl.prod.mjs',
         ]),
         'q-loader.js': chunk('qwikloader', 'q-loader.js'),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
@@ -49,48 +47,39 @@ describe('generateManifestFromBundles', () => {
       'q-loader.js'
     );
 
-    expect(manifest.core).toBe('q-core.js');
     expect(manifest.qwikLoader).toBe('q-loader.js');
     expect(manifest.preloader).toBe('q-preloader.js');
-    expect(manifest.mapping['_run']).toBe('q-core.js');
-    expect(manifest.symbols['_run']?.origin).toBe('Qwik core');
   });
 
-  test('emitted preloader and handlers facades win over the group chunks', () => {
+  test('the emitted preloader facade wins over the group chunk', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
         ]),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
         'preloader.js': chunk('preloader', 'preloader.js'),
-        'handlers.js': chunk('handlers', 'handlers.js'),
       },
       undefined,
-      'preloader.js',
-      'handlers.js'
+      'preloader.js'
     );
 
-    expect(manifest.core).toBe('q-core.js');
     expect(manifest.preloader).toBe('preloader.js');
-    expect(manifest.mapping['_run']).toBe('handlers.js');
   });
 
   test('falls back to the group chunk when the emitted entry was merged into it', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
         ]),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
       },
       undefined,
-      'build/preloader.js',
-      'build/handlers.js'
+      'build/preloader.js'
     );
 
     expect(manifest.preloader).toBe('q-preloader.js');
-    expect(manifest.mapping['_run']).toBe('q-core.js');
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {
@@ -129,9 +118,14 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
   });
 
-  test('leaves core handler symbols unmapped when no qwik-core chunk exists', () => {
-    const manifest = generate({ 'q-app.js': chunk('app', 'q-app.js') });
-    expect(manifest.core).toBeUndefined();
-    expect(manifest.mapping['_run']).toBeUndefined();
+  test('lists core among the imports of the bundles that need it, like any bundle', () => {
+    const app = { ...chunk('app', 'q-app.js'), imports: ['q-core.js'] };
+    const manifest = generate({
+      'q-core.js': chunk('core', 'q-core.js', [
+        '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
+      ]),
+      'q-app.js': app,
+    });
+    expect(manifest.bundles['q-app.js'].imports).toEqual(['q-core.js']);
   });
 });

@@ -26,3 +26,23 @@ export const Cmp = component$(() => {
   expect(allCode).toContain('isServer: 1');
   expect(allCode).not.toMatch(/\btrue\s*:\s*true\b/);
 });
+
+it('const-folding keeps re-exported build constants as bindings', () => {
+  const code = `
+import { isServer, isDev } from '@qwik.dev/core/build';
+import { inlinedQrl } from '@qwik.dev/core';
+const handler = () => isServer;
+export const q = inlinedQrl(handler, 'q_handler');
+export { isServer, isDev as dev };
+`;
+  const result = transformModule({
+    input: [{ path: mkFilePath('lib.qwik.mjs'), code: mkSourceText(code) }],
+    srcDir: mkFilePath('.'),
+    mode: 'dev',
+    isServer: true,
+    entryStrategy: { type: 'segment' },
+  });
+  const parent = result.modules.find((m) => m.kind === 'parent')!;
+  expect(parent.code).toMatch(/export \{ isServer, isDev as dev \}/);
+  expect(parent.code).toMatch(/import \{[^}]*isServer[^}]*\} from ['"]@qwik\.dev\/core\/build['"]/);
+});

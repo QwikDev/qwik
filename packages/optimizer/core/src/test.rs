@@ -10800,3 +10800,34 @@ export const List = component$((props) => {
 });
 "#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
 }
+
+#[test]
+fn fn_signal_deps_hold_only_variables() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, type Signal } from '@qwik.dev/core';
+
+type Flag = Signal<boolean>;
+type Output = { shorten?: Flag; a?: any; b?: any };
+
+export const List = component$((props: { outputs: Output[] }) => {
+  return (
+    <div>
+      {props.outputs.map((o) => (
+        <button
+          aria-expanded={!o.shorten!.value}
+          aria-pressed={(o.shorten as Flag).value}
+          aria-busy={(o.a || o.b).shorten.value}
+          aria-hidden={(o.a as Flag) ? o.b.value : false}
+        />
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

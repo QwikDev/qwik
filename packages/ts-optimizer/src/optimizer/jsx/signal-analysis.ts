@@ -5,6 +5,7 @@ import {
   applyReplacements,
   collectRangeReplacements,
   isReplaceableIdentifierPosition,
+  TS_EXPRESSION_WRAPPERS,
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
@@ -242,9 +243,9 @@ function isDeepStoreAccess(
 /**
  * Single-walk collector returning both `roots` (reactive roots, first-appearance order) and
  * `allDeps` (roots plus bare locally-bound identifiers, sorted). The non-computed
- * `MemberExpression.property` and `Property.key` positions are excluded from both outputs — safe
- * because signal/store detection happens at the MemberExpression level, not the property
- * Identifier.
+ * `MemberExpression.property` and `Property.key` positions and type annotations are excluded from
+ * both outputs — safe because signal/store detection happens at the MemberExpression level, not the
+ * property Identifier.
  */
 interface SignalDepsResult {
   roots: string[];
@@ -304,7 +305,7 @@ function collectSignalDeps(
       }
       return;
     }
-    forEachAstChild(n, (child) => fallbackCollectIdents(child));
+    visitVariableChildren(n, fallbackCollectIdents);
   }
 
   // A store/signal chain's computed keys (`sig.value[key]`) are dependencies:
@@ -390,17 +391,17 @@ function collectSignalDeps(
           introduced.push(name);
         }
       }
-      descend(n);
+      visitVariableChildren(n, walk);
       for (const name of introduced) {
         boundParams.delete(name);
       }
       return;
     }
 
-    descend(n);
+    visitVariableChildren(n, walk);
   }
 
-  function descend(n: AstNode): void {
+  function visitVariableChildren(n: AstNode, visit: (child: AstNode) => void): void {
     forEachAstChild(n, (child, key, parent) => {
       if (key === 'key' && parent.type === 'Property') {
         return;
@@ -408,7 +409,10 @@ function collectSignalDeps(
       if (key === 'property' && parent.type === 'MemberExpression' && !parent.computed) {
         return;
       }
-      walk(child);
+      if (child.type.startsWith('TS') && !TS_EXPRESSION_WRAPPERS.has(child.type)) {
+        return;
+      }
+      visit(child);
     });
   }
 

@@ -119,6 +119,43 @@ describe('signal-analysis', () => {
       }
     });
 
+    it('keeps a property name out of the deps behind a non-null assertion: !o.shorten!.value', () => {
+      const { node, source } = parseExpr('!o.shorten!.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+        expect(result.hoistedFn).toBe('(p0)=>!p0.shorten.value');
+      }
+    });
+
+    it('keeps a property name out of the deps behind a cast: (o.shorten as Sig).value', () => {
+      const { node, source } = parseExpr('(o.shorten as Sig).value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+      }
+    });
+
+    it('keeps property names out of the deps behind a fallback: (o.a || o.b).shorten.value', () => {
+      const { node, source } = parseExpr('(o.a || o.b).shorten.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+      }
+    });
+
+    it('keeps a type name out of the deps: (x as Sig) ? o.value : false', () => {
+      const { node, source } = parseExpr('(x as Sig) ? o.value : false');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o', 'x']);
+      }
+    });
+
     it('does NOT hoist a non-reactive unary: !plainVar', () => {
       const { node, source } = parseExpr('!plainVar');
       const result = analyzeSignalExpression(node, source, importedNames);

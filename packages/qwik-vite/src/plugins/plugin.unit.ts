@@ -1017,6 +1017,60 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
     expect(result!.code).toContain('"manifestHash":"abc123"');
   });
 
+  test("embeds the client build's bundle graph in the server bundle", async () => {
+    const client = await mockPlugin();
+    await client.normalizeOptions({ target: 'client', buildMode: 'production' });
+    const assets = new Map<string, string>();
+    const ctx = {
+      resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+      emitFile: (file: { id?: string; name?: string; fileName?: string; source: string }) => {
+        const fileName = file.fileName || `build/${file.name || file.id}`;
+        assets.set(fileName, file.source);
+        return fileName;
+      },
+      getFileName: (ref: string) => ref,
+      getModuleInfo: () => null,
+      meta: { rollupVersion: '' },
+    };
+    const chunk = (name: string, imports: string[]) => ({
+      type: 'chunk',
+      fileName: `build/${name}.js`,
+      name,
+      code: '',
+      exports: [],
+      imports,
+      dynamicImports: [],
+      moduleIds: [],
+      modules: {},
+      isEntry: false,
+      isDynamicEntry: false,
+    });
+    const bundle = {
+      'build/app.js': chunk('app', ['build/dep.js']),
+      'build/dep.js': chunk('dep', []),
+    };
+    await client.buildStart(ctx as any);
+    await client.generateManifest(ctx as any, bundle as any);
+    const clientManifest = JSON.parse(assets.get('q-manifest.json')!) as QwikManifest;
+    const bundleGraph = JSON.parse(assets.get(clientManifest.bundleGraphAsset!)!);
+
+    const server = await mockPlugin();
+    await server.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'production',
+      manifestInput: clientManifest,
+    });
+    const result = await server.transform(
+      {} as any,
+      `export default globalThis.__QWIK_MANIFEST__;`,
+      '/root/src/server.js'
+    );
+    const serverManifest = JSON.parse(result!.code.replace(/^export default |;\s*$/g, ''));
+
+    expect(bundleGraph).not.toEqual([]);
+    expect(serverManifest.bundleGraph).toEqual(bundleGraph);
+  });
+
   test('generates a fresh sourcemap after manifest replacement', async () => {
     const plugin = await mockPlugin();
     await plugin.normalizeOptions({

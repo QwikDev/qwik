@@ -152,7 +152,6 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
         ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
       );
       expect(clickLinks.length).toBeGreaterThan(0);
-      test.fail(true, 'on main, a speculative preload still starts before the needed ones');
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   }

@@ -1,5 +1,6 @@
 import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
+import { toBundleGraphRouteName } from '../../utils/pathname';
 import { getRouteLoaderCtx, getRouteLoaderValues } from '../../runtime/src/route-loaders';
 import {
   getRequestMode,
@@ -57,6 +58,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent, trustForwardedH
     containerAttributes: {
       [Q_ROUTE]: routeName,
     },
+    preloadSeeds: routeName ? [toBundleGraphRouteName(routeName)] : undefined,
     qwikrouter: {
       routeName,
       ev: requestEv,

@@ -346,6 +346,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   private resolveRootContainerReady: (() => void) | null = null;
   private renderQueue: Promise<unknown> = Promise.resolve();
   private scriptUnsafeEmits: (() => void)[] = [];
+  private rootJsx: JSXOutput = null;
   private emittedQwikEventNames = new Set<string>();
   public emittedSyncFnCount = 0;
   private emittedVNodeDataOwners: Set<VNodeDataOwner> | null = null;
@@ -456,6 +457,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   async render(jsx: JSXOutput) {
+    this.rootJsx = jsx;
     try {
       this.openContainer();
       await this.renderJSX(jsx, {
@@ -1177,7 +1179,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     this.emitVNodeData();
     this.emitDelayedOutOfOrderSegmentVNodeData();
     if (!isDev) {
-      preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+      preloaderPost(this, this.renderOptions, this.$serverData$?.nonce, this.rootJsx);
     }
     this.emitSyncFnsData();
     this.emitPatchDataIfNeeded();

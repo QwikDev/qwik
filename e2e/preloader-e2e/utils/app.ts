@@ -15,7 +15,8 @@ type Manifest = {
   preloader?: string;
   bundleGraphAsset?: string;
   bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
-  symbols: Record<string, { ctxName?: string }>;
+  symbols: Record<string, { ctxName?: string; displayName?: string }>;
+  mapping: Record<string, string>;
 };
 
 let manifest: Manifest | undefined;
@@ -129,6 +130,13 @@ export const chunkUrlsNeededToRun = (path: string) => {
 
 export const brotliKb = (url: string) =>
   brotliCompressSync(readFileSync(join(APP_DIR, 'dist/build', bundleFile(url)))).length / 1024;
+
+export const chunkOfSymbolNamed = (displayName: string) => {
+  const { symbols, mapping } = getManifest();
+  return mapping[
+    Object.keys(symbols).find((symbol) => symbols[symbol].displayName === displayName)!
+  ];
+};
 
 export const chunkUrlsFrom = (path: string) =>
   Object.entries(getManifest().bundles)

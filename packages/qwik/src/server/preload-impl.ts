@@ -1,7 +1,95 @@
-import { getPlatform } from '@qwik.dev/core';
-import { initPreloader, qTest } from './qwik-copy';
+import { getPlatform, type JSXOutput } from '@qwik.dev/core';
+import { _isJSXNode, _isQwikComponent, _SERIALIZABLE_STATE } from '@qwik.dev/core/internal';
+import { initPreloader, parseBundleGraph, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
-import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
+import type {
+  PreloaderOptions,
+  RenderOptions,
+  RenderToStreamOptions,
+  ServerQwikManifest,
+} from './types';
+
+type BundleGraph = ReturnType<typeof parseBundleGraph>;
+
+const DEFAULT_PRELOAD_PROBABILITY = 0.6;
+const IGNORED_BELOW_PROBABILITY = 0.01;
+
+const parsedBundleGraphs = new WeakMap<
+  object,
+  { $graph$: BundleGraph; $preloadedBySeeds$: Map<string, Map<string, number>> }
+>();
+
+const bundlesPreloadedFrom = (graph: BundleGraph, seeds: string[]) => {
+  const probabilities = new Map<string, number>();
+  const pending: [name: string, probability: number][] = [];
+  for (let i = 0; i < seeds.length; i++) {
+    pending.push([seeds[i], DEFAULT_PRELOAD_PROBABILITY]);
+  }
+  while (pending.length) {
+    const [name, probability] = pending.pop()!;
+    if (probability < IGNORED_BELOW_PROBABILITY || probability <= (probabilities.get(name) ?? 0)) {
+      continue;
+    }
+    probabilities.set(name, probability);
+    const deps = graph.get(name);
+    if (deps) {
+      for (let i = 0; i < deps.length; i++) {
+        pending.push([deps[i].$name$, probability * deps[i].$importProbability$]);
+      }
+    }
+  }
+  return probabilities;
+};
+
+const seedsWithUnreachedBundles = (
+  manifest: ServerQwikManifest | undefined,
+  seeds: string[],
+  referencedBundles: string[]
+) => {
+  const serializedGraph = manifest?.bundleGraph;
+  if (!serializedGraph || !seeds.length) {
+    return referencedBundles;
+  }
+  let parsed = parsedBundleGraphs.get(serializedGraph);
+  if (!parsed) {
+    parsed = { $graph$: parseBundleGraph(serializedGraph), $preloadedBySeeds$: new Map() };
+    parsedBundleGraphs.set(serializedGraph, parsed);
+  }
+  const graph = parsed.$graph$;
+  const knownSeeds = seeds.filter((seed) => graph.has(seed));
+  if (!knownSeeds.length) {
+    return referencedBundles;
+  }
+  const seedsKey = knownSeeds.join(' ');
+  let preloaded = parsed.$preloadedBySeeds$.get(seedsKey);
+  if (!preloaded) {
+    preloaded = bundlesPreloadedFrom(graph, knownSeeds);
+    parsed.$preloadedBySeeds$.set(seedsKey, preloaded);
+  }
+  const hints = knownSeeds.slice();
+  for (let i = 0; i < referencedBundles.length; i++) {
+    const bundle = referencedBundles[i];
+    const isPreloadedByHead = bundle === manifest.core || bundle === manifest.preloader;
+    if (!preloaded.has(bundle) && !isPreloadedByHead) {
+      hints.push(bundle);
+    }
+  }
+  return hints;
+};
+
+const collectRootComponentQrls = (jsx: unknown, qrls: QRLInternal[]) => {
+  if (Array.isArray(jsx)) {
+    for (let i = 0; i < jsx.length; i++) {
+      collectRootComponentQrls(jsx[i], qrls);
+    }
+  } else if (_isJSXNode(jsx)) {
+    if (_isQwikComponent(jsx.type)) {
+      qrls.push((jsx.type as any)[_SERIALIZABLE_STATE][0]);
+    }
+    collectRootComponentQrls(jsx.children, qrls);
+  }
+  return qrls;
+};
 
 const simplifyPath = (base: string, path: string | null | undefined) => {
   if (path == null) {
@@ -116,7 +204,8 @@ export const includePreloader = (
   container: SSRContainer,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
-  nonce?: string
+  nonce?: string,
+  seeds: string[] = []
 ) => {
   if (referencedBundles.length === 0 || options === false) {
     return null;
@@ -164,8 +253,9 @@ export const includePreloader = (
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
   if (preloaderBundle) {
+    const hints = seedsWithUnreachedBundles(resolvedManifest?.manifest, seeds, referencedBundles);
     script += afterPagePaint(
-      `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}))`
+      `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(hints)}))`
     );
   }
   if (script) {
@@ -184,14 +274,22 @@ export const includePreloader = (
   return null;
 };
 
-export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
+export const preloaderPost = (
+  ssrContainer: SSRContainer,
+  opts: RenderOptions,
+  nonce?: string,
+  rootJsx?: JSXOutput
+) => {
   if (import.meta.env?.DEV && !qTest) {
     return;
   }
   if (opts.preloader !== false) {
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);
-    includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
+    const seeds = getBundles(collectRootComponentQrls(rootJsx, [])).concat(
+      opts.serverData?.preloadSeeds || []
+    );
+    includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce, seeds);
   }
 };
 

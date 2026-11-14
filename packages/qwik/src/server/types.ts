@@ -161,7 +161,12 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
-  /** Metadata that can be retrieved during SSR with `useServerData()`. */
+  /**
+   * Metadata that can be retrieved during SSR with `useServerData()`.
+   *
+   * `preloadSeeds` lists names in the bundle graph, such as a route, that the preloader starts from
+   * together with the root component.
+   */
   serverData?: Record<string, any>;
 
   /**

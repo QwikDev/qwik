@@ -3,7 +3,6 @@ import { chunkComesFrom } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
-  OFF_SCREEN_VISIBLE_TASKS,
   VISIBLE_ABOVE,
   VISIBLE_BELOW,
   VISIBLE_DOCUMENT_IDLE,
@@ -142,7 +141,6 @@ test.describe('visible task chain scrolled into view', () => {
       const roundTrips = await scrollIntoView(opened);
       await releaseAll(opened.gate);
       await expectResult(page, fixture);
-      test.fail(true, OFF_SCREEN_VISIBLE_TASKS);
       expect(roundTrips).toEqual([]);
     });
   }

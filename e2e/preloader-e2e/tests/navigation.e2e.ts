@@ -214,10 +214,6 @@ test.describe('back button', () => {
     const jsRequests = roundTrips.flatMap((roundTrip) =>
       roundTrip.urls.filter((url) => new URL(url).pathname.endsWith('.js'))
     );
-    test.fail(
-      true,
-      'on main, going back renders the previous page on the client and finds its chunks one round trip at a time'
-    );
     expect(jsRequests).toEqual([]);
   });
 });

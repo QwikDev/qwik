@@ -1,11 +1,19 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, labelRequest } from '../utils/app';
+import {
+  chunkComesFrom,
+  chunkOfSymbolNamed,
+  chunkUrlsFrom,
+  getManifest,
+  labelRequest,
+  ORIGIN,
+} from '../utils/app';
 import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
   createGate,
   FILLER,
   maxSpeculativeInFlight,
+  openWarm,
   preloaderLinks,
   recordSpeculativePreloads,
   release,
@@ -105,10 +113,44 @@ test.describe('queue', () => {
     const firstOffScreen = fillerHandlers.findIndex((n) => n > inViewCount);
     expect(lastInView).toBeGreaterThanOrEqual(0);
     expect(firstOffScreen).toBeGreaterThanOrEqual(0);
-    test.fail(
-      true,
-      'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
-    );
     expect(lastInView).toBeLessThan(firstOffScreen);
+  });
+});
+
+const routerChunkUrls = (segment: string) =>
+  Object.entries(getManifest().bundles)
+    .filter(([, bundle]) =>
+      bundle.origins?.some((origin) => origin.includes(`qwik-router/lib/index.qwik.mjs_${segment}`))
+    )
+    .map(([file]) => `${ORIGIN}/build/${file}`);
+
+test.describe('what the page asks the preloader for at load', () => {
+  test('its root component and its route, not every chunk it used', async ({ page }) => {
+    const response = await page.goto(CONDITIONAL_ALL.path);
+    const [, askedFor] = (await response!.text()).match(/\.then\(\(\{p\}\)=>p\((\[[^\]]*\])\)\)/)!;
+    expect(JSON.parse(askedFor)).toEqual([
+      chunkOfSymbolNamed('root.tsx_root_component'),
+      'conditional/all/',
+    ]);
+  });
+
+  test('the render chunk of a component with no handler, task or computed is preloaded', async ({
+    page,
+  }) => {
+    await recordSpeculativePreloads(page);
+    await openWarm(page, await createGate(page), CONDITIONAL_ALL.path);
+    const preloaded = (await preloaderLinks(page)).map((link) => link.href);
+    const [sidebar] = chunkUrlsFrom('src/components/sidebar/sidebar.tsx_Sidebar_component');
+    expect(sidebar).toBeDefined();
+    expect(preloaded).toContain(sidebar);
+  });
+
+  test("the router's own chunks are preloaded", async ({ page }) => {
+    await recordSpeculativePreloads(page);
+    await openWarm(page, await createGate(page), CONDITIONAL_ALL.path);
+    const preloaded = (await preloaderLinks(page)).map((link) => link.href);
+    const [spaInit] = routerChunkUrls('spa_init_event');
+    expect(spaInit).toBeDefined();
+    expect(preloaded).toContain(spaInit);
   });
 });

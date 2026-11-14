@@ -3,7 +3,13 @@ import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
 
-export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
+interface BundleExplorerProps {
+  data: BundleInfo;
+  comparisonHref?: string;
+}
+
+export const BundleExplorer = component$<BundleExplorerProps>((props) => {
+  const { data, comparisonHref } = props;
   const selectedIndex = useSignal(0);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
@@ -31,6 +37,12 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
             Explore suggested symbol groups based on execution relationships across the latest 100
             manifests. These are analysis groups, not emitted build files.
           </p>
+          <a
+            href={comparisonHref ?? '../visualizations/'}
+            class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
+          >
+            Explore relationship visualizations
+          </a>
         </div>
         {selectedBundle && (
           <div class="md:text-right">

@@ -353,6 +353,16 @@ function registerSubscriberRoots(context: ContainerContext, subscriptions: numbe
     } else {
       subscribers.push(subscriberId);
     }
+    const chunk = context.state.rootToChunk[sourceId];
+    if (chunk === undefined) {
+      continue;
+    }
+    // Parsing promotes a nested source before its parent root can inflate it under another id.
+    const parsed = parseStateChunk(context, chunk);
+    if (context.state.allocatedSlots?.get(parsed)?.has((sourceId - chunk.base) * 2)) {
+      // The parent root already inflated it, so nothing else would load this root.
+      context.scheduler.waitForResume(getStateRoot(context, sourceId) as Promise<unknown>);
+    }
   }
 }
 

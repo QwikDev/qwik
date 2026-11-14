@@ -673,6 +673,63 @@ describe('ContainerContext', () => {
     expect(container.querySelector('span')?.textContent).toBe('4');
   });
 
+  it.each(['after the packet', 'before the packet', 'through the streamed root first'] as const)(
+    'updates a streamed subscriber of a nested signal when its parent resumes %s',
+    async (order) => {
+      const serialization = createSerializationContext(null, () => '');
+      const count = useSignal(0);
+      serialization.$addRoot$({ count });
+      await serialization.$serialize$();
+      const shellState = serialization.$writer$.toString();
+      let serverSubscriber!: Subscriber;
+      runWithOwner(createOwner(null), () => {
+        renderSsrTextNode(4, null, count);
+        serverSubscriber = toArray(count.subs)[0] as Subscriber;
+      });
+      const sourceId = serialization.$addRoot$(count);
+      const subscriberId = serialization.$addRoot$(serverSubscriber);
+      const packetState = (await serialization.$serializeNext$())!;
+      const container = createContainer(`
+        <script type="qwik/state" q:base="0" q:len="1">${shellState}</script>
+        <span q:id="4">0</span>
+      `);
+      const appendPacket = () => [
+        appendStateScript(
+          container,
+          packetState.base,
+          JSON.parse(packetState.state) as unknown[],
+          packetState.len
+        ),
+        appendSubscriptionScript(container, packetState.base + packetState.len, [
+          sourceId,
+          subscriberId,
+        ]),
+      ];
+      const scheduler = new Scheduler(() => {});
+      let context;
+      let parent: { count: Signal<number> };
+      if (order === 'before the packet') {
+        context = createContainerContext(container, scheduler);
+        parent = (await context.getRoot(0)) as typeof parent;
+        context.registerStateScripts!(appendPacket());
+        await scheduler.flushInteraction();
+      } else {
+        appendPacket();
+        context = createContainerContext(container, scheduler);
+        if (order === 'through the streamed root first') {
+          await context.getRoot(sourceId);
+        }
+        parent = (await context.getRoot(0)) as typeof parent;
+      }
+
+      parent.count.value = 3;
+      await scheduler.flushInteraction();
+
+      expect(container.querySelector('span')?.textContent).toBe('3');
+      expect(await context.getRoot(sourceId)).toBe(parent.count);
+    }
+  );
+
   it('attaches active packet subscriptions without registering them twice', async () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="0" q:len="1">

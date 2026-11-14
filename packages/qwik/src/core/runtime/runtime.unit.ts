@@ -2137,6 +2137,38 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(logErrorAndThrowAsync).toHaveBeenCalledTimes(1);
   });
 
+  it.each([false, true])(
+    'reports a failing structural update without a Catch globally, async=%s',
+    async (isAsync) => {
+      vi.mocked(logErrorAndThrowAsync).mockClear();
+      const scheduler = new Scheduler(noopSchedule);
+      const error = new Error('render failed');
+      const branch = registerSubscriberToOwner(
+        {
+          kind: SubscriberKind.Branch,
+          owner: null,
+          flags: SubscriberFlags.None,
+          deps: null,
+          branch: null!,
+          scheduler,
+          run: () => {
+            if (isAsync) {
+              return Promise.reject(error);
+            }
+            throw error;
+          },
+        } as never,
+        createOwner(null)
+      );
+
+      scheduler.notify(branch);
+      await scheduler.flushInteraction().catch(() => undefined);
+
+      await vi.waitFor(() => expect(logErrorAndThrowAsync).toHaveBeenCalledWith(error));
+      expect(logErrorAndThrowAsync).toHaveBeenCalledTimes(1);
+    }
+  );
+
   it('loads unresolved task QRLs before running them', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const order: string[] = [];

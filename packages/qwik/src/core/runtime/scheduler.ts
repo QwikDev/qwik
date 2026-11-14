@@ -2,7 +2,7 @@ import { cleanupDeps } from '../reactive/cleanup';
 import { PendingContentSubscription } from '../dom/content/content';
 import { findPendingBoundary } from '../dom/content/pending-boundary';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
-import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
+import { logErrorAndThrowAsync } from '../shared/utils/log';
 import { isPromise, maybeThen, retryAfterPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { getActiveInvokeContextOrNull } from './invoke-context';
@@ -278,7 +278,7 @@ export class Scheduler {
                 if (boundary instanceof PendingContentSubscription) {
                   throw error;
                 }
-                logError(error);
+                logErrorAndThrowAsync(error);
               }
             );
             if (boundary instanceof PendingContentSubscription) {
@@ -294,7 +294,7 @@ export class Scheduler {
             continue;
           }
         } catch (error) {
-          logError(error);
+          logErrorAndThrowAsync(error);
         }
         this.finishOwner(owner);
       }
@@ -327,7 +327,7 @@ export class Scheduler {
     } else if (reject !== null) {
       reject(error);
     } else {
-      logError(error);
+      logErrorAndThrowAsync(error);
     }
   }
 
@@ -637,7 +637,7 @@ export class Scheduler {
 
   private readonly flushScheduled = (): void => {
     this.flushPending = false;
-    this.flushInteraction().catch(logError);
+    this.flushInteraction().catch(logErrorAndThrowAsync);
   };
 
   private removeQueuedDescendants(owner: Owner): void {

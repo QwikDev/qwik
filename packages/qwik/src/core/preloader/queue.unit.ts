@@ -11,6 +11,8 @@ const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
 const originalMessageChannel = globalThis.MessageChannel;
+const originalPreload = (globalThis as any).qPreload;
+const originalPreloadQueue = (globalThis as any).qPreloadQueue;
 
 const installBrowserGlobals = () => {
   const document = createDocument();
@@ -65,6 +67,8 @@ afterEach(() => {
     document: originalDocument,
     HTMLElement: originalHTMLElement,
     MessageChannel: originalMessageChannel,
+    qPreload: originalPreload,
+    qPreloadQueue: originalPreloadQueue,
   });
 });
 
@@ -91,6 +95,27 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(headAppend).toHaveBeenCalledTimes(2);
   expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
   expect(document.head.querySelectorAll('link').length).toBe(2);
+});
+
+test('preloads dependencies when a client QRL emits usage without an href', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const listen = vi.spyOn(document, 'addEventListener');
+  await import('./index');
+  const { initPreloader } = await importAndResetState();
+  initPreloader(['renderHash', 2, 'component.js', 4, 'dependency.js']);
+  const listener = listen.mock.calls.find(([type]) => type === 'qsymbol')![1] as EventListener;
+  listener({ detail: { symbol: 's_renderHash' } } as unknown as Event);
+  vi.runAllTimers();
+
+  expect(Array.from(document.head.querySelectorAll('link'), (link) => link.href)).toEqual([
+    expect.stringContaining('component.js'),
+    expect.stringContaining('dependency.js'),
+  ]);
 });
 
 test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
@@ -377,4 +402,55 @@ test('defers bundle graph re-adjustment to a later task', async () => {
   vi.runOnlyPendingTimers();
 
   expect(headAppend).toHaveBeenCalled();
+});
+
+test('keeps speculative QRL edges below an active navigation demand', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const listen = vi.spyOn(document, 'addEventListener');
+  await import('./index');
+  const { initPreloader, preload } = await importAndResetState();
+  const { bundles } = await import('./queue');
+  initPreloader([
+    'route/',
+    2,
+    'page.js',
+    'renderHash',
+    -5,
+    6,
+    'component.js',
+    -5,
+    9,
+    'event.js',
+    11,
+    'heavy.js',
+  ]);
+  preload('route/', 1);
+  vi.runAllTimers();
+  const listener = listen.mock.calls.find(([type]) => type === 'qsymbol')![1] as EventListener;
+  listener({ detail: { symbol: 's_renderHash' } } as unknown as Event);
+  vi.runAllTimers();
+  expect(bundles.get('heavy.js')!.$inverseProbability$).toBeGreaterThan(0.01);
+  expect(document.head.querySelector('link[href$="heavy.js"]')).toBeFalsy();
+  expect(document.head.querySelector('link[href$="page.js"]')).toBeTruthy();
+});
+
+test('starts a required route render chain in parallel despite a speculative budget', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { config } = await import('./constants');
+  config.$maxIdlePreloads$ = 0;
+  const { initPreloader, preload } = await importAndResetState();
+  initPreloader(['route/', 2, 'page.js', -5, 5, 'render.js', 7, 'helper.js']);
+  preload('route/', 1);
+  vi.runAllTimers();
+  expect(
+    Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname).sort()
+  ).toEqual(['/helper.js', '/page.js', '/render.js']);
 });

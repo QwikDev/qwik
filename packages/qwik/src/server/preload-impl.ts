@@ -84,12 +84,17 @@ export const preloaderPre = (
     );
     container.closeElement();
 
-    const script = afterPagePaint(
-      `{let b=fetch("${bundleGraphPath}");` +
-        `import("${preloaderBundle}").then(({l})=>` +
-        `l(${JSON.stringify(base)},b${optsStr})` +
-        `)}`
-    );
+    const start =
+      `{let b=fetch("${bundleGraphPath}");b.catch(()=>{});` +
+      `import("${preloaderBundle}").then(({l})=>` +
+      `l(${JSON.stringify(base)},b${optsStr})` +
+      `).catch(()=>{p=-1;globalThis.qPreloadQueue=[]})}`;
+    const script =
+      `{let p=0,s=()=>{if(p>0)return;p=1;${start}};` +
+      `globalThis.qPreload??=((...a)=>{if(p<0&&!(a[1]>=.99))return;` +
+      `(globalThis.qPreloadQueue||=[]).push(a);if(a[1]>=.99)s()});` +
+      afterPagePaint('s()') +
+      `}`;
     const scriptAttrs: Record<string, string | boolean> = {
       type: 'module',
       async: true,

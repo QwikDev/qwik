@@ -104,7 +104,7 @@
     Constant STORE_ALL_PROPS
     Set [
       EffectSubscriptionNoData [
-        VNode "1H"
+        VNode "1E"
         Constant ':'
       ]
     ]
@@ -191,7 +191,7 @@
             RootRef [omitted]
           ]
           {number} 0
-          VNode "8"
+          VNode "5"
           EffectSubscription [
             RootRef [omitted]
             {string} "href"

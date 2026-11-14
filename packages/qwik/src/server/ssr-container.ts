@@ -15,7 +15,7 @@ import {
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
-import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
+import { _encodeBinaryState, createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
   ATTR_EQUALS_QUOTE,
@@ -1509,6 +1509,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     }
 
     this.openScript(attrs);
+    // shortcut: streamed state patches stay JSON; see the streaming design in the RFC.
+    if (__EXPERIMENTAL__.binaryState && !attrs[QStateStreamAttr]) {
+      const stateJson = new StringSSRWriter();
+      this.serializationCtx.$setWriter$(stateJson);
+      return maybeThen(this.serializationCtx.$serialize$(), () => {
+        this.write(_encodeBinaryState(stateJson.toString()));
+        this.closeScript();
+      });
+    }
     this.serializationCtx.$setWriter$(this.writer);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeScript();

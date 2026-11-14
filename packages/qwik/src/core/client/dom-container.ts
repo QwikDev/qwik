@@ -15,10 +15,11 @@ import {
 } from '../shared/error/error-handling';
 import type { CatchInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
+import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
 import { _SharedContainer } from '../shared/shared-container';
 import {
   QContainerValue,
@@ -221,15 +222,29 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         this.$streamingObjectRefs$ = new WeakMap();
         this.document.qProcessOOOS ||= getOutOfOrderStreamingScript;
       }
-      this.$rawStateData$ = JSON.parse(rootState.textContent!);
-      yield* preprocessStateIterator(this.$rawStateData$, this);
-      this.$rootForwardRefs$ = this.$forwardRefs$;
-      const rootCount = this.$rawStateData$.length / 2;
+      const stateText = rootState.textContent!;
       const statePrewarm = element.getAttribute(QStatePrewarmAttr);
-      if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
-        this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+      if (__EXPERIMENTAL__.binaryState && isBinaryState(stateText)) {
+        const reader = new BinaryStateReader(stateText);
+        this.$rootForwardRefs$ = this.$forwardRefs$ = reader.$forwardRefs$;
+        this.$stateData$ = wrapBinaryStateProxy(this, reader);
+        const rootCount = this.$stateData$.length;
+        if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+          for (let i = 0; i < rootCount; i++) {
+            this.$stateData$[i];
+            yield;
+          }
+        }
       } else {
-        this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+        this.$rawStateData$ = JSON.parse(stateText);
+        yield* preprocessStateIterator(this.$rawStateData$, this);
+        this.$rootForwardRefs$ = this.$forwardRefs$;
+        const rootCount = this.$rawStateData$.length / 2;
+        if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+          this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+        } else {
+          this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+        }
       }
     }
     if (__EXPERIMENTAL__.pendingBoundary) {

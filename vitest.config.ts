@@ -18,7 +18,14 @@ export default defineConfig({
       debug: !true,
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
-      experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+      experimental: [
+        'each',
+        'show',
+        'pendingBoundary',
+        'catchBoundary',
+        // QWIK_BINARY_STATE=1 runs the suites on the binary state format.
+        ...(process.env.QWIK_BINARY_STATE ? (['binaryState'] as const) : []),
+      ],
     }),
     tsconfigPaths({ ignoreConfigErrors: true, loose: true }),
   ],

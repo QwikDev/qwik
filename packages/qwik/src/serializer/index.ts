@@ -1,5 +1,7 @@
 import { createSerializationContext } from './serialization-context';
 
+export { _encodeBinaryState } from './binary-state-encoder';
+
 export {
   createSerializationContext,
   type SeenRef,

@@ -22,6 +22,9 @@ DomRefConstructor: {
     };
 } | null, symbolToChunkResolver: SymbolToChunkResolver, setProp: (obj: any, prop: string, value: any) => void, storeProxyMap: ObjToProxyMap, writer?: SSRInternalStreamWriter) => SerializationContext;
 
+// @internal
+export function _encodeBinaryState(stateJson: string): string;
+
 // Warning: (ae-internal-missing-underscore) The name "SeenRef" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal

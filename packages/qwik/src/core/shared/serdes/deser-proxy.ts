@@ -5,6 +5,7 @@ import { isObject } from '../utils/types';
 import { registerSingleton, qwikSymbol } from '../singletons';
 import { allocate, beginDeserialization, endDeserialization } from './allocate';
 import { inflate } from './inflate';
+import type { BinaryStateReader } from './binary-state';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>
@@ -37,11 +38,41 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
   }
   return proxy;
 };
+/** Call this on the binary root state */
+export const wrapBinaryStateProxy = (
+  container: DomContainer,
+  reader: BinaryStateReader
+): unknown[] => {
+  const target = Array(reader.$rootEnds$.length).fill(undefined);
+  return new Proxy(
+    target,
+    new BinaryDeserializationHandler(container, reader, target)
+  ) as unknown[];
+};
+
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
     public $container$: DomContainer,
     public $data$: unknown[]
   ) {}
+
+  $rootCount$(): number {
+    return this.$data$.length / 2;
+  }
+
+  $typeId$(index: number): TypeIds {
+    return this.$data$[index * 2] as TypeIds;
+  }
+
+  /** The serialized value, or the restored one when the typeId is Plain. */
+  $value$(index: number): unknown {
+    return this.$data$[index * 2 + 1];
+  }
+
+  $markRestored$(index: number, value: unknown): void {
+    this.$data$[index * 2] = TypeIds.Plain;
+    this.$data$[index * 2 + 1] = value;
+  }
 
   get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
@@ -54,13 +85,11 @@ class DeserializationHandler implements ProxyHandler<object> {
         : typeof property === 'string'
           ? parseInt(property as string, 10)
           : NaN;
-    if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
+    if (Number.isNaN(i) || i < 0 || i >= this.$rootCount$()) {
       return Reflect.get(target, property, receiver);
     }
-    // The serialized data is an array with 2 values for each item
-    const idx = i * 2;
-    const typeId = this.$data$[idx] as number;
-    const value = this.$data$[idx + 1];
+    const typeId = this.$typeId$(i);
+    const value = this.$value$(i);
     if (typeId === TypeIds.Plain) {
       // The value is already cached
       return value;
@@ -72,8 +101,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       const propValue = allocate(container, typeId, value);
 
       Reflect.set(target, property, propValue);
-      this.$data$[idx] = TypeIds.Plain;
-      this.$data$[idx + 1] = propValue;
+      this.$markRestored$(i, propValue);
 
       /** We stored the reference, so now we can inflate, allowing cycles */
       if (needsInflation(typeId)) {
@@ -99,12 +127,48 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
     const out = Reflect.set(target, property, value, receiver);
     const i = typeof property === 'number' ? property : parseInt(property as string, 10);
-    if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
+    if (Number.isNaN(i) || i < 0 || i >= this.$rootCount$()) {
       return out;
     }
-    const idx = i * 2;
-    this.$data$[idx] = TypeIds.Plain;
-    this.$data$[idx + 1] = value;
+    this.$markRestored$(i, value);
     return true;
+  }
+}
+
+/** Restored roots live in the proxy target; the bytes are never rewritten. */
+class BinaryDeserializationHandler extends DeserializationHandler {
+  private $isRestored$: Uint8Array;
+  /** The root read by the last `$typeId$()` call. */
+  private $pending$: unknown[] = [0, 0];
+
+  constructor(
+    container: DomContainer,
+    public $reader$: BinaryStateReader,
+    /** The proxy target, which holds the restored roots. */
+    private $restored$: unknown[]
+  ) {
+    super(container, []);
+    this.$isRestored$ = new Uint8Array($restored$.length);
+  }
+
+  $rootCount$(): number {
+    return this.$isRestored$.length;
+  }
+
+  $typeId$(index: number): TypeIds {
+    if (this.$isRestored$[index]) {
+      return TypeIds.Plain;
+    }
+    this.$reader$.$readRoot$(index, this.$pending$);
+    return this.$pending$[0] as TypeIds;
+  }
+
+  $value$(index: number): unknown {
+    return this.$isRestored$[index] ? this.$restored$[index] : this.$pending$[1];
+  }
+
+  $markRestored$(index: number, value: unknown): void {
+    this.$isRestored$[index] = 1;
+    this.$restored$[index] = value;
   }
 }

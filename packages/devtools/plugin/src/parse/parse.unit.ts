@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parseSync } from 'oxc-parser';
 import { parseQwikCode } from './parse';
 
 const sampleVarDecl = `
@@ -355,6 +356,37 @@ export default component$(function(props){
     expect(match).not.toBeNull();
     expect(output).toContain(
       "const signal = useSignal<any>('111'); collecthook({ variableName: 'signal',"
+    );
+  });
+
+  it('keeps braceless if bodies valid when tracking hook statements', () => {
+    const src = `import { component$, useTask$, useVisibleTask$ } from '@qwik.dev/core';
+export default component$((props: { flag: boolean }) => {
+  if (props.flag) useLogger();
+  else useOtherLogger();
+  if (props.flag) useTask$(() => {});
+  else useVisibleTask$(() => {});
+  if (props.flag) useTask$(() => { useFoo(); });
+  return <div />;
+});`;
+    const output = parseQwikCode(src, { path: 'CUSTOM_PATH' });
+    expect(parseSync('component.tsx', output, { lang: 'tsx' }).errors).toEqual([]);
+    expect(output).toContain('if (props.flag) { let _customhook_0 = useLogger(); collecthook(');
+    expect(output).toContain('else { let _customhook_1 = useOtherLogger(); collecthook(');
+    expect(output).toContain('if (props.flag) { useTask$(() => {}); collecthook(');
+    expect(output).toContain('else { useVisibleTask$(() => {}); collecthook(');
+    expect(parseQwikCode(output, { path: 'CUSTOM_PATH' })).toBe(output);
+  });
+
+  it('tracks adjacent hook statements with no space between them', () => {
+    const src = `import { component$, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  useTask$(() => {});useLogger();
+  return <div />;
+});`;
+    const output = parseQwikCode(src, { path: 'CUSTOM_PATH' });
+    expect(output).toContain(
+      "useTask$(() => {}); collecthook({ variableName: 'useTask', hookType: 'useTask', category: 'expressionStatement', data: undefined });let _customhook_0 = useLogger();"
     );
   });
 

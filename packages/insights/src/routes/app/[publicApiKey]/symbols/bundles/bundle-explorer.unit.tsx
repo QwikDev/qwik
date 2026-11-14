@@ -90,6 +90,36 @@ describe('bundle explorer', () => {
     expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('55 symbols');
   });
 
+  it('previews affinity groups and restores automatic relationships', async () => {
+    const report = {
+      ...data,
+      affinityTree: [
+        { from: 0, to: 1, distance: 1 },
+        { from: 1, to: 2, distance: 3 },
+      ],
+    };
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    const slider = document.querySelector<HTMLInputElement>('#bundle-affinity')!;
+    slider.value = '100';
+    await trigger(document.body, slider, 'input');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(3);
+    expect(document.body.textContent).toContain('No connections to other symbols');
+    const reset = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Reset to automatic')
+    )!;
+    await trigger(document.body, reset, 'click');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(2);
+    expect(document.querySelector('[data-relationship="0"]')).toBeTruthy();
+    const currentSlider = document.querySelector<HTMLInputElement>('#bundle-affinity')!;
+    currentSlider.value = '0';
+    await trigger(document.body, currentSlider, 'input');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(1);
+    await trigger(document.body, '[data-relationship="0"]', 'click');
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain(
+      'Selected relationship'
+    );
+  });
+
   it('clears relationship details when selecting a different group', async () => {
     const { document } = await domRender(<BundleExplorer data={data} />);
     await trigger(document.body, '[data-relationship="0"]', 'click');

@@ -16,6 +16,9 @@ export default component$(() => {
       <h1 id="rewrite-spa-target">rewrite spa: target</h1>
       <p id="rewrite-spa-original">{target.value.original}</p>
       <p id="rewrite-spa-served">{target.value.served}</p>
+      <Link href="/rewrite-spa-other-app/" data-test-link="rewrite-spa-other">
+        a URL another app serves
+      </Link>
       <Form action={submit}>
         <button type="submit" id="rewrite-spa-submit">
           submit

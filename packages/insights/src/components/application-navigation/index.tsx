@@ -25,6 +25,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
     { href: basePath, label: 'Dashboard', icon: <DashboardIcon />, exact: true },
     { href: `${basePath}manifests/`, label: 'Manifests', icon: <ManifestIcon /> },
     { href: `${basePath}routes/`, label: 'Routes', icon: <RoutesIcon /> },
+    { href: `${basePath}health/`, label: 'Integration health', icon: <DashboardIcon /> },
   ];
   const symbolItems = [
     { href: `${basePath}symbols/`, label: 'All symbols', exact: true },

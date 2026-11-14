@@ -23,7 +23,7 @@ export default component$<ApplicationNavigationProps>(({ basePath, applicationNa
   ];
   const symbolItems = [
     { href: `${basePath}symbols/`, label: 'All symbols', exact: true },
-    { href: `${basePath}symbols/edge/`, label: 'Edge' },
+    { href: `${basePath}symbols/edge/`, label: 'Execution paths' },
     { href: `${basePath}symbols/bundles/`, label: 'Bundles' },
     { href: `${basePath}symbols/slow/`, label: 'Slow symbols' },
   ];

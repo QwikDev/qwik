@@ -42,9 +42,10 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="slow"
         eyebrow="Latency outliers"
         title="Slow symbols"
-        description="Find symbols with the slowest execution latency across recorded manifests."
+        description="Find symbols with the slowest loading latency across recorded manifests."
       />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">

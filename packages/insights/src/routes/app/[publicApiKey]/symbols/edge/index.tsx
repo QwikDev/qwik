@@ -36,8 +36,9 @@ export default component$(() => {
   return (
     <section>
       <PageHeader
-        eyebrow="Edge graph"
-        title="Edge"
+        report="edge"
+        eyebrow="Symbol relationships"
+        title="Execution paths"
         description="Symbol execution paths across the latest 100 manifests."
         class="mb-editorial-8"
       >

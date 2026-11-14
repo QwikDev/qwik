@@ -30,6 +30,7 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="manifests"
         eyebrow="Manifest history"
         title="Manifests"
         description="Compare deployment fingerprints and spot latency shifts introduced by each build."

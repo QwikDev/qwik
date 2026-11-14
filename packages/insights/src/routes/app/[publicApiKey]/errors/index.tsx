@@ -1,3 +1,4 @@
+import ReportGuide from '~/components/report-guide';
 import { component$, useSignal } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { and, desc, eq, gte } from 'drizzle-orm';
@@ -64,6 +65,7 @@ const ErrorsView = component$<{
       <p class="mt-editorial-1 text-editorial-14 text-editorial-secondary">
         Track recurring failures by source, route, and manifest.
       </p>
+      <ReportGuide report="errors" />
 
       <div class="mt-editorial-8 flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 border-b border-editorial-border pb-editorial-3">
         <strong class="text-editorial-24 font-semibold text-editorial-danger">

@@ -79,9 +79,10 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="symbols"
         eyebrow="Symbol performance"
         title="Symbols"
-        description="Compare execution delay and latency distributions across recorded symbols."
+        description="Compare request gaps and loading latency across recorded symbols."
       >
         <Pagination page={data.value.page} hasNext={data.value.hasNext} />
       </PageHeader>

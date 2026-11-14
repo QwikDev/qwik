@@ -1,3 +1,4 @@
+import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import Histogram, { currentColors, previousColors } from '~/components/histogram';
@@ -107,6 +108,7 @@ export const RouteDetailView = component$<{
           </p>
         </div>
       </header>
+      <ReportGuide report="route" />
 
       <section
         class={[

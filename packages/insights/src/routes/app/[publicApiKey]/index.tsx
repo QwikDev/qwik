@@ -1,3 +1,4 @@
+import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import { and, count, desc, eq, gte, max } from 'drizzle-orm';
@@ -163,6 +164,7 @@ export default component$(() => {
           </p>
         </div>
       </header>
+      <ReportGuide report="dashboard" />
 
       <section class="mt-editorial-12 grid min-w-0 gap-editorial-10 border-b border-editorial-border pb-editorial-10 lg:grid-cols-[minmax(0,1fr)_296px]">
         <div class="min-w-0">

@@ -195,6 +195,52 @@ test('asks the browser for low priority on speculative preloads only', async () 
   expect(spec.getAttribute('fetchpriority')).toBe('low');
 });
 
+test('preloads a bundle again once it is needed, after its preload failed', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  const failed = document.head.querySelector('link') as HTMLLinkElement;
+  failed.onerror!(new Event('error'));
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  const retried = document.head.querySelector('link') as HTMLLinkElement;
+  expect(retried.href.split('/').pop()).toBe('entry-a.js');
+  expect(retried.getAttribute('fetchpriority')).toBe(null);
+});
+
+test('does not preload a bundle again after its preload failed while its probability stays the same', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  const failed = document.head.querySelector('link') as HTMLLinkElement;
+  failed.onerror!(new Event('error'));
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+
+  expect(document.head.querySelectorAll('link').length).toBe(0);
+});
+
 test('applies hints buffered before the preloader chunk loaded', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

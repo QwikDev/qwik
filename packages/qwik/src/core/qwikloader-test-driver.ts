@@ -176,6 +176,8 @@ function runQwikLoader(
       0
     ) as unknown as number;
   testWindow.cancelIdleCallback ??= (handle: number) => clearTimeout(handle);
+  // Never runs the uncaught rethrow: dispatch already reports the error from its qerror.
+  testWindow.setTimeout ??= (() => 0) as unknown as Window['setTimeout'];
 
   const testSource = source
     .replace(

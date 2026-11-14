@@ -3,7 +3,7 @@ import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { computeSymbolGraph, type Symbol } from '~/stats/edges';
 
-export async function loadSymbolGraph(publicApiKey: string, url: URL) {
+export async function loadSymbolGraphData(publicApiKey: string, url: URL) {
   const db = getDB();
   const limit = url.searchParams.get('limit')
     ? parseInt(url.searchParams.get('limit')!)
@@ -20,5 +20,9 @@ export async function loadSymbolGraph(publicApiKey: string, url: URL) {
     )
   );
   const details = await getSymbolDetailsByHashes(db, publicApiKey, symbolHashes);
-  return computeSymbolGraph(edges, details);
+  return { graph: computeSymbolGraph(edges, details), edges };
+}
+
+export async function loadSymbolGraph(publicApiKey: string, url: URL) {
+  return (await loadSymbolGraphData(publicApiKey, url)).graph;
 }

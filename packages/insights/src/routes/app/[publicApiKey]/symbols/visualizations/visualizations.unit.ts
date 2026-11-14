@@ -14,8 +14,19 @@ vi.mock('../bundles/matrix-paths', async (importOriginal) => {
 });
 import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 import { describe, expect, it, vi } from 'vitest';
+import type { SymbolPairCounts } from '~/stats/edges';
 import { createBundleViewData } from '../bundles/bundle-view';
-import { formatScore, getNeighborhood, getDefaultSymbol } from './visualizations';
+import {
+  formatScore,
+  formatDensity,
+  getNeighborhood,
+  getDefaultSymbol,
+  getGroupDensity,
+  getGroupDensitySummaries,
+  findObservedPath,
+  getExamplePath,
+  getObservedEdges,
+} from './visualizations';
 
 const symbols = ['a', 'b', 'c'].map((name) => ({
   name,
@@ -63,6 +74,77 @@ describe('relationship visualization alternatives', () => {
     });
     expect(getNeighborhood(data, 'missing', 5)).toEqual({ incoming: [], outgoing: [] });
   });
+  it('counts directed connections above the threshold and excludes self pairs', () => {
+    const density = getGroupDensity(data, 0.5);
+    expect(density.cells[0][0]).toMatchObject({ count: 1, possible: 2, density: 0.5 });
+    expect(density.cells[1][0]).toMatchObject({ count: 1, possible: 2, density: 0.5 });
+    expect(density.cells[0][1]).toMatchObject({ count: 0, possible: 2, density: 0 });
+    expect(density.cells[1][1]).toMatchObject({ count: 0, possible: 0, density: 0 });
+  });
+  it('combines overflow groups without losing symbols or inventing connections', () => {
+    const density = getGroupDensity(data, 0.5, 1);
+    expect(density.groups.map((group) => group.symbols.length)).toEqual([2, 1]);
+    expect(density.groups[1].label).toBe('Other 1 group');
+  });
+  it('finds a bounded shortest observed path without following cycles', () => {
+    const edges = [
+      { from: 'a', to: 'b', count: 5 },
+      { from: 'b', to: 'a', count: 3 },
+      { from: 'b', to: 'c', count: 2 },
+    ];
+    expect(findObservedPath(edges, 'a', 'c')).toEqual(['a', 'b', 'c']);
+    expect(findObservedPath(edges, 'c', 'a')).toEqual([]);
+    expect(findObservedPath(edges, 'a', 'c', 1)).toEqual([]);
+  });
+  it('chooses a multi-step example when a shortcut would collapse the first candidate', () => {
+    const edges = [
+      { from: 'a', to: 'b', count: 10 },
+      { from: 'b', to: 'c', count: 8 },
+      { from: 'a', to: 'c', count: 6 },
+      { from: 'd', to: 'e', count: 5 },
+      { from: 'e', to: 'f', count: 4 },
+    ];
+    expect(getExamplePath(edges, new Set(['a', 'b', 'c', 'd', 'e', 'f']))).toEqual(['d', 'e', 'f']);
+    expect(findObservedPath([], '', '')).toEqual([]);
+  });
+  it('bounds example search on dense graphs with direct shortcuts', () => {
+    const names = Array.from({ length: 71 }, (_, index) => String(index));
+    let visits = 0;
+    const edges = names.flatMap((from) =>
+      names
+        .filter((to) => to !== from)
+        .map((to) => ({
+          from,
+          to,
+          get count() {
+            visits++;
+            return 1;
+          },
+        }))
+    );
+    expect(getExamplePath(edges, new Set(names))).toHaveLength(2);
+    expect(visits).toBeLessThan(edges.length * 100);
+  });
+  it('serializes flat observed edges without graph cycles, self pairs, or outside symbols', async () => {
+    (globalThis as any).__EXPERIMENTAL__ = {};
+    const { _serialize } = await import('@qwik.dev/core/internal/serializer');
+    const { _deserialize } = await import('@qwik.dev/core/internal');
+    const rows: SymbolPairCounts[] = [
+      { from: 'a', to: 'b', relatedCount: 5, unrelatedCount: 7 },
+      { from: 'b', to: 'a', relatedCount: 0, unrelatedCount: 3 },
+      { from: 'a', to: 'a', relatedCount: 1, unrelatedCount: 0 },
+      { from: 'a', to: 'outside', relatedCount: 9, unrelatedCount: 0 },
+      { from: null, to: 'a', relatedCount: 2, unrelatedCount: 0 },
+      { from: 'a', to: 'b', relatedCount: 0, unrelatedCount: 0 },
+    ];
+    const edges = getObservedEdges(rows, new Set(['a', 'b']));
+    expect(edges).toEqual([
+      { from: 'a', to: 'b', count: 12 },
+      { from: 'b', to: 'a', count: 3 },
+    ]);
+    expect(await _deserialize(await _serialize(edges))).toEqual(edges);
+    expect(rows).toHaveLength(6);
+  });
 });
 
 it('shows weak positive scores distinctly from zero', () => {
@@ -87,6 +169,7 @@ it('reads the same neighborhood from compact paths as from exact matrix scores',
     groups
   );
   expect(compact.matrix).toEqual([]);
+  expect(getGroupDensity(compact, 0.001)).toEqual(getGroupDensity(dense, 0.001));
   for (const symbol of vectors.symbols) {
     matrixQueries.length = 0;
     expect(getNeighborhood(compact, symbol.name)).toEqual(getNeighborhood(dense, symbol.name));
@@ -95,4 +178,70 @@ it('reads the same neighborhood from compact paths as from exact matrix scores',
       matrixQueries.reduce((total, [rows, columns]) => total + rows * columns, 0)
     ).toBeLessThanOrEqual(2 * vectors.symbols.length);
   }
+});
+
+it('keeps small positive densities distinct from zero', () => {
+  expect(formatDensity(1 / 250000, 1)).toBe('<0.1%');
+  expect(formatDensity(1 / 250000)).toBe('<0.01%');
+  expect(formatDensity(0)).toBe('0.00%');
+});
+it('sums observed counts for normalized pairs', () => {
+  const names = new Set(['a', 'b']);
+  expect(
+    getObservedEdges(
+      [
+        { from: 'a', to: 'b', relatedCount: 3, unrelatedCount: 2 },
+        { from: 'a', to: 'b', relatedCount: 5, unrelatedCount: 4 },
+      ],
+      names
+    )
+  ).toEqual([{ from: 'a', to: 'b', count: 14 }]);
+});
+
+it('counts dense groups without sorting an unbounded relationship list', () => {
+  const symbols = Array.from({ length: 64 }, (_, index) => ({
+    ...data.symbols[0],
+    name: `s${index}`,
+  }));
+  const report = createBundleViewData(
+    { symbols, vectors: symbols.map(() => symbols.map(() => 1)) },
+    [{ name: 'all', symbols }]
+  );
+  let largest = 0;
+  const original = Array.prototype.sort;
+  const spy = vi.spyOn(Array.prototype, 'sort').mockImplementation(function (
+    this: unknown[],
+    compare
+  ) {
+    largest = Math.max(largest, this.length);
+    return original.call(this, compare);
+  });
+  try {
+    const density = getGroupDensity(report, 0.5);
+    expect(density.cells[0][0].count).toBe(64 * 63);
+    expect(density.cells[0][0].strongest).toHaveLength(3);
+    expect(largest).toBeLessThanOrEqual(4);
+  } finally {
+    spy.mockRestore();
+  }
+});
+
+it('decodes scores once when preparing all density thresholds', () => {
+  let reads = 0;
+  const tracked = {
+    ...data,
+    matrix: data.matrix.map((row) =>
+      row.map((cell) => ({
+        column: cell.column,
+        get value() {
+          reads++;
+          return cell.value;
+        },
+      }))
+    ),
+  };
+  const thresholds = [0.1, 0.5, 0.8];
+  const summaries = getGroupDensitySummaries(tracked, thresholds);
+  expect(reads).toBeLessThanOrEqual(data.matrix.flat().length);
+  expect(summaries).toEqual(thresholds.map((threshold) => getGroupDensity(data, threshold)));
 });

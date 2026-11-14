@@ -179,14 +179,6 @@ fn smart_lifted_event_captures() {
 		})
 		.unwrap();
 	assert!(!lifted.captures);
-	assert!(lifted.entry.is_none());
-	assert_eq!(
-		handlers
-			.iter()
-			.filter(|segment| segment.entry.is_none())
-			.count(),
-		2
-	);
 	let callback = output
 		.modules
 		.iter()
@@ -199,140 +191,61 @@ fn smart_lifted_event_captures() {
 		.filter_map(|module| module.segment.as_ref())
 		.find(|segment| segment.ctx_name == "component$")
 		.unwrap();
-	assert!(render.entry.is_some());
-	assert_eq!(callback.entry, render.entry);
+	assert_eq!(callback.entry.as_deref(), Some("test.tsx_entry_App"));
+	assert_eq!(render.entry.as_deref(), Some("test.tsx_render_App"));
+	assert!(handlers
+		.iter()
+		.all(|segment| segment.entry == callback.entry));
 	let event = output
 		.modules
 		.iter()
 		.filter_map(|module| module.segment.as_ref())
 		.find(|segment| segment.ctx_name == "event$")
 		.unwrap();
-	assert!(event.entry.is_none());
+	assert_eq!(event.entry, callback.entry);
 	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]
-fn smart_event_qrl_alias_consumers() {
-	for (event, render, separated) in [
-		("alias", "", true),
-		("(alias)", "", true),
-		("[alias]", "", true),
-		("enabled ? alias : alias", "", true),
-		("() => alias()", "", true),
-		("alias", "alias();", false),
-		("alias", "unknown(alias);", false),
-		(
-			"alias",
-			"const View = alias; const rendered = <View />; consume(rendered);",
-			false,
-		),
-	] {
-		let output = test_input_fn(TestInput {
-			code: format!(
-				r#"
-import {{ $ as defer, component$, useSignal }} from '@qwik.dev/core';
-export const App = component$(() => {{
+fn smart_render_alone() {
+	let output = test_input_fn(TestInput {
+		code: r#"
+import { component$, useComputed$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  useStylesScoped$('.app { color: red }');
   const count = useSignal(0);
-  const click = defer(() => count.value++);
-  const alias = click;
-  {render}
-  return <button onClick$={{{event}}} />;
-}});"#
-			),
-			entry_strategy: EntryStrategy::Smart,
-			transpile_ts: true,
-			transpile_jsx: true,
-			mode: EmitMode::Prod,
-			..TestInput::default()
-		})
-		.unwrap();
-		let callback = output
-			.modules
-			.iter()
-			.filter_map(|module| module.segment.as_ref())
-			.find(|segment| segment.display_name == "test.tsx_App_component_click")
-			.unwrap();
-		assert_eq!(
-			callback.entry.as_ref() == Some(&callback.canonical_filename),
-			separated,
-			"{event} {render}"
-		);
-	}
-}
-
-#[test]
-fn smart_event_qrl_render_consumers() {
-	let code = include_str!("fixtures/smart-event-qrl-render-consumers.tsx").to_string();
-	let result = test_input_fn(TestInput {
-		code: code.clone(),
+  const double = useComputed$(() => count.value * 2);
+  useTask$(({ track }) => console.log(track(count)));
+  return <button onClick$={() => count.value++}>{double.value}</button>;
+});"#
+			.to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		transpile_ts: true,
 		transpile_jsx: true,
 		mode: EmitMode::Prod,
 		..TestInput::default()
-	});
-	let output = result.as_ref().unwrap();
+	})
+	.unwrap();
 	let segments: Vec<_> = output
 		.modules
 		.iter()
 		.filter_map(|module| module.segment.as_ref())
 		.collect();
-	let parent = segments
-		.iter()
-		.find(|segment| segment.ctx_name == "component$")
-		.unwrap();
-	for name in ["View", "getter"] {
-		let segment = segments
-			.iter()
-			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
-			.unwrap();
-		assert_eq!(segment.entry, parent.entry, "{name}");
-	}
-	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
-}
-
-#[test]
-fn smart_event_qrl_references() {
-	let code = include_str!("fixtures/smart-event-qrl-references.tsx").to_string();
-	let result = test_input_fn(TestInput {
-		code: code.clone(),
-		entry_strategy: EntryStrategy::Smart,
-		transpile_ts: true,
-		transpile_jsx: true,
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
-	let output = result.as_ref().unwrap();
-	for (name, is_event_only) in [
-		("click", true),
-		("wrapped", true),
-		("render", false),
-		("hookRead", false),
-		("mixed", false),
-		("custom", false),
-	] {
-		let segment = output
-			.modules
-			.iter()
-			.filter_map(|module| module.segment.as_ref())
-			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
-			.unwrap();
-		if is_event_only {
-			assert_eq!(
-				segment.entry.as_ref(),
-				Some(&segment.canonical_filename),
-				"{name}"
-			);
+	assert_eq!(segments.len(), 5);
+	for segment in segments {
+		let is_render = matches!(segment.ctx_name.as_ref(), "component$" | "useStylesScoped$");
+		let entry = if is_render {
+			"test.tsx_render_App"
 		} else {
-			assert_eq!(
-				segment.entry.as_deref(),
-				Some("test.tsx_entry_App"),
-				"{name}"
-			);
-		}
-		assert_eq!(segment.ctx_kind, SegmentKind::Function);
+			"test.tsx_entry_App"
+		};
+		assert_eq!(
+			segment.entry.as_deref(),
+			Some(entry),
+			"{}",
+			segment.ctx_name
+		);
 	}
-	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]

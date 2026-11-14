@@ -2,7 +2,6 @@ import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
-import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -1443,8 +1442,8 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Eager contexts stay with their parent, not a segment chunk.
-  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
+  // Loaded outside user interactions, so each keeps its own chunk.
+  const OWN_CHUNK_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
@@ -1463,29 +1462,17 @@ export const isDev = ${JSON.stringify(isDev)};
       {
         includeDependenciesRecursively: false,
         name: (id: string, ctx: ChunkingContext) => {
-          const module = ctx?.getModuleInfo(id);
-          if (module) {
-            const segment = module.meta.segment as SegmentAnalysis | undefined;
-            if (segment) {
-              const isSmartClientOnly =
-                opts.entryStrategy.type === 'smart' &&
-                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
-              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
-                return null;
-              }
-              const { hash } = segment;
-              // Group segments by entry or Qwik Insights hash.
-              const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                (isSmartClientOnly ? segment.canonicalFilename : segment.entry);
-              if (chunkName) {
-                return sanitizeChunkGroupName(chunkName);
-              }
-            }
+          const segment = ctx?.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
+          if (!segment) {
+            // Non-qwik code: let the bundler decide.
+            return null;
           }
-          // Non-qwik code: let the bundler decide.
-          return null;
+          const hasOwnChunk = OWN_CHUNK_CTX_NAMES.has(segment.ctxName);
+          // Group segments by entry or Qwik Insights hash.
+          const chunkName =
+            (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] ||
+            (hasOwnChunk ? segment.canonicalFilename : segment.entry);
+          return chunkName ? sanitizeChunkGroupName(chunkName) : null;
         },
       },
     ],

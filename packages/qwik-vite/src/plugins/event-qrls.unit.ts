@@ -38,7 +38,7 @@ test.each(
     )
   )
 )(
-  'smart isolates event-only references without a render waterfall ($tsOptimizer, library=$library, minify=$minify, consumer=$consumer)',
+  "smart keeps a component's QRLs, and what they import, out of its render chunk ($tsOptimizer, library=$library, minify=$minify, consumer=$consumer)",
   async ({ tsOptimizer, library, minify, consumer }) => {
     const root = normalizePath(resolve(process.cwd(), 'event-qrl-fixture'));
     const srcDir = root + '/src';
@@ -128,11 +128,12 @@ test.each(
         const chunk = byName.get(file)!;
         expect(Object.keys(chunk.modules)).not.toContain(featureId);
         expect(Object.keys(chunk.modules)).not.toContain(clickId);
+        expect(Object.keys(chunk.modules)).not.toContain(readId);
         chunk.imports.filter((file) => byName.has(file)).forEach(visit);
       };
       visit(render.fileName);
-      expect([...seen].some((file) => readId in byName.get(file)!.modules)).toBe(true);
-      expect(chunks.some((chunk) => clickId in chunk.modules)).toBe(true);
+      const interaction = chunks.find((chunk) => clickId in chunk.modules)!;
+      expect(readId in interaction.modules).toBe(true);
       expect(chunks.some((chunk) => chunk.code.includes('HEAVY_INTERACTION'))).toBe(true);
     } finally {
       await build.close();

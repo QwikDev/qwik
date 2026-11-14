@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { bundleFile, chunkComesFrom, chunkUrlsFrom } from '../utils/app';
+import { bundleFile, chunkComesFrom, chunkHasComponent, chunkUrlsFrom } from '../utils/app';
 import { fixtureById, IMPORT_CHAIN } from '../utils/fixtures';
 import {
   createGate,
@@ -13,8 +13,8 @@ import {
 import { clickTrigger, openFixture, warmClick } from '../utils/scenarios';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
-const TREE_CONTEXT = fixtureById('tree-context/all');
-const TREE_CONTEXT_DIR = 'src/components/fixtures/tree-context/all/';
+const TREE_CONTEXT = fixtureById('tree-context/render');
+const TREE_CONTEXT_DIR = 'src/components/fixtures/tree-context/render/';
 const JUST_BELOW_NEEDED = 0.985;
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
 
@@ -100,7 +100,9 @@ test.describe('gate: cold click', () => {
     page,
   }) => {
     const [contexts] = chunkUrlsFrom(`${TREE_CONTEXT_DIR}contexts.ts`);
-    const contextConsumers = chunkUrlsFrom(`${TREE_CONTEXT_DIR}level-3.tsx`);
+    const contextConsumers = chunkUrlsFrom(`${TREE_CONTEXT_DIR}level-3.tsx`).filter(
+      chunkHasComponent
+    );
     await page.addInitScript(
       ([bundle, probability]) => {
         (window as any).qPreloadQueue = [[bundle, probability]];

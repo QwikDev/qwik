@@ -217,12 +217,13 @@ test.each([
       client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
     ).toBe(task.segment.entry);
     expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
-    expect(callback.segment.entry).toBe(
-      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    expect(callback.segment.entry).toBe('example.tsx_entry_App');
+    expect(client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry).toBe(
+      'example.tsx_render_App'
     );
-    expect(
-      client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
-    ).toBeNull();
+    expect(client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry).toBe(
+      callback.segment.entry
+    );
     expect(server.code).toContain('shared-task');
     expect(server.code).toContain('shared-callback');
     if (compiled) {

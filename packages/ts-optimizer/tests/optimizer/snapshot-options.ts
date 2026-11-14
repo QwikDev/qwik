@@ -209,18 +209,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_handler_in_destructuring_default: { transpileTs: true, transpileJsx: true },
   should_transform_loop_handler_between_declarators: { transpileTs: true, transpileJsx: true },
-  smart_event_qrl_render_consumers: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
-  smart_event_qrl_references: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
   smart_visible_task_heavy_library: {
     entryStrategy: { type: 'smart' },
     transpileTs: true,

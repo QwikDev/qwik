@@ -15,6 +15,7 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       },
       rolldownOptions: {
         external: ['@qwik.dev/core/build'],
+        treeshake: { moduleSideEffects: false },
         output: { comments: false },
         experimental: { attachDebugInfo: 'none' },
       },

@@ -72,6 +72,26 @@ test.describe('click before core loaded', () => {
   });
 });
 
+const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
+  const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+    page,
+    heldUrls,
+    clickConditional(page),
+    CONDITIONAL_ALL
+  );
+  const clickChunks = new Set(
+    roundTrips
+      .flatMap((roundTrip) => roundTrip.urls)
+      .filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+  );
+  await waitForNetworkIdle(page, async () => {
+    await releaseAll(gate, startupPiece);
+    await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
+  });
+  const links = await preloaderLinks(page);
+  return { links, clickChunks };
+};
+
 const STILL_LOADING = [
   {
     stillLoading: 'preloader still loading',
@@ -105,21 +125,23 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
+    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded as needed`, async ({
+      page,
+    }) => {
+      const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
+      const preloadedAsNeeded = new Set(
+        links.filter((link) => !link.speculative).map((link) => link.href)
+      );
+      expect(clickChunks.size).toBeGreaterThan(0);
+      expect([...clickChunks].filter((url) => !preloadedAsNeeded.has(url))).toEqual([]);
+    });
+  }
+
+  for (const { arrivesLast, heldUrls } of STILL_LOADING) {
     test(`${arrivesLast}: once both are loaded, the needed preloads go out before any speculative preload`, async ({
       page,
     }) => {
-      const { gate, startupPiece, roundTrips } = await clickWhileLoading(
-        page,
-        heldUrls(),
-        clickConditional(page),
-        CONDITIONAL_ALL
-      );
-      const clickChunks = new Set(roundTrips.flatMap((roundTrip) => roundTrip.urls));
-      await waitForNetworkIdle(page, async () => {
-        await releaseAll(gate, startupPiece);
-        await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
-      });
-      const links = await preloaderLinks(page);
+      const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
       const firstSpeculative = links.findIndex(
         (link) => link.speculative && !clickChunks.has(link.href)
       );
@@ -130,10 +152,6 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
         ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
       );
       expect(clickLinks.length).toBeGreaterThan(0);
-      test.fail(
-        true,
-        'on main, hints sent before the preloader runs come out as speculative: a later 0.6 hint overwrites their probability'
-      );
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   }

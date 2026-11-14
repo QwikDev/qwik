@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import type { RequestEvent } from '@qwik.dev/router';
+import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { InsightsUser } from '~/db/sql-user';
 
 vi.mock('@qwik.dev/router', () => ({

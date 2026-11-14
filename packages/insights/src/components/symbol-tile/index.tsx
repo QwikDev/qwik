@@ -113,16 +113,36 @@ export const SymbolSource = component$<SymbolPopupProps>(({ fullName, origin, sy
   );
 });
 
-export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
-  return (
-    <code onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}>
-      <SymbolIcon />
-      <span class="ml-1">{symbol}</span>
-    </code>
-  );
-});
+export const SymbolTile = component$<SymbolDetails & { symbol: string }>(
+  ({ fullName, origin, symbol }) => {
+    return (
+      <code
+        onPopup$={(e: PopupEvent) =>
+          e.detail.show(SymbolPopup, { fullName, origin, symbolHash: symbol })
+        }
+      >
+        <SymbolIcon />
+        <span class="ml-1">{symbol}</span>
+      </code>
+    );
+  }
+);
 
-const serverGetSourceSnippet = server$(async function (symbolHash: string) {
+export function hasProvidedSymbolDetails(
+  fullName: string | null | undefined,
+  origin: string | null | undefined
+): boolean {
+  return fullName !== undefined || origin !== undefined;
+}
+
+export function displaySymbolDetail(value: string | null | undefined): string {
+  return value || 'Metadata unavailable';
+}
+
+const serverGetSourceSnippet = server$(async function (
+  symbolHash: string,
+  requestedPublicApiKey: string
+) {
   const requestEvent = getRequestEvent(this);
   if (!requestEvent) {
     throw new Error('Missing request context');

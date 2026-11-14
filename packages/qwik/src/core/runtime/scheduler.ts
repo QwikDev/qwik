@@ -484,22 +484,17 @@ export class Scheduler {
     }
 
     owner.flags &= ~OwnerFlags.DirtyBlockingTask;
-    const items = owner.items;
-    if (items === null) {
-      return;
-    }
-
-    return this.runBlockingTasksFrom(items, ownerItemsLength(items), 0);
+    return this.runBlockingTasks(owner);
   }
 
-  /** Blocking tasks run strictly in order, so a suspending one resumes the rest. */
-  private runBlockingTasksFrom(
-    items: NonNullable<OwnerItems>,
-    end: number,
-    from: number
-  ): ValueOrPromise<void> {
-    for (let i = from; i < end && i < ownerItemsLength(items); i++) {
-      const item = ownerItemAt(items, i)!;
+  /**
+   * Blocking tasks run strictly in order. Resuming splices items into the list while one waits, so
+   * the scan restarts after it: a task that already ran is no longer dirty and is skipped.
+   */
+  private runBlockingTasks(owner: Owner): ValueOrPromise<void> {
+    const items = owner.items;
+    for (let i = 0; i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items!, i)!;
       if (
         !(item instanceof Owner) &&
         item.kind === SubscriberKind.Task &&
@@ -507,8 +502,7 @@ export class Scheduler {
       ) {
         const result = runSubscriber(item);
         if (isPromise(result)) {
-          const next = i + 1;
-          return result.then(() => this.runBlockingTasksFrom(items, end, next));
+          return result.then(() => this.runBlockingTasks(owner));
         }
       }
     }
@@ -519,22 +513,14 @@ export class Scheduler {
       return;
     }
     owner.flags &= ~OwnerFlags.DirtyStructuralDom;
-    const items = owner.items;
-    if (items === null) {
-      return;
-    }
-
-    return this.runStructuralDomFrom(items, ownerItemsLength(items), 0);
+    return this.runStructuralDom(owner);
   }
 
-  /** Structural work runs in order too: a suspending branch holds back its siblings. */
-  private runStructuralDomFrom(
-    items: NonNullable<OwnerItems>,
-    end: number,
-    from: number
-  ): ValueOrPromise<void> {
-    for (let i = from; i < end && i < ownerItemsLength(items); i++) {
-      const item = ownerItemAt(items, i)!;
+  /** Structural work runs in order too; it restarts its scan after a wait as blocking tasks do. */
+  private runStructuralDom(owner: Owner): ValueOrPromise<void> {
+    const items = owner.items;
+    for (let i = 0; i < ownerItemsLength(items); i++) {
+      const item = ownerItemAt(items!, i)!;
       if (
         item instanceof Owner ||
         (item.kind !== SubscriberKind.Branch &&
@@ -549,8 +535,7 @@ export class Scheduler {
         const result = runSubscriber(subscriber);
         if (isPromise(result)) {
           this.suspendDomWork(subscriber.owner, result);
-          const next = i + 1;
-          return result.then(() => this.runStructuralDomFrom(items, end, next));
+          return result.then(() => this.runStructuralDom(owner));
         }
       }
     }

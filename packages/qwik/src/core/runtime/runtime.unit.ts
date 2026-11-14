@@ -23,6 +23,7 @@ import {
   getActiveOwner,
   ownerItemsLength,
   registerSubscriberToOwner,
+  restoreOwnerItemOrder,
   runWithOwner,
   type Owner,
 } from './owner';
@@ -1365,6 +1366,58 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(order).toEqual(['scalar']);
   });
+
+  it.each([
+    ['structural update', 'clean', ['first', 'second', 'third']],
+    ['structural update', 'dirty', ['first', 'resumed', 'second', 'third']],
+    ['blocking task', 'clean', ['first', 'second', 'third']],
+    ['blocking task', 'dirty', ['first', 'resumed', 'second', 'third']],
+  ])(
+    'runs every dirty %s once when a %s resumed sibling lands before a suspended one',
+    async (kind, resumedState, expected) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const owner = createOwner(null);
+      const order: string[] = [];
+      let release!: () => void;
+      const loading = new Promise<void>((resolve) => (release = resolve));
+      const createSubscriber = (label: string) => {
+        const run = () => {
+          order.push(label);
+          return label === 'first' ? loading : undefined;
+        };
+        return registerSubscriberToOwner(
+          kind === 'blocking task'
+            ? new TaskSubscription(new Task(run, Phase.BlockingTask), scheduler)
+            : ({
+                kind: SubscriberKind.Branch,
+                owner: null,
+                flags: SubscriberFlags.None,
+                deps: null,
+                branch: null!,
+                scheduler,
+                run,
+              } as BranchSubscriber),
+          owner
+        );
+      };
+      const labels = ['first', 'second', 'third'];
+      for (let i = 0; i < labels.length; i++) {
+        scheduler.notify(createSubscriber(labels[i]));
+      }
+
+      const flushing = scheduler.flushInteraction();
+      expect(order).toEqual(['first']);
+      const resumed = createSubscriber('resumed');
+      restoreOwnerItemOrder(resumed, owner, 0);
+      if (resumedState === 'dirty') {
+        scheduler.notify(resumed);
+      }
+      release();
+      await flushing;
+
+      expect(order).toEqual(expected);
+    }
+  );
 
   it('skips disposed tasks that were already scheduled', async () => {
     const scheduler = new Scheduler(noopSchedule);

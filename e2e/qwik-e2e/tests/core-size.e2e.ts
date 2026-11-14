@@ -32,7 +32,12 @@ test('keeps the minimal signal transfer small', async ({ page }) => {
   // The dev server does not compress, so measure what a brotli-serving host would transfer
   const compressed = await Promise.all(
     lazy.map(async (resource) => {
-      const body = await (await page.request.get(resource.name)).body();
+      // A dev build's version carries the commit hash and, on a dirty tree, the build time, and
+      // chunk names hash that content. They move the compressed size by tens of bytes from one
+      // build of the same source to the next, so measure with both held constant.
+      const body = (await (await page.request.get(resource.name)).text())
+        .replace(/-dev\+[0-9a-f]+(-\d+)?/g, '-dev')
+        .replace(/q-[\w-]{8}\.js/g, 'q-00000000.js');
       return { name: resource.name, bytes: brotliCompressSync(body).length };
     })
   );

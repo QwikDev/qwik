@@ -1,0 +1,99 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$((props: { outputs: any[] }) => {
+  const sig = useSignal(false);
+  return (
+    <div>
+      {props.outputs.map((o) => (
+        <button
+          class={{ [o.name]: sig.value }}
+          data-flags={{ [o]: sig.value }}
+          aria-busy={(o.a || { [o.name]: sig }).shorten.value}
+        />
+      ))}
+    </div>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,2CAajB\"}")
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const _hf0 = (p0, p1)=>({
+        [p0.name]: p1.value
+    });
+const _hf0_str = "{[p0.name]:p1.value}";
+const _hf1 = (p0, p1)=>({
+        [p0]: p1.value
+    });
+const _hf1_str = "{[p0]:p1.value}";
+const _hf2 = (p0, p1)=>(p0.a || {
+        [p0.name]: p1
+    }).shorten.value;
+const _hf2_str = "(p0.a||{[p0.name]:p1}).shorten.value";
+export const List_component_HpIwcodkEXk = (props)=>{
+    const sig = useSignal(false);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, props.outputs.map((o)=>/*#__PURE__*/ _jsxSorted("button", {
+            "aria-busy": _fnSignal(_hf2, [
+                o,
+                sig
+            ], _hf2_str),
+            class: _fnSignal(_hf0, [
+                o,
+                sig
+            ], _hf0_str),
+            "data-flags": _fnSignal(_hf1, [
+                o,
+                sig
+            ], _hf1_str)
+        }, null, null, 3, "u6_0")), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;uBASiB,CAAA;QAAE,CAAC,GAAE,IAAI,CAAC,EAAE,GAAI,KAAK;IAAC,CAAA;;uBACjB,CAAA;QAAE,IAAG,EAAE,GAAI,KAAK;IAAC,CAAA;;uBAClB,CAAC,GAAE,CAAC,IAAI;QAAE,CAAC,GAAE,IAAI,CAAC;IAAM,CAAC,EAAE,OAAO,CAAC,KAAK;;0CAR9B,CAAC;IAC9B,MAAM,MAAM,UAAU;IACtB,qBACE,WAAC,mBACE,MAAM,OAAO,CAAC,GAAG,CAAC,CAAC,kBAClB,WAAC;YAGC,WAAS;;;;YAFT,KAAK;;;;YACL,YAAU;;;;;AAMpB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    411
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

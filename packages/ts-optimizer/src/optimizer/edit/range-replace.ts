@@ -64,7 +64,7 @@ export function applyReplacements(
   return out;
 }
 
-const TS_EXPRESSION_WRAPPERS = new Set([
+export const TS_EXPRESSION_WRAPPERS = new Set([
   'TSAsExpression',
   'TSSatisfiesExpression',
   'TSNonNullExpression',

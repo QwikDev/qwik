@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import { getManifestPerformance } from '../../performance';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import PageHeader from '~/components/page-header';
@@ -8,10 +9,10 @@ import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getSlowEdges, type SlowEdge } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
+import { BUCKETS, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
-interface SlowSymbol extends ResultsPage<SlowEdge> {
+interface SlowSymbol extends ResultsPage<SlowEdge & ReturnType<typeof getManifestPerformance>> {
   manifestCount: number;
   samples: number;
   symbolCount: number;
@@ -29,7 +30,12 @@ export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
     : await dbGetManifestHashes(db, params.publicApiKey);
   const edges = await getSlowEdges(db, params.publicApiKey, manifestHashes);
   return {
-    ...paginateResults(edges, query.get('page')),
+    ...paginateResults(
+      edges
+        .map((edge) => ({ ...edge, ...getManifestPerformance(edge.latency) }))
+        .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1) || b.samples - a.samples),
+      query.get('page')
+    ),
     manifestCount: manifestHashes.length,
     samples: edges.reduce((total, edge) => total + vectorSum(edge.latency), 0),
     symbolCount: new Set(edges.map((edge) => edge.to)).size,
@@ -77,7 +83,7 @@ export default component$(() => {
                   Count
                 </th>
                 <th scope="col" class="w-24 py-editorial-4 text-right font-semibold">
-                  Avg.
+                  P95
                 </th>
                 <th scope="col" class="py-editorial-4 pl-editorial-6 font-semibold">
                   Latency distribution
@@ -108,7 +114,7 @@ export default component$(() => {
                     {vectorSum(edge.latency).toLocaleString('en')}
                   </td>
                   <td class="py-editorial-5 text-right font-semibold">
-                    {Math.round(vectorAvg(edge.latency))} ms
+                    {edge.p95 === null ? 'Collecting data' : `${Math.round(edge.p95)} ms`}
                   </td>
                   <td class="py-editorial-5 pl-editorial-6">
                     <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />

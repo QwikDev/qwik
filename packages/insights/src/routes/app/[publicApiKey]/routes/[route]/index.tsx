@@ -149,6 +149,11 @@ export const RouteDetailView = component$<{
         </a>
       </section>
 
+      <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
+        Observed differences are descriptive; traffic mix and user timing can change them.
+        Percentiles are estimated from histogram buckets.
+      </p>
+
       <section class="mt-editorial-10 grid min-w-0 gap-editorial-10 lg:grid-cols-[minmax(0,1fr)_316px]">
         <div class="min-w-0 lg:pr-editorial-8">
           <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
@@ -241,6 +246,7 @@ export const RouteDetailView = component$<{
                   <th class="py-editorial-3 font-semibold">Symbol</th>
                   <th class="py-editorial-3 font-semibold">Source</th>
                   <th class="py-editorial-3 font-semibold">P95 timeline</th>
+                  <th class="py-editorial-3 font-semibold">Samples / baseline</th>
                   <th class="py-editorial-3 font-semibold">Sample share</th>
                   <th class="py-editorial-3 font-semibold">Change</th>
                 </tr>
@@ -254,7 +260,12 @@ export const RouteDetailView = component$<{
                     <td class="max-w-80 truncate py-editorial-4 font-editorial-mono text-editorial-muted">
                       {symbol.origin}
                     </td>
-                    <td class="py-editorial-4 font-semibold">{formatDuration(symbol.p95)}</td>
+                    <td class="py-editorial-4 font-semibold">
+                      {symbol.p95 === null ? 'Collecting data' : formatDuration(symbol.p95)}
+                    </td>
+                    <td class="py-editorial-4 text-editorial-secondary">
+                      {symbol.samples} / {symbol.previousSamples}
+                    </td>
                     <td class="py-editorial-4 text-editorial-secondary">{symbol.share}%</td>
                     <td
                       class={[
@@ -263,7 +274,9 @@ export const RouteDetailView = component$<{
                         symbol.change !== null && symbol.change < 0 && 'text-editorial-success',
                       ]}
                     >
-                      {formatChange(symbol.change)}
+                      {symbol.change === null
+                        ? 'Needs 100 samples in both builds'
+                        : formatChange(symbol.change)}
                     </td>
                   </tr>
                 ))}
@@ -329,10 +342,10 @@ function getStatus(
     return 'Collecting comparison data';
   }
   if (change > 0) {
-    return 'Tail regression';
+    return 'Later observed requests';
   }
   if (change < 0) {
-    return 'Tail improvement';
+    return 'Earlier observed requests';
   }
   return 'Timeline stable';
 }

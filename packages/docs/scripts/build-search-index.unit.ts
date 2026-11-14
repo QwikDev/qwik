@@ -53,8 +53,8 @@ describe('createApiSearchPages', () => {
   test('covers the generated API pages', () => {
     const urls = createApiSearchPages().map((page) => page.url);
 
-    expect(urls).toContain('/api/qwik/#usesignal-variable');
-    expect(urls).toContain('/api/qwik-server/#rendertostream-function');
+    expect(urls).toContain('/api/qwik/#usesignal');
+    expect(urls).toContain('/api/qwik-server/#rendertostream-variable');
     expect(urls).toContain('/api/qwik-router/#routeloader_');
   });
 });

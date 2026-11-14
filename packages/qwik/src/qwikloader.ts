@@ -27,12 +27,12 @@ import type { QElement, QwikLoaderEventScope, qWindow } from './core/shared/type
 /** Event handlers get the captured ids as a string `this` */
 type Handler = (this: string | undefined, ev: Event, el: Element) => unknown;
 type CapturedHandler = unknown[] & {
-  _qRun?: (captures: CapturedHandler, ev: Event, el: Element) => void | Promise<void>;
+  _qRun?: (captures: CapturedHandler, ev: Event, el: Element) => unknown;
 };
-type DispatchHandler = ((ev: Event, el: Element) => void | Promise<void>) | CapturedHandler;
+type DispatchHandler = ((ev: Event, el: Element) => unknown) | CapturedHandler;
 /** Runs the handler; its result is what the rest of the event's chain waits for. */
 type Start = () => unknown;
-/** A handler that already ran is its pending result; any other task resolves to its start. */
+/** A handler that already ran is its pending result; other tasks run it or resolve to its start. */
 type Task = Promise<unknown> | (() => unknown);
 type QwikEventCommand = typeof QwikEvContainerReady;
 type QwikEventItem = string | (EventTarget & ParentNode) | QwikEventCommand;
@@ -105,8 +105,8 @@ const runTasks = async (tasks: Task[], started?: () => void) => {
     const task = tasks[i];
     let result: unknown = task;
     if (!isPromise(task)) {
-      const start = (await task()) as Start | false | undefined;
-      result = start && start();
+      const start = await task();
+      result = typeof start === 'function' && start();
     }
     i || started?.();
     await result;
@@ -290,16 +290,32 @@ const dispatch = (
       ev.stopPropagation();
     }
   }
+  // A client-rendered lazy handler returns its start, or a promise of it while it loads.
+  const startDispatchHandler = (handler: DispatchHandler) => {
+    const run = () => runDispatchHandler(handler, ev, element);
+    if (chainAsync) {
+      // even a sync handler waits for an earlier pending handler of its element
+      tasks.push(run);
+      return;
+    }
+    const start = run();
+    if (isPromise(start)) {
+      defer = chainAsync = true;
+      tasks.push(() => start);
+    } else if (typeof start === 'function') {
+      startOrDefer(start as Start);
+    }
+  };
   // The DOM renderer attaches qDispatchEvent to elements, call that if it exists. This bypasses QRL lookups.
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
     if (typeof handlers === 'function' || isCapturedHandler(handlers)) {
-      startOrDefer(() => runDispatchHandler(handlers as DispatchHandler, ev, element));
+      startDispatchHandler(handlers as DispatchHandler);
     } else {
       for (let i = 0; i < handlers.length; i++) {
         const handler = handlers[i] as DispatchHandler | undefined;
         if (handler) {
-          startOrDefer(() => runDispatchHandler(handler, ev, element));
+          startDispatchHandler(handler);
         }
       }
     }

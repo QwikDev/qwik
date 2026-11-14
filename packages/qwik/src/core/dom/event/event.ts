@@ -7,7 +7,9 @@ import {
   invokeApply,
   newInvokeContext,
 } from '../../runtime/invoke-context';
+import type { LazyRef } from '../../shared/qrl/qrl-class';
 import { setCaptures } from '../../shared/qrl/qrl-captures';
+import { isQrl } from '../../shared/qrl/qrl-utils';
 import type {
   CapturedEventHandler,
   qWindow,
@@ -34,45 +36,46 @@ function invokeDispatchHandler(
   if (!element.isConnected) {
     return;
   }
+  const owner = (element as QElement)._qErrorOwner;
   const context = newInvokeContext({
     container: getOrCreateContainerContext(element),
-    ownerHost: (element as QElement)._qErrorOwner,
+    ownerHost: owner,
   });
-  return retryOnPromise(
-    () => {
-      if (captures) {
-        setCaptures(captures);
-      }
-      const paramCount = captures?._qParamCount ?? 0;
-      const target = element as QElement;
-      const args: Parameters<EventHandler> = [event, element];
-      if (paramCount === 1) {
-        args.push(target._qEventParam);
-      } else if (paramCount > 1) {
-        args.push(...target._qEventParams!);
-      }
-      return invokeApply(context, handler, args);
-    },
-    context.ownerHost === null ? undefined : (error) => handleError(context.ownerHost, error)
-  );
+  const start = () =>
+    retryOnPromise(
+      () => {
+        if (captures) {
+          setCaptures(captures);
+        }
+        const paramCount = captures?._qParamCount ?? 0;
+        const args: Parameters<EventHandler> = [event, element];
+        if (paramCount === 1) {
+          args.push((element as QElement)._qEventParam);
+        } else if (paramCount > 1) {
+          args.push(...(element as QElement)._qEventParams!);
+        }
+        return invokeApply(context, handler, args);
+      },
+      owner && ((error) => handleError(owner, error))
+    );
+  // A lazy qrl hands the loader its start, or a promise of it while it loads, to keep start order.
+  return isQrl(handler) &&
+    (handler.$chunk$ || (handler as unknown as { $lazy$: LazyRef }).$lazy$.$symbolFn$)
+    ? handler.resolved
+      ? start
+      : handler.resolve().then(() => start)
+    : start();
 }
 
 function wrapDispatch(
   handler: QDispatchHandler | QDispatchHandler[]
 ): QDispatchHandler | QDispatchHandler[] {
+  if (typeof handler === 'function') {
+    return invokeDispatchHandler.bind(null, handler as EventHandler, null);
+  }
   // a captured handler is an array too; its _qRun path already establishes the context
-  if (
-    handler != null &&
-    typeof handler !== 'function' &&
-    (handler as CapturedEventHandler)._qRun !== undefined
-  ) {
-    return handler;
-  }
-  if (Array.isArray(handler)) {
-    return handler.map((entry) => wrapDispatch(entry as QDispatchHandler) as QDispatchHandler);
-  }
-  return typeof handler === 'function'
-    ? invokeDispatchHandler.bind(null, handler as EventHandler, null)
+  return Array.isArray(handler) && (handler as CapturedEventHandler)._qRun === undefined
+    ? ((handler as QDispatchHandler[]).map(wrapDispatch) as QDispatchHandler[])
     : handler;
 }
 
@@ -104,15 +107,15 @@ export function setEvent(
   captures?: readonly unknown[] | null
 ): void {
   const scopedKebabName = (scopedEventNames[key] ??= key.slice(2) as ScopedEventName);
-  const target = element as QElement;
   const context = getActiveInvokeContextOrNull<ContainerContext>();
   const owner = context?.owner ?? context?.ownerHost ?? getActiveCollector()?.owner;
-  if (owner !== null && owner !== undefined && owner.flags & OwnerFlags.HasCatch) {
-    target._qErrorOwner = owner;
+  if (owner && owner.flags & OwnerFlags.HasCatch) {
+    (element as QElement)._qErrorOwner = owner;
   }
-  (target._qDispatch ||= {})[scopedKebabName] = captures
-    ? createCapturedEvent(handler as EventHandler, captures)
-    : wrapDispatch(handler);
+  ((element as QElement)._qDispatch ||= {})[scopedKebabName] = createCapturedEvent(
+    handler as EventHandler,
+    captures
+  );
 
   // Window, document and qvisible events need attrs so qwikloader can find the element.
   if (needsLoaderAttribute(key)) {
@@ -123,10 +126,9 @@ export function setEvent(
 
 /** @internal */
 export function removeEvent(element: Element, key: string): void {
-  const scopedKebabName = key.slice(2);
-  const target = element as QElement;
-  if (target._qDispatch) {
-    delete target._qDispatch[scopedKebabName];
+  const dispatch = (element as QElement)._qDispatch;
+  if (dispatch) {
+    delete dispatch[key.slice(2)];
   }
   if (needsLoaderAttribute(key)) {
     element.removeAttribute?.(key);
@@ -136,8 +138,9 @@ export function removeEvent(element: Element, key: string): void {
 const needsLoaderAttribute = (key: string) => key.charAt(2) !== 'e' || key === 'q-e:qvisible';
 
 function registerQwikLoaderEvent(element: Element, eventName: ScopedEventName) {
-  const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
-  const loader: qWindow['_qwikEv'] | string[] = (qWindow._qwikEv ||= [] as any);
+  const loader: qWindow['_qwikEv'] | string[] = ((
+    (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow
+  )._qwikEv ||= [] as any);
   if (Array.isArray(loader)) {
     // not booted yet: the loader scans the whole document when it starts
     loader.push(eventName);

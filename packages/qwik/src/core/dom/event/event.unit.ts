@@ -8,6 +8,8 @@ import { _captures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QElement } from '../../shared/types';
 import { createCapturedEvent, removeEvent, setEvent } from './event';
 import { Scheduler } from '../../runtime/scheduler';
+import { qrl } from '../../shared/qrl/qrl';
+import { _qrlSync } from '../../shared/qrl/qrl.public';
 
 describe('setEvent', () => {
   test('shares captures while passing the clicked row as an argument', () => {
@@ -136,6 +138,40 @@ describe('setEvent', () => {
     stored[2](event, element);
     expect(first).toHaveReturnedWith(getContainerContext(element));
     expect(second).toHaveBeenCalledWith(event, element);
+  });
+
+  test('a lazy qrl handler hands back its start, or a promise of it while it loads', async () => {
+    const element = createElementTarget();
+    const handler = vi.fn();
+    setEvent(
+      element,
+      'q-e:click',
+      qrl(() => Promise.resolve({ onClick: handler }), 'onClick')
+    );
+    const stored = (element as QElement)._qDispatch?.['e:click'] as EventHandler;
+
+    const loading = stored(new Event('click'), element) as Promise<() => unknown>;
+    expect(loading).toBeInstanceOf(Promise);
+    const start = await loading;
+    expect(handler).not.toHaveBeenCalled();
+    start();
+    expect(handler).toHaveBeenCalledOnce();
+
+    const loadedStart = stored(new Event('click'), element) as () => unknown;
+    expect(handler).toHaveBeenCalledOnce();
+    loadedStart();
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  test('a sync$ qrl handler runs when called', () => {
+    const element = createElementTarget();
+    const handler = vi.fn();
+    setEvent(element, 'q-e:click', _qrlSync(handler, 'preventDefault'));
+    const stored = (element as QElement)._qDispatch?.['e:click'] as EventHandler;
+
+    stored(new Event('click'), element);
+
+    expect(handler).toHaveBeenCalledOnce();
   });
 
   test('skips dispatch on disconnected elements', () => {

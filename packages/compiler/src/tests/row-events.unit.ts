@@ -142,7 +142,9 @@ test.each([1, 2])('shares %i generated handlers independently for each list', as
     expect(roots[0]._qDispatch!['e:dblclick']).not.toBe(dispatch[0]);
   }
   for (const index of [2, 1, 0]) {
-    await dispatch[index]._qRun(dispatch[index], new Event('click'), roots[index]);
+    // a lazy qrl entry hands back its start, or a promise of it while it loads
+    const start = await dispatch[index]._qRun(dispatch[index], new Event('click'), roots[index]);
+    await (start as () => unknown)();
   }
   expect(selected).toEqual([{ value: 1 }, { value: 3 }]);
 });

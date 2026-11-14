@@ -568,7 +568,8 @@ describe('qwikloader behavior', () => {
         warm: { loaded: Promise.resolve() },
         first: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
       });
-      const clientButton = createMockElement(container, {}, () => {
+      // a client-rendered lazy handler returns its start
+      const clientButton = createMockElement(container, {}, () => () => {
         logs.push('start client');
       });
 
@@ -587,7 +588,7 @@ describe('qwikloader behavior', () => {
         warm: { loaded: Promise.resolve() },
         child: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
       });
-      const parent = createMockElement(container, {}, () => {
+      const parent = createMockElement(container, {}, () => () => {
         logs.push('start parent');
       });
       const child = createMockElement(parent, { 'q-e:click': loadingQrl('child') });
@@ -598,6 +599,54 @@ describe('qwikloader behavior', () => {
 
       finishLoading();
       await vi.waitFor(() => expect(logs).toEqual(['load child', 'start child', 'start parent']));
+    });
+
+    test('starts a parent handler only after a still-loading client-rendered child has started', async () => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      const logs: string[] = [];
+      let finishLoading!: () => void;
+      const loaded = new Promise<void>((resolve) => (finishLoading = resolve));
+      const parent = createMockElement(null, {}, () => () => logs.push('start parent'));
+      const child = createMockElement(parent, {}, () =>
+        loaded.then(() => () => logs.push('start child'))
+      );
+
+      getSingleListener(doc, 'click').handler(createMockEvent(child));
+      await flushQueuedTasks();
+      expect(logs).toEqual([]);
+
+      finishLoading();
+      await vi.waitFor(() => expect(logs).toEqual(['start child', 'start parent']));
+    });
+
+    test('runs a client-rendered sync handler after a still-loading handler of the same element', async () => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      const logs: string[] = [];
+      let finishLoading!: () => void;
+      const loaded = new Promise<void>((resolve) => (finishLoading = resolve));
+      const button = createMockElement(null, {});
+      button._qDispatch = {
+        'e:click': [() => loaded.then(() => () => logs.push('lazy')), () => logs.push('sync')],
+      };
+
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await flushQueuedTasks();
+      expect(logs).toEqual([]);
+
+      finishLoading();
+      await vi.waitFor(() => expect(logs).toEqual(['lazy', 'sync']));
+    });
+
+    test('runs a client-rendered sync handler during the dispatch while a child handler loads', () => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      // a sync$ handler runs when called; a lazy one returns a promise of its start while loading
+      const link = createMockElement(null, {}, (ev) => ev.preventDefault());
+      const child = createMockElement(link, {}, () => new Promise(() => {}));
+      const event = createMockEvent(child);
+
+      getSingleListener(doc, 'click').handler(event);
+
+      expect(event.defaultPrevented).toBe(true);
     });
 
     test('starts later events after an earlier one fails to load', async () => {

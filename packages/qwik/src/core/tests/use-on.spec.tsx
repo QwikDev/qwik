@@ -1177,6 +1177,40 @@ describe(`${name}: events`, () => {
     expect((globalThis as any).logs).toEqual(['child', 'parent']);
     (globalThis as any).logs = undefined;
   });
+
+  it('runs a still-loading child click handler before its already-loaded parent handler', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <a
+          href="https://qwik.dev"
+          preventdefault:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent');
+          }}
+        >
+          <button
+            onClick$={async () => {
+              (globalThis as any).logs.push('child');
+            }}
+          ></button>
+        </a>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    // Load only the parent's handler first.
+    await trigger(container, 'a', 'click');
+    await flush();
+    (globalThis as any).logs = [];
+
+    await trigger(container, 'button', 'click');
+    await flush();
+
+    expect((globalThis as any).logs).toEqual(['child', 'parent']);
+    (globalThis as any).logs = undefined;
+  });
 });
 
 describe(`${name}: sync-qrl`, () => {
@@ -1240,6 +1274,29 @@ describe(`${name}: sync-qrl`, () => {
 
     expect(button?.getAttribute('child-async')).toBe('true');
     expect(parent?.getAttribute('parent-sync')).toBe('true');
+  });
+
+  it('still runs a parent sync$ handler during the click while a child handler is loading', async () => {
+    const Cmp = component$(() => {
+      return (
+        <a href="https://qwik.dev" onClick$={[sync$((event: Event) => event.preventDefault())]}>
+          <button
+            onClick$={async (_event: Event, button: Element) => {
+              button.setAttribute('clicked', '');
+            }}
+          ></button>
+        </a>
+      );
+    });
+    const { container, document, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    let preventedDuringClick: boolean | undefined;
+    document.addEventListener('click', (event: Event) => {
+      preventedDuringClick = event.defaultPrevented;
+    });
+    await trigger(container, 'button', 'click');
+    await flush();
+    expect(preventedDuringClick).toBe(true);
   });
 });
 

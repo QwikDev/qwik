@@ -351,6 +351,8 @@ test.describe('nav', () => {
         await scrollDetector1;
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-short/');
+        // The navigation resets scroll when it settles, which can land after the heading renders.
+        await page.waitForFunction(() => (window as any)._qRouterScrollEnabled === true);
         await page.waitForFunction(() => window.scrollX === 0 && window.scrollY === 0);
         // expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 

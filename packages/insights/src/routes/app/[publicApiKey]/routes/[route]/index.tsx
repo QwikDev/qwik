@@ -1,15 +1,14 @@
+import { loadReportScope } from '~/db/report-scope';
 import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import Histogram, { currentColors, previousColors } from '~/components/histogram';
 import { getDB } from '~/db';
 import { getSymbolDetails } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteTimeline } from '~/db/sql-routes';
 import { MIN_PERFORMANCE_SAMPLES } from '../../performance';
 import {
   getRouteComparison,
-  getSelectedManifestIndex,
   getVisibleTimelineDistribution,
   type RouteSnapshot,
   type RouteSymbolPerformance,
@@ -24,22 +23,11 @@ export const useRouteData = routeLoader$(async ({ params, url }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
   const route = params.route;
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey, { limit: 101 });
-  const selectedIndex = getSelectedManifestIndex(
-    manifestHashes.slice(0, 100),
-    url.searchParams.get('manifest')
-  );
-  const selectedHash = manifestHashes.at(selectedIndex);
-  const previousHash = manifestHashes.at(selectedIndex + 1);
-  const comparedHashes = [selectedHash, previousHash].filter((hash): hash is string =>
-    Boolean(hash)
-  );
+  const { selectedHash, previousHash } = await loadReportScope(db, publicApiKey, url.searchParams);
   const [selectedRows, previousRows, symbolDetails] = await Promise.all([
     selectedHash ? getRouteTimeline(db, publicApiKey, route, [selectedHash]) : [],
     previousHash ? getRouteTimeline(db, publicApiKey, route, [previousHash]) : [],
-    comparedHashes.length
-      ? getSymbolDetails(db, publicApiKey, { manifestHashes: comparedHashes })
-      : [],
+    selectedHash ? getSymbolDetails(db, publicApiKey, { manifestHashes: [selectedHash] }) : [],
   ]);
   const comparison = getRouteComparison(selectedRows, previousRows, symbolDetails);
 
@@ -101,7 +89,7 @@ export const RouteDetailView = component$<{
           </p>
         </div>
         <div class="shrink-0 text-left md:text-right">
-          <p class="text-editorial-12 font-semibold">Selected vs previous manifest</p>
+          <p class="text-editorial-12 font-semibold">Selected vs baseline manifest</p>
           <p class="mt-editorial-1 max-w-64 truncate font-editorial-mono text-editorial-11 text-editorial-muted">
             {data.selectedHash ?? 'Waiting for data'}
             {data.previousHash && ` / ${data.previousHash}`}
@@ -165,7 +153,7 @@ export const RouteDetailView = component$<{
 
           <div class="mt-editorial-5 flex flex-wrap gap-x-editorial-8 gap-y-editorial-3 text-editorial-12 text-editorial-secondary">
             <Legend tone="current" label="Selected manifest" />
-            {previous && <Legend tone="previous" label="Previous manifest" />}
+            {previous && <Legend tone="previous" label="Baseline manifest" />}
           </div>
 
           {latest.samples ? (
@@ -181,7 +169,7 @@ export const RouteDetailView = component$<{
                 comparison={
                   previous
                     ? {
-                        label: 'Previous manifest',
+                        label: 'Baseline manifest',
                         vector: data.distribution.previous,
                         colors: previousColors,
                       }

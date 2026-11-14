@@ -1,17 +1,13 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { loadReportScope } from '~/db/report-scope';
+import { getReportHref } from '~/report-scope';
 import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
-import { Link, routeLoader$, useLocation, useNavigate, type DocumentHead } from '@qwik.dev/router';
-import SelectField from '~/components/select-field';
+import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import { getDB } from '~/db';
-import { dbGetManifests } from '~/db/sql-manifest';
 import { getRoutes } from '~/db/sql-routes';
 import { MIN_PERFORMANCE_SAMPLES } from '../performance';
-import {
-  formatManifestDate,
-  getRoutesOverview,
-  getSelectedManifestIndex,
-  type RouteOverview,
-} from './route-performance';
+import { getRoutesOverview, type RouteOverview } from './route-performance';
 import { getRouteDetailsHref } from './route-url';
 
 export const head: DocumentHead = {
@@ -21,15 +17,11 @@ export const head: DocumentHead = {
 export const useRouteData = routeLoader$(async ({ params, url }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const manifestHistory = await dbGetManifests(db, publicApiKey, { limit: 101 });
-  const manifests = manifestHistory.slice(0, 100).map((manifest) => ({
-    hash: manifest.hash,
-    timestamp: manifest.timestamp.toISOString(),
-  }));
-  const manifestHashes = manifests.map((manifest) => manifest.hash);
-  const selectedIndex = getSelectedManifestIndex(manifestHashes, url.searchParams.get('manifest'));
-  const selectedHash = manifestHashes.at(selectedIndex);
-  const previousHash = manifestHistory.at(selectedIndex + 1)?.hash;
+  const { manifests, selectedHash, previousHash } = await loadReportScope(
+    db,
+    publicApiKey,
+    url.searchParams
+  );
   const [selectedRows, previousRows] = await Promise.all([
     selectedHash ? getRoutes(db, publicApiKey, [selectedHash]) : [],
     previousHash ? getRoutes(db, publicApiKey, [previousHash]) : [],
@@ -60,8 +52,7 @@ export const RoutesView = component$<{
   publicApiKey: string;
   data: RoutesViewData;
 }>(({ publicApiKey, data }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const reportQuery = useReportQuery();
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -74,39 +65,9 @@ export const RoutesView = component$<{
             Route timelines
           </h1>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
-            Compare when symbols execute on each route in the selected and previous manifests.
+            Compare when symbols execute on each route in the selected and baseline manifests.
           </p>
         </div>
-        {data.manifests.length ? (
-          <SelectField
-            key={data.selectedHash}
-            id="route-manifest"
-            label="Manifest"
-            value={data.selectedHash ?? undefined}
-            autocomplete="off"
-            class="w-full min-w-64 font-editorial-mono md:w-auto"
-            onChange$={(_, select) => {
-              if (select.value === data.selectedHash) {
-                return;
-              }
-              navigate(`${location.url.pathname}?manifest=${encodeURIComponent(select.value)}`, {
-                forceReload: true,
-              });
-            }}
-          >
-            {data.manifests.map((manifest, index) => (
-              <option
-                key={manifest.hash}
-                value={manifest.hash}
-                selected={manifest.hash === data.selectedHash ? true : undefined}
-              >
-                {`${index === 0 ? 'Latest · ' : ''}${formatManifestDate(manifest.timestamp)} · ${manifest.hash.slice(0, 12)}`}
-              </option>
-            ))}
-          </SelectField>
-        ) : (
-          <p class="text-editorial-12 text-editorial-muted">Waiting for manifest data</p>
-        )}
       </header>
       <ReportGuide report="routes" />
 
@@ -142,10 +103,9 @@ export const RoutesView = component$<{
             </thead>
             <tbody>
               {data.routes.map((route) => {
-                const href = getRouteDetailsHref(
-                  publicApiKey,
-                  route.route,
-                  data.selectedHash ?? undefined
+                const href = getReportHref(
+                  getRouteDetailsHref(publicApiKey, route.route),
+                  reportQuery
                 );
                 return (
                   <tr

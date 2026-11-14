@@ -1,13 +1,12 @@
+import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
-import Button, { ButtonLink } from '~/components/button';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import PageHeader from '~/components/page-header';
 import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
@@ -21,8 +20,6 @@ interface SymbolsInfo {
   symbols: ResultsPage<SymbolStats>;
   samples: number;
   manifestCount: number;
-  page: number;
-  hasNext: boolean;
 }
 
 export const head: DocumentHead = {
@@ -31,18 +28,10 @@ export const head: DocumentHead = {
 
 export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
-  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '', 10) || 1);
-  const limit = url.searchParams.get('limit')
-    ? parseInt(url.searchParams.get('limit')!)
-    : undefined;
-  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey, {
-    limit: 101,
-    offset: (page - 1) * 100,
-  });
-  const hasNext = manifestHashes.length > 100;
-  const pageManifestHashes = manifestHashes.slice(0, 100);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, url.searchParams);
+  const pageManifestHashes = selectedHash ? [selectedHash] : [];
   const edges = pageManifestHashes.length
-    ? await getEdges(db, params.publicApiKey, { limit, manifestHashes: pageManifestHashes })
+    ? await getEdges(db, params.publicApiKey, { manifestHashes: pageManifestHashes })
     : [];
 
   const symbolMap = new Map<string, SymbolStats>();
@@ -56,8 +45,6 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     symbols: paginateResults(symbols, url.searchParams.get('symbolPage')),
     samples: symbols.reduce((total, symbol) => total + vectorSum(symbol.latency), 0),
     manifestCount: pageManifestHashes.length,
-    page,
-    hasNext,
   };
   ////////////////////////////////////////////////////////
   function getSymbol(name: string) {
@@ -83,9 +70,7 @@ export default component$(() => {
         eyebrow="Symbol performance"
         title="Symbols"
         description="Compare request gaps and loading latency across recorded symbols."
-      >
-        <Pagination page={data.value.page} hasNext={data.value.hasNext} />
-      </PageHeader>
+      />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
         <SummaryMetric
@@ -156,33 +141,3 @@ const SummaryMetric = component$<{ label: string; value: string }>(({ label, val
     <dd class="order-1 text-editorial-24 font-semibold">{value}</dd>
   </div>
 ));
-
-const Pagination = component$<{ hasNext: boolean; page: number }>(({ hasNext, page }) => {
-  const buttonClass = '!min-h-[41px]';
-  return (
-    <nav
-      aria-label="Manifest ranges"
-      class="flex items-center gap-editorial-6 self-end md:self-auto"
-    >
-      {page > 1 ? (
-        <ButtonLink href={`?page=${page - 1}`} theme="secondary" class={buttonClass}>
-          ← Previous
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="secondary" class={buttonClass}>
-          ← Previous
-        </Button>
-      )}
-      <span class="text-editorial-12 font-semibold whitespace-nowrap">Manifest range {page}</span>
-      {hasNext ? (
-        <ButtonLink href={`?page=${page + 1}`} theme="primary" class={buttonClass}>
-          Next →
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="primary" class={buttonClass}>
-          Next →
-        </Button>
-      )}
-    </nav>
-  );
-});

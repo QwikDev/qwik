@@ -66,9 +66,12 @@ export interface ManifestStatsRow {
 export async function dbGetManifestStats(
   db: AppDatabase,
   publicApiKey: string,
-  { limit = 100 }: { limit?: number } = {}
+  { limit = 100, manifestHashes }: { limit?: number; manifestHashes?: string[] } = {}
 ): Promise<ManifestStatsRow[]> {
-  const manifests = await dbGetManifests(db, publicApiKey, { limit });
+  const history = await dbGetManifests(db, publicApiKey, { limit });
+  const manifests = manifestHashes
+    ? history.filter((manifest) => manifestHashes.includes(manifest.hash))
+    : history;
   if (manifests.length === 0) {
     return [];
   }

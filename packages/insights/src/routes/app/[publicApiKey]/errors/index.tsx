@@ -1,3 +1,4 @@
+import { loadReportScope } from '~/db/report-scope';
 import ReportGuide from '~/components/report-guide';
 import { component$, useSignal } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
@@ -19,13 +20,18 @@ export const head: DocumentHead = {
   title: 'Errors | Qwik Insights',
 };
 
-export const useErrors = routeLoader$(async ({ params }) => {
+export const useErrors = routeLoader$(async ({ params, query }) => {
+  const { selectedHash } = await loadReportScope(getDB(), params.publicApiKey, query);
+  if (!selectedHash) {
+    return { groups: [], hasMore: false };
+  }
   const errors: ErrorRow[] = await getDB()
     .select()
     .from(errorTable)
     .where(
       and(
         eq(errorTable.publicApiKey, params.publicApiKey),
+        eq(errorTable.manifestHash, selectedHash),
         gte(errorTable.timestamp, getErrorSince())
       )
     )
@@ -220,7 +226,7 @@ const ErrorsView = component$<{
       ) : (
         <section class="py-editorial-16" aria-labelledby="empty-errors-title">
           <h2 id="empty-errors-title" class="text-editorial-24 font-semibold">
-            No errors recorded in the last 30 days
+            No errors recorded for this build in the last 30 days
           </h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
             New runtime errors will appear here automatically.

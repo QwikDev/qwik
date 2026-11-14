@@ -1,3 +1,6 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { loadReportScope } from '~/db/report-scope';
+import { getReportHref } from '~/report-scope';
 import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
@@ -22,18 +25,22 @@ export const head: DocumentHead = {
   title: 'Performance overview | Qwik Insights',
 };
 
-export const useAppData = routeLoader$(async ({ params }) => {
+export const useAppData = routeLoader$(async ({ params, query }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const manifests = await dbGetManifestStats(db, publicApiKey, { limit: 2 });
-  const manifestHashes = manifests.map((manifest) => manifest.hash);
-  const latestHash = manifestHashes.at(0);
-  const previousHash = manifestHashes.at(1);
+  const scope = await loadReportScope(db, publicApiKey, query);
+  const latestHash = scope.selectedHash;
+  const previousHash = scope.previousHash;
+  if (!latestHash) {
+    return { latest: null, previous: null, change: null, slowSymbols: [], errors: [] };
+  }
+  const manifestHashes = [latestHash, previousHash].filter((hash): hash is string => Boolean(hash));
+  const manifests = await dbGetManifestStats(db, publicApiKey, { manifestHashes });
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const [latestEdges, previousEdges, symbolDetails, routes, errors] = await Promise.all([
     getSlowEdges(db, publicApiKey, latestHash ? [latestHash] : []),
     getSlowEdges(db, publicApiKey, previousHash ? [previousHash] : []),
-    manifestHashes.length ? getSymbolDetails(db, publicApiKey, { manifestHashes }) : [],
+    getSymbolDetails(db, publicApiKey, { manifestHashes: [latestHash] }),
     latestHash ? getRoutes(db, publicApiKey, [latestHash]) : [],
     db
       .select({
@@ -42,7 +49,13 @@ export const useAppData = routeLoader$(async ({ params }) => {
         count: count(),
       })
       .from(errorTable)
-      .where(and(eq(errorTable.publicApiKey, publicApiKey), gte(errorTable.timestamp, dayAgo)))
+      .where(
+        and(
+          eq(errorTable.publicApiKey, publicApiKey),
+          gte(errorTable.timestamp, dayAgo),
+          eq(errorTable.manifestHash, latestHash)
+        )
+      )
       .groupBy(errorTable.message)
       .orderBy(desc(max(errorTable.timestamp)))
       .limit(3)
@@ -77,8 +90,8 @@ export const useAppData = routeLoader$(async ({ params }) => {
       };
     })
     .sort((a, b) => (b.latency ?? -1) - (a.latency ?? -1));
-  const latest = manifests.at(0);
-  const previous = manifests.at(1);
+  const latest = manifests.find((manifest) => manifest.hash === latestHash);
+  const previous = manifests.find((manifest) => manifest.hash === previousHash);
   const latestPerformance = latest ? getManifestPerformance(latest.latency) : null;
   const previousPerformance = previous ? getManifestPerformance(previous.latency) : null;
   const latestLatency = latestPerformance?.p95 ?? null;
@@ -120,6 +133,7 @@ export default component$(() => {
   const application = useApplication();
   const data = useAppData();
   const location = useLocation();
+  const reportQuery = useReportQuery();
   const appPath = `/app/${location.params.publicApiKey}/`;
   const { latest, previous, change } = data.value;
   const isRegression = change !== null && change > 0;
@@ -157,7 +171,7 @@ export default component$(() => {
           </h1>
         </div>
         <div class="text-left md:text-right">
-          <p class="text-editorial-12 font-semibold">Latest vs previous manifest</p>
+          <p class="text-editorial-12 font-semibold">Selected vs baseline manifest</p>
           <p class="mt-editorial-1 font-editorial-mono text-editorial-11 text-editorial-muted">
             {latest?.hash ?? 'Waiting for data'}
             {previous && ` / ${previous.hash}`}
@@ -205,7 +219,7 @@ export default component$(() => {
                   : 'A previous manifest is required before a comparison can be calculated.'}
             </p>
             <ButtonLink
-              href={`${appPath}symbols/slow/${latest ? `?manifest=${encodeURIComponent(latest.hash)}` : ''}`}
+              href={getReportHref(`${appPath}symbols/slow/`, reportQuery)}
               theme="primary"
               class="mt-editorial-5"
             >
@@ -223,14 +237,14 @@ export default component$(() => {
             {latest ? (
               <div class="mt-editorial-8 grid gap-editorial-8 xl:grid-cols-2">
                 <Distribution
-                  label="Latest manifest"
+                  label="Selected manifest"
                   tone="current"
                   value={latest.p95}
                   vector={latest.latency}
                 />
                 {previous ? (
                   <Distribution
-                    label="Previous manifest"
+                    label="Baseline manifest"
                     tone="previous"
                     value={previous.p95}
                     vector={previous.latency}
@@ -266,7 +280,7 @@ export default component$(() => {
               value={latest && latest.p95 !== null ? formatDuration(latest.p95) : '—'}
             />
             <Metric
-              label="Previous P95"
+              label="Baseline P95"
               value={previous && previous.p95 !== null ? formatDuration(previous.p95) : '—'}
             />
             <Metric
@@ -318,7 +332,7 @@ export default component$(() => {
             </h2>
             <Link
               class="text-editorial-12 font-semibold text-editorial-link"
-              href={`${appPath}symbols/slow/`}
+              href={getReportHref(`${appPath}symbols/slow/`, reportQuery)}
             >
               View all
             </Link>
@@ -399,7 +413,7 @@ export default component$(() => {
             </h2>
             <Link
               class="text-editorial-12 font-semibold text-editorial-link"
-              href={`${appPath}errors/`}
+              href={getReportHref(`${appPath}errors/`, reportQuery)}
             >
               View all
             </Link>
@@ -469,7 +483,7 @@ const Distribution = component$<{
 
 const EmptyDistribution = component$(() => (
   <div class="flex min-h-32 items-center border-t border-editorial-border text-editorial-12 text-editorial-secondary">
-    Previous manifest data is not available yet.
+    Baseline manifest data is not available yet.
   </div>
 ));
 

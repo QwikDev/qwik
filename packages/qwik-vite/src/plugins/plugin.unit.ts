@@ -860,6 +860,40 @@ export default component$(() => {
     const code = await loadDecoratedSegment({});
     expect(code).toContain('@Entity()');
   });
+
+  test('resolves vite even when the optimizer sys cannot import it', async () => {
+    // Strict layouts (pnpm without hoisting, Yarn PnP, Nix) do not install vite
+    // next to @qwik.dev/optimizer, so resolving vite through the optimizer's sys
+    // fails there. The plugin must resolve vite from its own location instead.
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: {} }));
+    const plugin = createQwikPlugin({
+      tsOptimizer: true,
+      sys: {
+        cwd: () => process.cwd(),
+        env: 'node',
+        os: process.platform,
+        dynamicImport: async (specifier: string) => {
+          if (specifier === 'vite') {
+            throw new Error(`Cannot find package 'vite'`);
+          }
+          return import(specifier);
+        },
+        strictDynamicImport: async (specifier: string) => import(specifier),
+        path: path as any,
+      },
+    });
+    await plugin.init();
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const segmentId = result!.meta!.qwikdeps.find((dep: string) => dep.includes('_component_'));
+    const loaded = await plugin.load({} as any, segmentId!);
+    expect((loaded as { code: string }).code).toContain('@Entity()');
+  });
 });
 
 test('transform omits sourcemaps for public virtual modules', async () => {

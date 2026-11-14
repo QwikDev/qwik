@@ -867,7 +867,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rolldown.PluginContext,
     pathId: string
   ): Promise<DecoratorOptions | undefined> => {
-    const { transformWithOxc }: typeof import('vite') = await getSys().dynamicImport('vite');
+    // Resolve vite from this bundle, not from the optimizer package.
+    const { transformWithOxc }: typeof import('vite') = await import('vite');
     const probe = await transformWithOxc(
       '@probe class C { @probe p: string }',
       pathId,

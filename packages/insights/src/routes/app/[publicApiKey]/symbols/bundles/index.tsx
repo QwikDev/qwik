@@ -7,7 +7,11 @@ export const head: DocumentHead = { title: 'Bundles | Qwik Insights' };
 
 export const useData = routeLoader$(async ({ params, url }) => {
   const limit = url.searchParams.get('limit');
-  return loadBundlePreview(params.publicApiKey, limit ? parseInt(limit) : undefined);
+  return loadBundlePreview(
+    params.publicApiKey,
+    limit ? parseInt(limit) : undefined,
+    url.searchParams
+  );
 });
 
 export default component$(() => {

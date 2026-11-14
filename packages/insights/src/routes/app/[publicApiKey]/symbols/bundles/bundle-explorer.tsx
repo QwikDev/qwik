@@ -1,7 +1,8 @@
 import { createPreviewBundles, getPreviewBundles } from './affinity-preview';
-import type { MatrixPath } from '~/stats/edges';
 import { groupByAffinity, type AffinityLink } from '~/stats/bundle-affinity';
+import type { MatrixPath } from '~/stats/edges';
 import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import ReportGuide from '~/components/report-guide';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
@@ -20,7 +21,10 @@ export const BundleExplorer = component$<{
             initialData
           ),
   }));
+
   const selectedIndex = useSignal(0);
+  const search = useSignal('');
+  const visibleCount = useSignal(50);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
@@ -44,6 +48,14 @@ export const BundleExplorer = component$<{
       ? undefined
       : strongestRelationships.value.at(selectedRelationship.value);
 
+  const visibleSymbols = (selectedBundle?.symbols ?? [])
+    .filter((symbol) =>
+      [symbol.name, symbol.fullName, symbol.fileSrc].some((value) =>
+        value?.toLowerCase().includes(search.value.trim().toLowerCase())
+      )
+    )
+    .sort((a, b) => b.count - a.count);
+
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <header class="grid gap-editorial-6 border-b border-editorial-border pb-editorial-6 md:grid-cols-[1fr_auto] md:items-end">
@@ -55,8 +67,8 @@ export const BundleExplorer = component$<{
             Suggested bundles
           </h1>
           <p class="mt-editorial-2 max-w-2xl text-editorial-14 text-editorial-secondary">
-            Explore suggested symbol groups based on execution relationships across the latest 100
-            manifests. These are analysis groups, not emitted build files.
+            Explore suggested symbol groups based on execution relationships in the selected build.
+            These are analysis groups, not emitted build files.
           </p>
         </div>
         {selectedBundle && (
@@ -71,6 +83,7 @@ export const BundleExplorer = component$<{
           </div>
         )}
       </header>
+      <ReportGuide report="bundles" />
 
       <section
         class="mt-editorial-6 rounded-editorial-md border border-editorial-border p-editorial-5"
@@ -144,6 +157,8 @@ export const BundleExplorer = component$<{
               value={selectedIndex.value}
               onChange$={(_, select) => {
                 selectedIndex.value = Number(select.value);
+                search.value = '';
+                visibleCount.value = 50;
                 selectedSymbol.value = '';
                 selectedRelationship.value = -1;
               }}
@@ -184,6 +199,8 @@ export const BundleExplorer = component$<{
                         aria-pressed={isSelected}
                         onClick$={() => {
                           selectedIndex.value = index;
+                          search.value = '';
+                          visibleCount.value = 50;
                           selectedSymbol.value = '';
                           selectedRelationship.value = -1;
                         }}
@@ -416,6 +433,22 @@ export const BundleExplorer = component$<{
                         Symbols in this group
                       </h2>
                     </div>
+                    <label class="block px-editorial-5 py-editorial-3 text-editorial-12">
+                      Search this group
+                      <input
+                        type="search"
+                        value={search.value}
+                        onInput$={(_, input) => {
+                          search.value = input.value;
+                          visibleCount.value = 50;
+                        }}
+                        placeholder="Name, hash, or source path"
+                        class="mt-editorial-2 w-full rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-2"
+                      />
+                    </label>
+                    <p class="px-editorial-5 text-editorial-11 text-editorial-muted">
+                      {visibleSymbols.length} matching symbols, most observed first
+                    </p>
                     <div class="overflow-x-auto">
                       <table class="w-full min-w-[360px] text-left text-editorial-12">
                         <thead class="sticky top-0 border-b border-editorial-border bg-editorial-canvas text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
@@ -428,17 +461,12 @@ export const BundleExplorer = component$<{
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedBundle.symbols.map((symbol) => (
+                          {visibleSymbols.slice(0, visibleCount.value).map((symbol) => (
                             <tr
                               key={symbol.name}
                               class="border-b border-editorial-border align-top"
                             >
                               <th class="max-w-64 px-editorial-5 py-editorial-4 font-normal">
-                                {symbol.fullName && (
-                                  <code class="block truncate font-editorial-mono text-editorial-12 font-semibold">
-                                    {symbol.fullName}
-                                  </code>
-                                )}
                                 <span
                                   class={[
                                     'block truncate font-editorial-mono text-editorial-11',
@@ -473,6 +501,17 @@ export const BundleExplorer = component$<{
                         </tbody>
                       </table>
                     </div>
+                    {visibleSymbols.length > visibleCount.value && (
+                      <button
+                        type="button"
+                        class="m-editorial-5 text-editorial-12 font-semibold text-editorial-link"
+                        onClick$={() => {
+                          visibleCount.value += 50;
+                        }}
+                      >
+                        Show 50 more symbols
+                      </button>
+                    )}
                   </section>
                 )}
                 {selectedView.value === 'matrix' && (

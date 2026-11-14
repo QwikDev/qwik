@@ -1,24 +1,21 @@
 import { createAffinityTree } from '~/stats/bundle-affinity';
 import { getDB } from '~/db';
-import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { getSymbolGraphEdges, getSymbolDetails } from '~/db/query';
+import { loadReportScope } from '~/db/report-scope';
 import { computeBundles, computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
 import { createBundleViewData } from './bundle-view';
 
-export async function loadBundlePreview(publicApiKey: string, limit?: number) {
+export async function loadBundlePreview(
+  publicApiKey: string,
+  limit?: number,
+  searchParams = new URLSearchParams()
+) {
   const db = getDB();
 
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
+  const { selectedHash } = await loadReportScope(db, publicApiKey, searchParams);
+  const manifestHashes = selectedHash ? [selectedHash] : [];
   const edges = await getSymbolGraphEdges(db, publicApiKey, { limit, manifestHashes });
-  const symbolHashes = Array.from(
-    new Set(
-      edges
-        .flatMap((edge) => [edge.from, edge.to])
-        .filter((symbol): symbol is string => Boolean(symbol))
-        .map((symbol) => symbol.split('_').pop()!)
-    )
-  );
-  const details = await getSymbolDetailsByHashes(db, publicApiKey, symbolHashes);
+  const details = selectedHash ? await getSymbolDetails(db, publicApiKey, { manifestHashes }) : [];
   const rootSymbol = computeSymbolGraph(edges, details);
   const vectors = computeSymbolVectors(rootSymbol, true);
   const bundles = computeBundles(vectors);

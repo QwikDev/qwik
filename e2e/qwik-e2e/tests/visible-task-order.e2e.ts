@@ -1,4 +1,22 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * Holds back the visible task chunk whose code matches, so the test does not depend on how the
+ * compiler names or numbers the segment. Resolves to the function that lets the chunk through.
+ */
+async function holdTaskChunk(page: Page, code: RegExp, onRequest?: () => void) {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/useVisibleTask/, async (route) => {
+    const response = await route.fetch();
+    if (code.test(await response.text())) {
+      onRequest?.();
+      await released;
+    }
+    await route.fulfill({ response });
+  });
+  return release;
+}
 
 test.describe('visible task order', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,15 +31,13 @@ test.describe('visible task order', () => {
   });
 
   test('should not hold back other renders while a visible task chunk loads', async ({ page }) => {
-    let loadVisibleTaskChunk!: () => void;
-    const visibleTaskChunk = new Promise<void>((resolve) => (loadVisibleTaskChunk = resolve));
     let markChunkRequested!: () => void;
     const chunkRequested = new Promise<void>((resolve) => (markChunkRequested = resolve));
-    await page.route(/SlowVisibleTask_component_useVisibleTask/, async (route) => {
-      markChunkRequested();
-      await visibleTaskChunk;
-      await route.continue();
-    });
+    const loadVisibleTaskChunk = await holdTaskChunk(
+      page,
+      /hasRun\.value\s*=\s*true/,
+      markChunkRequested
+    );
 
     await page.goto('/e2e/visible-task-order');
     await chunkRequested;
@@ -36,13 +52,7 @@ test.describe('visible task order', () => {
   });
 
   test('should load the chunks of several visible tasks in parallel', async ({ page }) => {
-    let loadFirstTaskChunk!: () => void;
-    const firstTaskChunk = new Promise<void>((resolve) => (loadFirstTaskChunk = resolve));
-    // The second task's segment is suffixed with `_1_`.
-    await page.route(/ParallelVisibleTasks_component_useVisibleTask_(?!1_)/, async (route) => {
-      await firstTaskChunk;
-      await route.continue();
-    });
+    const loadFirstTaskChunk = await holdTaskChunk(page, /firstStatus\.value\s*=\s*["']ran["']/);
 
     await page.goto('/e2e/visible-task-order');
 

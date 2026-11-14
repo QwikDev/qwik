@@ -30,6 +30,15 @@ export const applicationTable = sqliteTable(
   })
 );
 
+export const applicationSourceTable = sqliteTable('application_sources', {
+  publicApiKey: text('public_api_key')
+    .primaryKey()
+    .references(() => applicationTable.publicApiKey),
+  repository: text('repository').notNull(),
+  revision: text('revision').notNull(),
+  sourceRoot: text('source_root').notNull(),
+});
+
 export type ApplicationRow = InferSelectModel<typeof applicationTable>;
 export type ApplicationRowSansId = InferInsertModel<typeof applicationTable>;
 

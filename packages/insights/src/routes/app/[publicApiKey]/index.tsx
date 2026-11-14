@@ -4,10 +4,11 @@ import { and, count, desc, eq, gte, max } from 'drizzle-orm';
 import { ButtonLink } from '~/components/button';
 import Histogram, { currentColors, previousColors } from '~/components/histogram';
 import { errorTable, getDB } from '~/db';
-import { getAppInfo, getSlowEdges, getSymbolDetails } from '~/db/query';
+import { getSlowEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestStats } from '~/db/sql-manifest';
 import { getRoutes } from '~/db/sql-routes';
 import { BUCKETS, vectorPercentile, vectorSum } from '~/stats/vector';
+import { useApplication } from './layout';
 import {
   getManifestPerformance,
   MIN_PERFORMANCE_SAMPLES,
@@ -21,10 +22,7 @@ export const head: DocumentHead = {
 export const useAppData = routeLoader$(async ({ params }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const [app, manifests] = await Promise.all([
-    getAppInfo(db, publicApiKey),
-    dbGetManifestStats(db, publicApiKey, { limit: 2 }),
-  ]);
+  const manifests = await dbGetManifestStats(db, publicApiKey, { limit: 2 });
   const manifestHashes = manifests.map((manifest) => manifest.hash);
   const latestHash = manifestHashes.at(0);
   const previousHash = manifestHashes.at(1);
@@ -86,7 +84,6 @@ export const useAppData = routeLoader$(async ({ params }) => {
   const previousLatency = previousPerformance?.p95 ?? null;
 
   return {
-    app,
     latest: latest
       ? {
           hash: latest.hash,
@@ -119,6 +116,7 @@ export const useAppData = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
+  const application = useApplication();
   const data = useAppData();
   const location = useLocation();
   const appPath = `/app/${location.params.publicApiKey}/`;
@@ -154,7 +152,7 @@ export default component$(() => {
             Performance overview
           </p>
           <h1 class="mt-editorial-2 text-editorial-36 font-bold leading-[1.2] tracking-[-0.03em]">
-            {data.value.app.name}
+            {application.value.name}
           </h1>
         </div>
         <div class="text-left md:text-right">

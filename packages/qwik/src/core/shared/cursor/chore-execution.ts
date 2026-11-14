@@ -28,6 +28,7 @@ import type { JSXOutput } from '../jsx/types/jsx-node';
 import {
   HOST_SIGNAL,
   ERROR_DATA_KEY,
+  blockEarlyCommit,
   NODE_DIFF_DATA_KEY,
   NODE_PROPS_DATA_KEY,
   type CursorData,
@@ -47,6 +48,8 @@ interface InlineComponentData {
   componentFn: Function;
   subscriptionHost: HostElement | null;
   props: Props | null;
+  /** Scoped style prefix of the JSX that rendered the inline component. */
+  scopedStyleIdPrefix: string | null;
 }
 
 /**
@@ -96,6 +99,7 @@ export function executeTasks(
       if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
         // VisibleTasks: store for execution after flush (don't execute now)
         (cursorData.afterFlushTasks ||= []).push(task);
+        blockEarlyCommit(cursorData, vNode);
       } else {
         // Regular tasks: chain promises only between each other
         const isRenderBlocking = !!(task.$flags$ & TaskFlags.RENDER_BLOCKING);
@@ -121,13 +125,15 @@ export function setInlineComponentData(
   vNode: VNode,
   componentFn: Function,
   subscriptionHost: VNode | null,
-  jsxProps: Props | null
+  jsxProps: Props | null,
+  scopedStyleIdPrefix: string | null
 ): void {
   const props = (vNode.props ||= {}) as Props;
   props[INLINE_COMPONENT_DATA_KEY] = {
     componentFn,
     subscriptionHost,
     props: jsxProps,
+    scopedStyleIdPrefix,
   } satisfies InlineComponentData;
 }
 
@@ -275,7 +281,8 @@ export function executeInlineComponentChore(
     inlineComponentData.componentFn as OnRenderFn<unknown>,
     inlineComponentData.props,
     journal,
-    cursor
+    cursor,
+    inlineComponentData.scopedStyleIdPrefix
   );
 }
 
@@ -286,12 +293,20 @@ function executeComponentFunction(
   componentFn: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>>,
   props: Props | null,
   journal: VNodeJournal,
-  cursor: Cursor
+  cursor: Cursor,
+  /**
+   * Inline components have no `q:sstyle` of their own, so they pass the prefix of the JSX that
+   * rendered them. `undefined` means: read it from the component host after execution.
+   */
+  scopedStyleIdPrefix?: string | null
 ) {
   const result = safeCall(
     () => executeComponent(container, host, subscriptionHost, componentFn, props),
     (jsx) => {
-      const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+      const styleScopedIdPrefix =
+        scopedStyleIdPrefix === undefined
+          ? addComponentStylePrefix(container.getHostProp<string>(host, QScopedStyle))
+          : scopedStyleIdPrefix;
       return retryOnPromise(() =>
         vnode_diff(
           container as ClientContainer,
@@ -299,7 +314,7 @@ function executeComponentFunction(
           jsx,
           host as VNode,
           cursor,
-          addComponentStylePrefix(styleScopedId)
+          styleScopedIdPrefix
         )
       );
     },

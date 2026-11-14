@@ -19,10 +19,9 @@ export type SessionData = Awaited<GetSessionResult>['data'];
 //   } as SessionData);
 // };
 
-export const onRequest: RequestHandler = async ({ sharedMap, redirect, url }) => {
+export const onRequest: RequestHandler = async ({ sharedMap, redirect, url, internalRequest }) => {
   const session = sharedMap.get('session') as SessionData;
-  if (session && url.pathname === '/') {
-    // if authorized user try to access login page then redirect to app page
+  if (session && url.pathname === '/' && !internalRequest) {
     throw redirect(307, '/app/');
   }
 };

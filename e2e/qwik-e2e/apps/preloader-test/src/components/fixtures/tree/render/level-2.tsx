@@ -8,7 +8,7 @@ export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
 
   return (
     <div class="level">
-      <span class="step">level 2: {incremented}</span>
+      <span class="step">B: {incremented}</span>
       <Level3 input={out} />
     </div>
   );

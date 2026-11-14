@@ -134,18 +134,22 @@ const TS_OPTIMIZER_DEPS: Record<string, Record<string, unknown>> = {
   pathe: pathe,
 };
 
-async function loadTsOptimizer(url: string) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${url}: ${response.status}`);
-  }
-  let code = await response.text();
-  for (const [specifier, mod] of Object.entries(TS_OPTIMIZER_DEPS)) {
+function shimDepImports(code: string, deps: Record<string, Record<string, unknown>>) {
+  for (const [specifier, mod] of Object.entries(deps)) {
     code = code.replaceAll(
       new RegExp(`from\\s*(['"])${specifier}\\1`, 'g'),
       () => `from ${JSON.stringify(getDepShimUrl(specifier, mod))}`
     );
   }
+  return code;
+}
+
+async function loadTsOptimizer(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`${url}: ${response.status}`);
+  }
+  const code = shimDepImports(await response.text(), TS_OPTIMIZER_DEPS);
   const blobUrl = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
   try {
     return await import(/* @vite-ignore */ blobUrl);
@@ -184,16 +188,13 @@ async function loadOptimizer() {
     qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
   }
 
-  // The optimizer entry re-exports createOptimizer from @qwik.dev/optimizer
-  // (GH#9248). A worker has no import map, so point that specifier at the
-  // already-loaded optimizer module before importing the entry.
+  // A worker has no import map, so shim the entry's bare imports.
   const optimizerEntryUrl = qwikDeps['/dist/optimizer.mjs'];
   const entryResponse = await fetch(optimizerEntryUrl);
-  let entryCode = await entryResponse.text();
-  entryCode = entryCode.replaceAll(
-    new RegExp(`from\\s*(['"])@qwik\\.dev/optimizer\\1`, 'g'),
-    () => `from ${JSON.stringify(getDepShimUrl('@qwik.dev/optimizer', qwikOptimizerModule ?? {}))}`
-  );
+  const entryCode = shimDepImports(await entryResponse.text(), {
+    '@qwik.dev/optimizer': qwikOptimizerModule ?? {},
+    'magic-string': magicString,
+  });
   const entryBlobUrl = URL.createObjectURL(new Blob([entryCode], { type: 'text/javascript' }));
   qwikViteModule = await import(/* @vite-ignore */ entryBlobUrl);
   console.warn(

@@ -186,9 +186,64 @@ export const routes = [
     label: 'all',
   },
   {
+    group: 'over-preloading',
+    href: '/over-preloading/click-computed/',
+    label: 'click-computed',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/click-task/',
+    label: 'click-task',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/click-task-calling-qrl/',
+    label: 'click-task-calling-qrl',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-computed/',
+    label: 'visible-task-computed',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-task/',
+    label: 'visible-task-task',
+  },
+  {
+    group: 'over-preloading',
+    href: '/over-preloading/visible-task-task-calling-qrl/',
+    label: 'visible-task-task-calling-qrl',
+  },
+  {
     group: 'other',
     href: '/modal/',
     label: 'modal',
+  },
+  {
+    group: 'other',
+    href: '/conditional-modal/',
+    label: 'conditional modal',
+  },
+  {
+    group: 'other',
+    href: '/dashboard-modal/',
+    label: 'dashboard modal',
+  },
+  {
+    group: 'other',
+    href: '/empty-list/',
+    label: 'empty list',
+  },
+  {
+    group: 'other',
+    href: '/tasks/parent-child/',
+    label: 'tasks in a parent and its child',
+  },
+  {
+    group: 'other',
+    href: '/tasks/siblings/',
+    label: 'tasks in two siblings',
   },
   {
     group: 'other',

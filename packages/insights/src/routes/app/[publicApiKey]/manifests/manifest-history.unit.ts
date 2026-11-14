@@ -3,6 +3,7 @@ import { toBucket, vectorNew } from '~/stats/vector';
 import {
   formatManifestTimestamp,
   getManifestHistoryOverview,
+  getManifestHistoryPage,
   getManifestStatus,
 } from './manifest-history';
 
@@ -15,6 +16,21 @@ const latencyVector = (...values: number[]) => {
 };
 
 describe('manifest history', () => {
+  it('preserves totals and comparisons across report page boundaries', () => {
+    const rows = Array.from({ length: 26 }, (_, index) => ({
+      hash: `manifest-${index}`,
+      latency: latencyVector(...Array<number>(100).fill(index === 25 ? 20 : 40)),
+    }));
+    const first = getManifestHistoryPage(rows, '1');
+    const last = getManifestHistoryPage(rows, '2');
+    expect(first.items).toHaveLength(25);
+    expect(first.items[24].status).toBe('Regression');
+    expect(last.items).toHaveLength(1);
+    expect(last.items[0].status).toBe('Baseline');
+    expect(last.overview).toEqual(first.overview);
+    expect(last.overview).toMatchObject({ manifests: 26, samples: 2600 });
+  });
+
   it('summarizes all recorded manifest samples', () => {
     expect(
       getManifestHistoryOverview([

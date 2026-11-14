@@ -280,11 +280,11 @@ describe('resolve-request-handler', () => {
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
     });
 
-    it('should allow same-origin form submissions', () => {
+    it.each(['text/plain; charset=utf-8', 'text/ping'])('should allow same-origin %s', (type) => {
       const ev: any = {
         request: {
           headers: new Headers({
-            'content-type': 'text/plain; charset=utf-8',
+            'content-type': type,
             origin: 'http://server',
           }),
         },
@@ -314,11 +314,11 @@ describe('resolve-request-handler', () => {
       checkCSRF(ev, 'lax-proto');
     });
 
-    it('should not check origin for non-form content-types', () => {
+    it.each(['application/json', 'text/ping'])('should reject cross-origin %s', (type) => {
       const ev: any = {
         request: {
           headers: new Headers({
-            'content-type': 'application/json',
+            'content-type': type,
             origin: 'http://evil.com',
           }),
         },
@@ -327,8 +327,18 @@ describe('resolve-request-handler', () => {
         error: (status: number, msg: string) => new Error(msg),
       };
 
-      // Should not throw
-      checkCSRF(ev);
+      expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
+    });
+
+    it('should reject requests without an Origin header regardless of content type', () => {
+      const ev: any = {
+        request: { headers: new Headers({ 'content-type': 'application/json' }) },
+        url: new URL('http://server/path'),
+        method: 'POST',
+        error: (status: number, msg: string) => new Error(msg),
+      };
+
+      expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
     });
 
     it('should throw for Content-Type smuggling via comma', () => {

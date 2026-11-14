@@ -8,11 +8,12 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Verifying server adapters', () => {
-  test('should ignore unknown qdata', async ({ page, request }) => {
+  test('should ignore unknown qdata', async ({ page, request, baseURL }) => {
     page.goto('/');
 
     const response = await request.post('/?qfunc=ThisDoesNotExist', {
       headers: {
+        Origin: new URL(baseURL!).origin,
         'X-Qrl': 'ThisDoesNotExist',
         'Content-Type': 'application/qwik-json',
       },

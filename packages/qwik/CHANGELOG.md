@@ -1,5 +1,86 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.5
+
+### Minor Changes
+
+- ✨ running `migrate-v2` on a v2 app updates it to the current release (by [@wmertens](https://github.com/wmertens) in [#9185](https://github.com/QwikDev/qwik/pull/9185))
+
+- ✨ `migrate-v2` bundles libraries built with Qwik 1 on the server (by [@wmertens](https://github.com/wmertens) in [#9185](https://github.com/QwikDev/qwik/pull/9185))
+
+- ✨ `migrate-v2` overrides `@builder.io/qwik` with v2 for libraries built with Qwik 1 (by [@wmertens](https://github.com/wmertens) in [#9185](https://github.com/QwikDev/qwik/pull/9185))
+
+### Patch Changes
+
+- 🐞🩹 skip renders that read a cancelled async signal until it has a value (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 prevent synchronous async signal results from blocking settled reads (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 dev server crash on StackBlitz with `createOptimizer is not a constructor` (by [@wmertens](https://github.com/wmertens) in [#9405](https://github.com/QwikDev/qwik/pull/9405))
+
+- 🐞🩹 render `true` attributes as empty on the client, matching SSR (by [@intellix](https://github.com/intellix) in [#9355](https://github.com/QwikDev/qwik/pull/9355))
+
+- 🐞🩹 tables with event handlers on `<colgroup>` no longer get split during SSR (by [@wmertens](https://github.com/wmertens) in [#9377](https://github.com/QwikDev/qwik/pull/9377))
+
+- 🐞🩹 ssr no longer fails on deep props over objects holding functions (by [@intellix](https://github.com/intellix) in [#9302](https://github.com/QwikDev/qwik/pull/9302))
+
+- 🐞🩹 a page that crashed before sending content answered 200 instead of 500 (by [@maiieul](https://github.com/maiieul) in [#9348](https://github.com/QwikDev/qwik/pull/9348))
+
+- 🐞🩹 run client build without fetching an unrelated package (by [@Varixo](https://github.com/Varixo) in [`ecf178f`](https://github.com/QwikDev/qwik/commit/ecf178fd70cbb5619fbe6dda1d6364c851350ff8))
+
+- fix(cli): wait for an integration's `postInstall` script to finish before `qwik add` exits, and report when it fails (by [@ankur-arch](https://github.com/ankur-arch) in [#9371](https://github.com/QwikDev/qwik/pull/9371))
+
+- 🐞🩹 keep siblings after an empty list when a component re-renders (by [@Varixo](https://github.com/Varixo) in [#9372](https://github.com/QwikDev/qwik/pull/9372))
+
+- 🐞🩹 `useOn` no longer drops the element's own handler for the same event (by [@ybai08](https://github.com/ybai08) in [#9324](https://github.com/QwikDev/qwik/pull/9324))
+
+- 🐞🩹 keyed list re-render after resume no longer duplicates or drops the SSR-shared text of keyed fragments (by [@omerman](https://github.com/omerman) in [#9368](https://github.com/QwikDev/qwik/pull/9368))
+
+- 🐞🩹 inserting a new node without children no longer recreates the next sibling's children (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9315](https://github.com/QwikDev/qwik/pull/9315))
+
+- perf: browser apps load the serializer only with segments that need it (by [@Varixo](https://github.com/Varixo) in [#9323](https://github.com/QwikDev/qwik/pull/9323))
+
+- 🐞🩹 preserve loop handler captures across scopes and assignments (by [@tuurbo](https://github.com/tuurbo) in [#9307](https://github.com/QwikDev/qwik/pull/9307))
+
+- 🐞🩹 settle failed action submissions and prevent duplicate form requests (by [@Varixo](https://github.com/Varixo) in [#9275](https://github.com/QwikDev/qwik/pull/9275))
+
+- 🐞🩹 preserve computed failures when thrown values are falsy (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 `<Pending>` and `<Catch>` content resolving inside an `<svg>` is no longer misplaced (by [@ybai08](https://github.com/ybai08) in [#9322](https://github.com/QwikDev/qwik/pull/9322))
+
+- 🐞🩹 remove unused callbacks retained after moving helpers into segments (by [@Varixo](https://github.com/Varixo) in [#9380](https://github.com/QwikDev/qwik/pull/9380))
+
+- 🐞🩹 a conditional element no longer moves to the end of its parent after resume (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9313](https://github.com/QwikDev/qwik/pull/9313))
+
+- 🐞🩹 debug builds show readable names for event handler and visible task chunks (by [@maiieul](https://github.com/maiieul) in [#9386](https://github.com/QwikDev/qwik/pull/9386))
+
+- 🐞🩹 `useVisibleTask$` cleanups now run when a component is removed while it is about to re-render (for example, a `usePreventNavigate$` handler is now unregistered). (by [@omerman](https://github.com/omerman) in [#9345](https://github.com/QwikDev/qwik/pull/9345))
+
+- 🐞🩹 prevent user text from breaking serialized state scripts (by [@Varixo](https://github.com/Varixo) in [`f227fe4`](https://github.com/QwikDev/qwik/commit/f227fe4751ec3fda64e4ca2e68a9841cf5d7a6e6))
+
+- 🐞🩹 bundle image-size 2.0.4 to address its denial-of-service advisories (by [@wmertens](https://github.com/wmertens) in [#9296](https://github.com/QwikDev/qwik/pull/9296))
+
+- 🐞🩹 debug builds shorten chunk file names that would pass file system limits (by [@maiieul](https://github.com/maiieul) in [#9386](https://github.com/QwikDev/qwik/pull/9386))
+
+- 🐞🩹 keep event-only QRL dependencies outside component render chunks (by [@Varixo](https://github.com/Varixo) in [#9309](https://github.com/QwikDev/qwik/pull/9309))
+
+- 🐞🩹 dynamic `import()` of a css file no longer points to a missing chunk in production builds (by [@gioboa](https://github.com/gioboa) in [#9299](https://github.com/QwikDev/qwik/pull/9299))
+
+- 🐞🩹 resolve default entries consistently from the configured source directory (by [@tscpp](https://github.com/tscpp) in [#9152](https://github.com/QwikDev/qwik/pull/9152))
+
+- 🐞🩹 `track()` returns the value type for a `ReadonlySignal` (by [@Varixo](https://github.com/Varixo) in [#9340](https://github.com/QwikDev/qwik/pull/9340))
+
+- 🐞🩹 the TypeScript optimizer now handles destructured props used as JSX tags or shadowed by a local of the same name (by [@maiieul](https://github.com/maiieul) in [#9127](https://github.com/QwikDev/qwik/pull/9127))
+
+- 🐞🩹 `useOn` handlers no longer pile up on a JSX node reused across renders (by [@ybai08](https://github.com/ybai08) in [#9324](https://github.com/QwikDev/qwik/pull/9324))
+
+- 🐞🩹 run resumed visible tasks only after the render they depend on commits (by [@Varixo](https://github.com/Varixo) in [#9305](https://github.com/QwikDev/qwik/pull/9305))
+
+- 🐞🩹 QRL segments failing to load on vitest's warm module cache (by [@Varixo](https://github.com/Varixo) in [#9381](https://github.com/QwikDev/qwik/pull/9381))
+
+- Updated dependencies [[`0e88000`](https://github.com/QwikDev/qwik/commit/0e88000819435e4f87112a97a3452558a138596c), [`5248e3b`](https://github.com/QwikDev/qwik/commit/5248e3b8aa31385bf609cd15c3d896a6a8164168), [`88d5c81`](https://github.com/QwikDev/qwik/commit/88d5c815cc3c02bdf256b00084a9296c8dd21b54)]:
+  - @qwik.dev/optimizer@2.1.0-rc.11
+
 ## 2.0.0-rc.4
 
 ### Minor Changes

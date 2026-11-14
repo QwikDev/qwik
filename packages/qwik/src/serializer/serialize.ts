@@ -37,7 +37,6 @@ import {
   AsyncSignalFlags,
   BRACKET_CLOSE,
   BRACKET_OPEN,
-  CLOSE_TAG,
   COMMA,
   ComputedSignalFlags,
   Constants,
@@ -265,13 +264,24 @@ export class Serializer {
   }
 
   private outputString(value: string): void {
-    const s = this.stringNeedsJsonEscape$(value) ? JSON.stringify(value) : QUOTE + value + QUOTE;
+    // JSON.stringify avoids a JavaScript scan for long strings.
+    const s =
+      value.length >= 128 || this.stringNeedsJsonEscape$(value)
+        ? JSON.stringify(value)
+        : QUOTE + value + QUOTE;
     let angleBracketIdx: number = -1;
     let lastIdx = 0;
-    while ((angleBracketIdx = s.indexOf(CLOSE_TAG, lastIdx)) !== -1) {
+    // <!-- <script makes HTML parsers ignore the script's closing tag.
+    while ((angleBracketIdx = s.indexOf('<', angleBracketIdx + 1)) !== -1) {
+      // ASCII 47 is '/', and 33 is '!'.
+      const next = s.charCodeAt(angleBracketIdx + 1);
+      const isCloseTag = next === 47;
+      if (!isCloseTag && (next !== 33 || !s.startsWith('!--', angleBracketIdx + 1))) {
+        continue;
+      }
       this.$writer$.write(s.slice(lastIdx, angleBracketIdx));
-      this.$writer$.write(ESCAPED_CLOSE_TAG);
-      lastIdx = angleBracketIdx + 2;
+      this.$writer$.write(isCloseTag ? ESCAPED_CLOSE_TAG : '\\u003C');
+      lastIdx = angleBracketIdx + (isCloseTag ? 2 : 1);
     }
     this.$writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
   }

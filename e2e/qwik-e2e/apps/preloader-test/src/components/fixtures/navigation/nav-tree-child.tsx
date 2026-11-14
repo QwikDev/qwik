@@ -8,7 +8,7 @@ export const NavTreeChild = component$<{ input: ReadonlySignal<number> }>(({ inp
   });
   return (
     <div class="level">
-      <span class="step">level 2: {out.value}</span>
+      <span class="step">B: {out.value}</span>
       <NavTreeGrandchild input={out} />
     </div>
   );

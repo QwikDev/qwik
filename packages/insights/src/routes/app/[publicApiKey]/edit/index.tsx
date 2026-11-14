@@ -22,6 +22,8 @@ import {
   dbRemoveUserFromApplication,
 } from '~/db/sql-user';
 import { ApplicationForm } from '../app.form';
+import { getSourceSettings, saveSourceSettings } from '~/db/source';
+import { SourceSettings } from '~/source-repository';
 
 export const head: DocumentHead = {
   title: 'Edit application | Qwik Insights',
@@ -38,6 +40,20 @@ export const useFormLoader = routeLoader$<InitialValues<ApplicationForm>>(async 
     .get();
   return app as ApplicationForm;
 });
+
+export const useSourceSettings = routeLoader$(
+  async ({ params }) =>
+    (await getSourceSettings(getDB(), params.publicApiKey)) ?? {
+      repository: '',
+      revision: 'main',
+      sourceRoot: '',
+    }
+);
+
+export const useSaveSourceSettings = routeAction$(async (settings, { params }) => {
+  await saveSourceSettings(getDB(), params.publicApiKey, settings);
+  return { saved: true };
+}, zod$(SourceSettings));
 
 export const useUsers = routeLoader$<string[]>(async ({ params }) => {
   const publicApiKey = params.publicApiKey;
@@ -81,6 +97,8 @@ export const useAddUserAction = routeAction$(
 
 export default component$(() => {
   const form = useFormLoader();
+  const sourceSettings = useSourceSettings();
+  const saveSource = useSaveSourceSettings();
   const [loginForm, { Form: ModularForm, Field }] = useForm<ApplicationForm>({
     loader: form,
     action: useFormAction(),
@@ -183,6 +201,68 @@ export default component$(() => {
           />
         </aside>
       </div>
+
+      <section
+        class="mt-editorial-12 border-t border-editorial-border pt-editorial-8"
+        aria-labelledby="source-settings-title"
+      >
+        <h2 id="source-settings-title" class="text-editorial-24 font-semibold">
+          GitHub source code
+        </h2>
+        <p class="mt-editorial-2 max-w-editorial-form text-editorial-14 text-editorial-secondary">
+          Show source in symbol details from a public GitHub repository. Use a revision that matches
+          your build; a commit pins the code exactly.
+        </p>
+        <Form
+          action={saveSource}
+          class="mt-editorial-6 flex max-w-editorial-form flex-col gap-editorial-6"
+        >
+          <FormField
+            id="source-repository"
+            name="repository"
+            type="url"
+            label="GitHub repository"
+            placeholder="https://github.com/owner/repo"
+            value={sourceSettings.value.repository}
+            error={saveSource.value?.fieldErrors?.repository}
+          />
+          <p class="text-editorial-12 text-editorial-muted">
+            Leave the repository empty to turn off source previews.
+          </p>
+          <FormField
+            id="source-revision"
+            name="revision"
+            type="text"
+            label="Branch, tag, or commit"
+            required
+            value={sourceSettings.value.revision}
+            error={saveSource.value?.fieldErrors?.revision}
+          />
+          <FormField
+            id="source-root"
+            name="sourceRoot"
+            type="text"
+            label="Source directory"
+            placeholder="src or packages/web/src"
+            value={sourceSettings.value.sourceRoot}
+            error={saveSource.value?.fieldErrors?.sourceRoot}
+          />
+          <p class="text-editorial-12 text-editorial-muted">
+            Repository-relative directory containing the symbol origins. Leave empty if origins
+            already start at the repository root. Historical builds may need a different revision.
+          </p>
+          <div>
+            <Button type="submit" theme="primary" disabled={saveSource.isRunning}>
+              Save source settings
+            </Button>
+          </div>
+          {saveSource.value?.saved && (
+            <p role="status" class="text-editorial-14">
+              Source settings saved.
+            </p>
+          )}
+        </Form>
+      </section>
 
       <section
         class="mt-editorial-12 border-t border-editorial-border pt-editorial-8"

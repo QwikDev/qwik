@@ -53,7 +53,7 @@ import {
 } from './etag';
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
-import { encoder, isContentType } from './request-utils';
+import { encoder } from './request-utils';
 import { ServerError, throwIfControlFlowSignal } from './server-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
@@ -689,37 +689,24 @@ function createResolveRequestHandlers() {
   }
 
   function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
-    const contentType = requestEv.request.headers.get('content-type');
+    const inputOrigin = requestEv.request.headers.get('origin');
+    const origin = requestEv.url.origin;
+    let forbidden = inputOrigin !== origin;
 
-    const isSimpleRequest =
-      !contentType ||
-      isContentType(
-        requestEv.request.headers,
-        'application/x-www-form-urlencoded',
-        'multipart/form-data',
-        'text/plain'
-      );
+    if (
+      forbidden &&
+      laxProto &&
+      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
+    ) {
+      forbidden = false;
+    }
 
-    if (isSimpleRequest) {
-      const inputOrigin = requestEv.request.headers.get('origin');
-      const origin = requestEv.url.origin;
-      let forbidden = inputOrigin !== origin;
-
-      if (
-        forbidden &&
-        laxProto &&
-        inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
-      ) {
-        forbidden = false;
-      }
-
-      if (forbidden) {
-        throw requestEv.error(
-          403,
-          `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+    if (forbidden) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} requests are forbidden.
 The request origin "${inputOrigin}" does not match the server origin "${origin}".`
-        );
-      }
+      );
     }
   }
 

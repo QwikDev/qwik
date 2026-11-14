@@ -50,8 +50,8 @@ export interface ServerRenderOptions extends RenderOptions {
   /**
    * Protection against cross-site request forgery (CSRF) attacks.
    *
-   * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request
-   * origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
+   * When `true`, for every incoming POST, PUT, PATCH, or DELETE request, the request origin is
+   * checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
    *
    * Be careful when disabling this option as it may lead to CSRF attacks.
    *

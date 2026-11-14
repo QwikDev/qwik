@@ -40,6 +40,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
           'launch-editor',
           '@qwik.dev/optimizer',
           '@qwik.dev/ts-optimizer',
+          // Inlined, its minified `class e` trips a WebContainer scoping bug (#9402).
+          'magic-string',
         ],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),

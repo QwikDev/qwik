@@ -3,7 +3,8 @@
 A JS streaming test bench: one route per case, 40 filler collapsibles around each fixture, and the
 preloader set to `{ ssrPreloads: 0, maxIdlePreloads: 1 }` so speculative preloads go one at a time.
 Add `?maxIdlePreloads=<n>` to a page's URL to load it with another limit.
-`/all-at-once/` renders every fixture; those with visible tasks sit below the fold, so only
+`/all-at-once/` renders every fixture. A visible task chain has no trigger: it starts when its
+fixture scrolls into view. Those fixtures sit below the fold, a screen apart, so only
 `visible/above` runs its visible tasks at load.
 
 - `pnpm generate` rewrites the filler collapsibles and the setup × primitive fixtures from

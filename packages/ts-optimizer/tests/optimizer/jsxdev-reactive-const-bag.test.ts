@@ -114,7 +114,8 @@ export const C = component$((props) => {
   return _jsxDEV(Inner, { onClose$: cb ? cb : props.onClose$ }, void 0, false, undefined, this);
 });
 `);
-    expect(out).toMatch(/_jsxSorted\(Inner,\s*\{\s*onClose\$:/);
+    // An on*$ prop on a component tag goes through _jsxSplit, like the Rust optimizer
+    expect(out).toMatch(/_jsxSplit\(Inner,\s*\{\s*onClose\$:/);
   });
 
   test('a spread on a component element emits _jsxSplit with _getVarProps/_getConstProps', () => {

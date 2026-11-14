@@ -1,7 +1,9 @@
 import { Slot, component$ } from '@qwik.dev/core';
-import { useLocation, type RequestHandler } from '@qwik.dev/router';
+import { routeLoader$, useLocation, type RequestHandler } from '@qwik.dev/router';
 import ApplicationNavigation from '~/components/application-navigation';
 import Header from '~/components/header';
+import { getDB } from '~/db';
+import { getAppInfo } from '~/db/query';
 import { getInsightUser } from '../layout';
 
 export const onRequest: RequestHandler = async ({ sharedMap, redirect, params }) => {
@@ -11,8 +13,13 @@ export const onRequest: RequestHandler = async ({ sharedMap, redirect, params })
   }
 };
 
+export const useApplication = routeLoader$(async ({ params }) =>
+  getAppInfo(getDB(), params.publicApiKey)
+);
+
 export default component$(() => {
   const location = useLocation();
+  const application = useApplication();
   const path = `/app/${location.params.publicApiKey}/`;
 
   return (
@@ -22,7 +29,7 @@ export default component$(() => {
         gridTemplateColumns: 'var(--spacing-editorial-sidebar-expanded) minmax(0, 1fr)',
       }}
     >
-      <ApplicationNavigation basePath={path} />
+      <ApplicationNavigation basePath={path} applicationName={application.value.name} />
       <div class="min-w-0">
         <Header showBrand={false} />
         <main class="min-h-[calc(100vh-var(--spacing-editorial-header))] p-editorial-8 mx-auto max-w-[1264px]">

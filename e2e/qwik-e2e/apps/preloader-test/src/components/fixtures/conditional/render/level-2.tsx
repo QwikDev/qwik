@@ -7,7 +7,7 @@ export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {
   const out = useComputed$(() => input.value && input.value + 1);
   return (
     <div class="level">
-      <span class="step">level 2: {incremented}</span>
+      <span class="step">B: {incremented}</span>
       <Level3 input={out} />
     </div>
   );

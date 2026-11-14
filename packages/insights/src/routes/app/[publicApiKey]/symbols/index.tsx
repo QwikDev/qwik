@@ -3,11 +3,13 @@ import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import Button, { ButtonLink } from '~/components/button';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import PageHeader from '~/components/page-header';
+import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAdd, vectorNew, vectorSum } from '~/stats/vector';
+import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
 interface SymbolStats {
   hash: string;
@@ -16,7 +18,8 @@ interface SymbolStats {
 }
 
 interface SymbolsInfo {
-  symbols: SymbolStats[];
+  symbols: ResultsPage<SymbolStats>;
+  samples: number;
   manifestCount: number;
   page: number;
   hasNext: boolean;
@@ -48,8 +51,10 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     vectorAdd(symbol.delay, edge.delay);
     vectorAdd(symbol.latency, edge.latency);
   });
+  const symbols = Array.from(symbolMap.values());
   return {
-    symbols: Array.from(symbolMap.values()),
+    symbols: paginateResults(symbols, url.searchParams.get('symbolPage')),
+    samples: symbols.reduce((total, symbol) => total + vectorSum(symbol.latency), 0),
     manifestCount: pageManifestHashes.length,
     page,
     hasNext,
@@ -71,10 +76,6 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
 
 export default component$(() => {
   const data = useData();
-  const samples = data.value.symbols.reduce(
-    (total, symbol) => total + vectorSum(symbol.latency),
-    0
-  );
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
@@ -87,17 +88,23 @@ export default component$(() => {
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
         <SummaryMetric
-          value={data.value.symbols.length.toLocaleString('en')}
-          label={data.value.symbols.length === 1 ? 'symbol in range' : 'symbols in range'}
+          value={data.value.symbols.total.toLocaleString('en')}
+          label={data.value.symbols.total === 1 ? 'symbol in range' : 'symbols in range'}
         />
-        <SummaryMetric value={samples.toLocaleString('en')} label="samples" />
+        <SummaryMetric value={data.value.samples.toLocaleString('en')} label="samples" />
         <SummaryMetric
           value={data.value.manifestCount.toLocaleString('en')}
           label={data.value.manifestCount === 1 ? 'manifest' : 'manifests'}
         />
       </dl>
 
-      {data.value.symbols.length ? (
+      <ResultsPagination
+        page={data.value.symbols.page}
+        pageCount={data.value.symbols.pageCount}
+        parameter="symbolPage"
+      />
+
+      {data.value.symbols.items.length ? (
         <div class="overflow-x-auto">
           <table class="w-full min-w-[1032px] text-left text-editorial-12">
             <thead class="border-b border-editorial-border text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
@@ -114,7 +121,7 @@ export default component$(() => {
               </tr>
             </thead>
             <tbody>
-              {data.value.symbols.map((symbol) => (
+              {data.value.symbols.items.map((symbol) => (
                 <tr key={symbol.hash} class="border-b border-editorial-border align-middle">
                   <td class="py-editorial-5 pr-editorial-6">
                     <Histogram vector={symbol.delay} buckets={BUCKETS} colors={delayColors} />
@@ -152,7 +159,10 @@ const SummaryMetric = component$<{ label: string; value: string }>(({ label, val
 const Pagination = component$<{ hasNext: boolean; page: number }>(({ hasNext, page }) => {
   const buttonClass = '!min-h-[41px]';
   return (
-    <nav aria-label="Pagination" class="flex items-center gap-editorial-6 self-end md:self-auto">
+    <nav
+      aria-label="Manifest ranges"
+      class="flex items-center gap-editorial-6 self-end md:self-auto"
+    >
       {page > 1 ? (
         <ButtonLink href={`?page=${page - 1}`} theme="secondary" class={buttonClass}>
           ← Previous
@@ -162,7 +172,7 @@ const Pagination = component$<{ hasNext: boolean; page: number }>(({ hasNext, pa
           ← Previous
         </Button>
       )}
-      <span class="text-editorial-12 font-semibold whitespace-nowrap">Page {page}</span>
+      <span class="text-editorial-12 font-semibold whitespace-nowrap">Manifest range {page}</span>
       {hasNext ? (
         <ButtonLink href={`?page=${page + 1}`} theme="primary" class={buttonClass}>
           Next →

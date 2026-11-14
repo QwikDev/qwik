@@ -4,7 +4,7 @@ import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { spawn } from 'node:child_process';
 import { readFile, rm, unlink } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
-import { type Plugin, type UserConfig, type ViteBuilder } from 'vite';
+import { type Environment, type Plugin, type UserConfig, type ViteBuilder } from 'vite';
 import type { BuiltRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
@@ -20,13 +20,19 @@ const QWIK_SSG_ENTRY_RESOLVED = '\0@qwik-ssg-entry';
 const QWIK_SSG_WORKER_ENTRY_ID = '@qwik-ssg-worker-entry';
 const QWIK_SSG_WORKER_ENTRY_RESOLVED = '\0@qwik-ssg-worker-entry';
 
+// Vite creates separate adapter instances for each build environment.
+const appBuilds = new Map<string, { outputEntries: string[] }>();
+const appWatchEnvironments = new WeakSet<Environment>();
+
+function getAppBuildKey(root: string, outDir: string) {
+  return JSON.stringify([resolve(root), resolve(root, outDir)]);
+}
+
 /** @public */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikRouterPlugin: QwikRouterPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
   let viteCommand: string | undefined;
-  let buildAppRan = false;
-  const outputEntries: string[] = [];
 
   // Throwaway outDir for the `ssg` environment's run-ssg output. Kept inside the build root so Vite
   // can empty it and run-ssg resolves externalized node_modules deps at render time. A pure function
@@ -218,17 +224,23 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     generateBundle(_, bundles) {
       // Capture the deployed entries (the `ssr` environment), not the throwaway `ssg` output.
       if (this.environment.name === 'ssr') {
-        outputEntries.length = 0;
-        for (const fileName in bundles) {
-          const chunk = bundles[fileName];
-          if (chunk.type === 'chunk' && chunk.isEntry) {
-            outputEntries.push(fileName);
+        const { root, build } = this.environment.config;
+        const appBuild = appBuilds.get(getAppBuildKey(root, build.outDir));
+        if (appBuild) {
+          appBuild.outputEntries.length = 0;
+          for (const fileName in bundles) {
+            const chunk = bundles[fileName];
+            if (chunk.type === 'chunk' && chunk.isEntry) {
+              appBuild.outputEntries.push(fileName);
+            }
           }
         }
         // SSG runs only from `buildApp` (the multi-environment app build). If the deployed server was
         // built directly via Vite's programmatic `build()`, buildApp never ran and nothing was
         // prerendered — warn loudly rather than silently shipping an un-prerendered site.
-        if (opts.ssg !== null && viteCommand === 'build' && !buildAppRan) {
+        // Watch builds return before their first bundle is written.
+        const isAppWatch = !!build.watch && appWatchEnvironments.has(this.environment);
+        if (opts.ssg !== null && viteCommand === 'build' && !appBuild && !isAppWatch) {
           this.warn(
             'Qwik Router SSG was skipped: the `ssr` environment was built directly instead of through ' +
               'the Vite app builder, so no pages were prerendered. Build with the Qwik CLI or ' +
@@ -242,94 +254,107 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     // prerendered route code never reaches the `ssr` bundle — then render the pages and post-build.
     // (The client builds in its own `vite build`.)
     async buildApp(builder: ViteBuilder) {
-      buildAppRan = true;
       const ssr = builder.environments.ssr;
-      if (ssr) {
-        await builder.build(ssr);
-      }
-      // Read the deployed server outDir from the `ssr` environment, not a closure: in builder mode
-      // `configResolved` runs per environment, so the later `ssg` build would clobber a shared value.
-      const serverOutDir = ssr?.config.build.outDir;
-      if (!serverOutDir || !qwikRouterPlugin?.api || !qwikVitePlugin?.api) {
+      if (!ssr) {
         return;
       }
+      const buildKey = getAppBuildKey(ssr.config.root, ssr.config.build.outDir);
+      if (appBuilds.has(buildKey)) {
+        throw new Error(`An app build is already running for ${buildKey}`);
+      }
+      const appBuild = { outputEntries: [] as string[] };
+      appBuilds.set(buildKey, appBuild);
+      try {
+        await builder.build(ssr);
+        if (ssr.config.build.watch) {
+          appWatchEnvironments.add(ssr);
+        }
+        // Read the deployed server outDir from the `ssr` environment, not a closure: in builder mode
+        // `configResolved` runs per environment, so the later `ssg` build would clobber a shared value.
+        const serverOutDir = ssr.config.build.outDir;
+        if (!serverOutDir || !qwikRouterPlugin?.api || !qwikVitePlugin?.api) {
+          return;
+        }
 
-      const log = builder.config.logger;
-      const staticPaths: string[] = opts.staticPaths || [];
-      const routes = qwikRouterPlugin.api.getRoutes();
-      const basePathname = qwikRouterPlugin.api.getBasePathname();
-      const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
-      const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
-      const noTrailingSlash =
-        builder.config.define?.['globalThis.__NO_TRAILING_SLASH__'] === 'true';
-      const ssgEnv = builder.environments.ssg;
-      const ssgOutDir = ssgOutDirFor(builder.config.root);
+        const log = builder.config.logger;
+        const staticPaths: string[] = opts.staticPaths || [];
+        const routes = qwikRouterPlugin.api.getRoutes();
+        const basePathname = qwikRouterPlugin.api.getBasePathname();
+        const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
+        const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+        const noTrailingSlash =
+          builder.config.define?.['globalThis.__NO_TRAILING_SLASH__'] === 'true';
+        const ssgEnv = builder.environments.ssg;
+        const ssgOutDir = ssgOutDirFor(builder.config.root);
 
-      if (ssgEnv && clientOutDir && clientPublicOutDir) {
-        await builder.build(ssgEnv);
+        if (ssgEnv && clientOutDir && clientPublicOutDir) {
+          await builder.build(ssgEnv);
 
-        // Spawn run-ssg as a child process to isolate the SSG worker-thread handles from the build.
-        const runSsgPath = join(ssgOutDir, 'run-ssg.js');
-        const ssgExitCode = await new Promise<number | null>((res, reject) => {
-          const child = spawn(process.execPath, [runSsgPath], {
-            stdio: ['ignore', 'inherit', 'inherit'],
-            env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'production' },
+          // Spawn run-ssg as a child process to isolate the SSG worker-thread handles from the build.
+          const runSsgPath = join(ssgOutDir, 'run-ssg.js');
+          const ssgExitCode = await new Promise<number | null>((res, reject) => {
+            const child = spawn(process.execPath, [runSsgPath], {
+              stdio: ['ignore', 'inherit', 'inherit'],
+              env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'production' },
+            });
+            child.on('close', res);
+            child.on('error', reject);
           });
-          child.on('close', res);
-          child.on('error', reject);
-        });
-        if (ssgExitCode !== 0) {
-          throw new Error(
-            `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
-          );
+          if (ssgExitCode !== 0) {
+            throw new Error(
+              `Error while running SSG from "${opts.name}" adapter. At least one path failed to render.`
+            );
+          }
+
+          // Read (and remove) the static paths written by run-ssg.js, then drop the throwaway dir.
+          const staticPathsFile = join(clientPublicOutDir, '_static-paths.json');
+          try {
+            staticPaths.push(...JSON.parse(await readFile(staticPathsFile, 'utf-8')));
+            await unlink(staticPathsFile);
+          } catch {
+            // No static paths file — SSG may have produced no pages.
+          }
+          // Set QWIK_ROUTER_KEEP_SSG_BUILD to keep the throwaway run-ssg build for debugging.
+          if (process.env.QWIK_ROUTER_KEEP_SSG_BUILD) {
+            log.warn(`SSG build kept at ${ssgOutDir}`);
+          } else {
+            await rm(ssgOutDir, { recursive: true, force: true });
+          }
         }
 
-        // Read (and remove) the static paths written by run-ssg.js, then drop the throwaway dir.
-        const staticPathsFile = join(clientPublicOutDir, '_static-paths.json');
-        try {
-          staticPaths.push(...JSON.parse(await readFile(staticPathsFile, 'utf-8')));
-          await unlink(staticPathsFile);
-        } catch {
-          // No static paths file — SSG may have produced no pages.
-        }
-        // Set QWIK_ROUTER_KEEP_SSG_BUILD to keep the throwaway run-ssg build for debugging.
-        if (process.env.QWIK_ROUTER_KEEP_SSG_BUILD) {
-          log.warn(`SSG build kept at ${ssgOutDir}`);
-        } else {
-          await rm(ssgOutDir, { recursive: true, force: true });
-        }
-      }
-
-      await postBuild(
-        clientPublicOutDir,
-        serverOutDir,
-        basePathname,
-        staticPaths,
-        !!opts.cleanStaticGenerated,
-        noTrailingSlash
-      );
-
-      if (typeof opts.generate === 'function') {
-        await opts.generate({
-          outputEntries,
-          serverOutDir,
-          clientOutDir,
+        await postBuild(
           clientPublicOutDir,
+          serverOutDir,
           basePathname,
-          routes,
-          warn: (message) => log.warn(message),
-          error: (message) => {
-            throw new Error(message);
-          },
-        });
-      }
+          staticPaths,
+          !!opts.cleanStaticGenerated,
+          noTrailingSlash
+        );
 
-      log.warn(
-        `\n==============================================` +
-          `\nNote: Make sure that you are serving the built files with proper cache headers.` +
-          `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
-          `\n==============================================`
-      );
+        if (typeof opts.generate === 'function') {
+          await opts.generate({
+            outputEntries: appBuild.outputEntries,
+            serverOutDir,
+            clientOutDir,
+            clientPublicOutDir,
+            basePathname,
+            routes,
+            warn: (message) => log.warn(message),
+            error: (message) => {
+              throw new Error(message);
+            },
+          });
+        }
+
+        log.warn(
+          `\n==============================================` +
+            `\nNote: Make sure that you are serving the built files with proper cache headers.` +
+            `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
+            `\n==============================================`
+        );
+      } finally {
+        appBuilds.delete(buildKey);
+      }
     },
   };
 

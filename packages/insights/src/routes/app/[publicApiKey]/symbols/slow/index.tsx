@@ -3,15 +3,18 @@ import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import PageHeader from '~/components/page-header';
+import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getSlowEdges, type SlowEdge } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
+import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
-interface SlowSymbol {
-  edges: SlowEdge[];
+interface SlowSymbol extends ResultsPage<SlowEdge> {
   manifestCount: number;
+  samples: number;
+  symbolCount: number;
 }
 
 export const head: DocumentHead = {
@@ -25,13 +28,17 @@ export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
     ? manifest.split(',').filter(Boolean).slice(0, 100)
     : await dbGetManifestHashes(db, params.publicApiKey);
   const edges = await getSlowEdges(db, params.publicApiKey, manifestHashes);
-  return { edges, manifestCount: manifestHashes.length };
+  return {
+    ...paginateResults(edges, query.get('page')),
+    manifestCount: manifestHashes.length,
+    samples: edges.reduce((total, edge) => total + vectorSum(edge.latency), 0),
+    symbolCount: new Set(edges.map((edge) => edge.to)).size,
+  };
 });
 
 export default component$(() => {
   const data = useData();
-  const samples = data.value.edges.reduce((total, edge) => total + vectorSum(edge.latency), 0);
-  const symbolCount = new Set(data.value.edges.map((edge) => edge.to)).size;
+  const { samples, symbolCount } = data.value;
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
@@ -52,7 +59,9 @@ export default component$(() => {
         />
       </dl>
 
-      {data.value.edges.length ? (
+      <ResultsPagination page={data.value.page} pageCount={data.value.pageCount} />
+
+      {data.value.items.length ? (
         <div class="overflow-x-auto">
           <table class="w-full min-w-[1032px] text-left text-editorial-12">
             <thead class="border-b border-editorial-border text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
@@ -75,7 +84,7 @@ export default component$(() => {
               </tr>
             </thead>
             <tbody>
-              {data.value.edges.map((edge) => (
+              {data.value.items.map((edge) => (
                 <tr
                   key={`${edge.manifestHash}:${edge.to}`}
                   class="border-b border-editorial-border align-middle"

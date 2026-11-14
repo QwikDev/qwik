@@ -6,12 +6,10 @@ import {
   createRouteRow,
   delayBucketField,
   delayColumns,
-  delayColumnSumList,
+  delayColumnSums,
   edgeTableDelayCount,
   latencyBucketField,
-  latencyColumnSumList,
   latencyColumnSums,
-  listToVector,
   timelineBucketField,
   toVector,
 } from './query-helpers';
@@ -54,8 +52,8 @@ export async function getEdges(
       .select({
         from: edgeTable.from,
         to: edgeTable.to,
-        latencyColumnSumList: latencyColumnSumList,
-        delayColumnSumList: delayColumnSumList,
+        ...latencyColumnSums,
+        ...delayColumnSums,
       })
       .from(edgeTable)
       .where(where)
@@ -65,8 +63,8 @@ export async function getEdges(
     return rows.map((e) => ({
       from: e.from,
       to: e.to,
-      delay: listToVector(e.delayColumnSumList),
-      latency: listToVector(e.latencyColumnSumList),
+      delay: toVector('sumDelayCount', e),
+      latency: toVector('sumLatencyCount', e),
     }));
   });
 }
@@ -215,7 +213,6 @@ export async function getAppInfo(
   description: string | null;
   publicApiKey: string;
   url: string | null;
-  github: string | null;
 }> {
   const app = await db
     .select()
@@ -223,10 +220,6 @@ export async function getAppInfo(
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
   return {
-    github:
-      publicApiKey == '221smyuj5gl'
-        ? 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src'
-        : null,
     ...app!,
   };
 }

@@ -39,6 +39,7 @@ import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
 import { REFRESH_HEAD } from './navigation-state';
 import { getBasePathname } from './router-config';
+import { toSafeRedirectUrl } from './utils';
 import type {
   DataValidator,
   LoaderConstructor,
@@ -470,15 +471,15 @@ const createRouteLoaderSignal = (
       }
       assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (response.r) {
-        const redirectUrl = response.r;
+        const redirectUrl = toSafeRedirectUrl(response.r, pageUrl);
         const goto = routeLoaderCtx.goto;
         // Mark the redirect pending before navigation can abort requests.
         const prepared = Promise.resolve().then(() => {
           assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
           if (goto) {
-            return goto(redirectUrl, { replaceState: true });
+            return goto(redirectUrl.href, { replaceState: true });
           }
-          location.href = redirectUrl;
+          location.href = redirectUrl.href;
           return new Promise<void>(() => {});
         });
         request.redirect = prepared;

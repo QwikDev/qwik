@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom } from '../utils/app';
+import { chunkComesFrom, chunkHoldsSegmentsFrom } from '../utils/app';
 import { expectRoundTrips } from '../utils/click-tests';
 import {
   CLICKABLE_ON_ALL_AT_ONCE,
@@ -18,8 +18,9 @@ import {
   releaseAll,
   resultIsDone,
   settle,
+  type RoundTrip,
 } from '../utils/gate';
-import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
+import { expectResult, fixtureResult, startFixture } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CLICKABLE = CLICKABLE_ON_ALL_AT_ONCE.filter((fixture) => !NEVER_SHOWS_RESULT[fixture.id]);
@@ -31,8 +32,31 @@ const expectExpectedText = async (page: Page, fixture: Fixture) => {
   await expect.soft(fixtureResult(page, fixture), fixture.id).toHaveText(fixture.expected);
 };
 
-const clickFixture = (page: Page, fixture: Fixture) => () =>
-  fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+const clickFixture = (page: Page, fixture: Fixture) => () => startFixture(page, fixture);
+
+const clickEachFixtureCold = async (
+  page: Page,
+  onClick: (
+    fixture: Fixture,
+    roundTrips: RoundTrip[],
+    stillOngoing: string[]
+  ) => Promise<void> | void
+) => {
+  await recordSpeculativePreloads(page);
+  const gate = await createGate(page);
+  await openCold(page, gate, ALL_AT_ONCE);
+  for (const fixture of CLICKABLE) {
+    const roundTrips = await countRoundTrips(
+      page,
+      gate,
+      clickFixture(page, fixture),
+      resultIsDone(fixtureResult(page, fixture))
+    );
+    const stillOngoing = gate.held.map((route) => route.request().url());
+    await onClick(fixture, roundTrips, stillOngoing);
+  }
+  await releaseAll(gate);
+};
 
 test.describe('all at once', () => {
   test.setTimeout(300_000);
@@ -40,27 +64,34 @@ test.describe('all at once', () => {
   test('sequential cold clicks: each click shows its result in as many round trips as on its own page', async ({
     page,
   }, testInfo) => {
-    await recordSpeculativePreloads(page);
-    const gate = await createGate(page);
-    await openCold(page, gate, ALL_AT_ONCE);
     const report: string[] = [];
-    for (const fixture of CLICKABLE) {
-      const roundTrips = await countRoundTrips(
-        page,
-        gate,
-        clickFixture(page, fixture),
-        resultIsDone(fixtureResult(page, fixture))
-      );
+    await clickEachFixtureCold(page, async (fixture, roundTrips) => {
       report.push(
         `${fixture.id}\n${formatRoundTrips(roundTrips, { segmentsFrom: fixture.sources })}`
       );
       expectRoundTrips(roundTrips, ROUND_TRIPS_ON_MAIN[fixture.id], `${fixture.id}: `);
       await expectExpectedText(page, fixture);
-    }
-    await releaseAll(gate);
+    });
     await testInfo.attach('cold-clicks.txt', {
       body: report.join('\n'),
       contentType: 'text/plain',
+    });
+  });
+
+  test("sequential cold clicks: each click fetches only its own fixture's chunks", async ({
+    page,
+  }) => {
+    const fetchedByEarlierClicks = new Set<string>();
+    await clickEachFixtureCold(page, (fixture, roundTrips, stillOngoing) => {
+      const fetched = [
+        ...roundTrips.flatMap((roundTrip) => roundTrip.urls),
+        ...stillOngoing,
+      ].filter((url) => !fetchedByEarlierClicks.has(url));
+      const fromOtherFixtures = fetched.filter(
+        (url) => chunkHoldsSegmentsFrom(url, ['src/']) && !chunkComesFrom(url, fixture.sources)
+      );
+      fetched.forEach((url) => fetchedByEarlierClicks.add(url));
+      expect.soft(fromOtherFixtures, fixture.id).toEqual([]);
     });
   });
 

@@ -110,6 +110,9 @@ HTTPS (HTTP/2).
   `NOT_READY_WHEN_WARM` in `utils/fixtures.ts` list the clicks main does differently, each with a
   reason; a fix fails the test until its entry is updated. `NEVER_SHOWS_RESULT` runs as `test.fail()`.
   Each click's chunks are attached to the report.
+- A chain of visible tasks starts from the visible task, not from a click: its fixture has no
+  trigger and sits a screen below the fold, and the test scrolls it into view
+  (`startsWhenVisible`).
 - The counts assume a production core build, as in CI. `build.core.dev` splits core into other
   chunks and changes the round trips, so build with `pnpm build.core` first.
 

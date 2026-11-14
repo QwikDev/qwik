@@ -10,6 +10,7 @@ type Primitive = {
   imports: string[];
   code: (input: string) => string;
   step?: string;
+  startsWhenVisible?: boolean;
 };
 
 const PRIMITIVES: Record<string, Primitive> = {
@@ -100,6 +101,7 @@ const PRIMITIVES: Record<string, Primitive> = {
   },
   'visible-task-chain': {
     imports: ['useSignal', 'useVisibleTask$'],
+    startsWhenVisible: true,
     code: (input) => `
   const a = useSignal(0);
   const b = useSignal(0);
@@ -118,7 +120,7 @@ const PRIMITIVES: Record<string, Primitive> = {
   });`,
   },
   all: {
-    imports: ['useComputed$', 'useSignal', 'useTask$', 'useVisibleTask$'],
+    imports: ['useComputed$', 'useSignal', 'useTask$'],
     code: (input) => `
   const t1 = useSignal(0);
   const t2 = useSignal(0);
@@ -131,30 +133,15 @@ const PRIMITIVES: Record<string, Primitive> = {
     const n = track(t1);
     t2.value = n && n + 1;
   });
-  useTask$(({ track }) => {
-    const n = track(t2);
-    t3.value = n && n + 1;
-  });
-  const c1 = useComputed$(() => t3.value && t3.value + 1);
+  const c1 = useComputed$(() => t2.value && t2.value + 1);
   const c2 = useComputed$(() => c1.value && c1.value + 1);
   const c3 = useComputed$(() => c2.value && c2.value + 1);
-  const v1 = useSignal(0);
-  const v2 = useSignal(0);
-  const v3 = useSignal(0);
-  useVisibleTask$(({ track }) => {
+  useTask$(({ track }) => {
     const n = track(c3);
-    v1.value = n && n + 1;
-  });
-  useVisibleTask$(({ track }) => {
-    const n = track(v1);
-    v2.value = n && n + 1;
-  });
-  useVisibleTask$(({ track }) => {
-    const n = track(v2);
-    v3.value = n && n + 1;
+    t3.value = n && n + 1;
   });
   const a1 = useComputed$(async ({ track }) => {
-    const n = track(v3);
+    const n = track(t3);
     return n && n + 1;
   });
   const a2 = useComputed$(async ({ track }) => {
@@ -197,20 +184,31 @@ const result = () => `<output data-testid="result" data-done={out.value ? '' : u
 
 const fixtureId = (setup: Setup, primitive: string) => `${setup}/${primitive}`;
 
+const startsWhenVisible = (setup: Setup, primitive: string) =>
+  setup !== 'conditional' && !!PRIMITIVES[primitive].startsWhenVisible;
+
+const rootInput = (setup: Setup, primitive: string) =>
+  `const input = useSignal(${startsWhenVisible(setup, primitive) ? 1 : 0});`;
+
+const trigger = (setup: Setup, primitive: string) =>
+  startsWhenVisible(setup, primitive)
+    ? ''
+    : `<button data-testid="trigger" onClick$={() => (input.value = 1)}>
+        Run
+      </button>
+      `;
+
 const writeSingle = (primitive: string) => {
   const { imports, code, step } = PRIMITIVES[primitive];
   write(
     `components/fixtures/single/${primitive}/index.tsx`,
     `${coreImports(['component$', 'useSignal', ...imports])}
 export default component$(() => {
-  const input = useSignal(0);${code('input')}
+  ${rootInput('single', primitive)}${code('input')}
   return (
     <section class="fixture" data-fixture="${fixtureId('single', primitive)}">
       <h2>${fixtureId('single', primitive)}</h2>
-      <button data-testid="trigger" onClick$={() => (input.value = 1)}>
-        Run
-      </button>
-      ${step ? `<span class="step">${step}</span>\n      ` : ''}${result()}
+      ${trigger('single', primitive)}${step ? `<span class="step">${step}</span>\n      ` : ''}${result()}
     </section>
   );
 });
@@ -240,7 +238,7 @@ const writeTree = (setup: 'tree' | 'tree-context', primitive: string) => {
     let props = '';
     if (isRoot) {
       names.push('useSignal');
-      lines += `\n  const input = useSignal(0);`;
+      lines += `\n  ${rootInput(setup, primitive)}`;
     } else if (usesContext) {
       names.push('useContext');
       lines += `\n  const input = useContext(Level${level - 1}Output);`;
@@ -273,7 +271,7 @@ const writeTree = (setup: 'tree' | 'tree-context', primitive: string) => {
     const body = `
   return (
     ${isRoot ? `<section class="fixture" data-fixture="${fixtureId(setup, primitive)}">` : '<div class="level">'}
-      ${isRoot ? `<h2>${fixtureId(setup, primitive)}</h2>\n      <button data-testid="trigger" onClick$={() => (input.value = 1)}>\n        Run\n      </button>\n      ` : ''}<span class="step">${levelName(level)}: ${step}</span>
+      ${isRoot ? `<h2>${fixtureId(setup, primitive)}</h2>\n      ${trigger(setup, primitive)}` : ''}<span class="step">${levelName(level)}: ${step}</span>
       ${child}
     ${isRoot ? '</section>' : '</div>'}
   );`;
@@ -330,14 +328,22 @@ export default component$<{ input: ReadonlySignal<number> }>(({ input }) => {${c
   }
 };
 
-const writeRoute = (route: string, importPath: string, title: string) => {
+const writeRoute = (route: string, importPath: string, title: string, isBelowTheFold = false) => {
+  const fixture = isBelowTheFold
+    ? `(
+  <>
+    <div class="spacer" />
+    <Fixture />
+  </>
+)`
+    : '<Fixture />';
   write(
     `routes/${route}/index.tsx`,
     `import { component$ } from '@qwik.dev/core';
 import type { DocumentHead } from '@qwik.dev/router';
 import Fixture from '${importPath}';
 
-export default component$(() => <Fixture />);
+export default component$(() => ${fixture});
 
 export const head: DocumentHead = { title: '${title}' };
 `
@@ -485,7 +491,8 @@ const writeMatrix = () => {
       writeRoute(
         `${setup}/${primitive}`,
         `~/components/fixtures/${setup}/${primitive}`,
-        fixtureId(setup, primitive)
+        fixtureId(setup, primitive),
+        startsWhenVisible(setup, primitive)
       );
       routes.push({ group: setup, href: `/${setup}/${primitive}/`, label: primitive });
     }
@@ -495,6 +502,10 @@ const writeMatrix = () => {
 const HAND_WRITTEN = [
   { group: 'other', href: '/modal/', label: 'modal' },
   { group: 'other', href: '/conditional-modal/', label: 'conditional modal' },
+  { group: 'other', href: '/dashboard-modal/', label: 'dashboard modal' },
+  { group: 'other', href: '/empty-list/', label: 'empty list' },
+  { group: 'other', href: '/tasks/parent-child/', label: 'tasks in a parent and its child' },
+  { group: 'other', href: '/tasks/siblings/', label: 'tasks in two siblings' },
   { group: 'other', href: '/user-import/', label: 'user import' },
   { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'other', href: '/slot/', label: 'slot' },
@@ -516,15 +527,30 @@ const HAND_WRITTEN = [
 
 const ALL_AT_ONCE = { group: 'all at once', href: '/all-at-once/', label: 'all at once' };
 
-const runsVisibleTasksOnceInView = (setup: Setup, primitive: string) =>
-  setup !== 'conditional' && PRIMITIVES[primitive].imports.includes('useVisibleTask$');
-
 type EveryFixturePage = {
   route: string;
   title: string;
   imports?: string[];
   hooks?: string;
   firstItem?: string;
+};
+
+const everyMatrixFixture = () => {
+  let imports = '';
+  let items = '';
+  let itemsBelowTheFold = '';
+  for (const setup of SETUPS) {
+    for (const primitive of Object.keys(PRIMITIVES)) {
+      const name = pascal(`${setup}-${primitive}`);
+      imports += `import ${name} from '~/components/fixtures/${setup}/${primitive}';\n`;
+      if (startsWhenVisible(setup, primitive)) {
+        itemsBelowTheFold += `      <div class="spacer" />\n      <${name} />\n`;
+      } else {
+        items += `      <${name} />\n`;
+      }
+    }
+  }
+  return { imports, items, itemsBelowTheFold };
 };
 
 const writeEveryFixturePage = ({
@@ -534,20 +560,7 @@ const writeEveryFixturePage = ({
   hooks = '',
   firstItem = '',
 }: EveryFixturePage) => {
-  let imports = '';
-  let items = '';
-  let itemsBelowTheFold = '';
-  for (const setup of SETUPS) {
-    for (const primitive of Object.keys(PRIMITIVES)) {
-      const name = pascal(`${setup}-${primitive}`);
-      imports += `import ${name} from '~/components/fixtures/${setup}/${primitive}';\n`;
-      if (runsVisibleTasksOnceInView(setup, primitive)) {
-        itemsBelowTheFold += `      <${name} />\n`;
-      } else {
-        items += `      <${name} />\n`;
-      }
-    }
-  }
+  const { imports, items, itemsBelowTheFold } = everyMatrixFixture();
   write(
     `routes/${route}/index.tsx`,
     `${coreImports(['component$', ...pageImports])}import type { DocumentHead } from '@qwik.dev/router';
@@ -562,8 +575,8 @@ ${hooks}  return (
 ${firstItem}      <VisibleAbove />
 ${items}      <Modal />
       <UserImport />
-      <div class="spacer" />
-${itemsBelowTheFold}      <VisibleBelow />
+${itemsBelowTheFold}      <div class="spacer" />
+      <VisibleBelow />
     </>
   );
 });
@@ -643,6 +656,51 @@ ${setsTheme.trigger}        <output data-testid="result" data-done={themeClass.v
   }
 };
 
+const writeDashboardModal = () => {
+  const { imports, items, itemsBelowTheFold } = everyMatrixFixture();
+  write(
+    'components/fixtures/dashboard-modal/dashboard.tsx',
+    `${coreImports(['component$', 'useSignal'])}${imports}
+export const Dashboard = component$(() => {
+  const isConfirmed = useSignal(false);
+  return (
+    <div class="dashboard" data-testid="dashboard">
+      <button data-testid="confirm" onClick$={() => (isConfirmed.value = true)}>
+        Confirm
+      </button>
+      <output data-testid="confirmed" data-done={isConfirmed.value ? '' : undefined}>
+        {isConfirmed.value ? 'confirmed' : 'pending'}
+      </output>
+${items}${itemsBelowTheFold}    </div>
+  );
+});
+`
+  );
+  write(
+    'routes/dashboard-modal/index.tsx',
+    `${coreImports(['component$', 'useSignal'])}import type { DocumentHead } from '@qwik.dev/router';
+import { Dashboard } from '~/components/fixtures/dashboard-modal/dashboard';
+
+export default component$(() => {
+  const isOpen = useSignal(false);
+  return (
+    <>
+      <section class="fixture" data-fixture="dashboard-modal">
+        <h2>modal holding a dashboard</h2>
+        <button data-testid="trigger" onClick$={() => (isOpen.value = true)}>
+          Open
+        </button>
+      </section>
+      {isOpen.value && <Dashboard />}
+    </>
+  );
+});
+
+export const head: DocumentHead = { title: 'modal holding a dashboard' };
+`
+  );
+};
+
 const writeRoutesList = () => {
   write(
     'components/sidebar/routes.ts',
@@ -655,4 +713,5 @@ writeHeavyPayload();
 writeMatrix();
 writeEveryFixturePage({ route: 'all-at-once', title: 'all at once' });
 writeOverPreloading();
+writeDashboardModal();
 writeRoutesList();

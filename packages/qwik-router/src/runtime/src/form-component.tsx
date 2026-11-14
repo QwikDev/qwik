@@ -67,7 +67,9 @@ export const Form = <O, I>({
         reloadDocument={reloadDocument}
         onSubmit$={onSubmit$}
         {...(rest as any)}
-      />
+      >
+        <Slot />
+      </GetForm>
     );
   }
   const submitHandlers = ([onSubmit$] as unknown[]).flat(Infinity) as EventHandler<

@@ -1,5 +1,18 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.6
+
+### Patch Changes
+
+- 🐞🩹 include the named submit button when a GET form navigates (by [@xh123637](https://github.com/xh123637) in [#9482](https://github.com/QwikDev/qwik/pull/9482))
+
+- 🐞🩹 correct ssg warnings and isolate server entries per build (by [@itsnjstyle27](https://github.com/itsnjstyle27) in [#9379](https://github.com/QwikDev/qwik/pull/9379))
+
+- 🐞🩹 prevent response stream failures from crashing the server (by [@alloutflo](https://github.com/alloutflo) in [#9393](https://github.com/QwikDev/qwik/pull/9393))
+
+- Updated dependencies [[`e604399`](https://github.com/QwikDev/qwik/commit/e60439920cb372993b9a03c95b6efdb8dcd2443a), [`9ec8a0b`](https://github.com/QwikDev/qwik/commit/9ec8a0bb061a45c12e0abf9dc48451e62f7ba5ae), [`ffa2938`](https://github.com/QwikDev/qwik/commit/ffa293805f122b229d657be45f65013e78ed25a2)]:
+  - @qwik.dev/core@2.0.0-rc.6
+
 ## 2.0.0-rc.5
 
 ### Minor Changes

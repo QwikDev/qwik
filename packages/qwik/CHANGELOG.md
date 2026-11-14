@@ -1,5 +1,18 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.6
+
+### Patch Changes
+
+- 🐞🩹 show completed updates without waiting for unrelated component code (by [@Varixo](https://github.com/Varixo) in [#9475](https://github.com/QwikDev/qwik/pull/9475))
+
+- 🐞🩹 keep the scoped style class on elements rendered by inline components (for example `<Resource>`) when they render or re-render on the client (by [@tzdesign](https://github.com/tzdesign) in [#9483](https://github.com/QwikDev/qwik/pull/9483))
+
+- 🐞🩹 the optimizer now emits `_jsxSplit` for dynamic JSX tags with `on*$` props (including shorthand `{ onClick$ }`, lowercase `onclick$` and computed keys), so event listeners are registered when the tag is a string at runtime. `passive:*` directives on such tags are kept too. A computed string event key like `['onClick$']` in `jsx()` props is now handled like `onClick$`. (by [@fixfon](https://github.com/fixfon) in [#9356](https://github.com/QwikDev/qwik/pull/9356))
+
+- Updated dependencies [[`ffa2938`](https://github.com/QwikDev/qwik/commit/ffa293805f122b229d657be45f65013e78ed25a2)]:
+  - @qwik.dev/optimizer@2.1.0-rc.12
+
 ## 2.0.0-rc.5
 
 ### Minor Changes

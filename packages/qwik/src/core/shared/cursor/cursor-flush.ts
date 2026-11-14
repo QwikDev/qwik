@@ -32,7 +32,8 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
   const journal = cursorData.journal;
   if (journal && journal.length > 0) {
     _flushJournal(journal);
-    cursorData.journal = null;
+    // Keep the array: a chore waiting on a promise still writes to it.
+    journal.length = 0;
   }
   const loaderEvents = getPendingQwikLoaderEvents(cursorData);
   if (loaderEvents) {

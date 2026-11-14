@@ -4,7 +4,12 @@ import { VNodeFlags } from '../../client/types';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { isCursor, type Cursor } from './cursor';
-import { getNextVNode, partitionDirtyChildren, tryDescendDirtyChildren } from './cursor-walker';
+import {
+  getNextVNode,
+  partitionDirtyChildren,
+  tryDescendDirtyChildren,
+  walkCursor,
+} from './cursor-walker';
 import { getCursorData, setCursorData, setCursorPosition, type CursorData } from './cursor-props';
 import type { Container } from '../types';
 import { QCursorBoundary } from '../utils/markers';
@@ -341,6 +346,7 @@ describe('tryDescendDirtyChildren', () => {
       position: cursor,
       promise: null,
       journal: null,
+      $commitBlockers$: null,
       extraPromises: null,
       afterFlushTasks: null,
       priority: 0,
@@ -669,6 +675,7 @@ describe('setCursorPosition', () => {
       position: null,
       promise: null,
       journal: null,
+      $commitBlockers$: null,
       extraPromises: null,
       afterFlushTasks: null,
       priority: 0,
@@ -711,6 +718,7 @@ describe('abandonCursor', () => {
       position: cursor,
       promise: null,
       journal,
+      $commitBlockers$: null,
       extraPromises: null,
       afterFlushTasks: null,
       priority: 0,
@@ -774,5 +782,29 @@ describe('abandonCursor', () => {
 
     expect(container.$pendingCount$).toBe(0);
     expect(getHighestPriorityCursor()).toBeNull();
+  });
+});
+
+describe('walkCursor', () => {
+  it('should release the journal and commit blockers when the cursor finishes', () => {
+    const container = { $pendingCount$: 0, $checkPendingCount$: () => {} } as unknown as Container;
+    const cursor = vnode_newVirtual() as Cursor;
+    const cursorData: CursorData = {
+      container,
+      position: null,
+      promise: null,
+      journal: [],
+      $commitBlockers$: [vnode_newVirtual()],
+      extraPromises: null,
+      afterFlushTasks: null,
+      priority: 0,
+      boundaries: null,
+    };
+    setCursorData(cursor, cursorData);
+
+    walkCursor(cursor, Infinity);
+
+    expect(cursorData.journal).toBeNull();
+    expect(cursorData.$commitBlockers$).toBeNull();
   });
 });

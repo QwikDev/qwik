@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { brotliCompressSync } from 'node:zlib';
 
 export const APP_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -13,7 +14,7 @@ type Manifest = {
   core?: string;
   preloader?: string;
   bundleGraphAsset?: string;
-  bundles: Record<string, { origins?: string[]; symbols?: string[] }>;
+  bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
   symbols: Record<string, { ctxName?: string }>;
 };
 
@@ -103,6 +104,31 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
 export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
+
+export const chunkHoldsTaskFrom = (url: string, file: string) =>
+  (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
+    (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')
+  );
+
+/** The chunks holding `path`'s modules, with everything they import statically. */
+export const chunkUrlsNeededToRun = (path: string) => {
+  const { bundles } = getManifest();
+  const needed = new Set<string>();
+  const pending = Object.keys(bundles).filter((file) =>
+    bundles[file].origins?.some((origin) => origin.startsWith(path))
+  );
+  while (pending.length) {
+    const file = pending.pop()!;
+    if (!needed.has(file)) {
+      needed.add(file);
+      pending.push(...(bundles[file]?.imports ?? []));
+    }
+  }
+  return new Set([...needed].map((file) => `${ORIGIN}/build/${file}`));
+};
+
+export const brotliKb = (url: string) =>
+  brotliCompressSync(readFileSync(join(APP_DIR, 'dist/build', bundleFile(url)))).length / 1024;
 
 export const chunkUrlsFrom = (path: string) =>
   Object.entries(getManifest().bundles)

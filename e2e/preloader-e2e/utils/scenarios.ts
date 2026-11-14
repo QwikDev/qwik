@@ -48,10 +48,22 @@ export const countFixtureRoundTrips = (
   isDone: () => Promise<boolean>
 ) => countRoundTrips(page, gate, action, isDone);
 
+export const startFixture = (page: Page, fixture: Fixture) =>
+  fixture.startsWhenVisible
+    ? fixtureRoot(page, fixture).scrollIntoViewIfNeeded()
+    : fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+
 export const clickTrigger = (opened: OpenFixture) =>
   countFixtureRoundTrips(
     opened,
     () => fixtureRoot(opened.page, opened.fixture).locator('[data-testid=trigger]').click(),
+    resultIsDone(fixtureResult(opened.page, opened.fixture))
+  );
+
+export const scrollIntoView = (opened: OpenFixture) =>
+  countFixtureRoundTrips(
+    opened,
+    () => fixtureRoot(opened.page, opened.fixture).scrollIntoViewIfNeeded(),
     resultIsDone(fixtureResult(opened.page, opened.fixture))
   );
 

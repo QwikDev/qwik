@@ -29,7 +29,32 @@ type PreloaderWindow = Window & {
   __heldSpeculativePreloads?: number;
   __resumeSpeculativePreloads?: () => void;
   __sendHeldSpeculativePreloads?: (hrefs: string[]) => void;
+  __preloadHints?: PreloadHint[];
 };
+
+export type PreloadHint = { item: string | string[]; probability?: number };
+
+export const recordPreloadHints = (page: Page) =>
+  page.addInitScript(() => {
+    const win = window as PreloaderWindow;
+    const hints: PreloadHint[] = (win.__preloadHints = []);
+    let preload: ((item: string | string[], probability?: number) => void) | undefined;
+    Object.defineProperty(win, 'qPreload', {
+      configurable: true,
+      get: () =>
+        preload &&
+        ((item: string | string[], probability?: number) => {
+          hints.push({ item, probability });
+          preload!(item, probability);
+        }),
+      set: (value) => {
+        preload = value;
+      },
+    });
+  });
+
+export const preloadHints = (page: Page) =>
+  page.evaluate(() => (window as PreloaderWindow).__preloadHints ?? []);
 
 export const recordSpeculativePreloads = (page: Page) =>
   page.addInitScript(() => {

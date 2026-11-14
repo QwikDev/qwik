@@ -33,17 +33,17 @@ const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
 
 const clickWhileLoading = async (
   page: Page,
-  heldUrl: string,
+  heldUrls: string[],
   trigger: () => Promise<unknown>,
   result: Fixture
 ) => {
   await recordSpeculativePreloads(page);
   await holdSpeculativePreloads(page);
   const gate = await createGate(page);
-  gate.holdWhilePassing = (url) => url === heldUrl;
+  gate.holdWhilePassing = (url) => heldUrls.includes(url);
   await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
   await waitForQwikloader(page);
-  await expect.poll(() => gate.held.length).toBe(1);
+  await expect.poll(() => gate.held.length).toBe(heldUrls.length);
   const startupPiece = gate.held.splice(0);
   gate.holdWhilePassing = undefined;
   const roundTrips = await countRoundTrips(
@@ -63,7 +63,7 @@ test.describe('click before core loaded', () => {
   test("the click isn't lost: the result shows once core arrives", async ({ page }) => {
     const { gate, startupPiece } = await clickWhileLoading(
       page,
-      coreUrl(),
+      [coreUrl()],
       clickConditional(page),
       CONDITIONAL_ALL
     );
@@ -72,28 +72,45 @@ test.describe('click before core loaded', () => {
   });
 });
 
-for (const [name, heldUrl] of [
-  ['the preloader', preloaderUrl],
-  ['the bundle graph', bundleGraphUrl],
-] as const) {
-  test.describe(`click before ${name} loaded`, () => {
-    test("the click isn't lost: the result shows", async ({ page }) => {
+const STILL_LOADING = [
+  {
+    stillLoading: 'preloader still loading',
+    arrivesLast: 'preloader arrives last',
+    heldUrls: () => [preloaderUrl()],
+  },
+  {
+    stillLoading: 'bundle graph still loading',
+    arrivesLast: 'bundle graph arrives last',
+    heldUrls: () => [bundleGraphUrl()],
+  },
+  {
+    stillLoading: 'both still loading',
+    arrivesLast: 'both arrive after the click',
+    heldUrls: () => [preloaderUrl(), bundleGraphUrl()],
+  },
+];
+
+test.describe('click before the preloader and bundle graph are loaded', () => {
+  for (const { stillLoading, heldUrls } of STILL_LOADING) {
+    test(`${stillLoading}: the click isn't lost, the result shows`, async ({ page }) => {
       const { gate, startupPiece } = await clickWhileLoading(
         page,
-        heldUrl(),
+        heldUrls(),
         clickConditional(page),
         CONDITIONAL_ALL
       );
       await releaseAll(gate, startupPiece);
       await expectResult(page, CONDITIONAL_ALL);
     });
+  }
 
-    test(`once ${name} arrives, the needed preloads go out before any speculative preload`, async ({
+  for (const { arrivesLast, heldUrls } of STILL_LOADING) {
+    test(`${arrivesLast}: once both are loaded, the needed preloads go out before any speculative preload`, async ({
       page,
     }) => {
       const { gate, startupPiece, roundTrips } = await clickWhileLoading(
         page,
-        heldUrl(),
+        heldUrls(),
         clickConditional(page),
         CONDITIONAL_ALL
       );
@@ -119,14 +136,14 @@ for (const [name, heldUrl] of [
       );
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
-  });
-}
+  }
+});
 
 test.describe('navigation click before the preloader loaded', () => {
   test('the new page shows', async ({ page }) => {
     const { gate, startupPiece } = await clickWhileLoading(
       page,
-      preloaderUrl(),
+      [preloaderUrl()],
       () => fixtureRoot(page, FROM_OFF).locator('[data-testid=link-tree]').click(),
       TO_TREE
     );

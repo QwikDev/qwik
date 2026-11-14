@@ -194,3 +194,21 @@ test('the additive migration preserves the existing Qwik mapping without changin
     await client.execute('DROP TABLE applications');
   }
 });
+
+test('uses source metadata from the selected build without falling back to another build', async () => {
+  await setup();
+  await client.execute('ALTER TABLE symbolDetail ADD COLUMN manifest_hash TEXT');
+  await client.batch([
+    "INSERT INTO symbolDetail VALUES ('app-a', 'hash', 'Old', 'old.tsx', 1, 6, 'old')",
+    "INSERT INTO symbolDetail VALUES ('app-a', 'hash', 'New', 'new.tsx', 1, 6, 'new')",
+  ]);
+  await saveSourceSettings(db, 'app-a', settings);
+  const fetchSource = vi.fn().mockResolvedValue(new Response('hello'));
+  expect(await loadSymbolSource(db, 'app-a', 'hash', fetchSource, 'new')).toMatchObject({
+    fullName: 'New',
+    origin: 'new.tsx',
+  });
+  expect(await loadSymbolSource(db, 'app-a', 'hash', fetchSource, 'missing')).toMatchObject({
+    status: 'missing-metadata',
+  });
+});

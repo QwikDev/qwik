@@ -1,4 +1,5 @@
 import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { SymbolTile } from '~/components/symbol-tile';
 import { loadReportScope } from '~/db/report-scope';
 import { getReportHref } from '~/report-scope';
 import ReportGuide from '~/components/report-guide';
@@ -360,7 +361,7 @@ export default component$(() => {
                       {group.symbols.map((symbol) => (
                         <tr key={symbol.hash} class="border-b border-editorial-border">
                           <td class="max-w-48 truncate py-editorial-3 font-editorial-mono font-semibold text-editorial-link">
-                            {symbol.name}
+                            <SymbolTile symbol={symbol.hash} fullName={symbol.name} />
                           </td>
                           <td class="max-w-48 truncate py-editorial-3 text-editorial-secondary">
                             {symbol.routes.join(', ') || '—'}

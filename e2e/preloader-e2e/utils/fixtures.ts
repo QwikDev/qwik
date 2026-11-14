@@ -66,10 +66,19 @@ const handWritten = (name: string, expected: string): Fixture => ({
 
 export const SLOT = handWritten('slot', '1');
 export const CONDITIONAL_MODAL = handWritten('conditional-modal', 'ready');
+export const EMPTY_LIST = handWritten('empty-list', '1');
+export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
+export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');
 export const BARREL = handWritten('barrel', 'alpha 1.0');
+
+export const DASHBOARD_MODAL: Fixture = {
+  id: 'dashboard-modal',
+  path: '/dashboard-modal/',
+  sources: ['src/components/fixtures/dashboard-modal/', 'src/routes/dashboard-modal/'],
+};
 
 const overPreloading = (name: string): Fixture => ({
   id: `over-preloading/${name}`,
@@ -138,6 +147,8 @@ const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
 const NO_HANDLER_TO_FETCH =
   'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
+const TASK_SHIPS_WITH_ITS_COMPONENT =
+  "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component";
 const MIDDLE_LINK_LATE =
   'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
 
@@ -169,5 +180,14 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
   'tree-context/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
 };
+
+export const FETCHES_ITS_COMPONENT_ON_MAIN: Record<string, string> = Object.fromEntries(
+  ['single', 'tree', 'tree-context'].flatMap((setup) =>
+    ['store-chain', 'task-chain', 'all'].map((primitive) => [
+      `${setup}/${primitive}`,
+      TASK_SHIPS_WITH_ITS_COMPONENT,
+    ])
+  )
+);
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

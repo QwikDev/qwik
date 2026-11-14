@@ -502,6 +502,10 @@ const writeMatrix = () => {
 const HAND_WRITTEN = [
   { group: 'other', href: '/modal/', label: 'modal' },
   { group: 'other', href: '/conditional-modal/', label: 'conditional modal' },
+  { group: 'other', href: '/dashboard-modal/', label: 'dashboard modal' },
+  { group: 'other', href: '/empty-list/', label: 'empty list' },
+  { group: 'other', href: '/tasks/parent-child/', label: 'tasks in a parent and its child' },
+  { group: 'other', href: '/tasks/siblings/', label: 'tasks in two siblings' },
   { group: 'other', href: '/user-import/', label: 'user import' },
   { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'other', href: '/slot/', label: 'slot' },
@@ -531,13 +535,7 @@ type EveryFixturePage = {
   firstItem?: string;
 };
 
-const writeEveryFixturePage = ({
-  route,
-  title,
-  imports: pageImports = [],
-  hooks = '',
-  firstItem = '',
-}: EveryFixturePage) => {
+const everyMatrixFixture = () => {
   let imports = '';
   let items = '';
   let itemsBelowTheFold = '';
@@ -552,6 +550,17 @@ const writeEveryFixturePage = ({
       }
     }
   }
+  return { imports, items, itemsBelowTheFold };
+};
+
+const writeEveryFixturePage = ({
+  route,
+  title,
+  imports: pageImports = [],
+  hooks = '',
+  firstItem = '',
+}: EveryFixturePage) => {
+  const { imports, items, itemsBelowTheFold } = everyMatrixFixture();
   write(
     `routes/${route}/index.tsx`,
     `${coreImports(['component$', ...pageImports])}import type { DocumentHead } from '@qwik.dev/router';
@@ -647,6 +656,51 @@ ${setsTheme.trigger}        <output data-testid="result" data-done={themeClass.v
   }
 };
 
+const writeDashboardModal = () => {
+  const { imports, items, itemsBelowTheFold } = everyMatrixFixture();
+  write(
+    'components/fixtures/dashboard-modal/dashboard.tsx',
+    `${coreImports(['component$', 'useSignal'])}${imports}
+export const Dashboard = component$(() => {
+  const isConfirmed = useSignal(false);
+  return (
+    <div class="dashboard" data-testid="dashboard">
+      <button data-testid="confirm" onClick$={() => (isConfirmed.value = true)}>
+        Confirm
+      </button>
+      <output data-testid="confirmed" data-done={isConfirmed.value ? '' : undefined}>
+        {isConfirmed.value ? 'confirmed' : 'pending'}
+      </output>
+${items}${itemsBelowTheFold}    </div>
+  );
+});
+`
+  );
+  write(
+    'routes/dashboard-modal/index.tsx',
+    `${coreImports(['component$', 'useSignal'])}import type { DocumentHead } from '@qwik.dev/router';
+import { Dashboard } from '~/components/fixtures/dashboard-modal/dashboard';
+
+export default component$(() => {
+  const isOpen = useSignal(false);
+  return (
+    <>
+      <section class="fixture" data-fixture="dashboard-modal">
+        <h2>modal holding a dashboard</h2>
+        <button data-testid="trigger" onClick$={() => (isOpen.value = true)}>
+          Open
+        </button>
+      </section>
+      {isOpen.value && <Dashboard />}
+    </>
+  );
+});
+
+export const head: DocumentHead = { title: 'modal holding a dashboard' };
+`
+  );
+};
+
 const writeRoutesList = () => {
   write(
     'components/sidebar/routes.ts',
@@ -659,4 +713,5 @@ writeHeavyPayload();
 writeMatrix();
 writeEveryFixturePage({ route: 'all-at-once', title: 'all at once' });
 writeOverPreloading();
+writeDashboardModal();
 writeRoutesList();

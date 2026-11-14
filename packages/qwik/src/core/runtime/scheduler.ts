@@ -2,7 +2,7 @@ import { cleanupDeps } from '../reactive/cleanup';
 import { PendingContentSubscription } from '../dom/content/content';
 import { findPendingBoundary } from '../dom/content/pending-boundary';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
-import { logError } from '../shared/utils/log';
+import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
 import { isPromise, maybeThen, retryAfterPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { getActiveInvokeContextOrNull } from './invoke-context';
@@ -623,15 +623,15 @@ export class Scheduler {
     }
   }
 
-  /** Fire-and-forget phases report failures rather than propagating them into the flush. */
+  /** A task error no Catch took reaches the global handlers, not only the console. */
   private runDetached(task: TaskSubscriber | VisibleTaskSubscriber): void {
     try {
       const result = runSubscriber(task);
       if (isPromise(result)) {
-        result.catch(logError);
+        result.catch(logErrorAndThrowAsync);
       }
     } catch (error) {
-      logError(error);
+      logErrorAndThrowAsync(error);
     }
   }
 

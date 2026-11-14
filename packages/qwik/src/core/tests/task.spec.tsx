@@ -1,4 +1,5 @@
 import {
+  Catch,
   component$,
   Pending,
   useAsync$,
@@ -16,6 +17,12 @@ import { testRenderer } from '../test-utils';
 import { triggerAll } from './test-hooks';
 import { trigger } from '@qwik.dev/core/testing';
 import { delay } from '../shared/utils/promises';
+import { logErrorAndThrowAsync } from '../shared/utils/log';
+
+vi.mock(import('../shared/utils/log'), async (importOriginal) => {
+  const log = await importOriginal();
+  return { ...log, logErrorAndThrowAsync: vi.fn(log.logErrorAndThrowAsync) };
+});
 
 const debug = false;
 
@@ -1199,6 +1206,66 @@ describe(`${name}: useTask`, () => {
         await flush();
         expect(button.textContent).toBe(`val${count + 1}`);
       }
+    });
+
+    describe('errors', () => {
+      afterEach(() => {
+        vi.mocked(logErrorAndThrowAsync).mockClear();
+      });
+
+      const Failing = component$((props: { isAsync: boolean }) => {
+        const count = useSignal(0);
+        useTask$(
+          () => {
+            if (count.value === 0) {
+              return;
+            }
+            const error = new Error('deferred task failed');
+            if (props.isAsync) {
+              return Promise.resolve().then(() => {
+                throw error;
+              });
+            }
+            throw error;
+          },
+          { deferUpdates: false }
+        );
+        return <button onClick$={() => count.value++}>ok</button>;
+      });
+
+      it.each([false, true])(
+        'shows the Catch fallback when a rerun fails (async=%s)',
+        async (isAsync) => {
+          const App = component$((props: { isAsync: boolean }) => (
+            <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+              <Failing isAsync={props.isAsync} />
+            </Catch>
+          ));
+          const { container, cleanup, flush } = await render(App, { props: { isAsync } });
+          onTestFinished(cleanup);
+          await trigger(container, 'button', 'click');
+          // The deferred run is not part of the flush, so its async failure lands later.
+          await vi.waitFor(async () => {
+            await flush();
+            expect(container.querySelector('#fallback')?.textContent).toBe('deferred task failed');
+          });
+          expect(logErrorAndThrowAsync).not.toHaveBeenCalled();
+        }
+      );
+
+      it.each([false, true])(
+        'reports a failing rerun without a Catch globally (async=%s)',
+        async (isAsync) => {
+          const { container, cleanup } = await render(Failing, { props: { isAsync } });
+          onTestFinished(cleanup);
+          await trigger(container, 'button', 'click');
+          await vi.waitFor(() => expect(logErrorAndThrowAsync).toHaveBeenCalledTimes(1));
+          expect(vi.mocked(logErrorAndThrowAsync).mock.calls[0][0]).toMatchObject({
+            message: 'deferred task failed',
+          });
+          expect(container.querySelector('button')!.textContent).toBe('ok');
+        }
+      );
     });
   });
 

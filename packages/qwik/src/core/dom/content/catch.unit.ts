@@ -13,7 +13,7 @@ import {
 } from '../../runtime/owner';
 import { Computed } from '../../reactive/computed';
 import { Scheduler } from '../../runtime/scheduler';
-import { useTask } from '../../runtime/task';
+import { useTask, useVisibleTask } from '../../runtime/task';
 import { setEvent } from '../event/event';
 import type { QElement } from '../../shared/types';
 import { createTextNodeEffect } from '../effect/text-effect';
@@ -446,23 +446,37 @@ describe('Catch content', () => {
     expect(host.textContent).toBe('event failed');
   });
 
-  it.each([false, true])('catches a scheduled task failure, async=%s', async (async) => {
+  it.each([
+    ['blocking task', false],
+    ['blocking task', true],
+    ['deferred task', false],
+    ['deferred task', true],
+    ['visible task', false],
+    ['visible task', true],
+  ])('catches a scheduled %s failure, async=%s', async (kind, async) => {
     const failed = useSignal(false);
-    const { host, scheduler } = setup((ctx: any) => {
-      useTask(() => {
-        if (failed.value) {
-          if (async) {
-            return Promise.reject(new Error('task failed'));
-          }
-          throw new Error('task failed');
+    const run = () => {
+      if (failed.value) {
+        if (async) {
+          return Promise.reject(new Error('task failed'));
         }
-      });
+        throw new Error('task failed');
+      }
+    };
+    const { host, scheduler } = setup((ctx: any) => {
+      if (kind === 'visible task') {
+        useVisibleTask(run, { strategy: 'document-ready' });
+      } else {
+        useTask(run, { deferUpdates: kind === 'blocking task' });
+      }
       return ctx.document.createTextNode('content');
     });
     await scheduler.flushInteraction();
     failed.value = true;
-    await scheduler.flushInteraction();
-    expect(host.textContent).toBe('task failed');
+    await vi.waitFor(async () => {
+      await scheduler.flushInteraction();
+      expect(host.textContent).toBe('task failed');
+    });
   });
 
   it('accepts a revoked proxy as a thrown value', () => {

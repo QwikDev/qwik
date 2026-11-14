@@ -1710,17 +1710,19 @@ describe(`${name}: component`, () => {
     });
     const renderPromise = render(MultipleServerFunctionsInvokedInTask, { debug });
 
-    const { container, cleanup } = await renderPromise;
+    const { container, cleanup, flush } = await renderPromise;
     onTestFinished(cleanup);
     const div = container.querySelector('#server-error')!;
     const clickPromise = trigger(container, 'div', 'click');
 
     await clickPromise;
 
-    const visiblePromise = trigger(container, 'div', 'qvisible');
-
-    await visiblePromise;
-    expect(div.textContent).toBe('(SomeErrorPOST)');
+    await trigger(container, 'div', 'qvisible');
+    // The trigger only schedules the visible task; its writes land once the scheduler ran it.
+    await vi.waitFor(async () => {
+      await flush();
+      expect(div.textContent).toBe('(SomeErrorPOST)');
+    });
     expect(Array.from(div.querySelectorAll('b'), (node) => node.textContent)).toEqual(['(', ')']);
   });
 

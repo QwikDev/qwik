@@ -35,51 +35,47 @@ export function runTaskSubscriber(
   try {
     result = thenInLifetime(task, runTaskCleanups(task), () => {
       cleanupDeps(subscriber);
-      return thenInLifetime(
-        task,
-        task.runFn ?? getFunctionOrResolve(task.qrl!, task.container, false),
-        (run) => {
-          const qrl = task.runFn === undefined ? (task.qrl as QRLInternal<TaskFn>) : undefined;
-          const captures =
-            qrl?.resolved === run
-              ? undefined
-              : (qrl?.$captures$ as readonly unknown[] | null | undefined);
-          return retryInLifetime(task, () => {
-            if (isSubscriberDisposed(subscriber)) {
-              return;
-            }
-            const result = runWithCollector(subscriber, () =>
-              invoke(invokeContext, () =>
-                invokeCaptured(run, captures, undefined, [
-                  {
-                    cleanup(callback: TaskCleanupFn) {
-                      addCleanup(task, callback);
-                    },
+      return thenInLifetime(task, loadTaskFn(task), (run) => {
+        const qrl = task.runFn === undefined ? (task.qrl as QRLInternal<TaskFn>) : undefined;
+        const captures =
+          qrl?.resolved === run
+            ? undefined
+            : (qrl?.$captures$ as readonly unknown[] | null | undefined);
+        return retryInLifetime(task, () => {
+          if (isSubscriberDisposed(subscriber)) {
+            return;
+          }
+          const result = runWithCollector(subscriber, () =>
+            invoke(invokeContext, () =>
+              invokeCaptured(run, captures, undefined, [
+                {
+                  cleanup(callback: TaskCleanupFn) {
+                    addCleanup(task, callback);
                   },
-                ])
-              )
-            );
-            if (!isPromise(result) && !task.disposed) {
-              if (typeof result === 'function') {
-                addCleanup(task, result as TaskCleanupFn);
-              }
-              return;
+                },
+              ])
+            )
+          );
+          if (!isPromise(result) && !task.disposed) {
+            if (typeof result === 'function') {
+              addCleanup(task, result as TaskCleanupFn);
             }
-            return thenInLifetime(
-              task,
-              result,
-              (cleanup) => {
-                if (typeof cleanup === 'function') {
-                  addCleanup(task, cleanup as TaskCleanupFn);
-                }
-              },
-              undefined,
-              undefined,
-              runReturnedCleanup
-            );
-          });
-        }
-      );
+            return;
+          }
+          return thenInLifetime(
+            task,
+            result,
+            (cleanup) => {
+              if (typeof cleanup === 'function') {
+                addCleanup(task, cleanup as TaskCleanupFn);
+              }
+            },
+            undefined,
+            undefined,
+            runReturnedCleanup
+          );
+        });
+      });
     });
   } catch (error) {
     finishTaskRun(subscriber);
@@ -100,6 +96,10 @@ export function runTaskSubscriber(
   );
   subscriber.runPromise = pending;
   return pending;
+}
+
+export function loadTaskFn(task: Task | VisibleTask): ValueOrPromise<TaskFn> {
+  return task.runFn ?? getFunctionOrResolve(task.qrl!, task.container, false);
 }
 
 export function runTaskCleanups(task: Task | VisibleTask): ValueOrPromise<void> {

@@ -1,4 +1,5 @@
 import {
+  Catch,
   component$,
   useSignal,
   useStore,
@@ -15,6 +16,12 @@ import { describe, expect, it, afterEach, onTestFinished, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
 import { trigger } from '@qwik.dev/core/testing';
 import { triggerAll, useDelay } from './test-hooks';
+import { logErrorAndThrowAsync } from '../shared/utils/log';
+
+vi.mock(import('../shared/utils/log'), async (importOriginal) => {
+  const log = await importOriginal();
+  return { ...log, logErrorAndThrowAsync: vi.fn(log.logErrorAndThrowAsync) };
+});
 
 const { name, render } = testRenderer;
 
@@ -160,32 +167,129 @@ describe(`${name}: visible task`, () => {
     expect(span.textContent).toBe('CSR');
     cleanup();
   });
-  it('surfaces a thrown error from the dispatch', async () => {
-    const App = component$(() => {
-      useVisibleTask$(() => {
-        throw new Error('visible task failed');
-      });
-      return <span>ok</span>;
+  describe('errors', () => {
+    afterEach(() => {
+      vi.mocked(logErrorAndThrowAsync).mockClear();
     });
-    const { container, cleanup, qwikLoader } = await render(App, { debug });
-    const span = container.querySelector('span')!;
-    await expect(qwikLoader!.dispatch(span, 'qvisible')).rejects.toThrow('visible task failed');
-    expect(span.textContent).toBe('ok');
-    cleanup();
+
+    const Failing = component$((props: { isAsync: boolean; isRerun: boolean }) => {
+      const count = useSignal(0);
+      useVisibleTask$(() => {
+        if (props.isRerun && count.value === 0) {
+          return;
+        }
+        const error = new Error('visible task failed ' + count.value);
+        if (props.isAsync) {
+          return Promise.resolve().then(() => {
+            throw error;
+          });
+        }
+        throw error;
+      });
+      return <button onClick$={() => count.value++}>ok</button>;
+    });
+    const runUntilFailure = async (
+      result: Awaited<ReturnType<typeof render>>,
+      isRerun: boolean
+    ) => {
+      const button = result.container.querySelector('button')!;
+      await result.qwikLoader?.dispatch(button, 'qvisible');
+      if (isRerun) {
+        await result.qwikLoader?.dispatch(button, 'click');
+      }
+      await result.flush();
+    };
+
+    it.each([
+      [false, false],
+      [true, false],
+      [false, true],
+      [true, true],
+    ])(
+      'shows the Catch fallback when a visible task fails (async=%s, rerun=%s)',
+      async (isAsync, isRerun) => {
+        const App = component$((props: { isAsync: boolean; isRerun: boolean }) => (
+          <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+            <Failing isAsync={props.isAsync} isRerun={props.isRerun} />
+          </Catch>
+        ));
+        const result = await render(App, { debug, props: { isAsync, isRerun } });
+        onTestFinished(result.cleanup);
+        await runUntilFailure(result, isRerun);
+        expect(result.container.querySelector('#fallback')?.textContent).toBe(
+          'visible task failed ' + (isRerun ? 1 : 0)
+        );
+        expect(result.container.querySelector('button')).toBeFalsy();
+        expect(logErrorAndThrowAsync).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([
+      [false, false],
+      [true, false],
+      [false, true],
+      [true, true],
+    ])(
+      'reports a visible task failure without a Catch globally (async=%s, rerun=%s)',
+      async (isAsync, isRerun) => {
+        const result = await render(Failing, { debug, props: { isAsync, isRerun } });
+        onTestFinished(result.cleanup);
+        await runUntilFailure(result, isRerun);
+        expect(logErrorAndThrowAsync).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(logErrorAndThrowAsync).mock.calls[0][0]).toMatchObject({
+          message: 'visible task failed ' + (isRerun ? 1 : 0),
+        });
+        expect(result.container.querySelector('button')!.textContent).toBe('ok');
+      }
+    );
   });
 
-  it('surfaces an async error from the dispatch', async () => {
-    const App = component$(() => {
-      useVisibleTask$(async () => {
-        await Promise.resolve();
-        throw new Error('visible task failed');
+  it('runs after the pending render of a signal it reads has committed', async () => {
+    let release!: () => void;
+    (globalThis as any).__heldArm = new Promise<void>((resolve) => (release = resolve));
+    (globalThis as any).__isArmWaiting = false;
+    const Arm = component$(() => {
+      useTask$(async () => {
+        (globalThis as any).__isArmWaiting = true;
+        await (globalThis as any).__heldArm;
       });
-      return <span>ok</span>;
+      return <p id="target" />;
     });
-    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const App = component$(() => {
+      const isOpen = useSignal(true);
+      const status = useSignal('idle');
+      const root = useSignal<Element>();
+      useVisibleTask$(() => {
+        isOpen.value;
+        status.value = root.value!.querySelector('#target') ? 'found' : 'missing';
+      });
+      return (
+        <div ref={root}>
+          <button onClick$={() => (isOpen.value = false)}>close</button>
+          <span>{status.value}</span>
+          {!isOpen.value && <Arm />}
+        </div>
+      );
+    });
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     const span = container.querySelector('span')!;
-    await expect(qwikLoader!.dispatch(span, 'qvisible')).rejects.toThrow('visible task failed');
-    cleanup();
+    const clicked = qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    await vi.waitFor(() => expect((globalThis as any).__isArmWaiting).toBe(true));
+    const visible = qwikLoader?.dispatch(container.querySelector('div')!, 'qvisible');
+    // Gives the task chunk time to load; the run itself must wait for the held arm.
+    for (let i = 0; i < 30 && span.textContent === 'idle'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(span.textContent).toBe('idle');
+    release();
+    await clicked;
+    await visible;
+    await flush();
+    expect(container.querySelector('#target')).toBeTruthy();
+    expect(span.textContent).toBe('found');
+    delete (globalThis as any).__heldArm;
+    delete (globalThis as any).__isArmWaiting;
   });
   it('runs visible tasks in parallel', async () => {
     let resolveLast!: () => void;

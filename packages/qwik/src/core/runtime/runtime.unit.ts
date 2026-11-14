@@ -40,6 +40,8 @@ import {
 import {
   Task,
   TaskSubscription,
+  VisibleTask,
+  VisibleTaskSubscription,
   useTask,
   useTaskQrl,
   useVisibleTask,
@@ -50,6 +52,12 @@ import {
 import type { ContainerContext } from './container-context';
 import { LazySerialized } from '../reactive/lazy-serialized';
 import { retryAfterPromise, thenInLifetime, retryInLifetime } from '../shared/utils/promises';
+import { logErrorAndThrowAsync } from '../shared/utils/log';
+
+vi.mock(import('../shared/utils/log'), async (importOriginal) => {
+  const log = await importOriginal();
+  return { ...log, logErrorAndThrowAsync: vi.fn(log.logErrorAndThrowAsync) };
+});
 
 describe('runtime scheduler and owner lifecycle', () => {
   it.each([false, true])('visits children created by a leaf scalar, async=%s', async (isAsync) => {
@@ -2098,6 +2106,35 @@ describe('runtime scheduler and owner lifecycle', () => {
     await scheduler.flushInteraction();
 
     expect(order).toEqual(['deferred']);
+  });
+
+  it.each([
+    ['deferred task', false],
+    ['deferred task', true],
+    ['visible task', false],
+    ['visible task', true],
+  ])('reports a failing %s without a Catch globally, async=%s', async (kind, isAsync) => {
+    vi.mocked(logErrorAndThrowAsync).mockClear();
+    const scheduler = new Scheduler(noopSchedule);
+    const error = new Error('task failed');
+    const run = () => {
+      if (isAsync) {
+        return Promise.reject(error);
+      }
+      throw error;
+    };
+    const task = registerSubscriberToOwner(
+      kind === 'visible task'
+        ? new VisibleTaskSubscription(new VisibleTask(run), scheduler)
+        : new TaskSubscription(new Task(run, Phase.DeferredTask), scheduler),
+      createOwner(null)
+    );
+
+    scheduler.notify(task);
+    await scheduler.flushInteraction();
+
+    await vi.waitFor(() => expect(logErrorAndThrowAsync).toHaveBeenCalledWith(error));
+    expect(logErrorAndThrowAsync).toHaveBeenCalledTimes(1);
   });
 
   it('loads unresolved task QRLs before running them', async () => {

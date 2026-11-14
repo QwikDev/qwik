@@ -11,8 +11,9 @@ import {
 } from './runtime/container-context';
 import type { QElement } from './shared/types';
 import type { VisibleTaskSubscription } from './runtime/task';
-import { SubscriberFlags } from './reactive/flags';
 import { EMPTY_ARRAY } from './utils/consts';
+import { loadTaskFn } from './runtime/run-task';
+import { qTest } from './shared/utils/qdev';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
 
 export { _captures, _capturesObj };
@@ -93,8 +94,8 @@ function runCapturedVisibleTask(captures: Readonly<unknown[]>): ValueOrPromise<v
 }
 
 /**
- * The trigger performs each initial run only once; tracked reruns bypass it. The runs start here,
- * together, so a failure reaches the loader dispatch instead of the scheduler's log.
+ * The trigger performs each initial run only once; tracked reruns bypass it. It loads the code
+ * first, so the run waits in the scheduler for the render it observes to commit.
  */
 export function wakeVisibleTasks(subscriptions: VisibleTaskSubscription[]): ValueOrPromise<void> {
   const pending: Promise<void>[] = [];
@@ -104,11 +105,16 @@ export function wakeVisibleTasks(subscriptions: VisibleTaskSubscription[]): Valu
       continue;
     }
     subscription.triggered = true;
-    subscription.flags |= SubscriberFlags.Dirty;
-    const result = subscription.run();
-    if (isPromise(result)) {
-      pending.push(result);
+    const schedule = () => subscription.scheduler.notify(subscription);
+    const loaded = loadTaskFn(subscription.task);
+    if (isPromise(loaded)) {
+      // A failed load still schedules the task, so its run retries and reports.
+      const scheduled = loaded.then(schedule, schedule);
+      // qwikloader would hold the element's other handlers until it loads; tests await it.
+      qTest && pending.push(scheduled);
+    } else {
+      schedule();
     }
   }
-  return pending.length === 0 ? undefined : Promise.all(pending).then(() => undefined);
+  return qTest && pending.length > 0 ? Promise.all(pending).then(() => undefined) : undefined;
 }

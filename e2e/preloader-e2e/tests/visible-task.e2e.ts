@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom } from '../utils/app';
+import { chunkComesFrom, chunkHasVisibleTask } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
@@ -42,7 +42,8 @@ test.describe('visible task in view at load', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const isVisibleTaskChunk = (url: string) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]);
+    const isVisibleTaskChunk = (url: string) =>
+      chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && chunkHasVisibleTask(url);
     const firstVisibleTaskChunk = requests.findIndex(isVisibleTaskChunk);
     const firstSpeculativePreload = requests.findIndex(
       (url) => speculative.has(url) && !isVisibleTaskChunk(url)
@@ -162,7 +163,7 @@ const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
     (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
   );
   const isVisibleTaskChunk = (url: string) =>
-    url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources);
+    url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && chunkHasVisibleTask(url);
   return {
     firstChunk: events.findIndex(isVisibleTaskChunk),
     firstSpeculativePreload: events.findIndex(

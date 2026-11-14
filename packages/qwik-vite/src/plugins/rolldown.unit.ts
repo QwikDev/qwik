@@ -253,16 +253,12 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
       meta: {
         segment: {
           hash: 'visible123',
-          canonicalFilename: 'app.tsx_App_component_useVisibleTask_visible123',
           ctxName: 'useVisibleTask$',
-          entry: 'entry_render',
+          entry: 'app.tsx_entry_App',
         },
       },
     });
-    assert.equal(
-      name('/src/visible.js', ctx),
-      manual?.visible123 ?? 'app.tsx_App_component_useVisibleTask_visible123'
-    );
+    assert.equal(name('/src/visible.js', ctx), manual?.visible123 ?? 'app.tsx_entry_App');
     ctx.getModuleInfo = () => ({
       meta: { segment: { hash: 'read123', ctxName: '$', ctxKind: 'function', entry: null } },
     });
@@ -343,13 +339,11 @@ test.each(
     { tsOptimizer: true, minify: true },
     { tsOptimizer: false, minify: true },
   ].flatMap((options) =>
-    (['smart', 'component'] as const).flatMap((strategy) =>
-      (['native', 'win32'] as const).map((pathStyle) => ({ ...options, strategy, pathStyle }))
-    )
+    (['native', 'win32'] as const).map((pathStyle) => ({ ...options, pathStyle }))
   )
 )(
-  '$strategy separates client-only code ($tsOptimizer, $minify, $pathStyle)',
-  async ({ tsOptimizer, minify, strategy, pathStyle }) => {
+  'smart separates client-only code ($tsOptimizer, $minify, $pathStyle)',
+  async ({ tsOptimizer, minify, pathStyle }) => {
     const fixturePath = pathStyle === 'win32' ? path.win32 : path;
     const rootDir = normalizePath(resolve(cwd, 'fixture'));
     const srcDir = `${rootDir}/src`;
@@ -359,24 +353,14 @@ test.each(
     await plugin.normalizeOptions({
       target: 'client',
       buildMode: 'production',
-      entryStrategy: { type: strategy },
+      entryStrategy: { type: 'smart' },
       rootDir,
       srcDir,
     });
     const parent = `${srcDir}/app.tsx`;
     const transformed = await plugin.transform(
       { addWatchFile() {}, emitFile() {} } as any,
-      strategy === 'component'
-        ? `import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
-     import { clientFeature } from './client-feature';
-     export const App = component$(() => {
-       const state = useSignal(0);
-       const read = $(() => state.value);
-       read();
-       useVisibleTask$(() => clientFeature(state.value));
-       return <div>{state.value}</div>;
-     });`
-        : `import { $, component$, event$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
+      `import { $, component$, event$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
      import { clientFeature } from './client-feature';
      function useCustomHook() {
        const value = 1;
@@ -442,7 +426,7 @@ test.each(
       )![0];
       const render = chunks.find((chunk) => componentId in chunk.modules)!;
       const readId = [...modules].find(([, output]) => output?.meta?.segment?.ctxName === '$')![0];
-      expect(readId in render.modules).toBe(strategy === 'component');
+      expect(readId in render.modules).toBe(false);
       const visited = new Set<string>();
       const visit = (file: string) => {
         if (visited.has(file)) {
@@ -573,7 +557,7 @@ test.each([true, false])(
 
 describe('debug chunk names', () => {
   test.each([true, false])(
-    'names smart chunks after their group, and a visible task after its segment (tsOptimizer: %s)',
+    'names smart chunks after their group (tsOptimizer: %s)',
     async (tsOptimizer) => {
       const { segmentChunks } = await buildSmartDebugClient(tsOptimizer, {
         'app.tsx': `import { $, component$, event$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
@@ -593,20 +577,16 @@ describe('debug chunk names', () => {
         segmentChunks
           .filter(({ segment }) => segment.ctxName === ctxName)
           .map(({ fileName }) => fileName);
-      const visibleTask = segmentChunks.find(
-        ({ segment }) => segment.ctxName === 'useVisibleTask$'
-      )!;
 
       expect(fileNamesOf('component$')).toEqual(['build/app.tsx_render_App.js']);
-      expect(['$', 'event$', 'onClick$'].flatMap(fileNamesOf)).toEqual(
-        Array(3).fill('build/app.tsx_entry_App.js')
+      expect(['$', 'event$', 'onClick$', 'useVisibleTask$'].flatMap(fileNamesOf)).toEqual(
+        Array(4).fill('build/app.tsx_entry_App.js')
       );
-      expect(visibleTask.fileName).toBe(`build/${visibleTask.segment.canonicalFilename}.js`);
     }
   );
 
   test.each([true, false])(
-    'gives every visible task its own chunk when names repeat (tsOptimizer: %s)',
+    "keeps same-named components' visible tasks in separate chunks (tsOptimizer: %s)",
     async (tsOptimizer) => {
       const page = `import { component$, useVisibleTask$ } from '@qwik.dev/core';
        export const Page = component$(() => {
@@ -624,12 +604,12 @@ describe('debug chunk names', () => {
 
       expect(visibleTasks).toHaveLength(4);
       expect(new Set(visibleTasks.map(({ segment }) => segment.displayName)).size).toBe(2);
-      expect(new Set(visibleTasks.map(({ fileName }) => fileName)).size).toBe(4);
+      expect(new Set(visibleTasks.map(({ fileName }) => fileName)).size).toBe(2);
     }
   );
 
   test.each([true, false])(
-    'keeps the visible task name when its entry chunk also holds a dependency (tsOptimizer: %s)',
+    "keeps the smart chunk's name when a visible task's entry chunk also holds a dependency (tsOptimizer: %s)",
     async (tsOptimizer) => {
       const { chunks, segmentChunks } = await buildSmartDebugClient(
         tsOptimizer,
@@ -652,7 +632,7 @@ describe('debug chunk names', () => {
         (chunk) => chunk.fileName === `build/${segment.canonicalFilename}-entry.js`
       );
 
-      expect(fileName).toBe(`build/${segment.canonicalFilename}.js`);
+      expect(fileName).toBe('build/routes-page.tsx_entry_Page.js');
       expect(Object.keys(entry!.modules).map((id) => path.basename(id))).toEqual(['confetti']);
     }
   );

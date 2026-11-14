@@ -1442,9 +1442,6 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Loaded outside user interactions, so each keeps its own chunk.
-  const OWN_CHUNK_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
-
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
@@ -1467,11 +1464,9 @@ export const isDev = ${JSON.stringify(isDev)};
             // Non-qwik code: let the bundler decide.
             return null;
           }
-          const hasOwnChunk = OWN_CHUNK_CTX_NAMES.has(segment.ctxName);
           // Group segments by entry or Qwik Insights hash.
           const chunkName =
-            (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] ||
-            (hasOwnChunk ? segment.canonicalFilename : segment.entry);
+            (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] || segment.entry;
           return chunkName ? sanitizeChunkGroupName(chunkName) : null;
         },
       },

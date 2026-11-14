@@ -42,10 +42,11 @@ test.describe('visible task in view at load', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const firstVisibleTaskChunk = requests.findIndex(
-      (url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && !speculative.has(url)
+    const isVisibleTaskChunk = (url: string) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]);
+    const firstVisibleTaskChunk = requests.findIndex(isVisibleTaskChunk);
+    const firstSpeculativePreload = requests.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     );
-    const firstSpeculativePreload = requests.findIndex((url) => speculative.has(url));
     expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
@@ -160,11 +161,13 @@ const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
   const speculative = new Set(
     (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
   );
+  const isVisibleTaskChunk = (url: string) =>
+    url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources);
   return {
-    firstChunk: events.findIndex(
-      (url) => url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && !speculative.has(url)
+    firstChunk: events.findIndex(isVisibleTaskChunk),
+    firstSpeculativePreload: events.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     ),
-    firstSpeculativePreload: events.findIndex((url) => speculative.has(url)),
     load: events.indexOf(LOAD_EVENT),
   };
 };

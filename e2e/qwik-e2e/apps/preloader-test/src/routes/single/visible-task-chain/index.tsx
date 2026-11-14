@@ -3,6 +3,11 @@ import { component$ } from '@qwik.dev/core';
 import type { DocumentHead } from '@qwik.dev/router';
 import Fixture from '~/components/fixtures/single/visible-task-chain';
 
-export default component$(() => <Fixture />);
+export default component$(() => (
+  <>
+    <div class="spacer" />
+    <Fixture />
+  </>
+));
 
 export const head: DocumentHead = { title: 'single/visible-task-chain' };

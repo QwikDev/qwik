@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
+  MATRIX,
+  OFF_SCREEN_VISIBLE_TASKS,
   VISIBLE_ABOVE,
   VISIBLE_BELOW,
   VISIBLE_DOCUMENT_IDLE,
@@ -22,6 +24,7 @@ import {
   fixtureResult,
   fixtureRoot,
   openFixture,
+  scrollIntoView,
 } from '../utils/scenarios';
 
 const VISIBLE_ABOVE_SOURCE = 'src/components/fixtures/visible/above.tsx';
@@ -110,6 +113,39 @@ test.describe('visible task below the fold', () => {
       true
     );
   });
+});
+
+const VISIBLE_TASK_CHAINS = MATRIX.filter((fixture) => fixture.startsWhenVisible);
+
+test.describe('visible task chain scrolled into view', () => {
+  for (const fixture of VISIBLE_TASK_CHAINS) {
+    const isSingle = fixture.id.startsWith('single/');
+    const title = isSingle
+      ? 'cold, the result shows in 1 round trip'
+      : "cold, every level's visible task chunks go out in one round trip";
+    test(`${fixture.id}: ${title}`, async ({ page }) => {
+      const opened = await openFixture(page, fixture, 'cold');
+      const roundTrips = await scrollIntoView(opened);
+      await releaseAll(opened.gate);
+      await expectResult(page, fixture);
+      await attachRoundTrips('round-trips.txt', roundTrips, fixture.sources);
+      const withVisibleTaskChunks = roundTrips.filter((roundTrip) =>
+        roundTrip.urls.some((url) => chunkComesFrom(url, fixture.sources))
+      );
+      expect(isSingle ? roundTrips : withVisibleTaskChunks).toHaveLength(1);
+    });
+  }
+
+  for (const fixture of VISIBLE_TASK_CHAINS) {
+    test(`${fixture.id}: warm, the result shows with no request`, async ({ page }) => {
+      const opened = await openFixture(page, fixture, 'warm');
+      const roundTrips = await scrollIntoView(opened);
+      await releaseAll(opened.gate);
+      await expectResult(page, fixture);
+      test.fail(true, OFF_SCREEN_VISIBLE_TASKS);
+      expect(roundTrips).toEqual([]);
+    });
+  }
 });
 
 const LOAD_EVENT = 'load';

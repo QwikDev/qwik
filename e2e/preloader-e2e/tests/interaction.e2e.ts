@@ -1,22 +1,33 @@
 import { expect, test } from '@playwright/test';
 import { defineColdClickTest } from '../utils/click-tests';
-import { chunkComesFrom, chunkHasScopedStyles } from '../utils/app';
+import {
+  chunkComesFrom,
+  chunkHasComponent,
+  chunkHasScopedStyles,
+  chunkHoldsTaskFrom,
+} from '../utils/app';
 import {
   BARREL,
+  FETCHES_ITS_COMPONENT_ON_MAIN,
   MATRIX,
   MODAL,
+  NEVER_SHOWS_RESULT,
   QRL_PROP,
   SCOPED_STYLES,
   SHARED_HELPER,
   SLOT,
   SYNC,
+  TASKS_IN_PARENT_AND_CHILD,
+  TASKS_IN_SIBLINGS,
   USER_IMPORT,
 } from '../utils/fixtures';
 import type { RoundTrip } from '../utils/gate';
 import { coldClick } from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
-  defineColdClickTest(fixture);
+  if (!fixture.startsWhenVisible) {
+    defineColdClickTest(fixture);
+  }
 }
 
 const requestedUrls = (roundTrips: RoundTrip[]) =>
@@ -73,6 +84,70 @@ test('sync: a click handled only by sync$ shows the result with no request, even
 }) => {
   const roundTrips = await coldClick(page, SYNC);
   expect(roundTrips).toHaveLength(0);
+});
+
+const RENDERS_NOTHING_ON_CLICK = [
+  'jsx-binding',
+  'store-chain',
+  'task-chain',
+  'computed-chain',
+  'async-computed-chain',
+  'mixed-computed-chain',
+  'all',
+];
+
+test.describe('clicks that render nothing', () => {
+  for (const fixture of MATRIX) {
+    const [setup, primitive] = fixture.id.split('/');
+    if (
+      setup === 'conditional' ||
+      !RENDERS_NOTHING_ON_CLICK.includes(primitive) ||
+      NEVER_SHOWS_RESULT[fixture.id]
+    ) {
+      continue;
+    }
+    test(`${fixture.id}: a cold click fetches no chunk holding a component qrl`, async ({
+      page,
+    }) => {
+      const roundTrips = await coldClick(page, fixture);
+      const componentChunks = requestedUrls(roundTrips).filter(chunkHasComponent);
+      const onMain = FETCHES_ITS_COMPONENT_ON_MAIN[fixture.id];
+      test.fail(!!onMain, onMain);
+      expect(componentChunks).toEqual([]);
+    });
+  }
+});
+
+const TASKS_DIR = 'src/components/fixtures/tasks/';
+
+test.describe('tasks in several components', () => {
+  test("a click that makes a parent's and its child's tasks dirty fetches both task chunks in one round trip", async ({
+    page,
+  }) => {
+    const roundTrips = await coldClick(page, TASKS_IN_PARENT_AND_CHILD);
+    const parentRoundTrip = roundTripOf(roundTrips, (url) =>
+      chunkHoldsTaskFrom(url, `${TASKS_DIR}parent-child/index.tsx`)
+    );
+    const childRoundTrip = roundTripOf(roundTrips, (url) =>
+      chunkHoldsTaskFrom(url, `${TASKS_DIR}parent-child/child.tsx`)
+    );
+    expect(parentRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(childRoundTrip).toBe(parentRoundTrip);
+  });
+
+  test("a click that makes two sibling components' tasks dirty fetches both task chunks in one round trip", async ({
+    page,
+  }) => {
+    const roundTrips = await coldClick(page, TASKS_IN_SIBLINGS);
+    const firstRoundTrip = roundTripOf(roundTrips, (url) =>
+      chunkHoldsTaskFrom(url, `${TASKS_DIR}siblings/first.tsx`)
+    );
+    const secondRoundTrip = roundTripOf(roundTrips, (url) =>
+      chunkHoldsTaskFrom(url, `${TASKS_DIR}siblings/second.tsx`)
+    );
+    expect(firstRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(secondRoundTrip).toBe(firstRoundTrip);
+  });
 });
 
 test.describe('user import()', () => {

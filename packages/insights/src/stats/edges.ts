@@ -173,24 +173,38 @@ export function computeSymbolTree(root: Symbol): SymbolTreeNode {
   }
 }
 
+export type MatrixPath = [symbol: number, parent: number, weight: number];
+
 export interface SymbolVectors {
+  paths?: MatrixPath[];
   symbols: Symbol[];
   vectors: number[][];
 }
 
-export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
+export function computeSymbolVectors(symbols: Symbol[], includePaths = false): SymbolVectors {
+  const paths: MatrixPath[] = [];
   const rootSymbol = symbols.shift()!; // remove root symbol
   const symbolVectorIdxMap = new Map<Symbol, number>();
   const vectors: number[][] = [];
   initializeVectorsAndSymbolMap();
   const alreadyVisited = new Set<Symbol>();
   const edgePath: Edge[] = [];
-  processChildren(rootSymbol, edgePath, alreadyVisited);
-  return { symbols, vectors };
+  processChildren(rootSymbol, edgePath, alreadyVisited, -1);
+  return includePaths ? { symbols, vectors, paths } : { symbols, vectors };
   ////////////////////////////////////////
 
-  function processChildren(symbol: Symbol, edgePath: Edge[], alreadyVisited: Set<Symbol>) {
+  function processChildren(
+    symbol: Symbol,
+    edgePath: Edge[],
+    alreadyVisited: Set<Symbol>,
+    parent: number
+  ) {
     const symbolIdx = symbolVectorIdxMap.get(symbol);
+    const pathIndex = paths.length;
+    if (includePaths) {
+      const edge = edgePath.at(-1);
+      paths.push([symbolIdx ?? -1, parent, edge ? Math.min(1, edge.count / edge.from.count) : 1]);
+    }
     if (symbolIdx !== undefined) {
       let weight = 1;
       const vector = vectors[symbolIdx];
@@ -217,7 +231,7 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
 
     symbol.children.forEach((edge) => {
       edgePath.push(edge);
-      processChildren(edge.to, edgePath, alreadyVisited);
+      processChildren(edge.to, edgePath, alreadyVisited, pathIndex);
       edgePath.pop();
     });
   }

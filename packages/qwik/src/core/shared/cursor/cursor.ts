@@ -30,6 +30,7 @@ export function addCursor(container: Container, root: VNode, priority: number): 
     afterFlushTasks: null,
     extraPromises: null,
     journal: null,
+    $commitBlockers$: null,
     container: container,
     position: root,
     priority: priority,

@@ -5,7 +5,9 @@ import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
+  preloadHints,
   preloaderLinks,
+  recordPreloadHints,
   recordSpeculativeOrder,
   releaseAll,
   resultIsDone,
@@ -52,6 +54,8 @@ const OLD_PAGE_SOURCES = [
   'src/components/fixtures/conditional/all/',
 ];
 
+const TO_TREE_ROUTE = 'navigation/to-tree/';
+
 const TO_TREE_SOURCES = [
   'src/routes/navigation/to-tree/',
   'src/components/fixtures/navigation/nav-tree',
@@ -81,6 +85,21 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks.length).toBeGreaterThan(0);
     test.fail(true, 'on main, the route module loads a round trip before its render chunks');
     expect(withNewPageChunks).toHaveLength(1);
+  });
+
+  test("a Link click requests the new page's chunks as needed, not as speculative preloads", async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const { gate } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
+    await expectResult(page, TO_TREE);
+    const routeProbabilities = (await preloadHints(page))
+      .filter(({ item }) => item === TO_TREE_ROUTE)
+      .map(({ probability }) => probability);
+    expect(routeProbabilities.length).toBeGreaterThan(0);
+    test.fail(true, 'on main, the router asks for the new route at 0.8, so its chunks are a guess');
+    expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);
   });
 
   test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {

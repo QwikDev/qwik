@@ -7,10 +7,12 @@ export const PRIMITIVE_STEPS = {
   'async-computed-chain': 3,
   'mixed-computed-chain': 3,
   'visible-task-chain': 3,
-  all: 12,
+  all: 9,
 };
 
 export const SETUP_LEVELS = { single: 1, tree: 3, 'tree-context': 3, conditional: 3 };
+
+const STARTS_WHEN_VISIBLE = 'visible-task-chain';
 
 export type Fixture = {
   id: string;
@@ -18,6 +20,7 @@ export type Fixture = {
   sources: string[];
   expected?: string;
   warmRoundTrips?: number;
+  startsWhenVisible?: boolean;
 };
 
 export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, levels]) =>
@@ -29,6 +32,7 @@ export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, l
       `src/routes/${setup}/${primitive}/`,
     ],
     expected: String(1 + levels * steps),
+    startsWhenVisible: primitive === STARTS_WHEN_VISIBLE && setup !== 'conditional',
   }))
 );
 
@@ -61,10 +65,20 @@ const handWritten = (name: string, expected: string): Fixture => ({
 });
 
 export const SLOT = handWritten('slot', '1');
+export const CONDITIONAL_MODAL = handWritten('conditional-modal', 'ready');
+export const EMPTY_LIST = handWritten('empty-list', '1');
+export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
+export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');
 export const BARREL = handWritten('barrel', 'alpha 1.0');
+
+export const DASHBOARD_MODAL: Fixture = {
+  id: 'dashboard-modal',
+  path: '/dashboard-modal/',
+  sources: ['src/components/fixtures/dashboard-modal/', 'src/routes/dashboard-modal/'],
+};
 
 const overPreloading = (name: string): Fixture => ({
   id: `over-preloading/${name}`,
@@ -125,18 +139,18 @@ export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODA
 
 const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
-const OFF_SCREEN_VISIBLE_TASKS =
-  'needs a round trip on main: off-screen visible task chunks are never preloaded, so the scroll to the first visible-task-chain fixture fetches them all';
+export const OFF_SCREEN_VISIBLE_TASKS =
+  'needs a round trip on main: off-screen visible task chunks are never preloaded, so the scroll to the fixture fetches them';
 const JSX_ONLY =
   'one round trip on main: the signal is only read in JSX, so the click only needs its handler';
 const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
-const VISIBLE_TASKS_LOADED =
-  'one round trip on main: the visible task chunks loaded with the page, so the click only needs its handler';
+const NO_HANDLER_TO_FETCH =
+  'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
+const TASK_SHIPS_WITH_ITS_COMPONENT =
+  "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component";
 const TASKS_WITH_HANDLER =
   "one round trip on main: the click handler's chunk also holds the component's tasks";
-const HANDLER_LOADED_WITH_THE_PAGE =
-  "no round trip on main: the in-view visible tasks loaded each component's interaction chunk, which holds the handler, with the page";
 const TASKS_FOUND_LEVEL_BY_LEVEL =
   "over the 2-round-trip cap on main: each component's tasks are only found once the level above has run";
 const RENDER_FOUND_AFTER_TASK =
@@ -151,6 +165,8 @@ export type RoundTripsOnMain = { roundTrips: number; reason: string };
 
 export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
   'single/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+  'tree/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
 };
 
 export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
@@ -160,21 +176,30 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'single/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree-context/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
-  'single/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
-  'tree/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
-  'tree-context/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
+  'single/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
+  'tree/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
   'single/async-computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'single/mixed-computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'single/store-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
   'single/task-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
-  'single/all': { roundTrips: 0, reason: HANDLER_LOADED_WITH_THE_PAGE },
-  'tree/all': { roundTrips: 0, reason: HANDLER_LOADED_WITH_THE_PAGE },
-  'tree-context/all': { roundTrips: 0, reason: HANDLER_LOADED_WITH_THE_PAGE },
+  'single/all': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
   'tree/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
   'tree/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
   'tree-context/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
   'tree-context/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree-context/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
   modal: { roundTrips: 3, reason: RENDER_FOUND_AFTER_TASK },
 };
+
+export const FETCHES_ITS_COMPONENT_ON_MAIN: Record<string, string> = Object.fromEntries(
+  ['single', 'tree', 'tree-context'].flatMap((setup) =>
+    ['store-chain', 'task-chain', 'all'].map((primitive) => [
+      `${setup}/${primitive}`,
+      TASK_SHIPS_WITH_ITS_COMPONENT,
+    ])
+  )
+);
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

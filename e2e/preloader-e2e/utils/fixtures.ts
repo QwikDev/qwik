@@ -147,8 +147,6 @@ const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
 const NO_HANDLER_TO_FETCH =
   'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
-const TASK_SHIPS_WITH_ITS_COMPONENT =
-  "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component";
 const TASKS_WITH_HANDLER =
   "one round trip on main: the click handler's chunk also holds the component's tasks";
 const TASKS_FOUND_LEVEL_BY_LEVEL =
@@ -192,14 +190,5 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'tree-context/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
   modal: { roundTrips: 3, reason: RENDER_FOUND_AFTER_TASK },
 };
-
-export const FETCHES_ITS_COMPONENT_ON_MAIN: Record<string, string> = Object.fromEntries(
-  ['single', 'tree', 'tree-context'].flatMap((setup) =>
-    ['store-chain', 'task-chain', 'all'].map((primitive) => [
-      `${setup}/${primitive}`,
-      TASK_SHIPS_WITH_ITS_COMPONENT,
-    ])
-  )
-);
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

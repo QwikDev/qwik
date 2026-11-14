@@ -97,7 +97,11 @@ for (const [name, heldUrl] of [
         clickConditional(page),
         CONDITIONAL_ALL
       );
-      const clickChunks = new Set(roundTrips.flatMap((roundTrip) => roundTrip.urls));
+      const clickChunks = new Set(
+        roundTrips
+          .flatMap((roundTrip) => roundTrip.urls)
+          .filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+      );
       await waitForNetworkIdle(page, async () => {
         await releaseAll(gate, startupPiece);
         await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function');
@@ -113,10 +117,6 @@ for (const [name, heldUrl] of [
         ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
       );
       expect(clickLinks.length).toBeGreaterThan(0);
-      test.fail(
-        true,
-        'on main, hints sent before the preloader runs come out as speculative: a later 0.6 hint overwrites their probability'
-      );
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   });

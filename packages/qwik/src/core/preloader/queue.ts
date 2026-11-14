@@ -1,5 +1,5 @@
 import { createMacroTask } from '../shared/platform/next-tick';
-import { base, getBundle } from './bundle-graph';
+import { base, getBundle, isWaitingForGraph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
 import {
@@ -10,7 +10,6 @@ import {
 } from './types';
 
 export const bundles: BundleImports = new Map();
-export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 const inFlight = new Set<BundleImport>();
 const queue: BundleImport[] = [];
@@ -24,6 +23,7 @@ let isProcessingAdjustments = false;
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
+  $isReplay$?: boolean;
   $seen$?: Set<BundleImport>;
   $deps$?: ImportProbability[];
   $index$?: number;
@@ -71,7 +71,10 @@ function trigger() {
     const bundle = queue[0];
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
     // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
-    if (isNeeded(bundle) || (inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())) {
+    if (
+      isNeeded(bundle) ||
+      (!isWaitingForGraph && inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
+    ) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {
@@ -91,13 +94,13 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
-  seen?: Set<BundleImport>
+  isReplay?: boolean
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
-    $seen$: seen,
+    $isReplay$: isReplay,
   });
 };
 
@@ -132,7 +135,7 @@ const processAdjustmentFrame = () => {
       const factor = newInverseImportProbability / prevAdjust;
       // limit organic probability to 98%
       newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-      dep.$factor$ = factor;
+      dep.$factor$ = newInverseImportProbability;
     }
 
     adjustmentStack.push({
@@ -148,10 +151,15 @@ const processAdjustmentFrame = () => {
     return false;
   }
 
+  const wasNeeded = isNeeded(bundle);
   const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = frame.$inverseProbability$;
-  // Don't propagate tiny changes
-  if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
+  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
+  // Replay and needed transitions must reach dependencies.
+  if (
+    !frame.$isReplay$ &&
+    wasNeeded === isNeeded(bundle) &&
+    previousInverseProbability - bundle.$inverseProbability$ < 0.01
+  ) {
     adjustmentStack.pop();
     return false;
   }
@@ -183,12 +191,19 @@ const processAdjustmentFrame = () => {
   return false;
 };
 
+const scheduleAdjustments = () => {
+  if (!isAdjustmentScheduled) {
+    isAdjustmentScheduled = true;
+    nextAdjustmentMacroTask();
+  }
+};
+
 function processPendingAdjustments() {
+  isAdjustmentScheduled = false;
   if (isProcessingAdjustments || !adjustmentStack.length) {
     return;
   }
 
-  isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
   const deadline = isBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
@@ -197,10 +212,7 @@ function processPendingAdjustments() {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
     if (isBrowser && checkDeadline && performance.now() >= deadline) {
-      if (!isAdjustmentScheduled) {
-        isAdjustmentScheduled = true;
-        nextAdjustmentMacroTask();
-      }
+      scheduleAdjustments();
       break;
     }
   }
@@ -218,8 +230,6 @@ const preloadOne = (bundle: BundleImport) => {
   }
   inFlight.add(bundle);
 
-  const start = performance.now();
-  bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
   const link = doc.createElement('link');
@@ -234,8 +244,6 @@ const preloadOne = (bundle: BundleImport) => {
   // Handle completion of the preload
   link.onload = link.onerror = () => {
     inFlight.delete(bundle);
-    const end = performance.now();
-    bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
     // Keep the <head> clean
     link.remove();
@@ -246,23 +254,11 @@ const preloadOne = (bundle: BundleImport) => {
   doc.head.appendChild(link);
 };
 
-/**
- * Adjust the probability of a bundle based on the probability of its dependent bundles, and queue
- * it if it's likely enough to be preloaded.
- *
- * Note that if the probability is 100%, we treat the dynamic imports as 99% sure, and both will be
- * preloaded without limit.
- *
- * We also limit "organic" probability to 98% so they don't get unlimited preloads.
- */
-export const adjustProbabilities = (
-  bundle: BundleImport,
-  newInverseProbability: number,
-  seen?: Set<BundleImport>
-) => {
-  enqueueAdjustment(bundle, newInverseProbability, seen);
+/** Replay a buffered hint after its dependencies become available. */
+export const replayBundle = (bundle: BundleImport) => {
+  enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
   if (isBrowser) {
-    nextAdjustmentMacroTask();
+    scheduleAdjustments();
   } else {
     processPendingAdjustments();
   }
@@ -290,7 +286,7 @@ export const preload = (item: string | string[], probability?: number) => {
     handleBundle(item, inverseProbability);
   }
   if (isBrowser) {
-    nextAdjustmentMacroTask();
+    scheduleAdjustments();
   } else {
     processPendingAdjustments();
   }

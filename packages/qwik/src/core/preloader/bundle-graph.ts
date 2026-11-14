@@ -1,22 +1,20 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { adjustProbabilities, bundles, nextTriggerMacroTask, shouldResetFactor } from './queue';
-import type { BundleGraph, BundleImport, ImportProbability } from './types';
+import { bundles, nextTriggerMacroTask, replayBundle } from './queue';
+import type { BundleGraph, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
 // Note, making these singletons pulls in too much code and they are ok being module-scoped
 export let base: string | undefined;
 export let graph: BundleGraph;
+export let isWaitingForGraph = false;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
     $name$: name,
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
-    $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
+    $deps$: deps,
     $inverseProbability$: 1,
-    $createdTs$: performance.now(),
-    $waitedMs$: 0,
-    $loadedMs$: 0,
   };
 };
 
@@ -84,40 +82,42 @@ export const loadBundleGraph = (
   base = basePath;
 
   if (serializedResponse) {
+    isWaitingForGraph = true;
     serializedResponse
       .then((r) => r.text())
       .then((text) => {
         graph = parseBundleGraph(JSON.parse(text));
-        const toAdjust: [BundleImport, number][] = [];
-        for (const [name, deps] of graph.entries()) {
-          const bundle = getBundle(name)!;
-          bundle.$deps$ = deps;
-          if (bundle.$inverseProbability$ < 1) {
-            toAdjust.push([bundle, bundle.$inverseProbability$]);
-            bundle.$inverseProbability$ = 1;
-          }
-        }
-        if (!toAdjust.length) {
-          nextTriggerMacroTask();
-          return;
-        }
-        let i = 0;
-        const continueAdjust = createMacroTask(() => {
+        isWaitingForGraph = false;
+        // Snapshot hints before dependency propagation adds new bundle records.
+        const pendingBundles = Array.from(bundles.values());
+        let nextIndex = 0;
+        const replayPendingBundles = () => {
           const deadline = performance.now() + yieldInterval;
-          while (i < toAdjust.length) {
-            const [bundle, inverseProbability] = toAdjust[i];
-            i++;
-            adjustProbabilities(bundle, inverseProbability);
-            if (i < toAdjust.length && performance.now() >= deadline) {
-              continueAdjust();
+          while (nextIndex < pendingBundles.length) {
+            const bundle = pendingBundles[nextIndex++];
+            const deps = graph.get(bundle.$name$);
+            if (deps) {
+              bundle.$deps$ = deps;
+              if (bundle.$inverseProbability$ < 1) {
+                replayBundle(bundle);
+              }
+            }
+            if (nextIndex < pendingBundles.length && performance.now() >= deadline) {
+              resumeReplay();
               return;
             }
           }
+          resumeReplay.$destroy$?.();
           nextTriggerMacroTask();
-        });
-        continueAdjust();
+        };
+        const resumeReplay = createMacroTask(replayPendingBundles);
+        replayPendingBundles();
       })
-      .catch(console.warn);
+      .catch((error) => {
+        console.warn(error);
+        isWaitingForGraph = false;
+        nextTriggerMacroTask();
+      });
   }
 };
 

@@ -1,6 +1,6 @@
 import { getFileStem } from '../../paths.js';
 
-type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' | 'inline' | 'hoist';
+type EntryStrategyType = 'smart' | 'segment' | 'single' | 'inline' | 'hoist';
 
 interface EntrySegment {
   symbolName: string;
@@ -46,10 +46,7 @@ export function resolveEntryField(
     case 'inline':
     case 'hoist':
     case 'segment':
-    case 'hook':
       return null;
-    case 'component':
-      return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
       return getRootEntry(segment, RENDER_CTX_NAMES.has(segment.ctxName) ? 'render' : 'entry');
   }

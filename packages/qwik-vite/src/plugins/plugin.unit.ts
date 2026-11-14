@@ -130,10 +130,22 @@ test('csr', async () => {
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({
-    entryStrategy: { type: 'component' },
+    entryStrategy: { type: 'single' },
     buildMode: 'production',
   });
-  assert.deepEqual(opts.entryStrategy.type, 'component');
+  assert.deepEqual(opts.entryStrategy.type, 'single');
+});
+
+test.each([
+  { removed: 'component', replacement: 'smart' },
+  { removed: 'hook', replacement: 'segment' },
+])('rejects the removed $removed entry strategy and names $replacement', async (strategy) => {
+  const plugin = await mockPlugin();
+  await expect(
+    plugin.normalizeOptions({ entryStrategy: { type: strategy.removed } as any })
+  ).rejects.toThrow(
+    `The "${strategy.removed}" entry strategy was removed. Use "${strategy.replacement}" instead.`
+  );
 });
 
 test('entryStrategy, smart', async () => {

@@ -4,7 +4,7 @@ import { Level1Output } from './contexts';
 import Level2 from './level-2';
 
 export default component$(() => {
-  const input = useSignal(0);
+  const input = useSignal(1);
   const a = useSignal(0);
   const b = useSignal(0);
   const out = useSignal(0);
@@ -25,9 +25,6 @@ export default component$(() => {
   return (
     <section class="fixture" data-fixture="tree-context/visible-task-chain">
       <h2>tree-context/visible-task-chain</h2>
-      <button data-testid="trigger" onClick$={() => (input.value = 1)}>
-        Run
-      </button>
       <span class="step">A: {out.value}</span>
       <Level2 />
     </section>

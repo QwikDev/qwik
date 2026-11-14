@@ -19,7 +19,7 @@ import {
   resultIsDone,
   settle,
 } from '../utils/gate';
-import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
+import { expectResult, fixtureResult, startFixture } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CLICKABLE = CLICKABLE_ON_ALL_AT_ONCE.filter((fixture) => !NEVER_SHOWS_RESULT[fixture.id]);
@@ -31,8 +31,7 @@ const expectExpectedText = async (page: Page, fixture: Fixture) => {
   await expect.soft(fixtureResult(page, fixture), fixture.id).toHaveText(fixture.expected);
 };
 
-const clickFixture = (page: Page, fixture: Fixture) => () =>
-  fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+const clickFixture = (page: Page, fixture: Fixture) => () => startFixture(page, fixture);
 
 test.describe('all at once', () => {
   test.setTimeout(300_000);

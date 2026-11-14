@@ -2,7 +2,7 @@
 import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const input = useSignal(0);
+  const input = useSignal(1);
   const a = useSignal(0);
   const b = useSignal(0);
   const out = useSignal(0);
@@ -21,9 +21,6 @@ export default component$(() => {
   return (
     <section class="fixture" data-fixture="single/visible-task-chain">
       <h2>single/visible-task-chain</h2>
-      <button data-testid="trigger" onClick$={() => (input.value = 1)}>
-        Run
-      </button>
       <output data-testid="result" data-done={out.value ? '' : undefined}>
         {out.value}
       </output>

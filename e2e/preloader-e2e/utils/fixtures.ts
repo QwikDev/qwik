@@ -7,10 +7,12 @@ export const PRIMITIVE_STEPS = {
   'async-computed-chain': 3,
   'mixed-computed-chain': 3,
   'visible-task-chain': 3,
-  all: 12,
+  all: 9,
 };
 
 export const SETUP_LEVELS = { single: 1, tree: 3, 'tree-context': 3, conditional: 3 };
+
+const STARTS_WHEN_VISIBLE = 'visible-task-chain';
 
 export type Fixture = {
   id: string;
@@ -18,6 +20,7 @@ export type Fixture = {
   sources: string[];
   expected?: string;
   warmRoundTrips?: number;
+  startsWhenVisible?: boolean;
 };
 
 export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, levels]) =>
@@ -29,6 +32,7 @@ export const MATRIX: Fixture[] = Object.entries(SETUP_LEVELS).flatMap(([setup, l
       `src/routes/${setup}/${primitive}/`,
     ],
     expected: String(1 + levels * steps),
+    startsWhenVisible: primitive === STARTS_WHEN_VISIBLE && setup !== 'conditional',
   }))
 );
 
@@ -126,14 +130,14 @@ export const CLICKABLE_ON_ALL_AT_ONCE: Fixture[] = [...MATRIX, USER_IMPORT, MODA
 
 const NEVER_UPDATES =
   'never shows its result on main: a sync computed reading an async computed prop stays at 0';
-const OFF_SCREEN_VISIBLE_TASKS =
-  'needs a round trip on main: off-screen visible task chunks are never preloaded, so the scroll to the first visible-task-chain fixture fetches them all';
+export const OFF_SCREEN_VISIBLE_TASKS =
+  'needs a round trip on main: off-screen visible task chunks are never preloaded, so the scroll to the fixture fetches them';
 const JSX_ONLY =
   'one round trip on main: the signal is only read in JSX, so the click only needs its handler';
 const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
-const VISIBLE_TASKS_LOADED =
-  'one round trip on main: the visible task chunks loaded with the page, so the click only needs its handler';
+const NO_HANDLER_TO_FETCH =
+  'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
 const MIDDLE_LINK_LATE =
   'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
 
@@ -146,6 +150,8 @@ export type RoundTripsOnMain = { roundTrips: number; reason: string };
 
 export const NOT_READY_WHEN_WARM: Record<string, RoundTripsOnMain> = {
   'single/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+  'tree/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: OFF_SCREEN_VISIBLE_TASKS },
 };
 
 export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
@@ -155,9 +161,9 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'single/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
   'tree-context/computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
-  'single/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
-  'tree/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
-  'tree-context/visible-task-chain': { roundTrips: 1, reason: VISIBLE_TASKS_LOADED },
+  'single/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
+  'tree/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
+  'tree-context/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
   'single/async-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
   'single/mixed-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
   'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },

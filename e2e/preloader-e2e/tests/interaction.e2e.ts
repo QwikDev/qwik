@@ -16,7 +16,9 @@ import type { RoundTrip } from '../utils/gate';
 import { coldClick } from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
-  defineColdClickTest(fixture);
+  if (!fixture.startsWhenVisible) {
+    defineColdClickTest(fixture);
+  }
 }
 
 const requestedUrls = (roundTrips: RoundTrip[]) =>

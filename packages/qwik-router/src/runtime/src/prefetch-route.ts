@@ -1,6 +1,6 @@
 import { isBrowser, isDev } from '@qwik.dev/core';
 import { _requestPreload as preload } from '@qwik.dev/core/internal';
-import { ensureSlash } from '../../utils/pathname';
+import { toBundleGraphRouteName } from '../../utils/pathname';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';
 import { loadRoute } from './routing';
@@ -40,12 +40,7 @@ export async function prefetchRoute(
     if (prefetchBundle) {
       // Preload JS bundles using the route NAME (not pathname) — the bundle graph
       // is keyed by route name (e.g. "products/[id]/") not actual path
-      let routeName = loadedRoute.$routeName$;
-      routeName = ensureSlash(routeName);
-      if (routeName.length > 1 && routeName.startsWith('/')) {
-        routeName = routeName.slice(1);
-      }
-      preload(routeName, probability);
+      preload(toBundleGraphRouteName(loadedRoute.$routeName$), probability);
     }
 
     if (!prefetchData || !manifestHash) {

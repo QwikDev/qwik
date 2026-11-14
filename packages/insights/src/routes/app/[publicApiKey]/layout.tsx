@@ -1,3 +1,5 @@
+import ReportScope from '~/components/report-scope';
+import { loadReportScope } from '~/db/report-scope';
 import { Slot, component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation, type RequestHandler } from '@qwik.dev/router';
 import ApplicationNavigation from '~/components/application-navigation';
@@ -12,6 +14,10 @@ export const onRequest: RequestHandler = async ({ sharedMap, redirect, params })
     throw redirect(307, '/');
   }
 };
+
+export const useReportScope = routeLoader$(async ({ params, query }) =>
+  loadReportScope(getDB(), params.publicApiKey, query)
+);
 
 export const useApplication = routeLoader$(async ({ params }) =>
   getAppInfo(getDB(), params.publicApiKey)
@@ -33,6 +39,7 @@ export default component$(() => {
       <div class="min-w-0">
         <Header showBrand={false} />
         <main class="min-h-[calc(100vh-var(--spacing-editorial-header))] p-editorial-8 mx-auto max-w-[1264px]">
+          <ReportScope />
           <Slot />
         </main>
       </div>

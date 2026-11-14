@@ -1,3 +1,4 @@
+import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { getManifestPerformance } from '../../performance';
@@ -8,7 +9,6 @@ import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getSlowEdges, type SlowEdge } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { BUCKETS, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
@@ -23,11 +23,9 @@ export const head: DocumentHead = {
 };
 
 export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
-  const manifest = query.get('manifest');
   const db = getDB();
-  const manifestHashes = manifest
-    ? manifest.split(',').filter(Boolean).slice(0, 100)
-    : await dbGetManifestHashes(db, params.publicApiKey);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, query);
+  const manifestHashes = selectedHash ? [selectedHash] : [];
   const edges = await getSlowEdges(db, params.publicApiKey, manifestHashes);
   return {
     ...paginateResults(
@@ -51,7 +49,7 @@ export default component$(() => {
         report="slow"
         eyebrow="Latency outliers"
         title="Slow symbols"
-        description="Find symbols with the slowest loading latency across recorded manifests."
+        description="Find symbols with the slowest loading latency in the selected build."
       />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">

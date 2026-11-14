@@ -1,8 +1,8 @@
+import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { getDB } from '~/db';
 import { getSymbolGraphEdges, getSymbolDetailsByHashes } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 import {
   computeBundles,
   computeSymbolGraph,
@@ -22,7 +22,8 @@ export const useData = routeLoader$<BundleInfo>(async ({ params, url }) => {
     ? parseInt(url.searchParams.get('limit')!)
     : undefined;
 
-  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, url.searchParams);
+  const manifestHashes = selectedHash ? [selectedHash] : [];
   const edges = await getSymbolGraphEdges(db, params.publicApiKey, { limit, manifestHashes });
   const symbolHashes = Array.from(
     new Set(

@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-rc.12
+
+### Patch Changes
+
+- 🐞🩹 the optimizer now emits `_jsxSplit` for dynamic JSX tags with `on*$` props (including shorthand `{ onClick$ }`, lowercase `onclick$` and computed keys), so event listeners are registered when the tag is a string at runtime. `passive:*` directives on such tags are kept too. A computed string event key like `['onClick$']` in `jsx()` props is now handled like `onClick$`. (by [@fixfon](https://github.com/fixfon) in [#9356](https://github.com/QwikDev/qwik/pull/9356))
+
 ## 2.1.0-rc.11
 
 ### Patch Changes

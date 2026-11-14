@@ -581,6 +581,25 @@ describe('qwikloader behavior', () => {
       await vi.waitFor(() => expect(logs).toEqual(['load first', 'start first', 'start client']));
     });
 
+    test('starts a parent handler only after a still-loading child handler has started', async () => {
+      let finishLoading!: () => void;
+      const { click, container, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        child: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
+      });
+      const parent = createMockElement(container, {}, () => {
+        logs.push('start parent');
+      });
+      const child = createMockElement(parent, { 'q-e:click': loadingQrl('child') });
+
+      click(createMockEvent(child));
+      await flushQueuedTasks();
+      expect(logs).toEqual(['load child']);
+
+      finishLoading();
+      await vi.waitFor(() => expect(logs).toEqual(['load child', 'start child', 'start parent']));
+    });
+
     test('starts later events after an earlier one fails to load', async () => {
       const failed = Promise.reject(new Error('load failed'));
       failed.catch(() => {});

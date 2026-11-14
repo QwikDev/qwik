@@ -267,8 +267,8 @@ const dispatch = (
   /** A capture handler queued work, so bubbling must not overtake it. */
   afterCapture = false
 ) => {
-  // an earlier event that is still loading must start first
-  let defer = afterCapture || !!loadingEvents;
+  // a handler starts only after every earlier handler of this and earlier events has started
+  let defer = afterCapture || !!loadingEvents || !tasks.every(isPromise);
   /** Async progress within this event's own chain — sync qrls only wait for these. */
   let chainAsync = false;
   const startOrDefer = (start: Start, isSync = false) => {

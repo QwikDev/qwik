@@ -1,5 +1,5 @@
 import { component$, useSignal, type Signal } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 describe.each([
@@ -31,6 +31,7 @@ describe.each([
     expect(button.textContent).toBe('0');
     await trigger(container.element, button, 'click', {}, { waitForIdle: false });
     await trigger(container.element, button, 'click', {}, { waitForIdle: false });
+    await waitForDrain(container);
     expect(button.textContent).toBe('2');
   });
 });

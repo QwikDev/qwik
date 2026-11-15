@@ -159,7 +159,9 @@ export async function openInsightsDb(url: string, authToken?: string): Promise<I
   if (sqlite) {
     return openNodeSqlite(path, sqlite);
   }
-  return openLibsql(`file:${path}`, undefined, 'Local insights DBs on Node < 22.5 need');
+  // libSQL reads `#` and `?` as URL syntax and percent-decodes the path.
+  const fileUrl = `file:${path.replace(/[%#?]/g, encodeURIComponent)}`;
+  return openLibsql(fileUrl, undefined, 'Local insights DBs on Node < 22.5 need');
 }
 
 /** `node:sqlite`, or null on Node versions that don't ship it. */

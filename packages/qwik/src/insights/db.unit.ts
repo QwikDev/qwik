@@ -65,7 +65,9 @@ test('local files fall back to @libsql/client without node:sqlite (Node < 22.5)'
   });
   try {
     const { openInsightsDb } = await import('./db');
-    const db = await openInsightsDb('file:' + tmpPath());
+    // `#` and `?` are valid in filenames but not in a raw file: URL.
+    const dir = mkdtempSync(join(tmpdir(), 'qwik#db?-'));
+    const db = await openInsightsDb('file:' + join(dir, 'x.db'));
     await db.exec('CREATE TABLE t (id INTEGER);');
     await db.batch([{ sql: 'INSERT INTO t (id) VALUES (?)', args: [1] }]);
     expect(await db.all('SELECT id FROM t')).toEqual([{ id: 1 }]);

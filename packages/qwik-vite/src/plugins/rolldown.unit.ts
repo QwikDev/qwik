@@ -662,15 +662,31 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
   const codeSplitting = await clientCodeSplitting({});
 
   assert.deepEqual(codeSplitting.includeDependenciesRecursively, false);
-  assert.deepEqual(
-    codeSplitting.groups!.map((group) => group.name),
-    ['qwik-core', 'qwik-preloader', codeSplitting.groups![2].name]
-  );
+  const moduleInfo = (importers: string[], dynamicImporters: string[]) =>
+    ({ getModuleInfo: () => ({ importers, dynamicImporters }) }) as any;
+  const coreName = codeSplitting.groups![0].name as Rolldown.CodeSplittingNameFunction;
+  assert.deepEqual(coreName('owner.mjs', moduleInfo(['scheduler.mjs'], [])), 'qwik-core');
+  assert.deepEqual(coreName('core.mjs', moduleInfo([], [])), 'qwik-core');
+  assert.deepEqual(codeSplitting.groups![1].name, 'qwik-preloader');
   assert.deepEqual(typeof codeSplitting.groups![2].name, 'function');
   assert.deepEqual(
     codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
     [false, false, false]
   );
+});
+
+test('the qwik-core group leaves a module the runtime loads only on demand in its own chunk', async () => {
+  const codeSplitting = await clientCodeSplitting({});
+  const coreName = codeSplitting.groups![0].name as Rolldown.CodeSplittingNameFunction;
+  const loadedOnDemand = {
+    getModuleInfo: () => ({ importers: [], dynamicImporters: ['container-context.mjs'] }),
+  } as any;
+  const alsoImported = {
+    getModuleInfo: () => ({ importers: ['allocate.mjs'], dynamicImporters: ['range.mjs'] }),
+  } as any;
+
+  assert.deepEqual(coreName('inflate.mjs', loadedOnDemand), null);
+  assert.deepEqual(coreName('slot.mjs', alsoImported), 'qwik-core');
 });
 
 test('the qwik-core group takes the whole runtime, including its per-module production build', async () => {

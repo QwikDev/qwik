@@ -64,6 +64,13 @@ pnpm build.core.dev
 pnpm vitest run packages/qwik-vite/src/plugins/linked-build.unit.ts
 ```
 
+`pnpm build.core.dev` bundles core into one file, so it hides what the per-module production build
+does to an app's chunks. After changing `codeSplitting` groups, the manifest or core's import graph,
+run `pnpm build.core` and then `e2e/qwik-e2e/tests/chunk-cycles.e2e.ts` with the router e2e suite.
+Rolldown never offers its own runtime module to a `codeSplitting` group, so its helpers cannot be
+pinned to a chunk; a group that merges a dynamic import's target into the importer's chunk makes that
+chunk depend on wherever the helper lands.
+
 Vitest's `fsModuleCache` replays cached modules without calling `transform` or `load`, and its key
 ignores plugin options, so the `csr` and `resume` projects collide. Any module the plugin compiles
 or serves from memory must make `isCompiledModule` (in `plugin.ts`) return true, which opts it out of

@@ -1662,12 +1662,17 @@ export const isDev = ${JSON.stringify(isDev)};
   // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
+  const isLoadedOnlyOnDemand = (module: Rolldown.ModuleInfo | null) =>
+    module !== null && module.importers.length === 0 && module.dynamicImporters.length > 0;
+
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
       // The handlers facade stays its own emitted entry: a group chunk mangles its export names.
       {
-        name: 'qwik-core',
+        // Merged in, a module core loads on demand needs a namespace helper that can form a cycle.
+        name: (id: string, ctx: ChunkingContext) =>
+          isLoadedOnlyOnDemand(ctx.getModuleInfo(id)) ? null : 'qwik-core',
         // Production ships one module per file under dist/core/; dev splits into core-*.mjs
         test: /[/\\](core|qwik)[/\\]dist[/\\](core((\.prod|\.min)?\.[cm]js$|[/\\]|-[^/\\]+\.[cm]js$)|async-local-storage\.[cm]js$)/,
         includeDependenciesRecursively: false,

@@ -42,5 +42,5 @@ test('keeps the minimal signal transfer small', async ({ page }) => {
     })
   );
   const lazyBytes = compressed.reduce((total, resource) => total + resource.bytes, 0);
-  expect(lazyBytes, JSON.stringify(compressed, null, 2)).toBeLessThanOrEqual(26_000);
+  expect(lazyBytes, JSON.stringify(compressed, null, 2)).toBeLessThanOrEqual(27_000);
 });

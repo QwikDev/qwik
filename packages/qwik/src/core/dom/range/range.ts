@@ -5,6 +5,7 @@ import { whenRootInflated } from '../../runtime/container-context';
 import { showsProjection, disposeOwner, Owner } from '../../runtime/owner';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { createCommentWalker } from '../../runtime/node-walker';
+import { SubscriberKind, type ContentSubscriber } from '../../runtime/subscriber';
 
 export function findContainerNode<T>(
   container: ContainerContext,
@@ -68,11 +69,11 @@ async function restoreProjectionRanges(
       await container.getRoot(Number(parts[1]))
     );
     if (isDev) {
-      const { ProjectionSubscription } = await import('../slot/slot');
-      if (!(subscription instanceof ProjectionSubscription)) {
+      const content = subscription as ContentSubscriber | null;
+      if (content?.kind !== SubscriberKind.Content) {
         throw new Error('Projection marker requires a projection subscription');
       }
-      if (subscription.block.start !== marker) {
+      if (content.block.start !== marker) {
         throw new Error('Projection marker references a different range');
       }
     }

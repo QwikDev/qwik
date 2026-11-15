@@ -109,22 +109,6 @@ const queueTasks = (tasks: Task[], eventName: string) => {
   }
 };
 
-const resolveContainer = (containerEl: QContainerElement) => {
-  if (containerEl._qwikjson_ === undefined) {
-    const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-    let script = parentJSON.lastElementChild;
-    while (script) {
-      if (script.tagName === 'SCRIPT' && script.getAttribute('type') === 'qwik/json') {
-        containerEl._qwikjson_ = JSON.parse(
-          script.textContent!.replace(/\\x3C(\/?script)/gi, '<$1')
-        );
-        break;
-      }
-      script = script.previousElementSibling;
-    }
-  }
-};
-
 const markContainerReady = (hash: string) => {
   readyContainers[hash] = 1;
   emitEvent(readyStateChange);
@@ -220,7 +204,6 @@ const resolveHandler = (
 
   const href = new URL(chunk, base).href;
   const module = import(/* @vite-ignore */ href);
-  resolveContainer(container);
   return module.then(
     (module) => {
       const handler = module[symbol] as Handler | undefined;

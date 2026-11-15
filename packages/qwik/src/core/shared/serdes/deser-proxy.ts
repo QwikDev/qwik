@@ -130,11 +130,7 @@ class DeserializationHandler implements ProxyHandler<object> {
   }
 }
 
-/**
- * The rest of the state is restored in the background, and the state text released, once 90% of it
- * is restored or fewer units than this are left, whichever comes first.
- */
-const RELEASE_STATE_BELOW_UNITS = 3000;
+/** Once this much is restored, the rest is restored in the background and the text released. */
 const RELEASE_STATE_AT = 0.9;
 
 const whenIdle = (callback: () => void): void => {
@@ -208,9 +204,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
 
   private $releaseStateWhenMostlyRestored$(): void {
     const unitCount = this.$reader$!.$unitCount$;
-    const isMostlyRestored =
-      this.$unrestoredUnits$ < RELEASE_STATE_BELOW_UNITS ||
-      this.$unrestoredUnits$ < unitCount * (1 - RELEASE_STATE_AT);
+    const isMostlyRestored = this.$unrestoredUnits$ < unitCount * (1 - RELEASE_STATE_AT);
     // State patches refer to the text of the scripts before them.
     const canPatchesArrive = this.$reader$!.$restoredByOffset$ !== null;
     if (this.$isReleaseScheduled$ || canPatchesArrive || !isMostlyRestored) {

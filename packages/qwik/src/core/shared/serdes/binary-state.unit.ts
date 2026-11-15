@@ -194,14 +194,6 @@ describe('binary state', () => {
       expect(restoredRoots(state)[0]).toEqual(leftover);
       expect(state[0]).toBe(restoredRoots(state)[0]);
     });
-
-    it('restores the rest in the background once little is left', async () => {
-      const state = await roundTrip({ small: 1 }, { alsoSmall: 2 }, { tiny: 3 });
-      state[2];
-      expect(restoredRoots(state)[0]).toBeUndefined();
-      await backgroundWork();
-      expect(restoredRoots(state).slice(0, 2)).toEqual([{ small: 1 }, { alsoSmall: 2 }]);
-    });
   });
 
   describe('state patches', () => {
@@ -400,5 +392,15 @@ describe('binary state', () => {
     const tampered =
       script.slice(0, -2) + String.fromCharCode(BinaryCode.Num0 + 17) + script.slice(-1);
     expect(() => new BinaryStateReader(tampered)).toThrow();
+  });
+
+  it('rejects a string length larger than the units that hold the string', async () => {
+    const script = await serialize('a string');
+    // the stream is [...'a string', length 8, Str1, root list]; claim 100 characters instead
+    const lengthAt = script.indexOf('a string') + 8;
+    const tampered =
+      script.slice(0, lengthAt) + String.fromCharCode(100) + script.slice(lengthAt + 1);
+    expect(tampered).not.toBe(script);
+    expect(() => restore(tampered)[0]).toThrow();
   });
 });

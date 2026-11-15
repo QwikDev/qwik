@@ -2714,6 +2714,27 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('renders a late segment that reads a root-owned async computed still loading', async () => {
+    const Reader = component$((props: { value: SignalType<string> }) => (
+      <span id="late-async-computed">{props.value.value}</span>
+    ));
+    const App = component$(() => {
+      const loaded = useComputed$(async ({ abortSignal }) => {
+        await delay(10);
+        return abortSignal.aborted ? 'aborted' : 'loaded';
+      });
+      return (
+        <main>
+          <Pending fallback$={() => <p>Waiting async computed</p>}>
+            <Reader value={loaded} />
+          </Pending>
+        </main>
+      );
+    });
+    const { document } = await ssrRenderPendingStream(<App />, []);
+    expect(document.querySelector('#late-async-computed')?.textContent).toBe('loaded');
+  });
+
   it('should resume a segment that receives a signal holding undefined', async () => {
     let resolveData!: (value: string) => void;
     const dataPromise = new Promise<string>((resolve) => {

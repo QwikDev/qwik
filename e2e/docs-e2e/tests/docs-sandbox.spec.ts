@@ -116,6 +116,20 @@ test.describe('Sandbox smoke tests', () => {
         .toBeGreaterThan(truncatedLength);
     });
 
+    test('an expanded bundle stays expanded when switching output tabs', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+      const toggle = page.locator('.output-modules .file-toggle-button').first();
+      await toggle.click();
+      await expect(toggle).toHaveText('Show less');
+
+      await page.getByRole('button', { name: 'SSR Module', exact: true }).click();
+      await expect(page.locator('.output-modules .file-tree-header')).toHaveText('/server/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      await expect(toggle).toHaveText('Show less');
+    });
+
     test('an expanded bundle stays expanded when the playground rebuilds', async ({ page }) => {
       await page.goto('/playground/');
       await page.getByRole('button', { name: 'Client Bundles' }).click();

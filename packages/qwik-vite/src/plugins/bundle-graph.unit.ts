@@ -107,6 +107,20 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('only a slow-to-download import graph shifts the preload probability', () => {
+    const probabilityOf = (depTotal: number) =>
+      convertManifestToBundleGraph({
+        bundles: {
+          'page.js': { size, total, dynamicImports: ['dep.js'], qrlImports: ['dep.js'] },
+          'dep.js': { size, total: depTotal, interactivity: 3 },
+        } as Record<string, QwikBundle>,
+        mapping: {},
+      } as QwikManifest)[1];
+
+    expect(probabilityOf(5_000)).toBe(-7);
+    expect(probabilityOf(50_000)).toBe(-8);
+  });
+
   test('import cycle through the reduced bundle keeps reachable deps', () => {
     const manifest = {
       bundles: {
@@ -306,31 +320,32 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "qwik-router.js",
         -10,
-        4,
         9,
         17,
+        4,
         -9,
         3,
         5,
         12,
         7,
+        -8,
         16,
         11,
         14,
         "root.js",
         -9,
-        43,
+        44,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
         -9,
-        47,
+        48,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        49,
+        50,
         "src-vendor-lib-libB.ts.js",
-        49,
+        50,
         "BjxcCeNQ9ak",
         -9,
         21,
@@ -341,7 +356,7 @@ describe('convertManifestToBundleGraph', () => {
         -9,
         21,
         "LopIayqLfMo",
-        -8,
+        -7,
         9,
         "VjDx6RO4Kis",
         -9,
@@ -354,9 +369,9 @@ describe('convertManifestToBundleGraph', () => {
         3,
         "9PcKHFjikV0",
         -7,
-        43,
+        44,
         "9fcUDoGM9Wo",
-        -8,
+        -7,
         9,
         "SHtFir1Ia94",
         -7,
@@ -366,7 +381,7 @@ describe('convertManifestToBundleGraph', () => {
         7,
         "dAo05yeFq1I",
         -7,
-        47,
+        48,
         "ds9jIPT1g9s",
         -7,
         19,
@@ -389,7 +404,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         19,
         "BMutFDNOKhc",
-        -8,
+        -7,
         9,
         "Iyy38y0K3Hw",
         -9,
@@ -404,7 +419,7 @@ describe('convertManifestToBundleGraph', () => {
         -6,
         16,
         "5DbAsQLGGo4",
-        -8,
+        -7,
         4,
         "Nhj4Mq4ilm8",
         -6,
@@ -422,7 +437,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         27,
         "BdwdOv10pp0",
-        -8,
+        -7,
         9,
         "YCi2vDzuhns",
         -7,
@@ -437,7 +452,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         5,
         "s3XioIi2Huw",
-        -8,
+        -7,
         9,
       ]
     `);

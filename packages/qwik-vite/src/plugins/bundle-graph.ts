@@ -1,8 +1,8 @@
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
 const minimumSpeed = 300; // kbps
-// size that takes 0.5 seconds to download at minimumSpeed
-const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
+// bytes that take 0.5 seconds to download at minimumSpeed
+const slowSize = 0.5 * ((minimumSpeed * 1024) / 8);
 
 /**
  * A function that returns a map of bundle names to their dependencies.

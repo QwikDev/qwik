@@ -47,9 +47,10 @@ export function findQwikElement(
   ) {
     return element as Element;
   }
-  for (const candidate of element.querySelectorAll(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`)) {
-    if (isOwnedBy(element, candidate)) {
-      return candidate;
+  const candidates = element.querySelectorAll(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`);
+  for (let i = 0; i < candidates.length; i++) {
+    if (isOwnedBy(element, candidates[i])) {
+      return candidates[i];
     }
   }
   return null;

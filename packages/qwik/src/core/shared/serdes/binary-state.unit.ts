@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
+import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
 import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
 import { binaryStateRootsToJson } from './binary-state-dump';
@@ -402,5 +403,29 @@ describe('binary state', () => {
       script.slice(0, lengthAt) + String.fromCharCode(100) + script.slice(lengthAt + 1);
     expect(tampered).not.toBe(script);
     expect(() => restore(tampered)[0]).toThrow();
+  });
+
+  it('rejects roots that restore the same values over and over', () => {
+    let script = '';
+    const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+      script += text;
+    });
+    const itemCount = 200;
+    for (let i = 0; i < itemCount; i++) {
+      writer.$number$(i);
+    }
+    writer.$endArray$(0, itemCount);
+    // every root is the same array again, which written state never does
+    const rootsStart = writer.$length$;
+    const itemsEnd = writer.$offset$;
+    const rootCount = 60;
+    for (let i = 0; i < rootCount; i++) {
+      writer.$sharedRoot$(itemsEnd);
+    }
+    writer.$endArray$(rootsStart, rootCount);
+    writer.$finish$();
+    const state = restore(script);
+    expect(state[0]).toHaveLength(itemCount);
+    expect(() => Array.from({ length: rootCount }, (_, i) => state[i])).toThrow();
   });
 });

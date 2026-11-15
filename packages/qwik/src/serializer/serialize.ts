@@ -35,6 +35,7 @@ import {
 } from '@qwik.dev/core/internal';
 import {
   AsyncSignalFlags,
+  BinaryCode,
   BRACKET_CLOSE,
   BRACKET_OPEN,
   COMMA,
@@ -141,6 +142,9 @@ export class Serializer {
         await this.serializePatch(patch.rootStart, patch.rootIds, patch.extraRootId, 0);
       } else {
         await this.serialize();
+      }
+      if (this.$serializationContext$.$roots$.length >= BinaryCode.MaxRoots) {
+        throw new Error('Binary state: too many roots');
       }
       binary.$finish$();
     } finally {

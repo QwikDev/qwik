@@ -52,6 +52,8 @@ export const enum BinaryCode {
   MaxUnsizedItems = 8,
   /** Strings up to this length are written again instead of referred to. */
   MaxRepeatedStringLength = 3,
+  /** The reader's index of shared values holds root ids below this. */
+  MaxRoots = 0x100000,
 }
 
 /**
@@ -77,7 +79,7 @@ export const BINARY_STATE_PREFIX = '~';
  */
 export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
 
-const MAX_ROOTS = 0x100000;
+const MAX_ROOTS = BinaryCode.MaxRoots;
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 
 /**
@@ -112,6 +114,8 @@ export class BinaryStateReader {
   $rootSizes$ = new Uint32Array(0);
   /** Number of units in the stream. */
   $unitCount$ = 0;
+  /** Values restored so far; crafted input can make values overlap and be restored repeatedly. */
+  private $restoredValueCount$ = 0;
   /**
    * Nested values that are also a root, sorted, each `endOffset * MAX_ROOTS + rootIndex`.
    *
@@ -450,6 +454,10 @@ export class BinaryStateReader {
     rootIndex: number,
     isNested: boolean
   ): unknown {
+    // Written state has each value restored once, or twice when a plain value is also a root.
+    if (++this.$restoredValueCount$ > 2 * this.$unitCount$) {
+      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
+    }
     const end = this.$pos$;
     const code = this.$unit$(this.$pos$--);
     if (code >= BinaryCode.Num0) {

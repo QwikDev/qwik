@@ -53,6 +53,11 @@ export const enum BinaryCode {
 
 /** Marks a state script as binary; JSON state starts with `[`. */
 export const BINARY_STATE_PREFIX = '~';
+/**
+ * Whether the content of a state script is binary.
+ *
+ * @internal
+ */
 export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
 
 const MAX_ROOTS = 0x100000;
@@ -251,7 +256,7 @@ export class BinaryStateReader {
   }
 
   /** The root that owns the nested value ending at `end`, or -1. */
-  private $sharedRoot$(end: number): number {
+  protected $sharedRoot$(end: number): number {
     const sharedValues = this.$sharedValues$;
     const key = end * MAX_ROOTS;
     let low = 0;
@@ -304,7 +309,7 @@ export class BinaryStateReader {
   private $itemsLength$ = 0;
 
   /** Moves past one value without restoring it. */
-  private $skip$(): void {
+  protected $skip$(): void {
     const code = this.$unit$(this.$pos$--);
     if (code < BinaryCode.Int1 || code >= BinaryCode.Num0) {
       return;

@@ -91,6 +91,8 @@ export {
   canSerialize as _canSerialize,
   preprocessState as _preprocessState,
 } from './shared/serdes/index';
+export { isBinaryState as _isBinaryState } from './shared/serdes/binary-state';
+export { binaryStateRootsToJson as _binaryStateToJson } from './shared/serdes/binary-state-dump';
 export { _setDomRefCheck } from './shared/serdes/can-serialize';
 export {
   BIGINT_PAYLOAD_REGEXP as _BIGINT_PAYLOAD_REGEXP,

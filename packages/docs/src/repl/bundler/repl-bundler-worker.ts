@@ -282,7 +282,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'binaryState'],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -329,7 +329,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'binaryState'],
       }),
       replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),

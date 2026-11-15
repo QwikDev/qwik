@@ -6,8 +6,10 @@ import { ReplOutputSymbols } from './repl-output-segments';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import {
+  _binaryStateToJson,
   _dumpState,
   _getDomContainer,
+  _isBinaryState,
   _preprocessState,
   _vnode_toString,
 } from '@qwik.dev/core/internal';
@@ -56,6 +58,20 @@ const getStateScriptData = (doc: Document) => {
     return null;
   }
 
+  const firstStateText = (rootStateScript || patchStateScripts[0]).textContent || '';
+  if (_isBinaryState(firstStateText)) {
+    const patchTexts = Array.from(patchStateScripts, (script) => script.textContent || '');
+    const stateData = _binaryStateToJson(rootStateScript?.textContent, patchTexts);
+    return {
+      instanceHash,
+      isBinary: true,
+      patchStateScripts,
+      rootStateScript,
+      stateData,
+      stateScope,
+    };
+  }
+
   const patchForwardRefs: Array<number | string> = [];
   const stateData = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
   for (let i = 0; i < patchStateScripts.length; i++) {
@@ -99,7 +115,14 @@ const getStateScriptData = (doc: Document) => {
     }
   }
 
-  return { instanceHash, patchStateScripts, rootStateScript, stateData, stateScope };
+  return {
+    instanceHash,
+    isBinary: false,
+    patchStateScripts,
+    rootStateScript,
+    stateData,
+    stateScope,
+  };
 };
 
 const getParsedSerializedState = (doc: Document) => {
@@ -126,7 +149,8 @@ const emulateExecutionOfQwikFuncs = (doc: Document) => {
 
 const normalizeStateScriptsForDebug = (doc: Document) => {
   const state = getStateScriptData(doc);
-  if (!state) {
+  // The container reads binary state and its patches as they are.
+  if (!state || state.isBinary) {
     return;
   }
   let rootStateScript = state.rootStateScript;

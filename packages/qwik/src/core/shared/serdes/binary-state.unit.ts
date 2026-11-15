@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
 import type { DeserializeContainer } from '../types';
 import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
-import { TypeIds } from './constants';
+import { binaryStateRootsToJson } from './binary-state-dump';
+import { Constants, TypeIds } from './constants';
 import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
 
 const serialize = (...roots: unknown[]): Promise<string> => {
@@ -252,6 +253,40 @@ describe('binary state', () => {
       await new Promise((resolve) => setTimeout(resolve, 30));
       expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toBeUndefined();
       reader.$restoredByOffset$ = null;
+    });
+  });
+
+  describe('reading the state back as typeId/value pairs', () => {
+    it('shows a shared value at its root and a root ref where it is nested', async () => {
+      const shared = { name: 'shared' };
+      const script = await serialize({ shared }, { again: shared });
+      expect(binaryStateRootsToJson(script)).toEqual([
+        TypeIds.Object,
+        [TypeIds.Plain, 'shared', TypeIds.RootRef, 2],
+        TypeIds.Object,
+        [TypeIds.Plain, 'again', TypeIds.RootRef, 2],
+        TypeIds.Object,
+        [TypeIds.Plain, 'name', TypeIds.Plain, 'shared'],
+      ]);
+    });
+
+    it('reads numbers, constants and typed values', async () => {
+      const script = await serialize([1, -200, 2.5, null, new Date(1700000000000)]);
+      expect(binaryStateRootsToJson(script)).toEqual([
+        TypeIds.Array,
+        [
+          TypeIds.Plain,
+          1,
+          TypeIds.Plain,
+          -200,
+          TypeIds.Plain,
+          2.5,
+          TypeIds.Constant,
+          Constants.Null,
+          TypeIds.Date,
+          1700000000000,
+        ],
+      ]);
     });
   });
 

@@ -166,7 +166,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   // Preserve unrooted references across shell mutations until streaming finishes.
   declare $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
 
-  /** Set when the container state is binary. */
+  /** The reader of binary state, kept while state patches can still arrive. */
   private $binaryStateReader$: BinaryStateReader | null = null;
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
@@ -227,8 +227,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const stateText = rootState.textContent!;
       const statePrewarm = element.getAttribute(QStatePrewarmAttr);
       if (__EXPERIMENTAL__.binaryState && isBinaryState(stateText)) {
-        const reader = (this.$binaryStateReader$ = new BinaryStateReader(stateText));
+        const reader = new BinaryStateReader(stateText);
         if (__EXPERIMENTAL__.pendingBoundary && this.$streamingObjectRefs$) {
+          this.$binaryStateReader$ = reader;
           reader.$restoredByOffset$ = new Map();
         }
         this.$rootForwardRefs$ = this.$forwardRefs$ = reader.$forwardRefs$;

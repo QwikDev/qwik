@@ -188,7 +188,7 @@ class SerializationContextImpl implements SerializationContext {
   private $binaryStream$: BinaryStateStream | undefined;
 
   $getBinaryStream$(): BinaryStateStream {
-    return (this.$binaryStream$ ||= { $stringIndexes$: new Map(), $length$: 0 });
+    return (this.$binaryStream$ ||= { $stringEnds$: new Map(), $length$: 0 });
   }
 
   $serializeBinary$(): Promise<string> {

@@ -48,9 +48,7 @@ class BinaryStateDumper extends BinaryStateReader {
     }
     let typeId: TypeIds = TypeIds.Plain;
     let value: unknown;
-    if (code >= BinaryCode.Str0) {
-      value = this.$strings$[code - BinaryCode.Str0];
-    } else if (code >= BinaryCode.Num0) {
+    if (code >= BinaryCode.Num0) {
       value = code - BinaryCode.Num0;
     } else if (code >= BinaryCode.Type0) {
       this.$readPair$(out, at, resolveShared);
@@ -69,6 +67,8 @@ class BinaryStateDumper extends BinaryStateReader {
     } else if (code < BinaryCode.Int1) {
       typeId = TypeIds.Constant;
       value = code;
+    } else if (code > BinaryCode.Float) {
+      value = this.$string$(code);
     } else if (code === BinaryCode.Float) {
       value = this.$float$();
     } else if (code >= BinaryCode.Decimal1) {
@@ -76,10 +76,8 @@ class BinaryStateDumper extends BinaryStateReader {
       value = (out[at + 1] as number) / 10 ** (code - BinaryCode.Decimal1 + 1);
     } else if (code < BinaryCode.NegInt1) {
       value = this.$uint$(code - BinaryCode.Int1 + 1);
-    } else if (code < BinaryCode.Str1) {
-      value = -this.$uint$(code - BinaryCode.NegInt1 + 1);
     } else if (code < BinaryCode.Root1) {
-      value = this.$strings$[this.$uint$(code - BinaryCode.Str1 + 1)];
+      value = -this.$uint$(code - BinaryCode.NegInt1 + 1);
     } else if (code < BinaryCode.Shared1) {
       typeId = TypeIds.RootRef;
       value = this.$uint$(code - BinaryCode.Root1 + 1);

@@ -57,9 +57,49 @@ describe('binary state', () => {
     expect(Array.from(await roundTrip(numbers))[0]).toEqual(numbers);
   });
 
-  it('restores more strings than fit a one-unit index', async () => {
+  it('restores many strings, short and long', async () => {
     const strings = Array.from({ length: 20000 }, (_, i) => 'string ' + i);
+    strings.push('', 'a', 'abc', 'x'.repeat(20000));
     expect(Array.from(await roundTrip(strings))[0]).toEqual(strings);
+  });
+
+  it('restores strings a script element would alter', async () => {
+    const strings = [
+      'nul \0 inside',
+      'line\r\nbreaks\r',
+      '</script><!-- ',
+      'lone \ud800 surrogate',
+    ];
+    const script = await serialize(strings);
+    expect(script).not.toMatch(/[<\0\r\ud800]/);
+    expect(Array.from(restore(script))[0]).toEqual(strings);
+  });
+
+  it('restores quotes, backslashes and characters beyond ASCII as they are', async () => {
+    const strings = [
+      'say "hi" \\ there',
+      'naïve café',
+      '日本語のテキスト',
+      'emoji 😀 pair',
+      '\n\t',
+    ];
+    const script = await serialize(strings);
+    expect(script).toContain('日本語のテキスト');
+    expect(Array.from(restore(script))[0]).toEqual(strings);
+  });
+
+  it('writes a repeated string once', async () => {
+    const script = await serialize([
+      'a repeated string',
+      ['a repeated string'],
+      'a repeated string',
+    ]);
+    expect(script.split('a repeated string').length - 1).toBe(1);
+    expect(Array.from(restore(script))[0]).toEqual([
+      'a repeated string',
+      ['a repeated string'],
+      'a repeated string',
+    ]);
   });
 
   it('restores nested objects, arrays and built-in types', async () => {

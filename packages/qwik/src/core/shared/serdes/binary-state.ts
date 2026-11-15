@@ -10,8 +10,9 @@ import { inflate, inflateRestored } from './inflate';
 /**
  * Codes of the binary state stream.
  *
- * The stream is a sequence of 7-bit units. Every value is its data followed by one code, so the
- * stream is read backwards from its last unit. Codes 0-21 are the `Constants`.
+ * The stream is a sequence of 7-bit units, with the characters of strings in between. Every value
+ * is its data followed by one code, so the stream is read backwards from its last unit. Codes 0-21
+ * are the `Constants`.
  *
  * @internal
  */
@@ -20,34 +21,38 @@ export const enum BinaryCode {
   Int1 = 22,
   /** - 1-4 units: negative integer */
   NegInt1 = 28,
-  /** - 1-3 units: string index */
-  Str1 = 32,
   /** - 1-3 units: root index */
-  Root1 = 35,
+  Root1 = 32,
   /**
    * - 1-4 units, only valid as a root: the root is the value that ends at this offset, stored as the
    *   zigzag distance from the previous such root's offset.
    */
-  Shared1 = 38,
+  Shared1 = 35,
   /** The array has at most `MaxUnsizedItems` items and no stored length */
-  Items0 = 42,
+  Items0 = 39,
   /** - 1-4 units: number of units of the array items that precede it */
-  Items1 = 43,
+  Items1 = 40,
   /** Preceded by an integer value: that integer divided by 10^(1-4) */
-  Decimal1 = 47,
+  Decimal1 = 44,
   /** - 10 units: float64 */
-  Float = 51,
+  Float = 48,
+  /** - The characters of a string, then 1-4 units: their count */
+  Str1 = 49,
+  /** As `Str1`, but the characters are the inside of a JSON string literal */
+  EscapedStr1 = 53,
+  /** - 1-4 units: the string that ends at this offset */
+  StrAt1 = 57,
   /** Preceded by the item count (an integer value) and an `Items*` marker */
-  ArrayEnd = 52,
+  ArrayEnd = 61,
   /** `Type0 + TypeIds`, preceded by the payload value */
-  Type0 = 53,
-  /** Integers 0-17 */
-  Num0 = 100,
-  /** String indexes 0-9 */
-  Str0 = 118,
+  Type0 = 62,
+  /** Integers 0-18 */
+  Num0 = 109,
 
   MaxUnsizedItems = 8,
-  /** NUL, CR and `<` do not survive in a script element; they are stored with this bit set. */
+  /** Strings up to this length are written again instead of referred to. */
+  MaxRepeatedStringLength = 3,
+  /** NUL, CR and `<` do not survive in a script element; as units they are stored with this bit set. */
   EscapeBit = 128,
 }
 
@@ -86,7 +91,8 @@ export class BinaryStateReader {
   private $base$ = 0;
   private $chunkStart$ = 0;
   private $chunkEnd$ = 0;
-  protected $strings$: string[] = [];
+  /** The strings that other values refer to, by the offset they end at. */
+  private $referencedStrings$ = new Map<number, string>();
   protected $pos$ = 0;
   /** Offset of the last unit of every root. */
   $rootEnds$ = new Uint32Array(0);
@@ -129,7 +135,6 @@ export class BinaryStateReader {
     text: string
   ): { $forwardRefs$: Array<number | string> | 0; $extraRootId$: number | undefined } | null {
     const previousUnitCount = this.$unitCount$;
-    const previousStringCount = this.$strings$.length;
     this.$appendScript$(text);
     this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the patch
     this.$openArray$();
@@ -142,7 +147,6 @@ export class BinaryStateReader {
       this.$chunks$.pop();
       this.$chunkEnd$ = 0;
       this.$unitCount$ = previousUnitCount;
-      this.$strings$.length = previousStringCount;
       return null;
     }
     this.$pos$ = rootListEnd - 1;
@@ -193,22 +197,50 @@ export class BinaryStateReader {
     }
   }
 
-  /** Appends the strings and units of a state script. */
+  /** Appends a state script: `~` followed by its part of the stream. */
   protected $appendScript$(script: string): void {
-    const separator = script.indexOf('\n');
-    const strings = JSON.parse(script.slice(1, separator)) as string[];
-    for (let i = 0; i < strings.length; i++) {
-      this.$strings$.push(strings[i]);
-    }
     const start = this.$unitCount$;
-    const end = start + script.length - separator - 1;
-    this.$chunks$.push({
-      $text$: script,
-      $base$: separator + 1 - start,
-      $start$: start,
-      $end$: end,
-    });
+    const end = start + script.length - 1;
+    this.$chunks$.push({ $text$: script, $base$: 1 - start, $start$: start, $end$: end });
     this.$unitCount$ = end;
+  }
+
+  /** Reads the string whose code was just read. */
+  protected $string$(code: number): string {
+    if (code >= BinaryCode.StrAt1) {
+      return this.$stringAt$(this.$uint$(code - BinaryCode.StrAt1 + 1));
+    }
+    const isEscaped = code >= BinaryCode.EscapedStr1;
+    const length = this.$uint$(code - (isEscaped ? BinaryCode.EscapedStr1 : BinaryCode.Str1) + 1);
+    if (length > this.$pos$ + 1 - this.$chunkStart$) {
+      throw qError(QError.serializeErrorNotImplemented, [code]);
+    }
+    const textEnd = this.$base$ + this.$pos$ + 1;
+    this.$pos$ -= length;
+    const text = this.$text$.slice(textEnd - length, textEnd);
+    if (isEscaped) {
+      return JSON.parse('"' + text + '"');
+    }
+    // Engines keep a long slice as a view on the state text, which would then never be freed;
+    // concatenating first makes the slice a view on a copy of just this string.
+    return length > 12 ? (' ' + text).slice(1) : text;
+  }
+
+  /** The string that ends at `offset`; every reference to it gets the same string. */
+  private $stringAt$(offset: number): string {
+    let value = this.$referencedStrings$.get(offset);
+    if (value === undefined) {
+      const resume = this.$pos$;
+      this.$seek$(offset);
+      const code = this.$unit$(this.$pos$--);
+      if (code < BinaryCode.Str1 || code >= BinaryCode.StrAt1) {
+        throw qError(QError.serializeErrorNotImplemented, [code]);
+      }
+      value = this.$string$(code);
+      this.$referencedStrings$.set(offset, value);
+      this.$seek$(resume);
+    }
+    return value;
   }
 
   /** Indexes the root list whose ArrayEnd is right after the current position. */
@@ -326,14 +358,18 @@ export class BinaryStateReader {
           this.$skip$();
         }
       }
+    } else if (code >= BinaryCode.StrAt1) {
+      this.$pos$ -= code - BinaryCode.StrAt1 + 1;
+    } else if (code >= BinaryCode.Str1) {
+      // Str1-4 and EscapedStr1-4: the characters, then their count
+      const length = this.$uint$(((code - BinaryCode.Str1) & 3) + 1);
+      this.$pos$ -= length;
     } else if (code === BinaryCode.Float) {
       this.$pos$ -= 10;
     } else if (code < BinaryCode.NegInt1) {
       this.$pos$ -= code - BinaryCode.Int1 + 1;
-    } else if (code < BinaryCode.Str1) {
-      this.$pos$ -= code - BinaryCode.NegInt1 + 1;
     } else if (code < BinaryCode.Root1) {
-      this.$pos$ -= code - BinaryCode.Str1 + 1;
+      this.$pos$ -= code - BinaryCode.NegInt1 + 1;
     } else if (code < BinaryCode.Shared1) {
       this.$pos$ -= code - BinaryCode.Root1 + 1;
     } else {
@@ -399,9 +435,6 @@ export class BinaryStateReader {
   ): unknown {
     const end = this.$pos$;
     const code = this.$unit$(this.$pos$--);
-    if (code >= BinaryCode.Str0) {
-      return this.$strings$[code - BinaryCode.Str0];
-    }
     if (code >= BinaryCode.Num0) {
       return code - BinaryCode.Num0;
     }
@@ -431,6 +464,9 @@ export class BinaryStateReader {
       }
       return value;
     }
+    if (code > BinaryCode.Float) {
+      return this.$string$(code);
+    }
     if (code === BinaryCode.Float) {
       return this.$float$();
     }
@@ -441,11 +477,8 @@ export class BinaryStateReader {
     if (code < BinaryCode.NegInt1) {
       return this.$uint$(code - BinaryCode.Int1 + 1);
     }
-    if (code < BinaryCode.Str1) {
-      return -this.$uint$(code - BinaryCode.NegInt1 + 1);
-    }
     if (code < BinaryCode.Root1) {
-      return this.$strings$[this.$uint$(code - BinaryCode.Str1 + 1)];
+      return -this.$uint$(code - BinaryCode.NegInt1 + 1);
     }
     if (code < BinaryCode.Shared1) {
       return this.$getRoot$(container, this.$uint$(code - BinaryCode.Root1 + 1));

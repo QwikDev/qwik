@@ -9,22 +9,29 @@ const UNIT = 128;
  * @internal
  */
 export interface BinaryStateStream {
-  /** Every string written so far; each script only carries the ones it adds. */
-  $stringIndexes$: Map<string, number>;
-  /** Number of units written by the scripts before the current one. */
+  /** The offset every repeatable string written so far ends at. */
+  $stringEnds$: Map<string, number>;
+  /** Length of the stream written by the scripts before the current one. */
   $length$: number;
 }
 
+/** Characters that a script element would alter, and strings that UTF-8 cannot carry. */
+const needsEscaping = (value: string): boolean =>
+  /[\0\r<]/.test(value) || (value as any).isWellFormed?.() === false;
+
 /**
- * Collects the units of one state script: 7-bit units, every value followed by its code.
+ * Writes one state script: 7-bit units with the characters of strings in between, every value
+ * followed by its code.
  *
  * @internal
  */
 export class BinaryStateWriter {
-  private $units$ = new Uint8Array(1 << 14);
-  /** Number of units written by this script. */
+  private $text$ = '';
+  /** Units that are not part of the text yet. */
+  private $units$ = new Uint8Array(1 << 12);
+  private $unitCount$ = 0;
+  /** Length of what this script has written. */
   $length$ = 0;
-  private $newStrings$: string[] = [];
   private $previousSharedEnd$ = 0;
 
   constructor(private $stream$: BinaryStateStream) {}
@@ -35,12 +42,23 @@ export class BinaryStateWriter {
   }
 
   private $push$(unit: number): void {
-    if (this.$length$ === this.$units$.length) {
-      const grown = new Uint8Array(this.$length$ * 2);
-      grown.set(this.$units$);
-      this.$units$ = grown;
+    if (this.$unitCount$ === this.$units$.length) {
+      this.$flushUnits$();
     }
-    this.$units$[this.$length$++] = unit;
+    // NUL, CR and `<` do not survive in a script element.
+    this.$units$[this.$unitCount$++] =
+      unit === 0 || unit === 13 || unit === 60 ? unit | BinaryCode.EscapeBit : unit;
+    this.$length$++;
+  }
+
+  private $flushUnits$(): void {
+    if (this.$unitCount$) {
+      this.$text$ += String.fromCharCode.apply(
+        null,
+        this.$units$.subarray(0, this.$unitCount$) as any
+      );
+      this.$unitCount$ = 0;
+    }
   }
 
   /** Writes `value` in the fewest units, then the code for that width. */
@@ -65,7 +83,7 @@ export class BinaryStateWriter {
   private $integer$(value: number): void {
     if (value < 0) {
       this.$uint$(-value, BinaryCode.NegInt1, 4);
-    } else if (value < BinaryCode.Str0 - BinaryCode.Num0) {
+    } else if (value < UNIT - BinaryCode.Num0) {
       this.$push$(BinaryCode.Num0 + value);
     } else {
       this.$uint$(value, BinaryCode.Int1, 6);
@@ -105,17 +123,24 @@ export class BinaryStateWriter {
   }
 
   $string$(value: string): void {
-    const stringIndexes = this.$stream$.$stringIndexes$;
-    let index = stringIndexes.get(value);
-    if (index === undefined) {
-      index = stringIndexes.size;
-      this.$newStrings$.push(value);
-      stringIndexes.set(value, index);
+    const stringEnds = this.$stream$.$stringEnds$;
+    const isRepeatable = value.length > BinaryCode.MaxRepeatedStringLength;
+    const writtenEnd = isRepeatable ? stringEnds.get(value) : undefined;
+    if (writtenEnd !== undefined) {
+      return this.$uint$(writtenEnd, BinaryCode.StrAt1, 4);
     }
-    if (index < UNIT - BinaryCode.Str0) {
-      this.$push$(BinaryCode.Str0 + index);
-    } else {
-      this.$uint$(index, BinaryCode.Str1, 3);
+    let text = value;
+    let code = BinaryCode.Str1;
+    if (needsEscaping(value)) {
+      text = JSON.stringify(value).slice(1, -1).replace(/</g, '\\u003c');
+      code = BinaryCode.EscapedStr1;
+    }
+    this.$flushUnits$();
+    this.$text$ += text;
+    this.$length$ += text.length;
+    this.$uint$(text.length, code, 4);
+    if (isRepeatable) {
+      stringEnds.set(value, this.$offset$ - 1);
     }
   }
 
@@ -152,21 +177,8 @@ export class BinaryStateWriter {
 
   /** Ends the script and returns its content. */
   $finish$(): string {
+    this.$flushUnits$();
     this.$stream$.$length$ += this.$length$;
-    const units = this.$units$.subarray(0, this.$length$);
-    for (let i = 0; i < units.length; i++) {
-      const unit = units[i];
-      // NUL, CR and `<` do not survive in a script element.
-      if (unit === 0 || unit === 13 || unit === 60) {
-        units[i] = unit | BinaryCode.EscapeBit;
-      }
-    }
-    let text = '';
-    for (let i = 0; i < units.length; i += 0x8000) {
-      text += String.fromCharCode.apply(null, units.subarray(i, i + 0x8000) as any);
-    }
-    // `<` would let string content close the script element.
-    const strings = JSON.stringify(this.$newStrings$).replace(/</g, '\\u003c');
-    return BINARY_STATE_PREFIX + strings + '\n' + text;
+    return BINARY_STATE_PREFIX + this.$text$;
   }
 }

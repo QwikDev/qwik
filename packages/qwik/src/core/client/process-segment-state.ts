@@ -58,6 +58,8 @@ export function* processSegmentStateScriptsIterator(
     container.$streamingObjectRefs$ = undefined;
     if (__EXPERIMENTAL__.binaryState && stateContainer.$binaryStateReader$) {
       stateContainer.$binaryStateReader$.$restoredByOffset$ = null;
+      // Nothing else holds the reader, so the state text can be released.
+      stateContainer.$binaryStateReader$ = null;
     }
   }
 }

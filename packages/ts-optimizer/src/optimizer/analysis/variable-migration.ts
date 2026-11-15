@@ -29,7 +29,7 @@ export interface ModuleLevelDecl {
   isExported: boolean;
   readonly isDirectlyExported: boolean;
   readonly hasSideEffects: boolean;
-  readonly isPartOfSharedDestructuring: boolean;
+  readonly sharesStatement: boolean;
   readonly kind: string;
   /** Initializer is a direct `routeLoader$`/`routeAction$`/`globalAction$` (or Qrl-form) call. */
   readonly hasRouterMarkerInit: boolean;
@@ -157,6 +157,23 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
   }
 }
 
+/** Defaults and computed keys in a destructuring pattern run with the statement. */
+function hasPatternSideEffects(node: unknown): boolean {
+  if (!node || typeof node !== 'object') {
+    return false;
+  }
+  const n = node as AstNode & { right?: AstMaybeNode; key?: AstMaybeNode; computed?: boolean };
+  if (n.type === 'AssignmentPattern' && !isInitializerSafe(n.right)) {
+    return true;
+  }
+  if (n.type === 'Property' && n.computed && !isInitializerSafe(n.key)) {
+    return true;
+  }
+  return Object.values(n).some((child) =>
+    Array.isArray(child) ? child.some(hasPatternSideEffects) : hasPatternSideEffects(child)
+  );
+}
+
 function countBindings(node: BindingPatternLike | null | undefined): number {
   return collectBindingNamesFromPattern(node).length;
 }
@@ -185,15 +202,20 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
 
     if (declaration.type === 'VariableDeclaration') {
       const kind = declaration.kind;
+      // Every declarator runs with the statement, bound or not (`{} = register()`).
+      const hasSideEffects = (declaration.declarations ?? []).some(
+        (declarator) => !isInitializerSafe(declarator.init) || hasPatternSideEffects(declarator.id)
+      );
       for (const declarator of declaration.declarations ?? []) {
         const id = declarator.id;
         if (!id) {
           continue;
         }
 
-        const hasSideEffects = !isInitializerSafe(declarator.init);
         const isDestructuring = id.type === 'ObjectPattern' || id.type === 'ArrayPattern';
-        const isShared = isDestructuring && countBindings(id) > 1;
+        // Moving one binding moves the whole statement, so siblings must move together.
+        const isShared =
+          (isDestructuring && countBindings(id) > 1) || declaration.declarations.length > 1;
         const hasRouterMarkerInit = isRouterMarkerInit(declarator.init);
 
         const names = collectBindingNamesFromPattern(id);
@@ -207,7 +229,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
             isExported,
             isDirectlyExported: isExported,
             hasSideEffects,
-            isPartOfSharedDestructuring: isShared,
+            sharesStatement: isShared,
             kind,
             hasRouterMarkerInit,
           });
@@ -224,7 +246,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,
-          isPartOfSharedDestructuring: false,
+          sharesStatement: false,
           hasRouterMarkerInit: false,
           kind: 'function',
         });
@@ -240,7 +262,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,
-          isPartOfSharedDestructuring: false,
+          sharesStatement: false,
           hasRouterMarkerInit: false,
           kind: 'class',
         });
@@ -256,7 +278,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,
-          isPartOfSharedDestructuring: false,
+          sharesStatement: false,
           hasRouterMarkerInit: false,
           kind: 'const', // enums behave like const for migration
         });
@@ -652,7 +674,7 @@ export function analyzeMigration(
   program?: AstProgram
 ): MigrationDecision[] {
   const decisions = decls.map((decl) => decideMigration(decl, segmentUsage, rootUsage));
-  promoteSharedDestructureGroups(decls, decisions, segmentUsage, rootUsage);
+  promoteSharedStatementGroups(decls, decisions, segmentUsage, rootUsage, program);
   if (program) {
     reexportMovedDeclDependencies(decls, decisions, program, segmentUsage);
   }
@@ -883,7 +905,7 @@ function decideMigration(
   if (decl.hasSideEffects && usedByAnySegment) {
     return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_SIDE_EFFECTS };
   }
-  if (decl.isPartOfSharedDestructuring && usedByAnySegment) {
+  if (decl.sharesStatement && usedByAnySegment) {
     return {
       action: 'reexport',
       varName: decl.name,
@@ -898,12 +920,7 @@ function decideMigration(
       reason: MIG_REASON.MOVE_SINGLE_SEGMENT,
     };
   }
-  if (
-    !usedByRoot &&
-    !usedByAnySegment &&
-    !decl.hasSideEffects &&
-    !decl.isPartOfSharedDestructuring
-  ) {
+  if (!usedByRoot && !usedByAnySegment && !decl.hasSideEffects && !decl.sharesStatement) {
     return { action: 'drop', varName: decl.name, reason: MIG_REASON.DROP_UNREFERENCED };
   }
   if (usedByRoot) {
@@ -913,22 +930,25 @@ function decideMigration(
 }
 
 /**
- * MIG-05a post-pass. When every binding in a shared-destructure declaration flows to the same
- * single segment with no root/multi-segment/export/side-effect interference, promote them all from
- * `reexport` to `move` targeting that segment. Mutates `decisions` in place; no-op otherwise.
+ * MIG-05a post-pass. A statement declaring several bindings (a destructuring, or several
+ * declarators) moves as a whole, so when every binding flows to the same single segment with no
+ * root/multi-segment/export/side-effect interference, promote them all from `reexport` to `move`
+ * targeting that segment. Mutates `decisions` in place; no-op otherwise.
  *
- * Preconditions per binding: not exported, no side effects, not used by root; used by exactly one
- * segment; all siblings target the same segment.
+ * Preconditions per binding: not exported, no side effects, not used by root; used by at most that
+ * one segment, which at least one sibling uses. With `program`, a sibling read only by its siblings
+ * (as minifiers join declarations) is not root use.
  */
-function promoteSharedDestructureGroups(
+function promoteSharedStatementGroups(
   decls: ModuleLevelDecl[],
   decisions: MigrationDecision[],
   segmentUsage: Map<string, Set<string>>,
-  rootUsage: Set<string>
+  rootUsage: Set<string>,
+  program?: AstProgram
 ): void {
   const groupsByDeclSpan = new Map<string, number[]>();
   for (let i = 0; i < decls.length; i++) {
-    if (!decls[i].isPartOfSharedDestructuring) {
+    if (!decls[i].sharesStatement) {
       continue;
     }
     const key = `${decls[i].declStart}:${decls[i].declEnd}`;
@@ -940,11 +960,19 @@ function promoteSharedDestructureGroups(
     group.push(i);
   }
 
+  // Built on first need: most groups fail the cheap export/side-effect checks first.
+  let readsIndex: ReturnType<typeof indexReadsOutsideStatement> | null | undefined;
+  const readOutsideStatement = () =>
+    (readsIndex ??= program ? indexReadsOutsideStatement(program, decls) : null);
+
   for (const indices of groupsByDeclSpan.values()) {
     if (indices.length < 2) {
       continue;
     }
-    const target = unifiedSingleSegmentTarget(indices, decls, segmentUsage, rootUsage);
+    const statementStart = decls[indices[0]].declStart;
+    const groupRootUsage = (name: string) =>
+      rootUsage.has(name) && (readOutsideStatement()?.(name, statementStart) ?? true);
+    const target = unifiedSingleSegmentTarget(indices, decls, segmentUsage, groupRootUsage);
     if (!target) {
       continue;
     }
@@ -961,6 +989,36 @@ function promoteSharedDestructureGroups(
 }
 
 /**
+ * Whether code outside a given statement reads a binding, indexed once per module. Overcounts
+ * (segment bodies included), so it only narrows `rootUsage`.
+ */
+function indexReadsOutsideStatement(
+  program: AstProgram,
+  decls: ModuleLevelDecl[]
+): (name: string, statementStart: number) => boolean {
+  const readOutsideDecls = collectTopLevelStatementRefs(program, decls);
+  const readingStatements = new Map<string, Set<number>>();
+  const indexedStatements = new Set<number>();
+  for (const decl of decls) {
+    if (indexedStatements.has(decl.declStart)) {
+      continue;
+    }
+    indexedStatements.add(decl.declStart);
+    for (const name of collectDeclIdentifiers(program, decl, true)) {
+      let starts = readingStatements.get(name);
+      if (!starts) {
+        starts = new Set();
+        readingStatements.set(name, starts);
+      }
+      starts.add(decl.declStart);
+    }
+  }
+  return (name, statementStart) =>
+    readOutsideDecls.has(name) ||
+    [...(readingStatements.get(name) ?? [])].some((start) => start !== statementStart);
+}
+
+/**
  * Returns the single segment all siblings flow to, or null if any sibling fails the MIG-05a
  * preconditions.
  */
@@ -968,17 +1026,21 @@ function unifiedSingleSegmentTarget(
   indices: number[],
   decls: ModuleLevelDecl[],
   segmentUsage: Map<string, Set<string>>,
-  rootUsage: Set<string>
+  isRootUsed: (name: string) => boolean
 ): string | null {
   let target: string | null = null;
 
   for (const i of indices) {
     const d = decls[i];
-    if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) {
+    // The router finds loaders through their parent's `_auto_` re-export.
+    if (d.isExported || d.hasSideEffects || d.hasRouterMarkerInit || isRootUsed(d.name)) {
       return null;
     }
 
     const using = usingSegmentsOf(d.name, segmentUsage);
+    if (using.length === 0) {
+      continue;
+    }
     if (using.length !== 1) {
       return null;
     }

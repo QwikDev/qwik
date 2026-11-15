@@ -52,6 +52,23 @@ test.describe('Sandbox smoke tests', () => {
       );
     });
 
+    test('output tabs list the client bundles and SSR module', async ({ page }) => {
+      await page.goto('/playground/');
+      const preview = page.locator('iframe').contentFrame();
+      await expect(preview.locator('body')).not.toBeEmpty();
+      await expect(preview.getByRole('heading', { name: / Error$/ })).toHaveCount(0);
+
+      // Each panel shows its own header only when it lists outputs.
+      for (const [tab, header] of [
+        ['Client Bundles', '/dist/'],
+        ['SSR Module', '/server/'],
+      ]) {
+        await page.getByRole('button', { name: tab, exact: true }).click();
+        await expect(page.locator('.output-modules .file-tree-header')).toHaveText(header);
+        await expect(page.locator('.output-modules .file-item').first()).toBeVisible();
+      }
+    });
+
     test('counter click works in REPL', async ({ page }) => {
       await page.goto('/examples/reactivity/counter/');
 

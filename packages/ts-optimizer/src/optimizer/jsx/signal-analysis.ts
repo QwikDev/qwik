@@ -1,4 +1,4 @@
-import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
 import { forEachAstChild, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
 import { lambdaBodySimplificationsCollector } from './simplify.js';
 import {
@@ -6,6 +6,7 @@ import {
   collectRangeReplacements,
   isReplaceableIdentifierPosition,
   TS_EXPRESSION_WRAPPERS,
+  type RangeReplacement,
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
@@ -150,6 +151,16 @@ function containsImportedReference(node: AstMaybeNode, importedNames: Set<string
  * a serialized, reactively re-run `_fnSignal` body cannot carry an arbitrary call, whereas an
  * optional-chain getter (`a?.b()`) can.
  */
+/** The serialized `_fnSignal` string runs without the module's imports, so no calls or imports. */
+function canRunAsFnSignal(node: AstMaybeNode, importedNames: Set<string>): boolean {
+  return (
+    !containsUnknownCall(node, importedNames) &&
+    !containsNonOptionalCall(node) &&
+    !containsImportedReference(node, importedNames) &&
+    !containsJsx(node)
+  );
+}
+
 function containsNonOptionalCall(node: AstMaybeNode): boolean {
   return hasCallOutsideChainSpine(node, false);
 }
@@ -197,21 +208,24 @@ function hasCallOutsideChainSpine(node: AstMaybeNode, inChainSpine: boolean): bo
   return found;
 }
 
-function getMemberChainRoot(node: AstNode): string | null {
-  if (node.type === 'Identifier') {
-    return node.name;
+// Rust strips types first, so `a.b!.value` is the chain `a.b.value` here too.
+function getMemberChainRoot(node: AstMaybeNode): string | null {
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type === 'Identifier') {
+    return peeled.name;
   }
-  if (node.type === 'MemberExpression') {
-    return getMemberChainRoot(node.object);
+  if (peeled?.type === 'MemberExpression') {
+    return getMemberChainRoot(peeled.object);
   }
   return null;
 }
 
-function getMemberChainDepth(node: AstNode): number {
-  if (node.type !== 'MemberExpression') {
+function getMemberChainDepth(node: AstMaybeNode): number {
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type !== 'MemberExpression') {
     return 0;
   }
-  return 1 + getMemberChainDepth(node.object);
+  return 1 + getMemberChainDepth(peeled.object);
 }
 
 function isDeepStoreAccess(
@@ -312,12 +326,12 @@ function collectSignalDeps(
   // a loop-local key must be carried so the hoisted `_fnSignal` parameterizes
   // it, while module-scope keys stay free (resolvable at the hoist site).
   function walkComputedKeys(chainNode: AstMaybeNode): void {
-    let cur: AstMaybeNode = chainNode;
+    let cur = peelExpressionWrappers(chainNode);
     while (cur != null && cur.type === 'MemberExpression') {
       if (cur.computed && cur.property != null) {
         walkKey(cur.property);
       }
-      cur = cur.object;
+      cur = peelExpressionWrappers(cur.object);
     }
   }
 
@@ -489,27 +503,20 @@ function collectComputedKeyRewrites(
       return;
     }
     if (node.type === 'Identifier') {
-      if (
-        parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        !parentNode.computed
-      ) {
-        return;
-      }
       const param = rootToParam.get(node.name);
-      if (param != null) {
-        reps.push({ start: node.start - exprStart, end: node.end - exprStart, replacement: param });
+      if (param != null && isParamPosition(parentKey, parentNode)) {
+        reps.push(replaceWithParam(node, param, exprStart, parentKey, parentNode));
       }
       return;
     }
     forEachAstChild(node, (child, key, parent) => rewriteKey(child, key, parent));
   }
-  let cur: AstMaybeNode = chainNode;
+  let cur = peelExpressionWrappers(chainNode);
   while (cur != null && cur.type === 'MemberExpression') {
     if (cur.computed && cur.property != null) {
       rewriteKey(cur.property, 'property', cur);
     }
-    cur = cur.object;
+    cur = peelExpressionWrappers(cur.object);
   }
   return reps;
 }
@@ -562,21 +569,14 @@ function rootReplacementsCollector(
       return { replacements: keyRewrites, skipSubtree: true };
     }
 
-    const isComputedObjectKey =
-      ctx.parentKey === 'key' && ctx.parentNode?.type === 'Property' && ctx.parentNode.computed;
     if (
       n.type === 'Identifier' &&
       rootToParam.has(n.name) &&
-      (isComputedObjectKey || isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode))
+      isParamPosition(ctx.parentKey, ctx.parentNode)
     ) {
+      const param = rootToParam.get(n.name)!;
       return {
-        replacements: [
-          {
-            start: n.start - ctx.exprStart,
-            end: n.end - ctx.exprStart,
-            replacement: rootToParam.get(n.name)!,
-          },
-        ],
+        replacements: [replaceWithParam(n, param, ctx.exprStart, ctx.parentKey, ctx.parentNode)],
         skipSubtree: true,
       };
     }
@@ -585,15 +585,43 @@ function rootReplacementsCollector(
   };
 }
 
+function isParamPosition(parentKey: string | undefined, parentNode: AstParentNode | undefined) {
+  const isComputedObjectKey =
+    parentKey === 'key' && parentNode?.type === 'Property' && parentNode.computed;
+  return isComputedObjectKey || isReplaceableIdentifierPosition(parentKey, parentNode);
+}
+
+/**
+ * Shorthand `{ x }` becomes `{ x: p0 }` so the object keeps its key; `__proto__` needs a computed
+ * key, since `__proto__: p0` sets the prototype instead.
+ */
+function replaceWithParam(
+  node: IdentifierNode,
+  param: string,
+  exprStart: number,
+  parentKey: string | undefined,
+  parentNode: AstParentNode | undefined
+): RangeReplacement {
+  const isShorthandValue =
+    parentKey === 'value' && parentNode?.type === 'Property' && parentNode.shorthand === true;
+  return {
+    start: node.start - exprStart,
+    end: node.end - exprStart,
+    replacement: isShorthandValue ? `${shorthandKey(node.name)}: ${param}` : param,
+  };
+}
+
+function shorthandKey(name: string): string {
+  return name === '__proto__' ? '["__proto__"]' : name;
+}
+
 function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
-  if (!node) {
-    return null;
+  const peeled = peelExpressionWrappers(node);
+  if (peeled?.type === 'Identifier') {
+    return peeled;
   }
-  if (node.type === 'Identifier') {
-    return node;
-  }
-  if (node.type === 'MemberExpression') {
-    return findRootIdentifier(node.object);
+  if (peeled?.type === 'MemberExpression') {
+    return findRootIdentifier(peeled.object);
   }
   return null;
 }
@@ -1000,7 +1028,7 @@ function analyzeMemberExpression(
 
   if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (allDeps.length > 0) {
+    if (allDeps.length > 0 && canRunAsFnSignal(exprNode, importedNames)) {
       const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
         return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
@@ -1024,13 +1052,7 @@ function analyzeMemberExpression(
   // `_fnSignal((p0,p1) => p1[p0], deps, str)`.
   if (isKnownIdent && exprNode.computed) {
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (
-      allDeps.length > 0 &&
-      !containsUnknownCall(exprNode, importedNames) &&
-      !containsNonOptionalCall(exprNode) &&
-      !containsImportedReference(exprNode, importedNames) &&
-      !containsJsx(exprNode)
-    ) {
+    if (allDeps.length > 0 && canRunAsFnSignal(exprNode, importedNames)) {
       const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
         return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };

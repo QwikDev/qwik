@@ -60,6 +60,7 @@ let qwikOptimizerModule: typeof import('@qwik.dev/optimizer') | null = null;
 let qwikViteModule: typeof import('@qwik.dev/core/optimizer') | null = null;
 let binding: any = null;
 let loaded: Promise<void> | null = null;
+let rustOptimizer = false;
 let deps: PkgUrls;
 
 self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
@@ -68,12 +69,14 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   switch (type) {
     case 'init':
       deps = e.data.deps;
-      loaded = loadOptimizer(e.data.rustOptimizer);
+      rustOptimizer = e.data.rustOptimizer;
+      // Start loading eagerly; a failure is reported by the next build.
+      ensureOptimizer().catch(() => {});
       break;
 
     case 'bundle':
       try {
-        await loaded;
+        await ensureOptimizer();
         const result = await performBundle(e.data);
         const message: ResultMessage = {
           type: 'result',
@@ -99,6 +102,15 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
 };
 
 let version: number[];
+
+function ensureOptimizer() {
+  // Forget a failed load so the next build retries it.
+  loaded ??= loadOptimizer(rustOptimizer).catch((error) => {
+    loaded = null;
+    throw error;
+  });
+  return loaded;
+}
 
 /**
  * The per-version `ts-optimizer.mjs` imports its runtime deps by bare specifier. A worker has no

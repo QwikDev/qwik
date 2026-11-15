@@ -130,7 +130,9 @@ Instead of the central Insights service, you can collect sessions into your own 
 
 1. **The tracker** in sampled browser sessions posts beacons to `postUrl`.
 2. **A collector route** in your app receives them and writes them into the database.
-3. **The build** reads the database and computes the bundling strategy from it.
+3. **The build** reads the database and computes the bundling strategy from it. It also records each build's symbol names and source locations, so reports show readable names instead of hashes. In dev, the plugin records them for the dev server's code as it changes.
+
+The database uses the same schema as the central Insights service, so the same data and reports work with either.
 
 Which setup fits depends on where your app runs. See [Choosing a setup](#choosing-a-setup) for complete examples.
 

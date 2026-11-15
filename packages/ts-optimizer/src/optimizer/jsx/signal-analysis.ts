@@ -150,6 +150,16 @@ function containsImportedReference(node: AstMaybeNode, importedNames: Set<string
  * a serialized, reactively re-run `_fnSignal` body cannot carry an arbitrary call, whereas an
  * optional-chain getter (`a?.b()`) can.
  */
+/** The serialized `_fnSignal` string runs without the module's imports, so no calls or imports. */
+function canRunAsFnSignal(node: AstMaybeNode, importedNames: Set<string>): boolean {
+  return (
+    !containsUnknownCall(node, importedNames) &&
+    !containsNonOptionalCall(node) &&
+    !containsImportedReference(node, importedNames) &&
+    !containsJsx(node)
+  );
+}
+
 function containsNonOptionalCall(node: AstMaybeNode): boolean {
   return hasCallOutsideChainSpine(node, false);
 }
@@ -1000,7 +1010,7 @@ function analyzeMemberExpression(
 
   if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (allDeps.length > 0) {
+    if (allDeps.length > 0 && canRunAsFnSignal(exprNode, importedNames)) {
       const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
         return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
@@ -1024,13 +1034,7 @@ function analyzeMemberExpression(
   // `_fnSignal((p0,p1) => p1[p0], deps, str)`.
   if (isKnownIdent && exprNode.computed) {
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (
-      allDeps.length > 0 &&
-      !containsUnknownCall(exprNode, importedNames) &&
-      !containsNonOptionalCall(exprNode) &&
-      !containsImportedReference(exprNode, importedNames) &&
-      !containsJsx(exprNode)
-    ) {
+    if (allDeps.length > 0 && canRunAsFnSignal(exprNode, importedNames)) {
       const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
         return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };

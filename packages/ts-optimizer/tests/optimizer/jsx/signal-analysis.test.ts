@@ -225,6 +225,11 @@ describe('signal-analysis', () => {
       }
     });
 
+    it('does not hoist a deep store chain that calls an import: store[dep()].name', () => {
+      const { node, source } = parseExpr('store[dep()].name');
+      expect(analyzeSignalExpression(node, source, importedNames).type).toBe('none');
+    });
+
     it('generates fnSignal for ternary on deep store: store.address.city.name ? "true" : "false"', () => {
       const { node, source } = parseExpr("store.address.city.name ? 'true' : 'false'");
       const result = analyzeSignalExpression(node, source, importedNames);

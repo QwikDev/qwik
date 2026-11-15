@@ -301,6 +301,22 @@ describe('binary state', () => {
       expect(Array.from(state)).toEqual([1, 2]);
     });
 
+    it('restores a patch after a rejected patch of another size', async () => {
+      const roots = (size: number) => [
+        { x: Array.from({ length: size }, (_, i) => [i, 'item']) },
+        { y: [size, [size]] },
+      ];
+      for (let firstSize = 1; firstSize <= 8; firstSize++) {
+        for (let secondSize = 1; secondSize <= 8; secondSize++) {
+          const [shell, first, second] = await stream([1], roots(firstSize), roots(secondSize));
+          const { reader, state } = open(shell);
+          expect(reader.$addPatch$(second)).toBeNull();
+          expect(reader.$addPatch$(first)).not.toBeNull();
+          expect(Array.from(state)).toEqual([1, ...roots(firstSize)]);
+        }
+      }
+    });
+
     it('keeps the state text until no more patches can arrive', async () => {
       const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
       const { reader, state } = open(shell);
@@ -469,6 +485,23 @@ describe('binary state', () => {
       const state = withRepeatedRoots((writer) => writer.$string$(text));
       expect(state[0]).toBe(text);
       expect(() => readEveryRoot(state)).toThrow();
+    });
+
+    it('rejects values that each parse the same long string', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      const query = 'a&'.repeat(500);
+      // the string is written once; every later use refers to it
+      for (let i = 0; i < 100; i++) {
+        writer.$string$(query);
+        writer.$type$(TypeIds.URLSearchParams);
+      }
+      writer.$endArray$(0, 100);
+      writer.$endArray$(0, 1);
+      writer.$finish$();
+      expect(() => restore(script)[0]).toThrow();
     });
 
     it('walks a shared value once for all the roots that skip it', () => {

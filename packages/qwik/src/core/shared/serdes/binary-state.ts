@@ -169,6 +169,9 @@ export class BinaryStateReader {
       this.$chunks$.pop();
       this.$chunkEnd$ = 0;
       this.$unitCount$ = previousUnitCount;
+      // What was remembered about these offsets belongs to the rejected script.
+      this.$skippedArrayStarts$ = new Map();
+      this.$referencedStrings$ = new Map();
       return null;
     }
     this.$pos$ = rootListEnd - 1;
@@ -549,6 +552,10 @@ export class BinaryStateReader {
     if (this.$unit$(this.$pos$) !== BinaryCode.ArrayEnd) {
       const payload = this.$restore$(container, -1, false);
       const resume = this.$pos$;
+      if (typeof payload === 'string') {
+        // A referenced string is read once, but every value made from it parses it again.
+        this.$charge$(payload.length);
+      }
       const value = allocate(container, typeId, payload);
       if (needsInflation(typeId)) {
         inflate(container, value, typeId, payload);

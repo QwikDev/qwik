@@ -136,27 +136,27 @@ export const _syncResourceStore = syncResourceStore;
  *
  * @internal
  */
-export const _rsc = async <T>(arg: ResourceCtx<T>) => {
+export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
   const [fn, ref] = _capturesObj._ as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
-  if (!(arg as Job<T>).$canWrite$) {
-    return { r: ref.r };
-  }
-  if (isObject(result)) {
-    const current = ref.r;
-    if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
-      syncResourceStore(current, result);
+  (arg as unknown as Job<{ r: T }>).$commit$ = ({ r: result }) => {
+    if (isObject(result)) {
+      const current = ref.r;
+      if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
+        syncResourceStore(current, result);
+      } else {
+        // Copy so later results never mutate the caller's object.
+        ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
+        DEBUG && log('store created', ref.r);
+      }
     } else {
-      // Copy so later results never mutate the caller's object.
-      ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
-      DEBUG && log('store created', ref.r);
+      ref.r = result;
     }
-  } else {
-    ref.r = result;
-  }
-  return { r: ref.r };
+    return { r: ref.r };
+  };
+  return { r: result };
 };
 
 /** @internal */

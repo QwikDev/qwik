@@ -53,6 +53,7 @@ export class Job<T> implements ComputeCtx<T> {
   $computationSettled$: boolean = false;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
+  declare $commit$: ((value: T) => T) | undefined;
   declare $track$: Tracker | undefined;
   declare $cleanups$: Parameters<ComputeCtx<T>['cleanup']>[0][] | undefined;
   declare $abortController$: AbortController | undefined;
@@ -686,6 +687,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
               jobs[i].$canWrite$ = false;
             }
           }
+        }
+
+        if (running.$commit$) {
+          value = running.$commit$(value);
         }
 
         DEBUG && log('Promise resolved', value);

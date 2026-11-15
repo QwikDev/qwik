@@ -63,31 +63,39 @@ describe('copyResourceResult', () => {
 });
 
 describe('resource result ownership', () => {
-  it.each([{ old: 1 }, [1], 1])('ignores an old completion: %j', async (oldResult) => {
-    const original = structuredClone(oldResult);
-    const ref = {} as { r: unknown };
-    const pending: ((value: unknown) => void)[] = [];
-    const fn = createQRL(null, 'result', () => new Promise((resolve) => pending.push(resolve)));
-    const wrapped = createQRL(null, '_rsc', _rsc, null, [fn, ref]);
-    const signal = createAsyncQrl(wrapped as any, { concurrency: 0 }) as AsyncSignalImpl<{
-      r: unknown;
-    }>;
-    signal.$computeIfNeeded$();
-    const older = signal.$current$!.$promise$;
-    signal.invalidate();
-    signal.$computeIfNeeded$();
-    const newer = signal.$current$!.$promise$;
-    const fresh = { fresh: 2 };
-    pending[1](fresh);
-    await newer;
-    const accepted = signal.value.r;
-    pending[0](oldResult);
-    await older;
-    expect(signal.value.r).toBe(accepted);
-    expect(ref.r).toBe(accepted);
-    expect(accepted).toEqual({ fresh: 2 });
-    expect(fresh).toEqual({ fresh: 2 });
-    expect(oldResult).toEqual(original);
+  describe.each([true, false])('newer run settles before resolving older: %s', (waitForNewer) => {
+    it.each([{ old: 1 }, [1], 1])('ignores an old completion: %j', async (oldResult) => {
+      const original = structuredClone(oldResult);
+      const accepted = createStore(null, { seed: 0 }, StoreFlags.RECURSIVE);
+      const ref = { r: accepted };
+      const pending: ((value: unknown) => void)[] = [];
+      const fn = createQRL(null, 'result', () => new Promise((resolve) => pending.push(resolve)));
+      const wrapped = createQRL(null, '_rsc', _rsc, null, [fn, ref]);
+      const signal = createAsyncQrl(wrapped as any, { concurrency: 0 }) as AsyncSignalImpl<{
+        r: unknown;
+      }>;
+      signal.$computeIfNeeded$();
+      const older = signal.$current$!.$promise$;
+      signal.invalidate();
+      signal.$computeIfNeeded$();
+      const newer = signal.$current$!.$promise$;
+      // Let both QRL calls attach to their pending promises.
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      const fresh = { fresh: 2 };
+      pending[1](fresh);
+      if (waitForNewer) {
+        await newer;
+      }
+      pending[0](oldResult);
+      await Promise.all([newer, older]);
+      expect(signal.value.r).toBe(accepted);
+      expect(ref.r).toBe(accepted);
+      expect(accepted).toEqual({ fresh: 2 });
+      expect(fresh).toEqual({ fresh: 2 });
+      expect(oldResult).toEqual(original);
+    });
   });
 
   it.each([undefined, { previous: true }])(

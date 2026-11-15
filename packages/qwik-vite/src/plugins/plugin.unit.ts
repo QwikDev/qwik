@@ -4,7 +4,12 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
+import {
+  ExperimentalFeatures,
+  QWIK_PRELOADER_ID,
+  createQwikPlugin,
+  mightContainDecorators,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -817,6 +822,15 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   expect((loaded as { code: string }).code).toContain(
     "if (import.meta.hot && typeof document !== 'undefined')"
   );
+});
+
+test('bundler annotations are not mistaken for decorators', () => {
+  expect(mightContainDecorators('@Entity()\nclass User {}')).toBe(true);
+  expect(mightContainDecorators('const a = (@Inject() b) => b;')).toBe(true);
+  expect(mightContainDecorators('export const Each = /* @__PURE__ */ componentQrl(q);')).toBe(
+    false
+  );
+  expect(mightContainDecorators('const f = /* @__NO_SIDE_EFFECTS__ */ () => 1;')).toBe(false);
 });
 
 describe('decorators follow tsconfig', () => {

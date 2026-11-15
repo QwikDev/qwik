@@ -14,7 +14,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth. Keep each budget above the actual size by at least 500 bytes for core and 100 bytes
 // for the preloader and qwikloader; brotli output varies between builds, so a tighter budget is flaky.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 32500;
+const CORE_BROTLI_BUDGET = 34100;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -42,7 +42,7 @@ test.describe('router ssg snapshot', () => {
   });
 
   test('build output matches the checked-in normalized html and state dump', async () => {
-    const { _dumpState } = await import(resolve(serverDir, 'entry.ssr.js'));
+    const { _dumpState, _binaryStateToJson } = await import(resolve(serverDir, 'entry.ssr.js'));
 
     const html = await readFile(resolve(distDir, 'index.html'), 'utf-8');
     const state = extractState(html);
@@ -51,7 +51,7 @@ test.describe('router ssg snapshot', () => {
     const manifestHash = extractManifestHash(html);
     const normalizedHtml = normalizeHtml(html, manifestHash);
     const normalizedState = normalizeStateDump(
-      _dumpState(JSON.parse(state!) as unknown[], false, '', null),
+      _dumpState(_binaryStateToJson(state!), false, '', null),
       manifestHash
     );
 
@@ -211,6 +211,7 @@ async function buildFixtureApp() {
         captureRouterConfig(),
         qwikVite({
           tsOptimizer: true,
+          experimental: ['binaryState'],
           client: {
             outDir: distDir,
           },
@@ -229,7 +230,7 @@ async function buildFixtureApp() {
       plugins: [
         ...serverPlugins,
         // No manifestInput: the server build reads the client manifest from disk, like real apps.
-        qwikVite({ tsOptimizer: true }),
+        qwikVite({ tsOptimizer: true, experimental: ['binaryState'] }),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],

@@ -114,8 +114,8 @@ export class BinaryStateReader {
   $rootSizes$ = new Uint32Array(0);
   /** Number of units in the stream. */
   $unitCount$ = 0;
-  /** Values restored so far; crafted input can make values overlap and be restored repeatedly. */
-  private $restoredValueCount$ = 0;
+  /** Work done so far; crafted input can make values overlap and be read over and over. */
+  private $unitsRead$ = 0;
   /**
    * Nested values that are also a root, sorted, each `endOffset * MAX_ROOTS + rootIndex`.
    *
@@ -226,6 +226,17 @@ export class BinaryStateReader {
     this.$unitCount$ = end;
   }
 
+  /**
+   * Written state is indexed once, restored once and has its shared values skipped once; a plain
+   * value that is also a root is restored twice.
+   */
+  private $charge$(units: number): void {
+    this.$unitsRead$ += units;
+    if (this.$unitsRead$ > 4 * this.$unitCount$) {
+      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
+    }
+  }
+
   /** Reads the string whose code was just read. */
   protected $string$(code: number): string {
     if (code >= BinaryCode.StrAt1) {
@@ -236,6 +247,7 @@ export class BinaryStateReader {
     if (length > this.$pos$ + 1 - this.$chunkStart$) {
       throw qError(QError.serializeErrorNotImplemented, [code]);
     }
+    this.$charge$(length);
     const textEnd = this.$base$ + this.$pos$ + 1;
     this.$pos$ -= length;
     const text = this.$text$.slice(textEnd - length, textEnd);
@@ -363,6 +375,7 @@ export class BinaryStateReader {
 
   /** Moves past one value without restoring it. */
   protected $skip$(): void {
+    this.$charge$(1);
     const code = this.$unit$(this.$pos$--);
     if (code < BinaryCode.Int1 || code >= BinaryCode.Num0) {
       return;
@@ -454,10 +467,7 @@ export class BinaryStateReader {
     rootIndex: number,
     isNested: boolean
   ): unknown {
-    // Written state has each value restored once, or twice when a plain value is also a root.
-    if (++this.$restoredValueCount$ > 2 * this.$unitCount$) {
-      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
-    }
+    this.$charge$(1);
     const end = this.$pos$;
     const code = this.$unit$(this.$pos$--);
     if (code >= BinaryCode.Num0) {

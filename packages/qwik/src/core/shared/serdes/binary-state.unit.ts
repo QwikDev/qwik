@@ -405,27 +405,73 @@ describe('binary state', () => {
     expect(() => restore(tampered)[0]).toThrow();
   });
 
-  it('rejects roots that restore the same values over and over', () => {
-    let script = '';
-    const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
-      script += text;
+  describe('crafted state whose roots read the same units over and over', () => {
+    const ROOT_COUNT = 60;
+    /** Writes a value, then roots that are all that same value, which written state never has. */
+    const withRepeatedRoots = (writeValue: (writer: BinaryStateWriter) => void) => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writeValue(writer);
+      const rootsStart = writer.$length$;
+      const valueEnd = writer.$offset$;
+      for (let i = 0; i < ROOT_COUNT; i++) {
+        writer.$sharedRoot$(valueEnd);
+      }
+      writer.$endArray$(rootsStart, ROOT_COUNT);
+      writer.$finish$();
+      return restore(script);
+    };
+    const readEveryRoot = (state: unknown[]) =>
+      Array.from({ length: ROOT_COUNT }, (_, i) => state[i]);
+
+    it('rejects roots that restore the same array', () => {
+      const state = withRepeatedRoots((writer) => {
+        for (let i = 0; i < 200; i++) {
+          writer.$number$(i);
+        }
+        writer.$endArray$(0, 200);
+      });
+      expect(state[0]).toHaveLength(200);
+      expect(() => readEveryRoot(state)).toThrow();
     });
-    const itemCount = 200;
-    for (let i = 0; i < itemCount; i++) {
-      writer.$number$(i);
-    }
-    writer.$endArray$(0, itemCount);
-    // every root is the same array again, which written state never does
-    const rootsStart = writer.$length$;
-    const itemsEnd = writer.$offset$;
-    const rootCount = 60;
-    for (let i = 0; i < rootCount; i++) {
-      writer.$sharedRoot$(itemsEnd);
-    }
-    writer.$endArray$(rootsStart, rootCount);
-    writer.$finish$();
-    const state = restore(script);
-    expect(state[0]).toHaveLength(itemCount);
-    expect(() => Array.from({ length: rootCount }, (_, i) => state[i])).toThrow();
+
+    it('rejects roots that copy the same long string', () => {
+      const text = 'long '.repeat(200);
+      const state = withRepeatedRoots((writer) => writer.$string$(text));
+      expect(state[0]).toBe(text);
+      expect(() => readEveryRoot(state)).toThrow();
+    });
+
+    it('rejects roots that skip the same shared value', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      // arrays of up to 8 items store no length, so skipping this tree reads every unit
+      const writeTree = (depth: number) => {
+        const start = writer.$length$;
+        for (let i = 0; i < 8; i++) {
+          depth ? writeTree(depth - 1) : writer.$number$(i);
+        }
+        writer.$endArray$(start, 8);
+      };
+      writeTree(2);
+      const sharedEnd = writer.$offset$;
+      // a parent that holds only the shared value
+      writer.$endArray$(0, 1);
+      const parentEnd = writer.$offset$;
+      const rootsStart = writer.$length$;
+      writer.$sharedRoot$(sharedEnd);
+      for (let i = 1; i < ROOT_COUNT; i++) {
+        writer.$sharedRoot$(parentEnd);
+      }
+      writer.$endArray$(rootsStart, ROOT_COUNT);
+      writer.$finish$();
+      const state = restore(script);
+      expect(state[1]).toEqual([state[0]]);
+      expect(() => readEveryRoot(state)).toThrow();
+    });
   });
 });

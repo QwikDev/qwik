@@ -30,6 +30,7 @@ type PreloaderWindow = Window & {
   __resumeSpeculativePreloads?: () => void;
   __sendHeldSpeculativePreloads?: (hrefs: string[]) => void;
   __preloadHints?: PreloadHint[];
+  /** Qwik's own hint queue (preloader/bridge.ts), not a test hook. */
   qPreloadQueue?: [item: string | string[], probability?: number][];
 };
 
@@ -50,8 +51,10 @@ export const recordPreloadHints = (page: Page) =>
         }),
       set: (value) => {
         // The preloader drains the hints queued before it loaded without calling the getter
-        for (const [item, probability] of win.qPreloadQueue ?? []) {
-          hints.push({ item, probability });
+        if (win.qPreloadQueue) {
+          for (const [item, probability] of win.qPreloadQueue) {
+            hints.push({ item, probability });
+          }
         }
         preload = value;
       },

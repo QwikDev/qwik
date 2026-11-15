@@ -1,6 +1,7 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
 import { _capturesObj } from '../internal';
+import type { Job } from '../reactive-primitives/impl/computed-signal-impl';
 import { createStore, forceStoreEffects, unwrapStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
@@ -97,10 +98,7 @@ const assignOwnEnumerableProps = (target: object, source: object): void => {
 };
 
 const copyResourceResult = <T extends object>(result: T): T => {
-  if (Array.isArray(result)) {
-    return result.slice() as T;
-  }
-  const copy = {} as T;
+  const copy = (Array.isArray(result) ? result.slice() : {}) as T;
   assignOwnEnumerableProps(copy, result);
   return copy;
 };
@@ -143,6 +141,9 @@ export const _rsc = async <T>(arg: ResourceCtx<T>) => {
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
+  if (!(arg as Job<T>).$canWrite$) {
+    return { r: ref.r };
+  }
   if (isObject(result)) {
     const current = ref.r;
     if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {

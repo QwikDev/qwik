@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-const COLLECTOR_URL = 'http://localhost:3301/qwikrouter-test/insights-collect/';
+const ORIGIN = 'http://localhost:3301';
+const COLLECTOR_URL = `${ORIGIN}/qwikrouter-test/insights-collect/`;
+// The router's CSRF check rejects mutating requests without a same-origin Origin header.
+const headers = { origin: ORIGIN };
 
-// API-level e2e (no browser): the client tracker beacons here in production; verify the Qwik Router
-// route hands the payload to the collector and that it was actually recorded.
-test('insights collector route records a beacon', async ({ request }) => {
+test('insights collector route records a browser beacon', async ({ page }) => {
   const beacon = {
     qVersion: '2',
     manifestHash: 'e2e',
@@ -23,7 +24,15 @@ test('insights collector route records a beacon', async ({ request }) => {
     ],
   };
 
-  const response = await request.post(COLLECTOR_URL, { data: beacon });
+  await page.goto(`${ORIGIN}/qwikrouter-test/`);
+  const responsePromise = page.waitForResponse(COLLECTOR_URL);
+  // sendBeacon is what the tracker uses, so this covers the Origin header browsers send.
+  const queued = await page.evaluate(
+    ([url, body]) => navigator.sendBeacon(url, body),
+    [COLLECTOR_URL, JSON.stringify(beacon)]
+  );
+  expect(queued).toBe(true);
+  const response = await responsePromise;
 
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ ok: true });
@@ -31,7 +40,7 @@ test('insights collector route records a beacon', async ({ request }) => {
 
 test('insights collector route swallows a malformed beacon', async ({ request }) => {
   const response = await request.post(COLLECTOR_URL, {
-    headers: { 'content-type': 'application/json' },
+    headers: { ...headers, 'content-type': 'application/json' },
     data: 'not-json',
   });
 
@@ -42,6 +51,7 @@ test('insights collector route swallows a malformed beacon', async ({ request })
 
 test('insights collector route records an error beacon', async ({ request }) => {
   const response = await request.post(`${COLLECTOR_URL}error/`, {
+    headers,
     data: {
       publicApiKey: 'e2ekey123',
       manifestHash: 'e2e',

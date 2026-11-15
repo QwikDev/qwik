@@ -1,9 +1,9 @@
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Readable } from 'node:stream';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { qwikInsights } from './insights-plugin';
 
 const getPlugin = async (opts: Parameters<typeof qwikInsights>[0]) =>
@@ -141,4 +141,74 @@ test('dev injects the tracker for an explicit postUrl without a local DB', () =>
     const plugin = await getPlugin({ publicApiKey: 'key12345', postUrl: '/collect/' });
     const dev = await callConfig(plugin, 'serve');
     expect(dev.define['globalThis.__QI_URL__']).toBe('"/collect/"');
+  }));
+
+const fakeQwikPlugin = (clientOutDir: string, onSegment = (_cb: any) => {}) => ({
+  name: 'vite-plugin-qwik',
+  api: {
+    getOptions: () => ({ entryStrategy: {}, target: 'client' }),
+    getClientOutDir: () => clientOutDir,
+    registerBundleGraphAdder: () => {},
+    onSegment,
+  },
+});
+
+const readSymbolDetails = (dbFile: string) => {
+  const db = new DatabaseSync(dbFile, { readOnly: true });
+  try {
+    return db.prepare('SELECT manifest_hash, hash, full_name FROM symbolDetail').all();
+  } finally {
+    db.close();
+  }
+};
+
+test('a build with db records the client manifest symbols for readable reports', () =>
+  withDbEnv(async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'qwik-insights-build-'));
+    writeFileSync(
+      join(dir, 'q-manifest.json'),
+      JSON.stringify({
+        manifestHash: 'build1',
+        symbols: {
+          s_abc: { hash: 'abc', displayName: 'App_component', origin: 'app.tsx', loc: [1, 9] },
+        },
+      })
+    );
+    const plugin = await getPlugin({ publicApiKey: 'key12345', db: 'file:insights.db' });
+    await plugin.config({ root: dir }, { command: 'build', mode: 'production' });
+    await plugin.configResolved.handler({ plugins: [fakeQwikPlugin(dir)] });
+    await plugin.closeBundle();
+
+    expect(readSymbolDetails(join(dir, 'insights.db'))).toEqual([
+      { manifest_hash: 'build1', hash: 'abc', full_name: 'App_component' },
+    ]);
+  }));
+
+test('dev records optimized segments as the `dev` build', () =>
+  withDbEnv(async () => {
+    vi.useFakeTimers();
+    try {
+      const dir = mkdtempSync(join(tmpdir(), 'qwik-insights-dev-segments-'));
+      let segmentCallback: any;
+      const plugin = await getPlugin({ publicApiKey: 'key12345', db: 'file:insights.db' });
+      await plugin.config({ root: dir }, { command: 'serve' });
+      await plugin.configResolved.handler({
+        plugins: [fakeQwikPlugin(dir, (cb) => (segmentCallback = cb))],
+      });
+
+      segmentCallback('src/app.tsx', {
+        hash: 'abc',
+        displayName: 'App_component',
+        origin: 'src/app.tsx',
+        loc: [1, 9],
+      });
+      await vi.runAllTimersAsync();
+      await vi.waitFor(() =>
+        expect(readSymbolDetails(join(dir, 'insights.db'))).toEqual([
+          { manifest_hash: 'dev', hash: 'abc', full_name: 'App_component' },
+        ])
+      );
+    } finally {
+      vi.useRealTimers();
+    }
   }));

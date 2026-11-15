@@ -7,6 +7,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import type { PluginOption } from 'vite';
+import type { InsightsSymbolDetail } from '../collector';
 import { describeInsightsDbError, localInsightsDbPath, redactInsightsDbUrl } from '../db';
 
 const logWarn = (message?: any, ...rest: any[]) => {
@@ -20,6 +21,7 @@ const log = (message?: any) => {
 
 /** Where the dev server records beacons when `db` is set without a `postUrl`. */
 const DEV_COLLECTOR_PATH = '__qwik-insights/';
+const DEV_SEGMENT_FLUSH_MS = 500;
 
 /** Make a relative local DB path absolute so every reader and writer opens the same file. */
 function resolveDbUrl(dbUrl: string, root: string): string {
@@ -173,13 +175,16 @@ export async function qwikInsights(qwikInsightsOpts: {
       // we want to register the bundle graph adder last so we overwrite existing routes
       order: 'post',
       async handler(config) {
-        // The bundling strategy only matters for a real build; dev serve just needs the tracker.
-        if (command !== 'build') {
-          return;
-        }
         qwikVitePlugin = config.plugins.find(
           (p) => p.name === 'vite-plugin-qwik'
         ) as QwikVitePlugin;
+        // The bundling strategy only matters for a real build; dev serve just needs the tracker.
+        if (command !== 'build') {
+          if (qwikVitePlugin && dbUrl) {
+            recordDevSegments(qwikVitePlugin, dbUrl, publicApiKey);
+          }
+          return;
+        }
         if (!qwikVitePlugin) {
           throw new Error('Missing vite-plugin-qwik');
         }
@@ -268,11 +273,17 @@ export async function qwikInsights(qwikInsightsOpts: {
     },
 
     closeBundle: async () => {
-      // Decentralized (local DB) setups don't report to the central service.
+      const clientOutDir = qwikVitePlugin?.api.getClientOutDir();
+      const path = clientOutDir
+        ? join(clientOutDir, 'q-manifest.json')
+        : resolve(outDir, 'q-manifest.json');
       if (dbUrl) {
+        // Decentralized setups keep the build's symbol names in their own DB.
+        if (isProd && existsSync(path)) {
+          await recordBuildSymbols(path, dbUrl, publicApiKey);
+        }
         return;
       }
-      const path = resolve(outDir, 'q-manifest.json');
       if (isProd && existsSync(path)) {
         const qManifest = await readFile(path, 'utf-8');
 
@@ -307,4 +318,50 @@ async function recordDevBeacon(
   const recorded = await handleInsightsBeacon(request, { dbUrl, publicApiKey });
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify({ ok: recorded }));
+}
+
+/** Store a build's symbol names and source locations so reports can show them. */
+async function recordBuildSymbols(manifestPath: string, dbUrl: string, publicApiKey: string) {
+  try {
+    const { writeInsightsSymbols } = await import('../collector');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
+    await writeInsightsSymbols(
+      dbUrl,
+      publicApiKey,
+      manifest.manifestHash,
+      Object.values(manifest.symbols ?? {}),
+      process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN
+    );
+  } catch (e) {
+    logWarn(
+      `Failed to record the build's symbols into ${redactInsightsDbUrl(dbUrl)}`,
+      describeInsightsDbError(e)
+    );
+  }
+}
+
+/** Dev sessions report the `dev` build, so record its segments as the optimizer emits them. */
+function recordDevSegments(qwikVitePlugin: QwikVitePlugin, dbUrl: string, publicApiKey: string) {
+  const pending = new Map<string, InsightsSymbolDetail>();
+  let flushTimer: ReturnType<typeof setTimeout> | undefined;
+  const flush = async () => {
+    flushTimer = undefined;
+    const symbols = [...pending.values()];
+    pending.clear();
+    try {
+      const { writeInsightsSymbols } = await import('../collector');
+      await writeInsightsSymbols(dbUrl, publicApiKey, 'dev', symbols);
+    } catch (e) {
+      logWarn(
+        `Failed to record dev symbols into ${redactInsightsDbUrl(dbUrl)}`,
+        describeInsightsDbError(e)
+      );
+    }
+  };
+  qwikVitePlugin.api.onSegment((_parentId, segment) => {
+    const { hash, displayName, origin, loc } = segment;
+    pending.set(hash, { hash, displayName, origin, loc });
+    // Batch a burst of transforms into one write.
+    flushTimer ??= setTimeout(flush, DEV_SEGMENT_FLUSH_MS);
+  });
 }

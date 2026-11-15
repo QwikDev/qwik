@@ -249,7 +249,14 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         tsOptimizer: true,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'insights'],
+        experimental: [
+          'each',
+          'show',
+          'pendingBoundary',
+          'catchBoundary',
+          'insights',
+          'binaryState',
+        ],
         devTools: { hmr: false },
       }),
       partytownVite({

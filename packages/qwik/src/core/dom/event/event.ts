@@ -21,7 +21,7 @@ import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import { OwnerFlags } from '../../reactive/flags';
 import { getActiveCollector } from '../../reactive/tracking';
-import { handleError } from '../content/catch-boundary';
+import { CatchPhase, handleError } from '../content/catch-boundary';
 
 type EventHandler = (event: Event, element: Element, ...params: unknown[]) => unknown;
 const scopedEventNames = Object.create(null) as Record<string, ScopedEventName | undefined>;
@@ -56,7 +56,7 @@ function invokeDispatchHandler(
         }
         return invokeApply(context, handler, args);
       },
-      owner && ((error) => handleError(owner, error))
+      owner && ((error) => handleError(owner, error, CatchPhase.Event))
     );
   // A lazy qrl hands the loader its start, or a promise of it while it loads, to keep start order.
   return isQrl(handler) &&

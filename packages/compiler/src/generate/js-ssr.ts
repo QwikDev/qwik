@@ -992,17 +992,25 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pass.statements.push(`const ${id} = ${pass.names.ctx}.nextId();`);
     const content = this.useQrl(pass, op.content, true);
     const fallback = this.useQrl(pass, op.fallback, true).ref;
+    const onError = op.onError === undefined ? '' : `, ${this.catchOnError(pass, op.onError)}`;
     const step = pass.next(QwikGenWord.Content);
     this.imports.add(QwikWord.CreateSsrCatch);
     this.pushStep(
       pass,
       step,
       rootArgs(content.qrl, content.args),
-      `${QwikWord.CreateSsrCatch}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback})`,
+      `${QwikWord.CreateSsrCatch}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback}${onError})`,
       [],
       true
     );
     parts.push(step);
+  }
+
+  /** The server calls `onError$` itself, so its QRL needs the in-module function. */
+  private catchOnError(pass: RenderPass, onError: Value): string {
+    return onError.v === ValueKind.Qrl
+      ? this.useQrl(pass, onError.use, true).ref
+      : inlineValueJs(this.module, onError);
   }
 
   /** The runtime races content against the fallback on its own lane and wraps the range itself. */

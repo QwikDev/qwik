@@ -186,6 +186,8 @@ export type Op =
       op: OpKind.Catch;
       content: QrlUse;
       fallback: QrlUse;
+      /** The `onError$` callback; absent when the boundary has none. */
+      onError?: Value;
       id: Seed;
       lifetime: LifetimeId;
     }

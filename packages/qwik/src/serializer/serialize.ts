@@ -1286,7 +1286,13 @@ function serializeContentSubscription(
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
     ...(isCatch
-      ? [[subscription.fallbackQrl, subscription.error ?? null]]
+      ? [
+          [
+            subscription.fallbackQrl,
+            subscription.error ?? null,
+            ...(subscription.onError === undefined ? [] : [subscription.onError]),
+          ],
+        ]
       : pending === undefined && pendingRoot === undefined
         ? []
         : [pending ?? null]),

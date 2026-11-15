@@ -896,13 +896,19 @@ async function restoreContentSubscription(
   if (isCatchBoundary(subscription)) {
     if (
       !Array.isArray(catchState) ||
-      catchState.length !== 2 ||
+      catchState.length < 2 ||
+      catchState.length > 3 ||
       !isQrl(catchState[0]) ||
-      (catchState[1] !== null && !(catchState[1] instanceof Error))
+      (catchState[1] !== null && !(catchState[1] instanceof Error)) ||
+      (catchState.length === 3 && !isQrl(catchState[2]))
     ) {
       throw isDev ? invalidStateError('Catch state') : invalidStateError();
     }
-    Object.assign(subscription, { fallbackQrl: catchState[0], error: catchState[1] ?? undefined });
+    Object.assign(subscription, {
+      fallbackQrl: catchState[0],
+      error: catchState[1] ?? undefined,
+      onError: catchState[2],
+    });
     if (owner === null) {
       throw isDev ? invalidStateError('Catch owner') : invalidStateError();
     }

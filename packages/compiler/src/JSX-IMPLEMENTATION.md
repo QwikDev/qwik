@@ -641,9 +641,11 @@ than reimplementing each hook.
   (`pending-boundary` snapshots, `task.spec.tsx` "renders fallback while initial task work is
   pending" in CSR). Reveal groups follow with ErrorBoundary (cutover plan step 11).
 - [ ] Fallback QRLs, delay, nested boundaries and preservation of previous content.
-- [ ] `ErrorBoundary` with `fallback$` and `useErrorBoundary`: a throw or a rejected promise in a
-      projected or nested render selects the nearest boundary's fallback (main has 14 specs, 9 of
-      them about projections); without a boundary the render keeps rejecting as it does now.
+- [~] `<Catch>` with `fallback$` and `onError$`: children lower to a range program, `fallback$` to a
+  `catch:fallback` render segment, and `onError$` like an event handler value that also runs on
+  the server; any other attribute is `catch-attribute` (`catch-boundary` and `catch-on-error`
+  snapshots). The boundary calls `onError$(error, { phase, boundaryId, digest })` where it takes
+  the error, on the server for an SSR catch; `reset` is not ported yet.
 - [ ] Reveal ordering and cancellation of stale results.
 - [ ] Out-of-order streaming and state shared across segments.
 - [ ] Resume segments whose content arrives after the shell.

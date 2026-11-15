@@ -1,5 +1,7 @@
 import type { JSXAttribute, JSXAttributeItem, JSXChild, JSXElement } from 'oxc-parser';
 import {
+  BoundaryKind,
+  BoundaryRole,
   DiagnosticCategory,
   HandlerKind,
   ResumeKind,
@@ -44,7 +46,7 @@ import {
   scopeStaticClass,
 } from './lower-element';
 import { lowerSlotMarker } from './lower-projection';
-import { qrlAttributeExpression } from './lower-event';
+import { lowerHandlerValue, qrlAttributeExpression } from './lower-event';
 import { lowerCatchFallback, lowerRangeProgram } from './lower-render-qrl';
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -288,9 +290,15 @@ function lowerCatch(
   ctx: LowerContext
 ): Op {
   let fallback: QrlUse | null = null;
+  let onError: Value | undefined;
   for (const attribute of attributes) {
-    if (attribute.type !== 'JSXAttribute' || jsxAttributeName(attribute) !== 'fallback$') {
-      throw new InvalidModuleError('catch-attribute', 'Catch takes only fallback$.', [
+    const name = attribute.type === 'JSXAttribute' ? jsxAttributeName(attribute) : null;
+    if (attribute.type === 'JSXAttribute' && name === 'onError$') {
+      onError = lowerCatchOnError(attribute, onError, ctx);
+      continue;
+    }
+    if (attribute.type !== 'JSXAttribute' || name !== 'fallback$') {
+      throw new InvalidModuleError('catch-attribute', 'Catch takes only fallback$ and onError$.', [
         attribute.start,
         attribute.end,
       ]);
@@ -324,9 +332,41 @@ function lowerCatch(
     op: OpKind.Catch,
     content: use,
     fallback,
+    ...(onError === undefined ? {} : { onError }),
     id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
     lifetime,
   };
+}
+
+/** `onError$` lowers as an event handler does, but runs on the server too. */
+function lowerCatchOnError(
+  attribute: JSXAttribute,
+  previous: Value | undefined,
+  ctx: LowerContext
+): Value {
+  const expression = qrlAttributeExpression(attribute);
+  const range: [number, number] = [attribute.start, attribute.end];
+  const onError =
+    previous !== undefined || expression === null || expression.type === 'ArrayExpression'
+      ? null
+      : lowerHandlerValue(expression, ctx, {
+          nameCtx: 'catch:onError',
+          subject: 'a catch onError$',
+          ctxName: 'onError$',
+          boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Callback },
+          origin: { range, calleeRange: null, argumentRanges: [] },
+        });
+  if (
+    onError === null ||
+    (onError.v === ValueKind.Computed && onError.resume.r !== ResumeKind.Inline)
+  ) {
+    throw new InvalidModuleError(
+      'catch-attribute',
+      'A Catch onError$ is one function, a $() or a QRL binding.',
+      range
+    );
+  }
+  return onError;
 }
 
 /**

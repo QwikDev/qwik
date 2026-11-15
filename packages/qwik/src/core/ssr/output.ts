@@ -8,6 +8,7 @@ import type { RuntimeInvokeContext } from '../runtime/invoke-context';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { SsrUseOnHost } from './use-on';
+import type { CatchPhase } from '../dom/content/catch-boundary';
 
 export interface SsrContentContext extends ServerDataContext {
   readonly element?: never;
@@ -102,7 +103,7 @@ export interface SsrCatchController {
   output: SsrOutput;
   reapplyUseOn?: (output: SsrOutput) => SsrOutput;
   readonly parent?: SsrCatchController;
-  catchError(error: unknown): ValueOrPromise<void>;
+  catchError(error: unknown, phase?: CatchPhase): ValueOrPromise<void>;
 }
 
 export interface SsrCatchChunk {

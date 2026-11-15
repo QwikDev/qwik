@@ -8,7 +8,7 @@ import type { Source } from './source';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { detachSubscriberFromOwner, getLiveOwner } from '../runtime/owner';
 import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
-import { handleError } from '../dom/content/catch-boundary';
+import { CatchPhase, handleError } from '../dom/content/catch-boundary';
 import { isServerPlatform } from '../shared/platform/platform';
 
 export function runLateCleanup(callback: () => unknown): void {
@@ -135,10 +135,10 @@ export function runSubscriberCleanups(subscriber: Subscriber): ValueOrPromise<vo
       try {
         result = runTaskCleanups(subscriber.task);
       } catch (error) {
-        return handleError(owner, error);
+        return handleError(owner, error, CatchPhase.Hook);
       }
       if (isPromise(result)) {
-        const pending = result.catch((error) => handleError(owner, error));
+        const pending = result.catch((error) => handleError(owner, error, CatchPhase.Hook));
         if (subscriber.flags & SubscriberFlags.Disposed && !isServerPlatform()) {
           (subscriber.task.container as ContainerContext | undefined)?.scheduler.waitFor(
             pending,

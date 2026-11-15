@@ -10,6 +10,13 @@ import { Brand, hasBrand } from '../../shared/utils/brand';
 
 export type CatchBoundary = CatchContentSubscription | SSRCatchContentSubscription;
 
+/** Where a caught error came from: rendering, an event handler, or a task. @public */
+export const enum CatchPhase {
+  Render = 'render',
+  Event = 'event',
+  Hook = 'hook',
+}
+
 export function isCatchBoundary(value: unknown): value is CatchBoundary {
   return hasBrand(value, Brand.CatchContentSubscription | Brand.SsrCatchContentSubscription);
 }
@@ -43,7 +50,11 @@ export function findContentBoundary(
   return undefined;
 }
 
-export function handleError(owner: Owner | null, error: unknown): ValueOrPromise<void> {
+export function handleError(
+  owner: Owner | null,
+  error: unknown,
+  phase?: CatchPhase
+): ValueOrPromise<void> {
   if (owner !== null && owner.flags & OwnerFlags.Disposed) {
     return;
   }
@@ -61,7 +72,7 @@ export function handleError(owner: Owner | null, error: unknown): ValueOrPromise
   }
   const parent = boundary.owner;
   return safeCall(
-    () => boundary.catchError(error),
+    () => boundary.catchError(error, phase),
     () => {},
     (error) => handleError(parent, error)
   );

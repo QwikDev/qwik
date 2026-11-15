@@ -1,0 +1,153 @@
+==INPUT==
+
+import { component$, Catch, useSignal } from '@qwik.dev/core';
+import { fallback } from './fallback';
+export default component$(() => {
+  const label = useSignal('boundary');
+  return <Catch fallback$={fallback} onError$={(error, info) => console.log(label.value, error.message, info.phase)}><span>ready</span></Catch>;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+import { fallback } from './fallback';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx.js (ENTRY POINT)==
+
+import { createDynamicContent } from '@qwik.dev/core';
+import { fallback } from './fallback';
+
+export const component_catch_fallback_segment_0_3ik9bd623jcyx = (ctx0, error0) => {
+  return createDynamicContent((0, fallback)(error0), ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_catch_fallback_segment_0_3ik9bd623jcyx",
+  "entry": null,
+  "displayName": "component_catch_fallback_segment_0",
+  "hash": "3ik9bd623jcyx",
+  "canonicalFilename": "component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "catch:fallback",
+  "captures": false,
+  "loc": [
+    202,
+    210
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_catch_onError_segment_1_3ox7a1ifk7fxx.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_catch_onError_segment_1_3ox7a1ifk7fxx = (error, info) => {
+  const [label] = _capturesObj._;
+  return console.log(label.value, error.message, info.phase);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_catch_onError_segment_1_3ox7a1ifk7fxx",
+  "entry": null,
+  "displayName": "component_catch_onError_segment_1",
+  "hash": "3ox7a1ifk7fxx",
+  "canonicalFilename": "component.tsx_component_catch_onError_segment_1_3ox7a1ifk7fxx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onError$",
+  "captures": true,
+  "loc": [
+    212,
+    291
+  ],
+  "paramNames": [
+    "error",
+    "info"
+  ],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_catch_content_segment_2_nktmzxt3gs0k.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_catch_content_segment_2_nktmzxt3gs0k_tmpl0 =
+  _createElementTemplate('<span>ready</span>');
+
+export const component_catch_content_segment_2_nktmzxt3gs0k = (ctx) => {
+  const el0 = component_catch_content_segment_2_nktmzxt3gs0k_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_catch_content_segment_2_nktmzxt3gs0k",
+  "entry": null,
+  "displayName": "component_catch_content_segment_2",
+  "hash": "nktmzxt3gs0k",
+  "canonicalFilename": "component.tsx_component_catch_content_segment_2_nktmzxt3gs0k",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "catch:content",
+  "captures": false,
+  "loc": [
+    184,
+    318
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { useSignal, _createRangeMarkers, createCatch, qrl } from '@qwik.dev/core';
+import { component_catch_content_segment_2_nktmzxt3gs0k } from './component.tsx_component_catch_content_segment_2_nktmzxt3gs0k';
+import { component_catch_fallback_segment_0_3ik9bd623jcyx } from './component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx';
+const q_component_catch_onError_segment_1_3ox7a1ifk7fxx = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_catch_onError_segment_1_3ox7a1ifk7fxx'),
+  'component_catch_onError_segment_1_3ox7a1ifk7fxx'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const label = useSignal('boundary');
+  const range0 = _createRangeMarkers(ctx.document);
+  createCatch(
+    ctx,
+    range0[0],
+    range0[1],
+    component_catch_content_segment_2_nktmzxt3gs0k,
+    component_catch_fallback_segment_0_3ik9bd623jcyx,
+    q_component_catch_onError_segment_1_3ox7a1ifk7fxx.w([label])
+  );
+  return [...range0[0].parentNode.childNodes];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    102,
+    323
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -18,6 +18,7 @@ import {
   type Prop,
   type HookDecl,
   type QrlUse,
+  type Value,
 } from '../schema';
 import { QwikDirective, QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
@@ -681,9 +682,19 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.CreateCatch);
     const content = this.capturedChunkReference(op.content, pass.names.props);
     const fallback = this.capturedChunkReference(op.fallback, pass.names.props);
+    const onError = op.onError === undefined ? '' : `, ${this.catchOnError(op.onError, pass)}`;
     statements.push(
-      `${QwikWord.CreateCatch}(${pass.names.ctx}, ${start}, ${end}, ${content}, ${fallback});`
+      `${QwikWord.CreateCatch}(${pass.names.ctx}, ${start}, ${end}, ${content}, ${fallback}${onError});`
     );
+  }
+
+  /** `onError$` loads only when the boundary catches, as an event handler does. */
+  private catchOnError(onError: Value, pass: RenderPass): string {
+    if (onError.v !== ValueKind.Qrl) {
+      return inlineValueJs(this.module, onError);
+    }
+    const { qrl, args } = this.resolveQrlUse(onError.use, pass.names.props);
+    return capturedQrlJs(this.lazyQrlReference(qrl), args);
   }
 
   /** Content and fallback are lazy render chunks; the runtime races them inside the range. */

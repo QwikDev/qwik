@@ -656,3 +656,165 @@ describe(`${name}: error handling`, () => {
     expect(button.textContent).toBe('2');
   });
 });
+
+type CatchReport = {
+  message: string;
+  cause?: unknown;
+  phase: string;
+  boundaryId: unknown;
+  digest: unknown;
+};
+const catchReports = () => ((globalThis as any).__catchReports ??= []) as CatchReport[];
+const report = (error: Error, info: { phase: string; boundaryId: string; digest: string }) => {
+  catchReports().push({ message: error.message, cause: error.cause, ...info });
+};
+
+describe(`${name}: Catch onError$`, () => {
+  const resetReports = () => {
+    (globalThis as any).__catchReports = [];
+    (globalThis as any).__catchReport = report;
+    (globalThis as any).__catchRenders = 0;
+    onTestFinished(() => {
+      delete (globalThis as any).__catchReports;
+      delete (globalThis as any).__catchReport;
+      delete (globalThis as any).__catchRenders;
+    });
+  };
+
+  it('reports a render error once, with the error and its boundary', async () => {
+    resetReports();
+    const App = component$(() => (
+      <Catch
+        fallback$={(error) => <p id="fallback">{error.message}</p>}
+        onError$={(error, info) => (globalThis as any).__catchReport(error, info)}
+      >
+        <Thrower />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('render failed');
+    expect(catchReports()).toEqual([
+      {
+        message: 'render failed',
+        cause: undefined,
+        phase: 'render',
+        boundaryId: expect.any(String),
+        digest: expect.stringMatching(/./),
+      },
+    ]);
+  });
+
+  it('reports an event handler error after resume without rerunning the component', async () => {
+    resetReports();
+    const Child = component$(() => (
+      <button
+        id="content"
+        onClick$={() => {
+          throw new Error('event failed');
+        }}
+      >
+        throw
+      </button>
+    ));
+    const App = component$(() => {
+      (globalThis as any).__catchRenders++;
+      return (
+        <Catch
+          fallback$={(error) => <p id="fallback">{error.message}</p>}
+          onError$={$((error, info) => (globalThis as any).__catchReport(error, info))}
+        >
+          <Child />
+        </Catch>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    expect(catchReports()).toEqual([]);
+    await qwikLoader!.dispatch(container.querySelector('#content')!, 'click');
+    expect(container.querySelector('#fallback')?.textContent).toBe('event failed');
+    expect(catchReports()).toMatchObject([{ message: 'event failed', phase: 'event' }]);
+    // A resumed boundary reports the range id the server wrote into its marker.
+    const { boundaryId } = catchReports()[0];
+    if (name === 'ssrRender') {
+      expect(container.innerHTML).toContain(`<!--d=${boundaryId}-->`);
+    } else {
+      // A boundary first rendered on the client has no marker, so it has no id.
+      expect(boundaryId).toBe('');
+    }
+    expect((globalThis as any).__catchRenders).toBe(1);
+  });
+
+  it('reports a task error with the hook phase', async () => {
+    resetReports();
+    const Child = component$(() => {
+      useTask$(() => {
+        throw new Error('task boom');
+      });
+      return <p id="content">content</p>;
+    });
+    const onError = $((error: Error, info: any) => (globalThis as any).__catchReport(error, info));
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>} onError$={onError}>
+        <Child />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('task boom');
+    expect(catchReports()).toMatchObject([{ message: 'task boom', phase: 'hook' }]);
+  });
+
+  it('wraps a non-Error throw and keeps the thrown value as its cause', async () => {
+    resetReports();
+    const RawThrower = component$(() => {
+      throw { code: 401 };
+      return null;
+    });
+    const App = component$(() => {
+      function reportError(error: Error, info: any) {
+        (globalThis as any).__catchReport(error, info);
+      }
+      return (
+        <Catch fallback$={() => <p id="fallback">caught</p>} onError$={reportError}>
+          <RawThrower />
+        </Catch>
+      );
+    });
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('caught');
+    expect(catchReports()).toMatchObject([
+      { message: '[object Object]', cause: { code: 401 }, phase: 'render' },
+    ]);
+  });
+
+  it.each(['throwing', 'rejecting'] as const)(
+    'a %s onError$ neither breaks the fallback nor reaches the outer boundary',
+    async (kind) => {
+      resetReports();
+      const App = component$<{ kind: string }>(({ kind }) => (
+        <Catch fallback$={() => <p id="outer">outer</p>}>
+          <Catch
+            fallback$={(error) => <p id="fallback">{error.message}</p>}
+            onError$={(error, info) => {
+              (globalThis as any).__catchReport(error, info);
+              if (kind === 'throwing') {
+                throw new Error('onError failed');
+              }
+              return Promise.reject(new Error('onError failed'));
+            }}
+          >
+            <Thrower />
+          </Catch>
+        </Catch>
+      ));
+      const { container, cleanup } = await render(App, { props: { kind } });
+      onTestFinished(cleanup);
+      await Promise.resolve();
+      expect(container.querySelector('#fallback')?.textContent).toBe('render failed');
+      expect(container.querySelector('#outer')).toBeFalsy();
+      expect(catchReports()).toHaveLength(1);
+    }
+  );
+});

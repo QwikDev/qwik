@@ -580,25 +580,29 @@ describe('buffered SSR Catch', () => {
   });
 });
 
-it.each([null, ['not a QRL', null], [null, new Error('invalid')]])(
-  'rejects malformed serialized Catch state: %s',
-  async (state) => {
-    const document = createDocument({ html: '<div><!--d=0--><!--/d--></div>' });
-    const ctx = createContainerContext(document.querySelector('div')!);
-    const hostOwner = createOwner(null);
-    const contentOwner = createOwner(hostOwner);
-    const render = createQRL('chunk', 'render', () => '');
-    const subscription = new CatchContentSubscription(null!, null!, ctx.scheduler);
-    const parts = [0, EffectKind.Content, 0, [], [], render, contentOwner, null, null, true, state];
-    const payload = [
-      ...parts.flatMap((value) => [TypeIds.Plain, value]),
-      TypeIds.Plain,
-      hostOwner,
-      TypeIds.Plain,
-      0,
-    ];
-    await expect(
-      Promise.resolve().then(() => inflate(ctx, subscription, TypeIds.CatchSubscription, payload))
-    ).rejects.toThrow(new Error('Code(Q41): Invalid serialized state: Catch state'));
-  }
-);
+const stateQrl = createQRL('chunk', 'fallback', () => '');
+it.each([
+  null,
+  ['not a QRL', null],
+  [null, new Error('invalid')],
+  [stateQrl, null, 'not an onError$ QRL'],
+  [stateQrl, null, stateQrl, null],
+])('rejects malformed serialized Catch state: %s', async (state) => {
+  const document = createDocument({ html: '<div><!--d=0--><!--/d--></div>' });
+  const ctx = createContainerContext(document.querySelector('div')!);
+  const hostOwner = createOwner(null);
+  const contentOwner = createOwner(hostOwner);
+  const render = createQRL('chunk', 'render', () => '');
+  const subscription = new CatchContentSubscription(null!, null!, ctx.scheduler);
+  const parts = [0, EffectKind.Content, 0, [], [], render, contentOwner, null, null, true, state];
+  const payload = [
+    ...parts.flatMap((value) => [TypeIds.Plain, value]),
+    TypeIds.Plain,
+    hostOwner,
+    TypeIds.Plain,
+    0,
+  ];
+  await expect(
+    Promise.resolve().then(() => inflate(ctx, subscription, TypeIds.CatchSubscription, payload))
+  ).rejects.toThrow(new Error('Code(Q41): Invalid serialized state: Catch state'));
+});

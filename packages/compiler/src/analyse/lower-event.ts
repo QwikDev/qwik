@@ -13,7 +13,13 @@ import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import type { LowerContext } from './lower-context';
 import { lowerExpressionValue, lowerInlineExpressionValue, resolveQrlBinding } from './lower-expr';
-import { liftedLocalQrl, lowerFunctionQrl, lowerMarkerQrl, markerQrlCall } from './lower-function';
+import {
+  liftedLocalQrl,
+  lowerFunctionQrl,
+  lowerMarkerQrl,
+  markerQrlCall,
+  type QrlArgumentBoundary,
+} from './lower-function';
 import { isFunctionLike, unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
@@ -27,27 +33,8 @@ export function lowerEventAttribute(
   if (expression === null) {
     return null;
   }
-  const lowerHandler = (handler: Expression): Value => {
-    if (handler.type === 'CallExpression') {
-      const marker = markerQrlCall(handler, ctx);
-      if (marker !== null && marker.marker === undefined) {
-        return { v: ValueKind.Qrl, use: lowerMarkerQrl(handler, marker, ctx) };
-      }
-    }
-    if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
-      const lifted = liftedLocalQrl(handler, ctx);
-      if (lifted !== null) {
-        return { v: ValueKind.Qrl, use: lifted };
-      }
-      return isStaticHandler(handler, ctx)
-        ? lowerInlineExpressionValue(
-            handler,
-            ctx,
-            lowerCaptures(handler, ctx, 'an event handler').refs
-          )
-        : lowerExpressionValue(handler, ctx, authored, false);
-    }
-    const use = lowerFunctionQrl(handler, ctx, {
+  const lowerHandler = (handler: Expression): Value =>
+    lowerHandlerValue(handler, ctx, {
       nameCtx: scope,
       subject: 'an event handler',
       ctxName: authored,
@@ -58,8 +45,6 @@ export function lowerEventAttribute(
         argumentRanges: [],
       },
     });
-    return { v: ValueKind.Qrl, use };
-  };
   // A handler array flattens; empty entries are ignored, as the runtime ignores them.
   const handlers = (
     expression.type === 'ArrayExpression' ? flattenHandlers(expression) : [expression]
@@ -73,6 +58,30 @@ export function lowerEventAttribute(
     expression,
     event: { k: PropKind.Event, name: scope, handlers },
   };
+}
+
+/** A handler value: an extracted callback, a `$` marker, a lifted local, a binding or an expression. */
+export function lowerHandlerValue(
+  handler: Expression,
+  ctx: LowerContext,
+  boundary: QrlArgumentBoundary
+): Value {
+  if (handler.type === 'CallExpression') {
+    const marker = markerQrlCall(handler, ctx);
+    if (marker !== null && marker.marker === undefined) {
+      return { v: ValueKind.Qrl, use: lowerMarkerQrl(handler, marker, ctx) };
+    }
+  }
+  if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
+    const lifted = liftedLocalQrl(handler, ctx);
+    if (lifted !== null) {
+      return { v: ValueKind.Qrl, use: lifted };
+    }
+    return isStaticHandler(handler, ctx)
+      ? lowerInlineExpressionValue(handler, ctx, lowerCaptures(handler, ctx, boundary.subject).refs)
+      : lowerExpressionValue(handler, ctx, boundary.ctxName, false);
+  }
+  return { v: ValueKind.Qrl, use: lowerFunctionQrl(handler, ctx, boundary) };
 }
 
 /**

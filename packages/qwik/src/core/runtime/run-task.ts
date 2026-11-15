@@ -10,7 +10,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import type { Task, TaskCleanupFn, TaskFn, VisibleTask } from './task';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
 import { isSubscriberDisposed } from './subscriber';
-import { handleError } from '../dom/content/catch-boundary';
+import { CatchPhase, handleError } from '../dom/content/catch-boundary';
 
 export function runTaskSubscriber(
   subscriber: TaskSubscriber | VisibleTaskSubscriber
@@ -79,7 +79,7 @@ export function runTaskSubscriber(
     });
   } catch (error) {
     finishTaskRun(subscriber);
-    return handleError(subscriber.owner, error);
+    return handleError(subscriber.owner, error, CatchPhase.Hook);
   }
 
   if (!isPromise(result)) {
@@ -91,7 +91,7 @@ export function runTaskSubscriber(
     () => finishTaskRun(subscriber),
     (error) => {
       finishTaskRun(subscriber);
-      return handleError(subscriber.owner, error);
+      return handleError(subscriber.owner, error, CatchPhase.Hook);
     }
   );
   subscriber.runPromise = pending;

@@ -2,7 +2,7 @@ import { isDev, isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { Component } from '../../shared/component.public';
 import type { JSXOutput } from '../../shared/jsx/types/jsx-node';
-import { Brand, brandClass } from '../../shared/utils/brand';
+import { Brand, brandClass, hasBrand } from '../../shared/utils/brand';
 import { hashCode } from '../../shared/utils/hash_code';
 import { isPromise, maybeThen, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -16,7 +16,7 @@ import {
 import { getOrCreateContextOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import type { Scheduler } from '../../runtime/scheduler';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
-import type { SsrOutput, SsrCatchController } from '../../ssr/output';
+import { createSsrNodeId, type SsrOutput, type SsrCatchController } from '../../ssr/output';
 import { EMPTY_NODES } from '../../utils/consts';
 import {
   ContentBlock,
@@ -26,13 +26,34 @@ import {
   type ContentFn,
   type SsrContentFn,
 } from './content';
-import { registerCatchBoundary, handleError } from './catch-boundary';
+import { CatchPhase, registerCatchBoundary, handleError } from './catch-boundary';
 import type { SsrRangeHost } from '../../ssr/output';
+import { logError } from '../../shared/utils/log';
+import { CONTENT_OPEN } from '../../runtime/node-walker';
+
+/** What `onError$` learns about a caught error. @public */
+export interface CatchInfo {
+  phase: CatchPhase;
+  /**
+   * The boundary's range id: the server and the resumed client report the same one. Empty for a
+   * boundary first rendered on the client.
+   */
+  boundaryId: string;
+  /** The code a production fallback shows for a server error, to match a report to your logs. */
+  digest: string;
+}
 
 /** @public */
 export interface CatchProps {
   readonly fallback$: QRL<(error: Error & { digest?: string }) => JSXOutput>;
+  /**
+   * Called when the boundary catches, for reporting only. A non-Error throw arrives wrapped, with
+   * the thrown value as `cause`. An error caught during SSR is reported on the server only.
+   */
+  readonly onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 }
+
+type CatchErrorHandler = (error: Error, info: CatchInfo) => unknown;
 
 /** Compiler marker for a render error boundary. @public */
 export const Catch: Component<CatchProps> = () => null;
@@ -43,9 +64,14 @@ export class CatchContentSubscription extends ContentSubscription {
   constructor(
     block: ContentBlock,
     readonly fallbackQrl: QRL<ContentFn>,
-    scheduler?: Scheduler
+    scheduler?: Scheduler,
+    readonly onError?: CatchErrorHandler
   ) {
     super(block, scheduler);
+    // Branded on first use, not at load, so an app without a Catch drops the class.
+    if (!hasBrand(this, Brand.CatchContentSubscription)) {
+      brandClass(CatchContentSubscription, Brand.CatchContentSubscription);
+    }
   }
 
   registerRenderBoundary(invokeContext: RuntimeInvokeContext): void {
@@ -54,12 +80,21 @@ export class CatchContentSubscription extends ContentSubscription {
     }
   }
 
-  catchError(error: unknown): ValueOrPromise<readonly Node[]> {
+  catchError(error: unknown, phase?: CatchPhase): ValueOrPromise<readonly Node[]> {
     if (isSubscriberDisposed(this) || this.error !== undefined) {
       return EMPTY_NODES;
     }
     this.error = toCatchError(error);
     const previous = this.block;
+    if (this.onError !== undefined) {
+      // A resumed boundary keeps the range id the server reported; one rendered here has none.
+      reportCatchError(
+        this.onError,
+        this.error,
+        phase,
+        previous.start.data.slice(CONTENT_OPEN.length)
+      );
+    }
     try {
       previous.dispose();
     } finally {
@@ -88,7 +123,8 @@ export function createCatch(
   start: Comment,
   end: Comment,
   contentQrl: QRL<ContentFn>,
-  fallbackQrl: QRL<ContentFn>
+  fallbackQrl: QRL<ContentFn>,
+  onError?: CatchErrorHandler
 ): CatchContentSubscription {
   const block = new ContentBlock<unknown[]>(
     start,
@@ -101,7 +137,7 @@ export function createCatch(
     true
   );
   const boundary = registerSubscriberToOwner(
-    new CatchContentSubscription(block, fallbackQrl, ctx.scheduler)
+    new CatchContentSubscription(block, fallbackQrl, ctx.scheduler, onError)
   );
   const output = boundary.run();
   if (isPromise(output)) {
@@ -116,7 +152,8 @@ export class SSRCatchContentSubscription extends SSRContentSubscription {
 
   constructor(
     content: SSRContent,
-    readonly fallbackQrl: QRL<SsrContentFn>
+    readonly fallbackQrl: QRL<SsrContentFn>,
+    readonly onError?: CatchErrorHandler
   ) {
     super(content);
   }
@@ -129,11 +166,11 @@ export class SSRCatchContentSubscription extends SSRContentSubscription {
     }
   }
 
-  catchError(error: unknown): ValueOrPromise<void> {
+  catchError(error: unknown, phase?: CatchPhase): ValueOrPromise<void> {
     if (this.controller === undefined) {
       throw error;
     }
-    return this.controller.catchError(error);
+    return this.controller.catchError(error, phase);
   }
 }
 
@@ -141,7 +178,8 @@ export function createSsrCatch(
   host: SsrRangeHost & { markCaughtError?(): void },
   rangeId: number,
   contentQrl: QRL<(ctx: SsrRangeHost) => ValueOrPromise<SsrOutput>>,
-  fallbackQrl: QRL<SsrContentFn>
+  fallbackQrl: QRL<SsrContentFn>,
+  onError?: CatchErrorHandler
 ): ValueOrPromise<SsrOutput> {
   host.registerCatchErrorHandler();
   const invokeContext = getActiveInvokeContextOrNull();
@@ -152,11 +190,15 @@ export function createSsrCatch(
     published: false,
     output: '',
     parent: host.catchBoundary,
-    catchError(error) {
+    catchError(error, phase) {
       if (boundary.error !== undefined) {
         return;
       }
-      const displayed = displayCatchError(error);
+      const caught = toCatchError(error);
+      if (onError !== undefined) {
+        reportCatchError(onError, caught, phase, createSsrNodeId(rangeId));
+      }
+      const displayed = displayCatchError(caught);
       boundary.error = displayed;
       controller.generation++;
       const previous = boundary;
@@ -195,7 +237,8 @@ export function createSsrCatch(
   function createBoundary(qrl: QRL<SsrContentFn>, args: unknown[], scope: typeof host) {
     return new SSRCatchContentSubscription(
       new SSRContent(rangeId, args, qrl, invokeContext, scope, false, true),
-      fallbackQrl
+      fallbackQrl,
+      onError
     );
   }
 
@@ -244,23 +287,49 @@ function toCatchError(error: unknown): Error {
   } catch {
     // A thrown value may reject coercion.
   }
-  return new Error(message);
+  // `cause` is not enumerable, so it never serializes with the error.
+  return new Error(message, { cause: error });
 }
 
 function displayCatchError(error: unknown): Error & { digest?: string } {
   let displayed = toCatchError(error) as Error & { digest?: string };
   if (!isDev) {
-    let source = 'unknown';
-    try {
-      source = `${displayed.name}: ${displayed.message}\n${displayed.stack ?? ''}`;
-    } catch {
-      /* Error properties can be hostile getters. */
-    }
+    const digest = errorDigest(displayed);
     displayed = new Error('An error occurred');
-    displayed.digest = hashCode(source);
+    displayed.digest = digest;
   }
   return displayed;
 }
 
-brandClass(CatchContentSubscription, Brand.CatchContentSubscription);
+function errorDigest(error: Error): string {
+  let source = 'unknown';
+  try {
+    source = `${error.name}: ${error.message}\n${error.stack ?? ''}`;
+  } catch {
+    /* Error properties can be hostile getters. */
+  }
+  return hashCode(source);
+}
+
+/** Runs `onError$` for its side effect; its own failure is only logged. */
+function reportCatchError(
+  onError: CatchErrorHandler,
+  error: Error,
+  phase: CatchPhase = CatchPhase.Render,
+  boundaryId: string
+): void {
+  try {
+    const reported = onError(error, {
+      phase,
+      boundaryId,
+      digest: errorDigest(error),
+    });
+    if (isPromise(reported)) {
+      reported.catch(logError);
+    }
+  } catch (callbackError) {
+    logError(callbackError);
+  }
+}
+
 isServer && brandClass(SSRCatchContentSubscription, Brand.SsrCatchContentSubscription);

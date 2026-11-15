@@ -15,7 +15,7 @@ const BRANCH_OPEN = 'b=';
 const BRANCH_CLOSE = '/b';
 const FOR_OPEN = 'f=';
 const FOR_CLOSE = '/f';
-const CONTENT_OPEN = 'd=';
+export const CONTENT_OPEN = 'd=';
 const CONTENT_CLOSE = '/d';
 const SLOT_OPEN = 's=';
 const SLOT_CLOSE = '/s';

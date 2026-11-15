@@ -26,12 +26,31 @@ export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 // @public
 export const Catch: Component<CatchProps>;
 
+// @public
+export interface CatchInfo {
+    boundaryId: string;
+    digest: string;
+    // (undocumented)
+    phase: CatchPhase;
+}
+
+// @public
+export const enum CatchPhase {
+    // (undocumented)
+    Event = "event",
+    // (undocumented)
+    Hook = "hook",
+    // (undocumented)
+    Render = "render"
+}
+
 // @public (undocumented)
 export interface CatchProps {
     // (undocumented)
     readonly fallback$: QRL<(error: Error & {
         digest?: string;
     }) => JSXOutput>;
+    readonly onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 }
 
 // @public

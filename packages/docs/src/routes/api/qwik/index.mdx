@@ -218,6 +218,136 @@ Catch: Component<CatchProps>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts)
 
+<h2 id="catchinfo">CatchInfo</h2>
+
+What `onError$` learns about a caught error.
+
+```typescript
+export interface CatchInfo
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+boundaryId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+The boundary's range id: the server and the resumed client report the same one. Empty for a boundary first rendered on the client.
+
+</td></tr>
+<tr><td>
+
+digest
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+The code a production fallback shows for a server error, to match a report to your logs.
+
+</td></tr>
+<tr><td>
+
+phase
+
+</td><td>
+
+</td><td>
+
+[CatchPhase](#catchphase)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts)
+
+<h2 id="catchphase">CatchPhase</h2>
+
+Where a caught error came from: rendering, an event handler, or a task.
+
+```typescript
+export declare const enum CatchPhase
+```
+
+<table><thead><tr><th>
+
+Member
+
+</th><th>
+
+Value
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+Event
+
+</td><td>
+
+`"event"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Hook
+
+</td><td>
+
+`"hook"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Render
+
+</td><td>
+
+`"render"`
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch-boundary.ts)
+
 <h2 id="catchprops">CatchProps</h2>
 
 ```typescript
@@ -254,6 +384,23 @@ fallback$
 [QRL](#qrl)&lt;(error: Error &amp; \{ digest?: string; }) =&gt; [JSXOutput](#jsxoutput)&gt;
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+onError$?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[QRL](#qrl)&lt;(error: Error, info: [CatchInfo](#catchinfo)) =&gt; void&gt;
+
+</td><td>
+
+_(Optional)_ Called when the boundary catches, for reporting only. A non-Error throw arrives wrapped, with the thrown value as `cause`. An error caught during SSR is reported on the server only.
 
 </td></tr>
 </tbody></table>
@@ -1081,6 +1228,8 @@ type ElementType = string | FunctionComponent<any>;
 
 **References:** [FunctionComponent](#functioncomponent)
 
+<h2 id="catchphase-event">Event</h2>
+
 <h2 id="event_">event$</h2>
 
 ```typescript
@@ -1284,6 +1433,8 @@ getPlatform: () => CorePlatform;
 [CorePlatform](#coreplatform)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/platform/platform.ts)
+
+<h2 id="catchphase-hook">Hook</h2>
 
 <h2 id="htmlelementattrs">HTMLElementAttrs</h2>
 
@@ -2419,13 +2570,15 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
-<h2 id="render">render</h2>
+<h2 id="render-variable">render</h2>
 
 ```typescript
 render: Render;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/csr-render.ts)
+
+<h2 id="catchphase-render-enum-member">Render</h2>
 
 <h2 id="renderoptions">RenderOptions</h2>
 

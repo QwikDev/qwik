@@ -275,6 +275,9 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case OpKind.Catch:
         visitQrlUse(entry.content);
         visitQrlUse(entry.fallback);
+        if (entry.onError !== undefined) {
+          visitValue(entry.onError);
+        }
         break;
       case OpKind.Pending:
         visitQrlUse(entry.content);

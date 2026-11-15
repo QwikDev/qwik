@@ -3,8 +3,9 @@ import { isQrlImportError } from '../../shared/qrl/qrl-utils';
 import type { QElement } from '../../shared/types';
 import { maybeThen } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
-import { handleError } from './catch-boundary';
-import { CatchContentSubscription } from './catch';
+import { CatchPhase, handleError } from './catch-boundary';
+import type { CatchContentSubscription } from './catch';
+import { Brand, hasBrand } from '../../shared/utils/brand';
 
 export function _catchError(
   event: CustomEvent<{ error: unknown; element?: Element; importError?: string }> & {
@@ -34,7 +35,7 @@ export function _catchError(
 function handleEventError(element: Element, error: unknown): ValueOrPromise<void> {
   const owner = (element as QElement)._qErrorOwner;
   if (owner !== undefined) {
-    return handleError(owner, error);
+    return handleError(owner, error, CatchPhase.Event);
   }
   const id = element.getAttribute('q:catch');
   if (!/^\d+$/.test(id!)) {
@@ -46,10 +47,15 @@ function handleEventError(element: Element, error: unknown): ValueOrPromise<void
       if (!element.isConnected) {
         return;
       }
-      if (!(boundary instanceof CatchContentSubscription)) {
+      if (!hasBrand(boundary, Brand.CatchContentSubscription)) {
         throw new Error('Catch event requires a boundary subscription');
       }
-      return handleError(boundary.block.currentOwner ?? boundary.owner, error);
+      const catchBoundary = boundary as CatchContentSubscription;
+      return handleError(
+        catchBoundary.block.currentOwner ?? catchBoundary.owner,
+        error,
+        CatchPhase.Event
+      );
     })
   );
 }

@@ -384,8 +384,19 @@ export {
   SSRPendingContentSubscription,
   type PendingProps,
 } from './dom/content/content';
-export { Catch, createCatch, createSsrCatch, type CatchProps } from './dom/content/catch';
-export { findContentBoundary, handleError, isCatchBoundary } from './dom/content/catch-boundary';
+export {
+  Catch,
+  createCatch,
+  createSsrCatch,
+  type CatchInfo,
+  type CatchProps,
+} from './dom/content/catch';
+export {
+  CatchPhase,
+  findContentBoundary,
+  handleError,
+  isCatchBoundary,
+} from './dom/content/catch-boundary';
 export { createSsrPending } from './dom/content/pending-ssr';
 export {
   Reveal,

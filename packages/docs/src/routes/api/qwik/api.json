@@ -311,6 +311,34 @@
       "mdFile": "core.catch.md"
     },
     {
+      "name": "CatchInfo",
+      "id": "catchinfo",
+      "hierarchy": [
+        {
+          "name": "CatchInfo",
+          "id": "catchinfo"
+        }
+      ],
+      "kind": "Interface",
+      "content": "What `onError$` learns about a caught error.\n\n\n```typescript\nexport interface CatchInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe boundary's range id: the server and the resumed client report the same one. Empty for a boundary first rendered on the client.\n\n\n</td></tr>\n<tr><td>\n\ndigest\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe code a production fallback shows for a server error, to match a report to your logs.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n[CatchPhase](#catchphase)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts",
+      "mdFile": "core.catchinfo.md"
+    },
+    {
+      "name": "CatchPhase",
+      "id": "catchphase",
+      "hierarchy": [
+        {
+          "name": "CatchPhase",
+          "id": "catchphase"
+        }
+      ],
+      "kind": "Enum",
+      "content": "Where a caught error came from: rendering, an event handler, or a task.\n\n\n```typescript\nexport declare const enum CatchPhase \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nEvent\n\n\n</td><td>\n\n`\"event\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nHook\n\n\n</td><td>\n\n`\"hook\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nRender\n\n\n</td><td>\n\n`\"render\"`\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch-boundary.ts",
+      "mdFile": "core.catchphase.md"
+    },
+    {
       "name": "CatchProps",
       "id": "catchprops",
       "hierarchy": [
@@ -320,7 +348,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface CatchProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;(error: Error &amp; { digest?: string; }) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface CatchProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;(error: Error &amp; { digest?: string; }) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;(error: Error, info: [CatchInfo](#catchinfo)<!-- -->) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Called when the boundary catches, for reporting only. A non-Error throw arrives wrapped, with the thrown value as `cause`<!-- -->. An error caught during SSR is reported on the server only.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts",
       "mdFile": "core.catchprops.md"
     },
@@ -578,6 +606,23 @@
       "mdFile": "core.qwikjsx.elementtype.md"
     },
     {
+      "name": "Event",
+      "id": "catchphase-event",
+      "hierarchy": [
+        {
+          "name": "CatchPhase",
+          "id": "catchphase-event"
+        },
+        {
+          "name": "Event",
+          "id": "catchphase-event"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.catchphase.event.md"
+    },
+    {
       "name": "event$",
       "id": "event_",
       "hierarchy": [
@@ -688,6 +733,23 @@
       "content": "Retrieve the `CorePlatform`<!-- -->.\n\nThe `CorePlatform` is also responsible for retrieving the Manifest, that contains mappings from symbols to javascript import chunks. For this reason, `CorePlatform` can't be global, but is specific to the application currently running. On server it is possible that many different applications are running in a single server instance, and for this reason the `CorePlatform` is associated with the application document.\n\n\n```typescript\ngetPlatform: () => CorePlatform\n```\n**Returns:**\n\n[CorePlatform](#coreplatform)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/platform/platform.ts",
       "mdFile": "core.getplatform.md"
+    },
+    {
+      "name": "Hook",
+      "id": "catchphase-hook",
+      "hierarchy": [
+        {
+          "name": "CatchPhase",
+          "id": "catchphase-hook"
+        },
+        {
+          "name": "Hook",
+          "id": "catchphase-hook"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.catchphase.hook.md"
     },
     {
       "name": "HTMLElementAttrs",
@@ -1218,6 +1280,23 @@
       "content": "```typescript\nrender: Render\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/csr-render.ts",
       "mdFile": "core.render.md"
+    },
+    {
+      "name": "Render",
+      "id": "catchphase-render",
+      "hierarchy": [
+        {
+          "name": "CatchPhase",
+          "id": "catchphase-render"
+        },
+        {
+          "name": "Render",
+          "id": "catchphase-render"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.catchphase.render.md"
     },
     {
       "name": "RenderOptions",

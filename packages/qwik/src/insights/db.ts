@@ -108,7 +108,18 @@ export async function openNodeSqlite(
  * @internal
  */
 export function redactInsightsDbUrl(url: string): string {
-  return url.replace(/(authToken|token)=[^&]*/gi, '$1=***');
+  return url.replace(/((?:[\w-]|%[0-9a-f]{2})+)=[^&\s]*/gi, (param, name: string) =>
+    /token$/i.test(decodeParamName(name)) ? `${name}=***` : param
+  );
+}
+
+// libSQL decodes parameter names, so `auth%54oken` is still the auth token.
+function decodeParamName(name: string): string {
+  try {
+    return decodeURIComponent(name);
+  } catch {
+    return name;
+  }
 }
 
 /** An error's stack (or message) with any DB token embedded in it redacted. */

@@ -82,3 +82,10 @@ test('describeInsightsDbError redacts a token the error echoes', () => {
   expect(described).toContain('authToken=***');
   expect(described).not.toContain('secret123');
 });
+
+test('describeInsightsDbError redacts a token whose name is percent-encoded', () => {
+  // libSQL decodes parameter names, so `auth%54oken` still carries the token.
+  const described = describeInsightsDbError('libsql://db.turso.io?tls=1&auth%54oken=secret123');
+  expect(described).toContain('tls=1');
+  expect(described).not.toContain('secret123');
+});

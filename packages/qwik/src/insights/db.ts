@@ -127,7 +127,7 @@ export function localInsightsDbPath(url: string): string | null {
   }
   // A standard `file:///` URL is percent-encoded (`%20` for a space). Decoded without `node:url`
   // so this module also loads on edge runtimes.
-  if (/^file:\/\/\//i.test(url)) {
+  if (/^file:\/\/(localhost)?\//i.test(url)) {
     const path = decodeURIComponent(new URL(url).pathname);
     return /^\/[a-z]:/i.test(path) ? path.slice(1) : path;
   }

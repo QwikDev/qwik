@@ -27,6 +27,7 @@ test('localInsightsDbPath strips every file: form and rejects remote URLs', () =
   expect(normalize(localInsightsDbPath(pathToFileURL('/a b/c.db').href)!)).toBe(
     resolve('/a b/c.db')
   );
+  expect(localInsightsDbPath('file://localhost/a%20b/c.db')).toBe('/a b/c.db');
   expect(localInsightsDbPath('/a/b.db')).toBe('/a/b.db');
   expect(localInsightsDbPath('libsql://x.turso.io')).toBeNull();
 });

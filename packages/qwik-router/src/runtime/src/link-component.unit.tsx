@@ -18,6 +18,9 @@ const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => (
   getClientNavPathMock: vi.fn(),
   gotoMock: vi.fn(() => Promise.resolve()),
 }));
+// A resumed QRL runs in its own module graph, so it reaches the mock through the global.
+type GotoGlobal = { linkTestGoto: () => Promise<void> };
+(globalThis as unknown as GotoGlobal).linkTestGoto = gotoMock;
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
@@ -71,7 +74,7 @@ const RouterProvider = component$(() => {
   );
   useContextProvider(
     RouteNavigateContext,
-    $(() => gotoMock())
+    $(() => (globalThis as unknown as GotoGlobal).linkTestGoto())
   );
   return <Slot />;
 });
@@ -373,6 +376,8 @@ describe('link component', () => {
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+    // The click navigates a few ticks later; wait so it cannot land in the next test.
+    await vi.waitFor(() => expect(gotoMock).toHaveBeenCalledTimes(1));
   });
 
   describe('navigating state', () => {
@@ -396,6 +401,7 @@ describe('link component', () => {
 
       // A resumed handler loads `nav` lazily, so it settles after a few ticks.
       await vi.waitFor(() => expect(anchor.hasAttribute('data-navigating')).toBe(false));
+      expect(gotoMock).toHaveBeenCalledTimes(1);
     });
 
     it('clears data-navigating when navigation rejects, still reporting the error', async () => {

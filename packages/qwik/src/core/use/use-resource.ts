@@ -1,7 +1,7 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
 import { _capturesObj } from '../internal';
-import { createStore, unwrapStore } from '../reactive-primitives/impl/store';
+import { createStore, forceStoreEffects, unwrapStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
   type ComputedSignalInternal,
@@ -87,7 +87,12 @@ const assignOwnEnumerableProps = (target: object, source: object): void => {
       });
       continue;
     }
+    const previous = (unwrappedTarget as Record<PropertyKey, unknown>)[key];
+    const hadKey = Object.hasOwn(unwrappedTarget, key);
     (target as Record<PropertyKey, unknown>)[key] = value;
+    if (typeof key === 'symbol' && (!hadKey || previous !== value)) {
+      forceStoreEffects(target, key);
+    }
   }
 };
 
@@ -101,17 +106,22 @@ const copyResourceResult = <T extends object>(result: T): T => {
 };
 
 const syncResourceStore = (current: object, next: object): void => {
+  const unwrappedNext = unwrapStore(next);
+  const unwrappedCurrent = unwrapStore(current);
   if (Array.isArray(current) && Array.isArray(next)) {
     current.length = unwrapStore(next).length;
-    assignOwnEnumerableProps(current, next);
-    return;
   }
-  const unwrappedNext = unwrapStore(next);
-  const currentKeys = Object.keys(unwrapStore(current));
+  const currentKeys = Reflect.ownKeys(unwrappedCurrent);
   for (let index = 0; index < currentKeys.length; index++) {
     const key = currentKeys[index];
-    if (!Object.hasOwn(unwrappedNext, key)) {
-      Reflect.deleteProperty(current, key);
+    if (_propertyIsEnumerable.call(unwrappedCurrent, key) && !Object.hasOwn(unwrappedNext, key)) {
+      if (Array.isArray(current) || typeof key === 'symbol') {
+        Reflect.deleteProperty(unwrappedCurrent, key);
+        // These deletions bypass the store's normal effect notifications.
+        forceStoreEffects(current, key);
+      } else {
+        Reflect.deleteProperty(current, key);
+      }
     }
   }
   assignOwnEnumerableProps(current, next);

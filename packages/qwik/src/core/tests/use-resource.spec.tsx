@@ -13,6 +13,8 @@ import {
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
+import { _syncResourceStore } from '../use/use-resource';
+
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
@@ -701,6 +703,72 @@ describe.each([
         <button>
           <InlineComponent ssr-required>
             <span>{'{"name":"Case B","items":["sticker"]}'}</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should notify array readers when only an index is deleted', async () => {
+    const TestCmp = component$(() => {
+      const current = useStore([1, 2, 3]);
+      return (
+        <button onClick$={() => _syncResourceStore(current, [1].concat(new Array<number>(1), [3]))}>
+          <span>{JSON.stringify(current)}</span>
+        </button>
+      );
+    });
+    const { vNode, container } = await render(<TestCmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <span>[1,2,3]</span>
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <span>[1,null,3]</span>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should render an equal-length array when an index becomes a hole', async () => {
+    const ResourceCmp = component$(() => {
+      const sparse = useSignal(false);
+      const resource = useResource$(({ track }) =>
+        track(sparse) ? [1].concat(new Array<number>(1), [3]) : [1, 2, 3]
+      );
+      return (
+        <button onClick$={() => (sparse.value = true)}>
+          <Resource value={resource} onResolved={(value) => <span>{JSON.stringify(value)}</span>} />
+        </button>
+      );
+    });
+    const { vNode, container } = await render(<ResourceCmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>[1,2,3]</span>
+          </InlineComponent>
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
+    await waitForDrain(container);
+    await waitForDrain(container);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <InlineComponent ssr-required>
+            <span>[1,null,3]</span>
           </InlineComponent>
         </button>
       </Component>

@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { expect, test, vi } from 'vitest';
-import { handleInsightsBeacon, writeInsights } from './collector';
+import journal from '../../../insights/drizzle/meta/_journal.json';
+import { handleInsightsBeacon, writeInsights, writeInsightsSymbols } from './collector';
 import type { InsightsPayload } from './insights';
 
 const tmpDbUrl = () =>
@@ -32,7 +33,7 @@ test('writeInsights creates the schema and records app, edges and routes', async
   await writeInsights(dbUrl, payload());
 
   const db = openRead(dbUrl);
-  expect(db.prepare('SELECT * FROM applications').all()).toEqual([
+  expect(db.prepare('SELECT name, public_api_key, url FROM applications').all()).toEqual([
     { name: 'key12345', public_api_key: 'key12345', url: null },
   ]);
 
@@ -281,6 +282,68 @@ test("handleInsightsBeacon ignores other apps' error beacons when a key is confi
   expect(await handleInsightsBeacon(errorBeacon('other123'), opts)).toBe(false);
   expect(await handleInsightsBeacon(errorBeacon(), opts)).toBe(false);
   expect(await handleInsightsBeacon(errorBeacon('key12345'), opts)).toBe(true);
+});
+
+test('a new DB gets the dashboard schema with drizzle migration bookkeeping', async () => {
+  const dbUrl = tmpDbUrl();
+  await writeInsights(dbUrl, payload());
+  // Reopening must not re-run any migration.
+  await writeInsights(tmpDbUrl(), payload());
+
+  const db = openRead(dbUrl);
+  const applied = db.prepare('SELECT created_at FROM __drizzle_migrations').all();
+  expect(applied.map((row: any) => Number(row.created_at))).toEqual(
+    journal.entries.map((entry) => entry.when)
+  );
+  expect(db.prepare('SELECT hash FROM manifests').all()).toEqual([{ hash: 'mh1' }]);
+  db.close();
+});
+
+test('writeInsightsSymbols records readable names per build and updates them on rebuild', async () => {
+  const dbUrl = tmpDbUrl();
+  const symbol = (displayName: string) => ({
+    hash: 'aaa',
+    displayName,
+    origin: 'src/app.tsx',
+    loc: [10, 20] as [number, number],
+  });
+  await writeInsightsSymbols(dbUrl, 'key12345', 'mh1', [
+    symbol('App_component'),
+    { hash: 'bad' } as any,
+  ]);
+  await writeInsightsSymbols(dbUrl, 'key12345', 'mh1', [symbol('App_component_renamed')]);
+
+  const db = openRead(dbUrl);
+  expect(
+    db.prepare('SELECT hash, manifest_hash, full_name, origin, lo, hi FROM symbolDetail').all()
+  ).toEqual([
+    {
+      hash: 'aaa',
+      manifest_hash: 'mh1',
+      full_name: 'App_component_renamed',
+      origin: 'src/app.tsx',
+      lo: 10,
+      hi: 20,
+    },
+  ]);
+  expect(db.prepare('SELECT name, public_api_key FROM applications').all()).toEqual([
+    { name: 'key12345', public_api_key: 'key12345' },
+  ]);
+  db.close();
+});
+
+test('a DB from the pre-release schema is reported instead of half-migrated', async () => {
+  const dbUrl = tmpDbUrl();
+  const old = new DatabaseSync(dbUrl.replace(/^file:/, ''));
+  old.exec('CREATE TABLE applications (name TEXT, public_api_key TEXT, url TEXT)');
+  old.close();
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(false);
+    expect(String(warn.mock.calls[0][1])).toContain('older schema. Delete it');
+  } finally {
+    warn.mockRestore();
+  }
 });
 
 test('a remote DB works without Node modules or process.env (edge runtimes)', async () => {

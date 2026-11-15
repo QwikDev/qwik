@@ -49,22 +49,42 @@ export async function openLibsql(
   }
   // intMode 'number' matches node:sqlite so both backends return the same value types.
   const config = { url, intMode: 'number' as const, ...(authToken ? { authToken } : {}) };
-  const client = createClient(config);
+  return libsqlInsightsDb(createClient(config));
+}
+
+/**
+ * The parts of a `@libsql/client` client the adapter uses.
+ *
+ * @internal
+ */
+export interface LibsqlClientLike {
+  executeMultiple(sql: string): Promise<unknown>;
+  batch(statements: any[], mode: 'write'): Promise<unknown>;
+  execute(statement: { sql: string; args: any }): Promise<{ rows: any[]; columns: string[] }>;
+  close(): void;
+}
+
+/**
+ * Adapt an existing `@libsql/client` client, e.g. one an app already opened.
+ *
+ * @internal
+ */
+export function libsqlInsightsDb(client: LibsqlClientLike): InsightsDb {
   return {
     exec: async (sql) => {
       await client.executeMultiple(sql);
     },
     batch: async (statements) => {
-      await client.batch(statements as any[], 'write');
+      await client.batch(statements, 'write');
     },
     all: async (sql, params = []) => {
-      const result = await client.execute({ sql, args: params as any });
+      const result = await client.execute({ sql, args: params });
       // Normalize libSQL Row objects to plain records (named columns only, no numeric indices).
       return result.rows.map((row) => {
         const record: Record<string, any> = {};
         for (let i = 0; i < result.columns.length; i++) {
           const column = result.columns[i];
-          record[column] = (row as any)[column];
+          record[column] = row[column];
         }
         return record;
       });
@@ -73,6 +93,10 @@ export async function openLibsql(
   };
 }
 
+// The dashboard schema's foreign keys are declarative only (one targets a non-unique column), as
+// on its production database; local drivers enforce them by default.
+const FOREIGN_KEYS_OFF = 'PRAGMA foreign_keys = OFF';
+
 /** @internal — exported for tests; use {@link openInsightsDb}. */
 export async function openNodeSqlite(
   path: string,
@@ -80,7 +104,7 @@ export async function openNodeSqlite(
 ): Promise<InsightsDb> {
   // Lazy import keeps the experimental-SQLite warning out of processes that never touch insights.
   const { DatabaseSync } = sqlite ?? (await import('node:sqlite'));
-  const db = new DatabaseSync(path);
+  const db = new DatabaseSync(path, { enableForeignKeyConstraints: false });
   return {
     exec: async (sql) => db.exec(sql),
     // Synchronous between BEGIN and COMMIT, so concurrent beacons can't interleave.
@@ -161,7 +185,9 @@ export async function openInsightsDb(url: string, authToken?: string): Promise<I
   }
   // libSQL reads `#` and `?` as URL syntax and percent-decodes the path.
   const fileUrl = `file:${path.replace(/[%#?]/g, encodeURIComponent)}`;
-  return openLibsql(fileUrl, undefined, 'Local insights DBs on Node < 22.5 need');
+  const db = await openLibsql(fileUrl, undefined, 'Local insights DBs on Node < 22.5 need');
+  await db.exec(FOREIGN_KEYS_OFF);
+  return db;
 }
 
 /** `node:sqlite`, or null on Node versions that don't ship it. */

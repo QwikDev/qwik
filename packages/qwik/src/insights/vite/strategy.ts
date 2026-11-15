@@ -230,7 +230,7 @@ async function readEdges(dbUrl: string, publicApiKey: string, authToken?: string
       return null;
     }
     const manifestRows = await db.all(
-      `SELECT hash FROM manifests WHERE public_api_key = ? ORDER BY first_seen DESC LIMIT ${RECENT_MANIFESTS}`,
+      `SELECT hash FROM manifests WHERE public_api_key = ? GROUP BY hash ORDER BY max(timestamp) DESC LIMIT ${RECENT_MANIFESTS}`,
       [publicApiKey]
     );
     const manifestHashes = manifestRows.map((row) => row.hash as string);

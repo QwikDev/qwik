@@ -9,16 +9,20 @@ import {
   redactInsightsDbUrl,
 } from '../db';
 import type { InsightsError, InsightsPayload } from '../insights';
+import { migrateInsightsDb } from './schema';
 import { MAX_BEACON_BYTES, parseInsightsError, parseInsightsPayload } from './validate';
 
 // Shared with the devtools Insights panel so both read the DB the same way.
 export {
   type InsightsDb,
   type InsightsStatement,
+  type LibsqlClientLike,
+  libsqlInsightsDb,
   localInsightsDbPath,
   openInsightsDb,
   redactInsightsDbUrl,
 } from '../db';
+export { migrateInsightsDb } from './schema';
 
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
 function cleanupSymbolName(symbolName?: string | null): string | null {
@@ -30,33 +34,12 @@ function cleanupSymbolName(symbolName?: string | null): string | null {
 }
 
 const bucketColumns = (prefix: string) =>
-  Array.from(
-    { length: NUMBER_OF_BUCKETS },
-    (_, i) => `${prefix}${padBucket(i)} INTEGER NOT NULL DEFAULT 0`
-  ).join(', ');
-
-// Upsert conflict targets; `from` is NULL for root edges, and NULLs never conflict in SQLite.
-const EDGE_KEY = `public_api_key, manifest_hash, ifnull("from", ''), "to"`;
-const ROUTE_KEY = 'public_api_key, manifest_hash, route, symbol';
-
-const schemaReady = new WeakSet<InsightsDb>();
-async function ensureSchema(db: InsightsDb): Promise<void> {
-  if (schemaReady.has(db)) {
-    return;
-  }
-  await db.exec(
-    `CREATE TABLE IF NOT EXISTS applications (name TEXT, public_api_key TEXT, url TEXT);
-     CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_key ON applications(public_api_key);
-     CREATE TABLE IF NOT EXISTS edges ("from" TEXT, "to" TEXT NOT NULL, manifest_hash TEXT NOT NULL, public_api_key TEXT, interaction INTEGER NOT NULL DEFAULT 0, ${bucketColumns('delay_count_')}, ${bucketColumns('latency_count_')});
-     CREATE UNIQUE INDEX IF NOT EXISTS idx_edges_key ON edges(${EDGE_KEY});
-     CREATE TABLE IF NOT EXISTS routes (public_api_key TEXT, manifest_hash TEXT NOT NULL, route TEXT NOT NULL, symbol TEXT NOT NULL, ${bucketColumns('timeline_')});
-     CREATE UNIQUE INDEX IF NOT EXISTS idx_routes_key ON routes(${ROUTE_KEY});
-     CREATE TABLE IF NOT EXISTS manifests (public_api_key TEXT NOT NULL, hash TEXT NOT NULL, first_seen INTEGER NOT NULL);
-     CREATE UNIQUE INDEX IF NOT EXISTS idx_manifests_key ON manifests(public_api_key, hash);
-     CREATE TABLE IF NOT EXISTS errors (public_api_key TEXT, manifest_hash TEXT NOT NULL, timestamp INTEGER, url TEXT, source TEXT, line INTEGER, "column" INTEGER, message TEXT, error TEXT, stack TEXT);`
-  );
-  schemaReady.add(db);
-}
+  Array.from({ length: NUMBER_OF_BUCKETS }, (_, i) => `${prefix}${padBucket(i)}`);
+const DELAY_COLUMNS = bucketColumns('delay_count_');
+const LATENCY_COLUMNS = bucketColumns('latency_count_');
+const TIMELINE_COLUMNS = bucketColumns('timeline_');
+// The dashboard schema has no defaults for its bucket columns, so new rows list them all.
+const zeros = (columns: string[]) => columns.map(() => '0').join(', ');
 
 const dbCache = new Map<string, Promise<InsightsDb>>();
 function getDb(dbUrl: string, authToken?: string): Promise<InsightsDb> {
@@ -82,7 +65,7 @@ async function openWritableDb(dbUrl: string, authToken: string | undefined): Pro
   }
   const db = await openInsightsDb(dbUrl, authToken);
   try {
-    await ensureSchema(db);
+    await migrateInsightsDb(db);
   } catch (error) {
     // Each retry opens a new adapter, so don't leak this one.
     try {
@@ -106,9 +89,11 @@ function warnOnce(message: string, error: unknown): void {
   }
 }
 
-// Increment one delay + one latency bucket for an edge, inserting the row if it's new.
-// Column names are derived from clamped bucket indices (never user input); values are bound.
-function edgeUpsert(e: {
+const EDGE_MATCH = `public_api_key = ? AND manifest_hash = ? AND "from" IS ? AND "to" = ?`;
+
+// Edges have no unique key, so add a missing row, then count into one row, in one transaction.
+// Column names come from clamped bucket indices (never user input); values are bound.
+function edgeIncrement(e: {
   publicApiKey: string;
   manifestHash: string;
   from: string | null;
@@ -116,63 +101,84 @@ function edgeUpsert(e: {
   interaction: number;
   delayBucket: number;
   latencyBucket: number;
-}): InsightsStatement {
-  const delayCol = `delay_count_${padBucket(e.delayBucket)}`;
-  const latencyCol = `latency_count_${padBucket(e.latencyBucket)}`;
-  return {
-    sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", interaction, ${delayCol}, ${latencyCol}) VALUES (?, ?, ?, ?, ?, 1, 1)
-      ON CONFLICT (${EDGE_KEY}) DO UPDATE SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1, interaction = max(interaction, excluded.interaction)`,
-    args: [e.publicApiKey, e.manifestHash, e.from, e.to, e.interaction],
-  };
+}): InsightsStatement[] {
+  const match = [e.publicApiKey, e.manifestHash, e.from, e.to];
+  const delayCol = DELAY_COLUMNS[e.delayBucket];
+  const latencyCol = LATENCY_COLUMNS[e.latencyBucket];
+  return [
+    {
+      sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", interaction, ${DELAY_COLUMNS.join(', ')}, ${LATENCY_COLUMNS.join(', ')})
+        SELECT ?, ?, ?, ?, 0, ${zeros(DELAY_COLUMNS)}, ${zeros(LATENCY_COLUMNS)}
+        WHERE NOT EXISTS (SELECT 1 FROM edges WHERE ${EDGE_MATCH})`,
+      args: [...match, ...match],
+    },
+    {
+      sql: `UPDATE edges SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1, interaction = max(interaction, ?)
+        WHERE id = (SELECT min(id) FROM edges WHERE ${EDGE_MATCH})`,
+      args: [e.interaction, ...match],
+    },
+  ];
 }
 
-function routeUpsert(r: {
+function routeIncrement(r: {
   publicApiKey: string;
   manifestHash: string;
   route: string;
   symbol: string;
   timelineBucket: number;
 }): InsightsStatement {
-  const timelineCol = `timeline_${padBucket(r.timelineBucket)}`;
+  const timelineCol = TIMELINE_COLUMNS[r.timelineBucket];
+  const values = TIMELINE_COLUMNS.map((column) => (column === timelineCol ? '1' : '0')).join(', ');
   return {
-    sql: `INSERT INTO routes (public_api_key, manifest_hash, route, symbol, ${timelineCol}) VALUES (?, ?, ?, ?, 1)
-      ON CONFLICT (${ROUTE_KEY}) DO UPDATE SET ${timelineCol} = ${timelineCol} + 1`,
+    sql: `INSERT INTO routes (public_api_key, manifest_hash, route, symbol, ${TIMELINE_COLUMNS.join(', ')}) VALUES (?, ?, ?, ?, ${values})
+      ON CONFLICT (public_api_key, manifest_hash, route, symbol) DO UPDATE SET ${timelineCol} = ${timelineCol} + 1`,
     args: [r.publicApiKey, r.manifestHash, r.route, r.symbol],
   };
 }
 
+// The dashboard indexes manifests without a unique key, so guard the insert instead.
+const manifestInsert = (publicApiKey: string, manifestHash: string): InsightsStatement => ({
+  sql: `INSERT INTO manifests (public_api_key, hash, timestamp) SELECT ?, ?, ?
+    WHERE NOT EXISTS (SELECT 1 FROM manifests WHERE public_api_key = ? AND hash = ?)`,
+  args: [publicApiKey, manifestHash, Date.now(), publicApiKey, manifestHash],
+});
+
+const applicationInsert = (publicApiKey: string): InsightsStatement => ({
+  sql: `INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`,
+  args: [publicApiKey, publicApiKey],
+});
+
 /**
- * Write one insights beacon into a libSQL/SQLite database, creating the schema on first use.
- * Mirrors the central ingest: per-symbol `from → to` edges plus `route → symbol` timings, bucketed.
- * The URL scheme selects the backend — local `file:` (node:sqlite) or remote Turso
- * (`@libsql/client`).
+ * Options for the `record*` functions, which write into an already opened insights DB.
  *
- * The payload is validated first (types and size limits), so it may come straight from a request.
- * Resolves to whether the beacon was recorded.
- *
- * @beta
+ * @internal
  */
-export async function writeInsights(
-  dbUrl: string,
-  beacon: InsightsPayload,
-  authToken?: string
+export interface RecordInsightsOptions {
+  /** Add unknown apps to `applications`; the hosted dashboard registers apps itself. */
+  registerApplication?: boolean;
+}
+
+/**
+ * Validate one symbol beacon and record it into an open insights DB in one transaction: per-symbol
+ * `from → to` edges and `route → symbol` timings, bucketed. Resolves to whether it was recorded.
+ *
+ * @internal
+ */
+export async function recordInsightsBeacon(
+  db: InsightsDb,
+  beacon: unknown,
+  { registerApplication = false }: RecordInsightsOptions = {}
 ): Promise<boolean> {
   const payload = parseInsightsPayload(beacon);
   if (!payload) {
     return false;
   }
   const { publicApiKey, manifestHash } = payload;
-  const statements: InsightsStatement[] = [
-    {
-      sql: `INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`,
-      args: [publicApiKey, publicApiKey],
-    },
-    // First sighting of a build, so the strategy can prefer the most recent builds.
-    {
-      sql: `INSERT OR IGNORE INTO manifests (public_api_key, hash, first_seen) VALUES (?, ?, ?)`,
-      args: [publicApiKey, manifestHash, Date.now()],
-    },
-  ];
+  const statements: InsightsStatement[] = registerApplication
+    ? [applicationInsert(publicApiKey)]
+    : [];
+  // First sighting of a build, so reports and the strategy can prefer the most recent builds.
+  statements.push(manifestInsert(publicApiKey, manifestHash));
 
   let previousSymbol = cleanupSymbolName(payload.previousSymbol);
   for (let i = 0; i < payload.symbols.length; i++) {
@@ -180,7 +186,7 @@ export async function writeInsights(
     const symbolHash = cleanupSymbolName(event.symbol);
     if (symbolHash) {
       statements.push(
-        edgeUpsert({
+        ...edgeIncrement({
           publicApiKey,
           manifestHash,
           from: previousSymbol,
@@ -189,7 +195,7 @@ export async function writeInsights(
           delayBucket: toBucket(event.delay),
           latencyBucket: toBucket(event.latency),
         }),
-        routeUpsert({
+        routeIncrement({
           publicApiKey,
           manifestHash,
           route: event.route,
@@ -200,23 +206,20 @@ export async function writeInsights(
     }
     previousSymbol = symbolHash;
   }
-  const db = await getDb(dbUrl, authToken);
   await db.batch(statements);
   return true;
 }
 
-/** Record one client error beacon, ignoring other apps' errors when `expectedKey` is set. */
-async function writeInsightsError(
-  dbUrl: string,
-  beacon: unknown,
-  expectedKey: string | undefined,
-  authToken: string | undefined
-): Promise<boolean> {
+/**
+ * Validate one client error beacon and record it into an open insights DB.
+ *
+ * @internal
+ */
+export async function recordInsightsError(db: InsightsDb, beacon: unknown): Promise<boolean> {
   const error: InsightsError | null = parseInsightsError(beacon);
-  if (!error || (expectedKey && error.publicApiKey !== expectedKey)) {
+  if (!error) {
     return false;
   }
-  const db = await getDb(dbUrl, authToken);
   await db.batch([
     {
       sql: `INSERT INTO errors (public_api_key, manifest_hash, timestamp, url, source, line, "column", message, error, stack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -235,6 +238,119 @@ async function writeInsightsError(
     },
   ]);
   return true;
+}
+
+/**
+ * What a build knows about one symbol, as in `q-manifest.json` or an optimizer segment.
+ *
+ * @internal
+ */
+export interface InsightsSymbolDetail {
+  hash: string;
+  displayName: string;
+  origin: string;
+  loc: readonly number[];
+}
+
+const SYMBOL_DETAIL_ROWS_PER_STATEMENT = 100;
+
+const isSymbolDetail = (symbol: InsightsSymbolDetail) =>
+  typeof symbol?.hash === 'string' &&
+  typeof symbol.displayName === 'string' &&
+  typeof symbol.origin === 'string' &&
+  Number.isInteger(symbol.loc?.[0]) &&
+  Number.isInteger(symbol.loc?.[1]);
+
+/**
+ * Record a build's symbol names and source locations, which reports use to show readable names and
+ * source previews. Re-recording a build updates its rows.
+ *
+ * @internal
+ */
+export async function recordInsightsSymbols(
+  db: InsightsDb,
+  publicApiKey: string,
+  manifestHash: string,
+  symbols: InsightsSymbolDetail[],
+  { registerApplication = false }: RecordInsightsOptions = {}
+): Promise<void> {
+  const statements: InsightsStatement[] = registerApplication
+    ? [applicationInsert(publicApiKey)]
+    : [];
+  statements.push(manifestInsert(publicApiKey, manifestHash));
+  const validSymbols = symbols.filter(isSymbolDetail);
+  for (let start = 0; start < validSymbols.length; start += SYMBOL_DETAIL_ROWS_PER_STATEMENT) {
+    const chunk = validSymbols.slice(start, start + SYMBOL_DETAIL_ROWS_PER_STATEMENT);
+    statements.push({
+      sql: `INSERT INTO symbolDetail (hash, public_api_key, manifest_hash, full_name, origin, lo, hi)
+        VALUES ${chunk.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ')}
+        ON CONFLICT (public_api_key, manifest_hash, hash) DO UPDATE SET
+          full_name = excluded.full_name, origin = excluded.origin, lo = excluded.lo, hi = excluded.hi`,
+      args: chunk.flatMap((symbol) => [
+        symbol.hash,
+        publicApiKey,
+        manifestHash,
+        symbol.displayName,
+        symbol.origin,
+        symbol.loc[0],
+        symbol.loc[1],
+      ]),
+    });
+  }
+  await db.batch(statements);
+}
+
+/**
+ * Open (and migrate) a DB, then record a build's symbol details into it.
+ *
+ * @internal
+ */
+export async function writeInsightsSymbols(
+  dbUrl: string,
+  publicApiKey: string,
+  manifestHash: string,
+  symbols: InsightsSymbolDetail[],
+  authToken?: string
+): Promise<void> {
+  const db = await getDb(dbUrl, authToken);
+  await recordInsightsSymbols(db, publicApiKey, manifestHash, symbols, {
+    registerApplication: true,
+  });
+}
+
+/**
+ * Write one insights beacon into a libSQL/SQLite database, creating the schema on first use. The
+ * URL scheme selects the backend — local `file:` (node:sqlite) or remote Turso (`@libsql/client`).
+ *
+ * The payload is validated first (types and size limits), so it may come straight from a request.
+ * Resolves to whether the beacon was recorded.
+ *
+ * @beta
+ */
+export async function writeInsights(
+  dbUrl: string,
+  beacon: InsightsPayload,
+  authToken?: string
+): Promise<boolean> {
+  if (!parseInsightsPayload(beacon)) {
+    return false;
+  }
+  const db = await getDb(dbUrl, authToken);
+  return recordInsightsBeacon(db, beacon, { registerApplication: true });
+}
+
+/** Record one client error beacon, ignoring other apps' errors when `expectedKey` is set. */
+async function writeInsightsError(
+  dbUrl: string,
+  beacon: unknown,
+  expectedKey: string | undefined,
+  authToken: string | undefined
+): Promise<boolean> {
+  const error = parseInsightsError(beacon);
+  if (!error || (expectedKey && error.publicApiKey !== expectedKey)) {
+    return false;
+  }
+  return recordInsightsError(await getDb(dbUrl, authToken), error);
 }
 
 /** The body as text, or null once it exceeds `maxBytes` (chunked bodies have no content-length). */

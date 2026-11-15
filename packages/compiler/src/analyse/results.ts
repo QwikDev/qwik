@@ -5,7 +5,7 @@ import { ResultKind } from '../schema';
 import type { LowerContext } from './lower-context';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { LocalKind } from './locals';
-import { ImplicitBindingKind } from './ast/bindings';
+import { ImplicitBindingKind, memberChainOf } from './ast/bindings';
 import { JsxValueKind } from './ast/jsx-analysis';
 
 const unknown: Result = { kind: ResultKind.Unknown };
@@ -249,23 +249,7 @@ export function recordBindingResults(ctx: LowerContext): void {
       consumers: [],
     };
     for (const reference of ctx.bindings.referencesOf(binding.id)) {
-      let node: Node = reference.node;
-      let parent = ctx.bindings.parentOf(node);
-      const path: string[] = [];
-      while (parent?.type === 'MemberExpression' && parent.object === node) {
-        const name = parent.computed
-          ? parent.property.type === 'Literal'
-            ? String(parent.property.value)
-            : null
-          : identifierName(parent.property);
-        if (name === null) {
-          path.push('*');
-        } else {
-          path.push(name);
-        }
-        node = parent;
-        parent = ctx.bindings.parentOf(node);
-      }
+      const { node, parent, path } = memberChainOf(reference.node, ctx.bindings);
       if (parent?.type === 'AssignmentExpression' && parent.left === node) {
         const value = expressionResult(parent, ctx);
         if (path.length === 0) {

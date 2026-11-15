@@ -200,4 +200,36 @@ describe('QRL captures serialization', () => {
     await flush();
     expect(container.querySelector('button')!.textContent).toBe('2');
   });
+
+  it('should keep an aliased store branch in sync with a read through the store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: { count: 1 }, label: 'count' });
+      const counter = store.counter;
+      return (
+        <button onClick$={() => counter.count++}>
+          {store.label}:{store.counter.count}
+        </button>
+      );
+    });
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelector('button')!.textContent).toBe('count:2');
+  });
+
+  it('should follow a replaced store branch through its alias', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: { count: 1 } });
+      const counter = store.counter;
+      return <button onClick$={() => (store.counter = { count: 5 })}>{counter.count}</button>;
+    });
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelector('button')!.textContent).toBe('5');
+  });
 });

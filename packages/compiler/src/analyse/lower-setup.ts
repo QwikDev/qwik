@@ -27,8 +27,10 @@ import { UnsupportedError } from '../errors';
 import { localReadIr, LocalKind, type SetupLocals } from './locals';
 import { liftedLocal, pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import { memberChainOf } from './ast/bindings';
 import {
   lowerInlineExpressionValue,
+  propertyValueOf,
   recordPayloadJsx,
   recordPayloadReads,
   tryLowerExprIr,
@@ -60,7 +62,8 @@ import {
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,
   ctx: LowerContext,
-  locals: SetupLocals
+  locals: SetupLocals,
+  kind: LocalKind.Const | LocalKind.Store = LocalKind.Const
 ): Setup {
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
@@ -69,7 +72,7 @@ export function lowerConstDeclaration(
     lift: false,
   });
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
-  return lowerConstBinding(declarator.id, value, ctx, locals);
+  return lowerConstBinding(declarator.id, value, ctx, locals, kind);
 }
 
 /** Authored patterns keep native defaults, rest and evaluation order. */
@@ -77,16 +80,12 @@ export function lowerConstBinding(
   pattern: BindingPattern,
   value: Value,
   ctx: LowerContext,
-  locals: SetupLocals
+  locals: SetupLocals,
+  kind: LocalKind.Const | LocalKind.Store = LocalKind.Const
 ): Setup {
   return {
     s: SetupKind.Const,
-    ...lowerSetupBinding(
-      pattern,
-      ctx,
-      locals,
-      value.v === ValueKind.Qrl ? LocalKind.Qrl : LocalKind.Const
-    ),
+    ...lowerSetupBinding(pattern, ctx, locals, value.v === ValueKind.Qrl ? LocalKind.Qrl : kind),
     value,
   };
 }
@@ -356,6 +355,111 @@ function aliasSource(expression: Expression, ctx: LowerContext): AliasSource | n
   return { ...source, read };
 }
 
+/** The member path a live read walks from its root, such as `['counter', 'steps']`. */
+function readPath(read: ValueIR): string[] | null {
+  const path: string[] = [];
+  let value = read;
+  while (value.kind === ValueIrKind.Member || value.kind === ValueIrKind.Index) {
+    if (value.kind === ValueIrKind.Member) {
+      path.unshift(value.name);
+    } else if (value.key.kind === ValueIrKind.Lit) {
+      path.unshift(String(value.key.value));
+    } else {
+      return null;
+    }
+    value = value.obj;
+  }
+  return value.kind === ValueIrKind.BindingRead ? path : null;
+}
+
+/** The const a use declares as `const alias = <use>`; any other use may replace what it reads. */
+function constAliasOf(use: Node, parent: Node | null, ctx: LowerContext): LocalId | null {
+  if (
+    parent?.type !== 'VariableDeclarator' ||
+    parent.init !== use ||
+    parent.id.type !== 'Identifier'
+  ) {
+    return null;
+  }
+  const declaration = ctx.bindings.parentOf(parent);
+  return declaration?.type === 'VariableDeclaration' && declaration.kind === 'const'
+    ? ctx.bindings.declaration(parent.id)
+    : null;
+}
+
+/** A deep `useStore({...})` literal holds an object at `branch`, so its sub-store has an identity. */
+function hasBranchLiteral(store: LocalId, branch: readonly string[], ctx: LowerContext): boolean {
+  const [declaration] = ctx.bindings.declarationsOf(store);
+  const init =
+    declaration?.type === 'VariableDeclarator' ? unwrapExpression(declaration.init) : null;
+  if (init?.type !== 'CallExpression' || init.arguments.length !== 1) {
+    return false;
+  }
+  let value = unwrapExpression(init.arguments[0]);
+  for (let i = 0; i < branch.length; i++) {
+    value =
+      value?.type === 'ObjectExpression'
+        ? unwrapExpression(propertyValueOf(value, branch[i]))
+        : null;
+  }
+  return value?.type === 'ObjectExpression' || value?.type === 'ArrayExpression';
+}
+
+/** No use of the store, or of a const alias of it, can put another object at `branch`. */
+function isBranchNeverReplaced(
+  store: LocalId,
+  branch: readonly string[],
+  ctx: LowerContext
+): boolean {
+  const references = ctx.bindings.referencesOf(store);
+  for (let i = 0; i < references.length; i++) {
+    const { node, parent, path } = memberChainOf(references[i].node, ctx.bindings);
+    // A method can replace whatever its receiver holds.
+    const isCalled = parent?.type === 'CallExpression' && parent.callee === node;
+    const used = isCalled ? path.slice(0, -1) : path;
+    let shared = 0;
+    while (shared < used.length && used[shared] !== '*' && used[shared] === branch[shared]) {
+      shared++;
+    }
+    if (shared < used.length) {
+      // Past the branch or on another one; a computed key may still name the branch.
+      if (shared < branch.length && used[shared] === '*') {
+        return false;
+      }
+      continue;
+    }
+    const alias = constAliasOf(node, parent, ctx);
+    if (
+      alias === null ||
+      (shared < branch.length && !isBranchNeverReplaced(alias, branch.slice(shared), ctx))
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** `const counter = store.counter` can hold the sub-store itself when nothing replaces it. */
+function isStableStoreBranch(
+  declarator: VariableDeclarator,
+  source: AliasSource,
+  ctx: LowerContext
+): boolean {
+  if (
+    declarator.id.type !== 'Identifier' ||
+    ctx.locals.get(source.root)?.kind !== LocalKind.Store
+  ) {
+    return false;
+  }
+  const branch = readPath(source.read);
+  return (
+    branch !== null &&
+    branch.length > 0 &&
+    hasBranchLiteral(source.root, branch, ctx) &&
+    isBranchNeverReplaced(source.root, branch, ctx)
+  );
+}
+
 function lowerAliasOrSetupDeclaration(
   declarator: VariableDeclarator,
   ctx: LowerContext,
@@ -397,6 +501,10 @@ function lowerAliasDeclaration(
       return undefined;
     }
     ({ source, setup } = bound);
+  }
+  if (isStableStoreBranch(declarator, source, ctx)) {
+    // A captured sub-store serializes alone, without the rest of the store.
+    return lowerConstDeclaration(declarator, ctx, locals, LocalKind.Store);
   }
   const root = source.root;
   const register = (node: Node, read: ValueIR, defaultValue?: ValueIR) =>

@@ -338,6 +338,92 @@ export default (props: { initial: number }) => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should capture only the store branch a const alias names', async () => {
+    const output = await testInput(mode, 'setup-store-branch-alias', {
+      code: `import { useStore } from '@qwik.dev/core';
+export default () => {
+  const store = useStore({ counter: { count: 1, steps: [1] }, largeData: { data: 'LARGE' } });
+  const whole = store;
+  const counter = whole.counter;
+  const steps = counter.steps;
+  return (
+    <button onClick$={() => { counter.count++; steps.push(counter.count); store.largeData.data = ''; }}>
+      {counter.count}
+    </button>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const event = output.modules.find((module) => module.segment?.ctxName === 'onClick$');
+    expect(event?.segment?.captureNames).toEqual(['counter', 'store']);
+    const text = output.modules.find((module) => module.segment?.ctxName === 'text');
+    expect(text?.segment?.captureNames).toEqual(['counter']);
+  });
+
+  test.each([
+    ['the branch is reassigned', `<i onClick$={() => (store.branch = { count: 2 })} />`],
+    ['the branch is deleted', `<i onClick$={() => delete store.branch} />`],
+    ['a key is computed', `<i onClick$={() => (store[props.key] = { count: 2 })} />`],
+    ['the store is passed on', `<Child state={store} />`],
+    ['the store is an argument', `<i onClick$={() => console.log(store)} />`],
+    ['a store method is called', `<i onClick$={() => store.reset()} />`],
+    [
+      'another alias of the store writes it',
+      `<i onClick$={() => (whole.branch = { count: 2 })} />`,
+    ],
+  ])('should keep a store branch alias live when %s', async (_, use) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer: mode === 'ssr',
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useStore } from '@qwik.dev/core';
+import { Child } from './child';
+export default (props) => {
+  const store = useStore({ branch: { count: 1 }, reset() {} });
+  const whole = store;
+  const branch = store.branch;
+  return <p onClick$={() => branch.count++}>{use}{whole.branch.count}</p>;
+};`.replace('{use}', use),
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const events = output.modules.filter((module) => module.segment?.ctxName === 'onClick$');
+    expect(events.map((module) => module.segment!.captureNames)).not.toContainEqual(['branch']);
+  });
+
+  test.each([
+    ['a primitive member', `useStore({ branch: 1 })`],
+    ['an initializer the compiler cannot read', `useStore(props.initial)`],
+    ['a shallow store', `useStore({ branch: { count: 1 } }, { deep: false })`],
+    [
+      'a spread that may replace the branch',
+      `useStore({ branch: { count: 1 }, ...props.initial })`,
+    ],
+  ])('should keep a store alias live for %s', async (_, store) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer: mode === 'ssr',
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useStore } from '@qwik.dev/core';
+export default (props) => {
+  const store = ${store};
+  const branch = store.branch;
+  return <p onClick$={() => console.log(branch)}>{String(branch)}</p>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const event = output.modules.find((module) => module.segment?.ctxName === 'onClick$');
+    expect(event?.segment?.captureNames).toEqual(['store']);
+  });
+
   test('should restore await context across hook, explicit and event QRLs', async () => {
     await testInput(mode, 'qrl-await', {
       code: `import { $, useSignal, useTask$ } from '@qwik.dev/core';

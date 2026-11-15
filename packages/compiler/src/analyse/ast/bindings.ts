@@ -9,6 +9,7 @@ import type {
 } from 'oxc-parser';
 import { BindingScope, ReadRole, VarKind, type LocalId, type ModulePlan } from '../../schema';
 import { isNode, type WalkableNode } from './ast-types';
+import { identifierName } from './utils';
 
 type Binding = ModulePlan['bindings'][number];
 
@@ -53,6 +54,27 @@ export interface BindingGraph {
   ): readonly Extract<Node, { type: 'ReturnStatement' }>[];
   implicitKind(binding: LocalId): ImplicitBindingKind | null;
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
+}
+
+/** The outermost `ref.a.b` a reference roots, with its path; `*` is a key known only at run time. */
+export function memberChainOf(
+  reference: Node,
+  bindings: BindingGraph
+): { node: Node; parent: Node | null; path: string[] } {
+  let node = reference;
+  let parent = bindings.parentOf(node);
+  const path: string[] = [];
+  while (parent?.type === 'MemberExpression' && parent.object === node) {
+    const name = parent.computed
+      ? parent.property.type === 'Literal'
+        ? String(parent.property.value)
+        : null
+      : identifierName(parent.property);
+    path.push(name ?? '*');
+    node = parent;
+    parent = bindings.parentOf(node);
+  }
+  return { node, parent, path };
 }
 
 function bindingIdentifiers(pattern: BindingPattern): BindingIdentifier[] {

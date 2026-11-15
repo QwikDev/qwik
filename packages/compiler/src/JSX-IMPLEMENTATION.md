@@ -249,6 +249,13 @@ Simple props, aliases, rest and some defaults are already implemented. Complete:
 - [x] Destructured store aliases after source replacement. `const { item } = store` reads
       `store.item` live, so replacing the slot updates the text; `store.spec.tsx` passes in CSR
       and resume.
+- [x] Store branch aliases. `const counter = store.counter` is a real constant holding the
+      sub-store, so a QRL captures the branch and the rest of the store is not serialized. It
+      applies only when `useStore` gets one object literal with an object or array at that path
+      and every use of the store at the path or above it is a `const alias = …` initializer;
+      any other use (a write, `delete`, a computed key, a call, an argument, a prop) keeps the
+      live alias. A destructured alias stays live (`setup-store-branch-alias` snapshots,
+      `compiler-harness.spec.tsx` in CSR and resume).
 
 Share binding facts across component parameters, callbacks and collection rows.
 

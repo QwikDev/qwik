@@ -107,7 +107,7 @@ function plainObjectOf(node: Expression, ctx: LowerContext): ObjectExpression | 
 }
 
 /** The value a literal gives `name`, unless a later spread or accessor may replace it. */
-function propertyValueOf(object: ObjectExpression, name: string): Expression | null {
+export function propertyValueOf(object: ObjectExpression, name: string): Expression | null {
   let value: Expression | null = null;
   for (const property of object.properties) {
     if (property.type === 'SpreadElement') {

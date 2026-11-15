@@ -12,6 +12,7 @@ import {
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
+import { attachRoundTrips } from '../utils/click-tests';
 import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
 const CONDITIONAL_ALL = fixtureById('conditional/all');
@@ -69,6 +70,21 @@ test.describe('click before core loaded', () => {
     );
     await releaseAll(gate, startupPiece);
     await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test("the click's handler is requested while core is still loading", async ({ page }) => {
+    const { roundTrips } = await clickWhileLoading(
+      page,
+      [coreUrl()],
+      clickConditional(page),
+      CONDITIONAL_ALL
+    );
+    await attachRoundTrips('round-trips.txt', roundTrips, CONDITIONAL_ALL.sources);
+    const requestedBeforeCoreArrived = roundTrips[0].urls;
+    expect(requestedBeforeCoreArrived).not.toContain(coreUrl());
+    expect(
+      requestedBeforeCoreArrived.filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+    ).toHaveLength(1);
   });
 });
 

@@ -15,6 +15,9 @@
  * - `wp:` for passive window events
  *
  * `QwikEvContainerReady, instanceHash` marks a streamed container's serialized state as complete.
+ *
+ * Handler attributes hold `chunk#symbol#captures#otherChunks` QRLs separated by `|`. `otherChunks`
+ * is an optional comma-separated list of chunks to import alongside `chunk`.
  */
 
 import type {
@@ -173,6 +176,7 @@ const resolveHandler = (
   base: URL,
   chunk: string,
   symbol: string,
+  otherChunks: string | undefined,
   reqTime: number,
   reportSyncError = true
 ) => {
@@ -202,8 +206,13 @@ const resolveHandler = (
     return handler;
   }
 
+  const chunks = otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
   const href = new URL(chunk, base).href;
   const module = import(/* @vite-ignore */ href);
+  for (let i = 1; i < chunks.length; i++) {
+    // Only starts the download, whoever needs the chunk imports it and reports failures
+    import(/* @vite-ignore */ new URL(chunks[i], base).href).catch(() => {});
+  }
   return module.then(
     (module) => {
       const handler = module[symbol] as Handler | undefined;
@@ -314,7 +323,7 @@ const dispatch = (
     for (let i = 0; i < qrls.length; i++) {
       const qrl = qrls[i];
       const reqTime = performance.now();
-      const [chunk, symbol, capturedIds] = qrl.split('#');
+      const [chunk, symbol, capturedIds, otherChunks] = qrl.split('#');
       const run = (handler: Handler | undefined): void | Promise<void> => {
         if (handler && element.isConnected) {
           const onError = (error: any) => {
@@ -337,7 +346,17 @@ const dispatch = (
         }
       };
       const resolve = (reportSyncError = true) =>
-        resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
+        resolveHandler(
+          container,
+          element,
+          qBase,
+          base,
+          chunk,
+          symbol,
+          otherChunks,
+          reqTime,
+          reportSyncError
+        );
       // Sync handlers only exist once the container is ready, chunks can load meanwhile
       const handler = waitForReady && !chunk ? undefined : resolve();
       if (waitForReady) {

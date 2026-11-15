@@ -962,6 +962,12 @@ jobs:
       - name: Unit Tests
         run: pnpm run test.unit
 
+      - name: Unit Tests on binary state
+        if: matrix.settings.host == 'ubuntu-latest'
+        env:
+          QWIK_BINARY_STATE: '1'
+        run: pnpm vitest run packages/qwik/src packages/qwik-router
+
       - name: MCP browser and stdio tests
         if: matrix.settings.host == 'ubuntu-latest'
         run: |

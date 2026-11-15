@@ -81,8 +81,8 @@ export class BinaryStateReader {
   private $base$ = 0;
   private $chunkStart$ = 0;
   private $chunkEnd$ = 0;
-  private $strings$: string[] = [];
-  private $pos$ = 0;
+  protected $strings$: string[] = [];
+  protected $pos$ = 0;
   /** Offset of the last unit of every root. */
   $rootEnds$ = new Uint32Array(0);
   /** Number of units each root occupies in its root list. */
@@ -157,7 +157,7 @@ export class BinaryStateReader {
   }
 
   /** A unit of the chunk that holds the current position; a value never spans chunks. */
-  private $unit$(pos: number): number {
+  protected $unit$(pos: number): number {
     return this.$text$.charCodeAt(this.$base$ + pos) & 127;
   }
 
@@ -177,7 +177,7 @@ export class BinaryStateReader {
   }
 
   /** Moves the current position, to another chunk if needed. */
-  private $seek$(pos: number): void {
+  protected $seek$(pos: number): void {
     this.$pos$ = pos;
     if (pos < this.$chunkStart$ || pos >= this.$chunkEnd$) {
       const chunk = this.$chunkAt$(pos);
@@ -189,7 +189,7 @@ export class BinaryStateReader {
   }
 
   /** Appends the strings and units of a state script. */
-  private $appendScript$(script: string): void {
+  protected $appendScript$(script: string): void {
     const separator = script.indexOf('\n');
     const strings = JSON.parse(script.slice(1, separator)) as string[];
     for (let i = 0; i < strings.length; i++) {
@@ -268,7 +268,7 @@ export class BinaryStateReader {
     return found < key + MAX_ROOTS ? found - key : -1;
   }
 
-  private $uint$(unitCount: number): number {
+  protected $uint$(unitCount: number): number {
     let value = 0;
     for (let i = 0; i < unitCount; i++) {
       value = value * 128 + this.$unit$(this.$pos$ - i);
@@ -281,7 +281,7 @@ export class BinaryStateReader {
    * After an ArrayEnd code: returns the item count and leaves the position on the last item. The
    * unit length of the items is in `$itemsLength$`, or -1 when it is not stored.
    */
-  private $openArray$(): number {
+  protected $openArray$(): number {
     const countCode = this.$unit$(this.$pos$--);
     const count =
       countCode >= BinaryCode.Num0
@@ -336,7 +336,7 @@ export class BinaryStateReader {
     }
   }
 
-  private $float$(): number {
+  protected $float$(): number {
     let bits = 0;
     let bitCount = 0;
     let byteIndex = 0;

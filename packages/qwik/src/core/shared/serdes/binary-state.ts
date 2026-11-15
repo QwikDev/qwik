@@ -162,18 +162,23 @@ export class BinaryStateReader {
       return null;
     }
     this.$pos$ = rootListEnd - 1;
+    const firstRoot = this.$rootEnds$.length;
     this.$appendRoots$();
     this.$onRootsAdded$();
+    // A new root can be a value that was already restored inside its parent. Settle those now:
+    // the offsets of restored values are forgotten once the stream is done.
+    const restoredByOffset = this.$restoredByOffset$;
+    for (let i = firstRoot; restoredByOffset && i < this.$rootEnds$.length; i++) {
+      const restored = restoredByOffset.get(this.$rootEnds$[i]);
+      if (restored !== undefined) {
+        this.$onRootAllocated$(i, restored);
+      }
+    }
     return { $forwardRefs$: forwardRefs, $extraRootId$: extraRootId };
   }
 
   $restoreRoot$(container: DeserializeContainer, rootIndex: number): unknown {
-    const end = this.$rootEnds$[rootIndex];
-    const restored = this.$restoredByOffset$?.get(end);
-    if (restored !== undefined) {
-      return restored;
-    }
-    this.$seek$(end);
+    this.$seek$(this.$rootEnds$[rootIndex]);
     return this.$restore$(container, rootIndex, false);
   }
 

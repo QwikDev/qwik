@@ -280,6 +280,8 @@ describe('binary state', () => {
       const { reader, state } = open(shell);
       const restored = state[0].nested;
       reader.$addPatch$(patch);
+      // the stream ends before anything asks for the patch's roots
+      reader.$restoredByOffset$ = null;
       expect(state[1].again).toBe(restored);
     });
 

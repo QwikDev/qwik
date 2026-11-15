@@ -139,6 +139,122 @@ describe('binary state', () => {
     });
   });
 
+  describe('state patches', () => {
+    /** Serializes the shell roots, then every later group of roots as a patch. */
+    const stream = async (shell: unknown[], ...patches: unknown[][]) => {
+      const context = createSerializationContext(
+        null,
+        null,
+        () => '',
+        () => {},
+        new WeakMap<any, any>()
+      );
+      const addRoots = (roots: unknown[]) => roots.map((root) => context.$addRoot$(root));
+      addRoots(shell);
+      const scripts = [await context.$serializeBinary$()];
+      for (let i = 0; i < patches.length; i++) {
+        const rootStart = context.$roots$.length;
+        const rootIds: number[] = [];
+        // Roots found while serializing join the patch, as they do for a segment.
+        context.$onAddRoot$ = (rootId) => rootIds.push(rootId);
+        addRoots(patches[i]);
+        scripts.push(
+          await context.$serializeBinaryPatch$(
+            context.$getBinaryStream$(),
+            rootStart,
+            rootIds,
+            undefined,
+            (rootId) => rootId
+          )
+        );
+      }
+      return scripts;
+    };
+    const open = (shellScript: string) => {
+      const reader = new BinaryStateReader(shellScript);
+      reader.$restoredByOffset$ = new Map();
+      const container: DeserializeContainer = {
+        $getObjectById$: (id) => state[Number(id)],
+        $getForwardRef$: () => undefined,
+        getSyncFn: () => () => {},
+        $storeProxyMap$: new WeakMap(),
+        element: null,
+        $forwardRefs$: null,
+      };
+      const state = wrapBinaryStateProxy(container as any, reader) as any[];
+      return { reader, state };
+    };
+
+    it('adds the roots of a patch after the roots of the shell', async () => {
+      const [shell, patch] = await stream([{ shell: 1 }], [{ late: 2 }, 'text']);
+      const { reader, state } = open(shell);
+      expect(reader.$addPatch$(patch)).toEqual({ $forwardRefs$: 0, $extraRootId$: undefined });
+      expect(state.length).toBe(3);
+      expect(Array.from(state)).toEqual([{ shell: 1 }, { late: 2 }, 'text']);
+    });
+
+    it('restores strings that an earlier script already carried', async () => {
+      const [shell, patch] = await stream(
+        ['a string from the shell'],
+        [['a string from the shell']]
+      );
+      expect(patch).not.toContain('a string from the shell');
+      const { reader, state } = open(shell);
+      reader.$addPatch$(patch);
+      expect(state[1]).toEqual(['a string from the shell']);
+    });
+
+    it('shares an object the shell has not restored yet', async () => {
+      const nested = { name: 'nested' };
+      const [shell, patch] = await stream([{ nested }], [{ again: nested }]);
+      const { reader, state } = open(shell);
+      reader.$addPatch$(patch);
+      expect(state[1].again).toEqual(nested);
+      expect(state[0].nested).toBe(state[1].again);
+    });
+
+    it('shares an object that was restored before the patch arrived', async () => {
+      const nested = { name: 'nested' };
+      const [shell, patch] = await stream([{ nested }], [{ again: nested }]);
+      const { reader, state } = open(shell);
+      const restored = state[0].nested;
+      reader.$addPatch$(patch);
+      expect(state[1].again).toBe(restored);
+    });
+
+    it('shares objects across more than one patch', async () => {
+      const nested = { name: 'nested' };
+      const [shell, first, second] = await stream(
+        [{ nested }],
+        [{ first: nested }],
+        [{ second: nested }]
+      );
+      const { reader, state } = open(shell);
+      reader.$addPatch$(first);
+      reader.$addPatch$(second);
+      expect(state[3].second).toBe(state[1].first);
+      expect(state[0].nested).toBe(state[1].first);
+    });
+
+    it('rejects a patch that does not continue the roots received so far', async () => {
+      const [shell, first, second] = await stream([1], [2], [3]);
+      const { reader, state } = open(shell);
+      expect(reader.$addPatch$(second)).toBeNull();
+      expect(state.length).toBe(1);
+      expect(reader.$addPatch$(first)).not.toBeNull();
+      expect(Array.from(state)).toEqual([1, 2]);
+    });
+
+    it('keeps the state text until no more patches can arrive', async () => {
+      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
+      const { reader, state } = open(shell);
+      state[1];
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toBeUndefined();
+      reader.$restoredByOffset$ = null;
+    });
+  });
+
   it('writes nothing that could end or alter the script element', async () => {
     const values = Array.from({ length: 5000 }, (_, i) => [i, '</script><!--' + i, i / 7]);
     const script = await serialize(values);

@@ -69,7 +69,7 @@ import type {
   SSRWriteChunk,
   VNodeData,
 } from './qwik-types';
-import { BinaryStateWriter } from './binary-state-writer';
+import { BinaryStateWriter, type BinaryStateStream } from './binary-state-writer';
 import {
   SerializationBackRef,
   type SeenRef,
@@ -101,6 +101,7 @@ export class Serializer {
   private $binary$: BinaryStateWriter | null = null;
   /** Newly seen values whose write has not finished yet. */
   private $unwrittenSeenRefs$: SeenRef[] = [];
+  private $mapRootId$: (rootId: number) => number = (rootId) => rootId;
   /** We need to determine this at runtime because polyfills may not be loaded a module load time */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
 
@@ -119,15 +120,28 @@ export class Serializer {
     }
   }
 
-  /** Serializes the roots to the content of a binary state script. */
-  async serializeBinary(): Promise<string> {
+  /**
+   * Serializes to the content of a binary state script: all roots, or a state patch.
+   *
+   * @param mapRootId Turns the root ids of a segment into the ids of the container.
+   */
+  async serializeBinary(
+    stream: BinaryStateStream,
+    patch?: { rootStart: number; rootIds: number[]; extraRootId?: number | string | number[] },
+    mapRootId: (rootId: number) => number = (rootId) => rootId
+  ): Promise<string> {
     const jsonWriter = this.$writer$;
-    const binary = (this.$binary$ = new BinaryStateWriter());
+    const binary = (this.$binary$ = new BinaryStateWriter(stream));
+    this.$mapRootId$ = mapRootId;
     // The JSON punctuation of the shared code paths goes nowhere.
     this.$writer$ = discardWriter;
     try {
-      await this.serialize();
-      return binary.toString();
+      if (patch) {
+        await this.serializePatch(patch.rootStart, patch.rootIds, patch.extraRootId, 0);
+      } else {
+        await this.serialize();
+      }
+      return binary.$finish$();
     } finally {
       this.$binary$ = null;
       this.$writer$ = jsonWriter;
@@ -145,14 +159,32 @@ export class Serializer {
     this.$discoveredVNodeData$ = new WeakSet();
     this.$writer$.write(BRACKET_OPEN);
     this.$serializationContext$.$serializedForwardRefCount$ = 0;
+    const binary = this.$binary$;
     try {
       this.$writer$.write(String(rootStart));
       this.$writer$.write(COMMA);
       this.$writer$.write(BRACKET_OPEN);
+      binary?.$number$(rootStart);
+      const rootsStart = binary?.$length$;
       await this.outputSelectedRoots(rootIds);
       this.$writer$.write(BRACKET_CLOSE);
       const forwardRefs = this.getForwardRefsPayload();
       this.$serializationContext$.$serializedForwardRefCount$ = forwardRefs?.length ?? 0;
+      if (binary) {
+        // The patch is [rootStart, roots, forwardRefs | 0, extraRootId].
+        binary.$endArray$(rootsStart!, rootIds.length);
+        if (forwardRefs) {
+          this.outputBinaryForwardRefs(binary, forwardRefs);
+        } else {
+          binary.$number$(0);
+        }
+        if (extraRootId === undefined) {
+          binary.$constant$(Constants.Undefined);
+        } else {
+          binary.$number$(this.forwardRefRootId(extraRootId));
+        }
+        binary.$endArray$(0, 4);
+      }
       if (forwardRefs || extraRootId !== undefined) {
         this.$writer$.write(COMMA);
         if (forwardRefs) {
@@ -453,7 +485,7 @@ export class Serializer {
       binary.$constant$(value as number);
     } else {
       if (type === TypeIds.QRL && Array.isArray(value)) {
-        value = stringifyChunks(value as SSRWriteChunk[]);
+        value = stringifyChunks(value as SSRWriteChunk[], this.$mapRootId$);
       }
       if (typeof value === 'number') {
         binary.$number$(value);
@@ -471,7 +503,7 @@ export class Serializer {
       }
     }
     for (let i = 0; i < seenRefs.length; i++) {
-      seenRefs[i].$end$ = binary.$length$;
+      seenRefs[i].$end$ = binary.$offset$;
     }
   }
 
@@ -480,13 +512,13 @@ export class Serializer {
     value: number | string | any[] | SerializationBackRef
   ) {
     if (typeof value === 'number') {
-      return binary.$rootRef$(value);
+      return binary.$rootRef$(this.$mapRootId$(value));
     }
     if (!(value instanceof SerializationBackRef)) {
       throw new Error('Binary state: unsupported root ref');
     }
     if (value.$path$.length === 1) {
-      return binary.$rootRef$(value.$path$[0]);
+      return binary.$rootRef$(this.$mapRootId$(value.$path$[0]));
     }
     const offsetAfterValue = value.$ref$?.$end$;
     if (offsetAfterValue === undefined) {
@@ -1125,21 +1157,29 @@ export class Serializer {
     return included;
   }
 
-  private outputForwardRefsArray(forwardRefs: Array<number | string | number[]>): void {
-    const binary = this.$binary$;
-    if (binary) {
-      const start = binary.$length$;
-      for (let i = 0; i < forwardRefs.length; i++) {
-        const ref = forwardRefs[i];
-        if (typeof ref === 'number') {
-          binary.$number$(ref);
-        } else {
-          binary.$string$(typeof ref === 'string' ? ref : ref.join(' '));
-        }
-      }
-      binary.$endArray$(start, forwardRefs.length);
-      return binary.$type$(TypeIds.ForwardRefs);
+  /** The root a forward ref resolves to: the client only reads the root of a path. */
+  private forwardRefRootId(ref: number | string | number[]): number {
+    if (typeof ref === 'string') {
+      return parseInt(ref, 10);
     }
+    // -1 marks a forward ref that has no root yet.
+    const rootId = typeof ref === 'number' ? ref : ref[0];
+    return rootId < 0 ? rootId : this.$mapRootId$(rootId);
+  }
+
+  private outputBinaryForwardRefs(
+    binary: BinaryStateWriter,
+    forwardRefs: Array<number | string | number[]>
+  ): void {
+    const start = binary.$length$;
+    for (let i = 0; i < forwardRefs.length; i++) {
+      binary.$number$(this.forwardRefRootId(forwardRefs[i]));
+    }
+    binary.$endArray$(start, forwardRefs.length);
+    binary.$type$(TypeIds.ForwardRefs);
+  }
+
+  private outputForwardRefsArray(forwardRefs: Array<number | string | number[]>): void {
     this.outputArray(forwardRefs, true, (value) => {
       if (typeof value === 'string') {
         this.outputString(value);
@@ -1167,6 +1207,9 @@ export class Serializer {
       }
       this.$writer$.write(TypeIds.ForwardRefs + COMMA);
       this.outputForwardRefsArray(forwardRefs);
+      if (this.$binary$) {
+        this.outputBinaryForwardRefs(this.$binary$, forwardRefs);
+      }
     }
 
     this.$writer$.write(BRACKET_CLOSE);
@@ -1188,19 +1231,25 @@ const discardWriter: SSRInternalStreamWriter = {
   toString: () => '',
 };
 
-/** The string form of a QRL whose root refs need no remapping. */
-const stringifyChunks = (chunks: SSRWriteChunk[]): string => {
+/** The string form of a QRL, with its root ids mapped to those of the container. */
+const stringifyChunks = (
+  chunks: SSRWriteChunk[],
+  mapRootId: (rootId: number) => number
+): string => {
   let out = '';
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
     if (typeof chunk === 'string') {
       out += chunk;
     } else if (typeof chunk === 'number') {
-      out += chunk;
+      out += mapRootId(chunk);
     } else if ('base' in chunk) {
-      out += chunk.id - chunk.base;
+      out += mapRootId(chunk.id) - mapRootId(chunk.base);
     } else {
-      out += chunk.path.join(' ');
+      out += mapRootId(chunk.path[0]);
+      for (let j = 1; j < chunk.path.length; j++) {
+        out += ' ' + chunk.path[j];
+      }
     }
   }
   return out;

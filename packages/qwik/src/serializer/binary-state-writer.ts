@@ -4,17 +4,35 @@ const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 const UNIT = 128;
 
 /**
- * Collects the binary state stream: 7-bit units, every value followed by its code.
+ * What the state scripts of one container share: the root state and its patches are one stream.
+ *
+ * @internal
+ */
+export interface BinaryStateStream {
+  /** Every string written so far; each script only carries the ones it adds. */
+  $stringIndexes$: Map<string, number>;
+  /** Number of units written by the scripts before the current one. */
+  $length$: number;
+}
+
+/**
+ * Collects the units of one state script: 7-bit units, every value followed by its code.
  *
  * @internal
  */
 export class BinaryStateWriter {
   private $units$ = new Uint8Array(1 << 14);
-  /** Number of units written; also the offset after the last written value. */
+  /** Number of units written by this script. */
   $length$ = 0;
-  private $strings$: string[] = [];
-  private $stringIndexes$ = new Map<string, number>();
+  private $newStrings$: string[] = [];
   private $previousSharedEnd$ = 0;
+
+  constructor(private $stream$: BinaryStateStream) {}
+
+  /** The offset in the stream after the last written value. */
+  get $offset$(): number {
+    return this.$stream$.$length$ + this.$length$;
+  }
 
   private $push$(unit: number): void {
     if (this.$length$ === this.$units$.length) {
@@ -87,11 +105,12 @@ export class BinaryStateWriter {
   }
 
   $string$(value: string): void {
-    let index = this.$stringIndexes$.get(value);
+    const stringIndexes = this.$stream$.$stringIndexes$;
+    let index = stringIndexes.get(value);
     if (index === undefined) {
-      index = this.$strings$.length;
-      this.$strings$.push(value);
-      this.$stringIndexes$.set(value, index);
+      index = stringIndexes.size;
+      this.$newStrings$.push(value);
+      stringIndexes.set(value, index);
     }
     if (index < UNIT - BinaryCode.Str0) {
       this.$push$(BinaryCode.Str0 + index);
@@ -108,7 +127,7 @@ export class BinaryStateWriter {
     this.$uint$(rootIndex, BinaryCode.Root1, 3);
   }
 
-  /** A root that is the already written value ending before `offsetAfterValue`. */
+  /** A root that is the already written value ending before the stream offset `offsetAfterValue`. */
   $sharedRoot$(offsetAfterValue: number): void {
     const end = offsetAfterValue - 1;
     const delta = end - this.$previousSharedEnd$;
@@ -131,8 +150,9 @@ export class BinaryStateWriter {
     this.$push$(BinaryCode.Type0 + typeId);
   }
 
-  /** The content of the state script. */
-  toString(): string {
+  /** Ends the script and returns its content. */
+  $finish$(): string {
+    this.$stream$.$length$ += this.$length$;
     const units = this.$units$.subarray(0, this.$length$);
     for (let i = 0; i < units.length; i++) {
       const unit = units[i];
@@ -146,7 +166,7 @@ export class BinaryStateWriter {
       text += String.fromCharCode.apply(null, units.subarray(i, i + 0x8000) as any);
     }
     // `<` would let string content close the script element.
-    const strings = JSON.stringify(this.$strings$).replace(/</g, '\\u003c');
+    const strings = JSON.stringify(this.$newStrings$).replace(/</g, '\\u003c');
     return BINARY_STATE_PREFIX + strings + '\n' + text;
   }
 }

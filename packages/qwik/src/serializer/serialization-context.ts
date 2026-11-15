@@ -8,6 +8,7 @@ import type {
   SymbolToChunkResolver,
   ValueOrPromise,
 } from './qwik-types';
+import type { BinaryStateStream } from './binary-state-writer';
 import { Serializer } from './serialize';
 
 type DomRef = {
@@ -112,8 +113,18 @@ export interface SerializationContext {
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;
+  /** The binary state stream of the container this context serializes the root state of. */
+  $getBinaryStream$(): BinaryStateStream;
   /** Serializes the roots to the content of a binary state script. */
   $serializeBinary$(): Promise<string>;
+  /** Serializes a state patch that continues `stream` to the content of a binary state script. */
+  $serializeBinaryPatch$(
+    stream: BinaryStateStream,
+    rootStart: number,
+    rootIds: number[],
+    extraRootId: number | string | number[] | undefined,
+    mapRootId: (rootId: number) => number
+  ): Promise<string>;
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
@@ -174,8 +185,28 @@ class SerializationContextImpl implements SerializationContext {
     await this.$serializer$.serialize();
   }
 
+  private $binaryStream$: BinaryStateStream | undefined;
+
+  $getBinaryStream$(): BinaryStateStream {
+    return (this.$binaryStream$ ||= { $stringIndexes$: new Map(), $length$: 0 });
+  }
+
   $serializeBinary$(): Promise<string> {
-    return this.$serializer$.serializeBinary();
+    return this.$serializer$.serializeBinary(this.$getBinaryStream$());
+  }
+
+  $serializeBinaryPatch$(
+    stream: BinaryStateStream,
+    rootStart: number,
+    rootIds: number[],
+    extraRootId: number | string | number[] | undefined,
+    mapRootId: (rootId: number) => number
+  ): Promise<string> {
+    return this.$serializer$.serializeBinary(
+      stream,
+      { rootStart, rootIds, extraRootId },
+      mapRootId
+    );
   }
 
   async $serializePatch$(

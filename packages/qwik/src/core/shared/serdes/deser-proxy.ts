@@ -144,6 +144,8 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   private $isRestored$: Uint8Array;
   private $unrestoredUnits$: number;
   private $isReleaseScheduled$ = false;
+  /** Units of the stream that `$unrestoredUnits$` accounts for. */
+  private $knownUnits$: number;
   /** Null once every root is restored and the state text is released. */
   private $reader$: BinaryStateReader | null;
 
@@ -154,7 +156,8 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   ) {
     super(container, []);
     this.$reader$ = reader;
-    this.$unrestoredUnits$ = reader.$unitCount$;
+    this.$unrestoredUnits$ = this.$knownUnits$ = reader.$unitCount$;
+    reader.$onRootsAdded$ = () => this.$addRoots$();
     this.$isRestored$ = new Uint8Array($restoredRoots$.length);
     reader.$onRootAllocated$ = (rootIndex, value) => this.$markRestored$(rootIndex, value);
   }
@@ -165,6 +168,19 @@ class BinaryDeserializationHandler extends DeserializationHandler {
       this.$unrestoredUnits$ -= this.$reader$!.$rootSizes$[rootIndex];
     }
     this.$restoredRoots$[rootIndex] = value;
+  }
+
+  /** A state patch has added roots to the reader. */
+  private $addRoots$(): void {
+    const reader = this.$reader$!;
+    const isRestored = new Uint8Array(reader.$rootEnds$.length);
+    isRestored.set(this.$isRestored$);
+    this.$isRestored$ = isRestored;
+    while (this.$restoredRoots$.length < isRestored.length) {
+      this.$restoredRoots$.push(undefined);
+    }
+    this.$unrestoredUnits$ += reader.$unitCount$ - this.$knownUnits$;
+    this.$knownUnits$ = reader.$unitCount$;
   }
 
   /** Restores the remaining roots so that nothing needs the state text anymore. */
@@ -191,7 +207,9 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     const isMostlyRestored =
       this.$unrestoredUnits$ < RELEASE_STATE_BELOW_UNITS ||
       this.$unrestoredUnits$ < unitCount * (1 - RELEASE_STATE_AT);
-    if (this.$isReleaseScheduled$ || !isMostlyRestored) {
+    // State patches refer to the text of the scripts before them.
+    const canPatchesArrive = this.$reader$!.$restoredByOffset$ !== null;
+    if (this.$isReleaseScheduled$ || canPatchesArrive || !isMostlyRestored) {
       return;
     }
     this.$isReleaseScheduled$ = true;

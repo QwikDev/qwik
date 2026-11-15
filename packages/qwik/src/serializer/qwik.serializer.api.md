@@ -53,6 +53,8 @@ export interface SerializationContext {
     $eventQrls$: Set<QRL>;
     // (undocumented)
     $forwardRefOffset$: number;
+    // Warning: (ae-forgotten-export) The symbol "BinaryStateStream" needs to be exported by the entry point index.d.ts
+    $getBinaryStream$(): BinaryStateStream;
     $hasRootId$: (obj: unknown) => number | undefined;
     // (undocumented)
     $hasRootStateForwardRefs$: boolean;
@@ -86,6 +88,7 @@ export interface SerializationContext {
     // (undocumented)
     $serialize$: () => ValueOrPromise<void>;
     $serializeBinary$(): Promise<string>;
+    $serializeBinaryPatch$(stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number): Promise<string>;
     // (undocumented)
     $serializedForwardRefCount$: number;
     // (undocumented)

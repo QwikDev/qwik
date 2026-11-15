@@ -64,41 +64,88 @@ const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
  * @internal
  */
 export class BinaryStateReader {
-  /** `~<JSON array of strings>\n<units>` */
-  private $text$: string;
+  /**
+   * `~<JSON array of strings>\n<units>`, followed by the units of every state patch.
+   *
+   * Shortcut: appending a patch re-flattens the whole text; keep a list of chunks if pages stream
+   * many patches.
+   */
+  private $text$ = '\n';
   /** Index in the text of the first unit. */
-  private $base$: number;
-  private $strings$: string[];
+  private $base$ = 1;
+  private $strings$: string[] = [];
   private $pos$ = 0;
   /** Offset of the last unit of every root. */
-  $rootEnds$: Uint32Array;
-  /** Number of units each root occupies in the root list. */
-  $rootSizes$: Uint32Array;
+  $rootEnds$ = new Uint32Array(0);
+  /** Number of units each root occupies in its root list. */
+  $rootSizes$ = new Uint32Array(0);
   /** Number of units in the stream. */
-  $unitCount$: number;
+  $unitCount$ = 0;
   /**
    * Nested values that are also a root, sorted, each `endOffset * MAX_ROOTS + rootIndex`.
    *
    * Shortcut: caps the state at 2^20 roots (float64 keys stay exact); split the key to go higher.
    */
-  private $sharedValues$: Float64Array;
+  private $sharedValues$ = new Float64Array(0);
   $forwardRefs$: Array<number | string> | null = null;
+  /**
+   * While state patches can still arrive: the nested objects restored so far, by end offset. A
+   * patch can add a root for a value that was already restored inside its parent.
+   */
+  $restoredByOffset$: Map<number, unknown> | null = null;
   /** Called with a root's object before it is filled, so that cycles find it. */
   $onRootAllocated$: (rootIndex: number, value: unknown) => void = () => {};
+  /** Called when a state patch has added roots. */
+  $onRootsAdded$: () => void = () => {};
 
-  constructor(text: string) {
-    const separator = text.indexOf('\n');
-    this.$text$ = text;
-    this.$base$ = separator + 1;
-    this.$strings$ = JSON.parse(text.slice(1, separator));
-    this.$sharedValues$ = new Float64Array(0);
-    this.$unitCount$ = text.length - this.$base$;
-    this.$rootSizes$ = new Uint32Array(0);
-    this.$rootEnds$ = this.$indexRoots$();
+  /** @param text The content of the root state script, if the container has one. */
+  constructor(text?: string) {
+    if (text) {
+      this.$appendScript$(text);
+      this.$pos$ = this.$unitCount$ - 2; // before the ArrayEnd of the root list
+      this.$appendRoots$();
+    }
+  }
+
+  /**
+   * Adds the roots of a state patch: `[rootStart, roots, forwardRefs | 0, extraRootId]`.
+   *
+   * @returns Null when the patch does not continue the roots received so far.
+   */
+  $addPatch$(
+    text: string
+  ): { $forwardRefs$: Array<number | string> | 0; $extraRootId$: number | undefined } | null {
+    const previousText = this.$text$;
+    const previousBase = this.$base$;
+    const previousStringCount = this.$strings$.length;
+    this.$appendScript$(text);
+    this.$pos$ = this.$unitCount$ - 2; // before the ArrayEnd of the patch
+    this.$openArray$();
+    const extraRootId = this.$restore$(null!, -1, false) as number | undefined;
+    const forwardRefs = this.$restore$(null!, -1, false) as Array<number | string> | 0;
+    const rootListEnd = this.$pos$;
+    this.$skip$();
+    const rootStart = this.$restore$(null!, -1, false);
+    if (rootStart !== this.$rootEnds$.length) {
+      this.$text$ = previousText;
+      this.$base$ = previousBase;
+      this.$unitCount$ = previousText.length - previousBase;
+      this.$strings$.length = previousStringCount;
+      return null;
+    }
+    this.$pos$ = rootListEnd - 1;
+    this.$appendRoots$();
+    this.$onRootsAdded$();
+    return { $forwardRefs$: forwardRefs, $extraRootId$: extraRootId };
   }
 
   $restoreRoot$(container: DeserializeContainer, rootIndex: number): unknown {
-    this.$pos$ = this.$rootEnds$[rootIndex];
+    const end = this.$rootEnds$[rootIndex];
+    const restored = this.$restoredByOffset$?.get(end);
+    if (restored !== undefined) {
+      return restored;
+    }
+    this.$pos$ = end;
     return this.$restore$(container, rootIndex, false);
   }
 
@@ -106,23 +153,44 @@ export class BinaryStateReader {
     return this.$text$.charCodeAt(this.$base$ + pos) & 127;
   }
 
-  private $indexRoots$(): Uint32Array {
-    this.$pos$ = this.$text$.length - this.$base$ - 2; // before ArrayEnd
+  /** Appends the strings and units of a state script. */
+  private $appendScript$(script: string): void {
+    const separator = script.indexOf('\n');
+    const strings = JSON.parse(script.slice(1, separator)) as string[];
+    for (let i = 0; i < strings.length; i++) {
+      this.$strings$.push(strings[i]);
+    }
+    if (this.$unitCount$ === 0) {
+      this.$text$ = script;
+      this.$base$ = separator + 1;
+    } else {
+      this.$text$ += script.slice(separator + 1);
+    }
+    this.$unitCount$ = this.$text$.length - this.$base$;
+  }
+
+  /** Indexes the root list whose ArrayEnd is right after the current position. */
+  private $appendRoots$(): void {
+    const firstRoot = this.$rootEnds$.length;
     const count = this.$openArray$();
-    if (count >= MAX_ROOTS) {
+    if (firstRoot + count >= MAX_ROOTS) {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
-    const rootEnds = new Uint32Array(count);
-    const rootSizes = (this.$rootSizes$ = new Uint32Array(count));
-    for (let i = count - 1; i >= 0; i--) {
+    const rootEnds = new Uint32Array(firstRoot + count);
+    const rootSizes = new Uint32Array(firstRoot + count);
+    rootEnds.set(this.$rootEnds$);
+    rootSizes.set(this.$rootSizes$);
+    for (let i = firstRoot + count - 1; i >= firstRoot; i--) {
       rootEnds[i] = this.$pos$;
       this.$skip$();
       rootSizes[i] = rootEnds[i] - this.$pos$;
     }
-    const sharedValues = new Float64Array(count);
-    let sharedCount = 0;
+    const previousShared = this.$sharedValues$;
+    const sharedValues = new Float64Array(previousShared.length + count);
+    sharedValues.set(previousShared);
+    let sharedCount = previousShared.length;
     let sharedEnd = 0;
-    for (let i = 0; i < count; i++) {
+    for (let i = firstRoot; i < rootEnds.length; i++) {
       const end = rootEnds[i];
       const code = this.$unit$(end);
       if (code >= BinaryCode.Shared1 && code < BinaryCode.Items0) {
@@ -142,8 +210,9 @@ export class BinaryStateReader {
         this.$forwardRefs$ = this.$restore$(null!, -1, false) as Array<number | string>;
       }
     }
+    this.$rootEnds$ = rootEnds;
+    this.$rootSizes$ = rootSizes;
     this.$sharedValues$ = sharedValues.slice(0, sharedCount).sort();
-    return rootEnds;
   }
 
   /** The root that owns the nested value ending at `end`, or -1. */
@@ -307,15 +376,20 @@ export class BinaryStateReader {
         this.$skip$();
         return this.$getRoot$(container, sharedRoot);
       }
+      let value: unknown;
       if (code === BinaryCode.ArrayEnd) {
-        const array: unknown[] = Array(this.$openArray$());
+        const array: unknown[] = (value = Array(this.$openArray$()));
         if (rootIndex !== -1) {
           this.$onRootAllocated$(rootIndex, array);
         }
         this.$restoreItems$(container, array);
-        return array;
+      } else {
+        value = this.$restoreTyped$(container, code - BinaryCode.Type0, rootIndex);
       }
-      return this.$restoreTyped$(container, code - BinaryCode.Type0, rootIndex);
+      if (isNested && this.$restoredByOffset$) {
+        this.$restoredByOffset$.set(end, value);
+      }
+      return value;
     }
     if (code === BinaryCode.Float) {
       return this.$float$();
@@ -411,6 +485,7 @@ export class BinaryStateReader {
     this.$skip$();
     const start = this.$pos$;
 
+    this.$restoredByOffset$?.set(targetEnd, target);
     const store = getOrCreateStore(target as object, StoreFlags.NONE, container as any);
     if (rootIndex !== -1) {
       this.$onRootAllocated$(rootIndex, store);

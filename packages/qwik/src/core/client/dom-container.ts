@@ -166,6 +166,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   // Preserve unrooted references across shell mutations until streaming finishes.
   declare $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
 
+  /** Set when the container state is binary. */
+  private $binaryStateReader$: BinaryStateReader | null = null;
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
@@ -225,7 +227,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const stateText = rootState.textContent!;
       const statePrewarm = element.getAttribute(QStatePrewarmAttr);
       if (__EXPERIMENTAL__.binaryState && isBinaryState(stateText)) {
-        const reader = new BinaryStateReader(stateText);
+        const reader = (this.$binaryStateReader$ = new BinaryStateReader(stateText));
+        if (__EXPERIMENTAL__.pendingBoundary && this.$streamingObjectRefs$) {
+          reader.$restoredByOffset$ = new Map();
+        }
         this.$rootForwardRefs$ = this.$forwardRefs$ = reader.$forwardRefs$;
         this.$stateData$ = wrapBinaryStateProxy(this, reader);
         const rootCount = this.$stateData$.length;
@@ -263,6 +268,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$streamingObjectRefs$ = undefined;
     }
     this.vNodeLocate = () => null as any;
+    if (__EXPERIMENTAL__.binaryState && this.$binaryStateReader$) {
+      this.$binaryStateReader$.$restoredByOffset$ = null;
+      this.$binaryStateReader$ = null;
+    }
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;
     this.$getObjectById$ = () => undefined;

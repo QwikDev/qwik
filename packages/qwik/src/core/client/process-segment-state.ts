@@ -1,5 +1,6 @@
 import { applySubscriptionPatches } from '../control-flow/pending-utils';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
+import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
 import { QStatePatchAttrSelector, QPendingResolved } from '../shared/utils/markers';
@@ -10,6 +11,7 @@ import { registerSingleton } from '../shared/singletons';
 type SegmentStateContainer = {
   element: Element;
   $instanceHash$: string;
+  $binaryStateReader$: BinaryStateReader | null;
   $rawStateData$: unknown[];
   $stateData$: unknown[];
   $forwardRefs$: Array<number | string> | null;
@@ -54,6 +56,9 @@ export function* processSegmentStateScriptsIterator(
   // shortcut: interrupted streams retain references until destruction; revisit if costly.
   if (isStreamComplete) {
     container.$streamingObjectRefs$ = undefined;
+    if (__EXPERIMENTAL__.binaryState && stateContainer.$binaryStateReader$) {
+      stateContainer.$binaryStateReader$.$restoredByOffset$ = null;
+    }
   }
 }
 
@@ -74,6 +79,9 @@ function* processStatePatch(
   if (!textContent) {
     return;
   }
+  if (__EXPERIMENTAL__.binaryState && isBinaryState(textContent)) {
+    return processBinaryStatePatch(container, stateContainer, textContent);
+  }
   const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(
     textContent
   ) as [number, unknown[], Array<number | string> | 0 | undefined, number | string | undefined];
@@ -86,6 +94,36 @@ function* processStatePatch(
       : (stateContainer.$getObjectById$(subscriptionPatchRootId) as SubscriptionPatch[])
   );
 }
+
+const processBinaryStatePatch = (
+  container: DomContainer,
+  stateContainer: SegmentStateContainer,
+  textContent: string
+): void => {
+  let reader = stateContainer.$binaryStateReader$;
+  if (!reader) {
+    // The shell had no state of its own.
+    reader = stateContainer.$binaryStateReader$ = new BinaryStateReader();
+    reader.$restoredByOffset$ = new Map();
+    stateContainer.$stateData$ = wrapBinaryStateProxy(container, reader);
+  }
+  const patch = reader.$addPatch$(textContent);
+  if (!patch) {
+    if (qDev) {
+      throw new Error(
+        `Invalid Qwik state patch root start: expected ${reader.$rootEnds$.length} roots.`
+      );
+    }
+    return;
+  }
+  mergeForwardRefs(stateContainer, patch.$forwardRefs$ || undefined);
+  applySubscriptionPatches(
+    container,
+    patch.$extraRootId$ === undefined
+      ? undefined
+      : (stateContainer.$getObjectById$(patch.$extraRootId$) as SubscriptionPatch[])
+  );
+};
 
 function* appendStatePatchRoots(
   container: DomContainer,

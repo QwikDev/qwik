@@ -63,16 +63,24 @@ const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
  *
  * @internal
  */
+interface BinaryStateChunk {
+  /** `~<JSON array of strings>\n<units>` */
+  $text$: string;
+  /** Add a stream offset to get the index in the text. */
+  $base$: number;
+  /** Stream offsets of the first unit and after the last unit. */
+  $start$: number;
+  $end$: number;
+}
+
 export class BinaryStateReader {
-  /**
-   * `~<JSON array of strings>\n<units>`, followed by the units of every state patch.
-   *
-   * Shortcut: appending a patch re-flattens the whole text; keep a list of chunks if pages stream
-   * many patches.
-   */
-  private $text$ = '\n';
-  /** Index in the text of the first unit. */
-  private $base$ = 1;
+  /** The state scripts received so far; together their units are one stream. */
+  private $chunks$: BinaryStateChunk[] = [];
+  /** The chunk that holds the current position: its text, offset correction and unit range. */
+  private $text$ = '';
+  private $base$ = 0;
+  private $chunkStart$ = 0;
+  private $chunkEnd$ = 0;
   private $strings$: string[] = [];
   private $pos$ = 0;
   /** Offset of the last unit of every root. */
@@ -102,7 +110,7 @@ export class BinaryStateReader {
   constructor(text?: string) {
     if (text) {
       this.$appendScript$(text);
-      this.$pos$ = this.$unitCount$ - 2; // before the ArrayEnd of the root list
+      this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the root list
       this.$appendRoots$();
     }
   }
@@ -115,11 +123,10 @@ export class BinaryStateReader {
   $addPatch$(
     text: string
   ): { $forwardRefs$: Array<number | string> | 0; $extraRootId$: number | undefined } | null {
-    const previousText = this.$text$;
-    const previousBase = this.$base$;
+    const previousUnitCount = this.$unitCount$;
     const previousStringCount = this.$strings$.length;
     this.$appendScript$(text);
-    this.$pos$ = this.$unitCount$ - 2; // before the ArrayEnd of the patch
+    this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the patch
     this.$openArray$();
     const extraRootId = this.$restore$(null!, -1, false) as number | undefined;
     const forwardRefs = this.$restore$(null!, -1, false) as Array<number | string> | 0;
@@ -127,9 +134,9 @@ export class BinaryStateReader {
     this.$skip$();
     const rootStart = this.$restore$(null!, -1, false);
     if (rootStart !== this.$rootEnds$.length) {
-      this.$text$ = previousText;
-      this.$base$ = previousBase;
-      this.$unitCount$ = previousText.length - previousBase;
+      this.$chunks$.pop();
+      this.$chunkEnd$ = 0;
+      this.$unitCount$ = previousUnitCount;
       this.$strings$.length = previousStringCount;
       return null;
     }
@@ -145,12 +152,40 @@ export class BinaryStateReader {
     if (restored !== undefined) {
       return restored;
     }
-    this.$pos$ = end;
+    this.$seek$(end);
     return this.$restore$(container, rootIndex, false);
   }
 
+  /** A unit of the chunk that holds the current position; a value never spans chunks. */
   private $unit$(pos: number): number {
     return this.$text$.charCodeAt(this.$base$ + pos) & 127;
+  }
+
+  private $chunkAt$(pos: number): BinaryStateChunk {
+    const chunks = this.$chunks$;
+    let i = chunks.length - 1;
+    while (i > 0 && chunks[i].$start$ > pos) {
+      i--;
+    }
+    return chunks[i];
+  }
+
+  /** A unit anywhere in the stream, without moving the current position. */
+  private $unitAt$(pos: number): number {
+    const chunk = this.$chunkAt$(pos);
+    return chunk.$text$.charCodeAt(chunk.$base$ + pos) & 127;
+  }
+
+  /** Moves the current position, to another chunk if needed. */
+  private $seek$(pos: number): void {
+    this.$pos$ = pos;
+    if (pos < this.$chunkStart$ || pos >= this.$chunkEnd$) {
+      const chunk = this.$chunkAt$(pos);
+      this.$text$ = chunk.$text$;
+      this.$base$ = chunk.$base$;
+      this.$chunkStart$ = chunk.$start$;
+      this.$chunkEnd$ = chunk.$end$;
+    }
   }
 
   /** Appends the strings and units of a state script. */
@@ -160,13 +195,15 @@ export class BinaryStateReader {
     for (let i = 0; i < strings.length; i++) {
       this.$strings$.push(strings[i]);
     }
-    if (this.$unitCount$ === 0) {
-      this.$text$ = script;
-      this.$base$ = separator + 1;
-    } else {
-      this.$text$ += script.slice(separator + 1);
-    }
-    this.$unitCount$ = this.$text$.length - this.$base$;
+    const start = this.$unitCount$;
+    const end = start + script.length - separator - 1;
+    this.$chunks$.push({
+      $text$: script,
+      $base$: separator + 1 - start,
+      $start$: start,
+      $end$: end,
+    });
+    this.$unitCount$ = end;
   }
 
   /** Indexes the root list whose ArrayEnd is right after the current position. */
@@ -199,10 +236,8 @@ export class BinaryStateReader {
         sharedEnd += zigzag % 2 ? -(zigzag + 1) / 2 : zigzag / 2;
         rootEnds[i] = sharedEnd;
         // Plain values have no identity, they can be read twice.
-        if (
-          this.$unit$(sharedEnd) >= BinaryCode.ArrayEnd &&
-          this.$unit$(sharedEnd) < BinaryCode.Num0
-        ) {
+        const sharedCode = this.$unitAt$(sharedEnd);
+        if (sharedCode >= BinaryCode.ArrayEnd && sharedCode < BinaryCode.Num0) {
           sharedValues[sharedCount++] = sharedEnd * MAX_ROOTS + i;
         }
       } else if (code === BinaryCode.Type0 + TypeIds.ForwardRefs) {
@@ -325,7 +360,7 @@ export class BinaryStateReader {
   private $getRoot$(container: DeserializeContainer, rootIndex: number): unknown {
     const resume = this.$pos$;
     const value = container.$getObjectById$(rootIndex);
-    this.$pos$ = resume;
+    this.$seek$(resume);
     return value;
   }
 
@@ -343,7 +378,7 @@ export class BinaryStateReader {
     this.$restoreItems$(container, values);
     const resume = this.$pos$;
     inflateRestored(container, target, typeId, values);
-    this.$pos$ = resume;
+    this.$seek$(resume);
   }
 
   /**
@@ -426,7 +461,7 @@ export class BinaryStateReader {
       if (needsInflation(typeId)) {
         inflate(container, value, typeId, payload);
       }
-      this.$pos$ = resume;
+      this.$seek$(resume);
       return value;
     }
     if (typeId === TypeIds.Store) {
@@ -504,7 +539,7 @@ export class BinaryStateReader {
       this.$fill$(container, target, fillTypeId);
     }
     inflateRestored(container, store, TypeIds.Store, values);
-    this.$pos$ = start;
+    this.$seek$(start);
     return store;
   }
 }

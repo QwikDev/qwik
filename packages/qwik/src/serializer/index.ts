@@ -22,6 +22,10 @@ export async function _serialize<T>(data: T): Promise<string> {
   );
 
   serializationContext.$addRoot$(data);
-  await serializationContext.$serialize$();
+  if (__EXPERIMENTAL__.binaryState) {
+    await serializationContext.$serializeBinary$();
+  } else {
+    await serializationContext.$serialize$();
+  }
   return serializationContext.$writer$.toString();
 }

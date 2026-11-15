@@ -1,5 +1,5 @@
 import { applySubscriptionPatches } from '../control-flow/pending-utils';
-import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
+import { BinaryStateReader, readsAsBinaryState } from '../shared/serdes/binary-state';
 import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
@@ -81,7 +81,7 @@ function* processStatePatch(
   if (!textContent) {
     return;
   }
-  if (__EXPERIMENTAL__.binaryState && isBinaryState(textContent)) {
+  if (readsAsBinaryState(textContent)) {
     return processBinaryStatePatch(container, stateContainer, textContent);
   }
   const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(

@@ -6,6 +6,10 @@ import { binaryStateRootsToJson } from './binary-state-dump';
 import { Constants, TypeIds } from './constants';
 import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
 
+/** Markup and control characters: what a script element or a formatter would alter. */
+// eslint-disable-next-line no-control-regex
+const UNSAFE_IN_SCRIPT = /[<\0-\x1f\x7f-\x9f]/;
+
 const newContext = () =>
   createSerializationContext(
     null,
@@ -85,11 +89,13 @@ describe('binary state', () => {
     const strings = [
       'nul \0 inside',
       'line\r\nbreaks\r',
+      'tab\tand\nnewline',
       '</script><!-- ',
       'lone \ud800 surrogate',
     ];
     const script = await serialize(strings);
-    expect(script).not.toMatch(/[<\0\r\ud800]/);
+    expect(script).not.toMatch(UNSAFE_IN_SCRIPT);
+    expect(script).not.toContain('\ud800');
     expect(Array.from(restore(script))[0]).toEqual(strings);
   });
 
@@ -373,8 +379,17 @@ describe('binary state', () => {
   it('writes nothing that could end or alter the script element', async () => {
     const values = Array.from({ length: 5000 }, (_, i) => [i, '</script><!--' + i, i / 7]);
     const script = await serialize(values);
-    expect(script).not.toMatch(/[<\0\r]/);
+    // no markup, no control characters, and no whitespace other than the spaces inside strings
+    expect(script).not.toMatch(UNSAFE_IN_SCRIPT);
     expect(Array.from(restore(script))[0]).toEqual(values);
+  });
+
+  it('restores every unit value, including the ones written as other characters', async () => {
+    // one-unit integers cover the units 19-127; counts, lengths and codes cover the rest
+    const numbers = Array.from({ length: 2000 }, (_, i) => i);
+    const script = await serialize(numbers, 'a string after the numbers');
+    expect(script).not.toMatch(UNSAFE_IN_SCRIPT);
+    expect(Array.from(restore(script))).toEqual([numbers, 'a string after the numbers']);
   });
 
   it('rejects an item count larger than the units that hold the items', async () => {

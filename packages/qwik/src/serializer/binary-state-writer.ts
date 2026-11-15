@@ -1,4 +1,4 @@
-import { BINARY_STATE_PREFIX, BinaryCode, TypeIds } from './qwik-copy';
+import { BINARY_STATE_PREFIX, BinaryCode, TypeIds, unitToCharCode } from './qwik-copy';
 
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 const UNIT = 128;
@@ -17,9 +17,19 @@ export interface BinaryStateStream {
   $length$: number;
 }
 
-/** Characters that a script element would alter, and strings that UTF-8 cannot carry. */
-const needsEscaping = (value: string): boolean =>
-  /[\0\r<]/.test(value) || (value as any).isWellFormed?.() === false;
+/**
+ * Strings with control characters or `<`, which a script element would alter or a formatter might,
+ * and strings that UTF-8 cannot carry.
+ */
+const needsEscaping = (value: string): boolean => {
+  for (let i = 0; i < value.length; i++) {
+    const charCode = value.charCodeAt(i);
+    if (charCode < 32 || charCode === 60 || charCode === 127) {
+      return true;
+    }
+  }
+  return (value as any).isWellFormed?.() === false;
+};
 
 /**
  * Writes one state script: 7-bit units with the characters of strings in between, every value
@@ -52,9 +62,7 @@ export class BinaryStateWriter {
     if (this.$unitCount$ === this.$units$.length) {
       this.$flush$();
     }
-    // NUL, CR and `<` do not survive in a script element.
-    this.$units$[this.$unitCount$++] =
-      unit === 0 || unit === 13 || unit === 60 ? unit | BinaryCode.EscapeBit : unit;
+    this.$units$[this.$unitCount$++] = unitToCharCode(unit);
     this.$length$++;
   }
 

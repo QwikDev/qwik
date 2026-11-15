@@ -1,6 +1,7 @@
 import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { StoreFlags } from '../../reactive-primitives/types';
 import { QError, qError } from '../error/error';
+import { qTest } from '../utils/qdev';
 import type { DeserializeContainer } from '../types';
 import { allocate } from './allocate';
 import { _constants, TypeIds } from './constants';
@@ -52,9 +53,21 @@ export const enum BinaryCode {
   MaxUnsizedItems = 8,
   /** Strings up to this length are written again instead of referred to. */
   MaxRepeatedStringLength = 3,
-  /** NUL, CR and `<` do not survive in a script element; as units they are stored with this bit set. */
-  EscapeBit = 128,
 }
+
+/**
+ * The character a unit is written as. Control characters and `<` do not survive in a script
+ * element, and whitespace invites reformatting, so those units are written as Latin-1 letters and
+ * symbols.
+ *
+ * @internal
+ */
+export const unitToCharCode = (unit: number): number =>
+  unit <= 32 || unit === 60 ? unit + 192 : unit === 127 ? 191 : unit;
+
+/** The unit a character of the stream stands for. */
+const charCodeToUnit = (charCode: number): number =>
+  charCode < 128 ? charCode : (charCode - 192) & 127;
 
 /** Marks a state script as binary; JSON state starts with `[`. */
 export const BINARY_STATE_PREFIX = '~';
@@ -64,6 +77,13 @@ export const BINARY_STATE_PREFIX = '~';
  * @internal
  */
 export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
+
+/**
+ * Whether to read a state script as binary. With the feature on, everything is binary; only tests
+ * also hand the readers JSON state, so the JSON readers drop out of production bundles.
+ */
+export const readsAsBinaryState = (text: string): boolean =>
+  __EXPERIMENTAL__.binaryState && (qTest ? isBinaryState(text) : true);
 
 const MAX_ROOTS = 0x100000;
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
@@ -167,7 +187,7 @@ export class BinaryStateReader {
 
   /** A unit of the chunk that holds the current position; a value never spans chunks. */
   protected $unit$(pos: number): number {
-    return this.$text$.charCodeAt(this.$base$ + pos) & 127;
+    return charCodeToUnit(this.$text$.charCodeAt(this.$base$ + pos));
   }
 
   private $chunkAt$(pos: number): BinaryStateChunk {
@@ -182,7 +202,7 @@ export class BinaryStateReader {
   /** A unit anywhere in the stream, without moving the current position. */
   private $unitAt$(pos: number): number {
     const chunk = this.$chunkAt$(pos);
-    return chunk.$text$.charCodeAt(chunk.$base$ + pos) & 127;
+    return charCodeToUnit(chunk.$text$.charCodeAt(chunk.$base$ + pos));
   }
 
   /** Moves the current position, to another chunk if needed. */

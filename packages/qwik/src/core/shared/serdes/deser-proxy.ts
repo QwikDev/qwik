@@ -45,12 +45,14 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
 /** Call this on the binary root state */
 export const wrapBinaryStateProxy = (
   container: DomContainer,
-  reader: BinaryStateReader
+  reader: BinaryStateReader,
+  /** Whether to restore the last roots in the background and release the state text. */
+  releaseState = true
 ): unknown[] => {
   const restoredRoots = Array(reader.$rootEnds$.length).fill(undefined);
   return new Proxy(
     restoredRoots,
-    new BinaryDeserializationHandler(container, reader, restoredRoots)
+    new BinaryDeserializationHandler(container, reader, restoredRoots, releaseState)
   ) as unknown[];
 };
 
@@ -143,7 +145,7 @@ const whenIdle = (callback: () => void): void => {
 class BinaryDeserializationHandler extends DeserializationHandler {
   private $isRestored$: Uint8Array;
   private $unrestoredUnits$: number;
-  private $isReleaseScheduled$ = false;
+  private $isReleaseScheduled$: boolean;
   /** Units of the stream that `$unrestoredUnits$` accounts for. */
   private $knownUnits$: number;
   /** Null once every root is restored and the state text is released. */
@@ -152,9 +154,11 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   constructor(
     container: DomContainer,
     reader: BinaryStateReader,
-    private $restoredRoots$: unknown[]
+    private $restoredRoots$: unknown[],
+    releaseState: boolean
   ) {
     super(container, []);
+    this.$isReleaseScheduled$ = !releaseState;
     this.$reader$ = reader;
     this.$unrestoredUnits$ = this.$knownUnits$ = reader.$unitCount$;
     reader.$onRootsAdded$ = () => this.$addRoots$();

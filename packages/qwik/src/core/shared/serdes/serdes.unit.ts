@@ -59,12 +59,27 @@ const DEBUG = false;
 const title = (typeId: TypeIds) => `${typeId} ${_typeIdNames[typeId]}`;
 
 // Keep the tests in typeId order so it's easy to see if we missed one
+
+/** For tests of the JSON state format, whichever format `_serialize` writes in this build. */
+const serializeJson = async (data: unknown): Promise<string> => {
+  const context = createSerializationContext(
+    null,
+    null,
+    () => '',
+    () => {},
+    new WeakMap<any, any>()
+  );
+  context.$addRoot$(data);
+  await context.$serialize$();
+  return context.$writer$.toString();
+};
+
 describe('shared-serialization', () => {
   const shared1 = { shared: 1 };
   const shared2 = { shared: 2 };
 
   it('reports missing streaming references with a Qwik error', async () => {
-    const raw = JSON.parse(await _serialize({ nested: { count: 0 } }));
+    const raw = JSON.parse(await serializeJson({ nested: { count: 0 } }));
     const container = _createDeserializeContainer(raw);
     container.$getObjectById$(0);
     const start = raw.length;
@@ -115,7 +130,7 @@ describe('shared-serialization', () => {
   it.each([false, true])('caches only references at original indexes (eager=%s)', async (eager) => {
     const callback = createQRL('/callback.js', 's_callback', () => 0);
     const raw = JSON.parse(
-      await _serialize({
+      await serializeJson({
         text: 'original text',
         amount: 12345678901234567890n,
         numbers: [1, 2, 3],
@@ -149,7 +164,7 @@ describe('shared-serialization', () => {
   it.each([false, true])(
     'resolves late nested refs after shell changes (eager=%s)',
     async (eager) => {
-      const raw = JSON.parse(await _serialize({ nested: [{ count: 0 }] }));
+      const raw = JSON.parse(await serializeJson({ nested: [{ count: 0 }] }));
       const container = _createDeserializeContainer(raw);
       container.$streamingObjectRefs$ = new WeakMap();
       if (eager) {
@@ -177,7 +192,7 @@ describe('shared-serialization', () => {
 
   it('does not retain streaming object references outside streaming', async () => {
     const container = _createDeserializeContainer(
-      JSON.parse(await _serialize({ nested: [{ count: 0 }] }))
+      JSON.parse(await serializeJson({ nested: [{ count: 0 }] }))
     );
     expect(container.$getObjectById$(0)).toEqual({ nested: [{ count: 0 }] });
     expect(container.$streamingObjectRefs$).toBeUndefined();
@@ -2609,7 +2624,7 @@ describe('serializer - internal', () => {
 
   it('_serialize', async () => {
     const a = { a: 1 };
-    const ser = await _serialize({ a, b: [a] });
+    const ser = await serializeJson({ a, b: [a] });
     expect(ser).toMatchInlineSnapshot(`"[5,[0,"a",5,[0,"a",0,1],0,"b",4,[1,1]],1,"0 1"]"`);
   });
   it('_deserialize', async () => {
@@ -2699,7 +2714,7 @@ describe('serializer - internal', () => {
     await expect(_serialize(10n ** 1000n)).rejects.toThrow(`Code(Q${QError.invalidBigIntPayload})`);
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
-    const ser = await _serialize({
+    const ser = await serializeJson({
       123: 'a',
       '-45': 'b',
       '012': 'c',

@@ -1,3 +1,4 @@
+import { runInNewContext } from 'node:vm';
 import { describe, it, expect } from 'vitest';
 import {
   analyzeSignalExpression,
@@ -313,6 +314,34 @@ describe('signal-analysis', () => {
         expect(result.deps).toEqual(['key', 'obj']);
         expect(result.hoistedFn).toBe('(p0,p1)=>p1[p0]');
       }
+    });
+
+    it.each([
+      ['store[({ idx: idx }).idx].name', '(p0,p1)=>p1[({ idx: p0 }).idx].name'],
+      ['store[({ idx }).idx].name', '(p0,p1)=>p1[({ idx: p0 }).idx].name'],
+      ['store[({ idx }).idx]', '(p0,p1)=>p1[({ idx: p0 }).idx]'],
+    ])('keeps object keys in a computed key when hoisting %s', (expr, hoistedFn) => {
+      const { node, source } = parseExpr(expr);
+      const localNames = new Set(['store', 'idx']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type === 'fnSignal' && result.hoistedFn).toBe(hoistedFn);
+    });
+
+    it('keeps a __proto__ shorthand key an own property when hoisting', () => {
+      const expr = 'store[({ __proto__ }).__proto__].name';
+      const { node, source } = parseExpr(expr);
+      const localNames = new Set(['store', '__proto__']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      if (result.type !== 'fnSignal') {
+        throw new Error(`expected fnSignal, got ${result.type}`);
+      }
+      const store = { chosen: { name: 'correct' }, '[object Object]': { name: 'wrong' } };
+      const original = runInNewContext(`(store, __proto__) => ${expr}`)(store, 'chosen');
+      const hoisted = runInNewContext(result.hoistedFn);
+      const serialized = runInNewContext(`(p0, p1) => ${runInNewContext(result.hoistedStr)}`);
+      expect(original).toBe('correct');
+      expect(hoisted('chosen', store)).toBe(original);
+      expect(serialized('chosen', store)).toBe(original);
     });
 
     it('hoists obj[42] (computed numeric literal)', () => {

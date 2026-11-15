@@ -1,4 +1,4 @@
-import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
 import { forEachAstChild, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
 import { lambdaBodySimplificationsCollector } from './simplify.js';
 import {
@@ -6,6 +6,7 @@ import {
   collectRangeReplacements,
   isReplaceableIdentifierPosition,
   TS_EXPRESSION_WRAPPERS,
+  type RangeReplacement,
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
@@ -502,16 +503,9 @@ function collectComputedKeyRewrites(
       return;
     }
     if (node.type === 'Identifier') {
-      if (
-        parentKey === 'property' &&
-        parentNode?.type === 'MemberExpression' &&
-        !parentNode.computed
-      ) {
-        return;
-      }
       const param = rootToParam.get(node.name);
-      if (param != null) {
-        reps.push({ start: node.start - exprStart, end: node.end - exprStart, replacement: param });
+      if (param != null && isParamPosition(parentKey, parentNode)) {
+        reps.push(replaceWithParam(node, param, exprStart, parentKey, parentNode));
       }
       return;
     }
@@ -575,27 +569,50 @@ function rootReplacementsCollector(
       return { replacements: keyRewrites, skipSubtree: true };
     }
 
-    const isComputedObjectKey =
-      ctx.parentKey === 'key' && ctx.parentNode?.type === 'Property' && ctx.parentNode.computed;
     if (
       n.type === 'Identifier' &&
       rootToParam.has(n.name) &&
-      (isComputedObjectKey || isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode))
+      isParamPosition(ctx.parentKey, ctx.parentNode)
     ) {
+      const param = rootToParam.get(n.name)!;
       return {
-        replacements: [
-          {
-            start: n.start - ctx.exprStart,
-            end: n.end - ctx.exprStart,
-            replacement: rootToParam.get(n.name)!,
-          },
-        ],
+        replacements: [replaceWithParam(n, param, ctx.exprStart, ctx.parentKey, ctx.parentNode)],
         skipSubtree: true,
       };
     }
 
     return null;
   };
+}
+
+function isParamPosition(parentKey: string | undefined, parentNode: AstParentNode | undefined) {
+  const isComputedObjectKey =
+    parentKey === 'key' && parentNode?.type === 'Property' && parentNode.computed;
+  return isComputedObjectKey || isReplaceableIdentifierPosition(parentKey, parentNode);
+}
+
+/**
+ * Shorthand `{ x }` becomes `{ x: p0 }` so the object keeps its key; `__proto__` needs a computed
+ * key, since `__proto__: p0` sets the prototype instead.
+ */
+function replaceWithParam(
+  node: IdentifierNode,
+  param: string,
+  exprStart: number,
+  parentKey: string | undefined,
+  parentNode: AstParentNode | undefined
+): RangeReplacement {
+  const isShorthandValue =
+    parentKey === 'value' && parentNode?.type === 'Property' && parentNode.shorthand === true;
+  return {
+    start: node.start - exprStart,
+    end: node.end - exprStart,
+    replacement: isShorthandValue ? `${shorthandKey(node.name)}: ${param}` : param,
+  };
+}
+
+function shorthandKey(name: string): string {
+  return name === '__proto__' ? '["__proto__"]' : name;
 }
 
 function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {

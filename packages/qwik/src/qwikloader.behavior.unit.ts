@@ -533,6 +533,39 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  test('imports the chunk while still waiting for streamed container data', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'globalThis.__qwikLoaderChunkLogs.push("imported");' +
+        'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("clicked");'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'early-import',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': `${moduleUrl}#handler#`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['imported']);
+      });
+
+      win._qwikEv.push(QwikEvContainerReady, 'early-import');
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['imported', 'clicked']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
   test('reports a failed chunk import once when the container was streamed', async () => {
     const { doc, win } = createLoaderEnvironment(['e:click']);
     const container = createMockElement(null, {

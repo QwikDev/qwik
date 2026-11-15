@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
 import type { DeserializeContainer } from '../types';
 import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
@@ -107,20 +107,29 @@ describe('binary state', () => {
     await expect(promise).resolves.toEqual({ done: true });
   });
 
-  it('keeps untouched roots unrestored while most of the state is unread', async () => {
-    const big = Array.from({ length: 100 }, (_, i) => ({ i }));
-    const state = await roundTrip({ small: 1 }, big);
-    state[0];
-    expect((state as any)[SERIALIZER_PROXY_UNWRAP][1]).toBeUndefined();
-  });
+  describe('releasing the state', () => {
+    const big = Array.from({ length: 2000 }, (_, i) => ({ i }));
+    const restoredRoots = (state: unknown[]) => (state as any)[SERIALIZER_PROXY_UNWRAP];
 
-  it('restores the remaining roots once 90% of the state is restored', async () => {
-    const big = Array.from({ length: 100 }, (_, i) => ({ i }));
-    const state = await roundTrip({ small: 1 }, big);
-    state[1];
-    expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ small: 1 });
-    expect(state[0]).toBe((state as any)[SERIALIZER_PROXY_UNWRAP][0]);
-    expect(state.length).toBe(2);
+    it('leaves untouched roots unrestored while much of the state is unread', async () => {
+      vi.useFakeTimers();
+      const state = await roundTrip({ small: 1 }, big);
+      state[0];
+      vi.runAllTimers();
+      expect(restoredRoots(state)[1]).toBeUndefined();
+      vi.useRealTimers();
+    });
+
+    it('restores the little that is left when idle, not during the read', async () => {
+      vi.useFakeTimers();
+      const state = await roundTrip({ small: 1 }, big);
+      state[1];
+      expect(restoredRoots(state)[0]).toBeUndefined();
+      vi.runAllTimers();
+      expect(restoredRoots(state)[0]).toEqual({ small: 1 });
+      expect(state[0]).toBe(restoredRoots(state)[0]);
+      vi.useRealTimers();
+    });
   });
 
   it('writes nothing that could end or alter the script element', async () => {

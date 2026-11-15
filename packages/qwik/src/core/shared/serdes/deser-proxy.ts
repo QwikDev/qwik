@@ -124,13 +124,22 @@ class DeserializationHandler implements ProxyHandler<object> {
   }
 }
 
-/** Once this share of the stream is restored, the rest follows and the stream is released. */
-const RELEASE_STATE_AT = 0.9;
+/**
+ * When fewer units than this are left unrestored, the rest is restored when idle and the state text
+ * is released. Sized to stay under 10ms on a slow phone: 6x CPU throttle restores 300-400
+ * units/ms.
+ */
+const RELEASE_STATE_BELOW_UNITS = 3000;
+
+const whenIdle = (callback: () => void): void => {
+  (globalThis.requestIdleCallback ?? setTimeout)(callback);
+};
 
 /** Restored roots live in the proxy target; the state text is never rewritten. */
 class BinaryDeserializationHandler extends DeserializationHandler {
   private $isRestored$: Uint8Array;
-  private $restoredUnits$ = 0;
+  private $unrestoredUnits$: number;
+  private $isReleaseScheduled$ = false;
   /** Null once every root is restored and the state text is released. */
   private $reader$: BinaryStateReader | null;
 
@@ -141,6 +150,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   ) {
     super(container, []);
     this.$reader$ = reader;
+    this.$unrestoredUnits$ = reader.$unitCount$;
     this.$isRestored$ = new Uint8Array($restoredRoots$.length);
     reader.$onRootAllocated$ = (rootIndex, value) => this.$markRestored$(rootIndex, value);
   }
@@ -148,7 +158,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   private $markRestored$(rootIndex: number, value: unknown): void {
     if (!this.$isRestored$[rootIndex]) {
       this.$isRestored$[rootIndex] = 1;
-      this.$restoredUnits$ += this.$reader$!.$rootSizes$[rootIndex];
+      this.$unrestoredUnits$ -= this.$reader$!.$rootSizes$[rootIndex];
     }
     this.$restoredRoots$[rootIndex] = value;
   }
@@ -157,16 +167,19 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   private $releaseState$(): void {
     const reader = this.$reader$!;
     const isRestored = this.$isRestored$;
+    const container = this.$container$;
+    const ownsPendingStoreTargets = beginDeserialization(container);
     try {
       for (let i = 0; i < isRestored.length; i++) {
         if (!isRestored[i]) {
-          this.$markRestored$(i, reader.$restoreRoot$(this.$container$, i));
+          this.$markRestored$(i, reader.$restoreRoot$(container, i));
         }
       }
       this.$reader$ = null;
     } catch {
       // A root that cannot be restored must only fail for the code that asks for it.
-      this.$restoredUnits$ = -Infinity;
+    } finally {
+      endDeserialization(container, ownsPendingStoreTargets);
     }
   }
 
@@ -187,8 +200,9 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     try {
       const value = reader.$restoreRoot$(container, i);
       this.$markRestored$(i, value);
-      if (isOutermost && this.$restoredUnits$ >= reader.$unitCount$ * RELEASE_STATE_AT) {
-        this.$releaseState$();
+      if (!this.$isReleaseScheduled$ && this.$unrestoredUnits$ < RELEASE_STATE_BELOW_UNITS) {
+        this.$isReleaseScheduled$ = true;
+        whenIdle(() => this.$releaseState$());
       }
       return value;
     } finally {

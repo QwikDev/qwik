@@ -72,8 +72,8 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
       break;
 
     case 'bundle':
-      await loaded;
       try {
+        await loaded;
         const result = await performBundle(e.data);
         const message: ResultMessage = {
           type: 'result',

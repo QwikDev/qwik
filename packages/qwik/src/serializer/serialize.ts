@@ -121,7 +121,8 @@ export class Serializer {
   }
 
   /**
-   * Serializes to the content of a binary state script: all roots, or a state patch.
+   * Serializes a binary state script to the writer, piece by piece as it is produced: all roots, or
+   * a state patch.
    *
    * @param mapRootId Turns the root ids of a segment into the ids of the container.
    */
@@ -129,9 +130,9 @@ export class Serializer {
     stream: BinaryStateStream,
     patch?: { rootStart: number; rootIds: number[]; extraRootId?: number | string | number[] },
     mapRootId: (rootId: number) => number = (rootId) => rootId
-  ): Promise<string> {
-    const jsonWriter = this.$writer$;
-    const binary = (this.$binary$ = new BinaryStateWriter(stream));
+  ): Promise<void> {
+    const writer = this.$writer$;
+    const binary = (this.$binary$ = new BinaryStateWriter(stream, (text) => writer.write(text)));
     this.$mapRootId$ = mapRootId;
     // The JSON punctuation of the shared code paths goes nowhere.
     this.$writer$ = discardWriter;
@@ -141,10 +142,10 @@ export class Serializer {
       } else {
         await this.serialize();
       }
-      return binary.$finish$();
+      binary.$finish$();
     } finally {
       this.$binary$ = null;
-      this.$writer$ = jsonWriter;
+      this.$writer$ = writer;
     }
   }
 
@@ -1086,6 +1087,8 @@ export class Serializer {
       }
 
       if (this.$promises$.size) {
+        // Do not hold back what is ready while waiting.
+        this.$binary$?.$flush$();
         try {
           await Promise.race(this.$promises$);
         } catch {
@@ -1111,6 +1114,7 @@ export class Serializer {
         continue;
       }
 
+      this.$binary$?.$flush$();
       try {
         await Promise.race(this.$promises$);
       } catch {

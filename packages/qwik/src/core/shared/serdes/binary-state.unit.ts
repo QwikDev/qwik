@@ -6,18 +6,36 @@ import { binaryStateRootsToJson } from './binary-state-dump';
 import { Constants, TypeIds } from './constants';
 import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
 
-const serialize = (...roots: unknown[]): Promise<string> => {
-  const context = createSerializationContext(
+const newContext = () =>
+  createSerializationContext(
     null,
     null,
     () => '',
     () => {},
     new WeakMap<any, any>()
   );
+
+/** Collects the pieces that `context` writes from now on. */
+const collectWrites = (context: ReturnType<typeof newContext>): string[] => {
+  const pieces: string[] = [];
+  context.$setWriter$({
+    write: (text) => void pieces.push(text),
+    writeRootRef() {},
+    writeRootRefPath() {},
+    writeRootRefDelta() {},
+    toString: () => pieces.join(''),
+  });
+  return pieces;
+};
+
+const serialize = async (...roots: unknown[]): Promise<string> => {
+  const context = newContext();
   for (let i = 0; i < roots.length; i++) {
     context.$addRoot$(roots[i]);
   }
-  return context.$serializeBinary$();
+  const pieces = collectWrites(context);
+  await context.$serializeBinary$();
+  return pieces.join('');
 };
 
 const restore = (stateScript: string): unknown[] => {
@@ -183,31 +201,27 @@ describe('binary state', () => {
   describe('state patches', () => {
     /** Serializes the shell roots, then every later group of roots as a patch. */
     const stream = async (shell: unknown[], ...patches: unknown[][]) => {
-      const context = createSerializationContext(
-        null,
-        null,
-        () => '',
-        () => {},
-        new WeakMap<any, any>()
-      );
+      const context = newContext();
       const addRoots = (roots: unknown[]) => roots.map((root) => context.$addRoot$(root));
       addRoots(shell);
-      const scripts = [await context.$serializeBinary$()];
+      const shellPieces = collectWrites(context);
+      await context.$serializeBinary$();
+      const scripts = [shellPieces.join('')];
       for (let i = 0; i < patches.length; i++) {
         const rootStart = context.$roots$.length;
         const rootIds: number[] = [];
         // Roots found while serializing join the patch, as they do for a segment.
         context.$onAddRoot$ = (rootId) => rootIds.push(rootId);
         addRoots(patches[i]);
-        scripts.push(
-          await context.$serializeBinaryPatch$(
-            context.$getBinaryStream$(),
-            rootStart,
-            rootIds,
-            undefined,
-            (rootId) => rootId
-          )
+        const patchPieces = collectWrites(context);
+        await context.$serializeBinaryPatch$(
+          context.$getBinaryStream$(),
+          rootStart,
+          rootIds,
+          undefined,
+          (rootId) => rootId
         );
+        scripts.push(patchPieces.join(''));
       }
       return scripts;
     };
@@ -327,6 +341,32 @@ describe('binary state', () => {
           1700000000000,
         ],
       ]);
+    });
+  });
+
+  describe('writing while serializing', () => {
+    it('writes a large state out in pieces', async () => {
+      const rows = Array.from({ length: 5000 }, (_, i) => ({ i, name: 'row ' + i }));
+      const context = newContext();
+      context.$addRoot$(rows);
+      const pieces = collectWrites(context);
+      await context.$serializeBinary$();
+      expect(pieces.length).toBeGreaterThan(10);
+      expect(Array.from(restore(pieces.join('')))[0]).toEqual(rows);
+    });
+
+    it('writes out what is ready before it waits for a promise', async () => {
+      let resolve!: (value: string) => void;
+      const context = newContext();
+      context.$addRoot$('ready before the wait');
+      context.$addRoot$(new Promise<string>((r) => (resolve = r)));
+      const pieces = collectWrites(context);
+      const done = context.$serializeBinary$();
+      await new Promise((r) => setTimeout(r, 5));
+      expect(pieces.join('')).toContain('ready before the wait');
+      resolve('late');
+      await done;
+      await expect(restore(pieces.join(''))[1]).resolves.toBe('late');
     });
   });
 

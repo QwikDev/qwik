@@ -2,6 +2,8 @@ import { BINARY_STATE_PREFIX, BinaryCode, TypeIds } from './qwik-copy';
 
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 const UNIT = 128;
+/** Text is written out once this many characters are waiting. */
+const FLUSH_AT = 1 << 12;
 
 /**
  * What the state scripts of one container share: the root state and its patches are one stream.
@@ -26,7 +28,8 @@ const needsEscaping = (value: string): boolean =>
  * @internal
  */
 export class BinaryStateWriter {
-  private $text$ = '';
+  /** Text that is not written out yet. */
+  private $text$ = BINARY_STATE_PREFIX;
   /** Units that are not part of the text yet. */
   private $units$ = new Uint8Array(1 << 12);
   private $unitCount$ = 0;
@@ -34,7 +37,11 @@ export class BinaryStateWriter {
   $length$ = 0;
   private $previousSharedEnd$ = 0;
 
-  constructor(private $stream$: BinaryStateStream) {}
+  /** @param $write$ Receives the content of the script, in pieces, as it is produced. */
+  constructor(
+    private $stream$: BinaryStateStream,
+    private $write$: (text: string) => void
+  ) {}
 
   /** The offset in the stream after the last written value. */
   get $offset$(): number {
@@ -43,7 +50,7 @@ export class BinaryStateWriter {
 
   private $push$(unit: number): void {
     if (this.$unitCount$ === this.$units$.length) {
-      this.$flushUnits$();
+      this.$flush$();
     }
     // NUL, CR and `<` do not survive in a script element.
     this.$units$[this.$unitCount$++] =
@@ -58,6 +65,15 @@ export class BinaryStateWriter {
         this.$units$.subarray(0, this.$unitCount$) as any
       );
       this.$unitCount$ = 0;
+    }
+  }
+
+  /** Writes out everything produced so far. */
+  $flush$(): void {
+    this.$flushUnits$();
+    if (this.$text$) {
+      this.$write$(this.$text$);
+      this.$text$ = '';
     }
   }
 
@@ -138,6 +154,9 @@ export class BinaryStateWriter {
     this.$flushUnits$();
     this.$text$ += text;
     this.$length$ += text.length;
+    if (this.$text$.length >= FLUSH_AT) {
+      this.$flush$();
+    }
     this.$uint$(text.length, code, 4);
     if (isRepeatable) {
       stringEnds.set(value, this.$offset$ - 1);
@@ -175,10 +194,9 @@ export class BinaryStateWriter {
     this.$push$(BinaryCode.Type0 + typeId);
   }
 
-  /** Ends the script and returns its content. */
-  $finish$(): string {
-    this.$flushUnits$();
+  /** Ends the script. */
+  $finish$(): void {
+    this.$flush$();
     this.$stream$.$length$ += this.$length$;
-    return BINARY_STATE_PREFIX + this.$text$;
   }
 }

@@ -1509,13 +1509,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     }
 
     this.openScript(attrs);
+    this.serializationCtx.$setWriter$(this.writer);
     if (__EXPERIMENTAL__.binaryState) {
-      return maybeThen(this.serializationCtx.$serializeBinary$(), (binaryState) => {
-        this.write(binaryState);
+      return maybeThen(this.serializationCtx.$serializeBinary$(), () => {
         this.closeScript();
       });
     }
-    this.serializationCtx.$setWriter$(this.writer);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeScript();
     });
@@ -2382,8 +2381,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
           subscriptionPatchRootId,
           (localId) => rootIdMap[localId] ?? localId
         ),
-        (binaryStatePatch) => {
-          this.write(binaryStatePatch);
+        () => {
           this.closeScript();
         }
       );

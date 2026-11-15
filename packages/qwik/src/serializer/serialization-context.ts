@@ -115,16 +115,16 @@ export interface SerializationContext {
   $setWriter$(writer: SSRInternalStreamWriter): void;
   /** The binary state stream of the container this context serializes the root state of. */
   $getBinaryStream$(): BinaryStateStream;
-  /** Serializes the roots to the content of a binary state script. */
-  $serializeBinary$(): Promise<string>;
-  /** Serializes a state patch that continues `stream` to the content of a binary state script. */
+  /** Serializes the roots as a binary state script to the writer. */
+  $serializeBinary$(): Promise<void>;
+  /** Serializes a state patch that continues `stream` as a binary state script to the writer. */
   $serializeBinaryPatch$(
     stream: BinaryStateStream,
     rootStart: number,
     rootIds: number[],
     extraRootId: number | string | number[] | undefined,
     mapRootId: (rootId: number) => number
-  ): Promise<string>;
+  ): Promise<void>;
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
@@ -191,7 +191,7 @@ class SerializationContextImpl implements SerializationContext {
     return (this.$binaryStream$ ||= { $stringEnds$: new Map(), $length$: 0 });
   }
 
-  $serializeBinary$(): Promise<string> {
+  $serializeBinary$(): Promise<void> {
     return this.$serializer$.serializeBinary(this.$getBinaryStream$());
   }
 
@@ -201,7 +201,7 @@ class SerializationContextImpl implements SerializationContext {
     rootIds: number[],
     extraRootId: number | string | number[] | undefined,
     mapRootId: (rootId: number) => number
-  ): Promise<string> {
+  ): Promise<void> {
     return this.$serializer$.serializeBinary(
       stream,
       { rootStart, rootIds, extraRootId },

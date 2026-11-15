@@ -87,8 +87,8 @@ export interface SerializationContext {
     //
     // (undocumented)
     $serialize$: () => ValueOrPromise<void>;
-    $serializeBinary$(): Promise<string>;
-    $serializeBinaryPatch$(stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number): Promise<string>;
+    $serializeBinary$(): Promise<void>;
+    $serializeBinaryPatch$(stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number): Promise<void>;
     // (undocumented)
     $serializedForwardRefCount$: number;
     // (undocumented)

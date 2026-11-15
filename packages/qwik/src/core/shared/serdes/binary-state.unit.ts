@@ -1,140 +1,124 @@
 import { describe, expect, it } from 'vitest';
-import { _encodeBinaryState } from '../../../serializer/binary-state-encoder';
-import { BinaryStateReader, isBinaryState } from './binary-state';
-import { Constants, TypeIds } from './constants';
-import { preprocessState } from './preprocess-state';
+import { createSerializationContext } from '../../../serializer';
+import type { DeserializeContainer } from '../types';
+import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
+import { TypeIds } from './constants';
+import { wrapBinaryStateProxy } from './deser-proxy';
 
-/** Reads every root the way the lazy proxy does. */
-const readRoots = (stateJson: string) => {
-  const reader = new BinaryStateReader(_encodeBinaryState(stateJson));
-  const roots: unknown[] = [];
-  for (let i = 0; i < reader.$rootEnds$.length; i++) {
-    const root: unknown[] = [];
-    reader.$readRoot$(i, root);
-    roots.push(...root);
+const serialize = (...roots: unknown[]): Promise<string> => {
+  const context = createSerializationContext(
+    null,
+    null,
+    () => '',
+    () => {},
+    new WeakMap<any, any>()
+  );
+  for (let i = 0; i < roots.length; i++) {
+    context.$addRoot$(roots[i]);
   }
-  return { roots, forwardRefs: reader.$forwardRefs$ };
+  return context.$serializeBinary$();
 };
 
-/** What the JSON reader hands to allocate() and inflate(). */
-const preprocess = (stateJson: string) => {
-  const state = JSON.parse(stateJson);
-  const container = { $forwardRefs$: null } as any;
-  preprocessState(state, container);
-  return { roots: state, forwardRefs: container.$forwardRefs$ };
+const restore = (stateScript: string): unknown[] => {
+  const reader = new BinaryStateReader(stateScript);
+  const container: DeserializeContainer = {
+    $getObjectById$: (id) => state[Number(id)],
+    $getForwardRef$: (id) => reader.$forwardRefs$?.[id],
+    getSyncFn: () => () => {},
+    $storeProxyMap$: new WeakMap(),
+    element: null,
+    $forwardRefs$: reader.$forwardRefs$,
+  };
+  const state = wrapBinaryStateProxy(container as any, reader);
+  return state;
 };
+
+const roundTrip = async (...roots: unknown[]) => restore(await serialize(...roots));
 
 describe('binary state', () => {
-  it('is told apart from JSON state by its first character', () => {
+  it('is told apart from JSON state by its first character', async () => {
     expect(isBinaryState('[0,1]')).toBe(false);
-    expect(isBinaryState(_encodeBinaryState('[0,1]'))).toBe(true);
+    expect(isBinaryState(await serialize(1))).toBe(true);
   });
 
-  it('reads back numbers of every size', () => {
-    const numbers = [0, 63, 64, 255, 256, 65535, 65536, 2 ** 32 - 1, 2 ** 32, 1.7e12];
-    const values = [...numbers, ...numbers.slice(1).map((n) => -n), 2.573, 1e-7];
-    const state = JSON.stringify(values.flatMap((n) => [TypeIds.Plain, n]));
-    expect(readRoots(state).roots).toEqual(values.flatMap((n) => [TypeIds.Plain, n]));
+  it('has room for every type id below the short integer codes', () => {
+    expect(BinaryCode.Type0 + TypeIds.EffectSubscriptionNoData).toBeLessThan(BinaryCode.Num0);
   });
 
-  it('reads back more strings than fit a one-byte index', () => {
-    const strings = Array.from({ length: 70000 }, (_, i) => 'string ' + i);
-    const state = JSON.stringify([TypeIds.Array, strings.flatMap((s) => [TypeIds.Plain, s])]);
-    expect(readRoots(state)).toEqual(preprocess(state));
+  it('restores integers of every size', async () => {
+    const magnitudes = [0, 17, 18, 127, 128, 16383, 16384, 2 ** 28 - 1, 2 ** 28, 1.7e12, 2 ** 42];
+    const integers = [...magnitudes, ...magnitudes.slice(1).map((n) => -n)];
+    expect(Array.from(await roundTrip(integers))[0]).toEqual(integers);
   });
 
-  it('reads back nested containers, typed values and constants', () => {
-    const state = JSON.stringify([
-      TypeIds.Object,
-      [
-        TypeIds.Plain,
-        'list',
-        TypeIds.Array,
-        [TypeIds.Constant, Constants.Null, TypeIds.Array, [], TypeIds.Object, 0],
-        TypeIds.Plain,
-        'when',
-        TypeIds.Date,
-        1700000000000,
-        TypeIds.Plain,
-        'url',
-        TypeIds.URL,
-        'http://localhost/',
-      ],
-      TypeIds.Signal,
-      [TypeIds.RootRef, 0],
-    ]);
-    expect(readRoots(state)).toEqual(preprocess(state));
+  it('restores decimals and floats exactly', async () => {
+    const numbers = [88.13, -0.5, 2467.6400000000003, 1e-7, Math.PI, 0.1 + 0.2, 1e300, -1e21];
+    expect(Array.from(await roundTrip(numbers))[0]).toEqual(numbers);
   });
 
-  it('keeps one object for a value that is also referenced through a root', () => {
-    const shared = [TypeIds.Plain, 'shared', TypeIds.Plain, 1];
-    const state = JSON.stringify([
-      TypeIds.Object,
-      [TypeIds.Plain, 'foo', TypeIds.Object, shared],
-      TypeIds.Object,
-      [TypeIds.Plain, 'bar', TypeIds.RootRef, 2],
-      TypeIds.RootRef,
-      '0 1',
-    ]);
-    const { roots } = readRoots(state);
-    expect(roots).toEqual(preprocess(state).roots);
-    // the parent points at the root instead of holding a second copy
-    expect((roots[1] as unknown[]).slice(2, 4)).toEqual([TypeIds.RootRef, 2]);
+  it('restores more strings than fit a one-unit index', async () => {
+    const strings = Array.from({ length: 20000 }, (_, i) => 'string ' + i);
+    expect(Array.from(await roundTrip(strings))[0]).toEqual(strings);
   });
 
-  it('reads a shared string in place, strings have no identity', () => {
-    const state = JSON.stringify([
-      TypeIds.Array,
-      [TypeIds.Plain, 'long string'],
-      TypeIds.RootRef,
-      '0 0',
-    ]);
-    expect(readRoots(state).roots).toEqual([
-      TypeIds.Array,
-      [TypeIds.Plain, 'long string'],
-      TypeIds.Plain,
-      'long string',
-    ]);
+  it('restores nested objects, arrays and built-in types', async () => {
+    const value = {
+      list: [null, [], {}, undefined, true, 'x'],
+      when: new Date(1700000000000),
+      url: new URL('http://localhost/'),
+      big: 123456789012345678901234567890n,
+      map: new Map<unknown, unknown>([['a', { b: 1 }]]),
+      set: new Set([1, 'two', [3]]),
+      long: Array.from({ length: 20 }, (_, i) => ({ i })),
+    };
+    expect(Array.from(await roundTrip(value))[0]).toEqual(value);
   });
 
-  it('resolves a path that passes through an earlier shared value', () => {
-    const state = JSON.stringify([
-      TypeIds.Array,
-      [TypeIds.Object, [TypeIds.Plain, 'a', TypeIds.Array, [TypeIds.Plain, 'deep']]],
-      TypeIds.RootRef,
-      '0 0',
-      TypeIds.RootRef,
-      '0 0 1',
-    ]);
-    expect(readRoots(state)).toEqual(preprocess(state));
+  it('keeps the order of object keys', async () => {
+    const [object] = await roundTrip({ z: 1, a: 2, m: 3 });
+    expect(Object.keys(object as object)).toEqual(['z', 'a', 'm']);
   });
 
-  it('exposes forward refs', () => {
-    const state = JSON.stringify([
-      TypeIds.ForwardRef,
-      1,
-      TypeIds.Plain,
-      'x',
-      TypeIds.ForwardRefs,
-      [-1, 1],
-    ]);
-    expect(readRoots(state)).toEqual(preprocess(state));
-    expect(readRoots(state).forwardRefs).toEqual([-1, 1]);
+  it('restores a value referenced twice as one object', async () => {
+    const shared = { name: 'shared' };
+    const [first, second] = (await roundTrip({ shared }, { again: shared })) as any[];
+    expect(first.shared).toEqual(shared);
+    expect(second.again).toBe(first.shared);
   });
 
-  it('escapes < in strings so they cannot close the script element', () => {
-    const script = _encodeBinaryState(JSON.stringify([TypeIds.Plain, '</script><b>']));
-    expect(script).not.toContain('<');
-    expect(readRoots(JSON.stringify([TypeIds.Plain, '</script><b>'])).roots[1]).toBe(
-      '</script><b>'
-    );
+  it('restores a shared value first reached through its second reference', async () => {
+    const shared = { name: 'shared' };
+    const state = (await roundTrip({ shared }, { again: shared })) as any[];
+    const again = state[1].again;
+    expect(state[0].shared).toBe(again);
   });
 
-  it('rejects an item count larger than the bytes that hold the items', () => {
-    const [base64, strings] = _encodeBinaryState('[0,1]').split('\n');
-    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    bytes[bytes.length - 2] = 163; // claim 63 roots
-    const tampered = btoa(String.fromCharCode(...bytes)) + '\n' + strings;
+  it('restores an object that refers to itself', async () => {
+    const parent: any = { child: { name: 'child' } };
+    parent.child.parent = parent;
+    parent.self = parent;
+    const [restored] = (await roundTrip(parent)) as any[];
+    expect(restored.self).toBe(restored);
+    expect(restored.child.parent).toBe(restored);
+  });
+
+  it('restores a resolved promise', async () => {
+    const [promise] = await roundTrip(Promise.resolve({ done: true }));
+    await expect(promise).resolves.toEqual({ done: true });
+  });
+
+  it('writes nothing that could end or alter the script element', async () => {
+    const values = Array.from({ length: 5000 }, (_, i) => [i, '</script><!--' + i, i / 7]);
+    const script = await serialize(values);
+    expect(script).not.toMatch(/[<\0\r]/);
+    expect(Array.from(restore(script))[0]).toEqual(values);
+  });
+
+  it('rejects an item count larger than the units that hold the items', async () => {
+    const script = await serialize(Array.from({ length: 20 }, (_, i) => i));
+    // the root list is [..., Items0, count 1, ArrayEnd]; claim 17 roots instead
+    const tampered =
+      script.slice(0, -2) + String.fromCharCode(BinaryCode.Num0 + 17) + script.slice(-1);
     expect(() => new BinaryStateReader(tampered)).toThrow();
   });
 });

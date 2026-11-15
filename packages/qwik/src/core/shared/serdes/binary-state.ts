@@ -1,145 +1,137 @@
+import { getOrCreateStore } from '../../reactive-primitives/impl/store';
+import { StoreFlags } from '../../reactive-primitives/types';
 import { QError, qError } from '../error/error';
-import { TypeIds } from './constants';
+import type { DeserializeContainer } from '../types';
+import { allocate } from './allocate';
+import { _constants, TypeIds } from './constants';
+import { needsInflation } from './deser-proxy';
+import { inflate, inflateRestored } from './inflate';
 
 /**
- * Byte codes of the binary state stream.
+ * Codes of the binary state stream.
  *
- * Every value is its data followed by one code byte, so the stream is read backwards from its last
- * byte. Codes 0-21 are the `Constants`.
+ * The stream is a sequence of 7-bit units. Every value is its data followed by one code, so the
+ * stream is read backwards from its last unit. Codes 0-21 are the `Constants`.
  *
  * @internal
  */
 export const enum BinaryCode {
-  /** - 1 byte */
-  Int8 = 22,
-  NegInt8,
-  /** - 2 bytes */
-  Int16,
-  NegInt16,
-  /** - 4 bytes */
-  Int32,
-  NegInt32,
-  /** - 8 bytes float64 */
-  Float,
-  /** - 1-3 bytes string index */
-  Str8,
-  Str16,
-  Str24,
-  /** - 1-3 bytes root index */
-  Root8,
-  Root16,
-  Root24,
-  /** - 1-4 bytes: the value ending at that byte offset. Only valid as a root. */
-  Offset8,
-  Offset16,
-  Offset24,
-  Offset32,
-  /** Reserved */
-  Unused,
-  /** - 1-4 bytes: byte length of the array items that precede it */
-  Items8,
-  Items16,
-  Items24,
-  Items32,
+  /** - 1-6 units: positive integer */
+  Int1 = 22,
+  /** - 1-4 units: negative integer */
+  NegInt1 = 28,
+  /** - 1-3 units: string index */
+  Str1 = 32,
+  /** - 1-3 units: root index */
+  Root1 = 35,
+  /**
+   * - 1-4 units, only valid as a root: the root is the value that ends at this offset, stored as the
+   *   zigzag distance from the previous such root's offset.
+   */
+  Shared1 = 38,
+  /** The array has at most `MaxUnsizedItems` items and no stored length */
+  Items0 = 42,
+  /** - 1-4 units: number of units of the array items that precede it */
+  Items1 = 43,
+  /** Preceded by an integer value: that integer divided by 10^(1-4) */
+  Decimal1 = 47,
+  /** - 10 units: float64 */
+  Float = 51,
   /** Preceded by the item count (an integer value) and an `Items*` marker */
-  ArrayEnd,
+  ArrayEnd = 52,
   /** `Type0 + TypeIds`, preceded by the payload value */
-  Type0,
-  /** Integers 0-63 */
+  Type0 = 53,
+  /** Integers 0-17 */
   Num0 = 100,
-  /** Root refs 0-27 */
-  Root0 = 164,
-  /** String indexes 0-63 */
-  Str0 = 192,
+  /** String indexes 0-9 */
+  Str0 = 118,
+
+  MaxUnsizedItems = 8,
+  /** NUL, CR and `<` do not survive in a script element; they are stored with this bit set. */
+  EscapeBit = 128,
 }
 
+/** Marks a state script as binary; JSON state starts with `[`. */
+export const BINARY_STATE_PREFIX = '~';
+export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
+
 const MAX_ROOTS = 0x100000;
-const float64 = /*#__PURE__*/ new Float64Array(1);
-const float64Bytes = /*#__PURE__*/ new Uint8Array(float64.buffer);
-
-const decodeBase64 = (base64: string): Uint8Array => {
-  const fromBase64 = (Uint8Array as any).fromBase64 as ((s: string) => Uint8Array) | undefined;
-  if (fromBase64) {
-    return fromBase64(base64);
-  }
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-};
-
-/** JSON state starts with `[`, which is not a base64 character. */
-export const isBinaryState = (text: string): boolean => text.charCodeAt(0) !== 91;
+const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 
 /**
- * Reads roots on demand from the binary state stream, producing the `[typeId, value]` pairs that
- * `allocate()` and `inflate()` consume.
+ * Restores roots on demand, straight from the text of the binary state script.
  *
  * @internal
  */
 export class BinaryStateReader {
-  $bytes$: Uint8Array;
-  $strings$: string[];
-  $pos$ = 0;
-  /** Offset of the last byte of every root. */
+  /** `~<JSON array of strings>\n<units>` */
+  private $text$: string;
+  /** Index in the text of the first unit. */
+  private $base$: number;
+  private $strings$: string[];
+  private $pos$ = 0;
+  /** Offset of the last unit of every root. */
   $rootEnds$: Uint32Array;
   /**
    * Nested values that are also a root, sorted, each `endOffset * MAX_ROOTS + rootIndex`.
    *
    * Shortcut: caps the state at 2^20 roots (float64 keys stay exact); split the key to go higher.
    */
-  $sharedValues$: Float64Array;
+  private $sharedValues$: Float64Array;
   $forwardRefs$: Array<number | string> | null = null;
+  /** Called with a root's object before it is filled, so that cycles find it. */
+  $onRootAllocated$: (rootIndex: number, value: unknown) => void = () => {};
 
-  /** @param text `<base64 bytes>\n<JSON array of strings>` */
   constructor(text: string) {
     const separator = text.indexOf('\n');
-    this.$bytes$ = decodeBase64(text.slice(0, separator));
-    this.$strings$ = JSON.parse(text.slice(separator + 1));
+    this.$text$ = text;
+    this.$base$ = separator + 1;
+    this.$strings$ = JSON.parse(text.slice(1, separator));
     this.$sharedValues$ = new Float64Array(0);
     this.$rootEnds$ = this.$indexRoots$();
   }
 
-  /** Writes the typeId and value of root `index` to `out[0]` and `out[1]`. */
-  $readRoot$(index: number, out: unknown[]): void {
-    this.$pos$ = this.$rootEnds$[index];
-    const code = this.$bytes$[this.$pos$];
-    if (code >= BinaryCode.Offset8 && code <= BinaryCode.Offset32) {
-      this.$pos$--;
-      this.$pos$ = this.$uint$(code - BinaryCode.Offset8 + 1);
-    }
-    this.$read$(out, 0, false);
+  $restoreRoot$(container: DeserializeContainer, rootIndex: number): unknown {
+    this.$pos$ = this.$rootEnds$[rootIndex];
+    return this.$restore$(container, rootIndex, false);
+  }
+
+  private $unit$(pos: number): number {
+    return this.$text$.charCodeAt(this.$base$ + pos) & 127;
   }
 
   private $indexRoots$(): Uint32Array {
-    const bytes = this.$bytes$;
-    this.$pos$ = bytes.length - 2; // before ArrayEnd
+    this.$pos$ = this.$text$.length - this.$base$ - 2; // before ArrayEnd
     const count = this.$openArray$();
     if (count >= MAX_ROOTS) {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
     const rootEnds = new Uint32Array(count);
+    for (let i = count - 1; i >= 0; i--) {
+      rootEnds[i] = this.$pos$;
+      this.$skip$();
+    }
     const sharedValues = new Float64Array(count);
     let sharedCount = 0;
-    const pair: unknown[] = [0, 0];
-    for (let i = count - 1; i >= 0; i--) {
-      const end = (rootEnds[i] = this.$pos$);
-      const code = bytes[end];
-      if (code >= BinaryCode.Offset8 && code <= BinaryCode.Offset32) {
-        this.$pos$--;
-        const target = this.$uint$(code - BinaryCode.Offset8 + 1);
-        const targetCode = bytes[target];
+    let sharedEnd = 0;
+    for (let i = 0; i < count; i++) {
+      const end = rootEnds[i];
+      const code = this.$unit$(end);
+      if (code >= BinaryCode.Shared1 && code < BinaryCode.Items0) {
+        this.$pos$ = end - 1;
+        const zigzag = this.$uint$(code - BinaryCode.Shared1 + 1);
+        sharedEnd += zigzag % 2 ? -(zigzag + 1) / 2 : zigzag / 2;
+        rootEnds[i] = sharedEnd;
         // Plain values have no identity, they can be read twice.
-        if (targetCode >= BinaryCode.ArrayEnd && targetCode < BinaryCode.Num0) {
-          sharedValues[sharedCount++] = target * MAX_ROOTS + i;
+        if (
+          this.$unit$(sharedEnd) >= BinaryCode.ArrayEnd &&
+          this.$unit$(sharedEnd) < BinaryCode.Num0
+        ) {
+          sharedValues[sharedCount++] = sharedEnd * MAX_ROOTS + i;
         }
       } else if (code === BinaryCode.Type0 + TypeIds.ForwardRefs) {
-        this.$read$(pair, 0, false);
-        this.$forwardRefs$ = pair[1] as Array<number | string>;
-      } else {
-        this.$skip$();
+        this.$pos$ = end;
+        this.$forwardRefs$ = this.$restore$(null!, -1, false) as Array<number | string>;
       }
     }
     this.$sharedValues$ = sharedValues.slice(0, sharedCount).sort();
@@ -164,118 +156,272 @@ export class BinaryStateReader {
     return found < key + MAX_ROOTS ? found - key : -1;
   }
 
-  private $uint$(byteCount: number): number {
-    const bytes = this.$bytes$;
+  private $uint$(unitCount: number): number {
     let value = 0;
-    for (let i = 0; i < byteCount; i++) {
-      value = value * 256 + bytes[this.$pos$ - i];
+    for (let i = 0; i < unitCount; i++) {
+      value = value * 128 + this.$unit$(this.$pos$ - i);
     }
-    this.$pos$ -= byteCount;
+    this.$pos$ -= unitCount;
     return value;
   }
 
-  /** After an ArrayEnd code: returns the item count and leaves the position on the last item. */
+  /**
+   * After an ArrayEnd code: returns the item count and leaves the position on the last item. The
+   * unit length of the items is in `$itemsLength$`, or -1 when it is not stored.
+   */
   private $openArray$(): number {
-    const countCode = this.$bytes$[this.$pos$--];
+    const countCode = this.$unit$(this.$pos$--);
     const count =
       countCode >= BinaryCode.Num0
         ? countCode - BinaryCode.Num0
-        : this.$uint$(countCode === BinaryCode.Int8 ? 1 : countCode === BinaryCode.Int16 ? 2 : 4);
-    const byteLength = this.$uint$(this.$bytes$[this.$pos$--] - BinaryCode.Items8 + 1);
-    // Every item is at least one byte; reject counts that would over-allocate.
-    if (!(count <= byteLength && byteLength <= this.$pos$ + 1)) {
+        : this.$uint$(countCode - BinaryCode.Int1 + 1);
+    const marker = this.$unit$(this.$pos$--);
+    const itemsLength =
+      marker === BinaryCode.Items0 ? -1 : this.$uint$(marker - BinaryCode.Items1 + 1);
+    // Every item is at least one unit; reject counts that would over-allocate.
+    const isValid =
+      itemsLength === -1
+        ? count <= BinaryCode.MaxUnsizedItems
+        : count <= itemsLength && itemsLength <= this.$pos$ + 1;
+    if (!isValid) {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
-    this.$arrayByteLength$ = byteLength;
+    this.$itemsLength$ = itemsLength;
     return count;
   }
-  private $arrayByteLength$ = 0;
+  private $itemsLength$ = 0;
 
-  /** Moves past one value without decoding it. */
+  /** Moves past one value without restoring it. */
   private $skip$(): void {
-    const code = this.$bytes$[this.$pos$--];
-    if (code < BinaryCode.Int8 || code >= BinaryCode.Num0) {
+    const code = this.$unit$(this.$pos$--);
+    if (code < BinaryCode.Int1 || code >= BinaryCode.Num0) {
       return;
     }
-    if (code >= BinaryCode.Type0) {
+    if (code >= BinaryCode.Type0 || (code >= BinaryCode.Decimal1 && code < BinaryCode.Float)) {
       return this.$skip$();
     }
     if (code === BinaryCode.ArrayEnd) {
-      this.$openArray$();
-      this.$pos$ -= this.$arrayByteLength$;
+      const count = this.$openArray$();
+      if (this.$itemsLength$ !== -1) {
+        this.$pos$ -= this.$itemsLength$;
+      } else {
+        for (let i = 0; i < count; i++) {
+          this.$skip$();
+        }
+      }
     } else if (code === BinaryCode.Float) {
-      this.$pos$ -= 8;
-    } else if (code <= BinaryCode.NegInt32) {
-      this.$pos$ -= code <= BinaryCode.NegInt8 ? 1 : code <= BinaryCode.NegInt16 ? 2 : 4;
-    } else if (code <= BinaryCode.Str24) {
-      this.$pos$ -= code - BinaryCode.Str8 + 1;
-    } else if (code <= BinaryCode.Root24) {
-      this.$pos$ -= code - BinaryCode.Root8 + 1;
+      this.$pos$ -= 10;
+    } else if (code < BinaryCode.NegInt1) {
+      this.$pos$ -= code - BinaryCode.Int1 + 1;
+    } else if (code < BinaryCode.Str1) {
+      this.$pos$ -= code - BinaryCode.NegInt1 + 1;
+    } else if (code < BinaryCode.Root1) {
+      this.$pos$ -= code - BinaryCode.Str1 + 1;
+    } else if (code < BinaryCode.Shared1) {
+      this.$pos$ -= code - BinaryCode.Root1 + 1;
     } else {
-      this.$pos$ -= code - BinaryCode.Offset8 + 1;
+      this.$pos$ -= code - BinaryCode.Shared1 + 1;
     }
   }
 
-  /** Reads the value ending at the current position into `out[at]` (typeId) and `out[at + 1]`. */
-  private $read$(out: unknown[], at: number, isNested: boolean): void {
+  private $float$(): number {
+    let bits = 0;
+    let bitCount = 0;
+    let byteIndex = 0;
+    for (let i = 0; i < 10; i++) {
+      bits = (bits << 7) | this.$unit$(this.$pos$--);
+      bitCount += 7;
+      // 70 bits hold a 64 bit float; the first unit carries 6 unused bits.
+      if (i === 0) {
+        bitCount = 1;
+      }
+      if (bitCount >= 8) {
+        bitCount -= 8;
+        float64.setUint8(byteIndex++, (bits >> bitCount) & 255);
+        bits &= (1 << bitCount) - 1;
+      }
+    }
+    return float64.getFloat64(0);
+  }
+
+  /** Other roots may be restored while calling out, which moves the position. */
+  private $getRoot$(container: DeserializeContainer, rootIndex: number): unknown {
+    const resume = this.$pos$;
+    const value = container.$getObjectById$(rootIndex);
+    this.$pos$ = resume;
+    return value;
+  }
+
+  /** Reads the items of the array ending at the current position into `target`. */
+  private $restoreItems$(container: DeserializeContainer, target: unknown[]): void {
+    for (let i = target.length - 1; i >= 0; i--) {
+      target[i] = this.$restore$(container, -1, true);
+    }
+  }
+
+  /** Fills an allocated object from the typed array payload that ends at the current position. */
+  private $fill$(container: DeserializeContainer, target: unknown, typeId: TypeIds): void {
+    this.$pos$--; // ArrayEnd
+    const values: unknown[] = Array(this.$openArray$());
+    this.$restoreItems$(container, values);
+    const resume = this.$pos$;
+    inflateRestored(container, target, typeId, values);
+    this.$pos$ = resume;
+  }
+
+  /**
+   * Restores the value that ends at the current position and moves before it.
+   *
+   * @param rootIndex The root this value is, or -1.
+   * @param isNested Whether the value is an item of another value.
+   */
+  private $restore$(
+    container: DeserializeContainer,
+    rootIndex: number,
+    isNested: boolean
+  ): unknown {
     const end = this.$pos$;
-    const code = this.$bytes$[this.$pos$--];
-    let typeId: TypeIds = TypeIds.Plain;
-    let value: unknown;
+    const code = this.$unit$(this.$pos$--);
     if (code >= BinaryCode.Str0) {
-      value = this.$strings$[code - BinaryCode.Str0];
-    } else if (code >= BinaryCode.Root0) {
-      typeId = TypeIds.RootRef;
-      value = code - BinaryCode.Root0;
-    } else if (code >= BinaryCode.Num0) {
-      value = code - BinaryCode.Num0;
-    } else if (code >= BinaryCode.ArrayEnd) {
+      return this.$strings$[code - BinaryCode.Str0];
+    }
+    if (code >= BinaryCode.Num0) {
+      return code - BinaryCode.Num0;
+    }
+    if (code < BinaryCode.Int1) {
+      return _constants[code];
+    }
+    if (code >= BinaryCode.ArrayEnd) {
       const sharedRoot = isNested ? this.$sharedRoot$(end) : -1;
       if (sharedRoot !== -1) {
         // The root owns the value so that every reference resolves to one object.
         this.$pos$ = end;
         this.$skip$();
-        typeId = TypeIds.RootRef;
-        value = sharedRoot;
-      } else if (code === BinaryCode.ArrayEnd) {
-        const count = this.$openArray$();
-        const pairs: unknown[] = new Array(count * 2);
-        for (let i = count - 1; i >= 0; i--) {
-          this.$read$(pairs, i * 2, true);
+        return this.$getRoot$(container, sharedRoot);
+      }
+      if (code === BinaryCode.ArrayEnd) {
+        const array: unknown[] = Array(this.$openArray$());
+        if (rootIndex !== -1) {
+          this.$onRootAllocated$(rootIndex, array);
         }
-        typeId = TypeIds.Array;
-        value = pairs;
-      } else {
-        typeId = code - BinaryCode.Type0;
-        // The payload is a plain value or an array; its own typeId is replaced below.
-        this.$read$(out, at, false);
-        value = out[at + 1];
-        if (typeId === TypeIds.ForwardRefs) {
-          value = (value as unknown[]).filter((_, i) => i & 1);
-        }
+        this.$restoreItems$(container, array);
+        return array;
       }
-    } else if (code < BinaryCode.Int8) {
-      typeId = TypeIds.Constant;
-      value = code;
-    } else if (code === BinaryCode.Float) {
-      for (let i = 7; i >= 0; i--) {
-        float64Bytes[i] = this.$bytes$[this.$pos$--];
-      }
-      value = float64[0];
-    } else if (code <= BinaryCode.NegInt32) {
-      value = this.$uint$(code <= BinaryCode.NegInt8 ? 1 : code <= BinaryCode.NegInt16 ? 2 : 4);
-      if ((code - BinaryCode.Int8) & 1) {
-        value = -(value as number);
-      }
-    } else if (code <= BinaryCode.Str24) {
-      value = this.$strings$[this.$uint$(code - BinaryCode.Str8 + 1)];
-    } else if (code <= BinaryCode.Root24) {
-      typeId = TypeIds.RootRef;
-      value = this.$uint$(code - BinaryCode.Root8 + 1);
-    } else {
-      throw qError(QError.serializeErrorNotImplemented, [code]);
+      return this.$restoreTyped$(container, code - BinaryCode.Type0, rootIndex);
     }
-    out[at] = typeId;
-    out[at + 1] = value;
+    if (code === BinaryCode.Float) {
+      return this.$float$();
+    }
+    if (code >= BinaryCode.Decimal1) {
+      const integer = this.$restore$(container, -1, false) as number;
+      return integer / 10 ** (code - BinaryCode.Decimal1 + 1);
+    }
+    if (code < BinaryCode.NegInt1) {
+      return this.$uint$(code - BinaryCode.Int1 + 1);
+    }
+    if (code < BinaryCode.Str1) {
+      return -this.$uint$(code - BinaryCode.NegInt1 + 1);
+    }
+    if (code < BinaryCode.Root1) {
+      return this.$strings$[this.$uint$(code - BinaryCode.Str1 + 1)];
+    }
+    if (code < BinaryCode.Shared1) {
+      return this.$getRoot$(container, this.$uint$(code - BinaryCode.Root1 + 1));
+    }
+    throw qError(QError.serializeErrorNotImplemented, [code]);
+  }
+
+  /** The current position is on the payload of a value of type `typeId`. */
+  private $restoreTyped$(
+    container: DeserializeContainer,
+    typeId: TypeIds,
+    rootIndex: number
+  ): unknown {
+    if (this.$unit$(this.$pos$) !== BinaryCode.ArrayEnd) {
+      const payload = this.$restore$(container, -1, false);
+      const resume = this.$pos$;
+      const value = allocate(container, typeId, payload);
+      if (needsInflation(typeId)) {
+        inflate(container, value, typeId, payload);
+      }
+      this.$pos$ = resume;
+      return value;
+    }
+    if (typeId === TypeIds.Store) {
+      return this.$restoreStore$(container, rootIndex);
+    }
+    if (typeId === TypeIds.ForwardRefs) {
+      this.$pos$--;
+      const forwardRefs: unknown[] = Array(this.$openArray$());
+      this.$restoreItems$(container, forwardRefs);
+      return forwardRefs;
+    }
+    if (!needsInflation(typeId)) {
+      throw qError(QError.serializeErrorNotImplemented, [typeId]);
+    }
+    const value = allocate(container, typeId, undefined);
+    if (rootIndex !== -1) {
+      this.$onRootAllocated$(rootIndex, value);
+    }
+    this.$fill$(container, value, typeId);
+    return value;
+  }
+
+  /**
+   * A store is `[target, flags, effects, ...innerStores]`. The store must exist before anything
+   * else is restored, because its effects and its own content can refer back to it.
+   */
+  private $restoreStore$(container: DeserializeContainer, rootIndex: number): unknown {
+    this.$pos$--; // ArrayEnd
+    const values: unknown[] = Array(this.$openArray$());
+    const lastItemEnd = this.$pos$;
+    for (let i = values.length - 1; i > 0; i--) {
+      this.$skip$();
+    }
+    const targetEnd = this.$pos$;
+    const targetCode = this.$unit$(targetEnd);
+    const isSharedTarget = this.$sharedRoot$(targetEnd) !== -1;
+    let target: unknown;
+    let fillTypeId: TypeIds | -1 = -1;
+    if (!isSharedTarget && targetCode === BinaryCode.ArrayEnd) {
+      this.$pos$--;
+      target = Array(this.$openArray$());
+      fillTypeId = TypeIds.Array;
+    } else if (
+      !isSharedTarget &&
+      targetCode >= BinaryCode.Type0 &&
+      targetCode < BinaryCode.Num0 &&
+      this.$unit$(targetEnd - 1) === BinaryCode.ArrayEnd &&
+      needsInflation(targetCode - BinaryCode.Type0)
+    ) {
+      fillTypeId = targetCode - BinaryCode.Type0;
+      target = allocate(container, fillTypeId, undefined);
+    } else {
+      target = this.$restore$(container, -1, true);
+    }
+    this.$pos$ = targetEnd;
+    this.$skip$();
+    const start = this.$pos$;
+
+    const store = getOrCreateStore(target as object, StoreFlags.NONE, container as any);
+    if (rootIndex !== -1) {
+      this.$onRootAllocated$(rootIndex, store);
+    }
+    values[0] = target;
+    this.$pos$ = lastItemEnd;
+    for (let i = values.length - 1; i > 0; i--) {
+      values[i] = this.$restore$(container, -1, true);
+    }
+    if (fillTypeId === TypeIds.Array) {
+      this.$pos$ = targetEnd - 1;
+      this.$openArray$();
+      this.$restoreItems$(container, target as unknown[]);
+    } else if (fillTypeId !== -1) {
+      this.$pos$ = targetEnd - 1;
+      this.$fill$(container, target, fillTypeId);
+    }
+    inflateRestored(container, store, TypeIds.Store, values);
+    this.$pos$ = start;
+    return store;
   }
 }

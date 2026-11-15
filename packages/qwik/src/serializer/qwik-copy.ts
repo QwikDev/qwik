@@ -14,7 +14,7 @@ export {
 } from '../core/reactive-primitives/types';
 export { qError, QError } from '../core/shared/error/error';
 export { isQrl } from '../core/shared/qrl/qrl-utils';
-export { BinaryCode } from '../core/shared/serdes/binary-state';
+export { BINARY_STATE_PREFIX, BinaryCode } from '../core/shared/serdes/binary-state';
 export { Constants, TypeIds } from '../core/shared/serdes/constants';
 export {
   BRACKET_CLOSE,

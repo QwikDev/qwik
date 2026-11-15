@@ -22,6 +22,8 @@ type DomRef = {
 export type SeenRef = {
   $index$: number;
   $parent$?: SeenRef | null;
+  /** Binary state only: the offset after this value in the stream. */
+  $end$?: number;
 };
 
 /**
@@ -31,7 +33,9 @@ export type SeenRef = {
 export class SerializationBackRef {
   constructor(
     /** The path from root to the original object */
-    public $path$: number[]
+    public $path$: number[],
+    /** The original object's ref, which `$promoteToRoot$` has turned into this root's ref */
+    public $ref$?: SeenRef
   ) {}
 }
 brandClass(SerializationBackRef, Brand.SerializationBackRef);
@@ -108,6 +112,8 @@ export interface SerializationContext {
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;
+  /** Serializes the roots to the content of a binary state script. */
+  $serializeBinary$(): Promise<string>;
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
@@ -168,6 +174,10 @@ class SerializationContextImpl implements SerializationContext {
     await this.$serializer$.serialize();
   }
 
+  $serializeBinary$(): Promise<string> {
+    return this.$serializer$.serializeBinary();
+  }
+
   async $serializePatch$(
     rootStart: number,
     rootIds: number[],
@@ -219,7 +229,7 @@ class SerializationContextImpl implements SerializationContext {
     if (index === undefined) {
       index = this.$roots$.length;
     }
-    this.$roots$[index] = new SerializationBackRef(path);
+    this.$roots$[index] = new SerializationBackRef(path, ref);
     if (isNewRoot) {
       this.$rootObjs$[index] = obj;
     }

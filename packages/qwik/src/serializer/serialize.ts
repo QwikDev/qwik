@@ -69,6 +69,7 @@ import type {
   SSRWriteChunk,
   VNodeData,
 } from './qwik-types';
+import { BinaryStateWriter } from './binary-state-writer';
 import {
   SerializationBackRef,
   type SeenRef,
@@ -96,6 +97,10 @@ export class Serializer {
   /** Virtual nodes share their element's vnode data, so scan it once per pass. */
   private $discoveredVNodeData$ = new WeakSet<VNodeData>();
   private $writer$: SSRInternalStreamWriter;
+  /** Set while serializing to the binary state stream instead of JSON. */
+  private $binary$: BinaryStateWriter | null = null;
+  /** Newly seen values whose write has not finished yet. */
+  private $unwrittenSeenRefs$: SeenRef[] = [];
   /** We need to determine this at runtime because polyfills may not be loaded a module load time */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
 
@@ -111,6 +116,21 @@ export class Serializer {
       await this.outputRoots();
     } finally {
       this.$streamedRootLimit$ = previousStreamedRootLimit;
+    }
+  }
+
+  /** Serializes the roots to the content of a binary state script. */
+  async serializeBinary(): Promise<string> {
+    const jsonWriter = this.$writer$;
+    const binary = (this.$binary$ = new BinaryStateWriter());
+    // The JSON punctuation of the shared code paths goes nowhere.
+    this.$writer$ = discardWriter;
+    try {
+      await this.serialize();
+      return binary.toString();
+    } finally {
+      this.$binary$ = null;
+      this.$writer$ = jsonWriter;
     }
   }
 
@@ -168,7 +188,7 @@ export class Serializer {
     value: unknown[],
     keepUndefined: boolean,
     writeFn: (value: unknown, idx: number) => void
-  ) {
+  ): number {
     this.$writer$.write(BRACKET_OPEN);
     let separator = false;
     let length;
@@ -190,6 +210,7 @@ export class Serializer {
       writeFn(value[i], i);
     }
     this.$writer$.write(BRACKET_CLOSE);
+    return length;
   }
 
   /** Whether a string needs JSON escaping (quote, backslash, or control chars). */
@@ -316,7 +337,17 @@ export class Serializer {
   }
 
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
-  private output(type: number, value: number | string | any[], keepUndefined?: boolean) {
+  private output(
+    type: number,
+    value: number | string | any[] | SerializationBackRef,
+    keepUndefined?: boolean
+  ) {
+    if (this.$binary$) {
+      return this.outputBinary(this.$binary$, type, value, keepUndefined);
+    }
+    if (value instanceof SerializationBackRef) {
+      value = value.$path$;
+    }
     if (type === TypeIds.RootRef) {
       this.$writer$.write(type + COMMA);
       if (typeof value === 'number') {
@@ -363,7 +394,11 @@ export class Serializer {
         // Yes, no longer a weakref
         seen = this.$serializationContext$.$addRoot$(value, true);
       } else {
-        return this.$serializationContext$.$markSeen$(value, this.$parent$, index);
+        const newSeenRef = this.$serializationContext$.$markSeen$(value, this.$parent$, index);
+        if (this.$binary$) {
+          this.$unwrittenSeenRefs$.push(newSeenRef);
+        }
+        return newSeenRef;
       }
     } else if (seen.$parent$ && this.isSeenInStreamedRoot(seen)) {
       seen = this.$serializationContext$.$addDuplicateRoot$(value);
@@ -388,13 +423,76 @@ export class Serializer {
     }
 
     // Now we know it's a root and we should output a RootRef
-    const rootIdx = value instanceof SerializationBackRef ? value.$path$ : seen.$index$;
+    const rootIdx = value instanceof SerializationBackRef ? value : seen.$index$;
 
     // But make sure we do output ourselves
     if (!this.$parent$ && rootIdx === index) {
       return seen;
     }
     this.output(TypeIds.RootRef, rootIdx);
+  }
+
+  /** Output a type,value pair to the binary state stream. */
+  private outputBinary(
+    binary: BinaryStateWriter,
+    type: number,
+    value: number | string | any[] | SerializationBackRef,
+    keepUndefined?: boolean
+  ) {
+    // Everything seen since the last output is this value.
+    let seenRefs = this.$unwrittenSeenRefs$;
+    if (seenRefs.length) {
+      this.$unwrittenSeenRefs$ = [];
+    } else {
+      // Do not hold on to the list that nested values will add themselves to.
+      seenRefs = NO_SEEN_REFS;
+    }
+    if (type === TypeIds.RootRef) {
+      this.outputBinaryRootRef(binary, value);
+    } else if (type === TypeIds.Constant) {
+      binary.$constant$(value as number);
+    } else {
+      if (type === TypeIds.QRL && Array.isArray(value)) {
+        value = stringifyChunks(value as SSRWriteChunk[]);
+      }
+      if (typeof value === 'number') {
+        binary.$number$(value);
+      } else if (typeof value === 'string') {
+        binary.$string$(value);
+      } else {
+        const start = binary.$length$;
+        const itemCount = this.outputArray(value as any[], !!keepUndefined, (valueItem, idx) => {
+          this.writeValue(valueItem, idx);
+        });
+        binary.$endArray$(start, itemCount);
+      }
+      if (type !== TypeIds.Plain && type !== TypeIds.Array) {
+        binary.$type$(type);
+      }
+    }
+    for (let i = 0; i < seenRefs.length; i++) {
+      seenRefs[i].$end$ = binary.$length$;
+    }
+  }
+
+  private outputBinaryRootRef(
+    binary: BinaryStateWriter,
+    value: number | string | any[] | SerializationBackRef
+  ) {
+    if (typeof value === 'number') {
+      return binary.$rootRef$(value);
+    }
+    if (!(value instanceof SerializationBackRef)) {
+      throw new Error('Binary state: unsupported root ref');
+    }
+    if (value.$path$.length === 1) {
+      return binary.$rootRef$(value.$path$[0]);
+    }
+    const offsetAfterValue = value.$ref$?.$end$;
+    if (offsetAfterValue === undefined) {
+      throw new Error('Binary state: reference to a value that is not written yet');
+    }
+    binary.$sharedRoot$(offsetAfterValue);
   }
 
   private isSeenInStreamedRoot(ref: SeenRef): boolean {
@@ -443,7 +541,8 @@ export class Serializer {
           } else {
             // If the string is short, we output directly
             // Very short strings add overhead to tracking
-            if (value.length < 4 || this.getSeenRefOrOutput(value, index)) {
+            // The binary stream already stores every string once.
+            if (value.length < 4 || this.$binary$ || this.getSeenRefOrOutput(value, index)) {
               this.output(TypeIds.Plain, value);
             }
           }
@@ -549,7 +648,7 @@ export class Serializer {
           } else if (value === null) {
             this.output(TypeIds.Constant, Constants.Null);
           } else if (value instanceof SerializationBackRef) {
-            this.output(TypeIds.RootRef, value.$path$);
+            this.output(TypeIds.RootRef, value);
           } else {
             const newSeenRef = this.getSeenRefOrOutput(value, index);
             if (newSeenRef) {
@@ -1027,6 +1126,20 @@ export class Serializer {
   }
 
   private outputForwardRefsArray(forwardRefs: Array<number | string | number[]>): void {
+    const binary = this.$binary$;
+    if (binary) {
+      const start = binary.$length$;
+      for (let i = 0; i < forwardRefs.length; i++) {
+        const ref = forwardRefs[i];
+        if (typeof ref === 'number') {
+          binary.$number$(ref);
+        } else {
+          binary.$string$(typeof ref === 'string' ? ref : ref.join(' '));
+        }
+      }
+      binary.$endArray$(start, forwardRefs.length);
+      return binary.$type$(TypeIds.ForwardRefs);
+    }
     this.outputArray(forwardRefs, true, (value) => {
       if (typeof value === 'string') {
         this.outputString(value);
@@ -1057,12 +1170,41 @@ export class Serializer {
     }
 
     this.$writer$.write(BRACKET_CLOSE);
+    this.$binary$?.$endArray$(0, rootsWritten + (forwardRefs ? 1 : 0));
     this.$serializationContext$.$serializedRootCount$ =
       this.$serializationContext$.$roots$.length +
       (this.$serializationContext$.$hasRootStateForwardRefs$ ? 1 : 0);
     this.$serializationContext$.$serializedForwardRefCount$ = forwardRefCount;
   }
 }
+
+const NO_SEEN_REFS: SeenRef[] = [];
+
+const discardWriter: SSRInternalStreamWriter = {
+  write() {},
+  writeRootRef() {},
+  writeRootRefPath() {},
+  writeRootRefDelta() {},
+  toString: () => '',
+};
+
+/** The string form of a QRL whose root refs need no remapping. */
+const stringifyChunks = (chunks: SSRWriteChunk[]): string => {
+  let out = '';
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    if (typeof chunk === 'string') {
+      out += chunk;
+    } else if (typeof chunk === 'number') {
+      out += chunk;
+    } else if ('base' in chunk) {
+      out += chunk.id - chunk.base;
+    } else {
+      out += chunk.path.join(' ');
+    }
+  }
+  return out;
+};
 
 export class PromiseResult {
   constructor(

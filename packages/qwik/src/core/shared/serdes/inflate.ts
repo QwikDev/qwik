@@ -183,6 +183,49 @@ function* inflateIterator(
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
   }
+  yield* inflateRestoredIterator(container, target, typeId, data);
+  if (
+    __EXPERIMENTAL__.pendingBoundary &&
+    container.$streamingObjectRefs$ &&
+    Array.isArray(serializedPayload)
+  ) {
+    // Late references need original positions after application mutations.
+    const payload = (typeId === TypeIds.Array ? target : data) as unknown[];
+    let references: object[] | undefined;
+    for (let i = 0; i < payload.length; i++) {
+      if (serializedPayload[i * 2] === TypeIds.RootRef) {
+        continue;
+      }
+      const value = payload[i];
+      if (isObject(value) || typeof value === 'function') {
+        (references ||= [])[i] = value;
+      }
+    }
+    if (references) {
+      container.$streamingObjectRefs$.set(target as object, references);
+    }
+  }
+}
+
+/** Fills `target` from its payload, whose items are already restored. */
+export const inflateRestored = (
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): void => {
+  const iterator = inflateRestoredIterator(container, target, typeId, data);
+  while (!iterator.next().done) {
+    // Run synchronously.
+  }
+};
+
+function* inflateRestoredIterator(
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): Generator<void, void, void> {
   switch (typeId) {
     case TypeIds.Array:
       // Arrays are special, we need to fill the array in place
@@ -479,27 +522,6 @@ function* inflateIterator(
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
-  }
-  if (
-    __EXPERIMENTAL__.pendingBoundary &&
-    container.$streamingObjectRefs$ &&
-    Array.isArray(serializedPayload)
-  ) {
-    // Late references need original positions after application mutations.
-    const payload = (typeId === TypeIds.Array ? target : data) as unknown[];
-    let references: object[] | undefined;
-    for (let i = 0; i < payload.length; i++) {
-      if (serializedPayload[i * 2] === TypeIds.RootRef) {
-        continue;
-      }
-      const value = payload[i];
-      if (isObject(value) || typeof value === 'function') {
-        (references ||= [])[i] = value;
-      }
-    }
-    if (references) {
-      container.$streamingObjectRefs$.set(target as object, references);
-    }
   }
 }
 

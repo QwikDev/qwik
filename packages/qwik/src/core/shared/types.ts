@@ -62,6 +62,12 @@ export interface Container {
 /** @internal */
 export type HostElement = VNode | ISsrNode;
 
+/** @internal */
+export interface QwikHandlerPromise extends Promise<void> {
+  /** Resolves when the handler starts or cannot be invoked. */
+  _qStart?: Promise<void>;
+}
+
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler | EventHandler[]>;
   _qIdle?: boolean;

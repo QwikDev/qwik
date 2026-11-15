@@ -97,7 +97,7 @@ describe('_run', () => {
         flags: 0,
       },
     };
-    mockQrl = vi.fn();
+    mockQrl = Object.assign(vi.fn(), { getFn: () => mockQrl });
 
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
@@ -148,7 +148,9 @@ describe('_run', () => {
   });
 
   it('should get QRL from first capture', () => {
-    const mockQrlFromCaptures = vi.fn();
+    const mockQrlFromCaptures: any = Object.assign(vi.fn(), {
+      getFn: () => mockQrlFromCaptures,
+    });
     vi.mocked(qrlClass.deserializeCaptureDeltas).mockReturnValue([mockQrlFromCaptures]);
 
     _run.call('captures', mockEvent, mockElement);
@@ -279,7 +281,7 @@ describe('runEventHandlerQRL', () => {
       $container$: mockContainer,
       $hostElement$: mockHostElement,
     };
-    mockQrl = vi.fn();
+    mockQrl = Object.assign(vi.fn(), { getFn: () => mockQrl });
 
     vi.mocked(domContainer.getDomContainer).mockReturnValue(mockContainer);
     vi.mocked(useCore.newInvokeContextFromDOM).mockReturnValue(mockContext);
@@ -330,13 +332,17 @@ describe('runEventHandlerQRL', () => {
     );
   });
 
-  it('should call invokeApply with the handler, event and element', () => {
-    runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
+  it('should call invokeApply with the handler, event and element', async () => {
+    vi.mocked(useCore.invokeApply).mockImplementation((_context, callback, args) =>
+      callback(...args!)
+    );
+    await runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 
-    expect(useCore.invokeApply).toHaveBeenCalledWith(mockContext, mockQrl, [
+    expect(useCore.invokeApply).toHaveBeenCalledWith(mockContext, expect.any(Function), [
       mockEvent,
       mockElement,
     ]);
+    expect(mockQrl).toHaveBeenCalledWith(mockEvent, mockElement);
   });
 
   it.each([false, true])('keeps sync handlers synchronous with iteration=%s', (iteration) => {
@@ -438,16 +444,16 @@ describe('runEventHandlerQRL', () => {
       );
     });
 
-    it('should not wrap handler when no iteration props are found', () => {
+    it('calls the handler without iteration arguments when no iteration props are found', async () => {
       mockHostElement.flags = VNodeFlags.HasIterationItems;
       vi.mocked(vnodeUtils.vnode_getProp).mockReturnValue(null);
+      vi.mocked(useCore.invokeApply).mockImplementation((_context, callback, args) =>
+        callback(...args!)
+      );
 
-      runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
+      await runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 
-      expect(useCore.invokeApply).toHaveBeenCalledWith(mockContext, mockQrl, [
-        mockEvent,
-        mockElement,
-      ]);
+      expect(mockQrl).toHaveBeenCalledWith(mockEvent, mockElement);
     });
 
     it('should wrap handler to pass single iteration item as extra argument', () => {

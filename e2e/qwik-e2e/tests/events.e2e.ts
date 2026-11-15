@@ -71,14 +71,41 @@ test.describe('events', () => {
     await expect(page.locator('#count-nested-button')).toHaveText('countNestedButton: 1');
   });
 
-  test('should preserve mouseleave and mouseover execution order', async ({ page }) => {
-    const red = page.locator('#hover-order-red');
-    const blue = page.locator('#hover-order-blue');
+  test('preserves event order while handler chunks are loading', async ({ page }) => {
+    let releaseLeave!: () => void;
+    let markLeaveRequested!: () => void;
+    const leaveRequested = new Promise<void>((resolve) => (markLeaveRequested = resolve));
+    const leaveReleased = new Promise<void>((resolve) => (releaseLeave = resolve));
+    await page.route(/EventsParent.*mouseleave.*\.js/i, async (route) => {
+      markLeaveRequested();
+      await leaveReleased;
+      await route.continue();
+    });
 
-    await red.hover();
-    await blue.hover();
+    try {
+      await page.reload();
+      await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
+      const manifest = await (await page.request.get('/e2e/q-manifest.json')).json();
+      const overChunk = Object.keys(manifest.bundles).find((name) =>
+        /EventsParent.*mouseover/i.test(name)
+      );
+      expect(overChunk).toBeDefined();
+      await page.evaluate((href) => import(href), '/e2e/build/' + overChunk);
 
-    await expect(page.locator('#hover-order-log')).toHaveText('red mouse out|blue mouse in');
+      await page.evaluate(() => {
+        document.getElementById('hover-order-red')!.dispatchEvent(new MouseEvent('mouseleave'));
+        document
+          .getElementById('hover-order-blue')!
+          .dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      });
+      await leaveRequested;
+      await expect(page.locator('#hover-order-log')).toHaveText('', { timeout: 5000 });
+
+      releaseLeave();
+      await expect(page.locator('#hover-order-log')).toHaveText('red mouse out|blue mouse in');
+    } finally {
+      releaseLeave();
+    }
   });
 
   test(`GIVEN "stoppropagation" is set as a attribute 

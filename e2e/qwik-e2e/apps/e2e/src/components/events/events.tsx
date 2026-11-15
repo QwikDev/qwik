@@ -109,10 +109,7 @@ const EventsParent = component$(() => {
         <div
           id="hover-order-red"
           style="width:80px;height:80px;background:#d44"
-          onMouseLeave$={$(async () => {
-            await new Promise<void>((resolve) => {
-              setTimeout(resolve, 60);
-            });
+          onMouseLeave$={$(() => {
             store.hoverOrderLog = store.hoverOrderLog
               ? `${store.hoverOrderLog}|red mouse out`
               : 'red mouse out';

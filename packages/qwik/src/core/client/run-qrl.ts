@@ -9,14 +9,31 @@ import {
 import { assertQrl, isSyncQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
-import { retryOnPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { QwikHandlerPromise } from '../shared/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
 import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 import { CatchPhase } from '../shared/error/error-handling';
+
+const withHandlerStart = (run: (onStart: () => void) => void | Promise<void>) => {
+  let hasStarted = false;
+  let markStarted = () => {
+    hasStarted = true;
+  };
+  const result = run(() => markStarted());
+  if (isPromise(result) && !hasStarted) {
+    // The loader waits for imports without waiting for user work.
+    (result as QwikHandlerPromise)._qStart = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    result.then(markStarted, markStarted);
+  }
+  return result;
+};
 
 /**
  * This safely calls an event handler, handling errors and retrying on thrown Promises, and
@@ -28,6 +45,18 @@ export function runEventHandlerQRL(
   element: Element,
   ctx?: InvokeContext
 ): void | Promise<void> {
+  return withHandlerStart((onStart) =>
+    invokeEventHandlerQRL(handler, event, element, ctx, onStart)
+  );
+}
+
+function invokeEventHandlerQRL(
+  handler: QRL<(...args: any[]) => void>,
+  event: Event,
+  element: Element,
+  ctx: InvokeContext | undefined,
+  onStart: () => void
+): void | Promise<void> {
   if (!element.isConnected) {
     // ignore events on disconnected elements, this can happen when the event is triggered while the element is being removed
     return;
@@ -35,11 +64,12 @@ export function runEventHandlerQRL(
   if (!ctx) {
     const container = getDomContainer(element);
     return whenContainerDataReady(container, () =>
-      runEventHandlerQRL(
+      invokeEventHandlerQRL(
         handler,
         event,
         element,
-        newInvokeContextFromDOM(event, element, container)
+        newInvokeContextFromDOM(event, element, container),
+        onStart
       )
     );
   }
@@ -48,9 +78,13 @@ export function runEventHandlerQRL(
   vnode_ensureElementInflated(container, hostElement);
   // Sync handlers must not defer subsequent handlers.
   const handlerFn = isSyncQrl(handler)
-    ? (...args: any[]) =>
-        ((handler as QRLInternal).$lazy$.$load$() as (...args: any[]) => void)(...args)
-    : handler;
+    ? (...args: any[]) => {
+        const fn = (handler as QRLInternal).$lazy$.$load$() as (...args: any[]) => void;
+        onStart();
+        return fn(...args);
+      }
+    : async (...args: any[]) =>
+        (handler as QRLInternal<(...args: any[]) => void>).getFn(ctx, onStart)(...args);
   let realHandler = handlerFn;
 
   if (hostElement.flags & VNodeFlags.HasIterationItems) {
@@ -79,6 +113,7 @@ export function runEventHandlerQRL(
       }
     },
     (err) => {
+      onStart();
       if (isQrlImportError(err)) {
         // Import failures bypass error boundaries, matching qwikloader (#8962).
         const doc = element.ownerDocument;
@@ -112,13 +147,15 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     return;
   }
   const container = getDomContainer(element);
-  return whenContainerDataReady(container, () => {
-    const ctx = newInvokeContextFromDOM(event, element, container);
-    if (typeof this === 'string') {
-      setCaptures(deserializeCaptureDeltas(ctx.$container$!, this));
-    }
-    const qrlToRun = _capturesObj._![0] as QRLInternal<(...args: any[]) => void>;
-    isDev && assertQrl(qrlToRun);
-    return runEventHandlerQRL(qrlToRun, event, element, ctx);
-  });
+  return withHandlerStart((onStart) =>
+    whenContainerDataReady(container, () => {
+      const ctx = newInvokeContextFromDOM(event, element, container);
+      if (typeof this === 'string') {
+        setCaptures(deserializeCaptureDeltas(ctx.$container$!, this));
+      }
+      const qrlToRun = _capturesObj._![0] as QRLInternal<(...args: any[]) => void>;
+      isDev && assertQrl(qrlToRun);
+      return invokeEventHandlerQRL(qrlToRun, event, element, ctx, onStart);
+    })
+  );
 }

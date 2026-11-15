@@ -115,5 +115,21 @@ test.describe('Sandbox smoke tests', () => {
         .poll(async () => (await code.innerText()).length)
         .toBeGreaterThan(truncatedLength);
     });
+
+    test('an expanded bundle stays expanded when the playground rebuilds', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+      const toggle = page.locator('.output-modules .file-toggle-button').first();
+      await toggle.click();
+      await expect(toggle).toHaveText('Show less');
+
+      const rebuilt = page.waitForEvent('console', (msg) => msg.text().includes('Client build:'));
+      await page.getByRole('button', { name: 'Options' }).click();
+      await page.getByLabel('Debug').click();
+      await rebuilt;
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      await expect(toggle).toHaveText('Show less');
+    });
   });
 });

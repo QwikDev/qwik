@@ -1,4 +1,4 @@
-import { $, component$, createSignal, useSignal } from '@qwik.dev/core';
+import { $, component$, useSignal, useStore } from '@qwik.dev/core';
 import { lucide } from '@qds.dev/ui';
 import { CodeBlock } from '../../components/code-block/code-block';
 import type { ReplModuleOutput } from '../types';
@@ -7,6 +7,8 @@ const FILE_MODULE_DIV_ID = 'file-modules-client-modules';
 
 export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutputModulesProps) => {
   const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
+  // Keyed by path: a rebuild replaces the output objects.
+  const expandedPaths = useStore<Record<string, boolean>>({});
   const pathInView$ = $((path: string) => {
     selectedPath.value = path;
   });
@@ -47,10 +49,8 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
         <div class="file-modules" id={FILE_MODULE_DIV_ID}>
           {outputs.map((o, i) => {
             const isLarge = o.code.length > 3000;
-            if (isLarge && !o.shorten) {
-              o.shorten = createSignal(true);
-            }
-            const code = o.shorten?.value ? o.code.slice(0, 3000) : o.code;
+            const isExpanded = !!expandedPaths[o.path];
+            const code = isLarge && !isExpanded ? o.code.slice(0, 3000) : o.code;
             return (
               <div class="file-item output-panel-section" data-output-item={i} key={o.path}>
                 <div class="file-info output-panel-section-header">
@@ -64,18 +64,18 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                     code={code}
                     observerRootId={FILE_MODULE_DIV_ID}
                   />
-                  {o.shorten && (
+                  {isLarge && (
                     <button
                       type="button"
                       class="file-toggle-button"
-                      onClick$={() => (o.shorten!.value = !o.shorten!.value)}
-                      aria-expanded={!o.shorten!.value}
+                      onClick$={() => (expandedPaths[o.path] = !expandedPaths[o.path])}
+                      aria-expanded={isExpanded}
                     >
-                      <span>{o.shorten!.value ? 'Truncated - show more' : 'Show less'}</span>
+                      <span>{isExpanded ? 'Show less' : 'Truncated - show more'}</span>
                       <span
                         class={{
                           'file-toggle-button-icon ml-3': true,
-                          'rotate-180': !o.shorten!.value,
+                          'rotate-180': isExpanded,
                         }}
                         aria-hidden="true"
                       >

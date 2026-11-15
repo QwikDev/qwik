@@ -50,6 +50,7 @@ export default component$(() => {
         store.buildMode = shareData.buildMode;
         store.entryStrategy = shareData.entryStrategy;
         store.outOfOrderStreaming = shareData.outOfOrderStreaming;
+        store.rustOptimizer = shareData.rustOptimizer;
         store.files = shareData.files;
         document.title = `REPL Playground - Qwik`;
         return;
@@ -68,6 +69,7 @@ export default component$(() => {
       store.buildMode = shareData.buildMode;
       store.entryStrategy = shareData.entryStrategy;
       store.outOfOrderStreaming = shareData.outOfOrderStreaming;
+      store.rustOptimizer = shareData.rustOptimizer;
       store.files = shareData.files;
       document.title = `REPL Playground - Qwik`;
       return;
@@ -78,6 +80,7 @@ export default component$(() => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
     track(() => store.outOfOrderStreaming);
+    track(() => store.rustOptimizer);
     track(() => store.version);
     track(() => store.files.forEach((f) => f.code));
 

@@ -26,6 +26,7 @@ interface MessageBase {
 export interface InitMessage extends MessageBase {
   type: 'init';
   version: string;
+  rustOptimizer: boolean;
   deps: PkgUrls;
 }
 
@@ -67,7 +68,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   switch (type) {
     case 'init':
       deps = e.data.deps;
-      loaded = loadOptimizer();
+      loaded = loadOptimizer(e.data.rustOptimizer);
       break;
 
     case 'bundle':
@@ -158,13 +159,13 @@ async function loadTsOptimizer(url: string) {
   }
 }
 
-async function loadOptimizer() {
+async function loadOptimizer(rustOptimizer: boolean) {
   const qwikDeps = deps[QWIK_PKG_NAME_V1];
   version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
 
   const tsOptimizerUrl = qwikDeps['/dist/ts-optimizer.mjs'];
   let tsOptimizerLoaded = false;
-  if (tsOptimizerUrl) {
+  if (tsOptimizerUrl && !rustOptimizer) {
     // This core version ships the TS optimizer — no Rust wasm needed.
     // Versions predating it 404 here and fall back to the Rust wasm.
     try {

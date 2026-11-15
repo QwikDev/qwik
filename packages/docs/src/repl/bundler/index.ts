@@ -1,7 +1,7 @@
 /** Bundler registry that manages WebWorkers per Qwik version */
 
 import type { ReplInputOptions, ReplResult } from '../types';
-import { getDeps } from './bundled';
+import { getDeps, resolveOptimizerVersion } from './bundled';
 import type { BundleMessage, InitMessage, OutgoingMessage } from './repl-bundler-worker';
 import bundlerWorkerUrl from './repl-bundler-worker?worker&url';
 
@@ -19,7 +19,10 @@ class Bundler {
   >();
   nextBuildId = 1;
 
-  constructor(public version: string) {
+  constructor(
+    public version: string,
+    public rustOptimizer: boolean
+  ) {
     this.initWorker();
     this.keepAlive();
   }
@@ -38,16 +41,17 @@ class Bundler {
     });
   }
 
-  messageHandler = (e: MessageEvent<OutgoingMessage>) => {
+  messageHandler = async (e: MessageEvent<OutgoingMessage>) => {
     const { type } = e.data;
     if (type === 'ready') {
-      const { version } = this;
+      const { version, rustOptimizer } = this;
       const message: InitMessage = {
         type: 'init',
         version,
-        deps: getDeps(version),
+        rustOptimizer,
+        deps: getDeps(version, await resolveOptimizerVersion(version)),
       };
-      this.worker!.postMessage(message);
+      this.worker?.postMessage(message);
       this.ready!();
     } else if (type === 'result' || type === 'error') {
       const { buildId } = e.data;
@@ -104,11 +108,12 @@ class Bundler {
   }
 }
 
-export const getBundler = (version: string): Bundler => {
-  let bundler = bundlers.get(version);
+export const getBundler = (version: string, rustOptimizer: boolean): Bundler => {
+  const key = `${version}${rustOptimizer ? ':rust' : ''}`;
+  let bundler = bundlers.get(key);
   if (!bundler) {
-    bundler = new Bundler(version);
-    bundlers.set(version, bundler);
+    bundler = new Bundler(version, rustOptimizer);
+    bundlers.set(key, bundler);
   }
   return bundler;
 };

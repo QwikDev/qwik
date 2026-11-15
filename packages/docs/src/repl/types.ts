@@ -14,6 +14,7 @@ export interface ReplAppInput {
   entryStrategy: string;
   debug?: boolean;
   outOfOrderStreaming?: boolean;
+  rustOptimizer?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };

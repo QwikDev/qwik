@@ -79,17 +79,20 @@ const assignOwnEnumerableProps = (target: object, source: object): void => {
       continue;
     }
     const value = (unwrappedSource as Record<PropertyKey, unknown>)[key];
-    if (key === '__proto__') {
+    const previous = (unwrappedTarget as Record<PropertyKey, unknown>)[key];
+    const hadKey = Object.hasOwn(unwrappedTarget, key);
+    if (key === '__proto__' || (!hadKey && key in unwrappedTarget)) {
       Object.defineProperty(unwrappedTarget, key, {
         value,
         enumerable: true,
         configurable: true,
         writable: true,
       });
+      if (!hadKey || previous !== value) {
+        forceStoreEffects(target, key);
+      }
       continue;
     }
-    const previous = (unwrappedTarget as Record<PropertyKey, unknown>)[key];
-    const hadKey = Object.hasOwn(unwrappedTarget, key);
     (target as Record<PropertyKey, unknown>)[key] = value;
     if (typeof key === 'symbol' && (!hadKey || previous !== value)) {
       forceStoreEffects(target, key);
@@ -98,16 +101,16 @@ const assignOwnEnumerableProps = (target: object, source: object): void => {
 };
 
 const copyResourceResult = <T extends object>(result: T): T => {
-  const copy = (Array.isArray(result) ? result.slice() : {}) as T;
+  const copy = (Array.isArray(result) ? new Array(unwrapStore(result).length) : {}) as T;
   assignOwnEnumerableProps(copy, result);
   return copy;
 };
 
 const syncResourceStore = (current: object, next: object): void => {
-  const unwrappedNext = unwrapStore(next);
+  const unwrappedNext = copyResourceResult(next);
   const unwrappedCurrent = unwrapStore(current);
-  if (Array.isArray(current) && Array.isArray(next)) {
-    current.length = unwrapStore(next).length;
+  if (Array.isArray(current) && Array.isArray(unwrappedNext)) {
+    current.length = unwrappedNext.length;
   }
   const currentKeys = Reflect.ownKeys(unwrappedCurrent);
   for (let index = 0; index < currentKeys.length; index++) {
@@ -122,7 +125,7 @@ const syncResourceStore = (current: object, next: object): void => {
       }
     }
   }
-  assignOwnEnumerableProps(current, next);
+  assignOwnEnumerableProps(current, unwrappedNext);
 };
 
 /** @internal */
@@ -139,7 +142,9 @@ export const _syncResourceStore = syncResourceStore;
 export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
   const [fn, ref] = _capturesObj._ as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
   DEBUG && log('invoke resource function');
-  const result = await fn(arg);
+  const resolved = await fn(arg);
+  // Copy so later results never mutate the caller's object.
+  const result = isObject(resolved) ? copyResourceResult(resolved) : resolved;
   DEBUG && log('resource function resolved', result);
   (arg as unknown as Job<{ r: T }>).$commit$ = ({ r: result }) => {
     if (isObject(result)) {
@@ -147,8 +152,7 @@ export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
       if (isObject(current) && Array.isArray(current) === Array.isArray(result)) {
         syncResourceStore(current, result);
       } else {
-        // Copy so later results never mutate the caller's object.
-        ref.r = createStore(fn.$container$, copyResourceResult(result), StoreFlags.RECURSIVE);
+        ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
         DEBUG && log('store created', ref.r);
       }
     } else {

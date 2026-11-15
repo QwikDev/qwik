@@ -10,6 +10,7 @@ import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { Task, TaskFlags } from '../../use/use-task';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
+import { _syncResourceStore } from '../../use/use-resource';
 import { ELEMENT_SEQ } from 'packages/qwik/src/server/qwik-copy';
 
 describe('v2/store', () => {
@@ -54,6 +55,63 @@ describe('v2/store', () => {
       expect(log).toEqual(['false', 'true']);
     });
   });
+
+  it.each(['add', 'update', 'unchanged', 'remove'])(
+    'notifies store-only __proto__ readers: %s',
+    async (change) => {
+      await withContainer(async () => {
+        const input = change === 'add' ? {} : JSON.parse('{"__proto__":"before"}');
+        const store = getOrCreateStore<any>(input, StoreFlags.RECURSIVE, container);
+        const values: string[] = [];
+        effect$(() => {
+          values.push(typeof store.__proto__ === 'object' ? 'prototype' : String(store.__proto__));
+        });
+        const initial = change === 'add' ? 'prototype' : 'before';
+        const next =
+          change === 'remove'
+            ? {}
+            : JSON.parse(
+                change === 'unchanged' ? '{"__proto__":"before"}' : '{"__proto__":"after"}'
+              );
+        _syncResourceStore(store, next);
+        await flushSignals();
+        const updated = change === 'remove' ? 'prototype' : 'after';
+        expect(values).toEqual(change === 'unchanged' ? [initial] : [initial, updated]);
+        expect(Object.getPrototypeOf(input)).toBe(Object.prototype);
+        expect(Object.hasOwn(input, '__proto__')).toBe(change !== 'remove');
+        expect(Object.getPrototypeOf(next)).toBe(Object.prototype);
+      });
+    }
+  );
+
+  it.each(['add', 'update', 'unchanged', 'remove'])(
+    'notifies symbol enumeration readers: %s',
+    async (change) => {
+      await withContainer(async () => {
+        const tag = Symbol('tag');
+        const store = getOrCreateStore<any>(
+          change === 'add' ? {} : { [tag]: 'before' },
+          StoreFlags.RECURSIVE,
+          container
+        );
+        const values: string[] = [];
+        effect$(() => {
+          values.push(
+            Reflect.ownKeys(store)
+              .map((key) => String(store[key]))
+              .join(',')
+          );
+        });
+        const initial = change === 'add' ? '' : 'before';
+        const next =
+          change === 'remove' ? {} : { [tag]: change === 'unchanged' ? 'before' : 'after' };
+        _syncResourceStore(store, next);
+        await flushSignals();
+        const updated = change === 'remove' ? '' : 'after';
+        expect(values).toEqual(change === 'unchanged' ? [initial] : [initial, updated]);
+      });
+    }
+  );
 
   function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();

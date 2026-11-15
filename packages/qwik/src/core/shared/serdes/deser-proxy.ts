@@ -124,44 +124,75 @@ class DeserializationHandler implements ProxyHandler<object> {
   }
 }
 
+/** Once this share of the stream is restored, the rest follows and the stream is released. */
+const RELEASE_STATE_AT = 0.9;
+
 /** Restored roots live in the proxy target; the state text is never rewritten. */
 class BinaryDeserializationHandler extends DeserializationHandler {
   private $isRestored$: Uint8Array;
+  private $restoredUnits$ = 0;
+  /** Null once every root is restored and the state text is released. */
+  private $reader$: BinaryStateReader | null;
 
   constructor(
     container: DomContainer,
-    private $reader$: BinaryStateReader,
+    reader: BinaryStateReader,
     private $restoredRoots$: unknown[]
   ) {
     super(container, []);
+    this.$reader$ = reader;
     this.$isRestored$ = new Uint8Array($restoredRoots$.length);
-    $reader$.$onRootAllocated$ = (rootIndex, value) => this.$markRestored$(rootIndex, value);
+    reader.$onRootAllocated$ = (rootIndex, value) => this.$markRestored$(rootIndex, value);
   }
 
   private $markRestored$(rootIndex: number, value: unknown): void {
-    this.$isRestored$[rootIndex] = 1;
+    if (!this.$isRestored$[rootIndex]) {
+      this.$isRestored$[rootIndex] = 1;
+      this.$restoredUnits$ += this.$reader$!.$rootSizes$[rootIndex];
+    }
     this.$restoredRoots$[rootIndex] = value;
+  }
+
+  /** Restores the remaining roots so that nothing needs the state text anymore. */
+  private $releaseState$(): void {
+    const reader = this.$reader$!;
+    const isRestored = this.$isRestored$;
+    try {
+      for (let i = 0; i < isRestored.length; i++) {
+        if (!isRestored[i]) {
+          this.$markRestored$(i, reader.$restoreRoot$(this.$container$, i));
+        }
+      }
+      this.$reader$ = null;
+    } catch {
+      // A root that cannot be restored must only fail for the code that asks for it.
+      this.$restoredUnits$ = -Infinity;
+    }
   }
 
   get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return target;
     }
+    const reader = this.$reader$;
     const i = toRootIndex(property);
-    if (Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length) {
+    if (!reader || Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length) {
       return Reflect.get(target, property, receiver);
     }
     if (this.$isRestored$[i]) {
       return target[i];
     }
     const container = this.$container$;
-    const ownsPendingStoreTargets = beginDeserialization(container);
+    const isOutermost = beginDeserialization(container);
     try {
-      const value = this.$reader$.$restoreRoot$(container, i);
+      const value = reader.$restoreRoot$(container, i);
       this.$markRestored$(i, value);
+      if (isOutermost && this.$restoredUnits$ >= reader.$unitCount$ * RELEASE_STATE_AT) {
+        this.$releaseState$();
+      }
       return value;
     } finally {
-      endDeserialization(container, ownsPendingStoreTargets);
+      endDeserialization(container, isOutermost);
     }
   }
 
@@ -171,7 +202,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     }
     const out = Reflect.set(target, property, value, receiver);
     const i = toRootIndex(property);
-    if (!(Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length)) {
+    if (this.$reader$ && !(Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length)) {
       this.$isRestored$[i] = 1;
     }
     return out;

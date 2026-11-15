@@ -3,7 +3,7 @@ import { createSerializationContext } from '../../../serializer';
 import type { DeserializeContainer } from '../types';
 import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
 import { TypeIds } from './constants';
-import { wrapBinaryStateProxy } from './deser-proxy';
+import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
 
 const serialize = (...roots: unknown[]): Promise<string> => {
   const context = createSerializationContext(
@@ -105,6 +105,22 @@ describe('binary state', () => {
   it('restores a resolved promise', async () => {
     const [promise] = await roundTrip(Promise.resolve({ done: true }));
     await expect(promise).resolves.toEqual({ done: true });
+  });
+
+  it('keeps untouched roots unrestored while most of the state is unread', async () => {
+    const big = Array.from({ length: 100 }, (_, i) => ({ i }));
+    const state = await roundTrip({ small: 1 }, big);
+    state[0];
+    expect((state as any)[SERIALIZER_PROXY_UNWRAP][1]).toBeUndefined();
+  });
+
+  it('restores the remaining roots once 90% of the state is restored', async () => {
+    const big = Array.from({ length: 100 }, (_, i) => ({ i }));
+    const state = await roundTrip({ small: 1 }, big);
+    state[1];
+    expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ small: 1 });
+    expect(state[0]).toBe((state as any)[SERIALIZER_PROXY_UNWRAP][0]);
+    expect(state.length).toBe(2);
   });
 
   it('writes nothing that could end or alter the script element', async () => {

@@ -72,6 +72,10 @@ export class BinaryStateReader {
   private $pos$ = 0;
   /** Offset of the last unit of every root. */
   $rootEnds$: Uint32Array;
+  /** Number of units each root occupies in the root list. */
+  $rootSizes$: Uint32Array;
+  /** Number of units in the stream. */
+  $unitCount$: number;
   /**
    * Nested values that are also a root, sorted, each `endOffset * MAX_ROOTS + rootIndex`.
    *
@@ -88,6 +92,8 @@ export class BinaryStateReader {
     this.$base$ = separator + 1;
     this.$strings$ = JSON.parse(text.slice(1, separator));
     this.$sharedValues$ = new Float64Array(0);
+    this.$unitCount$ = text.length - this.$base$;
+    this.$rootSizes$ = new Uint32Array(0);
     this.$rootEnds$ = this.$indexRoots$();
   }
 
@@ -107,9 +113,11 @@ export class BinaryStateReader {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
     const rootEnds = new Uint32Array(count);
+    const rootSizes = (this.$rootSizes$ = new Uint32Array(count));
     for (let i = count - 1; i >= 0; i--) {
       rootEnds[i] = this.$pos$;
       this.$skip$();
+      rootSizes[i] = rootEnds[i] - this.$pos$;
     }
     const sharedValues = new Float64Array(count);
     let sharedCount = 0;

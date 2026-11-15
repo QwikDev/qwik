@@ -2,16 +2,19 @@ import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
+  chunksHintedAsNeeded,
   countRoundTrips,
   createGate,
   holdSpeculativePreloads,
   preloaderLinks,
+  recordPreloadHints,
   recordSpeculativePreloads,
   releaseAll,
   resultIsDone,
   waitForNetworkIdle,
   waitForQwikloader,
 } from '../utils/gate';
+import { attachRoundTrips } from '../utils/click-tests';
 import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
 const CONDITIONAL_ALL = fixtureById('conditional/all');
@@ -69,6 +72,41 @@ test.describe('click before core loaded', () => {
     );
     await releaseAll(gate, startupPiece);
     await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test("the click's handler is requested while core is still loading", async ({ page }) => {
+    const { roundTrips } = await clickWhileLoading(
+      page,
+      [coreUrl()],
+      clickConditional(page),
+      CONDITIONAL_ALL
+    );
+    await attachRoundTrips('round-trips.txt', roundTrips, CONDITIONAL_ALL.sources);
+    const requestedBeforeCoreArrived = roundTrips[0].urls;
+    expect(requestedBeforeCoreArrived).not.toContain(coreUrl());
+    expect(
+      requestedBeforeCoreArrived.filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+    ).toHaveLength(1);
+  });
+
+  test("the preloader is told the click's chunks are needed while core is still loading", async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => url === coreUrl();
+    await page.goto(CONDITIONAL_ALL.path, { waitUntil: 'commit' });
+    await waitForQwikloader(page);
+    await expect.poll(() => gate.held.length).toBe(1);
+
+    await clickConditional(page)();
+
+    const clickChunksHinted = async () =>
+      (await chunksHintedAsNeeded(page)).filter((chunk) =>
+        chunkComesFrom(`${ORIGIN}/build/${chunk}`, CONDITIONAL_ALL.sources)
+      );
+    await expect.poll(clickChunksHinted).toHaveLength(1);
+    await releaseAll(gate);
   });
 });
 

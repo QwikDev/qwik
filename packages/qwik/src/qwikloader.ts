@@ -15,6 +15,9 @@
  * - `wp:` for passive window events
  *
  * `QwikEvContainerReady, instanceHash` marks a streamed container's serialized state as complete.
+ *
+ * Handler attributes hold `chunk#symbol#captures#otherChunks` QRLs separated by `|`. `otherChunks`
+ * is an optional comma-separated list of chunks to import alongside `chunk`.
  */
 
 import type {
@@ -22,6 +25,7 @@ import type {
   QwikSymbolEvent,
   QwikVisibleEvent,
 } from './core/shared/jsx/types/jsx-qwik-events';
+import type { PreloaderGlobal } from './core/preloader/bridge';
 import type {
   QContainerElement,
   QElement,
@@ -109,22 +113,6 @@ const queueTasks = (tasks: Task[], eventName: string) => {
   }
 };
 
-const resolveContainer = (containerEl: QContainerElement) => {
-  if (containerEl._qwikjson_ === undefined) {
-    const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
-    let script = parentJSON.lastElementChild;
-    while (script) {
-      if (script.tagName === 'SCRIPT' && script.getAttribute('type') === 'qwik/json') {
-        containerEl._qwikjson_ = JSON.parse(
-          script.textContent!.replace(/\\x3C(\/?script)/gi, '<$1')
-        );
-        break;
-      }
-      script = script.previousElementSibling;
-    }
-  }
-};
-
 const markContainerReady = (hash: string) => {
   readyContainers[hash] = 1;
   emitEvent(readyStateChange);
@@ -189,7 +177,9 @@ const resolveHandler = (
   base: URL,
   chunk: string,
   symbol: string,
+  otherChunks: string | undefined,
   reqTime: number,
+  isUserEvent: boolean,
   reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
@@ -218,9 +208,22 @@ const resolveHandler = (
     return handler;
   }
 
+  const chunks = otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+  // Told now, the preloader fetches what these chunks import while they download.
+  // Page lifecycle handlers stay out, or their whole import graph would load with the page.
+  if (isUserEvent) {
+    const preloaderGlobal = win as unknown as PreloaderGlobal;
+    preloaderGlobal.qPreload
+      ? preloaderGlobal.qPreload(chunks, 1)
+      : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+  }
+
   const href = new URL(chunk, base).href;
   const module = import(/* @vite-ignore */ href);
-  resolveContainer(container);
+  for (let i = 1; i < chunks.length; i++) {
+    // Only starts the download, whoever needs the chunk imports it and reports failures
+    import(/* @vite-ignore */ new URL(chunks[i], base).href).catch(() => {});
+  }
   return module.then(
     (module) => {
       const handler = module[symbol] as Handler | undefined;
@@ -331,7 +334,7 @@ const dispatch = (
     for (let i = 0; i < qrls.length; i++) {
       const qrl = qrls[i];
       const reqTime = performance.now();
-      const [chunk, symbol, capturedIds] = qrl.split('#');
+      const [chunk, symbol, capturedIds, otherChunks] = qrl.split('#');
       const run = (handler: Handler | undefined): void | Promise<void> => {
         if (handler && element.isConnected) {
           const onError = (error: any) => {
@@ -354,13 +357,26 @@ const dispatch = (
         }
       };
       const resolve = (reportSyncError = true) =>
-        resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
-      const handler = waitForReady ? undefined : resolve();
+        resolveHandler(
+          container,
+          element,
+          qBase,
+          base,
+          chunk,
+          symbol,
+          otherChunks,
+          reqTime,
+          // A user event named q* only misses the early hint, loading its QRLs still hints
+          !isQwikLifecycleEvent(ev.type),
+          reportSyncError
+        );
+      // Sync handlers only exist once the container is ready, chunks can load meanwhile
+      const handler = waitForReady && !chunk ? undefined : resolve();
       if (waitForReady) {
         defer = true;
         tasks.push(async () => {
           await waitForReady;
-          await run(chunk ? await resolve() : (await resolve(false)) || (await resolve()));
+          await run(chunk ? await handler : (await resolve(false)) || (await resolve()));
         });
       } else if (isPromise(handler)) {
         defer = true;

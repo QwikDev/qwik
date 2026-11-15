@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { qrlToString } from './qrl-to-string';
+import { parseQRL, qrlToString } from './qrl-to-string';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import type { SerializationContext } from '../../../serializer/serialization-context';
 import { SYNC_QRL } from '../qrl/qrl-utils';
@@ -185,5 +185,25 @@ describe('qrlToString', () => {
 
       expect(result).toEqual(['myChunk', 'mySymbol', null]);
     });
+  });
+});
+
+describe('parseQRL', () => {
+  it.each([
+    ['without other chunks', 'core.js#_run#0 1', 'core.js', '0 1'],
+    [
+      'with other chunks after the captures',
+      'core.js#_run#0 1#handler.js,other.js',
+      'core.js',
+      '0 1',
+    ],
+    ['with other chunks and no captures', 'core.js#_run##handler.js', 'core.js', null],
+    ['with a comma in the chunk name', 'a,b.js#_run#0', 'a,b.js', '0'],
+  ])('reads the chunk, symbol and captures %s', (_title, qrlString, chunk, captures) => {
+    const qrl = parseQRL(qrlString);
+
+    expect(qrl.$chunk$).toBe(chunk);
+    expect(qrl.$symbol$).toBe('_run');
+    expect(qrl.$captures$ ?? null).toBe(captures);
   });
 });

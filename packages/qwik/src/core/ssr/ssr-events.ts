@@ -41,7 +41,8 @@ export function setEvent(
       !qrl.$symbol$.startsWith('_') &&
       (Array.isArray(qrl.$captures$) || (hasMovedCaptures && qrl.$hasMovedCaptures$))
     ) {
-      qrl = createQRL(null, '_run', _run, null, [qrl]);
+      // Listing the handler chunk lets qwikloader import it with core instead of after it
+      return qrlToChunks(serializationCtx, createQRL(null, '_run', _run, null, [qrl]), qrl);
     }
     return qrlToChunks(serializationCtx, qrl);
   };

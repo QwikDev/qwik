@@ -50,7 +50,8 @@ with a focused compatibility fixture after `pnpm build.rust`.
 
 ## V3 compiler and Vite integration
 
-Compiler unit tests import source; Vite integration and browser builds import the built compiler.
+Compiler unit tests import source; Vite integration, browser builds and the core render specs (the
+`csr`, `resume` and `ssr` projects) import the built compiler.
 Run `pnpm build.compiler` before testing integration after compiler changes, then rebuild core for
 browser verification. Rebuild compiler exports before `build.core.dev`: its declaration pass runs
 before the compiler build. If declarations remain stale, rerun

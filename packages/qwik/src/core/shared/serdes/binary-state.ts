@@ -114,6 +114,12 @@ export class BinaryStateReader {
   $rootSizes$ = new Uint32Array(0);
   /** Number of units in the stream. */
   $unitCount$ = 0;
+  /**
+   * Where the larger arrays without a stored length start, by their end offset, so that nested
+   * shared values are not walked again by every value around them. Null while indexing roots, which
+   * walks everything once.
+   */
+  private $skippedArrayStarts$: Map<number, number> | null = null;
   /** Work done so far; crafted input can make values overlap and be read over and over. */
   private $unitsRead$ = 0;
   /**
@@ -232,7 +238,7 @@ export class BinaryStateReader {
    */
   private $charge$(units: number): void {
     this.$unitsRead$ += units;
-    if (this.$unitsRead$ > 4 * this.$unitCount$) {
+    if (this.$unitsRead$ > 8 * this.$unitCount$) {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
   }
@@ -278,6 +284,8 @@ export class BinaryStateReader {
 
   /** Indexes the root list whose ArrayEnd is right after the current position. */
   private $appendRoots$(): void {
+    const skippedArrayStarts = this.$skippedArrayStarts$;
+    this.$skippedArrayStarts$ = null;
     const firstRoot = this.$rootEnds$.length;
     const count = this.$openArray$();
     if (firstRoot + count >= MAX_ROOTS) {
@@ -318,6 +326,7 @@ export class BinaryStateReader {
     this.$rootEnds$ = rootEnds;
     this.$rootSizes$ = rootSizes;
     this.$sharedValues$ = sharedValues.slice(0, sharedCount).sort();
+    this.$skippedArrayStarts$ = skippedArrayStarts || new Map();
   }
 
   /** The root that owns the nested value ending at `end`, or -1. */
@@ -376,6 +385,7 @@ export class BinaryStateReader {
   /** Moves past one value without restoring it. */
   protected $skip$(): void {
     this.$charge$(1);
+    const end = this.$pos$;
     const code = this.$unit$(this.$pos$--);
     if (code < BinaryCode.Int1 || code >= BinaryCode.Num0) {
       return;
@@ -388,8 +398,17 @@ export class BinaryStateReader {
       if (this.$itemsLength$ !== -1) {
         this.$pos$ -= this.$itemsLength$;
       } else {
+        const skippedArrayStarts = this.$skippedArrayStarts$;
+        const start = skippedArrayStarts?.get(end);
+        if (start !== undefined) {
+          this.$pos$ = start;
+          return;
+        }
         for (let i = 0; i < count; i++) {
           this.$skip$();
+        }
+        if (skippedArrayStarts && end - this.$pos$ > BinaryCode.MaxUnsizedItems) {
+          skippedArrayStarts.set(end, this.$pos$);
         }
       }
     } else if (code >= BinaryCode.StrAt1) {

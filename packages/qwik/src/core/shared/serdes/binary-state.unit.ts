@@ -405,6 +405,33 @@ describe('binary state', () => {
     expect(() => restore(tampered)[0]).toThrow();
   });
 
+  it('restores a long chain of shared objects', async () => {
+    type Node = { v: number; next: Node | null };
+    const nodes: Node[] = [];
+    let next: Node | null = null;
+    for (let i = 0; i < 100; i++) {
+      nodes.push((next = { v: i, next }));
+    }
+    const [head, restoredNodes] = (await roundTrip(next, nodes)) as [Node, Node[]];
+    expect(restoredNodes).toEqual(nodes);
+    expect(head).toBe(restoredNodes[99]);
+    expect(restoredNodes[1].next).toBe(restoredNodes[0]);
+  });
+
+  it('restores a deep tree whose nodes are also indexed', async () => {
+    type Tree = { id: number; children: Tree[] };
+    const byId: Tree[] = [];
+    let tree: Tree = { id: 0, children: [] };
+    byId.push(tree);
+    for (let i = 1; i < 100; i++) {
+      tree = { id: i, children: [tree] };
+      byId.push(tree);
+    }
+    const [restoredTree, restoredById] = (await roundTrip(tree, byId)) as [Tree, Tree[]];
+    expect(restoredById).toEqual(byId);
+    expect(restoredTree).toBe(restoredById[99]);
+  });
+
   describe('crafted state whose roots read the same units over and over', () => {
     const ROOT_COUNT = 60;
     /** Writes a value, then roots that are all that same value, which written state never has. */
@@ -444,7 +471,7 @@ describe('binary state', () => {
       expect(() => readEveryRoot(state)).toThrow();
     });
 
-    it('rejects roots that skip the same shared value', () => {
+    it('walks a shared value once for all the roots that skip it', () => {
       let script = '';
       const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
         script += text;
@@ -470,8 +497,8 @@ describe('binary state', () => {
       writer.$endArray$(rootsStart, ROOT_COUNT);
       writer.$finish$();
       const state = restore(script);
-      expect(state[1]).toEqual([state[0]]);
-      expect(() => readEveryRoot(state)).toThrow();
+      // the budget would reject walking the 500 units of the shared value for every root
+      expect(readEveryRoot(state).slice(1)).toEqual(Array(ROOT_COUNT - 1).fill([state[0]]));
     });
   });
 });

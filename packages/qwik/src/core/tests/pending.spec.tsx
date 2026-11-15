@@ -2735,6 +2735,33 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(document.querySelector('#late-async-computed')?.textContent).toBe('loaded');
   });
 
+  it('keeps a root-owned async computed running for a late segment when another segment fails', async () => {
+    const Reader = component$((props: { value: SignalType<string> }) => (
+      <span>{props.value.value}</span>
+    ));
+    const App = component$(() => {
+      const loaded = useComputed$(async ({ abortSignal }) => {
+        await delay(30);
+        (globalThis as any).__computedWasAborted = abortSignal.aborted;
+        return 'loaded';
+      });
+      return (
+        <main>
+          <Pending>{delay(5).then(() => Promise.reject(new Error('segment failed')))}</Pending>
+          <Pending>
+            <Reader value={loaded} />
+          </Pending>
+        </main>
+      );
+    });
+    try {
+      await expect(ssrRenderPendingStream(<App />, [])).rejects.toThrow('segment failed');
+      expect((globalThis as any).__computedWasAborted).toBe(false);
+    } finally {
+      delete (globalThis as any).__computedWasAborted;
+    }
+  });
+
   it('should resume a segment that receives a signal holding undefined', async () => {
     let resolveData!: (value: string) => void;
     const dataPromise = new Promise<string>((resolve) => {

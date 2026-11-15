@@ -1209,10 +1209,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return maybeThen(this.streamHandler.flush(), async () => {
       this.$markRootContainerReady$();
       if (this.outOfOrderPendingSegments.length) {
-        try {
-          await Promise.all(this.outOfOrderPendingSegments);
-        } finally {
-          this.drainCleanupQueue();
+        // A failed segment must not tear down state its siblings still read.
+        const settled = await Promise.allSettled(this.outOfOrderPendingSegments);
+        this.drainCleanupQueue();
+        const failed = settled.find((result) => result.status === 'rejected');
+        if (failed) {
+          throw failed.reason;
         }
       }
       this.writeScript(

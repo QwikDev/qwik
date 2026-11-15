@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { generateManifestFromBundles } from './manifest';
+import { computeTotals, generateManifestFromBundles } from './manifest';
+import type { QwikBundle } from './types';
 
 describe('generateManifestFromBundles', () => {
   const chunk = (name: string, fileName: string, moduleIds: string[] = []) => ({
@@ -133,5 +134,41 @@ describe('generateManifestFromBundles', () => {
     const manifest = generate({ 'q-app.js': chunk('app', 'q-app.js') });
     expect(manifest.core).toBeUndefined();
     expect(manifest.mapping['_run']).toBeUndefined();
+  });
+});
+
+describe('computeTotals', () => {
+  const totalsOf = (bundles: Record<string, Partial<QwikBundle>>) => {
+    computeTotals(bundles as Record<string, QwikBundle>);
+    return Object.fromEntries(Object.entries(bundles).map(([name, b]) => [name, b.total]));
+  };
+
+  test('counts a bundle reached through several imports once', () => {
+    expect(
+      totalsOf({
+        'page.js': { size: 1, imports: ['left.js', 'right.js'] },
+        'left.js': { size: 10, imports: ['shared.js'] },
+        'right.js': { size: 100, imports: ['shared.js'] },
+        'shared.js': { size: 1000 },
+      })
+    ).toEqual({ 'page.js': 1111, 'left.js': 1010, 'right.js': 1100, 'shared.js': 1000 });
+  });
+
+  test('counts an import cycle reached through several imports once', () => {
+    expect(
+      totalsOf({
+        'page.js': { size: 1, imports: ['left.js', 'right.js'] },
+        'left.js': { size: 10, imports: ['cycle-a.js'] },
+        'right.js': { size: 100, imports: ['cycle-b.js'] },
+        'cycle-a.js': { size: 1000, imports: ['cycle-b.js'] },
+        'cycle-b.js': { size: 10000, imports: ['cycle-a.js'] },
+      })
+    ).toEqual({
+      'page.js': 11111,
+      'left.js': 11010,
+      'right.js': 11100,
+      'cycle-a.js': 11000,
+      'cycle-b.js': 11000,
+    });
   });
 });

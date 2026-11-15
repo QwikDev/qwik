@@ -65,8 +65,9 @@ test('local files fall back to @libsql/client without node:sqlite (Node < 22.5)'
   });
   try {
     const { openInsightsDb } = await import('./db');
-    // `#` and `?` are valid in filenames but not in a raw file: URL.
-    const dir = mkdtempSync(join(tmpdir(), 'qwik#db?-'));
+    // `#` and `?` are valid in filenames but not in a raw file: URL; Windows forbids `?`.
+    const prefix = process.platform === 'win32' ? 'qwik#db-' : 'qwik#db?-';
+    const dir = mkdtempSync(join(tmpdir(), prefix));
     const db = await openInsightsDb('file:' + join(dir, 'x.db'));
     await db.exec('CREATE TABLE t (id INTEGER);');
     await db.batch([{ sql: 'INSERT INTO t (id) VALUES (?)', args: [1] }]);

@@ -355,12 +355,13 @@ const dispatch = (
       };
       const resolve = (reportSyncError = true) =>
         resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
-      const handler = waitForReady ? undefined : resolve();
+      // Sync handlers only exist once the container is ready, chunks can load meanwhile
+      const handler = waitForReady && !chunk ? undefined : resolve();
       if (waitForReady) {
         defer = true;
         tasks.push(async () => {
           await waitForReady;
-          await run(chunk ? await resolve() : (await resolve(false)) || (await resolve()));
+          await run(chunk ? await handler : (await resolve(false)) || (await resolve()));
         });
       } else if (isPromise(handler)) {
         defer = true;

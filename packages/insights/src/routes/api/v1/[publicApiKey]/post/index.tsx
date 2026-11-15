@@ -1,9 +1,8 @@
 import { type RequestHandler } from '@qwik.dev/router';
-import { getDB } from '~/db';
-import { isRegisteredApp, updateEdge, updateRoutes } from '~/db/query';
-import { dbGetManifestInfo } from '~/db/sql-manifest';
+import { recordInsightsBeacon } from '@qwik.dev/core/insights/collector';
+import { getDB, getInsightsDb } from '~/db';
+import { isRegisteredApp } from '~/db/query';
 import { InsightsPayload } from '~/root';
-import { toBucket, toBucketTimeline } from '~/stats/vector';
 import { readBoundedJson } from './read-bounded-json';
 
 const MAX_PAYLOAD_BYTES = 64 * 1024;
@@ -22,49 +21,14 @@ export const onPost: RequestHandler = async ({ error, exit, json, request, param
     throw error(413, 'Too Many Symbols');
   }
   const db = getDB();
-  const { publicApiKey, manifestHash } = payload;
-  if (!(await isRegisteredApp(db, publicApiKey))) {
+  if (!(await isRegisteredApp(db, payload.publicApiKey))) {
     throw error(404, 'Unknown Application');
   }
-  // console.log('API: POST: symbol', payload);
   exit();
   json(200, { code: 200, message: 'OK' });
-  let previousSymbol = payload.previousSymbol;
-  await dbGetManifestInfo(db, publicApiKey, manifestHash);
-  for (const event of payload.symbols) {
-    const symbolHash = cleanupSymbolName(event.symbol);
-    if (symbolHash) {
-      await updateEdge(db, {
-        publicApiKey,
-        manifestHash,
-        from: previousSymbol,
-        to: symbolHash,
-        interaction: event.interaction,
-        delayBucket: toBucket(event.delay),
-        latencyBucket: toBucket(event.latency),
-      });
-      await updateRoutes(db, {
-        publicApiKey,
-        manifestHash,
-        route: event.route,
-        symbol: symbolHash,
-        timelineBucket: toBucketTimeline(event.timeline),
-      });
-    }
-    previousSymbol = symbolHash;
-  }
+  await recordInsightsBeacon(getInsightsDb(), payload);
 };
 
-function cleanupSymbolName(symbolName?: string | null): string | null {
-  if (!symbolName) {
-    return null;
-  }
-  const shortName = symbolName.substring(symbolName.lastIndexOf('_') + 1 || 0);
-  if (shortName == 'hW') {
-    return null;
-  }
-  return shortName;
-}
 function migrate1(payloadJson: any) {
   // delete payloadJson.sessionID;
   if (!('qVersion' in payloadJson)) {

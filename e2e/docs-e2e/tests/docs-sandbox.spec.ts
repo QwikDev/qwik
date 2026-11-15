@@ -65,5 +65,38 @@ test.describe('Sandbox smoke tests', () => {
       await clickButton.click();
       await expect(countValue).toHaveText('Count: 1');
     });
+
+    test('Client Bundles tab lists the bundles and shows their code', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      const bundlePaths = page.locator('.output-modules .file-tree-items a');
+      const bundles = page.locator('.output-modules .file-item');
+      await expect(bundlePaths.first()).not.toBeEmpty();
+      await expect(bundles.first().locator('pre code')).not.toBeEmpty();
+    });
+
+    test('a truncated bundle expands when asked to show more', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      const longBundle = page
+        .locator('.output-modules .file-item')
+        .filter({ has: page.locator('.file-toggle-button') })
+        .first();
+      const toggle = longBundle.locator('.file-toggle-button');
+      const code = longBundle.locator('pre code');
+      await expect(toggle).toHaveText('Truncated - show more');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      const truncatedLength = (await code.innerText()).length;
+
+      await toggle.click();
+
+      await expect(toggle).toHaveText('Show less');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await expect
+        .poll(async () => (await code.innerText()).length)
+        .toBeGreaterThan(truncatedLength);
+    });
   });
 });

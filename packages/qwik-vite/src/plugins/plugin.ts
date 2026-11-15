@@ -1527,6 +1527,8 @@ export const isDev = ${JSON.stringify(isDev)};
     });
     const bgPath = ctx.getFileName(bgAsset);
     manifest.bundleGraphAsset = bgPath;
+    // The server manifest copies it for SSR.
+    manifest.bundleGraph = bundleGraph;
     // we already generated the assets list so we need to update it
     manifest.assets![bgPath] = {
       name: 'bundle-graph.json',

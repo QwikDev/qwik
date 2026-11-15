@@ -1,17 +1,14 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import {
-  computeLatency,
   createEdgeRow,
   createRouteRow,
   delayBucketField,
   delayColumns,
-  delayColumnSumList,
+  delayColumnSums,
   edgeTableDelayCount,
   latencyBucketField,
-  latencyColumnSumList,
   latencyColumnSums,
-  listToVector,
   timelineBucketField,
   toVector,
 } from './query-helpers';
@@ -54,8 +51,8 @@ export async function getEdges(
       .select({
         from: edgeTable.from,
         to: edgeTable.to,
-        latencyColumnSumList: latencyColumnSumList,
-        delayColumnSumList: delayColumnSumList,
+        ...latencyColumnSums,
+        ...delayColumnSums,
       })
       .from(edgeTable)
       .where(where)
@@ -65,8 +62,8 @@ export async function getEdges(
     return rows.map((e) => ({
       from: e.from,
       to: e.to,
-      delay: listToVector(e.delayColumnSumList),
-      latency: listToVector(e.latencyColumnSumList),
+      delay: toVector('sumDelayCount', e),
+      latency: toVector('sumLatencyCount', e),
     }));
   });
 }
@@ -126,8 +123,6 @@ export async function getSlowEdges(
         and(eq(edgeTable.publicApiKey, publicApiKey), inArray(edgeTable.manifestHash, manifests))
       )
       .groupBy(edgeTable.manifestHash, edgeTable.to)
-      .orderBy(sql`${computeLatency} DESC`)
-      .limit(400)
       .all();
     return rows.map((edge) => ({
       manifestHash: edge.manifestHash,
@@ -147,6 +142,9 @@ export async function getSymbolDetails(
   publicApiKey: string,
   { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
+  if (manifestHashes.length === 0) {
+    return [];
+  }
   return time('symbolDetailTable.getSymbolDetails', async () => {
     return db
       .select({
@@ -163,7 +161,6 @@ export async function getSymbolDetails(
           inArray(symbolDetailTable.manifestHash, manifestHashes)
         )
       )
-      .limit(1000)
       .all();
   });
 }
@@ -215,7 +212,6 @@ export async function getAppInfo(
   description: string | null;
   publicApiKey: string;
   url: string | null;
-  github: string | null;
 }> {
   const app = await db
     .select()
@@ -223,10 +219,6 @@ export async function getAppInfo(
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
   return {
-    github:
-      publicApiKey == '221smyuj5gl'
-        ? 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src'
-        : null,
     ...app!,
   };
 }

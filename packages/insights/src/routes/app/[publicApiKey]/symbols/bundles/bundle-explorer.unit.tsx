@@ -1,0 +1,210 @@
+import { describe, expect, it, vi } from 'vitest';
+import { domRender, trigger } from '@qwik.dev/core/testing';
+import { BundleExplorer } from './bundle-explorer';
+import { computeSymbolGraph, computeSymbolVectors } from '~/stats/edges';
+import { createBundleViewData } from './bundle-view';
+
+vi.mock('~/components/symbol-tile', () => ({
+  SymbolTile: ({ symbol, fullName }: { symbol: string; fullName?: string }) => (
+    <span>{fullName || symbol}</span>
+  ),
+}));
+
+const symbols = ['first', 'second', 'isolated'].map((name) => ({
+  name,
+  fullName: `${name}_component`,
+  fileSrc: `${name}.tsx`,
+  count: 10,
+  depth: 0,
+  children: [],
+}));
+const data = createBundleViewData(
+  {
+    symbols,
+    vectors: [
+      [1, 0.4, 0],
+      [0.8, 1, 0],
+      [0, 0, 1],
+    ],
+  },
+  [
+    { name: 'bundle_pair', symbols: symbols.slice(0, 2) },
+    { name: 'bundle_isolated', symbols: symbols.slice(2) },
+  ]
+);
+
+describe('bundle explorer', () => {
+  it('leads with relationships and opens symbols or the matrix on request', async () => {
+    const { document } = await domRender(<BundleExplorer data={data} />);
+    expect(document.querySelector('[data-panel="relationships"]')).toBeTruthy();
+    expect(document.querySelector('[data-panel="matrix"]')).toBeFalsy();
+    expect(document.querySelector('[data-panel="symbols"]')).toBeFalsy();
+    await trigger(document.body, '[data-view="symbols"]', 'click');
+    expect(document.querySelector('[data-panel="symbols"]')?.textContent).toContain(
+      'first_component'
+    );
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    expect(document.querySelector('[data-panel="matrix"]')).toBeTruthy();
+    await trigger(document.body, '[data-view="relationships"]', 'click');
+    expect(document.querySelector('[data-panel="relationships"]')).toBeTruthy();
+  });
+
+  it('searches and expands the selected group without losing matrix scope', async () => {
+    const manySymbols = Array.from({ length: 55 }, (_, index) => ({
+      ...symbols[0],
+      name: `symbol-${index}`,
+      fullName: `component-${index}`,
+      count: index,
+    }));
+    const report = createBundleViewData(
+      {
+        symbols: manySymbols,
+        vectors: manySymbols.map((_, index) =>
+          manySymbols.map((__, column) => (index === column ? 1 : 0))
+        ),
+      },
+      [
+        { name: 'large', symbols: manySymbols.slice(0, 54) },
+        { name: 'last', symbols: manySymbols.slice(54) },
+      ]
+    );
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="symbols"]', 'click');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(50);
+    const more = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Show 50 more')
+    )!;
+    await trigger(document.body, more, 'click');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(54);
+    const search = document.querySelector<HTMLInputElement>(
+      '[data-panel="symbols"] input[type="search"]'
+    )!;
+    search.value = 'component-53';
+    await trigger(document.body, search, 'input');
+    expect(document.querySelectorAll('[data-panel="symbols"] tbody tr')).toHaveLength(1);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('54 symbols');
+    const scope = document.querySelector<HTMLSelectElement>('[data-matrix-scope]')!;
+    scope.value = 'all';
+    await trigger(document.body, scope, 'change');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('55 symbols');
+  });
+
+  it('previews affinity groups and restores automatic relationships', async () => {
+    const report = {
+      ...data,
+      affinityTree: [
+        { from: 0, to: 1, distance: 1 },
+        { from: 1, to: 2, distance: 3 },
+      ],
+    };
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    const slider = document.querySelector<HTMLInputElement>('#bundle-affinity')!;
+    slider.value = '100';
+    await trigger(document.body, slider, 'input');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(3);
+    expect(document.body.textContent).toContain('No connections to other symbols');
+    const reset = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Reset to automatic')
+    )!;
+    await trigger(document.body, reset, 'click');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(2);
+    expect(document.querySelector('[data-relationship="0"]')).toBeTruthy();
+    const currentSlider = document.querySelector<HTMLInputElement>('#bundle-affinity')!;
+    currentSlider.value = '0';
+    await trigger(document.body, currentSlider, 'input');
+    expect(document.querySelectorAll('button[data-group]')).toHaveLength(1);
+    await trigger(document.body, '[data-relationship="0"]', 'click');
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain(
+      'Selected relationship'
+    );
+  });
+
+  it('clears relationship details when selecting a different group', async () => {
+    const { document } = await domRender(<BundleExplorer data={data} />);
+    await trigger(document.body, '[data-relationship="0"]', 'click');
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain(
+      'Selected relationship'
+    );
+    await trigger(document.body, '[data-group="1"]', 'click');
+    expect(document.body.textContent).toContain('No connections to other symbols');
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).not.toContain(
+      'Selected relationship'
+    );
+  });
+  it('scopes the matrix to the selected group and lets users inspect either direction', async () => {
+    const { document } = await domRender(<BundleExplorer data={data} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    const selectValue = async (selector: string, value: string) => {
+      const select = document.querySelector<HTMLSelectElement>(selector)!;
+      expect(select).toBeTruthy();
+      select.value = value;
+      await trigger(document.body, select, 'change');
+    };
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('2 symbols');
+    await selectValue('[data-matrix-row]', '1');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain('0.80 / 1');
+    await selectValue('[data-matrix-row]', '0');
+    await selectValue('[data-matrix-column]', '1');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain('0.40 / 1');
+    await selectValue('[data-matrix-minimum]', '0.8');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'hidden by minimum score'
+    );
+    await selectValue('[data-matrix-scope]', 'all');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('3 symbols');
+    await selectValue('[data-matrix-row]', '2');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'No modeled connection: 0.00 / 1'
+    );
+    await trigger(document.body, '[data-group="1"]', 'click');
+    expect(document.querySelector('[data-matrix-title]')?.textContent).toContain('1 symbol');
+  });
+  it('shows weak positive matrix scores without rounding them to zero', async () => {
+    const report = {
+      ...data,
+      matrix: [
+        [
+          { column: 0, value: 1 },
+          { column: 1, value: 0.001 },
+        ],
+        ...data.matrix.slice(1),
+      ],
+    };
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    const column = document.querySelector<HTMLSelectElement>('[data-matrix-column]')!;
+    column.value = '1';
+    await trigger(document.body, column, 'change');
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'Relationship score: 0.0010 / 1'
+    );
+  });
+  it('bounds the rendered matrix and moves its window to a distant pair', async () => {
+    const vectors = computeSymbolVectors(
+      computeSymbolGraph(
+        Array.from({ length: 110 }, (_, index) => ({
+          from: index ? `s${index - 1}` : null,
+          to: `s${index}`,
+          relatedCount: 100,
+          unrelatedCount: 0,
+        }))
+      ),
+      true
+    );
+    const report = createBundleViewData(vectors, [{ name: 'chain', symbols: vectors.symbols }]);
+    const { document } = await domRender(<BundleExplorer data={report} />);
+    await trigger(document.body, '[data-view="matrix"]', 'click');
+    expect(document.querySelectorAll('svg rect').length).toBeLessThanOrEqual(10_004);
+    const row = document.querySelector<HTMLSelectElement>('[data-matrix-row]')!;
+    row.value = '109';
+    await trigger(document.body, row, 'change');
+    expect(document.querySelector('svg[role="img"]')?.getAttribute('viewBox')).toBe('0 100 100 10');
+    expect(document.querySelector('svg[role="img"]')?.getAttribute('preserveAspectRatio')).toBe(
+      'none'
+    );
+    expect(document.querySelector('[data-matrix-detail]')?.textContent).toContain(
+      'Relationship score: 1.0 / 1'
+    );
+  });
+});

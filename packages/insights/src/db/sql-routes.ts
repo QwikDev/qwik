@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { routesTable, type AppDatabase } from '.';
-import { listToVector, sumTimelineCount, timelineDelayAsList } from './query-helpers';
+import { sumTimelineCount, sumTimelineDelays, toVector } from './query-helpers';
 import { time } from './logging';
 
 const ROUTE_SYMBOL_LIMIT = 5_000;
@@ -26,7 +26,7 @@ export async function getRoutes(
       .select({
         route: routesTable.route,
         symbol: routesTable.symbol,
-        timelineDelays: timelineDelayAsList,
+        timelineDelays: sumTimelineDelays,
       })
       .from(routesTable)
       .where(where)
@@ -37,7 +37,7 @@ export async function getRoutes(
     return query.map((row) => ({
       route: row.route,
       symbol: row.symbol,
-      timeline: listToVector(row.timelineDelays),
+      timeline: toVector('timeline', row.timelineDelays),
     }));
   });
 }
@@ -97,7 +97,7 @@ export async function getRouteTimeline(
       .select({
         route: routesTable.route,
         symbol: routesTable.symbol,
-        timelineDelays: timelineDelayAsList,
+        timelineDelays: sumTimelineDelays,
       })
       .from(routesTable)
       .where(where)
@@ -108,7 +108,7 @@ export async function getRouteTimeline(
     return query.map((row) => ({
       route: row.route,
       symbol: row.symbol,
-      timeline: listToVector(row.timelineDelays),
+      timeline: toVector('timeline', row.timelineDelays),
     }));
   });
 }

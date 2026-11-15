@@ -1,3 +1,6 @@
+vi.mock('~/components/report-scope/use-report-query', () => ({
+  useReportQuery: () => new URLSearchParams(),
+}));
 import { describe, expect, test, vi } from 'vitest';
 import type { RequestEvent } from '@qwik.dev/router';
 import { InsightsUser } from '~/db/sql-user';
@@ -107,7 +110,7 @@ describe('symbol source loading', () => {
     expect(displaySymbolDetail('routeLoader$')).toBe('routeLoader$');
   });
 
-  test('skips source loading when symbol details are already available', async () => {
+  test('recognizes supplied metadata for immediate display', async () => {
     const { hasProvidedSymbolDetails } = await import('./index');
 
     expect(hasProvidedSymbolDetails(null, null)).toBe(true);
@@ -115,7 +118,7 @@ describe('symbol source loading', () => {
   });
 
   test('returns no source when the remote file cannot be loaded', async () => {
-    const { fetchSourceText } = await import('./index');
+    const { fetchSourceText } = await import('../../db/source');
     const fetchSource = vi.fn().mockRejectedValue(new Error('offline'));
 
     await expect(

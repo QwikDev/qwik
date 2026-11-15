@@ -1657,7 +1657,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
-      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      setInlineComponentData(
+        host,
+        component,
+        componentHost,
+        jsxNode.props as Props | null,
+        diffContext.$scopedStyleIdPrefix$
+      );
       markVNodeDirty(
         diffContext.$container$,
         host,

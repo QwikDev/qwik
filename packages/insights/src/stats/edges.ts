@@ -1,3 +1,4 @@
+import { hashCode } from './hash-code';
 import { DBSCAN } from 'density-clustering';
 import { vectorSum2 } from './vector';
 
@@ -173,24 +174,38 @@ export function computeSymbolTree(root: Symbol): SymbolTreeNode {
   }
 }
 
+export type MatrixPath = [symbol: number, parent: number, weight: number];
+
 export interface SymbolVectors {
+  paths?: MatrixPath[];
   symbols: Symbol[];
   vectors: number[][];
 }
 
-export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
+export function computeSymbolVectors(symbols: Symbol[], includePaths = false): SymbolVectors {
+  const paths: MatrixPath[] = [];
   const rootSymbol = symbols.shift()!; // remove root symbol
   const symbolVectorIdxMap = new Map<Symbol, number>();
   const vectors: number[][] = [];
   initializeVectorsAndSymbolMap();
   const alreadyVisited = new Set<Symbol>();
   const edgePath: Edge[] = [];
-  processChildren(rootSymbol, edgePath, alreadyVisited);
-  return { symbols, vectors };
+  processChildren(rootSymbol, edgePath, alreadyVisited, -1);
+  return includePaths ? { symbols, vectors, paths } : { symbols, vectors };
   ////////////////////////////////////////
 
-  function processChildren(symbol: Symbol, edgePath: Edge[], alreadyVisited: Set<Symbol>) {
+  function processChildren(
+    symbol: Symbol,
+    edgePath: Edge[],
+    alreadyVisited: Set<Symbol>,
+    parent: number
+  ) {
     const symbolIdx = symbolVectorIdxMap.get(symbol);
+    const pathIndex = paths.length;
+    if (includePaths) {
+      const edge = edgePath.at(-1);
+      paths.push([symbolIdx ?? -1, parent, edge ? Math.min(1, edge.count / edge.from.count) : 1]);
+    }
     if (symbolIdx !== undefined) {
       let weight = 1;
       const vector = vectors[symbolIdx];
@@ -217,7 +232,7 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
 
     symbol.children.forEach((edge) => {
       edgePath.push(edge);
-      processChildren(edge.to, edgePath, alreadyVisited);
+      processChildren(edge.to, edgePath, alreadyVisited, pathIndex);
       edgePath.pop();
     });
   }
@@ -246,9 +261,13 @@ export interface Bundle {
 export function computeBundles(symbolVectors: SymbolVectors): Bundle[] {
   const bundles: Bundle[] = [];
   const dbscan = new DBSCAN();
-  // We want to set the distance so that it is just below (90%) the distance between two unrelated symbols.
-  const maxDistance = 0.95 * Math.sqrt(Math.pow(1, 2) + Math.pow(1, 2));
-  const clusters = dbscan.run(symbolVectors.vectors, maxDistance, 1);
+  // Keep unrelated symbols outside the clustering radius.
+  const maxDistance = 0.95 * Math.sqrt(2);
+  const maxSquaredDistance = maxDistance * maxDistance;
+  const vectors = symbolVectors.vectors.map(toSparseVector);
+  const clusters = dbscan.run(vectors, maxDistance, 1, (left, right) =>
+    sparseDistance(left, right, maxSquaredDistance)
+  );
   clusters.forEach((cluster) => {
     const symbols = cluster.map((id) => symbolVectors.symbols[id]).filter(Boolean);
     const symbolNames = symbols.map((s) => s.name);
@@ -262,11 +281,44 @@ export function computeBundles(symbolVectors: SymbolVectors): Bundle[] {
   return bundles;
 }
 
-export const hashCode = (text: string, hash: number = 0) => {
-  for (let i = 0; i < text.length; i++) {
-    const chr = text.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0; // Convert to 32bit integer
+function toSparseVector(vector: number[]): number[] {
+  const coordinates: number[] = [];
+  // Preserve DBSCAN's descending accumulation order at the distance threshold.
+  for (let dimension = vector.length - 1; dimension >= 0; dimension--) {
+    const value = vector[dimension];
+    if (value !== 0) {
+      coordinates.push(dimension, value);
+    }
   }
-  return Number(Math.abs(hash)).toString(36);
-};
+  return coordinates;
+}
+
+function sparseDistance(left: number[], right: number[], maxSquaredDistance: number): number {
+  let leftIndex = 0;
+  let rightIndex = 0;
+  let sum = 0;
+  while (leftIndex < left.length || rightIndex < right.length) {
+    const leftDimension = left[leftIndex] ?? -1;
+    const rightDimension = right[rightIndex] ?? -1;
+    let difference: number;
+    if (leftDimension === rightDimension) {
+      difference = left[leftIndex + 1] - right[rightIndex + 1];
+      leftIndex += 2;
+      rightIndex += 2;
+    } else if (leftDimension > rightDimension) {
+      difference = left[leftIndex + 1];
+      leftIndex += 2;
+    } else {
+      difference = right[rightIndex + 1];
+      rightIndex += 2;
+    }
+    sum += difference * difference;
+    // Distances beyond the clustering radius need no remaining coordinates.
+    if (sum > maxSquaredDistance) {
+      break;
+    }
+  }
+  return Math.sqrt(sum);
+}
+
+export { hashCode } from './hash-code';

@@ -1,3 +1,5 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { getReportHref } from '~/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { Link, useLocation } from '@qwik.dev/router';
 import BrandLockup from '~/components/brand-lockup';
@@ -11,18 +13,23 @@ import { isNavigationItemActive } from './active-path';
 
 type ApplicationNavigationProps = {
   basePath: string;
+  applicationName: string;
 };
 
-export default component$<ApplicationNavigationProps>(({ basePath }) => {
-  const pathname = useLocation().url.pathname;
+export default component$<ApplicationNavigationProps>(({ basePath, applicationName }) => {
+  const location = useLocation();
+  const reportQuery = useReportQuery();
+  const pathname = location.url.pathname;
+  const reportHref = (path: string) => getReportHref(path, reportQuery);
   const primaryItems = [
     { href: basePath, label: 'Dashboard', icon: <DashboardIcon />, exact: true },
     { href: `${basePath}manifests/`, label: 'Manifests', icon: <ManifestIcon /> },
     { href: `${basePath}routes/`, label: 'Routes', icon: <RoutesIcon /> },
+    { href: `${basePath}health/`, label: 'Integration health', icon: <DashboardIcon /> },
   ];
   const symbolItems = [
     { href: `${basePath}symbols/`, label: 'All symbols', exact: true },
-    { href: `${basePath}symbols/edge/`, label: 'Edge' },
+    { href: `${basePath}symbols/edge/`, label: 'Execution paths' },
     { href: `${basePath}symbols/bundles/`, label: 'Bundles' },
     { href: `${basePath}symbols/slow/`, label: 'Slow symbols' },
   ];
@@ -40,6 +47,19 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
         <BrandLockup compact />
       </Link>
 
+      <div class="mx-editorial-4 mb-editorial-5 border-b border-editorial-border pb-editorial-5">
+        <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
+          Current application
+        </p>
+        <Link
+          href={reportHref(basePath)}
+          title={applicationName}
+          class="mt-editorial-2 line-clamp-2 break-words text-editorial-20 font-semibold text-editorial-primary hover:text-editorial-link focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-editorial-accent"
+        >
+          {applicationName}
+        </Link>
+      </div>
+
       <nav
         aria-label="Application"
         class="min-h-0 flex-1 overflow-y-auto px-editorial-3 pb-editorial-6"
@@ -54,7 +74,7 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={reportHref(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 class={[
                   'relative flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md border-l-2 px-editorial-3 text-editorial-14 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
@@ -73,7 +93,7 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
 
           <div class="rounded-editorial-md bg-editorial-subtle py-editorial-2">
             <Link
-              href={symbolsPath}
+              href={reportHref(symbolsPath)}
               class={[
                 'flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md px-editorial-3 text-editorial-14 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
                 isNavigationItemActive(pathname, symbolsPath)
@@ -93,7 +113,7 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={reportHref(item.href)}
                     aria-current={isActive ? 'page' : undefined}
                     class={[
                       'flex h-editorial-8 items-center rounded-editorial-sm text-editorial-12 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',
@@ -110,7 +130,7 @@ export default component$<ApplicationNavigationProps>(({ basePath }) => {
           </div>
 
           <Link
-            href={errorsPath}
+            href={reportHref(errorsPath)}
             aria-current={isNavigationItemActive(pathname, errorsPath) ? 'page' : undefined}
             class={[
               'relative flex h-editorial-11 items-center gap-editorial-3 rounded-editorial-md border-l-2 px-editorial-3 text-editorial-14 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-editorial-accent',

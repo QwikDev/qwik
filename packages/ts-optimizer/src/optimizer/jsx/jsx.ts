@@ -218,6 +218,8 @@ export interface ScopeAwareBindings {
    * (e.g. `_capturesObj._[i]` unpacking bindings). Inner-scope bindings still shadow.
    */
   addProgramScopeConst(name: string): void;
+  /** Whether `name` at `atPosition` is bound inside a function or block, not in `program`'s scope. */
+  isInnerScopeBinding(name: string, atPosition: number, program: AstProgram): boolean;
 }
 
 class ScopeAwareBindingsImpl implements ScopeAwareBindings {
@@ -243,6 +245,19 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
     if (this.alwaysConst.has(name)) {
       return 'const';
     }
+    return this.innermostScope(name, atPosition)?.kind;
+  }
+
+  isInnerScopeBinding(name: string, atPosition: number, program: AstProgram): boolean {
+    const scope = this.innermostScope(name, atPosition);
+    return (
+      scope !== undefined &&
+      (scope.start !== (program.start ?? 0) ||
+        scope.end !== (program.end ?? Number.MAX_SAFE_INTEGER))
+    );
+  }
+
+  private innermostScope(name: string, atPosition: number): ScopeRange | undefined {
     const scopes = this.nameToScopes.get(name);
     if (!scopes) {
       return undefined;
@@ -258,7 +273,7 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
         }
       }
     }
-    return best?.kind;
+    return best;
   }
 
   addProgramScopeConst(name: string): void {

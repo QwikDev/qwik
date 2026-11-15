@@ -140,8 +140,9 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
             SubmitEvent,
             HTMLFormElement
           >[]), // type casting to keep consumers linters happy
-          $(async (_evt, form) => {
-            const formData = new FormData(form);
+          $(async (evt, form) => {
+            // Include the named submit button, as a native GET submit does.
+            const formData = new FormData(form, evt.submitter);
             const params = new URLSearchParams();
             formData.forEach((value, key) => {
               if (typeof value === 'string') {

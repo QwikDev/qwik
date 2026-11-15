@@ -57,7 +57,7 @@ export const PopupManager = component$(() => {
         }
       }}
       document:onMouseMove$={(e) => {
-        if (!e.shiftKey) {
+        if (!e.shiftKey && !popupTarget.value?.contains(e.target as Node)) {
           popup.x = e.clientX;
           popup.y = e.clientY;
         }
@@ -67,16 +67,20 @@ export const PopupManager = component$(() => {
       {popup.currentTarget && popup.Component ? (
         <div
           ref={popupTarget}
-          class="fixed inline-block border border-slate-200 bg-white shadow-lg z-10"
+          class="fixed w-[min(42rem,calc(100vw-16px))] max-h-[min(32rem,calc(100dvh-16px))] overflow-auto border border-slate-200 bg-white shadow-lg z-10"
           style={{
-            top: popup.y + 4 + 'px',
-            left: popup.x + 4 + 'px',
+            top: `clamp(8px, ${popup.y + 4}px, calc(100dvh - min(32rem, 100dvh - 16px) - 8px))`,
+            left: `clamp(8px, ${popup.x + 4}px, calc(100vw - min(42rem, 100vw - 16px) - 8px))`,
           }}
         >
-          <CloseIcon
+          <button
+            type="button"
+            aria-label="Close symbol details"
             onClick$={$(() => (popup.currentTarget = null))}
-            class="absolute right-0 m-0"
-          />
+            class="absolute right-2 top-2 p-1"
+          >
+            <CloseIcon />
+          </button>
           <popup.Component {...popup.props} />
         </div>
       ) : null}

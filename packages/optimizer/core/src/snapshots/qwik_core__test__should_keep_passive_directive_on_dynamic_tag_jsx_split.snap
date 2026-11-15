@@ -1,0 +1,131 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'div' : 'section'
+  return (
+    <div>
+      <Cmp passive:wheel onWheel$={() => console.log('wheel')} />
+      <Cmp passive:touchstart preventdefault:touchstart onTouchStart$={() => console.log('touch')} />
+    </div>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAQZ\"}")
+============================= test.tsx_test_component_div_Cmp_onWheel_aMwttwuK8JM.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_onWheel_aMwttwuK8JM = ()=>console.log('wheel');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAOmC,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_onWheel_aMwttwuK8JM",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_onWheel",
+  "hash": "aMwttwuK8JM",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_onWheel_aMwttwuK8JM",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "onWheel$",
+  "captures": false,
+  "loc": [
+    193,
+    219
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_div_Cmp_onTouchStart_4K2BfsQuX0k = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_onTouchStart_4K2BfsQuX0k"), "test_component_div_Cmp_onTouchStart_4K2BfsQuX0k");
+const q_test_component_div_Cmp_onWheel_aMwttwuK8JM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_onWheel_aMwttwuK8JM"), "test_component_div_Cmp_onWheel_aMwttwuK8JM");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const Cmp = Math.random() >= 0.5 ? 'div' : 'section';
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
+            "passive:wheel": true,
+            onWheel$: q_test_component_div_Cmp_onWheel_aMwttwuK8JM
+        }, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
+            "passive:touchstart": true,
+            "preventdefault:touchstart": true,
+            onTouchStart$: q_test_component_div_Cmp_onTouchStart_4K2BfsQuX0k
+        }, null, 3, "u6_1")
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,QAAQ;IAC3C,qBACE,WAAC;sBACC,UAAC;YAAD,eAA2D;YAAxC,QAAQ;;sBAC3B,UAAC;YAAD,oBAA+F;YAA/F,2BAA+F;YAA7C,aAAa;;;AAGrE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    343
+  ]
+}
+*/
+============================= test.tsx_test_component_div_Cmp_onTouchStart_4K2BfsQuX0k.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_onTouchStart_4K2BfsQuX0k = ()=>console.log('touch');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAQuE,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_onTouchStart_4K2BfsQuX0k",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_onTouchStart",
+  "hash": "4K2BfsQuX0k",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_onTouchStart_4K2BfsQuX0k",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "onTouchStart$",
+  "captures": false,
+  "loc": [
+    295,
+    321
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

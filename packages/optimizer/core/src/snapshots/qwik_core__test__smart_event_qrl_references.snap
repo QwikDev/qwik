@@ -259,6 +259,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
@@ -312,14 +313,14 @@ export const s_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("button", null, {
             "q-e:click": mixed
         }, "mixed", 3, null),
-        /*#__PURE__*/ _jsxSorted(Consumer, null, {
+        /*#__PURE__*/ _jsxSplit(Consumer, null, {
             onClick$: custom
         }, null, 3, "u6_0")
     ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,SAAS,OAAO,QAAQ;IACtB,OAAO;AACT;AACA,SAAS,cAAc,QAAQ;IAC7B,OAAO,OAAO;AAChB;AACA,SAAS,SAAS,KAAK;IACrB,OAAO,MAAM,QAAQ;AACvB;;;;;;;;;6BAE8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN;IACA,cAAc;IACd;IACA,qBACE;sBACE,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAO,aAAU;WAAS;sBAC3B,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAS,UAAU;;;AAG1B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,SAAS,OAAO,QAAQ;IACtB,OAAO;AACT;AACA,SAAS,cAAc,QAAQ;IAC7B,OAAO,OAAO;AAChB;AACA,SAAS,SAAS,KAAK;IACrB,OAAO,MAAM,QAAQ;AACvB;;;;;;;;;6BAE8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN;IACA,cAAc;IACd;IACA,qBACE;sBACE,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAO,aAAU;WAAS;sBAC3B,WAAC;YAAO,aAAU;WAAO;sBACzB,UAAC;YAAS,UAAU;;;AAG1B\"}")
 /*
 {
   "origin": "test.tsx",

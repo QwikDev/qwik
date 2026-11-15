@@ -74,7 +74,7 @@ import {
   type SeenRef,
   type SerializationContext,
 } from './serialization-context';
-import { shouldSerializeAuto } from './auto';
+import { getAutoSerializationMode } from './auto';
 
 /**
  * Format:
@@ -710,10 +710,11 @@ export class Serializer {
         if (isInvalid || isSkippable || isErrored) {
           v = NEEDS_COMPUTATION;
         } else if (strategy === SerializationSignalFlags.SERIALIZATION_STRATEGY_AUTO) {
-          if (!shouldSerializeAuto(v)) {
+          const mode = getAutoSerializationMode(v);
+          if (mode !== 'retain') {
             // Weak references never make a large result part of the payload.
             v =
-              this.$isPatch$ || this.$serializationContext$.$scope$
+              mode === 'omit' || this.$isPatch$ || this.$serializationContext$.$scope$
                 ? NEEDS_COMPUTATION
                 : _serializationWeakRef(v);
           }

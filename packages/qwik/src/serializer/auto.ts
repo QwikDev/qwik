@@ -9,15 +9,16 @@ const MAX_VALUES = 64;
 const MAX_DEPTH = 8;
 const MAX_BIGINT = 1n << 256n;
 
-/** Estimates small plain values without running getters or custom serializers. */
-export function shouldSerializeAuto(value: unknown): boolean {
+/** Classifies bounded plain values without getters or custom serializers. */
+export function getAutoSerializationMode(value: unknown): 'retain' | 'reuse' | 'omit' {
   let bytes = MAX_BYTES;
   let values = MAX_VALUES;
   const seen = new Set<object>();
 
   const countString = (text: string) => {
     if (text.length > bytes) {
-      return false;
+      bytes = -1;
+      return;
     }
     bytes -= 8;
     for (let i = 0; i < text.length && bytes >= 0; i++) {
@@ -32,7 +33,6 @@ export function shouldSerializeAuto(value: unknown): boolean {
         bytes -= code < 2048 ? 2 : 3;
       }
     }
-    return bytes >= 0;
   };
 
   const visit = (entry: unknown, depth: number): boolean => {
@@ -48,22 +48,24 @@ export function shouldSerializeAuto(value: unknown): boolean {
       bytes -= 32;
     } else if (typeof entry === 'bigint') {
       if (entry >= MAX_BIGINT || entry <= -MAX_BIGINT) {
-        return false;
+        bytes = -1;
       }
       bytes -= 88;
     } else if (typeof entry === 'string') {
-      return countString(entry);
+      countString(entry);
     } else if (typeof entry === 'object') {
       if (seen.has(entry)) {
         bytes -= 8;
-        return bytes >= 0;
+        return true;
       }
       const prototype = Object.getPrototypeOf(entry);
       const isArray = Array.isArray(entry);
       if (
         isStore(entry) ||
         SerializerSymbol in entry ||
-        (!isArray && prototype !== Object.prototype && prototype !== null)
+        (isArray
+          ? prototype !== Array.prototype
+          : prototype !== Object.prototype && prototype !== null)
       ) {
         return false;
       }
@@ -86,11 +88,11 @@ export function shouldSerializeAuto(value: unknown): boolean {
           if (!descriptor) {
             continue;
           }
-          if (
-            !('value' in descriptor) ||
-            !countString(key) ||
-            !visit(descriptor.value, depth + 1)
-          ) {
+          if (key === '__proto__' || !('value' in descriptor)) {
+            return false;
+          }
+          countString(key);
+          if (!visit(descriptor.value, depth + 1)) {
             return false;
           }
         }
@@ -98,8 +100,11 @@ export function shouldSerializeAuto(value: unknown): boolean {
     } else {
       return false;
     }
-    return bytes >= 0;
+    return true;
   };
 
-  return visit(value, 0);
+  if (!visit(value, 0)) {
+    return 'omit';
+  }
+  return bytes >= 0 ? 'retain' : 'reuse';
 }

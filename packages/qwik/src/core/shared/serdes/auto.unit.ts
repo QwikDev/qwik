@@ -1,9 +1,10 @@
-import { createComputed$, createSignal, noSerialize, SerializerSymbol } from '@qwik.dev/core';
+import { $, createComputed$, createSignal, noSerialize, SerializerSymbol } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import { createStringStreamWriter } from '../../ssr/stream-writer';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { createStore, StoreHandler } from '../../reactive-primitives/impl/store';
+import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import {
   AsyncSignalFlags,
   ComputedSignalFlags,
@@ -26,6 +27,55 @@ const readyComputed = <T>(value: T, async = false) => {
 const roundTrip = async <T>(value: T) => _deserialize<T>(await _serialize(value));
 
 describe('auto serialization', () => {
+  it('omits unsupported Array subclasses instead of failing serialization', async () => {
+    class LoaderResult extends Array<number> {}
+    const signal = await roundTrip(readyComputed(new LoaderResult(1, 2)));
+    expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+  });
+
+  it.each([false, true])(
+    'omits results with an own __proto__ field (nested=%s)',
+    async (nested) => {
+      const result = JSON.parse('{"__proto__":{"id":1},"name":"public"}');
+      const value = nested ? { result } : result;
+      const signal = await roundTrip(readyComputed(value));
+      expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+    }
+  );
+
+  it.each([false, true])(
+    'does not reuse a shared result with an own __proto__ field (nested=%s)',
+    async (nested) => {
+      const result = JSON.parse('{"__proto__":{"id":1},"name":"public"}');
+      const value = { text: 'large-result'.repeat(1000), ...(nested ? { result } : result) };
+      const restored = await roundTrip([readyComputed(value), value]);
+      expect((restored[0] as ComputedSignalImpl<unknown>).$untrackedValue$).toBe(NEEDS_COMPUTATION);
+    }
+  );
+
+  it.each([false, true])('restores a real async signal with auto (large=%s)', async (large) => {
+    const computations = { count: 0 };
+    const signal = createAsyncSignal(
+      $(async () => {
+        computations.count++;
+        return { text: 'x'.repeat(large ? 2000 : 2) };
+      }),
+      { serializationStrategy: 'auto' }
+    );
+    await signal.promise();
+    const restored = await roundTrip({ signal, computations });
+    if (large) {
+      expect(restored.signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+      expect(restored.signal.$flags$ & ComputedSignalFlags.INVALID).toBeTruthy();
+    } else {
+      expect(restored.signal.$flags$ & ComputedSignalFlags.INVALID).toBe(0);
+      expect(restored.signal.$untrackedValue$).toEqual({ text: 'xx' });
+    }
+    await restored.signal.promise();
+    expect(restored.signal.value).toEqual({ text: 'x'.repeat(large ? 2000 : 2) });
+    expect(restored.computations.count).toBe(large ? 2 : 1);
+  });
+
   it.each([false, true])(
     'restores small values without computing again (async=%s)',
     async (async) => {

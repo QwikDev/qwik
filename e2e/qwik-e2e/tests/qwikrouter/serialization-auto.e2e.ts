@@ -20,7 +20,12 @@ for (const variant of ['small', 'large', 'shared']) {
     const initial = await page.locator('#auto-label').textContent();
     await page.waitForFunction(() => !!(window as any)._qwikEv?.roots);
     await page.locator('#auto-read').click();
-    await expect.poll(() => page.evaluate(() => (window as any).__autoRead)).toMatch(/^version-/);
+    const readValue = expect.poll(() => page.evaluate(() => (window as any).__autoRead));
+    if (needsFetch) {
+      await readValue.toMatch(/^version-/);
+    } else {
+      await readValue.toBe(initial);
+    }
 
     expect(requests).toHaveLength(needsFetch ? 1 : 0);
     if (needsFetch) {

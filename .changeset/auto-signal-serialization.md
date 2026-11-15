@@ -3,4 +3,4 @@
 '@qwik.dev/router': major
 ---
 
-feat!: default loader serialization to auto; set defaultLoadersSerializationStrategy to never for previous behavior
+feat!: default loader serialization to auto, including unrendered fields in html; set defaultLoadersSerializationStrategy to never for previous behavior

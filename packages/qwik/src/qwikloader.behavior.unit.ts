@@ -620,6 +620,55 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  test.each([
+    ['queues the chunks it imports for a preloader that has not loaded yet', false],
+    ['tells a loaded preloader which chunks it imports', true],
+  ])('%s', async (_title, isPreloaderLoaded) => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const button = createMockElement(container, {
+      'q-e:click': 'core.js#handler##handler.js,other.js',
+    });
+    win.qPreload = isPreloaderLoaded ? vi.fn() : undefined;
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+      const hint = [['core.js', 'handler.js', 'other.js'], 1];
+      if (isPreloaderLoaded) {
+        expect(win.qPreload).toHaveBeenCalledWith(...hint);
+      } else {
+        expect(win.qPreloadQueue).toEqual([hint]);
+      }
+      await vi.waitFor(() => {
+        expect(consoleError).toHaveBeenCalled();
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  test('leaves the preloader alone when a page lifecycle event imports a chunk', async () => {
+    const { doc, win } = createLoaderEnvironment(['d:qinit']);
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const element = createMockElement(container, { 'q-d:qinit': 'init.js#handler#' });
+    doc.querySelectorAll.mockReturnValue([element]);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      doc.readyState = 'complete';
+      getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+      await vi.waitFor(() => {
+        expect(consoleError).toHaveBeenCalled();
+      });
+
+      expect(win.qPreloadQueue).toBeUndefined();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   test('runs an already imported handler at once when only its other chunks differ', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

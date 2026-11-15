@@ -30,6 +30,7 @@ type PreloaderWindow = Window & {
   __resumeSpeculativePreloads?: () => void;
   __sendHeldSpeculativePreloads?: (hrefs: string[]) => void;
   __preloadHints?: PreloadHint[];
+  qPreloadQueue?: [item: string | string[], probability?: number][];
 };
 
 export type PreloadHint = { item: string | string[]; probability?: number };
@@ -48,6 +49,10 @@ export const recordPreloadHints = (page: Page) =>
           preload!(item, probability);
         }),
       set: (value) => {
+        // The preloader drains the hints queued before it loaded without calling the getter
+        for (const [item, probability] of win.qPreloadQueue ?? []) {
+          hints.push({ item, probability });
+        }
         preload = value;
       },
     });
@@ -55,6 +60,17 @@ export const recordPreloadHints = (page: Page) =>
 
 export const preloadHints = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__preloadHints ?? []);
+
+/** Chunks hinted as needed so far, also those waiting for the preloader to load. */
+export const chunksHintedAsNeeded = (page: Page) =>
+  page.evaluate(() => {
+    const win = window as PreloaderWindow;
+    const hints = [
+      ...(win.__preloadHints ?? []),
+      ...(win.qPreloadQueue ?? []).map(([item, probability]) => ({ item, probability })),
+    ];
+    return hints.filter((hint) => hint.probability === 1).flatMap((hint) => hint.item);
+  });
 
 export const recordSpeculativePreloads = (page: Page) =>
   page.addInitScript(() => {

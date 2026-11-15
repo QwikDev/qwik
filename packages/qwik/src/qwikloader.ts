@@ -25,6 +25,7 @@ import type {
   QwikSymbolEvent,
   QwikVisibleEvent,
 } from './core/shared/jsx/types/jsx-qwik-events';
+import type { PreloaderGlobal } from './core/preloader/bridge';
 import type {
   QContainerElement,
   QElement,
@@ -178,6 +179,7 @@ const resolveHandler = (
   symbol: string,
   otherChunks: string | undefined,
   reqTime: number,
+  isUserEvent: boolean,
   reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
@@ -207,6 +209,15 @@ const resolveHandler = (
   }
 
   const chunks = otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+  // Told now, the preloader fetches what these chunks import while they download.
+  // Page lifecycle handlers stay out, or their whole import graph would load with the page.
+  if (isUserEvent) {
+    const preloaderGlobal = win as unknown as PreloaderGlobal;
+    preloaderGlobal.qPreload
+      ? preloaderGlobal.qPreload(chunks, 1)
+      : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+  }
+
   const href = new URL(chunk, base).href;
   const module = import(/* @vite-ignore */ href);
   for (let i = 1; i < chunks.length; i++) {
@@ -355,6 +366,8 @@ const dispatch = (
           symbol,
           otherChunks,
           reqTime,
+          // A user event named q* only misses the early hint, loading its QRLs still hints
+          !isQwikLifecycleEvent(ev.type),
           reportSyncError
         );
       // Sync handlers only exist once the container is ready, chunks can load meanwhile

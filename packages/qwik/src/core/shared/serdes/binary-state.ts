@@ -1,7 +1,6 @@
 import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { StoreFlags } from '../../reactive-primitives/types';
 import { QError, qError } from '../error/error';
-import { qTest } from '../utils/qdev';
 import type { DeserializeContainer } from '../types';
 import { allocate } from './allocate';
 import { _constants, TypeIds } from './constants';
@@ -77,13 +76,6 @@ export const BINARY_STATE_PREFIX = '~';
  * @internal
  */
 export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
-
-/**
- * Whether to read a state script as binary. With the feature on, everything is binary; only tests
- * also hand the readers JSON state, so the JSON readers drop out of production bundles.
- */
-export const readsAsBinaryState = (text: string): boolean =>
-  __EXPERIMENTAL__.binaryState && (qTest ? isBinaryState(text) : true);
 
 const MAX_ROOTS = 0x100000;
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));

@@ -19,7 +19,7 @@ import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/de
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
-import { BinaryStateReader, readsAsBinaryState } from '../shared/serdes/binary-state';
+import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
 import { _SharedContainer } from '../shared/shared-container';
 import {
   QContainerValue,
@@ -226,7 +226,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       const stateText = rootState.textContent!;
       const statePrewarm = element.getAttribute(QStatePrewarmAttr);
-      if (readsAsBinaryState(stateText)) {
+      // With the feature on, state is binary; only tests also hand the reader JSON state.
+      if (__EXPERIMENTAL__.binaryState && (!qTest || isBinaryState(stateText))) {
         const reader = new BinaryStateReader(stateText);
         if (__EXPERIMENTAL__.pendingBoundary && this.$streamingObjectRefs$) {
           this.$binaryStateReader$ = reader;

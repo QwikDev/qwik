@@ -1,10 +1,10 @@
 import { applySubscriptionPatches } from '../control-flow/pending-utils';
-import { BinaryStateReader, readsAsBinaryState } from '../shared/serdes/binary-state';
+import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
 import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
 import { QStatePatchAttrSelector, QPendingResolved } from '../shared/utils/markers';
-import { qDev } from '../shared/utils/qdev';
+import { qDev, qTest } from '../shared/utils/qdev';
 import type { DomContainer } from './dom-container';
 import { registerSingleton } from '../shared/singletons';
 
@@ -81,7 +81,7 @@ function* processStatePatch(
   if (!textContent) {
     return;
   }
-  if (readsAsBinaryState(textContent)) {
+  if (__EXPERIMENTAL__.binaryState && (!qTest || isBinaryState(textContent))) {
     return processBinaryStatePatch(container, stateContainer, textContent);
   }
   const [rootStart, rawStateData, forwardRefs, subscriptionPatchRootId] = JSON.parse(

@@ -1,6 +1,7 @@
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
-import { BinaryStateReader, isBinaryState, readsAsBinaryState } from './binary-state';
+import { BinaryStateReader, isBinaryState } from './binary-state';
+import { qTest } from '../utils/qdev';
 import { wrapBinaryStateProxy, wrapDeserializerProxy } from './deser-proxy';
 import { eagerDeserializeStateIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
@@ -21,7 +22,7 @@ export async function _deserialize<T>(rawStateData: string): Promise<T> {
   if (rawStateData == null) {
     throw new Error('No state data to deserialize');
   }
-  if (readsAsBinaryState(rawStateData)) {
+  if (__EXPERIMENTAL__.binaryState && (!qTest || isBinaryState(rawStateData))) {
     return deserializeBinary<T>(rawStateData);
   }
   const stateData = JSON.parse(rawStateData);

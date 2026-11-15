@@ -27,7 +27,7 @@ export default defineConfig((): UserConfig => {
     build: { minify: false },
     plugins: [
       qwikRouter(),
-      qwikVite({ tsOptimizer: true }),
+      qwikVite({ tsOptimizer: true, experimental: ['binaryState'] }),
       tsconfigPaths({ root: '.' }),
       qwikReact(),
     ],

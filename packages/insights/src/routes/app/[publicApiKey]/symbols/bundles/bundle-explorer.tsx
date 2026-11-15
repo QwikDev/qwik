@@ -9,7 +9,8 @@ import { RelationshipMatrix } from './relationship-matrix';
 
 export const BundleExplorer = component$<{
   data: BundleInfo & { affinityTree?: AffinityLink[]; previewPaths?: MatrixPath[] };
-}>(({ data: initialData }) => {
+  comparisonHref?: string;
+}>(({ data: initialData, comparisonHref }) => {
   const affinity = useSignal(50);
   const data = useComputed$(() => ({
     ...initialData,
@@ -70,6 +71,12 @@ export const BundleExplorer = component$<{
             Explore suggested symbol groups based on execution relationships in the selected build.
             These are analysis groups, not emitted build files.
           </p>
+          <a
+            href={comparisonHref ?? '../visualizations/'}
+            class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
+          >
+            Explore relationship visualizations
+          </a>
         </div>
         {selectedBundle && (
           <div class="md:text-right">

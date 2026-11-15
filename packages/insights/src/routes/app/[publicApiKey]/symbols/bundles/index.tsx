@@ -1,5 +1,6 @@
+import { getComparisonHref } from './comparison-url';
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import { routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import { BundleExplorer } from './bundle-explorer';
 import { loadBundlePreview } from './load-bundle-preview';
 
@@ -16,5 +17,6 @@ export const useData = routeLoader$(async ({ params, url }) => {
 
 export default component$(() => {
   const data = useData();
-  return <BundleExplorer data={data.value} />;
+  const location = useLocation();
+  return <BundleExplorer data={data.value} comparisonHref={getComparisonHref(location.url)} />;
 });

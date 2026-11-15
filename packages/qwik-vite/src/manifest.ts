@@ -1,6 +1,6 @@
 import type { Rolldown } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
-import { condenseImportGraph } from './plugins/bundle-graph';
+import { condenseImportGraph, createReachability } from './plugins/bundle-graph';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // The handlers that are exported by the core package
@@ -290,63 +290,23 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
   return maxScore;
 };
 
-/**
- * Computes the total size of each bundle based on its dependencies. Written by ChatGPT ;) - it's
- * harder than you think to total nodes in a directed cyclic graph
- */
+/** Sets each bundle's `total`: its own size plus every bundle it statically imports, each once. */
 export function computeTotals(graph: QwikManifest['bundles']): void {
-  const { components: sccList, successors: sccDAG } = condenseImportGraph(graph);
+  const { components, successors } = condenseImportGraph(graph);
+  const reachOf = createReachability(successors);
+  const componentSizes = components.map((bundleNames) =>
+    bundleNames.reduce((sum, bundleName) => sum + graph[bundleName].size, 0)
+  );
 
-  // 1) Topological sort the SCC DAG
-  const visited = new Set<number>();
-  const order: number[] = [];
-
-  function dfsSCC(u: number) {
-    visited.add(u);
-    for (const v of sccDAG[u]) {
-      if (!visited.has(v)) {
-        dfsSCC(v);
-      }
+  components.forEach((bundleNames, component) => {
+    let total = componentSizes[component];
+    for (const reached of reachOf(component)) {
+      total += componentSizes[reached];
     }
-    order.push(u);
-  }
-
-  for (let i = 0; i < sccList.length; i++) {
-    if (!visited.has(i)) {
-      dfsSCC(i);
+    for (const bundleName of bundleNames) {
+      graph[bundleName].total = total;
     }
-  }
-  order.reverse(); // Now it's a topological order
-
-  // 2) Compute totals from bottom to top
-  const sccTotals = new Array<number>(sccList.length).fill(0);
-
-  // First compute the sum of 'size' in each SCC
-  for (let i = 0; i < sccList.length; i++) {
-    let sumSize = 0;
-    for (const nodeId of sccList[i]) {
-      sumSize += graph[nodeId].size;
-    }
-    sccTotals[i] = sumSize;
-  }
-
-  // Then add child totals in topological order (reversed)
-  for (let k = order.length - 1; k >= 0; k--) {
-    const sccId = order[k];
-    let total = sccTotals[sccId];
-    for (const child of sccDAG[sccId]) {
-      total += sccTotals[child];
-    }
-    sccTotals[sccId] = total;
-  }
-
-  // 3) Assign computed totals back to each node in the original graph
-  for (let i = 0; i < sccList.length; i++) {
-    const total = sccTotals[i];
-    for (const nodeId of sccList[i]) {
-      graph[nodeId].total = total;
-    }
-  }
+  });
 }
 
 /** The bundles this chunk reaches through `qrl(() => import(segment))`, per rollup module info. */

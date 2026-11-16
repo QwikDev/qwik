@@ -204,22 +204,28 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
   return { links, clickChunks };
 };
 
+const FOUND_ONE_BY_ONE =
+  'over the cap on main: without the preloader and the bundle graph, each chunk is only found once the one before it has loaded';
+
 const STILL_LOADING = [
   {
     stillLoading: 'preloader still loading',
     arrivesWithTheClick: 'preloader arrives',
+    neverArrives: 'preloader never arrives',
     arrivesLast: 'preloader arrives last',
     heldUrls: () => [preloaderUrl()],
   },
   {
     stillLoading: 'bundle graph still loading',
     arrivesWithTheClick: 'bundle graph arrives',
+    neverArrives: 'bundle graph never arrives',
     arrivesLast: 'bundle graph arrives last',
     heldUrls: () => [bundleGraphUrl()],
   },
   {
     stillLoading: 'both still loading',
     arrivesWithTheClick: 'both arrive',
+    neverArrives: 'neither arrives',
     arrivesLast: 'both arrive after the click',
     heldUrls: () => [preloaderUrl(), bundleGraphUrl()],
   },
@@ -253,6 +259,25 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
       await releaseAll(gate);
       await attachRoundTrips('round-trips.txt', roundTrips);
       expectRoundTrips(roundTrips);
+    });
+  }
+
+  for (const { neverArrives, heldUrls } of STILL_LOADING) {
+    test(`${neverArrives}: the click shows its result in 11 round trips, over the cap of 2`, async ({
+      page,
+    }) => {
+      const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+        page,
+        heldUrls(),
+        clickConditional(page),
+        CONDITIONAL_ALL,
+        { onceTheRestHasLoaded: true }
+      );
+      const stillHeld = startupPiece.length;
+      await releaseAll(gate, startupPiece);
+      await attachRoundTrips('round-trips.txt', roundTrips);
+      expect(stillHeld).toBe(heldUrls().length);
+      expectRoundTrips(roundTrips, { roundTrips: 11, reason: FOUND_ONE_BY_ONE });
     });
   }
 

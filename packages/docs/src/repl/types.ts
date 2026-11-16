@@ -31,6 +31,7 @@ export interface ReplStore {
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
+  vnodeTreeModule: string;
   diagnostics: Diagnostic[];
   monacoDiagnostics: Diagnostic[];
   selectedInputPath: string;
@@ -85,6 +86,8 @@ export interface ReplResult {
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
+  /** ES module that prints the VNode tree of a document, built with the selected Qwik version. */
+  vnodeTreeModule: string;
   manifest: QwikManifest | undefined;
   diagnostics: Diagnostic[];
   events: ReplEvent[];

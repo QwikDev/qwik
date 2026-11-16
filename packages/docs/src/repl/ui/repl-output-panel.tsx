@@ -1,4 +1,4 @@
-import { component$, useComputed$ } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { CodeBlock } from '../../components/code-block/code-block';
 import type { ReplAppInput, ReplStore } from '../types';
 import { ReplOutputModules } from './repl-output-modules';
@@ -8,10 +8,8 @@ import { ReplTabButtons } from './repl-tab-buttons';
 import {
   _binaryStateToJson,
   _dumpState,
-  _getDomContainer,
   _isBinaryState,
   _preprocessState,
-  _vnode_toString,
 } from '@qwik.dev/core/internal';
 
 const getDiagnosticCategoryLabel = (category: string) => {
@@ -200,15 +198,35 @@ const applyOutOfOrderResolvedTemplates = (doc: Document) => {
   }
 };
 
-const getDomContainerFromDebugHtml = (html: string) => {
-  const doc = parseHtml(html);
-  if (!doc) {
-    return null;
+type VNodeTreeModule = { getVNodeTree: (doc: Document) => string | Promise<string> };
+let loadedVNodeTreeModule: { code: string; module: Promise<VNodeTreeModule> } | undefined;
+
+/** Loads the module the bundler built with the selected Qwik version; one copy is kept. */
+const loadVNodeTreeModule = (code: string): Promise<VNodeTreeModule> => {
+  if (loadedVNodeTreeModule?.code !== code) {
+    const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+    const module = import(/* @vite-ignore */ url).finally(() => URL.revokeObjectURL(url));
+    loadedVNodeTreeModule = { code, module };
   }
-  emulateExecutionOfQwikFuncs(doc);
-  applyOutOfOrderResolvedTemplates(doc);
-  normalizeStateScriptsForDebug(doc);
-  return _getDomContainer(doc.documentElement);
+  return loadedVNodeTreeModule.module;
+};
+
+const getVNodeTreeFromDebugHtml = async (html: string, vnodeTreeModule: string) => {
+  if (!vnodeTreeModule) {
+    return 'The VNode tree is not available for this Qwik version';
+  }
+  try {
+    const doc = parseHtml(html);
+    if (!doc) {
+      return null;
+    }
+    emulateExecutionOfQwikFuncs(doc);
+    applyOutOfOrderResolvedTemplates(doc);
+    normalizeStateScriptsForDebug(doc);
+    return await (await loadVNodeTreeModule(vnodeTreeModule)).getVNodeTree(doc);
+  } catch (err) {
+    return `Unable to parse VNode tree: ${err instanceof Error ? err.message : String(err)}`;
+  }
 };
 
 const ReplOutputSectionLoading = component$(({ text }: { text: string }) => {
@@ -244,26 +262,13 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
     }
   });
 
-  const vdomTree = useComputed$(() => {
-    try {
-      if (store.selectedOutputPanel !== 'html' || store.isLoading || !store.html) {
-        return null;
-      }
-      const container = getDomContainerFromDebugHtml(store.html);
-      if (!container) {
-        return null;
-      }
-      return _vnode_toString.call(
-        container.rootVNode as any,
-        Number.MAX_SAFE_INTEGER,
-        '',
-        true,
-        false,
-        false
-      );
-    } catch (err) {
-      return `Unable to parse VNode tree: ${err instanceof Error ? err.message : String(err)}`;
-    }
+  const vdomTree = useSignal<string | null>(null);
+  useTask$(async ({ track }) => {
+    const html = track(() => store.html);
+    const vnodeTreeModule = track(() => store.vnodeTreeModule);
+    const isShown = track(() => store.selectedOutputPanel === 'html' && !store.isLoading);
+    vdomTree.value =
+      isShown && html ? await getVNodeTreeFromDebugHtml(html, vnodeTreeModule) : null;
   });
 
   const htmlLoading = useComputed$(() => store.selectedOutputPanel === 'html' && store.isLoading);

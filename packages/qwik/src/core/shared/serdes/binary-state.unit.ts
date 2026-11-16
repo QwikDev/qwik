@@ -618,6 +618,18 @@ describe('binary state', () => {
       expect(() => restore(script)[0]).toThrow('Invalid Object payload');
     });
 
+    it('rejects an array made from a string', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$string$('ab');
+      writer.$type$(TypeIds.Array);
+      writer.$endArray$(0, 1);
+      writer.$finish$();
+      expect(() => restore(script)[0]).toThrow('Code(Q');
+    });
+
     it('walks a shared value once for all the roots that skip it', () => {
       let script = '';
       const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {

@@ -586,6 +586,10 @@ export class BinaryStateReader {
         // Anything else would go through the inflate of JSON state, which is not counted.
         throw qError(QError.serializeErrorNotImplemented, [typeId]);
       }
+      if (typeId === TypeIds.Array) {
+        // An array is written as its items; binary-only builds have no other way to fill one.
+        throw qError(QError.serializeErrorNotImplemented, [typeId]);
+      }
       const value = allocate(container, typeId, payload);
       if (needsInflation(typeId)) {
         inflateRestored(container, value, typeId, payload);

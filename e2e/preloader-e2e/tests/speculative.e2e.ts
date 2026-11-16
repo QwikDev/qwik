@@ -47,7 +47,9 @@ test.describe('queue', () => {
     expect(await maxSpeculativeInFlight(page)).toBe(1);
   });
 
-  test('no speculative preload starts while a needed preload is in flight', async ({ page }) => {
+  test('no speculative preload starts while a highest priority preload is in flight', async ({
+    page,
+  }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
     gate.holdWhilePassing = (url) => chunkComesFrom(url, [FILLER]);
@@ -58,17 +60,17 @@ test.describe('queue', () => {
     gate.holdWhilePassing = undefined;
     const linksBeforeTheClick = (await preloaderLinks(page)).length;
     const linksSinceTheClick = async () => (await preloaderLinks(page)).slice(linksBeforeTheClick);
-    const neededPreloadIsInFlight = async () => {
-      const needed = (await linksSinceTheClick())
+    const highestPriorityPreloadIsInFlight = async () => {
+      const highestPriority = (await linksSinceTheClick())
         .filter((link) => !link.speculative)
         .map((link) => link.href);
-      return gate.held.some((route) => needed.includes(route.request().url()));
+      return gate.held.some((route) => highestPriority.includes(route.request().url()));
     };
     await countRoundTrips(
       page,
       gate,
       () => fixtureRoot(page, WITH_25_IDLE_PRELOADS).locator('[data-testid=trigger]').click(),
-      neededPreloadIsInFlight
+      highestPriorityPreloadIsInFlight
     );
     await release(fillerPreloads);
     await settle(page, gate);

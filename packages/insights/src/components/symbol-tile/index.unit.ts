@@ -1,3 +1,6 @@
+vi.mock('~/components/report-scope/use-report-query', () => ({
+  useReportQuery: () => new URLSearchParams(),
+}));
 import { describe, expect, test, vi } from 'vitest';
 import type { RequestEvent } from '@qwik.dev/router';
 import { InsightsUser } from '~/db/sql-user';

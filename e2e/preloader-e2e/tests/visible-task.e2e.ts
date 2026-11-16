@@ -99,10 +99,10 @@ test.describe('visible task below the fold', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const fetchedAsNeeded = requests.filter(
+    const fetchedAtHighestPriority = requests.filter(
       (url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]) && !speculative.has(url)
     );
-    expect(fetchedAsNeeded).toEqual([]);
+    expect(fetchedAtHighestPriority).toEqual([]);
     await releaseAll(opened.gate);
   });
 

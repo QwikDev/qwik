@@ -1,3 +1,4 @@
+import { OutgoingSymbolLink } from './outgoing-symbol-link';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
@@ -55,9 +56,7 @@ export default component$(() => {
                   {edge.manifestHash}
                 </td>
                 <td>
-                  <a href={`/app/${data.value.publicApiKey}/symbols/outgoing/?symbol=${edge.to}`}>
-                    <SymbolTile symbol={edge.to} />
-                  </a>
+                  <OutgoingSymbolLink publicApiKey={data.value.publicApiKey} symbol={edge.to} />
                 </td>
                 <td>
                   {vectorSum(edge.delay)} / {data.value.total}

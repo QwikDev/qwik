@@ -68,6 +68,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_stable_property_helper: { transpileTs: true, transpileJsx: true },
   should_transform_loop_nullable_capture: { transpileTs: true, transpileJsx: true },
+  should_track_signal_read_through_non_null_assertion: { transpileTs: true, transpileJsx: true },
 
   should_transform_loop_named_factory: { transpileTs: true, transpileJsx: true },
   should_transform_loop_function_argument: { transpileTs: true, transpileJsx: true },
@@ -864,6 +865,12 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
 
   component_level_self_referential_qrl: {},
   example_segment_variable_migration: {},
+  should_move_inline_component_with_event_handler: { transpileTs: true, transpileJsx: true },
+  should_move_hook_with_task: { transpileTs: true, transpileJsx: true },
+  should_move_inline_component_function_declaration: { transpileTs: true, transpileJsx: true },
+  should_move_hook_function_declaration: { transpileTs: true, transpileJsx: true },
+  should_move_component_qrl_into_its_only_consumer: { transpileTs: true, transpileJsx: true },
+  should_move_qrl_into_its_only_consumer: { transpileTs: true, transpileJsx: true },
   rename_builder_io: { transpileJsx: true },
   root_level_self_referential_qrl: {},
   should_not_transform_events_on_non_elements: {},

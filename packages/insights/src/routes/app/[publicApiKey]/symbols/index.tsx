@@ -1,13 +1,15 @@
+import { loadReportScope } from '~/db/report-scope';
+import SymbolFilter from '~/components/symbol-filter';
+import { filterSymbols } from '~/stats/symbol-search';
+import { getManifestPerformance } from '../performance';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
-import Button, { ButtonLink } from '~/components/button';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
 import PageHeader from '~/components/page-header';
 import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getEdges } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
+import { getEdges, getSymbolDetails } from '~/db/query';
 import { BUCKETS, vectorAdd, vectorNew, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
@@ -15,14 +17,16 @@ interface SymbolStats {
   hash: string;
   delay: number[];
   latency: number[];
+  fullName?: string;
+  origin?: string;
+  samples: number;
+  p95: number | null;
 }
 
 interface SymbolsInfo {
   symbols: ResultsPage<SymbolStats>;
   samples: number;
   manifestCount: number;
-  page: number;
-  hasNext: boolean;
 }
 
 export const head: DocumentHead = {
@@ -31,18 +35,10 @@ export const head: DocumentHead = {
 
 export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
-  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '', 10) || 1);
-  const limit = url.searchParams.get('limit')
-    ? parseInt(url.searchParams.get('limit')!)
-    : undefined;
-  const manifestHashes = await dbGetManifestHashes(db, params.publicApiKey, {
-    limit: 101,
-    offset: (page - 1) * 100,
-  });
-  const hasNext = manifestHashes.length > 100;
-  const pageManifestHashes = manifestHashes.slice(0, 100);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, url.searchParams);
+  const pageManifestHashes = selectedHash ? [selectedHash] : [];
   const edges = pageManifestHashes.length
-    ? await getEdges(db, params.publicApiKey, { limit, manifestHashes: pageManifestHashes })
+    ? await getEdges(db, params.publicApiKey, { manifestHashes: pageManifestHashes })
     : [];
 
   const symbolMap = new Map<string, SymbolStats>();
@@ -51,13 +47,23 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     vectorAdd(symbol.delay, edge.delay);
     vectorAdd(symbol.latency, edge.latency);
   });
-  const symbols = Array.from(symbolMap.values());
+  const metadata = selectedHash
+    ? await getSymbolDetails(db, params.publicApiKey, { manifestHashes: pageManifestHashes })
+    : [];
+  const details = new Map(metadata.map((symbol) => [symbol.hash, symbol]));
+  const symbols = Array.from(symbolMap.values()).map((symbol) => ({
+    ...symbol,
+    fullName: details.get(symbol.hash)?.fullName,
+    origin: details.get(symbol.hash)?.origin,
+    ...getManifestPerformance(symbol.latency),
+  }));
   return {
-    symbols: paginateResults(symbols, url.searchParams.get('symbolPage')),
+    symbols: paginateResults(
+      filterSymbols(symbols, url.searchParams.get('q'), url.searchParams.get('sort')),
+      url.searchParams.get('symbolPage')
+    ),
     samples: symbols.reduce((total, symbol) => total + vectorSum(symbol.latency), 0),
     manifestCount: pageManifestHashes.length,
-    page,
-    hasNext,
   };
   ////////////////////////////////////////////////////////
   function getSymbol(name: string) {
@@ -65,6 +71,8 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     if (!symbol) {
       symbol = {
         hash: name,
+        samples: 0,
+        p95: null,
         delay: vectorNew(),
         latency: vectorNew(),
       };
@@ -79,12 +87,11 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="symbols"
         eyebrow="Symbol performance"
         title="Symbols"
-        description="Compare execution delay and latency distributions across recorded symbols."
-      >
-        <Pagination page={data.value.page} hasNext={data.value.hasNext} />
-      </PageHeader>
+        description="Compare request gaps and loading latency across recorded symbols."
+      />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
         <SummaryMetric
@@ -98,6 +105,7 @@ export default component$(() => {
         />
       </dl>
 
+      <SymbolFilter />
       <ResultsPagination
         page={data.value.symbols.page}
         pageCount={data.value.symbols.pageCount}
@@ -106,32 +114,52 @@ export default component$(() => {
 
       {data.value.symbols.items.length ? (
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[1032px] text-left text-editorial-12">
-            <thead class="border-b border-editorial-border text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
+          <table class="w-full text-left text-editorial-12">
+            <thead class="border-b border-editorial-border text-editorial-11 text-editorial-muted uppercase">
               <tr>
-                <th scope="col" class="w-[42%] py-editorial-4 pr-editorial-6 font-semibold">
-                  Delay distribution
-                </th>
-                <th scope="col" class="w-[42%] py-editorial-4 pr-editorial-6 font-semibold">
-                  Latency distribution
-                </th>
-                <th scope="col" class="py-editorial-4 font-semibold">
-                  Symbol
-                </th>
+                <th class="py-editorial-4">Symbol / source</th>
+                <th class="p-editorial-4 text-right">Samples</th>
+                <th class="p-editorial-4 text-right">P95 loading latency</th>
               </tr>
             </thead>
             <tbody>
               {data.value.symbols.items.map((symbol) => (
-                <tr key={symbol.hash} class="border-b border-editorial-border align-middle">
-                  <td class="py-editorial-5 pr-editorial-6">
-                    <Histogram vector={symbol.delay} buckets={BUCKETS} colors={delayColors} />
-                  </td>
-                  <td class="py-editorial-5 pr-editorial-6">
-                    <Histogram vector={symbol.latency} colors={latencyColors} buckets={BUCKETS} />
-                  </td>
-                  <th scope="row" class="py-editorial-5 font-editorial-mono font-normal">
-                    <SymbolTile symbol={symbol.hash} />
+                <tr key={symbol.hash} class="border-b border-editorial-border align-top">
+                  <th scope="row" class="py-editorial-4 font-normal">
+                    <SymbolTile
+                      symbol={symbol.hash}
+                      fullName={symbol.fullName}
+                      origin={symbol.origin}
+                    />
+                    {symbol.origin && (
+                      <p class="mt-editorial-1 break-all text-editorial-11 text-editorial-muted">
+                        {symbol.origin}
+                      </p>
+                    )}
+                    <details class="mt-editorial-3">
+                      <summary class="cursor-pointer text-editorial-11 text-editorial-secondary">
+                        Show distributions
+                      </summary>
+                      <div class="mt-editorial-3 grid gap-editorial-4 lg:grid-cols-2">
+                        <div>
+                          <p>Request gap</p>
+                          <Histogram vector={symbol.delay} buckets={BUCKETS} colors={delayColors} />
+                        </div>
+                        <div>
+                          <p>Loading latency</p>
+                          <Histogram
+                            vector={symbol.latency}
+                            colors={latencyColors}
+                            buckets={BUCKETS}
+                          />
+                        </div>
+                      </div>
+                    </details>
                   </th>
+                  <td class="p-editorial-4 text-right">{symbol.samples.toLocaleString('en')}</td>
+                  <td class="p-editorial-4 text-right">
+                    {symbol.p95 === null ? 'Collecting data' : `${Math.round(symbol.p95)} ms`}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -139,9 +167,9 @@ export default component$(() => {
         </div>
       ) : (
         <section class="border-b border-editorial-border py-editorial-16">
-          <h2 class="text-editorial-24 font-semibold">No symbols yet</h2>
+          <h2 class="text-editorial-24 font-semibold">No matching symbols</h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
-            Symbols will appear after the first execution data is recorded.
+            Clear the search, choose another build, or collect symbol observations.
           </p>
         </section>
       )}
@@ -155,33 +183,3 @@ const SummaryMetric = component$<{ label: string; value: string }>(({ label, val
     <dd class="order-1 text-editorial-24 font-semibold">{value}</dd>
   </div>
 ));
-
-const Pagination = component$<{ hasNext: boolean; page: number }>(({ hasNext, page }) => {
-  const buttonClass = '!min-h-[41px]';
-  return (
-    <nav
-      aria-label="Manifest ranges"
-      class="flex items-center gap-editorial-6 self-end md:self-auto"
-    >
-      {page > 1 ? (
-        <ButtonLink href={`?page=${page - 1}`} theme="secondary" class={buttonClass}>
-          ← Previous
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="secondary" class={buttonClass}>
-          ← Previous
-        </Button>
-      )}
-      <span class="text-editorial-12 font-semibold whitespace-nowrap">Manifest range {page}</span>
-      {hasNext ? (
-        <ButtonLink href={`?page=${page + 1}`} theme="primary" class={buttonClass}>
-          Next →
-        </ButtonLink>
-      ) : (
-        <Button disabled theme="primary" class={buttonClass}>
-          Next →
-        </Button>
-      )}
-    </nav>
-  );
-});

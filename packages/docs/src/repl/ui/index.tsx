@@ -86,9 +86,13 @@ export const Repl = component$((props: ReplProps) => {
       // Get the version asap, most likely it will be cached.
       const v = await getReplVersion(input.version, true);
       store.versions = v.versions;
-      input.version = v.version || 'bundled';
-
-      store.instance!.markDirty();
+      const version = v.version || 'bundled';
+      if (input.version === version) {
+        store.instance!.markDirty();
+      } else {
+        // The input tracker below requests the build; asking here too can build twice.
+        input.version = version;
+      }
 
       // Now get the version from the network
       const vNew = await getReplVersion(input.version, false);

@@ -878,8 +878,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   private onRenderDone() {
-    // cleanup tasks etc.
-    this.drainCleanupQueue();
+    // Pending segments still read root-owned state, so they drain the queue once settled.
+    if (!this.outOfOrderPendingSegments.length) {
+      this.drainCleanupQueue();
+    }
     // set render time
     this.timing.render = this.renderTimer();
   }
@@ -1207,7 +1209,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return maybeThen(this.streamHandler.flush(), async () => {
       this.$markRootContainerReady$();
       if (this.outOfOrderPendingSegments.length) {
-        await Promise.all(this.outOfOrderPendingSegments);
+        // A failed segment must not tear down state its siblings still read.
+        const settled = await Promise.allSettled(this.outOfOrderPendingSegments);
+        this.drainCleanupQueue();
+        const failed = settled.find((result) => result.status === 'rejected');
+        if (failed) {
+          throw failed.reason;
+        }
       }
       this.writeScript(
         {

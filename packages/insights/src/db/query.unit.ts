@@ -141,3 +141,74 @@ test('returns symbol details by hash across manifests', async () => {
     client.close();
   }
 });
+
+test('keeps high-tail candidates beyond the first 400 mean-latency results', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getSlowEdges } = await import('./query');
+  const { getManifestPerformance } = await import('../routes/app/[publicApiKey]/performance');
+  const client = createClient({ url: 'file::memory:' });
+  const columns = Array.from(
+    { length: 50 },
+    (_, i) => `latency_count_${String(i).padStart(2, '0')} INTEGER NOT NULL DEFAULT 0`
+  );
+  try {
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT, manifest_hash TEXT, "to" TEXT, ${columns.join(',')})`
+    );
+    await client.batch(
+      Array.from({ length: 400 }, (_, i) => ({
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, "to", latency_count_34) VALUES (?, ?, ?, 100)',
+        args: ['app', 'build', `steady-${i}`],
+      }))
+    );
+    await client.execute(
+      "INSERT INTO edges (public_api_key, manifest_hash, \"to\", latency_count_00, latency_count_49) VALUES ('app', 'build', 'tail', 94, 6)"
+    );
+    const candidates = await getSlowEdges(drizzle(client) as AppDatabase, 'app', ['build']);
+    assert.isDefined(candidates.find((edge) => edge.to === 'tail'));
+    assert.lengthOf(candidates, 401);
+    const ranked = candidates
+      .map((edge) => ({ ...edge, ...getManifestPerformance(edge.latency) }))
+      .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1));
+    assert.equal(ranked[0].to, 'tail');
+    assert.deepEqual(await getSlowEdges(drizzle(client) as AppDatabase, 'other', ['build']), []);
+  } finally {
+    client.close();
+  }
+});
+
+test('returns metadata beyond 1000 symbols only from the selected application and build', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getSymbolDetails } = await import('./query');
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE symbolDetail (hash TEXT, public_api_key TEXT, manifest_hash TEXT, full_name TEXT, origin TEXT, lo INTEGER, hi INTEGER)'
+    );
+    await client.batch([
+      ...Array.from({ length: 1001 }, (_, i) => ({
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: [`hash-${i}`, 'app', 'selected', `Symbol ${i}`, 'source.tsx'],
+      })),
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['foreign', 'other', 'selected', 'Foreign', 'private.tsx'],
+      },
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['old', 'app', 'old', 'Old', 'old.tsx'],
+      },
+    ]);
+    const metadata = await getSymbolDetails(drizzle(client) as AppDatabase, 'app', {
+      manifestHashes: ['selected'],
+    });
+    assert.lengthOf(metadata, 1001);
+    assert.equal(metadata.find((symbol) => symbol.hash === 'hash-1000')?.fullName, 'Symbol 1000');
+    assert.deepEqual(
+      await getSymbolDetails(drizzle(client) as AppDatabase, 'app', { manifestHashes: [] }),
+      []
+    );
+  } finally {
+    client.close();
+  }
+});

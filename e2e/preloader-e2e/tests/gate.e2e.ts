@@ -15,7 +15,7 @@ import { clickTrigger, openFixture, warmClick } from '../utils/scenarios';
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
 const TREE_CONTEXT = fixtureById('tree-context/render');
 const TREE_CONTEXT_DIR = 'src/components/fixtures/tree-context/render/';
-const JUST_BELOW_NEEDED = 0.985;
+const JUST_BELOW_HIGHEST_PRIORITY = 0.985;
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
 
 const openHolding = async (page: import('@playwright/test').Page) => {
@@ -107,7 +107,7 @@ test.describe('gate: cold click', () => {
       ([bundle, probability]) => {
         (window as any).qPreloadQueue = [[bundle, probability]];
       },
-      [bundleFile(contexts), JUST_BELOW_NEEDED] as const
+      [bundleFile(contexts), JUST_BELOW_HIGHEST_PRIORITY] as const
     );
     const opened = await openFixture(page, TREE_CONTEXT, 'cold');
     expect([...(await speculativePreloads(page))]).toEqual([contexts]);

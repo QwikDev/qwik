@@ -1,21 +1,61 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { createPreviewBundles, getPreviewBundles } from './affinity-preview';
+import { groupByAffinity, type AffinityLink } from '~/stats/bundle-affinity';
+import type { MatrixPath } from '~/stats/edges';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import ReportGuide from '~/components/report-guide';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getBundleExecutionCount, type BundleInfo } from './bundle-view';
 import { RelationshipMatrix } from './relationship-matrix';
 
-export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
+export const BundleExplorer = component$<{
+  data: BundleInfo & { affinityTree?: AffinityLink[]; previewPaths?: MatrixPath[] };
+  comparisonHref?: string;
+}>(({ data: initialData, comparisonHref }) => {
+  const affinity = useSignal(50);
+  const data = useComputed$(() => ({
+    ...initialData,
+    bundles:
+      affinity.value === 50 || !initialData.affinityTree
+        ? initialData.bundles
+        : getPreviewBundles(
+            groupByAffinity(initialData.symbols, initialData.affinityTree, affinity.value),
+            initialData
+          ),
+  }));
+
   const selectedIndex = useSignal(0);
+  const search = useSignal('');
+  const visibleCount = useSignal(50);
   const selectedView = useSignal('relationships');
   const selectedSymbol = useSignal('');
   const selectedRelationship = useSignal(-1);
-  const selectedBundle = data.bundles.at(selectedIndex.value) ?? data.bundles.at(0);
-  const strongestRelationships = selectedSymbol.value
-    ? (selectedBundle?.symbolRelationships[selectedSymbol.value] ?? [])
-    : (selectedBundle?.relationships ?? []);
+  const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+  const strongestRelationships = useComputed$(() => {
+    const bundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
+    if (!selectedSymbol.value) {
+      return bundle?.relationships ?? [];
+    }
+    if (bundle && !initialData.bundles.includes(bundle)) {
+      return (
+        createPreviewBundles([bundle], initialData, selectedSymbol.value)[0].symbolRelationships[
+          selectedSymbol.value
+        ] ?? []
+      );
+    }
+    return bundle?.symbolRelationships[selectedSymbol.value] ?? [];
+  });
   const relationship =
     selectedRelationship.value < 0
       ? undefined
-      : strongestRelationships.at(selectedRelationship.value);
+      : strongestRelationships.value.at(selectedRelationship.value);
+
+  const visibleSymbols = (selectedBundle?.symbols ?? [])
+    .filter((symbol) =>
+      [symbol.name, symbol.fullName, symbol.fileSrc].some((value) =>
+        value?.toLowerCase().includes(search.value.trim().toLowerCase())
+      )
+    )
+    .sort((a, b) => b.count - a.count);
 
   return (
     <div class="font-editorial-ui text-editorial-primary">
@@ -28,9 +68,15 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
             Suggested bundles
           </h1>
           <p class="mt-editorial-2 max-w-2xl text-editorial-14 text-editorial-secondary">
-            Explore suggested symbol groups based on execution relationships across the latest 100
-            manifests. These are analysis groups, not emitted build files.
+            Explore suggested symbol groups based on execution relationships in the selected build.
+            These are analysis groups, not emitted build files.
           </p>
+          <a
+            href={comparisonHref ?? '../visualizations/'}
+            class="mt-editorial-3 inline-block text-editorial-12 text-editorial-link underline"
+          >
+            Explore relationship visualizations
+          </a>
         </div>
         {selectedBundle && (
           <div class="md:text-right">
@@ -44,13 +90,62 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
           </div>
         )}
       </header>
+      <ReportGuide report="bundles" />
+
+      <section
+        class="mt-editorial-6 rounded-editorial-md border border-editorial-border p-editorial-5"
+        aria-labelledby="affinity-title"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-editorial-4">
+          <label id="affinity-title" for="bundle-affinity" class="text-editorial-14 font-semibold">
+            Clustering affinity
+          </label>
+          <button
+            type="button"
+            class="cursor-pointer text-editorial-12 text-editorial-link"
+            onClick$={() => {
+              affinity.value = 50;
+              selectedIndex.value = 0;
+              selectedSymbol.value = '';
+              selectedRelationship.value = -1;
+            }}
+          >
+            Reset to automatic
+          </button>
+        </div>
+        <input
+          id="bundle-affinity"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={affinity.value}
+          class="mt-editorial-4 w-full cursor-pointer accent-[var(--color-editorial-accent)]"
+          aria-describedby="affinity-help"
+          aria-valuetext={`${affinity.value}% affinity, ${data.value.bundles.length} suggested bundles`}
+          onInput$={(_, input) => {
+            affinity.value = Number(input.value);
+            selectedIndex.value = 0;
+            selectedSymbol.value = '';
+            selectedRelationship.value = -1;
+          }}
+        />
+        <div class="flex justify-between text-editorial-12 text-editorial-secondary">
+          <span>Fewer, larger bundles</span>
+          <span>{affinity.value}% affinity</span>
+          <span>More, smaller bundles</span>
+        </div>
+        <p id="affinity-help" class="mt-editorial-3 text-editorial-12 text-editorial-muted">
+          Preview only. Drag to explore suggested groups. Build recommendations stay unchanged.
+        </p>
+      </section>
 
       <div class="flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 py-editorial-6">
         <strong class="text-editorial-24 font-semibold">
-          {data.bundles.length.toLocaleString('en')} suggested groups
+          {data.value.bundles.length.toLocaleString('en')} suggested groups
         </strong>
         <span class="text-editorial-14 text-editorial-secondary">
-          across {data.symbols.length.toLocaleString('en')} recorded symbols
+          across {data.value.symbols.length.toLocaleString('en')} recorded symbols
         </span>
       </div>
 
@@ -69,11 +164,13 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
               value={selectedIndex.value}
               onChange$={(_, select) => {
                 selectedIndex.value = Number(select.value);
+                search.value = '';
+                visibleCount.value = 50;
                 selectedSymbol.value = '';
                 selectedRelationship.value = -1;
               }}
             >
-              {data.bundles.map((bundle, index) => (
+              {data.value.bundles.map((bundle, index) => (
                 <option
                   key={bundle.name}
                   value={index}
@@ -95,7 +192,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                 </h2>
               </div>
               <ol class="p-editorial-2">
-                {data.bundles.map((bundle, index) => {
+                {data.value.bundles.map((bundle, index) => {
                   const isSelected = index === selectedIndex.value;
                   return (
                     <li key={bundle.name}>
@@ -109,6 +206,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         aria-pressed={isSelected}
                         onClick$={() => {
                           selectedIndex.value = index;
+                          search.value = '';
+                          visibleCount.value = 50;
                           selectedSymbol.value = '';
                           selectedRelationship.value = -1;
                         }}
@@ -121,8 +220,8 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           {getBundleExecutionCount(bundle).toLocaleString('en')} executions
                         </span>
                         <span class="mt-editorial-2 block text-editorial-11 text-editorial-secondary">
-                          {Math.round((bundle.symbols.length / data.symbols.length) * 100)}% of
-                          recorded symbols
+                          {Math.round((bundle.symbols.length / data.value.symbols.length) * 100)}%
+                          of recorded symbols
                         </span>
                         <span
                           class="mt-editorial-2 block h-1 bg-editorial-data-band"
@@ -131,7 +230,7 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           <span
                             class="block h-full bg-editorial-data-current"
                             style={{
-                              width: `${(bundle.symbols.length / data.symbols.length) * 100}%`,
+                              width: `${(bundle.symbols.length / data.value.symbols.length) * 100}%`,
                             }}
                           />
                         </span>
@@ -224,9 +323,9 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                       )}
                     </div>
                     <div class="grid items-start md:grid-cols-2">
-                      {strongestRelationships.length ? (
+                      {strongestRelationships.value.length ? (
                         <ol>
-                          {strongestRelationships.map((connection, index) => {
+                          {strongestRelationships.value.map((connection, index) => {
                             const from = selectedBundle.symbols.find(
                               (symbol) => symbol.name === connection.from
                             )!;
@@ -341,6 +440,22 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         Symbols in this group
                       </h2>
                     </div>
+                    <label class="block px-editorial-5 py-editorial-3 text-editorial-12">
+                      Search this group
+                      <input
+                        type="search"
+                        value={search.value}
+                        onInput$={(_, input) => {
+                          search.value = input.value;
+                          visibleCount.value = 50;
+                        }}
+                        placeholder="Name, hash, or source path"
+                        class="mt-editorial-2 w-full rounded-editorial-md border border-editorial-border bg-editorial-surface p-editorial-2"
+                      />
+                    </label>
+                    <p class="px-editorial-5 text-editorial-11 text-editorial-muted">
+                      {visibleSymbols.length} matching symbols, most observed first
+                    </p>
                     <div class="overflow-x-auto">
                       <table class="w-full min-w-[360px] text-left text-editorial-12">
                         <thead class="sticky top-0 border-b border-editorial-border bg-editorial-canvas text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
@@ -353,17 +468,12 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedBundle.symbols.map((symbol) => (
+                          {visibleSymbols.slice(0, visibleCount.value).map((symbol) => (
                             <tr
                               key={symbol.name}
                               class="border-b border-editorial-border align-top"
                             >
                               <th class="max-w-64 px-editorial-5 py-editorial-4 font-normal">
-                                {symbol.fullName && (
-                                  <code class="block truncate font-editorial-mono text-editorial-12 font-semibold">
-                                    {symbol.fullName}
-                                  </code>
-                                )}
                                 <span
                                   class={[
                                     'block truncate font-editorial-mono text-editorial-11',
@@ -398,12 +508,23 @@ export const BundleExplorer = component$<{ data: BundleInfo }>(({ data }) => {
                         </tbody>
                       </table>
                     </div>
+                    {visibleSymbols.length > visibleCount.value && (
+                      <button
+                        type="button"
+                        class="m-editorial-5 text-editorial-12 font-semibold text-editorial-link"
+                        onClick$={() => {
+                          visibleCount.value += 50;
+                        }}
+                      >
+                        Show 50 more symbols
+                      </button>
+                    )}
                   </section>
                 )}
                 {selectedView.value === 'matrix' && (
                   <RelationshipMatrix
-                    key={selectedIndex.value}
-                    data={data}
+                    key={`${selectedIndex.value}:${affinity.value}`}
+                    data={data.value}
                     selectedIndex={selectedIndex.value}
                   />
                 )}

@@ -342,6 +342,21 @@ describe('binary state', () => {
       expect(restoredRoots[0]).toEqual({ small: 1 });
     });
 
+    it('lets go of the reader when the stream ends with every root restored', async () => {
+      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
+      const { reader, state } = open(shell);
+      state[0];
+      state[1];
+      const notifyProxy = reader.$onRootsAdded$;
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      // patches can still arrive, so the proxy keeps listening to the reader
+      expect(reader.$onRootsAdded$).toBe(notifyProxy);
+      reader.$endPatches$();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(reader.$onRootsAdded$).not.toBe(notifyProxy);
+      expect(Array.from(state)).toEqual([{ small: 1 }, { tiny: 2 }]);
+    });
+
     it('does not count what surrounds the roots as state left to restore', async () => {
       // many small patches: their headers are more than 10% of the stream
       const patches = Array.from({ length: 30 }, (_, i) => [{ patch: i }]);

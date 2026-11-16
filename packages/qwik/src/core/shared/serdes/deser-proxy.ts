@@ -212,6 +212,15 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     }
   }
 
+  /** Lets go of the reader, and with it the state text, in both directions. */
+  private $release$(): void {
+    const reader = this.$reader$;
+    if (reader) {
+      reader.$onRootsAdded$ = reader.$onPatchesEnded$ = reader.$onRootAllocated$ = () => {};
+      this.$reader$ = null;
+    }
+  }
+
   private $releaseStateWhenMostlyRestored$(): void {
     const unitCount = this.$reader$!.$unitCount$;
     const isMostlyRestored = this.$unrestoredUnits$ < unitCount * (1 - RELEASE_STATE_AT);
@@ -224,7 +233,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     whenIdle(() => {
       const restoring = createYieldingIteratorState(
         this.$restoreRemainingRoots$(),
-        () => (this.$reader$ = null),
+        () => this.$release$(),
         // A root that cannot be restored must only fail for the code that asks for it.
         () => {}
       );
@@ -265,7 +274,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     const out = Reflect.set(target, property, value, receiver);
     if (property === 'length') {
       // A destroyed container empties its state; a restore in the background must not refill it.
-      this.$reader$ = null;
+      this.$release$();
     }
     const i = toRootIndex(property);
     if (this.$reader$ && !(Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length)) {

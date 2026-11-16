@@ -26,7 +26,7 @@
     "eslint-plugin-qwik": "workspace:*",
     "globals": "17.0.0",
     "postcss": "8.5.33",
-    "prettier": "3.10.1",
+    "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3",

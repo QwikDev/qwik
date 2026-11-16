@@ -157,7 +157,7 @@
     "monaco-editor": "0.54.0",
     "mri": "1.2.0",
     "path-browserify": "1.0.1",
-    "prettier": "3.10.1",
+    "prettier": "3.7.4",
     "prettier-plugin-jsdoc": "1.8.0",
     "prettier-plugin-tailwindcss": "0.8.1",
     "pretty-quick": "4.2.2",

@@ -1,6 +1,12 @@
 import { expect, test, type Page, type Request } from '@playwright/test';
 import { chunkComesFrom, chunkHoldsModule, getManifest, ORIGIN } from '../utils/app';
-import { fixtureById, NAVIGATION_SOURCES, SHARED_HELPER, type Fixture } from '../utils/fixtures';
+import {
+  fixtureById,
+  NAVIGATION_SOURCES,
+  SHARED_HELPER,
+  STREAMING,
+  type Fixture,
+} from '../utils/fixtures';
 import {
   chunksHintedAsNeeded,
   countRoundTrips,
@@ -353,6 +359,27 @@ test.describe('early click on a handler with static imports', () => {
     );
     expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
     expect(helperRoundTrip).toBe(handlerRoundTrip + 1);
+  });
+});
+
+test.describe('click while the page is still streaming', () => {
+  test("the handler's chunk is requested before the stream ends, and the handler runs once it has", async ({
+    page,
+  }) => {
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await page.goto(STREAMING.path, { waitUntil: 'commit' });
+    try {
+      await fixtureRoot(page, STREAMING).locator('[data-testid=trigger]').click();
+      await expect
+        .poll(() => requests.filter((url) => chunkComesFrom(url, STREAMING.sources)).length)
+        .toBeGreaterThan(0);
+      await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
+      await expect(fixtureResult(page, STREAMING)).not.toHaveAttribute('data-done');
+    } finally {
+      await page.request.get(`${ORIGIN}/streaming/release/`);
+    }
+    await expectResult(page, STREAMING);
   });
 });
 

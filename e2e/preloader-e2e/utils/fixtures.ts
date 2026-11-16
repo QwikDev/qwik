@@ -73,6 +73,7 @@ export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');
 export const BARREL = handWritten('barrel', 'alpha 1.0');
+export const STREAMING = handWritten('streaming', '1');
 
 export const DASHBOARD_MODAL: Fixture = {
   id: 'dashboard-modal',

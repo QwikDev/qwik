@@ -314,6 +314,39 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
   }
 });
 
+const SLOW_IMAGE = `${ORIGIN}/slow-image.png`;
+
+const loadASlowImage = (page: Page) =>
+  page.addInitScript((src) => {
+    new Image().src = src;
+  }, SLOW_IMAGE);
+
+const pageHasLoaded = (page: Page) => page.evaluate(() => document.readyState === 'complete');
+
+test.describe('click before the page has finished loading', () => {
+  test('a slow image holds back the load event: the click shows its result in 11 round trips, over the cap of 2', async ({
+    page,
+  }) => {
+    await loadASlowImage(page);
+    const {
+      gate,
+      startupPiece: slowImage,
+      roundTrips,
+    } = await clickWhileLoading(page, [SLOW_IMAGE], clickConditional(page), CONDITIONAL_ALL, {
+      onceTheRestHasLoaded: true,
+    });
+    const hadLoaded = await pageHasLoaded(page);
+    await releaseAll(gate, slowImage);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expect(hadLoaded).toBe(false);
+    expectRoundTrips(roundTrips, {
+      roundTrips: 11,
+      reason:
+        'over the cap on main: the preloader only starts after the load event, so until then each chunk is only found once the one before it has loaded',
+    });
+  });
+});
+
 const everyStartupPiece = () => [preloaderUrl(), coreUrl(), bundleGraphUrl()];
 
 test.describe('early click that needs the bundle graph', () => {

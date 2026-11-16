@@ -823,6 +823,8 @@ function expectSlot(diffContext: DiffContext) {
     return false;
   } else if (vProjectedNode === diffContext.$vCurrent$) {
     // All is good.
+  } else if (diffContext.$vSideBuffer$?.has(vProjectedNode)) {
+    diffContext.$vCurrent$ = vProjectedNode;
   } else {
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;

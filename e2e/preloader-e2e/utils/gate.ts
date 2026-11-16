@@ -1,5 +1,11 @@
 import type { Locator, Page, Request, Route } from '@playwright/test';
-import { bundleFile, chunkHoldsSegmentsFrom, labelRequest, neededWith, ORIGIN } from './app';
+import {
+  bundleFile,
+  chunkHoldsSegmentsFrom,
+  highestPriorityWith,
+  labelRequest,
+  ORIGIN,
+} from './app';
 
 export const FILLER = 'src/components/filler/';
 
@@ -64,8 +70,8 @@ export const recordPreloadHints = (page: Page) =>
 export const preloadHints = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__preloadHints ?? []);
 
-/** Chunks hinted as needed so far, also those waiting for the preloader to load. */
-export const chunksHintedAsNeeded = (page: Page) =>
+/** Chunks hinted at the highest priority so far, also those waiting for the preloader to load. */
+export const chunksHintedAtHighestPriority = (page: Page) =>
   page.evaluate(() => {
     const win = window as PreloaderWindow;
     const hints = [
@@ -129,13 +135,16 @@ export const holdSpeculativePreloads = (page: Page) =>
 
 /**
  * The preloader counts a held speculative preload as in flight, so it never requests that chunk
- * again once it is needed. Send it when a request makes it needed, as the preloader would.
+ * again once it becomes highest priority. Send it when a request makes it so, as the preloader
+ * would.
  */
-const sendHeldPreloadsNeededWith = (page: Page, url: string) => {
+const sendHeldPreloadsAtHighestPriorityWith = (page: Page, url: string) => {
   if (!url.startsWith(`${ORIGIN}/build/`)) {
     return;
   }
-  const hrefs = [...neededWith(bundleFile(url))].map((bundle) => `${ORIGIN}/build/${bundle}`);
+  const hrefs = [...highestPriorityWith(bundleFile(url))].map(
+    (bundle) => `${ORIGIN}/build/${bundle}`
+  );
   page
     .evaluate((hrefs) => (window as PreloaderWindow).__sendHeldSpeculativePreloads?.(hrefs), hrefs)
     .catch(() => {});
@@ -166,7 +175,7 @@ export const createGate = async (page: Page): Promise<Gate> => {
     }
     gate.held.push(route);
     if (gate.mode === 'hold') {
-      sendHeldPreloadsNeededWith(page, request.url());
+      sendHeldPreloadsAtHighestPriorityWith(page, request.url());
     }
   });
   return gate;

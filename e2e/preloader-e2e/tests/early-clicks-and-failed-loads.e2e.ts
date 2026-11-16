@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
 import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
-  chunksHintedAsNeeded,
+  chunksHintedAtHighestPriority,
   countRoundTrips,
   createGate,
   holdSpeculativePreloads,
@@ -89,7 +89,7 @@ test.describe('click before core loaded', () => {
     ).toHaveLength(1);
   });
 
-  test("the preloader is told the click's chunks are needed while core is still loading", async ({
+  test("the preloader is told to preload the click's chunks at the highest priority while core is still loading", async ({
     page,
   }) => {
     await recordPreloadHints(page);
@@ -102,7 +102,7 @@ test.describe('click before core loaded', () => {
     await clickConditional(page)();
 
     const clickChunksHinted = async () =>
-      (await chunksHintedAsNeeded(page)).filter((chunk) =>
+      (await chunksHintedAtHighestPriority(page)).filter((chunk) =>
         chunkComesFrom(`${ORIGIN}/build/${chunk}`, CONDITIONAL_ALL.sources)
       );
     await expect.poll(clickChunksHinted).toHaveLength(1);
@@ -163,20 +163,20 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded as needed`, async ({
+    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded at the highest priority`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
-      const preloadedAsNeeded = new Set(
+      const preloadedAtHighestPriority = new Set(
         links.filter((link) => !link.speculative).map((link) => link.href)
       );
       expect(clickChunks.size).toBeGreaterThan(0);
-      expect([...clickChunks].filter((url) => !preloadedAsNeeded.has(url))).toEqual([]);
+      expect([...clickChunks].filter((url) => !preloadedAtHighestPriority.has(url))).toEqual([]);
     });
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the needed preloads go out before any speculative preload`, async ({
+    test(`${arrivesLast}: once both are loaded, the highest priority preloads go out before any speculative preload`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());

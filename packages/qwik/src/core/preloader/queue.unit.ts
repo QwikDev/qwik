@@ -127,7 +127,7 @@ test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
-test('holds speculative preloads while a needed bundle is loading', async () => {
+test('holds speculative preloads while a highest priority bundle is loading', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -139,13 +139,13 @@ test('holds speculative preloads while a needed bundle is loading', async () => 
   const { initPreloader, preload } = await importAndResetState();
 
   const speculative = Array.from({ length: 5 }, (_, index) => `spec-${index}.js`);
-  initPreloader(['needed.js', ...speculative]);
+  initPreloader(['highest-priority.js', ...speculative]);
   preload(speculative, 0.8);
-  preload('needed.js', 1);
+  preload('highest-priority.js', 1);
   vi.runAllTimers();
 
   const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
-  expect(links().map((link) => link.href.split('/').pop())).toEqual(['needed.js']);
+  expect(links().map((link) => link.href.split('/').pop())).toEqual(['highest-priority.js']);
 
   links()[0].onload!(new Event('load'));
   vi.runAllTimers();
@@ -157,7 +157,7 @@ test('holds speculative preloads while a needed bundle is loading', async () => 
   ).toEqual(speculative);
 });
 
-test('holds speculative preloads once an in-flight preload becomes needed', async () => {
+test('holds speculative preloads once an in-flight preload becomes highest priority', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -194,21 +194,21 @@ test('asks the browser for low priority on speculative preloads only', async () 
 
   const { initPreloader, preload } = await importAndResetState();
 
-  initPreloader(['needed.js', 'spec.js']);
-  preload('needed.js', 1);
+  initPreloader(['highest-priority.js', 'spec.js']);
+  preload('highest-priority.js', 1);
   vi.runAllTimers();
-  const needed = document.head.querySelector('link') as HTMLLinkElement;
-  needed.onload!(new Event('load'));
+  const highestPriority = document.head.querySelector('link') as HTMLLinkElement;
+  highestPriority.onload!(new Event('load'));
   preload('spec.js', 0.8);
   vi.runAllTimers();
   const spec = document.head.querySelector('link') as HTMLLinkElement;
 
-  expect(needed.getAttribute('fetchpriority')).toBe(null);
+  expect(highestPriority.getAttribute('fetchpriority')).toBe(null);
   expect(spec.href.split('/').pop()).toBe('spec.js');
   expect(spec.getAttribute('fetchpriority')).toBe('low');
 });
 
-test('keeps a bundle needed when a later hint gives it a lower probability', async () => {
+test('keeps a bundle at the highest priority when a later hint gives it a lower probability', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -219,16 +219,16 @@ test('keeps a bundle needed when a later hint gives it a lower probability', asy
 
   const { initPreloader, preload } = await importAndResetState();
 
-  initPreloader(['needed.js']);
-  preload('needed.js', 1);
-  preload('needed.js', 0.6);
+  initPreloader(['highest-priority.js']);
+  preload('highest-priority.js', 1);
+  preload('highest-priority.js', 0.6);
   vi.runAllTimers();
 
-  const needed = document.head.querySelector('link') as HTMLLinkElement;
-  expect(needed.getAttribute('fetchpriority')).toBe(null);
+  const highestPriority = document.head.querySelector('link') as HTMLLinkElement;
+  expect(highestPriority.getAttribute('fetchpriority')).toBe(null);
 });
 
-test('keeps a needed dependency needed when another importer is hinted at a lower probability', async () => {
+test('keeps a highest priority dependency at the highest priority when another importer is hinted at a lower probability', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -239,8 +239,8 @@ test('keeps a needed dependency needed when another importer is hinted at a lowe
 
   const { initPreloader, preload } = await importAndResetState();
 
-  initPreloader(['needed.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
-  preload('needed.js', 1);
+  initPreloader(['highest-priority.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
+  preload('highest-priority.js', 1);
   preload('other.js', 0.6);
   vi.runAllTimers();
 
@@ -498,7 +498,7 @@ test('yields while replaying many hints buffered before the graph arrives', asyn
   expect(bundles.has('unused.js')).toBe(false);
 });
 
-test('keeps newer required hints when buffered replay resumes after yielding', async () => {
+test('keeps newer highest priority hints when buffered replay resumes after yielding', async () => {
   installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   let now = 0;
@@ -537,7 +537,7 @@ test('keeps newer required hints when buffered replay resumes after yielding', a
   expect(bundles.get('last.js')!.$inverseProbability$).toBe(0);
 });
 
-test('keeps required links at needed priority between buffered replay slices', async () => {
+test('keeps highest priority links at the highest priority between buffered replay slices', async () => {
   const document = installBrowserGlobals();
   const channels = installTestMessageChannels();
   let now = 0;
@@ -549,34 +549,34 @@ test('keeps required links at needed priority between buffered replay slices', a
   const [trigger, adjust] = channels;
 
   preload('route/', 1);
-  preload('needed.js', 0.8);
+  preload('highest-priority.js', 0.8);
   adjust.port1.onmessage!();
   clock.mockImplementation(() => (now += 11));
   loadBundleGraph(
     '/build/',
     Promise.resolve({
-      text: async () => JSON.stringify(['route/', 2, 'needed.js', 4, 'leaf.js']),
+      text: async () => JSON.stringify(['route/', 2, 'highest-priority.js', 4, 'leaf.js']),
     } as Response)
   );
   await flushPromises();
   const replay = channels[2];
   clock.mockImplementation(() => now);
   adjust.port1.onmessage!();
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
 
   replay.port1.onmessage!();
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
   trigger.port1.onmessage!();
-  const neededLink = document.head.querySelector('link[href$="needed.js"]');
-  expect(neededLink).not.toBeNull();
-  expect(neededLink!.getAttribute('fetchpriority')).not.toBe('low');
+  const highestPriorityLink = document.head.querySelector('link[href$="highest-priority.js"]');
+  expect(highestPriorityLink).not.toBeNull();
+  expect(highestPriorityLink!.getAttribute('fetchpriority')).not.toBe('low');
 
   adjust.port1.onmessage!();
   trigger.port1.onmessage!();
   const leafLink = document.head.querySelector('link[href$="leaf.js"]');
   expect(leafLink).not.toBeNull();
   expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
 });
 
 test('closes the replay MessageChannel after its final slice', async () => {
@@ -613,7 +613,7 @@ test('closes the replay MessageChannel after its final slice', async () => {
 });
 
 test.each([true, false])(
-  'propagates needed priority to static descendants (buffered hints=%s)',
+  'propagates the highest priority to static descendants (buffered hints=%s)',
   async (buffered) => {
     const document = installBrowserGlobals();
     Object.assign(globalThis, { MessageChannel: undefined });
@@ -729,7 +729,7 @@ const linkNames = (document: Document) =>
     new URL(link.href).pathname.split('/').pop()
   );
 
-test('holds speculative preloads until the bundle graph has loaded, but not needed ones', async () => {
+test('holds speculative preloads until the bundle graph has loaded, but not highest priority ones', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -744,12 +744,12 @@ test('holds speculative preloads until the bundle graph has loaded, but not need
   await vi.runAllTimersAsync();
   expect(linkNames(document)).toEqual([]);
 
-  preload('needed.js', 1);
+  preload('highest-priority.js', 1);
   await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual(['needed.js']);
+  expect(linkNames(document)).toEqual(['highest-priority.js']);
 
   deliverGraph({
-    text: async () => JSON.stringify(['speculative.js', 'needed.js']),
+    text: async () => JSON.stringify(['speculative.js', 'highest-priority.js']),
   } as Response);
   document.head.querySelector('link')!.onload!({} as Event);
   await vi.runAllTimersAsync();
@@ -807,7 +807,7 @@ test('starts speculative preloads when no bundle graph is requested', async () =
   expect(linkNames(document)).toEqual(['speculative.js']);
 });
 
-test('keeps a dependency at needed priority when its importer is replayed in a later slice', async () => {
+test('keeps a dependency at the highest priority when its importer is replayed in a later slice', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   let now = 0;
@@ -844,7 +844,7 @@ test('keeps a dependency at needed priority when its importer is replayed in a l
   expect(dependencyLink.getAttribute('fetchpriority')).toBeNull();
 });
 
-test('sends a bundle needed before the preloader started ahead of speculative ones once the graph arrives', async () => {
+test('sends a bundle hinted at the highest priority before the preloader started ahead of speculative ones once the graph arrives', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -853,7 +853,7 @@ test('sends a bundle needed before the preloader started ahead of speculative on
   const { loadBundleGraph } = await import('./bundle-graph');
   const { nextTriggerMacroTask, preload } = await import('./queue');
 
-  preload('needed.js', 1);
+  preload('highest-priority.js', 1);
   await vi.runAllTimersAsync();
   let deliverGraph!: (response: Response) => void;
   loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
@@ -863,9 +863,9 @@ test('sends a bundle needed before the preloader started ahead of speculative on
 
   nextTriggerMacroTask();
   deliverGraph({
-    text: async () => JSON.stringify(['needed.js', 'speculative.js']),
+    text: async () => JSON.stringify(['highest-priority.js', 'speculative.js']),
   } as Response);
   await vi.runAllTimersAsync();
 
-  expect(linkNames(document)).toEqual(['needed.js']);
+  expect(linkNames(document)).toEqual(['highest-priority.js']);
 });

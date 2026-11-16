@@ -87,7 +87,7 @@ test.describe('cold SPA navigation', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test("a Link click requests the new page's chunks as needed, not as speculative preloads", async ({
+  test("a Link click requests the new page's chunks at the highest priority, not as speculative preloads", async ({
     page,
   }) => {
     await recordPreloadHints(page);

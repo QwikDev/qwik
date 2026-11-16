@@ -49,7 +49,14 @@ export const Link = component$<LinkProps>((props) => {
   // The bundle graph is keyed by route name (`product/[id]/`), which needs the route tree
   const routes = !!clientNavPath && findRouterConfig()?.routes;
   const route =
-    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
+    routes &&
+    untrack(() => {
+      try {
+        return matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname);
+      } catch {
+        return undefined;
+      }
+    });
 
   const shouldPrefetchBundles =
     !!clientNavPath &&

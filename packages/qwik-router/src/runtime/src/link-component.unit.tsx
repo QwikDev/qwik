@@ -127,6 +127,13 @@ describe.each([
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
   });
 
+  it('renders a link whose href has a malformed escape, without a route name', async () => {
+    getClientNavPathMock.mockReturnValue('/product/100%');
+    const { anchor } = await renderLink(render, { prefetchBundles: 'off' });
+    expect(anchor.getAttribute('href')).toBe('/product/100%');
+    expect(anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
   it('prefetches route data on intent', async () => {
     const { document, anchor } = await renderLink(render, { prefetchData: 'intent' });
     prefetchRouteMock.mockClear();

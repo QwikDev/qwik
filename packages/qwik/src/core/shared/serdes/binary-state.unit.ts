@@ -329,12 +329,17 @@ describe('binary state', () => {
     });
 
     it('keeps the state text until no more patches can arrive', async () => {
-      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
+      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
+      const [shell] = await stream([{ small: 1 }, most]);
       const { reader, state } = open(shell);
+      const restoredRoots = (state as any)[SERIALIZER_PROXY_UNWRAP];
+      // more than 90% is restored now, which would start the release if the stream had ended
       state[1];
       await new Promise((resolve) => setTimeout(resolve, 30));
-      expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toBeUndefined();
-      reader.$restoredByOffset$ = null;
+      expect(restoredRoots[0]).toBeUndefined();
+      reader.$endPatches$();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(restoredRoots[0]).toEqual({ small: 1 });
     });
 
     it('releases the state text when the stream ends with every root restored', async () => {

@@ -63,9 +63,6 @@ const toRootIndex = (property: PropertyKey): number =>
       ? parseInt(property as string, 10)
       : NaN;
 
-const hasRootOrUnwrap = (target: object, property: PropertyKey): boolean =>
-  property === SERIALIZER_PROXY_UNWRAP || Object.prototype.hasOwnProperty.call(target, property);
-
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
     public $container$: DomContainer,
@@ -111,7 +108,10 @@ class DeserializationHandler implements ProxyHandler<object> {
   }
 
   has(target: object, property: PropertyKey) {
-    return hasRootOrUnwrap(target, property);
+    if (property === SERIALIZER_PROXY_UNWRAP) {
+      return true;
+    }
+    return Object.prototype.hasOwnProperty.call(target, property);
   }
 
   set(target: object, property: PropertyKey, value: any, receiver: object) {
@@ -241,7 +241,10 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
   }
 
   has(target: object, property: PropertyKey) {
-    return hasRootOrUnwrap(target, property);
+    if (property === SERIALIZER_PROXY_UNWRAP) {
+      return true;
+    }
+    return Object.prototype.hasOwnProperty.call(target, property);
   }
 
   get(target: unknown[], property: PropertyKey, receiver: object) {

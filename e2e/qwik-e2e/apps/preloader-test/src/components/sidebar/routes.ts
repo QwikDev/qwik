@@ -272,6 +272,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/heavy-dep-qrl-prop/',
+    label: 'heavy dependency of a QRL prop',
+  },
+  {
+    group: 'other',
     href: '/sync/',
     label: 'sync$',
   },

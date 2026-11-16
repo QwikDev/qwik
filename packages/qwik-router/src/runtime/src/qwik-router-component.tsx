@@ -672,7 +672,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       if (isBrowser) {
         // Prefetch bundles; loader signals fetch navigation data below.
-        prefetchRoute(dest, false, 0.8, manifestHash, true);
+        prefetchRoute(dest, false, 1, manifestHash, true);
       }
 
       navResolver.p = new Promise<void>((resolve) => {

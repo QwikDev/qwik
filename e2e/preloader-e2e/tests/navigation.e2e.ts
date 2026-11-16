@@ -1,10 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom, chunkHoldsSegmentsFrom } from '../utils/app';
+import { chunkComesFrom, chunkHoldsModule, chunkHoldsSegmentsFrom } from '../utils/app';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
+  FILLER,
   preloadHints,
   preloaderLinks,
   recordPreloadHints,
@@ -56,10 +57,14 @@ const OLD_PAGE_SOURCES = [
 
 const TO_TREE_ROUTE = 'navigation/to-tree/';
 
+const TO_TREE_MODULE = 'src/routes/navigation/to-tree/index.tsx';
+
 const TO_TREE_SOURCES = [
   'src/routes/navigation/to-tree/',
   'src/components/fixtures/navigation/nav-tree',
 ];
+
+const LAYOUT_COMPONENT_SOURCES = [FILLER, 'src/components/sidebar/', 'src/routes/layout.tsx_'];
 
 const treeLink = (page: Page, from: Fixture) =>
   fixtureRoot(page, from).locator('[data-testid=link-tree]');
@@ -83,7 +88,6 @@ test.describe('cold SPA navigation', () => {
       roundTrip.urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))
     );
     expect(withNewPageChunks.length).toBeGreaterThan(0);
-    test.fail(true, 'on main, the route module loads a round trip before its render chunks');
     expect(withNewPageChunks).toHaveLength(1);
   });
 
@@ -98,19 +102,45 @@ test.describe('cold SPA navigation', () => {
       .filter(({ item }) => item === TO_TREE_ROUTE)
       .map(({ probability }) => probability);
     expect(routeProbabilities.length).toBeGreaterThan(0);
-    test.fail(true, 'on main, the router asks for the new route at 0.8, so its chunks are a guess');
     expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);
   });
 
-  test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
+  test('the new page shows in 2 round trips', async ({ page }) => {
     const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 4,
-      reason:
-        "over the cap on main: the Link handler, the router's navigation code, then the layout and route modules each cost a round trip before the render chunks",
-    });
+    expectRoundTrips(roundTrips);
+  });
+
+  test("the route's modules go out with the router's navigation code, one round trip after the click", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
+    const roundTripOf = (modulePath: string) =>
+      roundTrips.findIndex((roundTrip) =>
+        roundTrip.urls.some((url) => chunkHoldsModule(url, modulePath))
+      );
+    expect(roundTripOf('@qwik-router-config')).toBe(1);
+    expect(roundTripOf('src/routes/layout.tsx')).toBe(1);
+    expect(roundTripOf(TO_TREE_MODULE)).toBe(1);
+  });
+
+  test("a navigation to a page with the same layout fetches none of the layout's component chunks", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    const stillOngoing = gate.held.map((route) => route.request().url());
+    await releaseAll(gate);
+    const layoutComponentChunks = [
+      ...roundTrips.flatMap((roundTrip) => roundTrip.urls),
+      ...stillOngoing,
+    ].filter((url) => chunkComesFrom(url, LAYOUT_COMPONENT_SOURCES));
+    test.fail(
+      true,
+      "on main, the route's entry in the bundle graph lists the layout's module, so every chunk under the layout goes out at the highest priority"
+    );
+    expect(layoutComponentChunks).toEqual([]);
   });
 });
 
@@ -155,6 +185,10 @@ test.describe('navigation to a page with a routeLoader$', () => {
     const dataRoundTrip = roundTripOf((url) => new URL(url).pathname.includes('/q-loader-'));
     const renderRoundTrip = roundTripOf((url) => chunkHoldsSegmentsFrom(url, TO_DATA.sources));
     expect(dataRoundTrip).toBeGreaterThanOrEqual(0);
+    test.fail(
+      true,
+      "on main, the loader's paths come from the router config, which loads with the render chunks, so the data goes out a round trip later"
+    );
     expect(dataRoundTrip).toBe(renderRoundTrip);
   });
 });

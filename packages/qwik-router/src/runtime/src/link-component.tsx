@@ -1,4 +1,5 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
 import { matchRouteTree } from './routing';
@@ -46,7 +47,7 @@ export const Link = component$<LinkProps>((props) => {
       prefetchProp === true);
 
   // The bundle graph is keyed by route name (`product/[id]/`), which needs the route tree
-  const routes = shouldVisiblePrefetchBundles && findRouterConfig()?.routes;
+  const routes = !!clientNavPath && findRouterConfig()?.routes;
   const route =
     routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
 
@@ -124,8 +125,11 @@ export const Link = component$<LinkProps>((props) => {
     : null;
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
-    const url = new URL(elm.href);
-    prefetchRoute(url, false, 1);
+    const routeName = elm.getAttribute('data-q-route');
+    if (routeName) {
+      preloadRouteBundles(routeName, 1);
+    }
+    prefetchRoute(new URL(elm.href), false, 1);
   });
 
   return (

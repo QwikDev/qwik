@@ -1,4 +1,4 @@
-import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useStore, useTask$ } from '@qwik.dev/core';
 import { CodeBlock } from '../../components/code-block/code-block';
 import type { ReplAppInput, ReplStore } from '../types';
 import { ReplOutputModules } from './repl-output-modules';
@@ -241,6 +241,7 @@ const ReplOutputSectionLoading = component$(({ text }: { text: string }) => {
 });
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
+  const expandedPaths = useStore<Record<string, boolean>>({});
   const diagnostics = [...store.diagnostics, ...store.monacoDiagnostics];
   const diagnosticsLen = diagnostics.length;
   const errorCount = diagnostics.filter(
@@ -448,11 +449,19 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (
-          <ReplOutputModules headerText="/dist/" outputs={store.clientBundles} />
+          <ReplOutputModules
+            headerText="/dist/"
+            outputs={store.clientBundles}
+            expandedPaths={expandedPaths}
+          />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (
-          <ReplOutputModules headerText="/server/" outputs={store.ssrModules} />
+          <ReplOutputModules
+            headerText="/server/"
+            outputs={store.ssrModules}
+            expandedPaths={expandedPaths}
+          />
         ) : null}
 
         {store.selectedOutputPanel === 'diagnostics' ? (

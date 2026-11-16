@@ -13,7 +13,8 @@ export async function formatError(sys: OptimizerSystem, e: Error) {
       err.loc = loc;
       if (loc.file) {
         const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-        const { normalizePath }: typeof import('vite') = await sys.dynamicImport('vite');
+        // Resolve vite from this bundle, not from the optimizer package.
+        const { normalizePath }: typeof import('vite') = await import('vite');
         err.id = normalizePath(err.loc.file);
         try {
           const code = fs.readFileSync(err.loc.file, 'utf-8');

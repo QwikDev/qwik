@@ -1,4 +1,4 @@
-import { DomContainer } from '@qwik.dev/core/internal';
+import type { _DomContainer as DomContainer } from '@qwik.dev/core/internal';
 import { htmlContainer } from './location';
 
 export function getVnodeById(id: string | number) {

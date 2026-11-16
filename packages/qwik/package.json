@@ -15,8 +15,8 @@
     "launch-editor": "^2.14.2",
     "magic-regexp": "^0.11.0",
     "magic-string": "^0.30.21",
-    "oxc-parser": "^0.144.0",
-    "oxc-transform": "^0.144.0",
+    "oxc-parser": "^0.158.0",
+    "oxc-transform": "^0.158.0",
     "oxc-walker": "^1.1.1",
     "pathe": "^2.0.3",
     "siphash": "^1.2.0"
@@ -29,9 +29,9 @@
     "ignore": "5.3.1",
     "image-size": "2.0.4",
     "kleur": "4.1.5",
-    "prettier": "3.7.4",
-    "rolldown": "1.2.4",
-    "vitest": "5.0.5"
+    "prettier": "3.10.1",
+    "rolldown": "1.2.19",
+    "vitest": "5.1.0"
   },
   "engines": {
     "node": "^20.3.0 || >=21.0.0"

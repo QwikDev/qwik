@@ -124,7 +124,7 @@
     {string} "/"
   ]
   {string} "manifestHash"
-    {string} "MANIFEST_HASH"
+  {string} "MANIFEST_HASH"
   {string} "onValue"
   RootRef [omitted]
 ]

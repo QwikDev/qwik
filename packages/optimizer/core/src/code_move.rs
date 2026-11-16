@@ -1,5 +1,5 @@
 use crate::collector::{
-	collect_from_pat, new_ident_from_id, GlobalCollect, Id, Import, ImportKind,
+	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, Import, ImportKind,
 };
 use crate::parse::PathData;
 use crate::transform::create_synthetic_named_import;
@@ -1209,6 +1209,9 @@ pub fn transform_function_expr(
 	captures_obj: &Id,
 	scoped_idents: &[Id],
 ) -> ast::Expr {
+	if params_read_captures(&expr, scoped_idents) {
+		return wrap_function_reading_captures(expr, captures_obj, scoped_idents);
+	}
 	match expr {
 		ast::Expr::Arrow(node) => {
 			ast::Expr::Arrow(transform_arrow_fn(node, captures_obj, scoped_idents))
@@ -1279,6 +1282,115 @@ fn transform_fn(node: ast::FnExpr, captures_obj: &Id, scoped_idents: &[Id]) -> a
 			..*node.function
 		}),
 		..node
+	}
+}
+
+/// Whether a param default or computed key reads a capture, which runs before the body.
+fn params_read_captures(expr: &ast::Expr, scoped_idents: &[Id]) -> bool {
+	if scoped_idents.is_empty() {
+		return false;
+	}
+	let mut collector = IdentCollector::new();
+	match expr {
+		ast::Expr::Arrow(arrow) => arrow.params.visit_with(&mut collector),
+		ast::Expr::Fn(node) => node.function.params.visit_with(&mut collector),
+		_ => return false,
+	}
+	collector
+		.get_words()
+		.iter()
+		.any(|id| scoped_idents.contains(id))
+}
+
+/// Reads the captures in a wrapper so the params can see them, keeping `this` for functions.
+fn wrap_function_reading_captures(
+	expr: ast::Expr,
+	captures_obj: &Id,
+	scoped_idents: &[Id],
+) -> ast::Expr {
+	let args = private_ident!("args");
+	let rest_args = ast::Pat::Rest(ast::RestPat {
+		span: DUMMY_SP,
+		dot3_token: DUMMY_SP,
+		arg: Box::new(ast::Pat::Ident(ast::BindingIdent::from(args.clone()))),
+		type_ann: None,
+	});
+	let is_fn = matches!(expr, ast::Expr::Fn(_));
+	let inner = Box::new(ast::Expr::Paren(ast::ParenExpr {
+		span: DUMMY_SP,
+		expr: Box::new(expr),
+	}));
+	let call = if is_fn {
+		ast::CallExpr {
+			span: DUMMY_SP,
+			ctxt: Default::default(),
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+				span: DUMMY_SP,
+				obj: inner,
+				prop: ast::MemberProp::Ident(ast::IdentName::new("apply".into(), DUMMY_SP)),
+			}))),
+			args: vec![
+				ast::ExprOrSpread {
+					spread: None,
+					expr: Box::new(ast::Expr::This(ast::ThisExpr { span: DUMMY_SP })),
+				},
+				ast::ExprOrSpread {
+					spread: None,
+					expr: Box::new(ast::Expr::Ident(args)),
+				},
+			],
+			type_args: None,
+		}
+	} else {
+		ast::CallExpr {
+			span: DUMMY_SP,
+			ctxt: Default::default(),
+			callee: ast::Callee::Expr(inner),
+			args: vec![ast::ExprOrSpread {
+				spread: Some(DUMMY_SP),
+				expr: Box::new(ast::Expr::Ident(args)),
+			}],
+			type_args: None,
+		}
+	};
+	let body = ast::BlockStmt {
+		span: DUMMY_SP,
+		ctxt: Default::default(),
+		stmts: vec![
+			read_captures(captures_obj, scoped_idents),
+			create_return_stmt(Box::new(ast::Expr::Call(call))),
+		],
+	};
+	if is_fn {
+		ast::Expr::Fn(ast::FnExpr {
+			ident: None,
+			function: Box::new(ast::Function {
+				params: vec![ast::Param {
+					span: DUMMY_SP,
+					decorators: vec![],
+					pat: rest_args,
+				}],
+				decorators: vec![],
+				span: DUMMY_SP,
+				ctxt: Default::default(),
+				body: Some(body),
+				is_generator: false,
+				is_async: false,
+				type_params: None,
+				return_type: None,
+			}),
+		})
+	} else {
+		ast::Expr::Arrow(ast::ArrowExpr {
+			span: DUMMY_SP,
+			ctxt: Default::default(),
+			params: vec![rest_args],
+			body: Box::new(ast::BlockStmtOrExpr::BlockStmt(body)),
+			is_async: false,
+			is_generator: false,
+			type_params: None,
+			return_type: None,
+		})
 	}
 }
 

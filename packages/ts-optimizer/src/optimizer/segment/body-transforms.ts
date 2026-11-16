@@ -1,4 +1,4 @@
-import { walk } from 'oxc-walker';
+import { getUndeclaredIdentifiersInFunction, walk } from 'oxc-walker';
 import type { AstNode } from '../../ast-types.js';
 import {
   createFunctionTransformSession,
@@ -548,8 +548,51 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
     return bodyText;
   }
 
-  insertFunctionBodyPrologue(session, session.fn, unpackLine);
+  if (paramsReadCaptures(session, captureNames)) {
+    wrapFunctionReadingCaptures(session, unpackLine);
+  } else {
+    insertFunctionBodyPrologue(session, session.fn, unpackLine);
+  }
   return session.toSource();
+}
+
+/** Whether `injectCapturesUnpacking` wraps this function instead of adding a body prologue. */
+export function functionParamsReadCaptures(bodyText: string, captureNames: string[]): boolean {
+  if (captureNames.length === 0) {
+    return false;
+  }
+  const session = createFunctionTransformSession(bodyText);
+  return session ? paramsReadCaptures(session, captureNames) : false;
+}
+
+/** Whether a param default or computed key reads a capture, which runs before the body. */
+function paramsReadCaptures(session: FunctionTransformSession, captureNames: string[]): boolean {
+  const { params } = session.fn;
+  if (params.length === 0) {
+    return false;
+  }
+  const paramsText = session.wrappedSource.slice(params[0]!.start, params[params.length - 1]!.end);
+  const paramsSession = createFunctionTransformSession(`(${paramsText}) => {}`);
+  if (!paramsSession) {
+    return false;
+  }
+  const undeclared = new Set(getUndeclaredIdentifiersInFunction(paramsSession.fn));
+  return captureNames.some((name) => undeclared.has(name));
+}
+
+/** Reads the captures in a wrapper so the params can see them, like Rust does. */
+function wrapFunctionReadingCaptures(session: FunctionTransformSession, unpackLine: string): void {
+  const { fn } = session;
+  const fnText = session.wrappedSource.slice(fn.start, fn.end);
+  let args = 'args';
+  for (let i = 1; wholeIdentifierPattern(args).test(fnText); i++) {
+    args = `args${i}`;
+  }
+  const wrapped =
+    fn.type === 'FunctionExpression'
+      ? `function(...${args}) {\n${unpackLine}\nreturn (${fnText}).apply(this, ${args});\n}`
+      : `(...${args}) => {\n${unpackLine}\nreturn (${fnText})(...${args});\n}`;
+  session.edits.overwrite(fn.start, fn.end, wrapped);
 }
 
 export function insertImportBeforeSeparator(parts: string[], importStmt: string): void {

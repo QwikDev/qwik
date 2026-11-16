@@ -960,6 +960,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
 
+  should_read_captures_used_in_param_defaults: {},
+  should_read_captures_used_in_param_defaults_inline: {
+    entryStrategy: { type: 'inline' },
+  },
+
   worker_qrl_segment_dev_snapshot: {
     filename: 'src/routes/index.tsx',
     mode: 'dev',

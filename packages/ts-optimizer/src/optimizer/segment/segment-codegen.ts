@@ -48,6 +48,7 @@ import {
   removeDeadConstLiterals,
   rewriteFunctionSignature,
   injectCapturesUnpacking,
+  functionParamsReadCaptures,
   insertImportBeforeSeparator,
   partsHaveImport,
 } from './body-transforms.js';
@@ -675,6 +676,8 @@ function applyBodyTransforms(
   bodyText: string;
   captureInfo: SegmentCaptureInfo | undefined;
   deferredTagReads: DeferredTagReads[];
+  /** Function the segment's `paramNames` come from, when it is not the emitted one. */
+  paramNamesSource?: string;
 } {
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
@@ -762,7 +765,12 @@ function applyBodyTransforms(
     liveCaptureInfo.captureNames.length > 0 &&
     !liveCaptureInfo.skipCaptureInjection
   ) {
+    // Rust reports the params of the function as written, not of its captures wrapper.
+    const paramNamesSource = functionParamsReadCaptures(bodyText, liveCaptureInfo.captureNames)
+      ? bodyText
+      : undefined;
     bodyText = injectCapturesUnpacking(bodyText, liveCaptureInfo.captureNames);
+    return { bodyText, captureInfo: liveCaptureInfo, deferredTagReads, paramNamesSource };
   }
 
   return { bodyText, captureInfo: liveCaptureInfo, deferredTagReads };
@@ -892,7 +900,9 @@ export function generateSegmentCode(
     bodyText = removeDeadConstLiterals(bodyText, inlinedIdentifiers);
   }
 
-  const paramNames = createFunctionTransformSession(bodyText, { tolerateErrors: true })
+  const paramNames = createFunctionTransformSession(transformed.paramNamesSource ?? bodyText, {
+    tolerateErrors: true,
+  })
     ?.fn.params.map(formatBindingPattern)
     .filter((name) => name !== undefined);
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);

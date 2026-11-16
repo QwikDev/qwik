@@ -1,6 +1,7 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import {
+  $,
   component$,
   useStore,
   useSignal,
@@ -183,6 +184,22 @@ describe.each([
 
       expect((globalThis as any).__loopItemLog).toEqual(['a', 'b']);
       delete (globalThis as any).__loopItemLog;
+    });
+  });
+
+  describe('captures in parameter defaults', () => {
+    it('should read a captured variable in a parameter default', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        const step = useSignal(2);
+        const add = $((by = step.value) => (count.value += by));
+        return <button onClick$={() => add()}>{count.value}</button>;
+      });
+
+      const { document } = await render(<Counter />, { debug });
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('button')!.textContent).toBe('2');
     });
   });
 });

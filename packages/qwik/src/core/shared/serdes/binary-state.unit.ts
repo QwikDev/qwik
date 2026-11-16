@@ -6,6 +6,7 @@ import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
 import { binaryStateRootsToJson } from './binary-state-dump';
 import { Constants, TypeIds } from './constants';
 import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
+import { _deserialize } from './serdes.public';
 
 /** Markup and control characters: what a script element or a formatter would alter. */
 // eslint-disable-next-line no-control-regex
@@ -264,6 +265,23 @@ describe('binary state', () => {
       // the stream ends before anything asks for the patch's roots
       reader.$restoredByOffset$ = null;
       expect(state[1].again).toBe(restored);
+    });
+
+    it('shares an object restored before another root failed to restore', async () => {
+      const nested = { name: 'nested' };
+      const [shell, patch] = await stream([{ nested }, { other: 1 }], [{ again: nested }]);
+      const { reader, state } = open(shell);
+      const restored = state[0].nested;
+      const restoreRoot = reader.$restoreRoot$.bind(reader);
+      vi.spyOn(reader, '$restoreRoot$').mockImplementation((container, rootIndex) => {
+        if (rootIndex === 1) {
+          throw new Error('broken root');
+        }
+        return restoreRoot(container, rootIndex);
+      });
+      expect(() => state[1]).toThrow('broken root');
+      reader.$addPatch$(patch);
+      expect(state[2].again).toBe(restored);
     });
 
     it('shares objects across more than one patch', async () => {
@@ -584,6 +602,17 @@ describe('binary state', () => {
 
       expect(() => state[0]).toThrow('Invalid Object payload');
       expect(() => state[1]).toThrow('Invalid Object payload');
+    });
+
+    // `_deserialize` reads binary only when the build has the flag.
+    it.runIf(__EXPERIMENTAL__.binaryState)('rejects a payload without roots', async () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$endArray$(0, 0);
+      writer.$finish$();
+      await expect(_deserialize(script)).rejects.toThrow('Invalid state data');
     });
 
     it('rejects an array made from a string', () => {

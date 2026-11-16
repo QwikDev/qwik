@@ -180,6 +180,8 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
     const container = this.$container$;
     const isOutermost = beginDeserialization(container);
     const isOutermostRead = !this.$rootsBeingRestored$;
+    const restoredByOffset = reader.$restoredByOffset$;
+    const rememberedBefore = restoredByOffset ? restoredByOffset.size : 0;
     if (isOutermostRead) {
       this.$rootsBeingRestored$ = [];
     }
@@ -195,7 +197,11 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
           this.$isRestored$[tainted[j]] = 0;
           target[tainted[j]] = undefined;
         }
-        reader.$restoredByOffset$?.clear();
+        // Keep what earlier reads remembered; a later patch may share it.
+        const offsets = restoredByOffset ? Array.from(restoredByOffset.keys()) : [];
+        for (let j = rememberedBefore; j < offsets.length; j++) {
+          restoredByOffset!.delete(offsets[j]);
+        }
       }
       throw error;
     } finally {

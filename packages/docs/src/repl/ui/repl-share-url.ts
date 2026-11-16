@@ -32,6 +32,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const outOfOrderStreaming = params.get('ooos') ?? params.get('outOfOrder');
       data.outOfOrderStreaming = outOfOrderStreaming === null || outOfOrderStreaming === '1';
 
+      data.rustOptimizer = params.get('rust') === '1';
+
       if (params.has('files')) {
         // Old URLs that didn't compress
         // the files, used the `files` key
@@ -136,6 +138,9 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   if (data.outOfOrderStreaming === false) {
     params.set('ooos', '0');
   }
+  if (data.rustOptimizer) {
+    params.set('rust', '1');
+  }
 
   params.set('f', compressFiles(data.files));
 
@@ -192,5 +197,6 @@ interface PlaygroundShareUrl {
   buildMode: any;
   entryStrategy: any;
   outOfOrderStreaming?: boolean;
+  rustOptimizer?: boolean;
   files: any[];
 }

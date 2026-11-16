@@ -19,6 +19,7 @@ import qSerializerMjs from '../../../node_modules/@qwik.dev/core/dist/serializer
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
 import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
 import qTsOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/ts-optimizer.mjs?raw-source';
+import { version as bundledOptimizerVersion } from '../../../../optimizer/package.json';
 
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 
@@ -86,11 +87,33 @@ export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V2]: qwikUrls,
 };
 
-export const getDeps = (qwikVersion: string) => {
+const getPrefix = (qwikVersion: string) => {
+  const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
+  return M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
+};
+
+/** The Rust optimizer is versioned separately; core pins its version as a dependency. */
+export const resolveOptimizerVersion = async (qwikVersion: string) => {
+  if (qwikVersion === 'bundled') {
+    return bundledOptimizerVersion;
+  }
+  if (qwikVersion < '2') {
+    return qwikVersion;
+  }
+  const pkgUrl = getNpmCdnUrl(bundled, QWIK_PKG_NAME_V2, qwikVersion, '/package.json');
+  const response = await fetch(pkgUrl);
+  if (!response.ok) {
+    throw new Error(`${pkgUrl}: ${response.status}`);
+  }
+  const pkg = await response.json();
+  // Older cores bundled the optimizer, so its files live at the core version.
+  return (pkg.dependencies?.['@qwik.dev/optimizer'] as string | undefined) ?? qwikVersion;
+};
+
+export const getDeps = (qwikVersion: string, optimizerVersion: string) => {
   const out = { ...bundled };
   if (qwikVersion !== 'bundled') {
-    const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
-    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
+    const prefix = getPrefix(qwikVersion);
     const isV2 = qwikVersion >= '2';
     const pkgName = isV2 ? QWIK_PKG_NAME_V2 : QWIK_PKG_NAME_V1;
     out[QWIK_PKG_NAME_V1] = {
@@ -126,27 +149,16 @@ export const getDeps = (qwikVersion: string) => {
       isV2 ? '/dist/core-internal.d.ts' : `${prefix}core.d.ts`
     );
     out[QWIK_PKG_NAME_V2] = out[QWIK_PKG_NAME_V1];
-    out['@qwik.dev/optimizer'] = {
-      version: qwikVersion,
-      '/bindings/qwik.wasm.mjs': getNpmCdnUrl(
-        bundled,
-        '@qwik.dev/optimizer',
-        qwikVersion,
-        '/bindings/qwik.wasm.mjs'
-      ),
-      '/bindings/qwik_wasm_bg.wasm': getNpmCdnUrl(
-        bundled,
-        '@qwik.dev/optimizer',
-        qwikVersion,
-        '/bindings/qwik_wasm_bg.wasm'
-      ),
-      '/dist/index.mjs': getNpmCdnUrl(
-        bundled,
-        '@qwik.dev/optimizer',
-        qwikVersion,
-        `${prefix}index.mjs`
-      ),
-    };
+  }
+  const optimizerPrefix = getPrefix(optimizerVersion);
+  out['@qwik.dev/optimizer'] = { version: optimizerVersion };
+  for (const p of ['/bindings/qwik.wasm.mjs', '/bindings/qwik_wasm_bg.wasm', '/dist/index.mjs']) {
+    out['@qwik.dev/optimizer'][p] = getNpmCdnUrl(
+      bundled,
+      '@qwik.dev/optimizer',
+      optimizerVersion,
+      p.replace('/dist/', optimizerPrefix)
+    );
   }
   return out;
 };

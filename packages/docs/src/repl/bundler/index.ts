@@ -1,7 +1,7 @@
 /** Bundler registry that manages WebWorkers per Qwik version */
 
 import type { ReplInputOptions, ReplResult } from '../types';
-import { getDeps } from './bundled';
+import { getDeps, resolveOptimizerVersion } from './bundled';
 import type { BundleMessage, InitMessage, OutgoingMessage } from './repl-bundler-worker';
 import bundlerWorkerUrl from './repl-bundler-worker?worker&url';
 
@@ -11,6 +11,7 @@ class Bundler {
   public worker: Worker | null = null;
   private initP: Promise<void> | null = null;
   private ready: (() => void) | null = null;
+  private failInit: ((error: Error) => void) | null = null;
 
   timer: any = null;
   buildPromises = new Map<
@@ -19,13 +20,21 @@ class Bundler {
   >();
   nextBuildId = 1;
 
-  constructor(public version: string) {
+  constructor(
+    public version: string,
+    public rustOptimizer: boolean
+  ) {
     this.initWorker();
     this.keepAlive();
   }
 
   initWorker() {
-    this.initP = new Promise<void>((res) => (this.ready = res));
+    this.initP = new Promise<void>((res, rej) => {
+      this.ready = res;
+      this.failInit = rej;
+    });
+    // Builds see the rejection; this only silences it when no build is waiting.
+    this.initP.catch(() => {});
     // Start from /repl so repl-sw can add COEP headers
     this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
@@ -38,16 +47,36 @@ class Bundler {
     });
   }
 
-  messageHandler = (e: MessageEvent<OutgoingMessage>) => {
+  messageHandler = async (e: MessageEvent<OutgoingMessage>) => {
     const { type } = e.data;
     if (type === 'ready') {
-      const { version } = this;
+      const { worker, version, rustOptimizer } = this;
+      let optimizerVersion: string;
+      try {
+        optimizerVersion = await resolveOptimizerVersion(version);
+      } catch (error) {
+        if (worker !== this.worker) {
+          return;
+        }
+        if (rustOptimizer) {
+          // Retry the lookup in a fresh worker on the next build.
+          this.terminateWorker(error as Error);
+          return;
+        }
+        // The TS optimizer doesn't need it; only its Rust fallback would.
+        optimizerVersion = version;
+      }
+      // The worker was replaced during a slow lookup; the new one will do its own.
+      if (worker !== this.worker) {
+        return;
+      }
       const message: InitMessage = {
         type: 'init',
         version,
-        deps: getDeps(version),
+        rustOptimizer,
+        deps: getDeps(version, optimizerVersion),
       };
-      this.worker!.postMessage(message);
+      worker!.postMessage(message);
       this.ready!();
     } else if (type === 'result' || type === 'error') {
       const { buildId } = e.data;
@@ -57,12 +86,16 @@ class Bundler {
         if (type === 'result') {
           promise.resolve(e.data.result);
         } else {
-          const { error, stack } = e.data;
+          const { error, stack, isFatal } = e.data;
           const err = new Error(error);
           if (stack) {
             err.stack = stack;
           }
           promise.reject(err);
+          if (isFatal) {
+            // A failed module import stays cached in the worker, so start a fresh one.
+            this.terminateWorker(err);
+          }
         }
       }
     }
@@ -97,6 +130,7 @@ class Bundler {
       this.worker.removeEventListener('message', this.messageHandler);
       this.worker.terminate();
       this.worker = null;
+      this.failInit?.(error);
       this.buildPromises.forEach((p) => p.reject(error));
       this.buildPromises.clear();
       console.debug(`Bundler worker for ${this.version} terminated`);
@@ -104,11 +138,12 @@ class Bundler {
   }
 }
 
-export const getBundler = (version: string): Bundler => {
-  let bundler = bundlers.get(version);
+export const getBundler = (version: string, rustOptimizer: boolean): Bundler => {
+  const key = `${version}${rustOptimizer ? ':rust' : ''}`;
+  let bundler = bundlers.get(key);
   if (!bundler) {
-    bundler = new Bundler(version);
-    bundlers.set(version, bundler);
+    bundler = new Bundler(version, rustOptimizer);
+    bundlers.set(key, bundler);
   }
   return bundler;
 };

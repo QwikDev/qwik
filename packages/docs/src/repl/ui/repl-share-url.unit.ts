@@ -122,6 +122,28 @@ test('parsePlaygroundShareUrl with legacy out of order streaming', () => {
   });
 });
 
+test('createPlaygroundShareUrl includes the rust optimizer when enabled', () => {
+  assert.equal(
+    createPlaygroundShareUrl({
+      ...data,
+      rustOptimizer: true,
+    }),
+    '/playground/#v=1.2.3&rust=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+  );
+});
+
+test('parsePlaygroundShareUrl defaults to the ts optimizer', () => {
+  expect(
+    parsePlaygroundShareUrl('v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+  ).toMatchObject({ rustOptimizer: false });
+});
+
+test('parsePlaygroundShareUrl with the rust optimizer', () => {
+  expect(
+    parsePlaygroundShareUrl('v=1.2.3&rust=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+  ).toMatchObject({ rustOptimizer: true });
+});
+
 test('dictionary is unchanged', () => {
   const dictionaryAsString = strFromU8(dictionary);
   // !!! THIS DICTIONARY MUST NEVER CHANGE - ONLY ALLOW PREPENDING !!!

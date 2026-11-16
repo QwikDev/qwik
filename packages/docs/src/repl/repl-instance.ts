@@ -145,7 +145,7 @@ export class ReplInstance {
 
   private async rebuild(): Promise<ReplResult> {
     // Get bundler for this Qwik version
-    const bundler = getBundler(this.input.version);
+    const bundler = getBundler(this.input.version, !!this.input.rustOptimizer);
     const result = await bundler.bundle({
       replId: this.replId,
       // You can't pass proxies to web workers

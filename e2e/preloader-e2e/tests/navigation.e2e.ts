@@ -16,6 +16,7 @@ import {
   preloaderLinks,
   recordPreloadHints,
   recordSpeculativeOrder,
+  release,
   releaseAll,
   resultIsDone,
   waitForNetworkIdle,
@@ -73,6 +74,46 @@ const TO_TREE_SOURCES = [
 ];
 
 const LAYOUT_COMPONENT_SOURCES = [FILLER, 'src/components/sidebar/', 'src/routes/layout.tsx_'];
+const SHELL_LAYOUT_SOURCES = [
+  'src/routes/navigation/shell/layout.tsx_',
+  'src/components/fixtures/navigation/shell-',
+];
+const DOCS_LAYOUT_SOURCES = [
+  'src/routes/navigation/shell/docs/layout.tsx_',
+  'src/components/fixtures/navigation/docs-sidebar.tsx',
+];
+const BY_URL_LAYOUT_SOURCES = [
+  'src/routes/navigation/by-url/layout.tsx_',
+  'src/components/fixtures/navigation/by-url-links.tsx',
+  'src/components/fixtures/navigation/url-banner.tsx',
+];
+const NAV_PAGE = 'src/components/fixtures/navigation/nav-page.tsx';
+
+const navPage = (name: string, route: string): Fixture & { pageSources: string[] } => ({
+  id: `navigation/${name}`,
+  path: `/navigation/${route}/`,
+  sources: NAVIGATION_SOURCES,
+  pageSources: [`src/routes/navigation/${route}/`, NAV_PAGE],
+});
+const SHELL_HOME = navPage('shell-home', 'shell/home');
+const DOCS_A = navPage('shell-docs-a', 'shell/docs/a');
+const DOCS_B = navPage('shell-docs-b', 'shell/docs/b');
+const BY_URL_A = navPage('by-url-a', 'by-url/a');
+const BY_URL_B = navPage('by-url-b', 'by-url/b');
+const PRODUCT: Fixture = {
+  id: 'navigation/product',
+  path: '/navigation/product/1/',
+  sources: NAVIGATION_SOURCES,
+};
+
+const shellControl = (page: Page, testId: string) =>
+  page.locator(`[data-fixture="navigation/shell"] [data-testid=${testId}]`);
+
+const holdsLayoutSegments = (sources: string[]) => (url: string) =>
+  chunkHoldsSegmentsFrom(url, sources);
+
+const holdsPageChunk = (to: { pageSources: string[] }) => (url: string) =>
+  chunkComesFrom(url, [to.pageSources[0]]);
 
 const isRouterConfig = (url: string) => chunkHoldsModule(url, '@qwik-router-config');
 
@@ -157,12 +198,145 @@ test.describe('cold SPA navigation', () => {
     const layoutComponentChunks = [
       ...roundTrips.flatMap((roundTrip) => roundTrip.urls),
       ...stillOngoing,
-    ].filter((url) => chunkComesFrom(url, LAYOUT_COMPONENT_SOURCES));
-    test.fail(
-      true,
-      "on main, the route's entry in the bundle graph lists the layout's module, so every chunk under the layout goes out at the highest priority"
-    );
+    ].filter(holdsLayoutSegments(LAYOUT_COMPONENT_SOURCES));
     expect(layoutComponentChunks).toEqual([]);
+  });
+});
+
+const navigateFrom = async (
+  page: Page,
+  from: Fixture,
+  startNavigation: () => Promise<unknown>,
+  isShown: () => Promise<boolean>
+) => {
+  const opened = await openFixture(page, from, 'cold');
+  const roundTrips = await countFixtureRoundTrips(opened, startNavigation, isShown);
+  const stillOngoing = opened.gate.held.map((route) => route.request().url());
+  await releaseAll(opened.gate);
+  return {
+    roundTrips,
+    fetched: [...roundTrips.flatMap((roundTrip) => roundTrip.urls), ...stillOngoing],
+  };
+};
+
+const isShown = (page: Page, to: Fixture) => resultIsDone(fixtureResult(page, to));
+
+const DOCUMENT_HEAD = 'src/components/router-head/';
+
+const segmentsNotFromThePage = (fetched: string[], pageSources: string[]) =>
+  fetched.filter(
+    (url) =>
+      chunkHoldsSegmentsFrom(url, ['src/']) && !chunkComesFrom(url, [...pageSources, DOCUMENT_HEAD])
+  );
+
+test.describe('cold navigation into another layout', () => {
+  const navigateIntoDocs = (page: Page) =>
+    navigateFrom(
+      page,
+      SHELL_HOME,
+      () => shellControl(page, 'link-docs-a').click(),
+      isShown(page, DOCS_A)
+    );
+
+  test("the new layout's chunks go out in the same round trip as the page's", async ({ page }) => {
+    const { roundTrips } = await navigateIntoDocs(page);
+    const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_A));
+    expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
+  });
+
+  test('none of the layouts the two pages share is fetched', async ({ page }) => {
+    const { fetched } = await navigateIntoDocs(page);
+    const sharedLayoutChunks = fetched.filter(
+      holdsLayoutSegments([...LAYOUT_COMPONENT_SOURCES, ...SHELL_LAYOUT_SOURCES])
+    );
+    expect(sharedLayoutChunks).toEqual([]);
+  });
+
+  test('the new page shows in 2 round trips', async ({ page }) => {
+    const { roundTrips } = await navigateIntoDocs(page);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips);
+  });
+});
+
+test.describe('cold navigation that needs no new layout', () => {
+  test("to a sibling page under the same nested layout: only the page's chunks are fetched", async ({
+    page,
+  }) => {
+    const { fetched } = await navigateFrom(
+      page,
+      DOCS_A,
+      () => shellControl(page, 'link-docs-b').click(),
+      isShown(page, DOCS_B)
+    );
+    expect(fetched.some(holdsPageChunk(DOCS_B))).toBe(true);
+    expect(segmentsNotFromThePage(fetched, DOCS_B.pageSources)).toEqual([]);
+  });
+
+  test("from a nested layout up to its parent's page: only the page's chunks are fetched", async ({
+    page,
+  }) => {
+    const { fetched } = await navigateFrom(
+      page,
+      DOCS_A,
+      () => shellControl(page, 'link-home').click(),
+      isShown(page, SHELL_HOME)
+    );
+    expect(fetched.some(holdsPageChunk(SHELL_HOME))).toBe(true);
+    expect(segmentsNotFromThePage(fetched, SHELL_HOME.pageSources)).toEqual([]);
+  });
+
+  test("to the same route with another param: only the page's chunks are fetched", async ({
+    page,
+  }) => {
+    const { fetched } = await navigateFrom(
+      page,
+      PRODUCT,
+      () => fixtureRoot(page, PRODUCT).locator('[data-testid=link-product-2]').click(),
+      async () => (await fixtureResult(page, PRODUCT).textContent())?.trim() === '2'
+    );
+    expect(segmentsNotFromThePage(fetched, ['src/routes/navigation/product/'])).toEqual([]);
+  });
+});
+
+test.describe('Link kept on screen across a navigation', () => {
+  test("a Link drawn on a page that had the target's layout, clicked from a page that doesn't: the layout's chunks go out with the page's", async ({
+    page,
+  }) => {
+    const opened = await openFixture(page, DOCS_A, 'cold');
+    await countFixtureRoundTrips(
+      opened,
+      () => shellControl(page, 'link-home').click(),
+      isShown(page, SHELL_HOME)
+    );
+    await release(opened.gate.held.splice(0));
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => shellControl(page, 'link-docs-b-visible').click(),
+      isShown(page, DOCS_B)
+    );
+    await releaseAll(opened.gate);
+    const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_B));
+    expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
+  });
+});
+
+test.describe('layout that renders from the URL', () => {
+  test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
+    const { roundTrips } = await navigateFrom(
+      page,
+      BY_URL_A,
+      () => page.locator('[data-testid=link-by-url-b]').click(),
+      isShown(page, BY_URL_B)
+    );
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips, {
+      roundTrips: 3,
+      reason:
+        'over the cap on main: a layout both pages share runs again when the URL changes, and its chunk is only requested then',
+    });
   });
 });
 
@@ -195,6 +369,18 @@ test.describe('cold navigation with nav()', () => {
     const navigationCodeRoundTrip = roundTripOf(roundTrips, isRouterNavigationCode);
     expect(navigationCodeRoundTrip).toBeGreaterThanOrEqual(0);
     expect(roundTripOf(roundTrips, isRouterConfig)).toBe(navigationCodeRoundTrip);
+  });
+
+  test("into another layout: the new layout's chunks go out with the page's", async ({ page }) => {
+    const { roundTrips } = await navigateFrom(
+      page,
+      SHELL_HOME,
+      () => shellControl(page, 'nav-docs-a').click(),
+      isShown(page, DOCS_A)
+    );
+    const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_A));
+    expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
   });
 
   test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
@@ -261,6 +447,17 @@ test.describe('hover on a Link that prefetches on intent', () => {
     const urls = await collectUntilQuiet(page, gate, () => treeLink(page, FROM.intent).hover());
     await releaseAll(gate);
     expect(urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))).toBe(true);
+  });
+
+  test("a Link to a page under another layout: that layout's chunks are requested too", async ({
+    page,
+  }) => {
+    const { gate } = await openFixture(page, SHELL_HOME, 'warm');
+    const urls = await collectUntilQuiet(page, gate, () =>
+      shellControl(page, 'link-by-url-a-intent').hover()
+    );
+    await releaseAll(gate);
+    expect(urls.some(holdsLayoutSegments(BY_URL_LAYOUT_SOURCES))).toBe(true);
   });
 });
 

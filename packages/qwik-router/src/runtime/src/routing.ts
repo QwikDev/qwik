@@ -1026,3 +1026,31 @@ function collectPageLoaders(
     }
   }
 }
+
+export const getLayoutKeys = (loaders: ModuleLoader[]): string[] => {
+  const layoutKeys: string[] = [];
+  for (const loader of loaders) {
+    const layoutKey = (loader as { _K?: string })._K;
+    if (layoutKey) {
+      layoutKeys.push(layoutKey);
+    }
+  }
+  return layoutKeys;
+};
+
+export const getNewLayoutKeys = (
+  currentLayoutKeys: string[] | undefined,
+  destLayoutKeys: string[]
+): string[] => {
+  if (!currentLayoutKeys) {
+    return destLayoutKeys;
+  }
+  let sharedCount = 0;
+  while (
+    sharedCount < destLayoutKeys.length &&
+    destLayoutKeys[sharedCount] === currentLayoutKeys[sharedCount]
+  ) {
+    sharedCount++;
+  }
+  return destLayoutKeys.slice(sharedCount);
+};

@@ -332,6 +332,21 @@ export const routes = [
   },
   {
     group: 'navigation',
+    href: '/navigation/shell/home/',
+    label: 'nested layouts',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/by-url/a/',
+    label: 'layout that renders from the URL',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/product/1/',
+    label: 'route with a param',
+  },
+  {
+    group: 'navigation',
     href: '/navigation/action/',
     label: 'form action',
   },

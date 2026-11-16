@@ -6,9 +6,10 @@ import {
   resetLinkPrefetchState,
 } from './link-prefetch';
 
-const { prefetchRouteMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
+const { prefetchRouteMock, preloadRouteBundlesMock, preloadLayoutBundlesMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
   preloadRouteBundlesMock: vi.fn(),
+  preloadLayoutBundlesMock: vi.fn(),
 }));
 
 vi.mock('./prefetch-route', () => ({
@@ -17,6 +18,7 @@ vi.mock('./prefetch-route', () => ({
 
 vi.mock('./client-navigate', () => ({
   preloadRouteBundles: preloadRouteBundlesMock,
+  preloadLayoutBundles: preloadLayoutBundlesMock,
 }));
 
 class MockIntersectionObserver {
@@ -87,6 +89,7 @@ describe('link prefetch observer', () => {
     resetLinkPrefetchState();
     prefetchRouteMock.mockClear();
     preloadRouteBundlesMock.mockClear();
+    preloadLayoutBundlesMock.mockClear();
   });
 
   afterEach(() => {
@@ -129,6 +132,21 @@ describe('link prefetch observer', () => {
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]');
+    cleanup();
+  });
+
+  it('a visible link hints its route and every layout its attribute lists', () => {
+    const underNewLayouts = createAnchor('http://localhost/docs/intro/', 'b', '/docs/intro');
+    underNewLayouts.setAttribute('data-q-layouts', 'DocsLayout GuideLayout');
+    const underTheSameLayouts = createAnchor('http://localhost/next/', 'b', '/next');
+
+    const cleanup = createObserver();
+    MockIntersectionObserver.instances[0].trigger(underNewLayouts);
+    MockIntersectionObserver.instances[0].trigger(underTheSameLayouts);
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro');
+    expect(preloadLayoutBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadLayoutBundlesMock).toHaveBeenCalledWith(['DocsLayout', 'GuideLayout']);
     cleanup();
   });
 

@@ -3,7 +3,7 @@ import { _requestPreload as preload } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';
-import { loadRoute, matchRouteTree } from './routing';
+import { getLayoutKeys, getNewLayoutKeys, loadRoute, matchRouteTree } from './routing';
 import type { LoadedRoute, RouteModule } from './types';
 
 /**
@@ -18,13 +18,15 @@ import type { LoadedRoute, RouteModule } from './types';
  * @param probability - Bundle preload probability (0-1, default 0.8)
  * @param manifestHash - Build manifest hash for loader URLs (from `useDocumentHead().manifestHash`)
  * @param prefetchBundle - Whether to prefetch route JS bundles
+ * @param currentUrl - The page the navigation leaves, when `location` already shows the new one
  */
 export async function prefetchRoute(
   url: URL,
   prefetchData?: boolean,
   probability = 0.8,
   manifestHash?: string,
-  prefetchBundle = true
+  prefetchBundle = true,
+  currentUrl?: URL
 ) {
   if (!isBrowser || isDev) {
     return;
@@ -36,20 +38,28 @@ export async function prefetchRoute(
     if (prefetchBundle) {
       // Preload JS bundles using the route NAME (not pathname) — the bundle graph
       // is keyed by route name (e.g. "products/[id]/") not actual path
-      let routeName = '/' + matchRouteTree(routes, url.pathname).routeParts.join('/');
+      const destRoute = matchRouteTree(routes, url.pathname);
+      let routeName = '/' + destRoute.routeParts.join('/');
       routeName = ensureSlash(routeName);
       if (routeName.length > 1 && routeName.startsWith('/')) {
         routeName = routeName.slice(1);
       }
-      preload(routeName, probability);
+      const currentRoute = matchRouteTree(routes, (currentUrl ?? location).pathname);
+      const newLayoutKeys = getNewLayoutKeys(
+        getLayoutKeys(currentRoute.loaders),
+        getLayoutKeys(destRoute.loaders)
+      );
+      preload([...newLayoutKeys, routeName], probability);
     }
 
-    if (!prefetchData || !manifestHash) {
+    const isNavigating = probability === 1;
+    const shouldPrefetchData = !!prefetchData && !!manifestHash;
+    if (!isNavigating && !shouldPrefetchData) {
       return;
     }
 
     const loadedRoute = await loadRoute(routes, cacheModules, url.pathname);
-    if (!loadedRoute) {
+    if (!loadedRoute || !shouldPrefetchData) {
       return;
     }
 

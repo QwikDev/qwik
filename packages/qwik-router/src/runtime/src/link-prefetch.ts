@@ -1,5 +1,5 @@
 import { event$ } from '@qwik.dev/core';
-import { preloadRouteBundles } from './client-navigate';
+import { preloadLayoutBundles, preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { isSameOrigin, shouldPreload, toPath } from './utils';
 
@@ -53,6 +53,10 @@ export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) 
     const routeName = anchor.getAttribute('data-q-route');
     if (mode.includes('b') && routeName) {
       preloadRouteBundles(routeName);
+      const layoutKeys = anchor.getAttribute('data-q-layouts');
+      if (layoutKeys) {
+        preloadLayoutBundles(layoutKeys.split(' '));
+      }
     }
     if (mode.includes('d')) {
       prefetchRoute(url, true, 0.8, manifestHash, false);

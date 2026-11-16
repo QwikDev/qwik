@@ -48,3 +48,9 @@ export const preloadRouteBundles = (routeName: string, probability: number = 0.8
     preload(routeName, probability);
   }
 };
+
+export const preloadLayoutBundles = (layoutKeys: string[], probability: number = 0.8) => {
+  if (isBrowser) {
+    preload(layoutKeys, probability);
+  }
+};

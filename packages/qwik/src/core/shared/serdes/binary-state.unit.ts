@@ -185,6 +185,17 @@ describe('binary state', () => {
       expect(restoredRoots(state)[1]).toBeUndefined();
     });
 
+    it('stops restoring in the background when the state is emptied', async () => {
+      const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
+      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
+      const state = await roundTrip(leftover, most);
+      state[1];
+      // what a destroyed container does
+      state.length = 0;
+      await backgroundWork();
+      expect(restoredRoots(state)).toEqual([]);
+    });
+
     it('restores the rest in the background once 90% is restored', async () => {
       const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
       const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
@@ -324,6 +335,29 @@ describe('binary state', () => {
       await new Promise((resolve) => setTimeout(resolve, 30));
       expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toBeUndefined();
       reader.$restoredByOffset$ = null;
+    });
+
+    it('releases the state text when the stream ends with every root restored', async () => {
+      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
+      const { reader, state } = open(shell);
+      state[0];
+      state[1];
+      reader.$endPatches$();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      // a released proxy no longer asks the reader, not even for a root added behind its back
+      reader.$rootEnds$ = new Uint32Array(3);
+      expect(state[2]).toBeUndefined();
+      expect(Array.from(state)).toEqual([{ small: 1 }, { tiny: 2 }]);
+    });
+
+    it('keeps the budget of the accepted state when a patch is rejected', async () => {
+      const refs = Array.from({ length: 300 }, (_, i) => ({ i }));
+      const [shell, , second] = await stream([{ small: 1 }], [refs], [refs.slice().reverse()]);
+      const { reader, state } = open(shell);
+      for (let i = 0; i < 50; i++) {
+        expect(reader.$addPatch$(second)).toBeNull();
+      }
+      expect(state[0]).toEqual({ small: 1 });
     });
   });
 

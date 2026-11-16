@@ -143,6 +143,8 @@ export class BinaryStateReader {
   $onRootAllocated$: (rootIndex: number, value: unknown) => void = () => {};
   /** Called when a state patch has added roots. */
   $onRootsAdded$: () => void = () => {};
+  /** Called when no more state patches can arrive. */
+  $onPatchesEnded$: () => void = () => {};
 
   /** @param text The content of the root state script, if the container has one. */
   constructor(text?: string) {
@@ -151,6 +153,12 @@ export class BinaryStateReader {
       this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the root list
       this.$appendRoots$();
     }
+  }
+
+  /** The stream is complete: nothing can refer to the restored nested objects anymore. */
+  $endPatches$(): void {
+    this.$restoredByOffset$ = null;
+    this.$onPatchesEnded$();
   }
 
   /**
@@ -162,6 +170,7 @@ export class BinaryStateReader {
     text: string
   ): { $forwardRefs$: Array<number | string> | 0; $extraRootId$: number | undefined } | null {
     const previousUnitCount = this.$unitCount$;
+    const previousUnitsRead = this.$unitsRead$;
     this.$appendScript$(text);
     this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the patch
     this.$openArray$();
@@ -174,6 +183,7 @@ export class BinaryStateReader {
       this.$chunks$.pop();
       this.$chunkEnd$ = 0;
       this.$unitCount$ = previousUnitCount;
+      this.$unitsRead$ = previousUnitsRead;
       // What was remembered about these offsets belongs to the rejected script.
       this.$skippedArrayStarts$ = new Map();
       this.$referencedStrings$ = new Map();

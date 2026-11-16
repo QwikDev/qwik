@@ -298,9 +298,10 @@ export function parseStateScript(script: Element): any {
     return JSON.parse(text);
   }
   // A binary script refers to the strings of the state scripts before it.
+  const instance = script.getAttribute('q:instance');
   const stateScripts = Array.from(
     script.ownerDocument!.querySelectorAll('script[type="qwik/state"]')
-  );
+  ).filter((stateScript) => stateScript.getAttribute('q:instance') === instance);
   const scriptTexts: string[] = [];
   for (let i = 0; i <= stateScripts.indexOf(script); i++) {
     scriptTexts.push(stateScripts[i].textContent!);

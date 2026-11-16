@@ -158,6 +158,8 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     this.$reader$ = reader;
     this.$unrestoredUnits$ = this.$knownUnits$ = reader.$unitCount$;
     reader.$onRootsAdded$ = () => this.$addRoots$();
+    // Every root may be restored by now, and then no read would start the release.
+    reader.$onPatchesEnded$ = () => this.$reader$ && this.$releaseStateWhenMostlyRestored$();
     this.$isRestored$ = new Uint8Array($restoredRoots$.length);
     reader.$onRootAllocated$ = (rootIndex, value) => this.$markRestored$(rootIndex, value);
   }
@@ -185,10 +187,13 @@ class BinaryDeserializationHandler extends DeserializationHandler {
 
   /** Restores the remaining roots so that nothing needs the state text anymore. */
   private *$restoreRemainingRoots$(): Generator<void, void, void> {
-    const reader = this.$reader$!;
     const isRestored = this.$isRestored$;
     const container = this.$container$;
     for (let i = 0; i < isRestored.length; i++) {
+      const reader = this.$reader$;
+      if (!reader) {
+        return;
+      }
       if (!isRestored[i]) {
         // Other code restores roots between the slices, so each root is its own pass.
         const ownsPendingStoreTargets = beginDeserialization(container);
@@ -253,6 +258,10 @@ class BinaryDeserializationHandler extends DeserializationHandler {
       return false;
     }
     const out = Reflect.set(target, property, value, receiver);
+    if (property === 'length') {
+      // A destroyed container empties its state; a restore in the background must not refill it.
+      this.$reader$ = null;
+    }
     const i = toRootIndex(property);
     if (this.$reader$ && !(Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length)) {
       this.$isRestored$[i] = 1;

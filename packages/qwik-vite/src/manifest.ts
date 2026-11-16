@@ -309,19 +309,37 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   });
 }
 
+/**
+ * The files a chunk still loads with `import()`. `dynamicImports` keeps listing imports that
+ * tree-shaking removed, such as the `qrl()` of a library component the app doesn't use. A live
+ * import is a relative specifier ending in `/<file name>` and a quote, so this never drops one.
+ */
+function getLiveDynamicImports(outputBundle: Rolldown.OutputChunk) {
+  return outputBundle.dynamicImports.filter((file) => {
+    const fileName = file.slice(file.lastIndexOf('/') + 1);
+    return ['"', "'", '`'].some((quote) => outputBundle.code.includes(`/${fileName}${quote}`));
+  });
+}
+
 /** The bundles this chunk reaches through `qrl(() => import(segment))`, per rollup module info. */
 function getQrlImports(
   outputBundle: Rolldown.OutputChunk,
   bundleFileName: string,
   bundleByModuleId: Map<string, string>,
-  getModuleInfo: Rolldown.PluginContext['getModuleInfo']
+  getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
+  liveImportedIds: Set<string>
 ) {
   const qrlImports = new Set<string>();
   for (const moduleId of Object.keys(outputBundle.modules)) {
     for (const importedId of getModuleInfo(moduleId)?.dynamicallyImportedIds || []) {
       const importedBundle = bundleByModuleId.get(importedId);
       const isSegment = getModuleInfo(importedId)?.meta.segment;
-      if (importedBundle && importedBundle !== bundleFileName && isSegment) {
+      if (
+        importedBundle &&
+        importedBundle !== bundleFileName &&
+        isSegment &&
+        liveImportedIds.has(importedId)
+      ) {
         qrlImports.add(importedBundle);
       }
     }
@@ -449,16 +467,27 @@ export function generateManifestFromBundles(
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
-    const bundleDynamicImports = outputBundle.dynamicImports
+    const liveDynamicImports = getLiveDynamicImports(outputBundle);
+    const bundleDynamicImports = liveDynamicImports
       .map((i) => getBundleName(i))
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
+      // A segment is reached through its own chunk, a facade for it, or the chunk it was merged into
+      const liveImportedIds = new Set(
+        liveDynamicImports.flatMap((file) => {
+          const imported = outputBundles[file];
+          return imported?.type === 'chunk'
+            ? [imported.facadeModuleId ?? '', ...Object.keys(imported.modules)]
+            : [];
+        })
+      );
       const qrlImports = getQrlImports(
         outputBundle,
         bundleFileName,
         bundleByModuleId,
-        getModuleInfo
+        getModuleInfo,
+        liveImportedIds
       );
       if (qrlImports.length > 0) {
         bundle.qrlImports = qrlImports;

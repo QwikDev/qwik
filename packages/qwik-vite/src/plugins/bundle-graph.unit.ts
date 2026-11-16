@@ -235,11 +235,25 @@ describe('convertManifestToBundleGraph', () => {
   });
 
   test(`works`, () => {
+    // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
+    // calls; write them over the tail so the sizes stay the same.
+    const bundles = Object.fromEntries(
+      Object.entries(outputBundles.bundles).map(([name, bundle]: [string, any]) => {
+        const imports = (bundle.dynamicImports ?? [])
+          .map((file: string) => `import("./${file.slice(file.lastIndexOf('/') + 1)}");`)
+          .join('');
+        const code: string = bundle.code ?? '';
+        return [
+          name,
+          { ...bundle, code: code.slice(0, Math.max(0, code.length - imports.length)) + imports },
+        ];
+      })
+    );
     const manifest = generateManifestFromBundles(
       path as any,
       outputBundles.segments as any,
       [],
-      outputBundles.bundles as any,
+      bundles as any,
       { rootDir: '/', outDir: '/' } as any,
       console.error,
       (p) => path.relative('build', p),
@@ -321,31 +335,27 @@ describe('convertManifestToBundleGraph', () => {
         "qwik-router.js",
         -10,
         9,
-        17,
         4,
         -9,
-        3,
         5,
         12,
-        7,
         -8,
         16,
         11,
-        14,
         "root.js",
         -9,
-        44,
+        40,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
         -9,
-        48,
+        44,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        50,
+        46,
         "src-vendor-lib-libB.ts.js",
-        50,
+        46,
         "BjxcCeNQ9ak",
         -9,
         21,
@@ -369,7 +379,7 @@ describe('convertManifestToBundleGraph', () => {
         3,
         "9PcKHFjikV0",
         -7,
-        44,
+        40,
         "9fcUDoGM9Wo",
         -7,
         9,
@@ -381,7 +391,7 @@ describe('convertManifestToBundleGraph', () => {
         7,
         "dAo05yeFq1I",
         -7,
-        48,
+        44,
         "ds9jIPT1g9s",
         -7,
         19,

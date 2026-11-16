@@ -228,8 +228,11 @@ function* inflateRestoredIterator(
 ): Generator<void, void, void> {
   switch (typeId) {
     case TypeIds.Array:
-      // Arrays are special, we need to fill the array in place
-      yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
+      // Only JSON state has arrays left to fill here; binary-only builds drop this.
+      if (!(__EXPERIMENTAL__.binaryState && !qTest)) {
+        // Arrays are special, we need to fill the array in place
+        yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
+      }
       break;
     case TypeIds.Object:
       if (data === EMPTY_OBJECT_PAYLOAD) {
@@ -514,7 +517,9 @@ function* inflateRestoredIterator(
     }
     case TypeIds.Store: {
       const store = unwrapStore(target) as object;
-      const storeTarget = container.$pendingStoreTargets$!.get(store);
+      // Only JSON state leaves a store's target pending; binary-only builds drop this.
+      const storeTarget =
+        !(__EXPERIMENTAL__.binaryState && !qTest) && container.$pendingStoreTargets$!.get(store);
       if (storeTarget) {
         container.$pendingStoreTargets$!.delete(store);
         yield* inflateIterator(container, store, storeTarget.t, storeTarget.v);

@@ -5,7 +5,7 @@ import type { DeserializeContainer } from '../types';
 import { allocate } from './allocate';
 import { _constants, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
-import { inflate, inflateRestored } from './inflate';
+import { inflateRestored } from './inflate';
 
 /**
  * Codes of the binary state stream.
@@ -588,7 +588,7 @@ export class BinaryStateReader {
       }
       const value = allocate(container, typeId, payload);
       if (needsInflation(typeId)) {
-        inflate(container, value, typeId, payload);
+        inflateRestored(container, value, typeId, payload);
       }
       this.$seek$(resume);
       return value;

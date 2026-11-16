@@ -63,6 +63,9 @@ const toRootIndex = (property: PropertyKey): number =>
       ? parseInt(property as string, 10)
       : NaN;
 
+const hasRootOrUnwrap = (target: object, property: PropertyKey): boolean =>
+  property === SERIALIZER_PROXY_UNWRAP || Object.prototype.hasOwnProperty.call(target, property);
+
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
     public $container$: DomContainer,
@@ -108,10 +111,7 @@ class DeserializationHandler implements ProxyHandler<object> {
   }
 
   has(target: object, property: PropertyKey) {
-    if (property === SERIALIZER_PROXY_UNWRAP) {
-      return true;
-    }
-    return Object.prototype.hasOwnProperty.call(target, property);
+    return hasRootOrUnwrap(target, property);
   }
 
   set(target: object, property: PropertyKey, value: any, receiver: object) {
@@ -138,7 +138,7 @@ const whenIdle = (callback: () => void): void => {
 };
 
 /** Restored roots live in the proxy target; the state text is never rewritten. */
-class BinaryDeserializationHandler extends DeserializationHandler {
+class BinaryDeserializationHandler implements ProxyHandler<object> {
   private $isRestored$: Uint8Array;
   /** Units of the roots that are not restored; the framing around roots is nobody's to restore. */
   private $unrestoredUnits$ = 0;
@@ -147,12 +147,11 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   private $reader$: BinaryStateReader | null;
 
   constructor(
-    container: DomContainer,
+    private $container$: DomContainer,
     reader: BinaryStateReader,
     private $restoredRoots$: unknown[],
     releaseState: boolean
   ) {
-    super(container, []);
     this.$isReleaseScheduled$ = !releaseState;
     this.$reader$ = reader;
     this.$countUnrestoredRoots$(0);
@@ -239,6 +238,10 @@ class BinaryDeserializationHandler extends DeserializationHandler {
       );
       scheduleYieldingIterator(restoring);
     });
+  }
+
+  has(target: object, property: PropertyKey) {
+    return hasRootOrUnwrap(target, property);
   }
 
   get(target: unknown[], property: PropertyKey, receiver: object) {

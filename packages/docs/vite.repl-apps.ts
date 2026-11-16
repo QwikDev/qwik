@@ -1,53 +1,19 @@
-import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
 import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type { Plugin, Rolldown } from 'vite';
 import type { ReplModuleInput } from './src/repl/types';
-import type { ExampleSection } from './src/routes/examples/apps/examples-data';
-import type { PlaygroundApp } from './src/routes/playground/playground-data';
+import type { ExampleSection } from './src/routes/playground/examples/examples-data';
 import type { TutorialSection } from './src/routes/tutorial/tutorial-data';
 
-export function playgroundData(routesDir: string): Plugin {
-  const playgroundAppDir = join(routesDir, 'playground', 'app');
-
-  return {
-    name: 'playgroundData',
-
-    resolveId(id) {
-      if (id === '@playground-data') {
-        return id;
-      }
-    },
-
-    async load(id) {
-      if (basename(id) === '@playground-data') {
-        const playgroundApp: PlaygroundApp = {
-          inputs: readdirSync(playgroundAppDir).map((fileName) => {
-            const filePath = join(playgroundAppDir, fileName);
-            const input: TransformModuleInput = {
-              path: `/${fileName}`,
-              code: readFileSync(filePath, 'utf-8'),
-            };
-            return input;
-          }),
-        };
-        return `const playgroundApp = ${JSON.stringify(
-          playgroundApp
-        )};export default playgroundApp;`;
-      }
-      return null;
-    },
-  };
-}
-
 export function examplesData(routesDir: string): Plugin {
-  const dir = join(routesDir, 'examples', 'apps');
+  const dir = join(routesDir, 'playground', 'examples');
   const menuPath = join(dir, 'examples-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
   const loadExamplesData = (ctx: Rolldown.PluginContext) => {
     const sections: ExampleSection[] = [];
+    const appIds = new Set<string>();
     const dataSections: ExampleSection[] = JSON.parse(menuSrc);
     ctx.addWatchFile(menuPath);
 
@@ -105,11 +71,15 @@ export function examplesData(routesDir: string): Plugin {
           );
         }
 
-        section.apps.push({
-          ...app,
-          id: `${section.id}/${app.id}`,
-          inputs,
-        });
+        // Examples are addressed by name alone in `/playground/<name>/`.
+        if (appIds.has(app.id)) {
+          throw new Error(`Example name "${app.id}" is used more than once`);
+        }
+        if (existsSync(join(routesDir, 'playground', app.id))) {
+          throw new Error(`Example name "${app.id}" clashes with the /playground/${app.id}/ route`);
+        }
+        appIds.add(app.id);
+        section.apps.push({ ...app, inputs });
       }
 
       if (section.apps.length > 0) {

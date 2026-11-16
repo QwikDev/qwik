@@ -2,8 +2,44 @@ import { test, expect, type Page } from '@playwright/test';
 
 test.describe('Sandbox smoke tests', () => {
   test('counter example page loads', async ({ page }) => {
-    await page.goto('/examples/reactivity/counter/');
+    await page.goto('/playground/counter/');
     await expect(page).toHaveTitle(/Counter/);
+  });
+
+  test('old example URLs open the example in the playground', async ({ page }) => {
+    await page.goto('/examples/reactivity/counter/');
+    await expect(page).toHaveURL(/\/playground\/counter\/$/);
+  });
+
+  test('choosing an example keeps the URL free of code', async ({ page }) => {
+    await page.goto('/playground/');
+    await page.getByLabel('Choose an example').selectOption('counter');
+    await expect(page).toHaveURL(/\/playground\/counter\/$/);
+    await expect(page).toHaveTitle(/Counter/);
+  });
+
+  test('going back after choosing an example shows the previous example', async ({ page }) => {
+    await page.goto('/playground/');
+    const editor = page.locator('.monaco-editor .view-lines').first();
+    await page.getByLabel('Choose an example').selectOption('counter');
+    await expect(editor).toContainText('useSignal');
+    await page.goBack();
+    await expect(page).toHaveURL(/\/playground\/$/);
+    await expect(page.getByLabel('Choose an example')).toHaveValue('hello-world');
+    await expect(editor).not.toContainText('useSignal');
+  });
+
+  test('going back to an edited example restores the edits', async ({ page }) => {
+    await page.goto('/playground/counter/');
+    const editor = page.locator('.monaco-editor .view-lines').first();
+    await expect(editor).toContainText('useSignal');
+    await page.locator('.monaco-editor textarea').first().focus();
+    await page.keyboard.type('// my edit');
+    await expect(page).toHaveURL(/#.*f=/);
+    await page.getByLabel('Choose an example').selectOption('clock');
+    await expect(editor).not.toContainText('my edit');
+    await page.goBack();
+    await expect(editor).toContainText('my edit');
   });
 
   test.describe('REPL interactive', () => {
@@ -119,7 +155,7 @@ test.describe('Sandbox smoke tests', () => {
     });
 
     test('counter click works in REPL', async ({ page }) => {
-      await page.goto('/examples/reactivity/counter/');
+      await page.goto('/playground/counter/');
 
       // The REPL renders the app inside a single iframe
       const replFrame = page.locator('iframe').contentFrame();

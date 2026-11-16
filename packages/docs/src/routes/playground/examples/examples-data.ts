@@ -17,7 +17,7 @@ export interface ExampleApp {
 /**
  * Generated at build-time.
  *
- * See packages/docs/src/routes/examples/apps/examples-menu.json
+ * See packages/docs/src/routes/playground/examples/examples-menu.json
  */
 const exampleSections: ExampleSection[] = [];
 export default exampleSections;

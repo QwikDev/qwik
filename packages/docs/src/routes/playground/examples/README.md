@@ -2,7 +2,7 @@
 
 ## Contribute new examples
 
-The current folder includes all the examples present in: http://qwik.dev/examples/introduction/hello-world
+The current folder includes all the examples present in: https://qwik.dev/playground/
 
 ### 1. Example category
 

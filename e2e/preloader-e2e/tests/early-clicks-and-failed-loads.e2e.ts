@@ -48,7 +48,7 @@ const clickWhileLoading = async (
   heldUrls: string[],
   trigger: () => Promise<unknown>,
   result: Fixture,
-  { onceTheRestHasLoaded = false } = {}
+  { onceTheRestHasLoaded = false, arrivesWithTheFirstRoundTrip = false } = {}
 ) => {
   await recordSpeculativePreloads(page);
   await holdSpeculativePreloads(page);
@@ -78,7 +78,7 @@ const clickWhileLoading = async (
   page.off('request', onRequest);
   page.off('requestfinished', onDone);
   page.off('requestfailed', onDone);
-  const startupPiece = gate.held.splice(0);
+  const startupPiece = arrivesWithTheFirstRoundTrip ? [] : gate.held.splice(0);
   gate.holdWhilePassing = undefined;
   const roundTrips = await countRoundTrips(
     page,
@@ -88,6 +88,11 @@ const clickWhileLoading = async (
     startupPiece
   );
   return { gate, startupPiece, roundTrips };
+};
+
+const ARRIVES_WITH_THE_FIRST_ROUND_TRIP = {
+  onceTheRestHasLoaded: true,
+  arrivesWithTheFirstRoundTrip: true,
 };
 
 const clickTrigger = (page: Page, fixture: Fixture) => () =>
@@ -163,21 +168,19 @@ test.describe('click before core loaded', () => {
     expect(requests.filter((url) => url === handlerChunk)).toHaveLength(1);
   });
 
-  test('the click shows its result in 3 round trips, over the cap of 2', async ({ page }) => {
-    const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+  test("core arrives with the click's first round trip: the click shows its result in 2 round trips", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await clickWhileLoading(
       page,
       [coreUrl()],
       clickConditional(page),
       CONDITIONAL_ALL,
-      { onceTheRestHasLoaded: true }
+      ARRIVES_WITH_THE_FIRST_ROUND_TRIP
     );
-    await releaseAll(gate, startupPiece);
+    await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 3,
-      reason:
-        'over the cap on main: the handler goes out at the click, then core arrives, and only then does the rest go out',
-    });
+    expectRoundTrips(roundTrips);
   });
 });
 
@@ -201,27 +204,24 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
   return { links, clickChunks };
 };
 
-const FOUND_ONE_BY_ONE =
-  'over the cap on main: without the preloader and the bundle graph, each chunk is only found once the one before it has loaded';
-
 const STILL_LOADING = [
   {
     stillLoading: 'preloader still loading',
+    arrivesWithTheClick: 'preloader arrives',
     arrivesLast: 'preloader arrives last',
     heldUrls: () => [preloaderUrl()],
-    roundTrips: 11,
   },
   {
     stillLoading: 'bundle graph still loading',
+    arrivesWithTheClick: 'bundle graph arrives',
     arrivesLast: 'bundle graph arrives last',
     heldUrls: () => [bundleGraphUrl()],
-    roundTrips: 11,
   },
   {
     stillLoading: 'both still loading',
+    arrivesWithTheClick: 'both arrive',
     arrivesLast: 'both arrive after the click',
     heldUrls: () => [preloaderUrl(), bundleGraphUrl()],
-    roundTrips: 11,
   },
 ];
 
@@ -239,20 +239,20 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
     });
   }
 
-  for (const { stillLoading, heldUrls, roundTrips: pinned } of STILL_LOADING) {
-    test(`${stillLoading}: the click shows its result in ${pinned} round trips, over the cap of 2`, async ({
+  for (const { arrivesWithTheClick, heldUrls } of STILL_LOADING) {
+    test(`${arrivesWithTheClick} with the click's first round trip: the click shows its result in 2 round trips`, async ({
       page,
     }) => {
-      const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+      const { gate, roundTrips } = await clickWhileLoading(
         page,
         heldUrls(),
         clickConditional(page),
         CONDITIONAL_ALL,
-        { onceTheRestHasLoaded: true }
+        ARRIVES_WITH_THE_FIRST_ROUND_TRIP
       );
-      await releaseAll(gate, startupPiece);
+      await releaseAll(gate);
       await attachRoundTrips('round-trips.txt', roundTrips);
-      expectRoundTrips(roundTrips, { roundTrips: pinned, reason: FOUND_ONE_BY_ONE });
+      expectRoundTrips(roundTrips);
     });
   }
 

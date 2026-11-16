@@ -51,7 +51,7 @@ const deserializeBinary = <T>(stateScript: string): T => {
     $forwardRefs$: reader.$forwardRefs$,
   };
   // Only the first root is wanted, so nothing is restored or released in the background.
-  const state = wrapBinaryStateProxy(container as any, reader, false);
+  const state = wrapBinaryStateProxy(container as any, reader);
   return state[0] as T;
 };
 

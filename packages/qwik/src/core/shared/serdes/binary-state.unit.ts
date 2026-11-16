@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
 import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
@@ -173,49 +173,16 @@ describe('binary state', () => {
     await expect(promise).resolves.toEqual({ done: true });
   });
 
-  describe('releasing the state', () => {
-    const restoredRoots = (state: unknown[]) => (state as any)[SERIALIZER_PROXY_UNWRAP];
-    const backgroundWork = () => new Promise((resolve) => setTimeout(resolve, 30));
-    const big = Array.from({ length: 2000 }, (_, i) => ({ i }));
+  it('restores a root only when it is read', async () => {
+    const state = await roundTrip({ small: 1 }, { other: 2 });
+    state[0];
+    expect((state as any)[SERIALIZER_PROXY_UNWRAP][1]).toBeUndefined();
+  });
 
-    it('leaves untouched roots unrestored while much of the state is unread', async () => {
-      const state = await roundTrip({ small: 1 }, big);
-      state[0];
-      await backgroundWork();
-      expect(restoredRoots(state)[1]).toBeUndefined();
-    });
-
-    it('stops restoring in the background when the state is emptied', async () => {
-      const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
-      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
-      const state = await roundTrip(leftover, most);
-      state[1];
-      // what a destroyed container does
-      state.length = 0;
-      await backgroundWork();
-      expect(restoredRoots(state)).toEqual([]);
-    });
-
-    it('counts a root that is written before it is read as restored', async () => {
-      const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
-      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
-      const state = await roundTrip(leftover, most, { small: 1 });
-      // nothing needs the text of the big root anymore, so reading the small one crosses 90%
-      state[1] = 'replaced';
-      state[2];
-      await vi.waitFor(() => expect(restoredRoots(state)[0]).toEqual(leftover));
-      expect(state[1]).toBe('replaced');
-    });
-
-    it('restores the rest in the background once 90% is restored', async () => {
-      const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
-      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
-      const state = await roundTrip(leftover, most);
-      state[1];
-      expect(restoredRoots(state)[0]).toBeUndefined();
-      await vi.waitFor(() => expect(restoredRoots(state)[0]).toEqual(leftover));
-      expect(state[0]).toBe(restoredRoots(state)[0]);
-    });
+  it('keeps a root that is written before it is read', async () => {
+    const state = await roundTrip({ small: 1 }, { other: 2 });
+    state[1] = 'replaced';
+    expect(state[1]).toBe('replaced');
   });
 
   describe('state patches', () => {
@@ -336,50 +303,6 @@ describe('binary state', () => {
           expect(Array.from(state)).toEqual([1, ...roots(firstSize)]);
         }
       }
-    });
-
-    it('keeps the state text until no more patches can arrive', async () => {
-      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
-      const [shell] = await stream([{ small: 1 }, most]);
-      const { reader, state } = open(shell);
-      const restoredRoots = (state as any)[SERIALIZER_PROXY_UNWRAP];
-      // more than 90% is restored now, which would start the release if the stream had ended
-      state[1];
-      await new Promise((resolve) => setTimeout(resolve, 30));
-      expect(restoredRoots[0]).toBeUndefined();
-      reader.$endPatches$();
-      await vi.waitFor(() => expect(restoredRoots[0]).toEqual({ small: 1 }));
-    });
-
-    it('lets go of the reader when the stream ends with every root restored', async () => {
-      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
-      const { reader, state } = open(shell);
-      state[0];
-      state[1];
-      const notifyProxy = reader.$onRootsAdded$;
-      await new Promise((resolve) => setTimeout(resolve, 30));
-      // patches can still arrive, so the proxy keeps listening to the reader
-      expect(reader.$onRootsAdded$).toBe(notifyProxy);
-      reader.$endPatches$();
-      await vi.waitFor(() => expect(reader.$onRootsAdded$).not.toBe(notifyProxy));
-      expect(Array.from(state)).toEqual([{ small: 1 }, { tiny: 2 }]);
-    });
-
-    it('does not count what surrounds the roots as state left to restore', async () => {
-      // many small patches: their headers are more than 10% of the stream
-      const patches = Array.from({ length: 30 }, (_, i) => [{ patch: i }]);
-      const [shell, ...patchScripts] = await stream([{ shell: 1 }], ...patches);
-      const { reader, state } = open(shell);
-      for (let i = 0; i < patchScripts.length; i++) {
-        reader.$addPatch$(patchScripts[i]);
-      }
-      for (let i = 1; i < state.length; i++) {
-        state[i];
-      }
-      reader.$endPatches$();
-      await vi.waitFor(() =>
-        expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ shell: 1 })
-      );
     });
 
     it('keeps the strings of the accepted state when a patch is rejected', async () => {

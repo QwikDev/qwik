@@ -342,17 +342,32 @@ describe('binary state', () => {
       expect(restoredRoots[0]).toEqual({ small: 1 });
     });
 
-    it('releases the state text when the stream ends with every root restored', async () => {
-      const [shell] = await stream([{ small: 1 }, { tiny: 2 }]);
+    it('does not count what surrounds the roots as state left to restore', async () => {
+      // many small patches: their headers are more than 10% of the stream
+      const patches = Array.from({ length: 30 }, (_, i) => [{ patch: i }]);
+      const [shell, ...patchScripts] = await stream([{ shell: 1 }], ...patches);
       const { reader, state } = open(shell);
-      state[0];
-      state[1];
+      for (let i = 0; i < patchScripts.length; i++) {
+        reader.$addPatch$(patchScripts[i]);
+      }
+      for (let i = 1; i < state.length; i++) {
+        state[i];
+      }
       reader.$endPatches$();
       await new Promise((resolve) => setTimeout(resolve, 30));
-      // a released proxy no longer asks the reader, not even for a root added behind its back
-      reader.$rootEnds$ = new Uint32Array(3);
-      expect(state[2]).toBeUndefined();
-      expect(Array.from(state)).toEqual([{ small: 1 }, { tiny: 2 }]);
+      expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ shell: 1 });
+    });
+
+    it('keeps the strings of the accepted state when a patch is rejected', async () => {
+      const text = 'long '.repeat(800);
+      const roots = Array.from({ length: 20 }, () => ({ text }));
+      const [shell, , second] = await stream(roots, [1], [2]);
+      const { reader, state } = open(shell);
+      for (let i = 0; i < roots.length; i++) {
+        expect(reader.$addPatch$(second)).toBeNull();
+        // reading the string anew every time would exceed the budget
+        expect(state[i]).toEqual({ text });
+      }
     });
 
     it('keeps the budget of the accepted state when a patch is rejected', async () => {

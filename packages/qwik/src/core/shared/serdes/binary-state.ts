@@ -87,6 +87,16 @@ export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 1
 const MAX_ROOTS = BinaryCode.MaxRoots;
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 
+/** Removes what was remembered about the offsets from `firstOffset` on. */
+const forgetFrom = (byOffset: Map<number, unknown> | null, firstOffset: number): void => {
+  const offsets = byOffset ? Array.from(byOffset.keys()) : [];
+  for (let i = 0; i < offsets.length; i++) {
+    if (offsets[i] >= firstOffset) {
+      byOffset!.delete(offsets[i]);
+    }
+  }
+};
+
 /**
  * Restores roots on demand, straight from the text of the binary state script.
  *
@@ -185,8 +195,8 @@ export class BinaryStateReader {
       this.$unitCount$ = previousUnitCount;
       this.$unitsRead$ = previousUnitsRead;
       // What was remembered about these offsets belongs to the rejected script.
-      this.$skippedArrayStarts$ = new Map();
-      this.$referencedStrings$ = new Map();
+      forgetFrom(this.$skippedArrayStarts$, previousUnitCount);
+      forgetFrom(this.$referencedStrings$, previousUnitCount);
       return null;
     }
     this.$pos$ = rootListEnd - 1;

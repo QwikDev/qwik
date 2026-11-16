@@ -140,10 +140,9 @@ const whenIdle = (callback: () => void): void => {
 /** Restored roots live in the proxy target; the state text is never rewritten. */
 class BinaryDeserializationHandler extends DeserializationHandler {
   private $isRestored$: Uint8Array;
-  private $unrestoredUnits$: number;
+  /** Units of the roots that are not restored; the framing around roots is nobody's to restore. */
+  private $unrestoredUnits$ = 0;
   private $isReleaseScheduled$: boolean;
-  /** Units of the stream that `$unrestoredUnits$` accounts for. */
-  private $knownUnits$: number;
   /** Null once every root is restored and the state text is released. */
   private $reader$: BinaryStateReader | null;
 
@@ -156,7 +155,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     super(container, []);
     this.$isReleaseScheduled$ = !releaseState;
     this.$reader$ = reader;
-    this.$unrestoredUnits$ = this.$knownUnits$ = reader.$unitCount$;
+    this.$countUnrestoredRoots$(0);
     reader.$onRootsAdded$ = () => this.$addRoots$();
     // Every root may be restored by now, and then no read would start the release.
     reader.$onPatchesEnded$ = () => this.$reader$ && this.$releaseStateWhenMostlyRestored$();
@@ -173,16 +172,22 @@ class BinaryDeserializationHandler extends DeserializationHandler {
   }
 
   /** A state patch has added roots to the reader. */
+  private $countUnrestoredRoots$(firstRoot: number): void {
+    const rootSizes = this.$reader$!.$rootSizes$;
+    for (let i = firstRoot; i < rootSizes.length; i++) {
+      this.$unrestoredUnits$ += rootSizes[i];
+    }
+  }
+
   private $addRoots$(): void {
     const reader = this.$reader$!;
     const isRestored = new Uint8Array(reader.$rootEnds$.length);
+    this.$countUnrestoredRoots$(this.$isRestored$.length);
     isRestored.set(this.$isRestored$);
     this.$isRestored$ = isRestored;
     while (this.$restoredRoots$.length < isRestored.length) {
       this.$restoredRoots$.push(undefined);
     }
-    this.$unrestoredUnits$ += reader.$unitCount$ - this.$knownUnits$;
-    this.$knownUnits$ = reader.$unitCount$;
   }
 
   /** Restores the remaining roots so that nothing needs the state text anymore. */

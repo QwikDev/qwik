@@ -127,6 +127,8 @@ class DeserializationHandler implements ProxyHandler<object> {
 /** Restored roots live in the proxy target; the state text is never rewritten. */
 class BinaryDeserializationHandler implements ProxyHandler<object> {
   private $isRestored$: Uint8Array;
+  /** The roots restored by the read in progress; they can point at each other. */
+  private $rootsBeingRestored$: number[] | null = null;
 
   constructor(
     private $container$: DomContainer,
@@ -142,6 +144,7 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
   private $markRestored$(rootIndex: number, value: unknown): void {
     this.$isRestored$[rootIndex] = 1;
     this.$restoredRoots$[rootIndex] = value;
+    this.$rootsBeingRestored$?.push(rootIndex);
   }
 
   /** A state patch has added roots to the reader. */
@@ -176,17 +179,29 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
     }
     const container = this.$container$;
     const isOutermost = beginDeserialization(container);
+    const isOutermostRead = !this.$rootsBeingRestored$;
+    if (isOutermostRead) {
+      this.$rootsBeingRestored$ = [];
+    }
     try {
       const value = reader.$restoreRoot$(container, i);
       this.$markRestored$(i, value);
       return value;
     } catch (error) {
-      // A half-filled root must not be handed out; the next read fails again.
-      this.$isRestored$[i] = 0;
-      target[i] = undefined;
-      reader.$restoredByOffset$?.clear();
+      if (isOutermostRead) {
+        // Half-filled roots must not be handed out; the next read fails again.
+        const tainted = this.$rootsBeingRestored$!;
+        for (let j = 0; j < tainted.length; j++) {
+          this.$isRestored$[tainted[j]] = 0;
+          target[tainted[j]] = undefined;
+        }
+        reader.$restoredByOffset$?.clear();
+      }
       throw error;
     } finally {
+      if (isOutermostRead) {
+        this.$rootsBeingRestored$ = null;
+      }
       endDeserialization(container, isOutermost);
     }
   }

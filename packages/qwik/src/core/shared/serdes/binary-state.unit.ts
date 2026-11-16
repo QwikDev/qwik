@@ -566,6 +566,26 @@ describe('binary state', () => {
       expect(restoredByOffset.size).toBe(0);
     });
 
+    it('rejects a root that was restored inside a broken root', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$string$('ab');
+      writer.$type$(TypeIds.Object);
+      writer.$rootRef$(1);
+      writer.$endArray$(0, 2);
+      const secondRootStart = writer.$length$;
+      writer.$rootRef$(0);
+      writer.$endArray$(secondRootStart, 1);
+      writer.$endArray$(0, 2);
+      writer.$finish$();
+      const state = restore(script);
+
+      expect(() => state[0]).toThrow('Invalid Object payload');
+      expect(() => state[1]).toThrow('Invalid Object payload');
+    });
+
     it('rejects an array made from a string', () => {
       let script = '';
       const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
 import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
@@ -202,8 +202,7 @@ describe('binary state', () => {
       const state = await roundTrip(leftover, most);
       state[1];
       expect(restoredRoots(state)[0]).toBeUndefined();
-      await backgroundWork();
-      expect(restoredRoots(state)[0]).toEqual(leftover);
+      await vi.waitFor(() => expect(restoredRoots(state)[0]).toEqual(leftover));
       expect(state[0]).toBe(restoredRoots(state)[0]);
     });
   });
@@ -338,8 +337,7 @@ describe('binary state', () => {
       await new Promise((resolve) => setTimeout(resolve, 30));
       expect(restoredRoots[0]).toBeUndefined();
       reader.$endPatches$();
-      await new Promise((resolve) => setTimeout(resolve, 30));
-      expect(restoredRoots[0]).toEqual({ small: 1 });
+      await vi.waitFor(() => expect(restoredRoots[0]).toEqual({ small: 1 }));
     });
 
     it('lets go of the reader when the stream ends with every root restored', async () => {
@@ -352,8 +350,7 @@ describe('binary state', () => {
       // patches can still arrive, so the proxy keeps listening to the reader
       expect(reader.$onRootsAdded$).toBe(notifyProxy);
       reader.$endPatches$();
-      await new Promise((resolve) => setTimeout(resolve, 30));
-      expect(reader.$onRootsAdded$).not.toBe(notifyProxy);
+      await vi.waitFor(() => expect(reader.$onRootsAdded$).not.toBe(notifyProxy));
       expect(Array.from(state)).toEqual([{ small: 1 }, { tiny: 2 }]);
     });
 
@@ -369,8 +366,9 @@ describe('binary state', () => {
         state[i];
       }
       reader.$endPatches$();
-      await new Promise((resolve) => setTimeout(resolve, 30));
-      expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ shell: 1 });
+      await vi.waitFor(() =>
+        expect((state as any)[SERIALIZER_PROXY_UNWRAP][0]).toEqual({ shell: 1 })
+      );
     });
 
     it('keeps the strings of the accepted state when a patch is rejected', async () => {

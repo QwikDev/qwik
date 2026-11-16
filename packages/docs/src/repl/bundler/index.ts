@@ -50,11 +50,14 @@ class Bundler {
   messageHandler = async (e: MessageEvent<OutgoingMessage>) => {
     const { type } = e.data;
     if (type === 'ready') {
-      const { version, rustOptimizer } = this;
+      const { worker, version, rustOptimizer } = this;
       let optimizerVersion: string;
       try {
         optimizerVersion = await resolveOptimizerVersion(version);
       } catch (error) {
+        if (worker !== this.worker) {
+          return;
+        }
         if (rustOptimizer) {
           // Retry the lookup in a fresh worker on the next build.
           this.terminateWorker(error as Error);
@@ -63,13 +66,17 @@ class Bundler {
         // The TS optimizer doesn't need it; only its Rust fallback would.
         optimizerVersion = version;
       }
+      // The worker was replaced during a slow lookup; the new one will do its own.
+      if (worker !== this.worker) {
+        return;
+      }
       const message: InitMessage = {
         type: 'init',
         version,
         rustOptimizer,
         deps: getDeps(version, optimizerVersion),
       };
-      this.worker?.postMessage(message);
+      worker!.postMessage(message);
       this.ready!();
     } else if (type === 'result' || type === 'error') {
       const { buildId } = e.data;

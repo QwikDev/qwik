@@ -1,14 +1,15 @@
+import { SymbolTile } from '~/components/symbol-tile';
+import { loadReportScope } from '~/db/report-scope';
+import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import Histogram, { currentColors, previousColors } from '~/components/histogram';
 import { getDB } from '~/db';
 import { getSymbolDetails } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteTimeline } from '~/db/sql-routes';
 import { MIN_PERFORMANCE_SAMPLES } from '../../performance';
 import {
   getRouteComparison,
-  getSelectedManifestIndex,
   getVisibleTimelineDistribution,
   type RouteSnapshot,
   type RouteSymbolPerformance,
@@ -23,22 +24,11 @@ export const useRouteData = routeLoader$(async ({ params, url }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
   const route = params.route;
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey, { limit: 101 });
-  const selectedIndex = getSelectedManifestIndex(
-    manifestHashes.slice(0, 100),
-    url.searchParams.get('manifest')
-  );
-  const selectedHash = manifestHashes.at(selectedIndex);
-  const previousHash = manifestHashes.at(selectedIndex + 1);
-  const comparedHashes = [selectedHash, previousHash].filter((hash): hash is string =>
-    Boolean(hash)
-  );
+  const { selectedHash, previousHash } = await loadReportScope(db, publicApiKey, url.searchParams);
   const [selectedRows, previousRows, symbolDetails] = await Promise.all([
     selectedHash ? getRouteTimeline(db, publicApiKey, route, [selectedHash]) : [],
     previousHash ? getRouteTimeline(db, publicApiKey, route, [previousHash]) : [],
-    comparedHashes.length
-      ? getSymbolDetails(db, publicApiKey, { manifestHashes: comparedHashes })
-      : [],
+    selectedHash ? getSymbolDetails(db, publicApiKey, { manifestHashes: [selectedHash] }) : [],
   ]);
   const comparison = getRouteComparison(selectedRows, previousRows, symbolDetails);
 
@@ -100,13 +90,14 @@ export const RouteDetailView = component$<{
           </p>
         </div>
         <div class="shrink-0 text-left md:text-right">
-          <p class="text-editorial-12 font-semibold">Selected vs previous manifest</p>
+          <p class="text-editorial-12 font-semibold">Selected vs baseline manifest</p>
           <p class="mt-editorial-1 max-w-64 truncate font-editorial-mono text-editorial-11 text-editorial-muted">
             {data.selectedHash ?? 'Waiting for data'}
             {data.previousHash && ` / ${data.previousHash}`}
           </p>
         </div>
       </header>
+      <ReportGuide report="route" />
 
       <section
         class={[
@@ -147,6 +138,11 @@ export const RouteDetailView = component$<{
         </a>
       </section>
 
+      <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
+        Observed differences are descriptive; traffic mix and user timing can change them.
+        Percentiles are estimated from histogram buckets.
+      </p>
+
       <section class="mt-editorial-10 grid min-w-0 gap-editorial-10 lg:grid-cols-[minmax(0,1fr)_316px]">
         <div class="min-w-0 lg:pr-editorial-8">
           <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
@@ -158,7 +154,7 @@ export const RouteDetailView = component$<{
 
           <div class="mt-editorial-5 flex flex-wrap gap-x-editorial-8 gap-y-editorial-3 text-editorial-12 text-editorial-secondary">
             <Legend tone="current" label="Selected manifest" />
-            {previous && <Legend tone="previous" label="Previous manifest" />}
+            {previous && <Legend tone="previous" label="Baseline manifest" />}
           </div>
 
           {latest.samples ? (
@@ -174,7 +170,7 @@ export const RouteDetailView = component$<{
                 comparison={
                   previous
                     ? {
-                        label: 'Previous manifest',
+                        label: 'Baseline manifest',
                         vector: data.distribution.previous,
                         colors: previousColors,
                       }
@@ -239,6 +235,7 @@ export const RouteDetailView = component$<{
                   <th class="py-editorial-3 font-semibold">Symbol</th>
                   <th class="py-editorial-3 font-semibold">Source</th>
                   <th class="py-editorial-3 font-semibold">P95 timeline</th>
+                  <th class="py-editorial-3 font-semibold">Samples / baseline</th>
                   <th class="py-editorial-3 font-semibold">Sample share</th>
                   <th class="py-editorial-3 font-semibold">Change</th>
                 </tr>
@@ -247,12 +244,21 @@ export const RouteDetailView = component$<{
                 {data.symbols.map((symbol) => (
                   <tr key={symbol.hash} class="border-b border-editorial-border">
                     <td class="max-w-64 truncate py-editorial-4 font-editorial-mono font-semibold text-editorial-link">
-                      {symbol.name}
+                      <SymbolTile
+                        symbol={symbol.hash}
+                        fullName={symbol.name}
+                        origin={symbol.origin}
+                      />
                     </td>
                     <td class="max-w-80 truncate py-editorial-4 font-editorial-mono text-editorial-muted">
                       {symbol.origin}
                     </td>
-                    <td class="py-editorial-4 font-semibold">{formatDuration(symbol.p95)}</td>
+                    <td class="py-editorial-4 font-semibold">
+                      {symbol.p95 === null ? 'Collecting data' : formatDuration(symbol.p95)}
+                    </td>
+                    <td class="py-editorial-4 text-editorial-secondary">
+                      {symbol.samples} / {symbol.previousSamples}
+                    </td>
                     <td class="py-editorial-4 text-editorial-secondary">{symbol.share}%</td>
                     <td
                       class={[
@@ -261,7 +267,9 @@ export const RouteDetailView = component$<{
                         symbol.change !== null && symbol.change < 0 && 'text-editorial-success',
                       ]}
                     >
-                      {formatChange(symbol.change)}
+                      {symbol.change === null
+                        ? 'Needs 100 samples in both builds'
+                        : formatChange(symbol.change)}
                     </td>
                   </tr>
                 ))}
@@ -327,10 +335,10 @@ function getStatus(
     return 'Collecting comparison data';
   }
   if (change > 0) {
-    return 'Tail regression';
+    return 'Later observed requests';
   }
   if (change < 0) {
-    return 'Tail improvement';
+    return 'Earlier observed requests';
   }
   return 'Timeline stable';
 }

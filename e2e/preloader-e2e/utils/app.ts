@@ -91,6 +91,9 @@ export const chunkComesFrom = (url: string, paths: string[]) => {
   return origins.some((origin) => paths.some((path) => origin.startsWith(path)));
 };
 
+export const chunkHoldsModule = (url: string, path: string) =>
+  !!getManifest().bundles[bundleFile(url)]?.origins?.includes(path);
+
 export const chunkHoldsSegmentsFrom = (url: string, paths: string[]) =>
   chunkComesFrom(url, paths) && !!getManifest().bundles[bundleFile(url)]?.symbols?.length;
 

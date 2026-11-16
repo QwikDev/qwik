@@ -1,3 +1,8 @@
+import { useReportQuery } from '~/components/report-scope/use-report-query';
+import { SymbolTile } from '~/components/symbol-tile';
+import { loadReportScope } from '~/db/report-scope';
+import { getReportHref } from '~/report-scope';
+import ReportGuide from '~/components/report-guide';
 import { component$ } from '@qwik.dev/core';
 import { Link, routeLoader$, useLocation, type DocumentHead } from '@qwik.dev/router';
 import { and, count, desc, eq, gte, max } from 'drizzle-orm';
@@ -7,10 +12,12 @@ import { errorTable, getDB } from '~/db';
 import { getSlowEdges, getSymbolDetails } from '~/db/query';
 import { dbGetManifestStats } from '~/db/sql-manifest';
 import { getRoutes } from '~/db/sql-routes';
-import { BUCKETS, vectorPercentile, vectorSum } from '~/stats/vector';
+import { BUCKETS } from '~/stats/vector';
 import { useApplication } from './layout';
 import {
   getManifestPerformance,
+  comparePerformance,
+  groupSymbolChanges,
   MIN_PERFORMANCE_SAMPLES,
   PERFORMANCE_PERCENTILE,
 } from './performance';
@@ -19,18 +26,22 @@ export const head: DocumentHead = {
   title: 'Performance overview | Qwik Insights',
 };
 
-export const useAppData = routeLoader$(async ({ params }) => {
+export const useAppData = routeLoader$(async ({ params, query }) => {
   const db = getDB();
   const publicApiKey = params.publicApiKey;
-  const manifests = await dbGetManifestStats(db, publicApiKey, { limit: 2 });
-  const manifestHashes = manifests.map((manifest) => manifest.hash);
-  const latestHash = manifestHashes.at(0);
-  const previousHash = manifestHashes.at(1);
+  const scope = await loadReportScope(db, publicApiKey, query);
+  const latestHash = scope.selectedHash;
+  const previousHash = scope.previousHash;
+  if (!latestHash) {
+    return { latest: null, previous: null, change: null, slowSymbols: [], errors: [] };
+  }
+  const manifestHashes = [latestHash, previousHash].filter((hash): hash is string => Boolean(hash));
+  const manifests = await dbGetManifestStats(db, publicApiKey, { manifestHashes });
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const [latestEdges, previousEdges, symbolDetails, routes, errors] = await Promise.all([
     getSlowEdges(db, publicApiKey, latestHash ? [latestHash] : []),
     getSlowEdges(db, publicApiKey, previousHash ? [previousHash] : []),
-    manifestHashes.length ? getSymbolDetails(db, publicApiKey, { manifestHashes }) : [],
+    getSymbolDetails(db, publicApiKey, { manifestHashes: [latestHash] }),
     latestHash ? getRoutes(db, publicApiKey, [latestHash]) : [],
     db
       .select({
@@ -39,7 +50,13 @@ export const useAppData = routeLoader$(async ({ params }) => {
         count: count(),
       })
       .from(errorTable)
-      .where(and(eq(errorTable.publicApiKey, publicApiKey), gte(errorTable.timestamp, dayAgo)))
+      .where(
+        and(
+          eq(errorTable.publicApiKey, publicApiKey),
+          gte(errorTable.timestamp, dayAgo),
+          eq(errorTable.manifestHash, latestHash)
+        )
+      )
       .groupBy(errorTable.message)
       .orderBy(desc(max(errorTable.timestamp)))
       .limit(3)
@@ -58,26 +75,24 @@ export const useAppData = routeLoader$(async ({ params }) => {
   }
   const slowSymbols = latestEdges
     .map((edge) => {
-      const latency = vectorPercentile(edge.latency, PERFORMANCE_PERCENTILE);
-      const previousLatency = vectorPercentile(
-        previousEdgesBySymbol.get(edge.to)?.latency ?? [],
-        PERFORMANCE_PERCENTILE
+      const comparison = comparePerformance(
+        edge.latency,
+        previousEdgesBySymbol.get(edge.to)?.latency ?? []
       );
       return {
         hash: edge.to,
         name: names.get(edge.to) ?? edge.to,
         routes: Array.from(symbolRoutes.get(edge.to) ?? []).slice(0, 2),
-        latency,
-        change: previousLatency
-          ? Math.round(((latency - previousLatency) / previousLatency) * 100)
-          : null,
-        samples: vectorSum(edge.latency),
+        latency: comparison.p95,
+        change: comparison.change,
+        delta: comparison.delta,
+        samples: comparison.samples,
+        previousSamples: comparison.previousSamples,
       };
     })
-    .sort((a, b) => b.latency - a.latency)
-    .slice(0, 3);
-  const latest = manifests.at(0);
-  const previous = manifests.at(1);
+    .sort((a, b) => (b.latency ?? -1) - (a.latency ?? -1));
+  const latest = manifests.find((manifest) => manifest.hash === latestHash);
+  const previous = manifests.find((manifest) => manifest.hash === previousHash);
   const latestPerformance = latest ? getManifestPerformance(latest.latency) : null;
   const previousPerformance = previous ? getManifestPerformance(previous.latency) : null;
   const latestLatency = latestPerformance?.p95 ?? null;
@@ -106,7 +121,7 @@ export const useAppData = routeLoader$(async ({ params }) => {
       latestLatency !== null && previousLatency !== null && previousLatency > 0
         ? Math.round(((latestLatency - previousLatency) / previousLatency) * 100)
         : null,
-    slowSymbols,
+    slowSymbols: groupSymbolChanges(slowSymbols).flatMap((group) => group.symbols),
     errors: errors.map((error) => ({
       message: error.message,
       latest: error.latest?.toISOString() ?? '',
@@ -119,6 +134,7 @@ export default component$(() => {
   const application = useApplication();
   const data = useAppData();
   const location = useLocation();
+  const reportQuery = useReportQuery();
   const appPath = `/app/${location.params.publicApiKey}/`;
   const { latest, previous, change } = data.value;
   const isRegression = change !== null && change > 0;
@@ -130,9 +146,9 @@ export default component$(() => {
       : change === null
         ? 'Collecting comparison data'
         : isRegression
-          ? 'Regression detected'
+          ? 'Higher observed P95'
           : isImprovement
-            ? 'Performance improved'
+            ? 'Lower observed P95'
             : 'Performance stable';
   const headline = !latest
     ? 'Waiting for symbol data'
@@ -156,13 +172,14 @@ export default component$(() => {
           </h1>
         </div>
         <div class="text-left md:text-right">
-          <p class="text-editorial-12 font-semibold">Latest vs previous manifest</p>
+          <p class="text-editorial-12 font-semibold">Selected vs baseline manifest</p>
           <p class="mt-editorial-1 font-editorial-mono text-editorial-11 text-editorial-muted">
             {latest?.hash ?? 'Waiting for data'}
             {previous && ` / ${previous.hash}`}
           </p>
         </div>
       </header>
+      <ReportGuide report="dashboard" />
 
       <section class="mt-editorial-12 grid min-w-0 gap-editorial-10 border-b border-editorial-border pb-editorial-10 lg:grid-cols-[minmax(0,1fr)_296px]">
         <div class="min-w-0">
@@ -203,7 +220,7 @@ export default component$(() => {
                   : 'A previous manifest is required before a comparison can be calculated.'}
             </p>
             <ButtonLink
-              href={`${appPath}symbols/slow/${latest ? `?manifest=${encodeURIComponent(latest.hash)}` : ''}`}
+              href={getReportHref(`${appPath}symbols/slow/`, reportQuery)}
               theme="primary"
               class="mt-editorial-5"
             >
@@ -221,14 +238,14 @@ export default component$(() => {
             {latest ? (
               <div class="mt-editorial-8 grid gap-editorial-8 xl:grid-cols-2">
                 <Distribution
-                  label="Latest manifest"
+                  label="Selected manifest"
                   tone="current"
                   value={latest.p95}
                   vector={latest.latency}
                 />
                 {previous ? (
                   <Distribution
-                    label="Previous manifest"
+                    label="Baseline manifest"
                     tone="previous"
                     value={previous.p95}
                     vector={previous.latency}
@@ -264,7 +281,7 @@ export default component$(() => {
               value={latest && latest.p95 !== null ? formatDuration(latest.p95) : '—'}
             />
             <Metric
-              label="Previous P95"
+              label="Baseline P95"
               value={previous && previous.p95 !== null ? formatDuration(previous.p95) : '—'}
             />
             <Metric
@@ -272,8 +289,16 @@ export default component$(() => {
               value={change === null ? '—' : `${change > 0 ? '+' : ''}${change}%`}
               tone={isRegression ? 'danger' : isImprovement ? 'success' : undefined}
             />
-            <Metric label="Samples" value={latest?.samples.toLocaleString('en') ?? '—'} />
+            <Metric label="Current samples" value={latest?.samples.toLocaleString('en') ?? '—'} />
+            <Metric
+              label="Baseline samples"
+              value={previous?.samples.toLocaleString('en') ?? '—'}
+            />
           </dl>
+          <p class="mt-editorial-4 text-editorial-12 text-editorial-secondary">
+            Observed changes are descriptive, not statistical proof. Traffic mix can affect
+            comparisons. Percentiles are estimated from histogram buckets.
+          </p>
           {latest && (
             <div class="mt-editorial-6 grid gap-editorial-4 text-editorial-12">
               <div>
@@ -300,15 +325,15 @@ export default component$(() => {
       <div class="grid gap-editorial-10 pt-editorial-8 xl:grid-cols-[1.2fr_1fr]">
         <section class="min-w-0" aria-labelledby="slow-symbols-title">
           <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
-            What changed
+            Investigate changes
           </p>
           <div class="mt-editorial-2 flex items-center justify-between gap-editorial-4">
             <h2 id="slow-symbols-title" class="text-editorial-24 font-semibold tracking-[-0.02em]">
-              Slow symbols
+              Symbol comparisons
             </h2>
             <Link
               class="text-editorial-12 font-semibold text-editorial-link"
-              href={`${appPath}symbols/slow/`}
+              href={getReportHref(`${appPath}symbols/slow/`, reportQuery)}
             >
               View all
             </Link>
@@ -322,34 +347,52 @@ export default component$(() => {
                     <th class="py-editorial-3 font-semibold">Routes</th>
                     <th class="py-editorial-3 font-semibold">P95</th>
                     <th class="py-editorial-3 font-semibold">Change</th>
-                    <th class="py-editorial-3 text-right font-semibold">Samples</th>
+                    <th class="py-editorial-3 text-right font-semibold">Samples / baseline</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.value.slowSymbols.map((symbol) => (
-                    <tr key={symbol.hash} class="border-b border-editorial-border">
-                      <td class="max-w-48 truncate py-editorial-3 font-editorial-mono font-semibold text-editorial-link">
-                        {symbol.name}
-                      </td>
-                      <td class="max-w-48 truncate py-editorial-3 text-editorial-secondary">
-                        {symbol.routes.join(', ') || '—'}
-                      </td>
-                      <td class="py-editorial-3 font-semibold">{formatDuration(symbol.latency)}</td>
-                      <td
-                        class={[
-                          'py-editorial-3 font-semibold',
-                          symbol.change !== null && symbol.change > 0 && 'text-editorial-danger',
-                          symbol.change !== null && symbol.change < 0 && 'text-editorial-success',
-                        ]}
-                      >
-                        {symbol.change === null
-                          ? '—'
-                          : `${symbol.change > 0 ? '+' : ''}${symbol.change}%`}
-                      </td>
-                      <td class="py-editorial-3 text-right text-editorial-secondary">
-                        {symbol.samples.toLocaleString('en')}
-                      </td>
-                    </tr>
+                  {groupSymbolChanges(data.value.slowSymbols).map((group) => (
+                    <>
+                      <tr key={group.label}>
+                        <th colSpan={5} class="pt-editorial-5 pb-editorial-2 font-semibold">
+                          {group.label}
+                        </th>
+                      </tr>
+                      {group.symbols.map((symbol) => (
+                        <tr key={symbol.hash} class="border-b border-editorial-border">
+                          <td class="max-w-48 truncate py-editorial-3 font-editorial-mono font-semibold text-editorial-link">
+                            <SymbolTile symbol={symbol.hash} fullName={symbol.name} />
+                          </td>
+                          <td class="max-w-48 truncate py-editorial-3 text-editorial-secondary">
+                            {symbol.routes.join(', ') || '—'}
+                          </td>
+                          <td class="py-editorial-3 font-semibold">
+                            {symbol.latency === null
+                              ? 'Collecting data'
+                              : formatDuration(symbol.latency)}
+                          </td>
+                          <td
+                            class={[
+                              'py-editorial-3 font-semibold',
+                              symbol.change !== null &&
+                                symbol.change > 0 &&
+                                'text-editorial-danger',
+                              symbol.change !== null &&
+                                symbol.change < 0 &&
+                                'text-editorial-success',
+                            ]}
+                          >
+                            {symbol.change === null
+                              ? '—'
+                              : `${symbol.change > 0 ? '+' : ''}${symbol.change}%`}
+                          </td>
+                          <td class="py-editorial-3 text-right text-editorial-secondary">
+                            {symbol.samples.toLocaleString('en')} /{' '}
+                            {symbol.previousSamples.toLocaleString('en')}
+                          </td>
+                        </tr>
+                      ))}
+                    </>
                   ))}
                 </tbody>
               </table>
@@ -371,7 +414,7 @@ export default component$(() => {
             </h2>
             <Link
               class="text-editorial-12 font-semibold text-editorial-link"
-              href={`${appPath}errors/`}
+              href={getReportHref(`${appPath}errors/`, reportQuery)}
             >
               View all
             </Link>
@@ -441,7 +484,7 @@ const Distribution = component$<{
 
 const EmptyDistribution = component$(() => (
   <div class="flex min-h-32 items-center border-t border-editorial-border text-editorial-12 text-editorial-secondary">
-    Previous manifest data is not available yet.
+    Baseline manifest data is not available yet.
   </div>
 ));
 

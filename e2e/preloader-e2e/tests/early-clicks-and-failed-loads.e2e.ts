@@ -1,17 +1,27 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
-import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
-import { fixtureById, NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
+import { expect, test, type Browser, type Page, type Request } from '@playwright/test';
+import { chunkComesFrom, chunkHoldsModule, getManifest, ORIGIN } from '../utils/app';
 import {
+  fixtureById,
+  NAVIGATION_SOURCES,
+  SHARED_HELPER,
+  STREAMING,
+  type Fixture,
+} from '../utils/fixtures';
+import {
+  chunksHintedAsNeeded,
   countRoundTrips,
   createGate,
   holdSpeculativePreloads,
   preloaderLinks,
+  recordPreloadHints,
   recordSpeculativePreloads,
   releaseAll,
   resultIsDone,
   waitForNetworkIdle,
   waitForQwikloader,
+  type RoundTrip,
 } from '../utils/gate';
+import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
 
 const CONDITIONAL_ALL = fixtureById('conditional/all');
@@ -31,20 +41,44 @@ const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
 
+const QUIET_MS = 500;
+
 const clickWhileLoading = async (
   page: Page,
   heldUrls: string[],
   trigger: () => Promise<unknown>,
-  result: Fixture
+  result: Fixture,
+  { onceTheRestHasLoaded = false, arrivesWithTheFirstRoundTrip = false } = {}
 ) => {
   await recordSpeculativePreloads(page);
   await holdSpeculativePreloads(page);
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => heldUrls.includes(url);
+  const loading = new Set<Request>();
+  let lastActivity = Date.now();
+  const onRequest = (request: Request) => {
+    lastActivity = Date.now();
+    if (!heldUrls.includes(request.url())) {
+      loading.add(request);
+    }
+  };
+  const onDone = (request: Request) => {
+    lastActivity = Date.now();
+    loading.delete(request);
+  };
+  page.on('request', onRequest);
+  page.on('requestfinished', onDone);
+  page.on('requestfailed', onDone);
   await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
   await waitForQwikloader(page);
   await expect.poll(() => gate.held.length).toBe(heldUrls.length);
-  const startupPiece = gate.held.splice(0);
+  if (onceTheRestHasLoaded) {
+    await expect.poll(() => !loading.size && Date.now() - lastActivity > QUIET_MS).toBe(true);
+  }
+  page.off('request', onRequest);
+  page.off('requestfinished', onDone);
+  page.off('requestfailed', onDone);
+  const startupPiece = arrivesWithTheFirstRoundTrip ? [] : gate.held.splice(0);
   gate.holdWhilePassing = undefined;
   const roundTrips = await countRoundTrips(
     page,
@@ -56,8 +90,20 @@ const clickWhileLoading = async (
   return { gate, startupPiece, roundTrips };
 };
 
-const clickConditional = (page: Page) => () =>
-  fixtureRoot(page, CONDITIONAL_ALL).locator('[data-testid=trigger]').click();
+const ARRIVES_WITH_THE_FIRST_ROUND_TRIP = {
+  onceTheRestHasLoaded: true,
+  arrivesWithTheFirstRoundTrip: true,
+};
+
+const clickTrigger = (page: Page, fixture: Fixture) => () =>
+  fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+
+const clickConditional = (page: Page) => clickTrigger(page, CONDITIONAL_ALL);
+
+const roundTripsAfterStartup = (roundTrips: RoundTrip[], startupUrls: string[]) =>
+  roundTrips.slice(
+    roundTrips.findIndex(({ urls }) => urls.some((url) => startupUrls.includes(url))) + 1
+  );
 
 test.describe('click before core loaded', () => {
   test("the click isn't lost: the result shows once core arrives", async ({ page }) => {
@@ -69,6 +115,72 @@ test.describe('click before core loaded', () => {
     );
     await releaseAll(gate, startupPiece);
     await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test("the click's handler is requested while core is still loading", async ({ page }) => {
+    const { roundTrips } = await clickWhileLoading(
+      page,
+      [coreUrl()],
+      clickConditional(page),
+      CONDITIONAL_ALL
+    );
+    await attachRoundTrips('round-trips.txt', roundTrips, CONDITIONAL_ALL.sources);
+    const requestedBeforeCoreArrived = roundTrips[0].urls;
+    expect(requestedBeforeCoreArrived).not.toContain(coreUrl());
+    expect(
+      requestedBeforeCoreArrived.filter((url) => chunkComesFrom(url, CONDITIONAL_ALL.sources))
+    ).toHaveLength(1);
+  });
+
+  test("the preloader is told the click's chunks are needed while core is still loading", async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => url === coreUrl();
+    await page.goto(CONDITIONAL_ALL.path, { waitUntil: 'commit' });
+    await waitForQwikloader(page);
+    await expect.poll(() => gate.held.length).toBe(1);
+
+    await clickConditional(page)();
+
+    const clickChunksHinted = async () =>
+      (await chunksHintedAsNeeded(page)).filter((chunk) =>
+        chunkComesFrom(`${ORIGIN}/build/${chunk}`, CONDITIONAL_ALL.sources)
+      );
+    await expect.poll(clickChunksHinted).toHaveLength(1);
+    await releaseAll(gate);
+  });
+
+  test("the click's handler chunk is requested only once", async ({ page }) => {
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
+    const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+      page,
+      [coreUrl()],
+      clickConditional(page),
+      CONDITIONAL_ALL
+    );
+    await waitForNetworkIdle(page, () => releaseAll(gate, startupPiece));
+    const [handlerChunk] = roundTrips[0].urls.filter((url) =>
+      chunkComesFrom(url, CONDITIONAL_ALL.sources)
+    );
+    expect(requests.filter((url) => url === handlerChunk)).toHaveLength(1);
+  });
+
+  test("core arrives with the click's first round trip: the click shows its result in 2 round trips", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await clickWhileLoading(
+      page,
+      [coreUrl()],
+      clickConditional(page),
+      CONDITIONAL_ALL,
+      ARRIVES_WITH_THE_FIRST_ROUND_TRIP
+    );
+    await releaseAll(gate);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips);
   });
 });
 
@@ -92,19 +204,28 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
   return { links, clickChunks };
 };
 
+const FOUND_ONE_BY_ONE =
+  'over the cap on main: without the preloader and the bundle graph, each chunk is only found once the one before it has loaded';
+
 const STILL_LOADING = [
   {
     stillLoading: 'preloader still loading',
+    arrivesWithTheClick: 'preloader arrives',
+    neverArrives: 'preloader never arrives',
     arrivesLast: 'preloader arrives last',
     heldUrls: () => [preloaderUrl()],
   },
   {
     stillLoading: 'bundle graph still loading',
+    arrivesWithTheClick: 'bundle graph arrives',
+    neverArrives: 'bundle graph never arrives',
     arrivesLast: 'bundle graph arrives last',
     heldUrls: () => [bundleGraphUrl()],
   },
   {
     stillLoading: 'both still loading',
+    arrivesWithTheClick: 'both arrive',
+    neverArrives: 'neither arrives',
     arrivesLast: 'both arrive after the click',
     heldUrls: () => [preloaderUrl(), bundleGraphUrl()],
   },
@@ -121,6 +242,42 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
       );
       await releaseAll(gate, startupPiece);
       await expectResult(page, CONDITIONAL_ALL);
+    });
+  }
+
+  for (const { arrivesWithTheClick, heldUrls } of STILL_LOADING) {
+    test(`${arrivesWithTheClick} with the click's first round trip: the click shows its result in 2 round trips`, async ({
+      page,
+    }) => {
+      const { gate, roundTrips } = await clickWhileLoading(
+        page,
+        heldUrls(),
+        clickConditional(page),
+        CONDITIONAL_ALL,
+        ARRIVES_WITH_THE_FIRST_ROUND_TRIP
+      );
+      await releaseAll(gate);
+      await attachRoundTrips('round-trips.txt', roundTrips);
+      expectRoundTrips(roundTrips);
+    });
+  }
+
+  for (const { neverArrives, heldUrls } of STILL_LOADING) {
+    test(`${neverArrives}: the click shows its result in 11 round trips, over the cap of 2`, async ({
+      page,
+    }) => {
+      const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+        page,
+        heldUrls(),
+        clickConditional(page),
+        CONDITIONAL_ALL,
+        { onceTheRestHasLoaded: true }
+      );
+      const stillHeld = startupPiece.length;
+      await releaseAll(gate, startupPiece);
+      await attachRoundTrips('round-trips.txt', roundTrips);
+      expect(stillHeld).toBe(heldUrls().length);
+      expectRoundTrips(roundTrips, { roundTrips: 11, reason: FOUND_ONE_BY_ONE });
     });
   }
 
@@ -155,6 +312,133 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
       expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
     });
   }
+});
+
+const SLOW_IMAGE = `${ORIGIN}/slow-image.png`;
+
+const loadASlowImage = (page: Page) =>
+  page.addInitScript((src) => {
+    new Image().src = src;
+  }, SLOW_IMAGE);
+
+const pageHasLoaded = (page: Page) => page.evaluate(() => document.readyState === 'complete');
+
+test.describe('click before the page has finished loading', () => {
+  test('a slow image holds back the load event: the click shows its result in 11 round trips, over the cap of 2', async ({
+    page,
+  }) => {
+    await loadASlowImage(page);
+    const {
+      gate,
+      startupPiece: slowImage,
+      roundTrips,
+    } = await clickWhileLoading(page, [SLOW_IMAGE], clickConditional(page), CONDITIONAL_ALL, {
+      onceTheRestHasLoaded: true,
+    });
+    const hadLoaded = await pageHasLoaded(page);
+    await releaseAll(gate, slowImage);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expect(hadLoaded).toBe(false);
+    expectRoundTrips(roundTrips, {
+      roundTrips: 11,
+      reason:
+        'over the cap on main: the preloader only starts after the load event, so until then each chunk is only found once the one before it has loaded',
+    });
+  });
+});
+
+const everyStartupPiece = () => [preloaderUrl(), coreUrl(), bundleGraphUrl()];
+
+test.describe('early click that needs the bundle graph', () => {
+  for (const fixture of [fixtureById('tree/render'), fixtureById('tree-context/render')]) {
+    test(`${fixture.id}: once the preloader, core and the bundle graph are loaded, every level's chunks go out in one round trip`, async ({
+      page,
+    }) => {
+      const startupUrls = everyStartupPiece();
+      const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+        page,
+        startupUrls,
+        clickTrigger(page, fixture),
+        fixture,
+        { onceTheRestHasLoaded: true }
+      );
+      await releaseAll(gate, startupPiece);
+      await attachRoundTrips('round-trips.txt', roundTrips, fixture.sources);
+      const withFixtureChunks = roundTripsAfterStartup(roundTrips, startupUrls).filter(({ urls }) =>
+        urls.some((url) => chunkComesFrom(url, fixture.sources))
+      );
+      expect(withFixtureChunks).toHaveLength(1);
+    });
+  }
+
+  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 3 round trips, over the cap of 2', async ({
+    page,
+  }) => {
+    const startupUrls = everyStartupPiece();
+    const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+      page,
+      startupUrls,
+      () => fixtureRoot(page, FROM_OFF).locator('[data-testid=link-tree]').click(),
+      TO_TREE,
+      { onceTheRestHasLoaded: true }
+    );
+    await releaseAll(gate, startupPiece);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls), {
+      roundTrips: 3,
+      reason:
+        "over the cap on main: the router's navigation code, then the layout and route modules, each cost a round trip before the render chunks",
+    });
+  });
+});
+
+const SHARED_HELPER_DIR = 'src/components/fixtures/shared-helper/';
+
+test.describe('early click on a handler with static imports', () => {
+  test("bundle graph still loading: the handler's static imports go out one round trip after it, not later", async ({
+    page,
+  }) => {
+    const { gate, startupPiece, roundTrips } = await clickWhileLoading(
+      page,
+      [bundleGraphUrl()],
+      clickTrigger(page, SHARED_HELPER),
+      SHARED_HELPER,
+      { onceTheRestHasLoaded: true }
+    );
+    await releaseAll(gate, startupPiece);
+    await attachRoundTrips('round-trips.txt', roundTrips, SHARED_HELPER.sources);
+    const roundTripOf = (isWanted: (url: string) => boolean) =>
+      roundTrips.findIndex(({ urls }) => urls.some(isWanted));
+    const handlerRoundTrip = roundTripOf((url) =>
+      chunkComesFrom(url, [`${SHARED_HELPER_DIR}index.tsx_`])
+    );
+    const helperRoundTrip = roundTripOf((url) =>
+      chunkHoldsModule(url, `${SHARED_HELPER_DIR}card.tsx`)
+    );
+    expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(helperRoundTrip).toBe(handlerRoundTrip + 1);
+  });
+});
+
+test.describe('click while the page is still streaming', () => {
+  test("the handler's chunk is requested before the stream ends, and the handler runs once it has", async ({
+    page,
+  }) => {
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await page.goto(STREAMING.path, { waitUntil: 'commit' });
+    try {
+      await fixtureRoot(page, STREAMING).locator('[data-testid=trigger]').click();
+      await expect
+        .poll(() => requests.filter((url) => chunkComesFrom(url, STREAMING.sources)).length)
+        .toBeGreaterThan(0);
+      await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
+      await expect(fixtureResult(page, STREAMING)).not.toHaveAttribute('data-done');
+    } finally {
+      await page.request.get(`${ORIGIN}/streaming/release/`);
+    }
+    await expectResult(page, STREAMING);
+  });
 });
 
 test.describe('navigation click before the preloader loaded', () => {

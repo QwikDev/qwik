@@ -1,0 +1,92 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+
+const greet = $(() => console.log('hi'));
+
+export const Greeter = component$(() => {
+	greet();
+	return <p>hi</p>;
+});
+
+============================= test.tsx_greet_gFbcnqexLxg.js (ENTRY POINT)==
+
+export const greet_gFbcnqexLxg = ()=>console.log('hi');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iCAGgB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "greet_gFbcnqexLxg",
+  "entry": null,
+  "displayName": "test.tsx_greet",
+  "hash": "gFbcnqexLxg",
+  "canonicalFilename": "test.tsx_greet_gFbcnqexLxg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    67,
+    90
+  ]
+}
+*/
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+//
+/*#__PURE__*/ qrl(()=>import("./test.tsx_greet_gFbcnqexLxg"), "greet_gFbcnqexLxg");
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,wBAAU,8CAGpB\"}")
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_greet_gFbcnqexLxg = /*#__PURE__*/ qrl(()=>import("./test.tsx_greet_gFbcnqexLxg"), "greet_gFbcnqexLxg");
+//
+const greet = q_greet_gFbcnqexLxg;
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    greet();
+    return /*#__PURE__*/ _jsxSorted("p", null, null, "hi", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;MAGM;6CAE4B;IACjC;IACA,qBAAO,WAAC,iBAAE;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    128,
+    166
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

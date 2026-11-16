@@ -281,6 +281,11 @@ export const routes = [
     label: 'barrel file',
   },
   {
+    group: 'other',
+    href: '/streaming/',
+    label: 'click while streaming',
+  },
+  {
     group: 'visible',
     href: '/visible/above/',
     label: 'above the fold',

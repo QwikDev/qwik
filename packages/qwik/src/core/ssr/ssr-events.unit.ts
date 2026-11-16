@@ -17,8 +17,14 @@ describe('setEvent', () => {
     expect(setEvent(context, 'q-d:qinit', qrl, true)).toBe('chunk#handler');
   });
 
-  it('wraps a handler that receives moved captures', () => {
+  it('lists the handler chunk after the core chunk that runs it', () => {
     const qrl = createQRL('chunk', 'handler', () => {}).m();
+
+    expect(setEvent(context, 'q-e:click', qrl, true)).toEqual(['runtime#_run', '#', 0, '#chunk']);
+  });
+
+  it('lists only the core chunk when the handler has no chunk file of its own', () => {
+    const qrl = createQRL('_', 'handler', () => {}).m();
 
     expect(setEvent(context, 'q-e:click', qrl, true)).toEqual(['runtime#_run', '#', 0]);
   });

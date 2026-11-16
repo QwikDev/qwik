@@ -6,6 +6,7 @@ import {
   createBundleViewData,
   getMatrixCellColor,
   getStrongestRelationships,
+  getGroupMatrix,
 } from './bundle-view';
 import type { Symbol } from '~/stats/edges';
 
@@ -17,6 +18,27 @@ describe('bundle view', () => {
     expect(getSelectedBundleIndex(-1, 3)).toBe(0);
   });
 
+  it('restricts both matrix axes to the selected group and remaps columns', () => {
+    const symbols = ['a', 'b', 'c'].map((name) => ({ name }));
+    expect(
+      getGroupMatrix(
+        [
+          [
+            { column: 1, value: 0.8 },
+            { column: 2, value: 0.5 },
+          ],
+          [],
+          [{ column: 0, value: 0.7 }],
+        ],
+        symbols,
+        ['a', 'c']
+      )
+    ).toEqual({
+      symbols: [symbols[0], symbols[2]],
+      matrix: [[{ column: 1, value: 0.5 }], [{ column: 0, value: 0.7 }]],
+    });
+    expect(getGroupMatrix([], [], [])).toEqual({ symbols: [], matrix: [] });
+  });
   it('preserves every positive score so filtering cannot be confused with zero', () => {
     const vectors = {
       symbols: [],

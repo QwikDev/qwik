@@ -119,6 +119,7 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="settings"
         eyebrow="Application settings"
         title="Edit application"
         description="Update project details and control who can access this application's insights."

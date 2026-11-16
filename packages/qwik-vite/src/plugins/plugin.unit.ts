@@ -4,7 +4,12 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
+import {
+  ExperimentalFeatures,
+  QWIK_PRELOADER_ID,
+  createQwikPlugin,
+  mightContainDecorators,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -819,6 +824,15 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+test('bundler annotations are not mistaken for decorators', () => {
+  expect(mightContainDecorators('@Entity()\nclass User {}')).toBe(true);
+  expect(mightContainDecorators('const a = (@Inject() b) => b;')).toBe(true);
+  expect(mightContainDecorators('export const Each = /* @__PURE__ */ componentQrl(q);')).toBe(
+    false
+  );
+  expect(mightContainDecorators('const f = /* @__NO_SIDE_EFFECTS__ */ () => 1;')).toBe(false);
+});
+
 describe('decorators follow tsconfig', () => {
   const decoratedComponent = `import { component$ } from '@qwik.dev/core';
 const Entity = (): ClassDecorator => (target) => target;
@@ -859,6 +873,40 @@ export default component$(() => {
   test('keeps standard decorators without experimentalDecorators', async () => {
     const code = await loadDecoratedSegment({});
     expect(code).toContain('@Entity()');
+  });
+
+  test('resolves vite even when the optimizer sys cannot import it', async () => {
+    // Strict layouts (pnpm without hoisting, Yarn PnP, Nix) do not install vite
+    // next to @qwik.dev/optimizer, so resolving vite through the optimizer's sys
+    // fails there. The plugin must resolve vite from its own location instead.
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: {} }));
+    const plugin = createQwikPlugin({
+      tsOptimizer: true,
+      sys: {
+        cwd: () => process.cwd(),
+        env: 'node',
+        os: process.platform,
+        dynamicImport: async (specifier: string) => {
+          if (specifier === 'vite') {
+            throw new Error(`Cannot find package 'vite'`);
+          }
+          return import(specifier);
+        },
+        strictDynamicImport: async (specifier: string) => import(specifier),
+        path: path as any,
+      },
+    });
+    await plugin.init();
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const segmentId = result!.meta!.qwikdeps.find((dep: string) => dep.includes('_component_'));
+    const loaded = await plugin.load({} as any, segmentId!);
+    expect((loaded as { code: string }).code).toContain('@Entity()');
   });
 });
 

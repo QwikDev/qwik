@@ -1,8 +1,8 @@
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
 const minimumSpeed = 300; // kbps
-// size that takes 0.5 seconds to download at minimumSpeed
-const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
+// bytes that take 0.5 seconds to download at minimumSpeed
+const slowSize = 0.5 * ((minimumSpeed * 1024) / 8);
 
 /**
  * A function that returns a map of bundle names to their dependencies.
@@ -199,10 +199,8 @@ export function convertManifestToBundleGraph(
   return bundleGraph;
 }
 
-/** Builds a reachability-preserving transitive reducer over the static-import graph. */
-function createTransitiveReducer(graph: Record<string, QwikBundle>) {
-  const { componentOf, successors } = condenseImportGraph(graph);
-
+/** Returns a lookup of every component reachable from a component of the condensed graph. */
+export function createReachability(successors: Set<number>[]) {
   const reachCache: (Set<number> | undefined)[] = new Array(successors.length);
   const reachOf = (component: number): Set<number> => {
     const cached = reachCache[component];
@@ -219,6 +217,13 @@ function createTransitiveReducer(graph: Record<string, QwikBundle>) {
     }
     return reach;
   };
+  return reachOf;
+}
+
+/** Builds a reachability-preserving transitive reducer over the static-import graph. */
+function createTransitiveReducer(graph: Record<string, QwikBundle>) {
+  const { componentOf, successors } = condenseImportGraph(graph);
+  const reachOf = createReachability(successors);
 
   return (ownerDeps: Set<string>, ownerBundle: string) => {
     const owner = componentOf.get(ownerBundle)!;

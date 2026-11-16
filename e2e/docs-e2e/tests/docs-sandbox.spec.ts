@@ -52,6 +52,23 @@ test.describe('Sandbox smoke tests', () => {
       );
     });
 
+    test('output tabs list the client bundles and SSR module', async ({ page }) => {
+      await page.goto('/playground/');
+      const preview = page.locator('iframe').contentFrame();
+      await expect(preview.locator('body')).not.toBeEmpty();
+      await expect(preview.getByRole('heading', { name: / Error$/ })).toHaveCount(0);
+
+      // Each panel shows its own header only when it lists outputs.
+      for (const [tab, header] of [
+        ['Client Bundles', '/dist/'],
+        ['SSR Module', '/server/'],
+      ]) {
+        await page.getByRole('button', { name: tab, exact: true }).click();
+        await expect(page.locator('.output-modules .file-tree-header')).toHaveText(header);
+        await expect(page.locator('.output-modules .file-item').first()).toBeVisible();
+      }
+    });
+
     test('counter click works in REPL', async ({ page }) => {
       await page.goto('/examples/reactivity/counter/');
 
@@ -97,6 +114,36 @@ test.describe('Sandbox smoke tests', () => {
       await expect
         .poll(async () => (await code.innerText()).length)
         .toBeGreaterThan(truncatedLength);
+    });
+
+    test('an expanded bundle stays expanded when switching output tabs', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+      const toggle = page.locator('.output-modules .file-toggle-button').first();
+      await toggle.click();
+      await expect(toggle).toHaveText('Show less');
+
+      await page.getByRole('button', { name: 'SSR Module', exact: true }).click();
+      await expect(page.locator('.output-modules .file-tree-header')).toHaveText('/server/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      await expect(toggle).toHaveText('Show less');
+    });
+
+    test('an expanded bundle stays expanded when the playground rebuilds', async ({ page }) => {
+      await page.goto('/playground/');
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+      const toggle = page.locator('.output-modules .file-toggle-button').first();
+      await toggle.click();
+      await expect(toggle).toHaveText('Show less');
+
+      const rebuilt = page.waitForEvent('console', (msg) => msg.text().includes('Client build:'));
+      await page.getByRole('button', { name: 'Options' }).click();
+      await page.getByLabel('Debug').click();
+      await rebuilt;
+      await page.getByRole('button', { name: 'Client Bundles' }).click();
+
+      await expect(toggle).toHaveText('Show less');
     });
   });
 });

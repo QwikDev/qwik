@@ -1,3 +1,5 @@
+import { loadReportScope } from '~/db/report-scope';
+import ReportGuide from '~/components/report-guide';
 import { component$, useSignal } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import { and, desc, eq, gte } from 'drizzle-orm';
@@ -18,13 +20,18 @@ export const head: DocumentHead = {
   title: 'Errors | Qwik Insights',
 };
 
-export const useErrors = routeLoader$(async ({ params }) => {
+export const useErrors = routeLoader$(async ({ params, query }) => {
+  const { selectedHash } = await loadReportScope(getDB(), params.publicApiKey, query);
+  if (!selectedHash) {
+    return { groups: [], hasMore: false };
+  }
   const errors: ErrorRow[] = await getDB()
     .select()
     .from(errorTable)
     .where(
       and(
         eq(errorTable.publicApiKey, params.publicApiKey),
+        eq(errorTable.manifestHash, selectedHash),
         gte(errorTable.timestamp, getErrorSince())
       )
     )
@@ -64,6 +71,7 @@ const ErrorsView = component$<{
       <p class="mt-editorial-1 text-editorial-14 text-editorial-secondary">
         Track recurring failures by source, route, and manifest.
       </p>
+      <ReportGuide report="errors" />
 
       <div class="mt-editorial-8 flex flex-wrap items-baseline gap-x-editorial-2 gap-y-editorial-1 border-b border-editorial-border pb-editorial-3">
         <strong class="text-editorial-24 font-semibold text-editorial-danger">
@@ -218,7 +226,7 @@ const ErrorsView = component$<{
       ) : (
         <section class="py-editorial-16" aria-labelledby="empty-errors-title">
           <h2 id="empty-errors-title" class="text-editorial-24 font-semibold">
-            No errors recorded in the last 30 days
+            No errors recorded for this build in the last 30 days
           </h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
             New runtime errors will appear here automatically.

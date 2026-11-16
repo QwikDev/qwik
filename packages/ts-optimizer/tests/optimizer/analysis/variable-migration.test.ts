@@ -19,7 +19,7 @@ function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): Modul
     isExported: false,
     isDirectlyExported: false,
     hasSideEffects: false,
-    isPartOfSharedDestructuring: false,
+    sharesStatement: false,
     kind: 'const',
     hasRouterMarkerInit: false,
     ...overrides,
@@ -105,7 +105,7 @@ describe('analyzeMigration', () => {
   });
 
   it('Test 6: destructuring with shared bindings => reexport (MIG-05)', () => {
-    const decls = [makeDecl({ name: 'a', isPartOfSharedDestructuring: true })];
+    const decls = [makeDecl({ name: 'a', sharesStatement: true })];
     const segmentUsage = new Map([['seg1', new Set(['a'])]]);
     const rootUsage = new Set<string>();
 
@@ -118,8 +118,8 @@ describe('analyzeMigration', () => {
 
   it('Test 6a: shared destructure all flowing to one segment => move (MIG-05a)', () => {
     const decls = [
-      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
-      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'a', sharesStatement: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', sharesStatement: true, declStart: 10, declEnd: 30 }),
     ];
     const segmentUsage = new Map([['seg1', new Set(['a', 'b'])]]);
     const rootUsage = new Set<string>();
@@ -135,8 +135,8 @@ describe('analyzeMigration', () => {
 
   it('Test 6b: shared destructure split across segments => reexport', () => {
     const decls = [
-      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
-      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'a', sharesStatement: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', sharesStatement: true, declStart: 10, declEnd: 30 }),
     ];
     const segmentUsage = new Map([
       ['seg1', new Set(['a'])],
@@ -152,8 +152,8 @@ describe('analyzeMigration', () => {
 
   it('Test 6c: shared destructure with one binding used by root => reexport', () => {
     const decls = [
-      makeDecl({ name: 'a', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
-      makeDecl({ name: 'b', isPartOfSharedDestructuring: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'a', sharesStatement: true, declStart: 10, declEnd: 30 }),
+      makeDecl({ name: 'b', sharesStatement: true, declStart: 10, declEnd: 30 }),
     ];
     const segmentUsage = new Map([['seg1', new Set(['a'])]]);
     const rootUsage = new Set(['b']);
@@ -291,12 +291,12 @@ describe('collectModuleLevelDecls', () => {
 
     expect(decls).toHaveLength(2);
     expect(decls[0].name).toBe('a');
-    expect(decls[0].isPartOfSharedDestructuring).toBe(true);
+    expect(decls[0].sharesStatement).toBe(true);
     expect(decls[1].name).toBe('b');
-    expect(decls[1].isPartOfSharedDestructuring).toBe(true);
+    expect(decls[1].sharesStatement).toBe(true);
   });
 
-  it('handles FunctionDeclaration', () => {
+  it('collects a function declaration as side-effect free', () => {
     const code = 'function greet(name) { return "hi " + name; }';
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);
@@ -335,14 +335,25 @@ describe('collectModuleLevelDecls', () => {
     expect(decls[0].hasSideEffects).toBe(true);
   });
 
-  it('collects single-binding destructuring as NOT shared', () => {
+  it('does not mark a single-binding destructuring as shared', () => {
     const code = 'const { a } = obj;';
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);
 
     expect(decls).toHaveLength(1);
     expect(decls[0].name).toBe('a');
-    expect(decls[0].isPartOfSharedDestructuring).toBe(false);
+    expect(decls[0].sharesStatement).toBe(false);
+  });
+
+  it("records where a declaration's value starts, and none for a function declaration", () => {
+    const code = 'const Inner = component$(() => null);\nfunction Row() {}';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(2);
+    expect(decls[0].initStart).toBe(code.indexOf('component$('));
+    expect(decls[1].name).toBe('Row');
+    expect(decls[1].initStart).toBeUndefined();
   });
 });
 

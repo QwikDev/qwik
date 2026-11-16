@@ -180,6 +180,12 @@ class BinaryDeserializationHandler implements ProxyHandler<object> {
       const value = reader.$restoreRoot$(container, i);
       this.$markRestored$(i, value);
       return value;
+    } catch (error) {
+      // A half-filled root must not be handed out; the next read fails again.
+      this.$isRestored$[i] = 0;
+      target[i] = undefined;
+      reader.$restoredByOffset$?.clear();
+      throw error;
     } finally {
       endDeserialization(container, isOutermost);
     }

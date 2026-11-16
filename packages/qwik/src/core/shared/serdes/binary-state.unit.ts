@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createSerializationContext } from '../../../serializer';
 import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
@@ -539,6 +539,31 @@ describe('binary state', () => {
       writer.$endArray$(0, 1);
       writer.$finish$();
       expect(() => restore(script)[0]).toThrow('Invalid Object payload');
+    });
+
+    it('rejects a broken root again when it is read again', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$string$('ab');
+      writer.$type$(TypeIds.Object);
+      const itemStart = writer.$length$;
+      writer.$string$('x');
+      writer.$endArray$(itemStart, 1);
+      writer.$endArray$(0, 2);
+      writer.$endArray$(0, 1);
+      writer.$finish$();
+      const reader = new BinaryStateReader(script);
+      const restoredByOffset = (reader.$restoredByOffset$ = new Map());
+      const state = wrapBinaryStateProxy({ $storeProxyMap$: new WeakMap() } as any, reader);
+      const rememberValue = vi.spyOn(restoredByOffset, 'set');
+
+      expect(() => state[0]).toThrow('Invalid Object payload');
+      expect(() => state[0]).toThrow('Invalid Object payload');
+      // A later patch must not find values of the broken root.
+      expect(rememberValue).toHaveBeenCalled();
+      expect(restoredByOffset.size).toBe(0);
     });
 
     it('rejects an array made from a string', () => {

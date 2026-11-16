@@ -3,7 +3,7 @@ import { _requestPreload as preload } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';
-import { loadRoute } from './routing';
+import { loadRoute, matchRouteTree } from './routing';
 import type { LoadedRoute, RouteModule } from './types';
 
 /**
@@ -32,15 +32,11 @@ export async function prefetchRoute(
 
   try {
     const { routes, cacheModules } = await getRouterConfig();
-    const loadedRoute = await loadRoute(routes, cacheModules, url.pathname);
-    if (!loadedRoute) {
-      return;
-    }
 
     if (prefetchBundle) {
       // Preload JS bundles using the route NAME (not pathname) — the bundle graph
       // is keyed by route name (e.g. "products/[id]/") not actual path
-      let routeName = loadedRoute.$routeName$;
+      let routeName = '/' + matchRouteTree(routes, url.pathname).routeParts.join('/');
       routeName = ensureSlash(routeName);
       if (routeName.length > 1 && routeName.startsWith('/')) {
         routeName = routeName.slice(1);
@@ -49,6 +45,11 @@ export async function prefetchRoute(
     }
 
     if (!prefetchData || !manifestHash) {
+      return;
+    }
+
+    const loadedRoute = await loadRoute(routes, cacheModules, url.pathname);
+    if (!loadedRoute) {
       return;
     }
 

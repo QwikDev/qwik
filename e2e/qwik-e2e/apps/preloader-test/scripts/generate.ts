@@ -522,6 +522,7 @@ const HAND_WRITTEN = [
   { group: 'navigation', href: '/navigation/from/off/', label: 'from (prefetch off)' },
   { group: 'navigation', href: '/navigation/from/visible/', label: 'from (prefetch visible)' },
   { group: 'navigation', href: '/navigation/from/intent/', label: 'from (prefetch intent)' },
+  { group: 'navigation', href: '/navigation/from/nav/', label: 'from (nav() in a button)' },
   { group: 'navigation', href: '/navigation/action/', label: 'form action' },
   { group: 'harness', href: '/harness/import-chain/', label: 'import chain' },
 ];

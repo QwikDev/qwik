@@ -22,7 +22,7 @@ import {
   openFixture,
 } from '../utils/scenarios';
 
-const FROM: Record<'off' | 'visible' | 'intent', Fixture> = {
+const FROM: Record<'off' | 'visible' | 'intent' | 'nav', Fixture> = {
   off: { id: 'navigation/from-off', path: '/navigation/from/off/', sources: NAVIGATION_SOURCES },
   visible: {
     id: 'navigation/from-visible',
@@ -34,6 +34,7 @@ const FROM: Record<'off' | 'visible' | 'intent', Fixture> = {
     path: '/navigation/from/intent/',
     sources: NAVIGATION_SOURCES,
   },
+  nav: { id: 'navigation/from-nav', path: '/navigation/from/nav/', sources: NAVIGATION_SOURCES },
 };
 const TO_TREE: Fixture = {
   id: 'navigation/to-tree',
@@ -141,6 +142,41 @@ test.describe('cold SPA navigation', () => {
       "on main, the route's entry in the bundle graph lists the layout's module, so every chunk under the layout goes out at the highest priority"
     );
     expect(layoutComponentChunks).toEqual([]);
+  });
+});
+
+const navigateToTreeWithNav = async (page: Page) => {
+  const opened = await openFixture(page, FROM.nav, 'cold');
+  const roundTrips = await countFixtureRoundTrips(
+    opened,
+    () => fixtureRoot(page, FROM.nav).locator('[data-testid=nav-tree]').click(),
+    resultIsDone(fixtureResult(page, TO_TREE))
+  );
+  return { ...opened, roundTrips };
+};
+
+test.describe('cold navigation with nav()', () => {
+  test("the new page's modules and render chunks go out in the same round trip", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await navigateToTreeWithNav(page);
+    await releaseAll(gate);
+    await expectResult(page, TO_TREE);
+    const withNewPageChunks = roundTrips.filter((roundTrip) =>
+      roundTrip.urls.some((url) => chunkComesFrom(url, TO_TREE_SOURCES))
+    );
+    expect(withNewPageChunks).toHaveLength(1);
+  });
+
+  test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
+    const { gate, roundTrips } = await navigateToTreeWithNav(page);
+    await releaseAll(gate);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips, {
+      roundTrips: 4,
+      reason:
+        "over the cap on main: the handler, the router's navigation code, then the router config each cost a round trip before the new page's chunks",
+    });
   });
 });
 

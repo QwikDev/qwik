@@ -410,8 +410,14 @@ function* inflateRestoredIterator(
     case TypeIds.FormData: {
       const formData = target as FormData;
       const d = data as any[];
-      for (let i = 0; i < d.length; i++) {
-        formData.append(d[i++], d[i]);
+      for (let i = 0; i < d.length; i += 2) {
+        const name = d[i];
+        const value = d[i + 1];
+        // Anything else is turned into a string by append, at a cost the input does not show.
+        if (typeof name !== 'string' || typeof value !== 'string') {
+          throw new Error('Invalid FormData payload');
+        }
+        formData.append(name, value);
         yield;
       }
       break;

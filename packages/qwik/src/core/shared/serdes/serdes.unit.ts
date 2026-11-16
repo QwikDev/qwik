@@ -2680,6 +2680,19 @@ describe('serializer - internal', () => {
       'Invalid Object payload'
     );
   });
+  it('rejects FormData entries that are not strings', async () => {
+    const entries = [TypeIds.Plain, 'name', TypeIds.Array, [TypeIds.Plain, 1]];
+    await expect(_deserialize(JSON.stringify([TypeIds.FormData, entries]))).rejects.toThrow(
+      'Invalid FormData payload'
+    );
+  });
+  it('restores FormData', async () => {
+    const formData = new FormData();
+    formData.append('name', 'value');
+    formData.append('name', 'second');
+    const restored = (await _deserialize(await _serialize(formData))) as FormData;
+    expect(restored.getAll('name')).toEqual(['value', 'second']);
+  });
   it('preserves trailing undefined Object properties', async () => {
     const value = await _deserialize(JSON.stringify([TypeIds.Object, [TypeIds.Plain, 'key']]));
     expect(value).toStrictEqual({ key: undefined });

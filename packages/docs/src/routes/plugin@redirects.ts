@@ -17,6 +17,11 @@ export const onGet = ({ url, redirect }: RequestEvent) => {
       throw redirect(308, pathname.replace(path, replacement));
     }
   };
+  const exampleMatch = pathname.match(/^\/examples\/[^/]+\/([^/]+)\/?$/);
+  if (exampleMatch) {
+    const example = exampleMatch[1];
+    throw redirect(308, example === 'hello-world' ? '/playground/' : `/playground/${example}/`);
+  }
   rewritePrefix('/docs/components/', '/docs/core/');
   rewritePrefix('/deployments/', '/docs/deployments/');
   rewritePrefix('/integrations/', '/docs/integrations/');
@@ -27,8 +32,6 @@ const tempRedirects: Record<string, string> = {
   '/chat': 'https://discord.gg/TsNCMd6uGW',
   '/chat/': 'https://discord.gg/TsNCMd6uGW',
 
-  '/examples': '/examples/introduction/hello-world/',
-  '/examples/': '/examples/introduction/hello-world/',
   '/guide': '/docs/',
   '/guide/': '/docs/',
   '/tutorial': '/tutorial/welcome/overview/',
@@ -38,6 +41,9 @@ const tempRedirects: Record<string, string> = {
 };
 
 const redirects: Record<string, string> = {
+  '/examples': '/playground/',
+  '/examples/': '/playground/',
+
   '/tutorial/hooks/use-client-effect/': '/tutorial/hooks/use-visible-task/',
 
   '/integrations/deployments/azure-swa/': '/deployments/azure-swa/',

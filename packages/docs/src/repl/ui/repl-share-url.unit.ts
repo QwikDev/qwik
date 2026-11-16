@@ -228,3 +228,22 @@ export default component$(() => {
     ])
   );
 });
+
+test('createPlaygroundShareUrl omits files that match the example', () => {
+  assert.equal(
+    createPlaygroundShareUrl(data, '/playground/counter/', data.files),
+    '/playground/counter/#v=1.2.3'
+  );
+  assert.equal(
+    createPlaygroundShareUrl({ ...data, version: 'bundled' }, '/playground/', data.files),
+    '/playground/'
+  );
+});
+
+test('parsePlaygroundShareUrl keeps options when the files are omitted', () => {
+  expect(parsePlaygroundShareUrl('v=1.2.3&buildMode=production')).toMatchObject({
+    version: '1.2.3',
+    buildMode: 'production',
+    files: [],
+  });
+});

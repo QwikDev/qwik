@@ -278,7 +278,7 @@ class BinaryDeserializationHandler extends DeserializationHandler {
     }
     const i = toRootIndex(property);
     if (this.$reader$ && !(Number.isNaN(i) || i < 0 || i >= this.$isRestored$.length)) {
-      this.$isRestored$[i] = 1;
+      this.$markRestored$(i, value);
     }
     return out;
   }

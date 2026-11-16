@@ -196,6 +196,17 @@ describe('binary state', () => {
       expect(restoredRoots(state)).toEqual([]);
     });
 
+    it('counts a root that is written before it is read as restored', async () => {
+      const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
+      const most = Array.from({ length: 20000 }, (_, i) => ({ i }));
+      const state = await roundTrip(leftover, most, { small: 1 });
+      // nothing needs the text of the big root anymore, so reading the small one crosses 90%
+      state[1] = 'replaced';
+      state[2];
+      await vi.waitFor(() => expect(restoredRoots(state)[0]).toEqual(leftover));
+      expect(state[1]).toBe('replaced');
+    });
+
     it('restores the rest in the background once 90% is restored', async () => {
       const leftover = Array.from({ length: 1000 }, (_, i) => ({ i }));
       const most = Array.from({ length: 20000 }, (_, i) => ({ i }));

@@ -174,9 +174,6 @@ function* inflateIterator(
     // Already processed
     return;
   }
-  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
-    throw new Error('Invalid Object payload');
-  }
   const serializedPayload =
     __EXPERIMENTAL__.pendingBoundary && container.$streamingObjectRefs$ ? data : undefined;
   // Restore the complex data, special case for Array
@@ -237,6 +234,9 @@ function* inflateRestoredIterator(
     case TypeIds.Object:
       if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
+      }
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid Object payload');
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as unknown[])[i];

@@ -17,9 +17,18 @@ const runRedirect = (pathname: string) => {
 
 describe('plugin redirects', () => {
   it('redirects temporary docs routes without whitespace mismatches', () => {
-    expect(runRedirect('/examples')).toEqual({
-      status: 307,
-      location: '/examples/introduction/hello-world/',
+    expect(runRedirect('/guide')).toEqual({ status: 307, location: '/docs/' });
+  });
+
+  it('redirects examples to the playground', () => {
+    expect(runRedirect('/examples')).toEqual({ status: 308, location: '/playground/' });
+    expect(runRedirect('/examples/introduction/hello-world/')).toEqual({
+      status: 308,
+      location: '/playground/',
+    });
+    expect(runRedirect('/examples/reactivity/counter/')).toEqual({
+      status: 308,
+      location: '/playground/?example=counter',
     });
   });
 

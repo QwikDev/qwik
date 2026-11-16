@@ -2,7 +2,19 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Sandbox smoke tests', () => {
   test('counter example page loads', async ({ page }) => {
+    await page.goto('/playground/?example=counter');
+    await expect(page).toHaveTitle(/Counter/);
+  });
+
+  test('old example URLs open the example in the playground', async ({ page }) => {
     await page.goto('/examples/reactivity/counter/');
+    await expect(page).toHaveURL(/\/playground\/\?example=counter$/);
+  });
+
+  test('choosing an example keeps the URL free of code', async ({ page }) => {
+    await page.goto('/playground/');
+    await page.getByLabel('Choose an example').selectOption('counter');
+    await expect(page).toHaveURL(/\/playground\/\?example=counter$/);
     await expect(page).toHaveTitle(/Counter/);
   });
 
@@ -70,7 +82,7 @@ test.describe('Sandbox smoke tests', () => {
     });
 
     test('counter click works in REPL', async ({ page }) => {
-      await page.goto('/examples/reactivity/counter/');
+      await page.goto('/playground/?example=counter');
 
       // The REPL renders the app inside a single iframe
       const replFrame = page.locator('iframe').contentFrame();

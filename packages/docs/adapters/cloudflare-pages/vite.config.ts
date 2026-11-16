@@ -15,7 +15,8 @@ export default extendConfig(baseConfig, () => {
       cloudflarePagesAdapter({
         ssg: {
           include: ['/', '/*'],
-          exclude: ['/demo/*', '/shop/*'],
+          // The playground reads `?example=` on the server.
+          exclude: ['/demo/*', '/shop/*', '/playground/'],
           // v2 docs are served from next.qwik.dev; qwik.dev still serves v1.
           origin: process.env.QWIK_DOCS_ORIGIN || 'https://next.qwik.dev',
         },

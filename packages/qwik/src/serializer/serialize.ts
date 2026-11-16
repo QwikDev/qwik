@@ -495,7 +495,7 @@ export class Serializer {
       if (typeof value === 'number') {
         binary.$number$(value);
       } else if (typeof value === 'string') {
-        binary.$string$(value);
+        binary.$string$(value, type !== TypeIds.Plain);
       } else {
         const start = binary.$length$;
         const itemCount = this.outputArray(value as any[], !!keepUndefined, (valueItem, idx) => {

@@ -146,9 +146,12 @@ export class BinaryStateWriter {
     this.$push$(BinaryCode.Float);
   }
 
-  $string$(value: string): void {
+  /** @param isTypedPayload Whether a typed value, such as a URL, is made from the string. */
+  $string$(value: string, isTypedPayload = false): void {
     const stringEnds = this.$stream$.$stringEnds$;
-    const isRepeatable = value.length > BinaryCode.MaxRepeatedStringLength;
+    const isRepeatable =
+      value.length > BinaryCode.MaxRepeatedStringLength &&
+      !(isTypedPayload && value.length > BinaryCode.MaxSharedPayloadLength);
     const writtenEnd = isRepeatable ? stringEnds.get(value) : undefined;
     if (writtenEnd !== undefined) {
       return this.$uint$(writtenEnd, BinaryCode.StrAt1, 4);

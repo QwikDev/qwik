@@ -52,6 +52,11 @@ export const enum BinaryCode {
   MaxUnsizedItems = 8,
   /** Strings up to this length are written again instead of referred to. */
   MaxRepeatedStringLength = 3,
+  /**
+   * A longer string is written again for every typed value made from it, so that the stream grows
+   * with the work of parsing it.
+   */
+  MaxSharedPayloadLength = 64,
   /** The reader's index of shared values holds root ids below this. */
   MaxRoots = 0x100000,
 }
@@ -553,8 +558,13 @@ export class BinaryStateReader {
       const payload = this.$restore$(container, -1, false);
       const resume = this.$pos$;
       if (typeof payload === 'string') {
-        // A referenced string is read once, but every value made from it parses it again.
-        this.$charge$(payload.length);
+        if (payload.length > BinaryCode.MaxSharedPayloadLength) {
+          // A referenced string is read once, but every value made from it parses it again.
+          this.$charge$(payload.length);
+        }
+      } else if (typeof payload !== 'number') {
+        // Anything else would go through the inflate of JSON state, which is not counted.
+        throw qError(QError.serializeErrorNotImplemented, [typeId]);
       }
       const value = allocate(container, typeId, payload);
       if (needsInflation(typeId)) {

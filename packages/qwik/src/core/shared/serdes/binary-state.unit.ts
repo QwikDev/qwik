@@ -448,6 +448,13 @@ describe('binary state', () => {
     expect(restoredTree).toBe(restoredById[99]);
   });
 
+  it('restores many values made from the same long string', async () => {
+    const href = 'https://qwik.dev/' + 'path/'.repeat(200);
+    const urls = Array.from({ length: 50 }, () => new URL(href));
+    const [restored] = (await roundTrip(urls)) as [URL[]];
+    expect(restored.map(String)).toEqual(urls.map(String));
+  });
+
   describe('crafted state whose roots read the same units over and over', () => {
     const ROOT_COUNT = 60;
     /** Writes a value, then roots that are all that same value, which written state never has. */
@@ -493,13 +500,30 @@ describe('binary state', () => {
         script += text;
       });
       const query = 'a&'.repeat(500);
-      // the string is written once; every later use refers to it
+      // written state repeats a long string for every value made from it; this refers to it
       for (let i = 0; i < 100; i++) {
         writer.$string$(query);
         writer.$type$(TypeIds.URLSearchParams);
       }
       writer.$endArray$(0, 100);
       writer.$endArray$(0, 1);
+      writer.$finish$();
+      expect(() => restore(script)[0]).toThrow();
+    });
+
+    it('rejects a typed value made from another root', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      // an array that the inflate of JSON state would read as typeId/value pairs
+      writer.$rootRef$(1);
+      writer.$type$(TypeIds.Array);
+      const pairsStart = writer.$length$;
+      writer.$number$(0);
+      writer.$number$(0);
+      writer.$endArray$(pairsStart, 2);
+      writer.$endArray$(0, 2);
       writer.$finish$();
       expect(() => restore(script)[0]).toThrow();
     });

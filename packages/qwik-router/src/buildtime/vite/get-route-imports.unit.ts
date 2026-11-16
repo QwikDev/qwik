@@ -14,6 +14,28 @@ describe('modifyBundleGraph', () => {
     expect(Object.keys(getRouteImports(routes, manifest))).toEqual(['docs/[...slug]/']);
   });
 
+  test('lets the preloader follow the router config from the bundle that imports it', () => {
+    const size = 0;
+    const total = 0;
+    const manifest = {
+      bundles: {
+        'router.js': {
+          size,
+          total,
+          imports: ['core.js'],
+          dynamicImports: ['q-router-config.js', 'http-error.js', 'loader-signal.js'],
+          qrlImports: ['loader-signal.js'],
+        },
+        'q-router-config.js': { size, total, origins: ['@qwik-router-config'] },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    const routerBundle = getRouteImports([], manifest)['router.js'];
+
+    expect(routerBundle.imports).toEqual(['core.js']);
+    expect(routerBundle.dynamicImports).toEqual(['loader-signal.js', 'q-router-config.js']);
+  });
+
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {

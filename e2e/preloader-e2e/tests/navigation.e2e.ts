@@ -1,5 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom, chunkHoldsModule, chunkHoldsSegmentsFrom } from '../utils/app';
+import {
+  bundleFile,
+  chunkComesFrom,
+  chunkHoldsModule,
+  chunkHoldsSegmentsFrom,
+  getManifest,
+} from '../utils/app';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
 import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
@@ -13,6 +19,7 @@ import {
   releaseAll,
   resultIsDone,
   waitForNetworkIdle,
+  type RoundTrip,
 } from '../utils/gate';
 import {
   countFixtureRoundTrips,
@@ -67,6 +74,16 @@ const TO_TREE_SOURCES = [
 
 const LAYOUT_COMPONENT_SOURCES = [FILLER, 'src/components/sidebar/', 'src/routes/layout.tsx_'];
 
+const isRouterConfig = (url: string) => chunkHoldsModule(url, '@qwik-router-config');
+
+const isRouterNavigationCode = (url: string) =>
+  !!getManifest().bundles[bundleFile(url)]?.origins?.some((origin) =>
+    origin.includes('_useQwikRouter_goto_')
+  );
+
+const roundTripOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean) =>
+  roundTrips.findIndex((roundTrip) => roundTrip.urls.some(isWanted));
+
 const treeLink = (page: Page, from: Fixture) =>
   fixtureRoot(page, from).locator('[data-testid=link-tree]');
 
@@ -118,13 +135,17 @@ test.describe('cold SPA navigation', () => {
   }) => {
     const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate);
-    const roundTripOf = (modulePath: string) =>
-      roundTrips.findIndex((roundTrip) =>
-        roundTrip.urls.some((url) => chunkHoldsModule(url, modulePath))
-      );
-    expect(roundTripOf('@qwik-router-config')).toBe(1);
-    expect(roundTripOf('src/routes/layout.tsx')).toBe(1);
-    expect(roundTripOf(TO_TREE_MODULE)).toBe(1);
+    const roundTripOfModule = (modulePath: string) =>
+      roundTripOf(roundTrips, (url) => chunkHoldsModule(url, modulePath));
+    expect(roundTripOf(roundTrips, isRouterNavigationCode)).toBe(1);
+    expect(roundTripOfModule('src/routes/layout.tsx')).toBe(1);
+    expect(roundTripOfModule(TO_TREE_MODULE)).toBe(1);
+  });
+
+  test("the router config goes out with the Link's click handler", async ({ page }) => {
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
+    expect(roundTripOf(roundTrips, isRouterConfig)).toBe(0);
   });
 
   test("a navigation to a page with the same layout fetches none of the layout's component chunks", async ({
@@ -168,14 +189,22 @@ test.describe('cold navigation with nav()', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test('the new page shows in 4 round trips, over the cap of 2', async ({ page }) => {
+  test("the router config goes out with the router's navigation code", async ({ page }) => {
+    const { gate, roundTrips } = await navigateToTreeWithNav(page);
+    await releaseAll(gate);
+    const navigationCodeRoundTrip = roundTripOf(roundTrips, isRouterNavigationCode);
+    expect(navigationCodeRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(roundTripOf(roundTrips, isRouterConfig)).toBe(navigationCodeRoundTrip);
+  });
+
+  test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
     const { gate, roundTrips } = await navigateToTreeWithNav(page);
     await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {
-      roundTrips: 4,
+      roundTrips: 3,
       reason:
-        "over the cap on main: the handler, the router's navigation code, then the router config each cost a round trip before the new page's chunks",
+        "over the cap on main: the handler, then the router's navigation code, each cost a round trip before the new page's chunks",
     });
   });
 });
@@ -188,10 +217,7 @@ test.describe('warm SPA navigation', () => {
     const jsRequests = roundTrips.flatMap((roundTrip) =>
       roundTrip.urls.filter((url) => new URL(url).pathname.endsWith('.js'))
     );
-    test.fail(
-      true,
-      "on main, the router's navigation code (@qwik-router-config, useQwikRouter) is never preloaded"
-    );
+    test.fail(true, "on main, the router's navigation code (useQwikRouter) is never preloaded");
     expect(jsRequests).toEqual([]);
   });
 });
@@ -223,7 +249,7 @@ test.describe('navigation to a page with a routeLoader$', () => {
     expect(dataRoundTrip).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
-      "on main, the loader's paths come from the router config, which loads with the render chunks, so the data goes out a round trip later"
+      "on main, the router's navigation code fetches the loader's data, and it loads with the render chunks, so the data goes out a round trip later"
     );
     expect(dataRoundTrip).toBe(renderRoundTrip);
   });
@@ -305,12 +331,12 @@ const submitAction = async (page: Page) => {
 };
 
 test.describe('form action', () => {
-  test("the action's result shows in 6 round trips, over the cap of 2", async ({ page }) => {
+  test("the action's result shows in 5 round trips, over the cap of 2", async ({ page }) => {
     const roundTrips = await submitAction(page);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expectRoundTrips(roundTrips, {
-      roundTrips: 6,
-      reason: 'over the cap on main: the action request waits for 5 round trips of router code',
+      roundTrips: 5,
+      reason: 'over the cap on main: the action request waits for 4 round trips of router code',
     });
   });
 });

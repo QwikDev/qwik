@@ -51,6 +51,8 @@ export interface ErrorMessage extends MessageBase {
   buildId: number;
   error: string;
   stack?: string;
+  /** The optimizer failed to load, so this worker can't build anymore. */
+  isFatal?: boolean;
 }
 
 type IncomingMessage = InitMessage | BundleMessage;
@@ -60,7 +62,6 @@ let qwikOptimizerModule: typeof import('@qwik.dev/optimizer') | null = null;
 let qwikViteModule: typeof import('@qwik.dev/core/optimizer') | null = null;
 let binding: any = null;
 let loaded: Promise<void> | null = null;
-let rustOptimizer = false;
 let deps: PkgUrls;
 
 self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
@@ -69,14 +70,19 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   switch (type) {
     case 'init':
       deps = e.data.deps;
-      rustOptimizer = e.data.rustOptimizer;
-      // Start loading eagerly; a failure is reported by the next build.
-      ensureOptimizer().catch(() => {});
+      loaded = loadOptimizer(e.data.rustOptimizer);
+      // A failure is reported by the next build.
+      loaded.catch(() => {});
       break;
 
     case 'bundle':
       try {
-        await ensureOptimizer();
+        await loaded;
+      } catch (error) {
+        postError(e.data.buildId, error, true);
+        break;
+      }
+      try {
         const result = await performBundle(e.data);
         const message: ResultMessage = {
           type: 'result',
@@ -85,14 +91,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
         };
         self.postMessage(message);
       } catch (error) {
-        console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
-        const message: ErrorMessage = {
-          type: 'error',
-          buildId: e.data.buildId,
-          error: (error as Error)?.message || String(error),
-          stack: (error as Error)?.stack,
-        };
-        self.postMessage(message);
+        postError(e.data.buildId, error);
       }
       break;
 
@@ -101,16 +100,19 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   }
 };
 
-let version: number[];
-
-function ensureOptimizer() {
-  // Forget a failed load so the next build retries it.
-  loaded ??= loadOptimizer(rustOptimizer).catch((error) => {
-    loaded = null;
-    throw error;
-  });
-  return loaded;
+function postError(buildId: number, error: unknown, isFatal = false) {
+  console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
+  const message: ErrorMessage = {
+    type: 'error',
+    buildId,
+    error: (error as Error)?.message || String(error),
+    stack: (error as Error)?.stack,
+    isFatal,
+  };
+  self.postMessage(message);
 }
+
+let version: number[];
 
 /**
  * The per-version `ts-optimizer.mjs` imports its runtime deps by bare specifier. A worker has no

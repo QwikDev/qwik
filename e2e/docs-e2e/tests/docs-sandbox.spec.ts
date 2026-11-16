@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.describe('Sandbox smoke tests', () => {
   test('counter example page loads', async ({ page }) => {
@@ -67,6 +67,55 @@ test.describe('Sandbox smoke tests', () => {
         await expect(page.locator('.output-modules .file-tree-header')).toHaveText(header);
         await expect(page.locator('.output-modules .file-item').first()).toBeVisible();
       }
+    });
+
+    test.describe('Rust optimizer', () => {
+      // A share URL is only applied when it carries files; this is the default app.
+      const appFiles = 'f=Q040psaDsymCJ20ZmmJNW6mJuShpCyaIkcZQvETlFIZmKa6UBlQxIlIaAA';
+
+      const failFirstRequest = async (page: Page, url: RegExp) => {
+        let hasFailed = false;
+        await page.context().route(url, (route) => {
+          if (hasFailed) {
+            return route.continue();
+          }
+          hasFailed = true;
+          return route.abort();
+        });
+      };
+
+      const expectRetryRenders = async (page: Page) => {
+        const preview = page.locator('iframe').contentFrame();
+        await expect(preview.getByRole('heading', { name: / Error$/ })).toBeVisible();
+
+        await page.getByRole('button', { name: 'Options', exact: true }).click();
+        await page.getByLabel('Debug').check();
+        await expect(preview.getByRole('heading', { name: / Error$/ })).toHaveCount(0, {
+          timeout: 60_000,
+        });
+        await expect(preview.locator('body')).toContainText('Hello from Qwik');
+      };
+
+      test('builds again after its version lookup fails once', async ({ page }) => {
+        // Without cached npm versions, the REPL swaps a shared version for the bundled one.
+        await page.addInitScript(() => {
+          const npmData = {
+            tags: { latest: '2.0.0-rc.4' },
+            versions: ['2.0.0-rc.4'],
+            timestamp: Date.now(),
+          };
+          localStorage.setItem('qwikNpmData', JSON.stringify(npmData));
+        });
+        await failFirstRequest(page, /\/@qwik\.dev\/core@2\.0\.0-rc\.4\/package\.json$/);
+        await page.goto(`/playground/#v=2.0.0-rc.4&rust=1&${appFiles}`);
+        await expectRetryRenders(page);
+      });
+
+      test('builds again after its loader fails to download once', async ({ page }) => {
+        await failFirstRequest(page, /\/@qwik\.dev\/optimizer@[^/]+\/bindings\/qwik\.wasm\.mjs$/);
+        await page.goto(`/playground/#rust=1&${appFiles}`);
+        await expectRetryRenders(page);
+      });
     });
 
     test('counter click works in REPL', async ({ page }) => {

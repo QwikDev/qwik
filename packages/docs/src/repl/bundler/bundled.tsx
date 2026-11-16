@@ -101,10 +101,13 @@ export const resolveOptimizerVersion = async (qwikVersion: string) => {
     return qwikVersion;
   }
   const pkgUrl = getNpmCdnUrl(bundled, QWIK_PKG_NAME_V2, qwikVersion, '/package.json');
-  const pkg = await fetch(pkgUrl)
-    .then((r) => r.json())
-    .catch(() => null);
-  return (pkg?.dependencies?.['@qwik.dev/optimizer'] as string | undefined) ?? qwikVersion;
+  const response = await fetch(pkgUrl);
+  if (!response.ok) {
+    throw new Error(`${pkgUrl}: ${response.status}`);
+  }
+  const pkg = await response.json();
+  // Older cores bundled the optimizer, so its files live at the core version.
+  return (pkg.dependencies?.['@qwik.dev/optimizer'] as string | undefined) ?? qwikVersion;
 };
 
 export const getDeps = (qwikVersion: string, optimizerVersion: string) => {

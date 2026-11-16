@@ -11,6 +11,7 @@ class Bundler {
   public worker: Worker | null = null;
   private initP: Promise<void> | null = null;
   private ready: (() => void) | null = null;
+  private failInit: ((error: Error) => void) | null = null;
 
   timer: any = null;
   buildPromises = new Map<
@@ -28,7 +29,12 @@ class Bundler {
   }
 
   initWorker() {
-    this.initP = new Promise<void>((res) => (this.ready = res));
+    this.initP = new Promise<void>((res, rej) => {
+      this.ready = res;
+      this.failInit = rej;
+    });
+    // Builds see the rejection; this only silences it when no build is waiting.
+    this.initP.catch(() => {});
     // Start from /repl so repl-sw can add COEP headers
     this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
@@ -45,11 +51,23 @@ class Bundler {
     const { type } = e.data;
     if (type === 'ready') {
       const { version, rustOptimizer } = this;
+      let optimizerVersion: string;
+      try {
+        optimizerVersion = await resolveOptimizerVersion(version);
+      } catch (error) {
+        if (rustOptimizer) {
+          // Retry the lookup in a fresh worker on the next build.
+          this.terminateWorker(error as Error);
+          return;
+        }
+        // The TS optimizer doesn't need it; only its Rust fallback would.
+        optimizerVersion = version;
+      }
       const message: InitMessage = {
         type: 'init',
         version,
         rustOptimizer,
-        deps: getDeps(version, await resolveOptimizerVersion(version)),
+        deps: getDeps(version, optimizerVersion),
       };
       this.worker?.postMessage(message);
       this.ready!();
@@ -61,12 +79,16 @@ class Bundler {
         if (type === 'result') {
           promise.resolve(e.data.result);
         } else {
-          const { error, stack } = e.data;
+          const { error, stack, isFatal } = e.data;
           const err = new Error(error);
           if (stack) {
             err.stack = stack;
           }
           promise.reject(err);
+          if (isFatal) {
+            // A failed module import stays cached in the worker, so start a fresh one.
+            this.terminateWorker(err);
+          }
         }
       }
     }
@@ -101,6 +123,7 @@ class Bundler {
       this.worker.removeEventListener('message', this.messageHandler);
       this.worker.terminate();
       this.worker = null;
+      this.failInit?.(error);
       this.buildPromises.forEach((p) => p.reject(error));
       this.buildPromises.clear();
       console.debug(`Bundler worker for ${this.version} terminated`);

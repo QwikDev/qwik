@@ -111,9 +111,11 @@ test.describe('gate: cold click', () => {
     expect([...(await speculativePreloads(page))]).toEqual([contexts]);
     const roundTrips = await clickTrigger(opened);
     await releaseAll(opened.gate);
-    const withConsumers = roundTrips.find(({ urls }) =>
+    const consumersRoundTrip = roundTrips.findIndex(({ urls }) =>
       urls.some((url) => contextConsumers.includes(url))
     )!;
-    expect(withConsumers.urls).toContain(contexts);
+    const contextsRoundTrip = roundTrips.findIndex(({ urls }) => urls.includes(contexts));
+    expect(contextsRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(contextsRoundTrip).toBeLessThanOrEqual(consumersRoundTrip);
   });
 });

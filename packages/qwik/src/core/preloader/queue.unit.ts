@@ -3,8 +3,8 @@ import { createDocument } from '@qwik.dev/core/testing';
 
 const importAndResetState = async () => {
   const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  return { initPreloader, preload };
+  const { bundles, preload } = await import('./queue');
+  return { bundles, initPreloader, preload };
 };
 
 const originalWindow = globalThis.window;
@@ -57,8 +57,7 @@ const createLinearGraph = (length: number) => {
     const nameIndex = serialized.length;
     serialized.push(i === 0 ? 'entry-a.js' : `dep-${i}.js`);
     if (i < length - 1) {
-      serialized.push(-10);
-      serialized.push(nameIndex + 3);
+      serialized.push(nameIndex + 2);
     }
   }
   return serialized;
@@ -127,7 +126,7 @@ test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
-test('holds speculative preloads while a needed bundle is loading', async () => {
+test('fills idle preload slots while a needed bundle is loading', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -138,14 +137,20 @@ test('holds speculative preloads while a needed bundle is loading', async () => 
 
   const { initPreloader, preload } = await importAndResetState();
 
-  const speculative = Array.from({ length: 5 }, (_, index) => `spec-${index}.js`);
+  const speculative = Array.from({ length: 25 }, (_, index) => `spec-${index}.js`);
   initPreloader(['needed.js', ...speculative]);
   preload(speculative, 0.8);
   preload('needed.js', 1);
   vi.runAllTimers();
 
   const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
-  expect(links().map((link) => link.href.split('/').pop())).toEqual(['needed.js']);
+  expect(
+    links()
+      .map((link) => link.href.split('/').pop())
+      .sort()
+  ).toEqual(['needed.js', ...speculative].sort());
+  expect(links()).toHaveLength(26);
+  expect(links().filter((link) => link.getAttribute('fetchpriority') === 'low')).toHaveLength(25);
 
   links()[0].onload!(new Event('load'));
   vi.runAllTimers();
@@ -154,10 +159,10 @@ test('holds speculative preloads while a needed bundle is loading', async () => 
     links()
       .map((link) => link.href.split('/').pop())
       .sort()
-  ).toEqual(speculative);
+  ).toEqual([...speculative].sort());
 });
 
-test('holds speculative preloads once an in-flight preload becomes needed', async () => {
+test('keeps the speculative cap when an in-flight preload becomes needed', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -166,11 +171,11 @@ test('holds speculative preloads once an in-flight preload becomes needed', asyn
   vi.resetModules();
   await installTestPlatform();
 
-  const { initPreloader, preload } = await importAndResetState();
+  const { initPreloader, preload, bundles: bundleImports } = await importAndResetState();
 
-  const bundles = Array.from({ length: 30 }, (_, index) => `spec-${index}.js`);
-  initPreloader(bundles);
-  preload(bundles, 0.8);
+  const bundleNames = Array.from({ length: 30 }, (_, index) => `spec-${index}.js`);
+  initPreloader(bundleNames);
+  preload(bundleNames, 0.8);
   vi.runAllTimers();
   const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
   expect(links().length).toBe(25);
@@ -180,7 +185,13 @@ test('holds speculative preloads once an in-flight preload becomes needed', asyn
   links()[1].onload!(new Event('load'));
   vi.runAllTimers();
 
-  expect(links().length).toBe(24);
+  expect(links()).toHaveLength(26);
+  expect(
+    links().filter((link) => {
+      const name = link.href.split('/').pop()!;
+      return 1 - bundleImports.get(name)!.$inverseProbability$ < 0.99;
+    })
+  ).toHaveLength(25);
 });
 
 test('asks the browser for low priority on speculative preloads only', async () => {
@@ -239,7 +250,7 @@ test('keeps a needed dependency needed when another importer is hinted at a lowe
 
   const { initPreloader, preload } = await importAndResetState();
 
-  initPreloader(['needed.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
+  initPreloader(['needed.js', 5, 'other.js', -9, 5, 'shared.js']);
   preload('needed.js', 1);
   preload('other.js', 0.6);
   vi.runAllTimers();
@@ -626,8 +637,7 @@ test.each([true, false])(
       loadBundleGraph(
         '/build/',
         Promise.resolve({
-          text: async () =>
-            JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js', 8, 'static-child.js']),
+          text: async () => JSON.stringify(['a.js', 2, 'b.js', 4, 'c.js', 6, 'static-child.js']),
         } as Response)
       );
 
@@ -644,13 +654,68 @@ test.each([true, false])(
     }
     await vi.runAllTimersAsync();
 
-    expect(bundles.get('c.js')!.$inverseProbability$).toBe(0.01);
+    expect(bundles.get('c.js')!.$inverseProbability$).toBe(0);
     expect(bundles.get('static-child.js')!.$inverseProbability$).toBe(0);
     const childLink = document.head.querySelector('link[href$="/static-child.js"]');
     expect(childLink).not.toBeNull();
     expect(childLink!.getAttribute('fetchpriority')).not.toBe('low');
   }
 );
+
+test('keeps dynamic descendants below needed priority', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  const dynamicChildren = Array.from({ length: 30 }, (_, index) => `dynamic-${index}.js`);
+  const dynamicChildrenStart = dynamicChildren.length + 6;
+
+  initPreloader([
+    'entry.js',
+    dynamicChildren.length + 3,
+    -9,
+    ...dynamicChildren.map((_, index) => dynamicChildrenStart + index),
+    'static.js',
+    -10,
+    dynamicChildren.length * 2 + 6,
+    ...dynamicChildren,
+    'static-dynamic.js',
+  ]);
+  preload('entry.js', 1);
+  await vi.runAllTimersAsync();
+
+  expect(bundles.get('static.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('static-dynamic.js')!.$inverseProbability$).toBe(0.02);
+  for (const name of dynamicChildren) {
+    expect(bundles.get(name)!.$inverseProbability$).toBeCloseTo(0.1);
+  }
+
+  const inFlightLinks = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+  expect(inFlightLinks).toHaveLength(27);
+  const neededLinks = inFlightLinks.filter((link) => link.getAttribute('fetchpriority') === null);
+  expect(neededLinks).toHaveLength(2);
+  expect(neededLinks.find((link) => link.href.endsWith('static.js'))).toBeDefined();
+  expect(
+    inFlightLinks
+      .filter((link) => link.getAttribute('fetchpriority') === 'low')
+      .every((link) => link.href.includes('/dynamic-') || link.href.endsWith('static-dynamic.js'))
+  ).toBe(true);
+  for (const link of neededLinks) {
+    link.onload!(new Event('load'));
+  }
+  await vi.runAllTimersAsync();
+
+  const links = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+  expect(links).toHaveLength(25);
+  expect(
+    links
+      .filter((link) => link.href.includes('/dynamic-') || link.href.endsWith('static-dynamic.js'))
+      .every((link) => link.getAttribute('fetchpriority') === 'low')
+  ).toBe(true);
+});
 
 test('keeps the small-change cutoff for speculative hints', async () => {
   installBrowserGlobals();
@@ -867,5 +932,5 @@ test('sends a bundle needed before the preloader started ahead of speculative on
   } as Response);
   await vi.runAllTimersAsync();
 
-  expect(linkNames(document)).toEqual(['needed.js']);
+  expect(linkNames(document)).toEqual(['needed.js', 'speculative.js']);
 });

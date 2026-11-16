@@ -22,6 +22,8 @@ export type ImportProbability = {
   $name$: string;
   /** Probability */
   $importProbability$: number;
+  /** Whether the edge follows a dynamic-probability marker. */
+  $isDynamic$: boolean;
   /** Probability adjust factor */
   $factor$: number;
 };

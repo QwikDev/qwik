@@ -151,6 +151,8 @@ const TASK_SHIPS_WITH_ITS_COMPONENT =
   "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component";
 const MIDDLE_LINK_LATE =
   'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
+const DYNAMIC_RENDER_DEPENDENCIES =
+  'dynamic render imports stay speculative and load when execution reaches them';
 
 export const NEVER_SHOWS_RESULT: Record<string, string> = {
   'tree/mixed-computed-chain': NEVER_UPDATES,
@@ -179,6 +181,24 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'single/mixed-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
   'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
   'tree-context/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
+  'single/all': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree/render': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree/store-chain': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree/task-chain': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree/all': { roundTrips: 12, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree-context/render': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree-context/store-chain': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree-context/task-chain': { roundTrips: 4, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'tree-context/all': { roundTrips: 12, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/jsx-binding': { roundTrips: 7, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/render': { roundTrips: 8, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/mixed-computed-chain': { roundTrips: 10, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/store-chain': { roundTrips: 10, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/task-chain': { roundTrips: 7, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/computed-chain': { roundTrips: 10, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/async-computed-chain': { roundTrips: 10, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/visible-task-chain': { roundTrips: 8, reason: DYNAMIC_RENDER_DEPENDENCIES },
+  'conditional/all': { roundTrips: 10, reason: DYNAMIC_RENDER_DEPENDENCIES },
 };
 
 export const FETCHES_ITS_COMPONENT_ON_MAIN: Record<string, string> = Object.fromEntries(

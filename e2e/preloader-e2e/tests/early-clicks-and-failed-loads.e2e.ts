@@ -163,20 +163,18 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded as needed`, async ({
+    test(`${arrivesLast}: click chunks are preloaded either as needed or speculatively`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
-      const preloadedAsNeeded = new Set(
-        links.filter((link) => !link.speculative).map((link) => link.href)
-      );
+      const preloaded = new Set(links.map((link) => link.href));
       expect(clickChunks.size).toBeGreaterThan(0);
-      expect([...clickChunks].filter((url) => !preloadedAsNeeded.has(url))).toEqual([]);
+      expect([...clickChunks].filter((url) => !preloaded.has(url))).toEqual([]);
     });
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the needed preloads go out before any speculative preload`, async ({
+    test(`${arrivesLast}: needed click chunks go out before unrelated speculative preloads`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
@@ -185,12 +183,12 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
       );
       const clickLinks = links
         .map((link, index) => ({ link, index }))
-        .filter(({ link }) => clickChunks.has(link.href));
-      const lowOrLate = clickLinks.filter(
-        ({ link, index }) => link.speculative || (firstSpeculative >= 0 && index > firstSpeculative)
+        .filter(({ link }) => clickChunks.has(link.href) && !link.speculative);
+      const lateNeeded = clickLinks.filter(
+        ({ index }) => firstSpeculative >= 0 && index > firstSpeculative
       );
       expect(clickLinks.length).toBeGreaterThan(0);
-      expect(lowOrLate.map(({ link }) => link.href)).toEqual([]);
+      expect(lateNeeded.map(({ link }) => link.href)).toEqual([]);
     });
   }
 });

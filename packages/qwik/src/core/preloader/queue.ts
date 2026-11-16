@@ -33,14 +33,14 @@ const adjustmentStack: AdjustmentFrame[] = [];
 
 const isNeeded = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
 
-// Read live: a speculative preload may since have been requested at probability 1
-const isNeededInFlight = () => {
+const countSpeculativeInFlight = () => {
+  let count = 0;
   for (const bundle of inFlight) {
-    if (isNeeded(bundle)) {
-      return true;
+    if (!isNeeded(bundle)) {
+      count++;
     }
   }
-  return false;
+  return count;
 };
 
 export const sortQueue = () => {
@@ -69,14 +69,12 @@ function trigger() {
   let shouldYield = false;
   while (queue.length) {
     const bundle = queue[0];
-    // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
+    // Needed bundles sort first; speculative preloads fill only the remaining capped slots.
     if (
       isNeeded(bundle) ||
       (!isWaitingForGraph &&
         !adjustmentStack.length &&
-        inFlight.size < config.$maxIdlePreloads$ &&
-        !isNeededInFlight())
+        countSpeculativeInFlight() < config.$maxIdlePreloads$)
     ) {
       queue.shift();
       preloadOne(bundle);
@@ -129,8 +127,8 @@ const processAdjustmentFrame = () => {
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
     if (probability === 1 || probability >= 0.99) {
-      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
-      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+      // A needed bundle guarantees static imports, but dynamic imports remain speculative.
+      newInverseProbability = dep.$isDynamic$ ? Math.max(0.02, 1 - dep.$importProbability$) : 0;
     } else {
       const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
       /** We need to undo the previous adjustment */
@@ -289,7 +287,16 @@ export const preload = (item: string | string[], probability?: number) => {
     handleBundle(item, inverseProbability);
   }
   if (isBrowser) {
-    scheduleAdjustments();
+    const items = Array.isArray(item) ? item : [item];
+    const flushDynamicNeeded =
+      inverseProbability === 0 &&
+      items.some((name) => getBundle(name)?.$deps$?.some((dep) => dep.$isDynamic$));
+    if (flushDynamicNeeded) {
+      processPendingAdjustments();
+      trigger();
+    } else {
+      scheduleAdjustments();
+    }
   } else {
     processPendingAdjustments();
   }

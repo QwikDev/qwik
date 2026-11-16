@@ -135,7 +135,8 @@ const sendHeldPreloadsNeededWith = (page: Page, url: string) => {
   if (!url.startsWith(`${ORIGIN}/build/`)) {
     return;
   }
-  const hrefs = [...neededWith(bundleFile(url))].map((bundle) => `${ORIGIN}/build/${bundle}`);
+  const bundle = bundleFile(url);
+  const hrefs = [bundle, ...neededWith(bundle)].map((name) => `${ORIGIN}/build/${name}`);
   page
     .evaluate((hrefs) => (window as PreloaderWindow).__sendHeldSpeculativePreloads?.(hrefs), hrefs)
     .catch(() => {});

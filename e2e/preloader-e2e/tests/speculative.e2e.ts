@@ -47,7 +47,9 @@ test.describe('queue', () => {
     expect(await maxSpeculativeInFlight(page)).toBe(1);
   });
 
-  test('no speculative preload starts while a needed preload is in flight', async ({ page }) => {
+  test('speculative preloads use idle slots while a needed preload is in flight', async ({
+    page,
+  }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
     gate.holdWhilePassing = (url) => chunkComesFrom(url, [FILLER]);
@@ -79,7 +81,7 @@ test.describe('queue', () => {
       .map((link) => link.href);
     await releaseAll(gate);
     await expectResult(page, WITH_25_IDLE_PRELOADS);
-    expect(startedMeanwhile).toEqual([]);
+    expect(startedMeanwhile.length).toBeGreaterThan(0);
   });
 
   test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {

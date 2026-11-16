@@ -31,12 +31,15 @@ const getBundleGraph = () => {
     const flat: (string | number)[] = JSON.parse(readFileSync(path, 'utf8'));
     bundleGraph = new Map();
     let deps: string[] = [];
+    let isDynamic = false;
     for (const item of flat) {
       if (typeof item === 'string') {
         deps = [];
+        isDynamic = false;
         bundleGraph.set(item, deps);
-      } else if (item >= 0) {
-        // Negative numbers are probability markers, not dependencies.
+      } else if (item < 0) {
+        isDynamic = true;
+      } else if (!isDynamic) {
         deps.push(flat[item] as string);
       }
     }

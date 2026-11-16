@@ -26,13 +26,16 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
     const deps: ImportProbability[] = [];
     let idx: number | string;
     let probability = 1;
+    let isDynamic = false;
     while (((idx = serialized[i]), typeof idx === 'number')) {
       if (idx < 0) {
         probability = -idx / 10;
+        isDynamic = true;
       } else {
         deps.push({
           $name$: serialized[idx] as string,
           $importProbability$: probability,
+          $isDynamic$: isDynamic,
           $factor$: 1,
         });
       }

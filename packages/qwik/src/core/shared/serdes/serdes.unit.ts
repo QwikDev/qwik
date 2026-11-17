@@ -1703,6 +1703,7 @@ describe('shared-serialization', () => {
         typeof props,
       ];
       expect(restoredJsx.children).toBe('hello');
+      expect(restoredJsx.props).toBe(restoredProps);
       expect(restoredProps.children).toBeUndefined();
       expect('children' in restoredProps).toBe(false);
       expect(Object.keys(restoredProps)).not.toContain('children');

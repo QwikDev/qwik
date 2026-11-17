@@ -1081,7 +1081,8 @@ async function restoreDomEffect(
 ): Promise<void> {
   const deps = await populateDomEffect(container, effect, parts);
   if (deps === null) {
-    // Its element is gone, so the effect can never run.
+    // Its element is gone, so the effect must never run.
+    disposeSubscriber(effect);
     return;
   }
   restoreDependencies(effect, deps);

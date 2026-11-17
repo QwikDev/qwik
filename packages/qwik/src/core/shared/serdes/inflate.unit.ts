@@ -30,6 +30,12 @@ import { allocateDomEffect } from './allocate';
 import { toArray } from '../../test-utils';
 import type { QElement } from '../../shared/types';
 import { _capturesObj, setCaptures } from '../qrl/qrl-captures';
+import { logErrorAndThrowAsync } from '../utils/log';
+
+vi.mock(import('../utils/log'), async (importOriginal) => {
+  const log = await importOriginal();
+  return { ...log, logErrorAndThrowAsync: vi.fn(log.logErrorAndThrowAsync) };
+});
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   const out: unknown[] = [];
@@ -261,6 +267,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     ];
 
     await inflate(context, signal, TypeIds.Signal, data);
+    vi.mocked(logErrorAndThrowAsync).mockClear();
 
     signal.value = 2;
     for (let i = 0; i < 10 && toArray(signal.subs).some(isLazySerialized); i++) {
@@ -271,6 +278,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     // the effect is dropped instead of throwing, and the live document keeps working
     expect(toArray(signal.subs).some(isLazySerialized)).toBe(false);
     expect(context.element.querySelector('p')?.textContent).toBe('1');
+    expect(logErrorAndThrowAsync).not.toHaveBeenCalled();
   });
 
   it('keeps ForBlock and DOM subscribers lazy under a source', async () => {

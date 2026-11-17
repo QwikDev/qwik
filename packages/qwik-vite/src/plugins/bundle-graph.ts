@@ -126,8 +126,22 @@ export function convertManifestToBundleGraph(
     !!bundle.symbols?.some(
       (symbolName) => manifest.symbols?.[symbolName] && !isRenderSymbol(symbolName)
     );
-  const isComponentModule = (bundleName: string) =>
-    graph[bundleName].dynamicImports!.some((depName) => isRenderChunk(graph[depName]));
+  const componentNamesOf = (moduleName: string) => {
+    const componentNames: string[] = [];
+    for (const depName of graph[moduleName].dynamicImports!) {
+      const renderChunk = graph[depName];
+      if (!isRenderChunk(renderChunk)) {
+        continue;
+      }
+      for (const symbolName of renderChunk.symbols!) {
+        const componentName = getSymbolHash(symbolName);
+        if (graph[componentName]) {
+          componentNames.push(componentName);
+        }
+      }
+    }
+    return componentNames;
+  };
 
   const depsBesideRenderChunk = new Map<string, Set<string>>();
   for (const bundleName of names) {
@@ -142,8 +156,8 @@ export function convertManifestToBundleGraph(
           besideRenderChunk.add(eventQrlChunk);
         }
       }
-      for (const childComponent of renderChunk.imports!) {
-        if (isComponentModule(childComponent)) {
+      for (const childModule of renderChunk.imports!) {
+        for (const childComponent of componentNamesOf(childModule)) {
           besideRenderChunk.add(childComponent);
         }
       }

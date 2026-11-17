@@ -274,12 +274,12 @@ describe('convertManifestToBundleGraph', () => {
             total,
             imports: ['row.js'],
             qrlImports: ['card-events.js'],
-            symbols: ['cardRender'],
+            symbols: ['card_component_CARD'],
           },
           'card-events.js': {
             size,
             total,
-            symbols: ['cardEvent'],
+            symbols: ['card_event_EVENT'],
             interactivity: cardEvent.ctxName === 'onClick$' ? 5 : 2,
           },
           'row.js': { size, total, qrlImports: ['row-render.js'] },
@@ -287,16 +287,21 @@ describe('convertManifestToBundleGraph', () => {
             size,
             total,
             qrlImports: ['row-events.js'],
-            symbols: ['rowRender'],
+            symbols: ['row_component_ROW'],
           },
-          'row-events.js': { size, total, symbols: ['rowTask'] },
+          'row-events.js': { size, total, symbols: ['row_useTask_TASK'] },
         },
-        mapping: {},
+        mapping: {
+          card_component_CARD: 'card-render.js',
+          card_event_EVENT: 'card-events.js',
+          row_component_ROW: 'row-render.js',
+          row_useTask_TASK: 'row-events.js',
+        },
         symbols: {
-          cardRender: component,
-          cardEvent,
-          rowRender: component,
-          rowTask: { ctxKind: 'function', ctxName: 'useTask$' },
+          card_component_CARD: component,
+          card_event_EVENT: cardEvent,
+          row_component_ROW: component,
+          row_useTask_TASK: { ctxKind: 'function', ctxName: 'useTask$' },
         },
       }) as unknown as QwikManifest;
 
@@ -335,6 +340,13 @@ describe('convertManifestToBundleGraph', () => {
       const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
 
       expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
+    });
+
+    test("ranks a child component's module with the render chunks, below the event QRLs", () => {
+      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
+
+      expect(likelihoods.get('row.js')).toBe(likelihoods.get('card-render.js'));
+      expect(likelihoods.get('row.js')).toBeLessThan(likelihoods.get('row-events.js')!);
     });
 
     test('ranks every kind of handler the same', () => {
@@ -450,26 +462,27 @@ describe('convertManifestToBundleGraph', () => {
         16,
         9,
         11,
-        27,
+        106,
         -5,
         12,
         "root.js",
         -10,
-        27,
+        106,
         -5,
         42,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
         -10,
+        106,
         -5,
-        47,
+        48,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        49,
+        50,
         "src-vendor-lib-libB.ts.js",
-        49,
+        50,
         "BjxcCeNQ9ak",
         -10,
         21,
@@ -493,7 +506,7 @@ describe('convertManifestToBundleGraph', () => {
         3,
         "9PcKHFjikV0",
         -10,
-        27,
+        106,
         -5,
         42,
         "9fcUDoGM9Wo",
@@ -507,12 +520,12 @@ describe('convertManifestToBundleGraph', () => {
         7,
         "dAo05yeFq1I",
         -10,
-        27,
+        106,
         -5,
-        47,
+        48,
         "ds9jIPT1g9s",
         -10,
-        27,
+        106,
         -5,
         19,
         "lTNqDDf58lI",
@@ -523,7 +536,7 @@ describe('convertManifestToBundleGraph', () => {
         18,
         "q56DrQcc9VE",
         -10,
-        27,
+        106,
         -5,
         12,
         "vG0UuU4cNCg",
@@ -534,7 +547,7 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "0pasaG6nmEA",
         -10,
-        27,
+        106,
         -5,
         19,
         "BMutFDNOKhc",

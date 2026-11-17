@@ -575,6 +575,36 @@ test.describe('nav', () => {
       expect(didTrigger).toBe(true);
     });
 
+    test('keeps the page on screen until the next page has content', async ({ page }) => {
+      await page.goto('/qwikrouter-test/prevent-navigate/');
+      await page.waitForFunction(() => (window as any)._qwikEv?.roots);
+      await page.waitForLoadState('networkidle');
+      // On a slow network a chunk loaded after the old page left shows as blank frames.
+      await page.route(/\.js(\?|$)/, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await route.continue();
+      });
+      await page.evaluate(() => {
+        const [before, after] = document.querySelectorAll('#pn-runcount ~ hr');
+        const frames = ((window as any).__pageFrames = { blank: 0 });
+        const countFrame = () => {
+          const pageContent = document.createRange();
+          pageContent.setStartAfter(before);
+          pageContent.setEndBefore(after);
+          if (pageContent.cloneContents().querySelector('h1') === null) {
+            frames.blank++;
+          }
+          requestAnimationFrame(countFrame);
+        };
+        requestAnimationFrame(countFrame);
+      });
+
+      await page.locator('#pn-link-5').click();
+
+      await expect(page.locator('h1')).toHaveText('id 5');
+      expect(await page.evaluate(() => (window as any).__pageFrames.blank)).toBe(0);
+    });
+
     test('second nav() call should win when two are fired back-to-back', async ({ page }) => {
       await page.goto('/qwikrouter-test/double-nav/a/');
       await expect(page.locator('#double-nav-a')).toBeVisible();

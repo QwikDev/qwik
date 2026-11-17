@@ -37,15 +37,16 @@ function RoutedContent({ level }: RoutedContentProps) {
   const cmp = levels.signals[level];
   // A one-row collection keyed by identity: a branch would not re-run for a → b (both truthy)
   // and a dynamic tag is evaluated once, so only a row swap remounts the level's component.
+  // No branch inside the row: its lazy arm would load after the old row already left the page.
   return (
     <>
-      {[cmp.value].map((Cmp) => {
+      {(cmp.value ? [cmp.value] : []).map((Cmp) => {
         const RoutedComponent = Cmp as any;
-        return Cmp ? (
+        return (
           <RoutedComponent>
             <RoutedContent level={level + 1} />
           </RoutedComponent>
-        ) : null;
+        );
       })}
     </>
   );

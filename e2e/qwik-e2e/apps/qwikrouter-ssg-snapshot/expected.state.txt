@@ -18,7 +18,7 @@
         {number} 0
         Array [
           StoreProp [
-            {number} 17
+            {number} 16
             {string} "url"
           ]
         ]
@@ -159,35 +159,35 @@
   QRL "[omitted]"
   Array [
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
     StoreProp [
-      {number} 33
+      {number} 32
       RootRef [omitted]
     ]
   ]
@@ -392,8 +392,7 @@
   {string} "level"
   {number} 0
 ]
-11 Constant undefined
-12 SlotScope [
+11 SlotScope [
   Array [
     Projection [
       Constant ''
@@ -407,14 +406,14 @@
     Constant EMPTY_OBJ
   ]
 ]
-13 ComputedSignal [
+12 ComputedSignal [
   QRL "[omitted]"
   Constant EMPTY_ARRAY
   Constant NEEDS_COMPUTATION
   Constant null
   EffectSubscription [
     {number} 7
-    {number} 11
+    {number} 10
     Array [
       RootRef [omitted]
     ]
@@ -429,7 +428,7 @@
   ]
   EffectSubscription [
     {number} 7
-    {number} 12
+    {number} 11
     Array [
       RootRef [omitted]
     ]
@@ -444,7 +443,7 @@
   ]
   EffectSubscription [
     {number} 7
-    {number} 13
+    {number} 12
     Array [
       RootRef [omitted]
     ]
@@ -462,16 +461,16 @@
   RootRef [omitted]
   {number} 0
 ]
-14 ComputedSignal [
+13 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
     StoreProp [
-      {number} 101
+      {number} 99
       {string} "selected"
     ]
     StoreProp [
-      {number} 102
+      {number} 100
       {string} "length"
     ]
     RootRef [omitted]
@@ -487,7 +486,7 @@
   Constant null
   EffectSubscription [
     {number} 7
-    {number} 14
+    {number} 13
     Array [
       RootRef [omitted]
     ]
@@ -504,7 +503,7 @@
   RootRef [omitted]
   {number} 0
 ]
-15 AsyncSignal [
+14 AsyncSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -512,11 +511,11 @@
     RootRef [omitted]
     RootRef [omitted]
     StoreProp [
-      {number} 102
+      {number} 100
       {string} "0"
     ]
     StoreProp [
-      {number} 102
+      {number} 100
       {string} "1"
     ]
     RootRef [omitted]
@@ -543,7 +542,7 @@
   Constant null
   EffectSubscription [
     {number} 3
-    {number} 15
+    {number} 14
     {number} 0
     Array [
       RootRef [omitted]
@@ -559,7 +558,7 @@
   ]
   EffectSubscription [
     {number} 7
-    {number} 17
+    {number} 16
     Array [
       RootRef [omitted]
     ]
@@ -575,14 +574,15 @@
   RootRef [omitted]
   {number} 1
 ]
-16 QRL "[omitted]"
-17 RootRef [omitted]
-18 {string} "q-xxxxxxxx.js"
-19 {string} "root_href_segment_0_38hv0j89892b0"
-20 Owner [
+15 QRL "[omitted]"
+16 RootRef [omitted]
+17 {string} "q-xxxxxxxx.js"
+18 {string} "root_href_segment_0_38hv0j89892b0"
+19 Owner [
   RootRef [omitted]
   {number} 0
 ]
+20 RootRef [omitted]
 21 RootRef [omitted]
 22 RootRef [omitted]
 23 RootRef [omitted]
@@ -591,10 +591,10 @@
 26 RootRef [omitted]
 27 RootRef [omitted]
 28 RootRef [omitted]
-29 RootRef [omitted]
-30 Constant EMPTY_OBJ
-31 {string} "q-xxxxxxxx.js"
-32 {string} "document_head_tags_component_head_segment_0_14qc7wf34r3ly"
+29 Constant EMPTY_OBJ
+30 {string} "q-xxxxxxxx.js"
+31 {string} "document_head_tags_component_head_segment_0_14qc7wf34r3ly"
+32 RootRef [omitted]
 33 RootRef [omitted]
 34 RootRef [omitted]
 35 RootRef [omitted]
@@ -602,109 +602,104 @@
 37 RootRef [omitted]
 38 RootRef [omitted]
 39 RootRef [omitted]
-40 RootRef [omitted]
-41 {string} "q-xxxxxxxx.js"
-42 {string} "document_head_tags_component_branch_condition_segment_1_x3hcr8p36pxt"
-43 {string} "document_head_tags_component_branch_then_segment_2_3svcdk5kteri6"
-44 Owner [
+40 {string} "q-xxxxxxxx.js"
+41 {string} "document_head_tags_component_branch_condition_segment_1_x3hcr8p36pxt"
+42 {string} "document_head_tags_component_branch_then_segment_2_3svcdk5kteri6"
+43 Owner [
   RootRef [omitted]
   {number} 2
 ]
-45 Owner [
+44 Owner [
   RootRef [omitted]
   {number} 1
 ]
-46 {string} "document_head_tags_component_text_segment_3_2qnqupz6evbka"
-47 {string} "document_head_tags_component_collection_source_segment_4_3kv7du8ojdege"
-48 {string} "document_head_tags_component_for_render_segment_5_30xf1o8t0csob"
-49 Owner [
+45 {string} "document_head_tags_component_text_segment_3_2qnqupz6evbka"
+46 {string} "document_head_tags_component_collection_source_segment_4_3kv7du8ojdege"
+47 {string} "document_head_tags_component_for_render_segment_5_30xf1o8t0csob"
+48 Owner [
   RootRef [omitted]
   {number} 0
 ]
-50 Owner [
+49 Owner [
   RootRef [omitted]
   {number} 5
 ]
-51 {string} "document_head_tags_component_collection_source_segment_7_3kv7dg7kmjcfv"
-52 {string} "document_head_tags_component_for_render_segment_8_30xezq39g6ilo"
-53 Owner [
+50 {string} "document_head_tags_component_collection_source_segment_7_3kv7dg7kmjcfv"
+51 {string} "document_head_tags_component_for_render_segment_8_30xezq39g6ilo"
+52 Owner [
   RootRef [omitted]
   {number} 8
 ]
-54 {string} "document_head_tags_component_collection_source_segment_10_2jukrwdpt3jif"
-55 {string} "document_head_tags_component_for_key_segment_12_26g6d7un1t44c"
-56 {string} "document_head_tags_component_for_render_segment_11_3fd9ahntky16a"
-57 Owner [
+53 {string} "document_head_tags_component_collection_source_segment_10_2jukrwdpt3jif"
+54 {string} "document_head_tags_component_for_key_segment_12_26g6d7un1t44c"
+55 {string} "document_head_tags_component_for_render_segment_11_3fd9ahntky16a"
+56 Owner [
   RootRef [omitted]
   {number} 11
 ]
-58 {string} "document_head_tags_component_collection_source_segment_14_2jukqc9a5rbgb"
-59 {string} "document_head_tags_component_for_key_segment_16_26g6bnq7egw28"
-60 {string} "document_head_tags_component_for_render_segment_15_3fd98xjdxlt46"
-61 Owner [
+57 {string} "document_head_tags_component_collection_source_segment_14_2jukqc9a5rbgb"
+58 {string} "document_head_tags_component_for_key_segment_16_26g6bnq7egw28"
+59 {string} "document_head_tags_component_for_render_segment_15_3fd98xjdxlt46"
+60 Owner [
   RootRef [omitted]
   {number} 14
 ]
-62 RootRef [omitted]
+61 RootRef [omitted]
+62 Signal [
+  Constant undefined
+]
 63 Signal [
   Constant undefined
 ]
-64 Signal [
-  Constant undefined
-]
-65 RootRef [omitted]
-66 Object 0
+64 RootRef [omitted]
+65 Object 0
+66 RootRef [omitted]
 67 RootRef [omitted]
 68 RootRef [omitted]
 69 RootRef [omitted]
-70 RootRef [omitted]
-71 Constant ''
-72 Constant undefined
-73 RootRef [omitted]
-74 {string} "q-xxxxxxxx.js"
-75 {string} "qwik_router_component_goto_segment_0_6bz91tc08w9v"
-76 RootRef [omitted]
-77 {string} "q-xxxxxxxx.js"
-78 {string} "router_outlet_component_collection_source_segment_0_4evdvyko5rfy"
-79 {string} "router_outlet_component_for_render_segment_1_eiptfibs63mb"
-80 Owner [
+70 Constant ''
+71 Constant undefined
+72 RootRef [omitted]
+73 {string} "q-xxxxxxxx.js"
+74 {string} "qwik_router_component_goto_segment_0_6bz91tc08w9v"
+75 RootRef [omitted]
+76 {string} "q-xxxxxxxx.js"
+77 {string} "router_outlet_component_collection_source_segment_0_4evdvyko5rfy"
+78 {string} "router_outlet_component_for_render_segment_1_eiptfibs63mb"
+79 Owner [
   RootRef [omitted]
   {number} 0
 ]
-81 Owner [
+80 Owner [
   RootRef [omitted]
   {number} 2
 ]
-82 Owner [
+81 Owner [
   RootRef [omitted]
   {number} 0
 ]
-83 {string} "router_outlet_component_slot_render_segment_4_11ly7wa8p0qen"
-84 Owner [
-  RootRef [omitted]
-  {number} 1
-]
-85 RootRef [omitted]
-86 Object [
+82 {string} "router_outlet_component_slot_render_segment_2_11ly7480vcmdl"
+83 RootRef [omitted]
+84 Object [
   {string} "raw"
 ]
-87 RootRef [omitted]
-88 Array []
+85 RootRef [omitted]
+86 Array []
+87 {string} "q-xxxxxxxx.js"
+88 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
 89 {string} "q-xxxxxxxx.js"
-90 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
-91 {string} "q-xxxxxxxx.js"
-92 {string} "index_text_segment_3_1ipipo7fa3bh6"
-93 Owner [
+90 {string} "index_text_segment_3_1ipipo7fa3bh6"
+91 Owner [
   RootRef [omitted]
   {number} 0
 ]
-94 {string} "index_text_segment_4_1ipinq1vpx1ej"
-95 {string} "index_text_segment_5_1ipinc0rt2ze0"
-96 Owner [
+92 {string} "index_text_segment_4_1ipinq1vpx1ej"
+93 {string} "index_text_segment_5_1ipinc0rt2ze0"
+94 Owner [
   Constant null
   {number} 0
 ]
-97 Store [
+95 Store [
   RootRef [omitted]
   Array [
     Array [
@@ -737,14 +732,14 @@
     ]
   ]
 ]
-98 Signal [
+96 Signal [
   {number} 2
   RootRef [omitted]
   RootRef [omitted]
 ]
-99 {string} "q-xxxxxxxx.js"
-100 {string} "index_summary_segment_1_423pfnt4yf49"
-101 Object [
+97 {string} "q-xxxxxxxx.js"
+98 {string} "index_summary_segment_1_423pfnt4yf49"
+99 Object [
   {string} "expanded"
   Constant true
   RootRef [omitted]
@@ -757,34 +752,34 @@
     {string} "ssg"
   ]
 ]
-102 Array [
+100 Array [
   RootRef [omitted]
   RootRef [omitted]
 ]
-103 {string} "index_text_segment_6_1ipioi43jl5fl"
-104 {string} "q-xxxxxxxx.js"
-105 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
+101 {string} "index_text_segment_6_1ipioi43jl5fl"
+102 {string} "q-xxxxxxxx.js"
+103 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
+104 RootRef [omitted]
+105 RootRef [omitted]
 106 RootRef [omitted]
 107 RootRef [omitted]
-108 RootRef [omitted]
-109 RootRef [omitted]
-110 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
-111 {string} "index_branch_then_segment_8_3rgw1hir8l68"
-112 Owner [
+108 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
+109 {string} "index_branch_then_segment_8_3rgw1hir8l68"
+110 Owner [
   RootRef [omitted]
   {number} 7
 ]
-113 {string} "index_text_segment_9_1ipilrwc5qrbw"
-114 {string} "q-xxxxxxxx.js"
-115 {string} "router_outlet_component_q_d_qrouterpopstate_segment_8_3rkqclzffqhqj"
-116 Owner [
+111 {string} "index_text_segment_9_1ipilrwc5qrbw"
+112 {string} "q-xxxxxxxx.js"
+113 {string} "router_outlet_component_q_d_qrouterpopstate_segment_6_3rkqbtx7m2dph"
+114 Owner [
   Constant null
   {number} 0
 ]
-117 Owner [
+115 Owner [
   RootRef [omitted]
   {number} 2
 ]
+116 RootRef [omitted]
+117 RootRef [omitted]
 118 RootRef [omitted]
-119 RootRef [omitted]
-120 RootRef [omitted]

@@ -924,3 +924,24 @@ test('a layout key hinted before the bundle graph loaded is preloaded once it lo
 
   expect(linkNames(document).sort()).toEqual(['layout.js', 'page.js']);
 });
+
+test('a limit of 0 starts no speculative preload, and still preloads at the highest priority', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const graph = { text: async () => JSON.stringify(['speculative.js', 'highest-priority.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 0 });
+  await vi.runAllTimersAsync();
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  preload('highest-priority.js', 1);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual(['highest-priority.js']);
+});

@@ -17,7 +17,6 @@ import {
   chunksHintedAtHighestPriority,
   countRoundTrips,
   createGate,
-  holdSpeculativePreloads,
   preloaderLinks,
   recordPreloadHints,
   recordSpeculativePreloads,
@@ -25,6 +24,7 @@ import {
   resultIsDone,
   waitForNetworkIdle,
   waitForQwikloader,
+  withoutSpeculativePreloads,
   type RoundTrip,
 } from '../utils/gate';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
@@ -73,10 +73,10 @@ const clickWhileLoading = async (
     onceTheRestHasLoaded = false,
     arrivesWithTheFirstRoundTrip = false,
     from = result === TO_TREE ? FROM_OFF : result,
+    withSpeculativePreloads = false,
   } = {}
 ) => {
   await recordSpeculativePreloads(page);
-  await holdSpeculativePreloads(page);
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => heldUrls.includes(url);
   const loading = new Set<Request>();
@@ -94,7 +94,9 @@ const clickWhileLoading = async (
   page.on('request', onRequest);
   page.on('requestfinished', onDone);
   page.on('requestfailed', onDone);
-  await page.goto(from.path, { waitUntil: 'commit' });
+  await page.goto(withSpeculativePreloads ? from.path : withoutSpeculativePreloads(from.path), {
+    waitUntil: 'commit',
+  });
   await waitForQwikloader(page);
   await expect.poll(() => gate.held.length).toBe(heldUrls.length);
   if (onceTheRestHasLoaded) {
@@ -214,7 +216,8 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
     page,
     heldUrls,
     clickConditional(page),
-    CONDITIONAL_ALL
+    CONDITIONAL_ALL,
+    { withSpeculativePreloads: true }
   );
   const clickChunks = new Set(
     roundTrips
@@ -422,7 +425,7 @@ test.describe('early navigation into another layout', () => {
       [bundleGraphUrl()],
       () => page.locator('[data-fixture="navigation/shell"] [data-testid=link-docs-a]').click(),
       SHELL_DOCS_A,
-      { from: SHELL_HOME }
+      { from: SHELL_HOME, withSpeculativePreloads: true }
     );
     await waitForNetworkIdle(page, () => releaseAll(gate, startupPiece));
     await expectResult(page, SHELL_DOCS_A);

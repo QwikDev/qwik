@@ -1807,15 +1807,17 @@ describe('Catch + fallback$', () => {
           throw new Error(message);
         }) as unknown as JSXOutput;
 
-      it('SSR: a sync function-child throw renders the fallback', async () => {
+      it('SSR: a function child renders the actionable error in the fallback', async () => {
         const { container } = await ssrRenderToDom(
           <Catch fallback$={fb()}>{throwingFnChild()}</Catch>,
           { debug }
         );
-        expect(container.element.querySelector('#fb')?.textContent).toContain('caught: jsx error');
+        expect(container.element.querySelector('#fb')?.textContent).toContain(
+          'Function children are not supported'
+        );
       });
 
-      it('SSR: an async function child whose promise rejects renders the fallback', async () => {
+      it('SSR: an async function child also renders the actionable error in the fallback', async () => {
         const asyncThrower = (async () => {
           throw new Error('async jsx error');
         }) as unknown as JSXOutput;
@@ -1823,32 +1825,31 @@ describe('Catch + fallback$', () => {
           debug,
         });
         expect(container.element.querySelector('#fb')?.textContent).toContain(
-          'caught: async jsx error'
+          'Function children are not supported'
         );
       });
 
       it('SSR: a function-child throw with NO boundary above still rejects the render', async () => {
         await expect(ssrRenderToDom(<main>{throwingFnChild()}</main>, { debug })).rejects.toThrow(
-          'jsx error'
+          'Function children are not supported'
         );
       });
 
-      it('SSR: a function child RETURNING JSX renders nothing and does not error', async () => {
+      it('SSR: a function child RETURNING JSX renders the actionable error', async () => {
         const thunk = (() => <div id="thunk">thunk</div>) as unknown as JSXOutput;
         const { container } = await ssrRenderToDom(<Catch fallback$={fb()}>{thunk}</Catch>, {
           debug,
         });
         expect(container.element.querySelector('#thunk')).toBeFalsy();
-        expect(container.element.querySelector('#fb')).toBeFalsy();
+        expect(container.element.querySelector('#fb')?.textContent).toContain(
+          'Function children are not supported'
+        );
       });
 
-      it('SSR: onError$ receives info.phase "render" once for a function-child error, identity-preserved', async () => {
+      it('SSR: onError$ receives the function-child error during render', async () => {
         const received: unknown[] = [];
         const infos: Array<{ phase: string }> = [];
-        const original = new Error('jsx error');
-        const identityThrower = (() => {
-          throw original;
-        }) as unknown as JSXOutput;
+        const identityThrower = (() => <div />) as unknown as JSXOutput;
         const { container } = await ssrRenderToDom(
           <Catch
             fallback$={fb()}
@@ -1864,7 +1865,8 @@ describe('Catch + fallback$', () => {
         await settleOnErrorDelivery(container);
 
         expect(received).toHaveLength(1);
-        expect(received[0]).toBe(original);
+        expect(received[0]).toBeInstanceOf(Error);
+        expect((received[0] as Error).message).toContain('Function children are not supported');
         expect(infos).toEqual([{ phase: 'render' }]);
       });
 
@@ -1875,7 +1877,7 @@ describe('Catch + fallback$', () => {
         expect(container.element.querySelector('#fb')).toBeFalsy();
       });
 
-      it('SSR OOOS: a sync function-child throw inside a Pending segment renders the fallback', async () => {
+      it('SSR OOOS: a function child inside a Pending segment renders the actionable fallback', async () => {
         const { document } = await streamAndResume(
           <main>
             <Pending fallback$={() => <span id="skel">loading</span>}>
@@ -1884,7 +1886,9 @@ describe('Catch + fallback$', () => {
           </main>,
           OOOS
         );
-        expect(document.querySelector('#fb')?.textContent).toContain('caught: jsx error');
+        expect(document.querySelector('#fb')?.textContent).toContain(
+          'Function children are not supported'
+        );
       });
     });
 

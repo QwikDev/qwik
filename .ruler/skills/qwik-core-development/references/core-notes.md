@@ -247,13 +247,15 @@ Out-of-order (OOOS) invariants:
 - Functions that read their own captures (the qwikloader calls them with the captures as `this`)
   get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Write every other QRL,
   like the control-flow components', inline at its `$()` site, so its segment owns the code.
-- Core has no chunk group or special preload: its chunks are ordinary bundles in the graph, and SSR
-  writes no modulepreload links of its own. An event attribute's QRLs go into
-  `serializationCtx.$eventQrls$`, including `_run`, which the attribute lists next to the handler.
-  `preloaderPost` hints their bundles to the preloader, and `ssrPreloads` links the first ones the
-  client queue would fetch, ranked on the server with `getPreloadOrder` (same probabilities, shared
-  preloader state reset per call). The preloader e2e suite counts the round trips that depend on
-  this.
+- Core has no chunk group: its chunks are ordinary bundles in the graph. An event attribute's QRLs
+  go into `serializationCtx.$eventQrls$`, including `_run`, which the attribute lists next to the
+  handler, and `preloaderPost` hints their bundles to the preloader. Keep the two kinds of SSR links
+  apart. The bundle of each of core's handlers a page's events run through
+  (`$coreHandlerQrls$`), with its static imports, is linked as the page streams whatever
+  `ssrPreloads` is: every interaction needs core. `ssrPreloads` (0 by default) only adds the first
+  bundles the client queue would fetch, ranked on the server with `getPreloadOrder` (same
+  probabilities, shared preloader state reset per call). The preloader e2e suite counts the round
+  trips that depend on this.
 - What every app needs to be interactive belongs in core's chunk; what only some apps use is its
   own segment. An `import()` inside core is a cut point the preloads don't follow, so don't split
   code every interaction needs behind one: measured on the preloader app, re-render code in its own

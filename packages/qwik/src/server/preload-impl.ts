@@ -144,48 +144,47 @@ const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: 
 const handlerBundlesLinked = new WeakMap<SSRContainer, string[]>();
 
 /**
- * Links core, through the bundle of the first of core's handlers (`_run`, `_task`, …) that the
- * page's events run through and its static imports, instead of when the page has finished
- * streaming.
- *
- * @returns Whether there is nothing left to link early.
+ * Links core and the bundles of core's handlers (`_run`, `_task`, …) that the page's events run
+ * through, with their static imports, as each handler first appears instead of when the page has
+ * finished streaming. Every interaction needs them, so `ssrPreloads` doesn't limit these links.
  */
 export const preloadHandlerBundles = (
   container: SSRContainer,
   options: RenderToStreamOptions['preloader'],
   nonce?: string
-): boolean => {
-  const coreHandlerQrl = container.serializationCtx.$coreHandlerQrl$ as QRLInternal | null;
-  // Runs before every element until then, so this check comes first
-  if (!coreHandlerQrl) {
-    return false;
-  }
+): void => {
   if (options === false || (import.meta.env?.DEV && !qTest)) {
-    return true;
+    return;
   }
-  const { ssrPreloads } = normalizePreLoaderOptions(
-    typeof options === 'boolean' ? undefined : options
-  );
-  if (!ssrPreloads) {
-    return true;
-  }
-  const [handlerBundle] = getBundles([coreHandlerQrl]);
   const manifest = container.resolvedManifest?.manifest;
-  // Like the links at the end, skip names the bundle graph doesn't know: they may not be files
-  if (!handlerBundle || !manifest?.bundleGraph?.includes(handlerBundle)) {
-    return true;
+  const handlerBundles = getBundles(
+    Array.from(container.serializationCtx.$coreHandlerQrls$.values()) as QRLInternal[]
+  );
+  const linked = handlerBundlesLinked.get(container) ?? [];
+  const links: string[] = [];
+  for (let i = 0; i < handlerBundles.length; i++) {
+    // Like the links at the end, skip names the bundle graph doesn't know: they may not be files
+    if (!manifest?.bundleGraph?.includes(handlerBundles[i])) {
+      continue;
+    }
+    const closure = getStaticClosure(manifest.bundleGraph, handlerBundles[i]);
+    for (let j = 0; j < closure.length; j++) {
+      const bundle = closure[j];
+      if (bundle !== manifest.preloader && !linked.includes(bundle) && !links.includes(bundle)) {
+        links.push(bundle);
+      }
+    }
   }
-  const links = getStaticClosure(manifest?.bundleGraph, handlerBundle)
-    .filter((bundle) => bundle !== manifest?.preloader)
-    .slice(0, ssrPreloads);
-  handlerBundlesLinked.set(container, links);
+  if (!links.length) {
+    return;
+  }
+  handlerBundlesLinked.set(container, [...linked, ...links]);
   const attrs: Record<string, string> = nonce ? { nonce } : {};
   // Inside the app's elements, so it must not stay in their DOM.
   container.writeScript(
     attrs,
     createLinksScript(getBase(container), links) + 'document.currentScript.remove()'
   );
-  return true;
 };
 
 export const includePreloader = (
@@ -212,7 +211,7 @@ export const includePreloader = (
     // With the bundle graph, link what the client preloader would fetch first for this hint.
     const ranked = getPreloadOrder(referencedBundles);
     const candidates = ranked.length ? ranked : referencedBundles;
-    for (let i = 0; i < candidates.length && links.length + linkedEarly.length < ssrPreloads; i++) {
+    for (let i = 0; i < candidates.length && links.length < ssrPreloads; i++) {
       // we already preload the preloader bundle and the handler bundles linked mid-stream
       if (candidates[i] !== preloaderBundle && !linkedEarly.includes(candidates[i])) {
         links.push(candidates[i]);
@@ -250,6 +249,7 @@ export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, n
     return;
   }
   if (opts.preloader !== false) {
+    preloadHandlerBundles(ssrContainer, opts.preloader, nonce);
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);
     includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
@@ -279,6 +279,6 @@ export const getBundles = (qrls: QRLInternal[]) => {
 };
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 5,
+  ssrPreloads: 0,
   maxIdlePreloads: 25,
 };

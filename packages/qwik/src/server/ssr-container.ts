@@ -761,7 +761,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   $noScriptHere$: number = 0;
-  private handlerBundlesPreloaded = false;
+  private coreHandlersLinked = 0;
   $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
@@ -792,8 +792,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         this.emitQwikLoaderInline();
       }
       // Segments stream inside <template>, where scripts don't run
-      if (!this.handlerBundlesPreloaded && !isDev && !(this instanceof SSRSegmentContainer)) {
-        this.handlerBundlesPreloaded = preloadHandlerBundles(
+      if (
+        this.coreHandlersLinked !== this.serializationCtx.$coreHandlerQrls$.size &&
+        !isDev &&
+        !(this instanceof SSRSegmentContainer)
+      ) {
+        this.coreHandlersLinked = this.serializationCtx.$coreHandlerQrls$.size;
+        preloadHandlerBundles(
           this,
           this.renderOptions.preloader,
           this.renderOptions.serverData?.nonce

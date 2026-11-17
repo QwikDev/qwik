@@ -173,6 +173,6 @@ The qwikloader is a small script that is responsible for registering user events
 
 ### Buffered and on-demand modulepreloads (a.k.a. the preloader)
 
-To not compete with visual content loading (FCP & LCP), Qwik links only the few most likely bundles right away (`ssrPreloads`, 5 by default) and waits for the browser `load` event before streaming the rest of the javascript bundles. Once the `load` event fires, Qwik starts to buffer `<link rel="modulepreload" href="..." as="script">` tags to speculatively preload the most likely code executed by the user. 
+To not compete with visual content loading (FCP & LCP), Qwik links only core and the handlers a page's events need right away, and waits for the browser `load` event before streaming the rest of the javascript bundles. Once the `load` event fires, Qwik starts to buffer `<link rel="modulepreload" href="..." as="script">` tags to speculatively preload the most likely code executed by the user. 
 
 By default a queue of idle preloads is set to a maximum of 25 simultaneous preloads through the [`maxIdlePreloads`](link). Preloads are therefore buffered in a queue of 25 until all bundles have been preloaded. If a user interaction happens during buffering, the preloader will append the corresponding bundles modulepreload link tags, bypassing the idle queue and starting to preload them right away.

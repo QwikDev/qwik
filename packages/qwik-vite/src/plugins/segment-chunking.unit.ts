@@ -18,6 +18,7 @@ const loadQrl = async ({ load, symbol }) => {
 };
 export const componentQrl = (renderQrl) => ({ render: () => loadQrl(renderQrl) });
 export const useStylesQrl = (stylesQrl) => { globalThis.stylesQrl = stylesQrl; };
+export const useVisibleTaskQrl = () => {};
 export const loadStyles = () => loadQrl(globalThis.stylesQrl);
 export const qrl = (load, symbol) => ({ load, symbol });
 export const _jsxSorted = () => null;
@@ -147,6 +148,32 @@ export const App = component$(() => {
           .toString()
           .trim();
         expect(styles).toBe('STYLES_TEXT');
+      }
+    )
+);
+
+// The manifest and qwikloader both find a qrl by its symbol's export name.
+test.each(optimizers)(
+  'a qrl of a function that other chunks import is exported under its symbol name (TS=%s)',
+  (tsOptimizer) =>
+    withBundledFixture(
+      {
+        tsOptimizer,
+        component: `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { track } from './analytics.js';
+export const App = component$(() => {
+  useVisibleTask$(track);
+  useVisibleTask$(() => console.log('visible'));
+  return <div />;
+});`,
+        // The entry imports it too, so the function lives in a chunk both share.
+        entry: `export { App } from '${componentId}';\nexport { track } from './analytics.js';`,
+        files: { 'analytics.js': `export const track = () => 'tracked';` },
+      },
+      ({ chunks, segments }) => {
+        const exportNames = new Set(chunks.flatMap((chunk) => chunk.exports));
+        const symbolNames = segments.map(([, segment]) => segment.name);
+        expect(symbolNames.filter((name) => !exportNames.has(name))).toEqual([]);
       }
     )
 );

@@ -1186,7 +1186,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             ctx.emitFile({
               id: key,
               type: 'chunk',
-              preserveSignature: 'allow-extension',
+              // A group chunk drops the symbol name of a re-export, so it gets a facade chunk.
+              preserveSignature: isReExportSegment(mod.code) ? 'strict' : 'allow-extension',
             });
           }
           // Notify segment callbacks
@@ -1768,6 +1769,9 @@ const globalManifestKey = '__QWIK_MANIFEST__';
 
 const STYLES_CTX_NAMES = new Set(['useStyles$', 'useStylesScoped$']);
 
+/** A qrl of an imported binding, like `$(importedFn)`, compiles to a re-export without a value. */
+const isReExportSegment = (code: string) => !code.includes('export const ');
+
 /** Re-exported styles hold a live binding; only computed styles read imports on load. */
 const isStylesValueSegment = (segment: SegmentAnalysis, code: string | null) =>
-  STYLES_CTX_NAMES.has(segment.ctxName) && !!code?.includes('export const ');
+  STYLES_CTX_NAMES.has(segment.ctxName) && !!code && !isReExportSegment(code);

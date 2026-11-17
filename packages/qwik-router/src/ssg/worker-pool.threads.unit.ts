@@ -73,4 +73,30 @@ describe('createWorkerPool with real worker threads', () => {
       await pool.close();
     }
   });
+
+  it('times out a render that never replies and frees the worker slot', async () => {
+    const workerFilePath = join(outDir, 'worker.mjs');
+    await writeFile(workerFilePath, fixtureWorker);
+    const pool = await createWorkerPool(sys, {
+      outDir,
+      sitemapOutFile: null,
+      maxWorkers: 1,
+      maxTasksPerWorker: 1,
+      renderTimeout: 20,
+      workerFilePath,
+    } as any);
+    try {
+      const rendered = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+      const settled = await Promise.race([
+        rendered.then(() => true),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 100)),
+      ]);
+
+      expect(settled).toBe(true);
+      expect(pool.hasAvailableWorker()).toBe(true);
+      expect((await rendered).error?.message).toContain('SSG render timed out after 20ms');
+    } finally {
+      await pool.close();
+    }
+  });
 });

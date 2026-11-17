@@ -429,12 +429,13 @@ describe('retries', () => {
       const sys = createSystem({
         routes: { _I: async () => ({ default: () => null as any }) },
         render: () => new Promise<never>(() => {}),
+        renderTimeout: 10,
       });
 
       const done = mainThread(sys).catch((error: Error) => error);
       await vi.runAllTimersAsync();
 
-      assert.include(String(await done), 'timed out');
+      assert.include(String(await done), 'timed out after 10ms');
     });
 
     test('restarts the worker and retries a route whose render timed out', async () => {
@@ -459,6 +460,52 @@ describe('retries', () => {
       assert.deepEqual(restarted, ['/']);
       assert.equal(renderCount, 2);
       assert.equal(result.rendered, 1);
+    });
+
+    test('restarts the worker and retries when the pool returns a timeout result', async () => {
+      const restarted: string[] = [];
+      let renderCount = 0;
+      const sys = createSystem({
+        routes: { _I: async () => ({ default: () => null as any }) },
+        render: ({ pathname }) => {
+          renderCount++;
+          return renderCount === 1
+            ? Promise.resolve({
+                ...createFailedRenderResult(pathname),
+                error: { message: 'SSG render timed out after 10ms', stack: undefined },
+              })
+            : Promise.resolve(createRenderResult(pathname));
+        },
+        restartWorker: async (pathname) => {
+          restarted.push(pathname);
+        },
+        renderTimeout: 10,
+        retries: 1,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.deepEqual(restarted, ['/']);
+      assert.equal(renderCount, 2);
+      assert.equal(result.retried, 1);
+      assert.equal(result.rendered, 1);
+    });
+
+    test('records a pool timeout result when no retries remain', async () => {
+      const sys = createSystem({
+        routes: { _I: async () => ({ default: () => null as any }) },
+        render: () =>
+          Promise.resolve({
+            ...createFailedRenderResult('/'),
+            error: { message: 'SSG render timed out after 10ms', stack: undefined },
+          }),
+        renderTimeout: 10,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.equal(result.errors, 1);
+      assert.equal(result.rendered, 0);
     });
 
     test('still retries a timed-out route when the worker restart is slow', async () => {
@@ -580,6 +627,7 @@ function createSystem({
   render,
   basePathname = '/',
   retries,
+  renderTimeout,
   logger = noopLogger,
   hasAvailableWorker = () => true,
   restartWorker = async () => {},
@@ -588,6 +636,7 @@ function createSystem({
   render: MainContext['render'];
   basePathname?: string;
   retries?: number;
+  renderTimeout?: number;
   logger?: Logger;
   hasAvailableWorker?: MainContext['hasAvailableWorker'];
   restartWorker?: MainContext['restartWorker'];
@@ -606,6 +655,7 @@ function createSystem({
         origin: 'https://qwik.dev',
         basePathname,
         retries,
+        renderTimeout,
         include: ['/*'],
         render: (() => null) as any,
         qwikRouterConfig: {

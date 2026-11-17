@@ -61,6 +61,8 @@ export interface SsgRenderOptions extends RenderOptions {
   maxWorkers?: number;
   /** Maximum number of tasks to be running at one time per worker. Defaults to `20`. */
   maxTasksPerWorker?: number;
+  /** Maximum time in milliseconds to wait for an SSG render. Defaults to `30000`. */
+  renderTimeout?: number;
   /**
    * Number of times to retry a route whose render failed or timed out, or an `onStaticGenerate`
    * call that threw, before recording the error. Each retry waits 500ms, doubling up to 2s, plus up

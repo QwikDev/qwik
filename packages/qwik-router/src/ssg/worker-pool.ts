@@ -41,6 +41,8 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     maxTasksPerWorker = Math.max(1, Math.min(opts.maxTasksPerWorker, 50));
   }
 
+  const renderTimeout = opts.renderTimeout ?? 30_000;
+
   let sitemapOutFile = opts.sitemapOutFile;
   if (sitemapOutFile !== null) {
     if (typeof sitemapOutFile !== 'string') {
@@ -69,9 +71,19 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
     const taskFiles = new Map<string, string[]>();
+    const renderTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+    const timedOutPathnames = new Set<string>();
     let terminateTimeout: number | null = null;
     let stoppedPathname: string | undefined;
     let exitCleanup: Promise<unknown> = Promise.resolve();
+
+    const clearRenderTimeout = (pathname: string) => {
+      const timeout = renderTimeouts.get(pathname);
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+        renderTimeouts.delete(pathname);
+      }
+    };
 
     let isReady = false;
     let startupError: Error | undefined;
@@ -94,7 +106,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       activeTasks: 0,
       totalTasks: 0,
 
-      isRendering: (pathname) => mainTasks.has(pathname),
+      isRendering: (pathname) => mainTasks.has(pathname) || timedOutPathnames.has(pathname),
 
       restart: async (pathname) => {
         stoppedPathname = pathname;
@@ -106,18 +118,54 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
         return new Promise((resolve, reject) => {
           ssgWorker.activeTasks++;
           ssgWorker.totalTasks++;
+          timedOutPathnames.delete(staticRoute.pathname);
           mainTasks.set(staticRoute.pathname, resolve);
+          renderTimeouts.set(
+            staticRoute.pathname,
+            setTimeout(() => {
+              if (!mainTasks.has(staticRoute.pathname)) {
+                return;
+              }
+              mainTasks.delete(staticRoute.pathname);
+              timedOutPathnames.add(staticRoute.pathname);
+              renderTimeouts.delete(staticRoute.pathname);
+              ssgWorker.activeTasks--;
+              removeFiles(takeTaskFiles(staticRoute.pathname)).then(() =>
+                resolve({
+                  type: 'render',
+                  pathname: staticRoute.pathname,
+                  url: '',
+                  ok: false,
+                  error: {
+                    message: `SSG render timed out after ${renderTimeout}ms`,
+                    stack: undefined,
+                  },
+                  filePath: null,
+                  contentType: null,
+                  resourceType: null,
+                })
+              );
+            }, renderTimeout)
+          );
           workerReady
             .then(() => nodeWorker.postMessage(staticRoute))
             .catch((e) => {
-              ssgWorker.activeTasks--;
-              mainTasks.delete(staticRoute.pathname);
-              reject(e);
+              if (mainTasks.has(staticRoute.pathname)) {
+                mainTasks.delete(staticRoute.pathname);
+                clearRenderTimeout(staticRoute.pathname);
+                ssgWorker.activeTasks--;
+                reject(e);
+              }
             });
         });
       },
 
       terminate: async () => {
+        for (const timeout of renderTimeouts.values()) {
+          clearTimeout(timeout);
+        }
+        renderTimeouts.clear();
+        timedOutPathnames.clear();
         mainTasks.clear();
         const msg: WorkerInputMessage = { type: 'close' };
         await new Promise<void>((resolve) => {
@@ -155,13 +203,18 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
           break;
         }
         case 'file': {
-          taskFiles.set(msg.pathname, [...(taskFiles.get(msg.pathname) ?? []), msg.filePath]);
+          if (mainTasks.has(msg.pathname)) {
+            taskFiles.set(msg.pathname, [...(taskFiles.get(msg.pathname) ?? []), msg.filePath]);
+          } else {
+            void removeFiles([msg.filePath]);
+          }
           break;
         }
         case 'render': {
           const mainTask = mainTasks.get(msg.pathname);
           if (mainTask) {
             mainTasks.delete(msg.pathname);
+            clearRenderTimeout(msg.pathname);
             ssgWorker.activeTasks--;
             const files = takeTaskFiles(msg.pathname);
             if (msg.error) {
@@ -206,6 +259,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       if (mainTasks.size > 0) {
         const cleanups: Promise<void>[] = [];
         for (const [pathname, resolve] of mainTasks) {
+          clearRenderTimeout(pathname);
           ssgWorker.activeTasks--;
           const cleanup = removeFiles(takeTaskFiles(pathname)).then(() =>
             resolve({
@@ -230,6 +284,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
         exitCleanup = Promise.all(cleanups);
         mainTasks.clear();
       }
+      timedOutPathnames.clear();
       // Resolve terminate if it was waiting
       if (terminateResolve) {
         terminateResolve();

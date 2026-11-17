@@ -276,6 +276,103 @@ describe('createWorkerPool', () => {
     });
   });
 
+  describe('render timeouts', () => {
+    it('uses the default timeout and settles a render that never replies', async () => {
+      vi.useFakeTimers();
+      try {
+        const pool = await createWorkerPool(sys, {
+          outDir: '/out',
+          sitemapOutFile: null,
+          maxWorkers: 1,
+          maxTasksPerWorker: 1,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        workers[0].attachListener();
+
+        const rendered = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+        let settled = false;
+        rendered.then(() => {
+          settled = true;
+        });
+        await vi.advanceTimersByTimeAsync(29_999);
+        expect(settled).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(1);
+        await expect(rendered).resolves.toMatchObject({
+          pathname: '/hang',
+          ok: false,
+          filePath: null,
+          error: { message: 'SSG render timed out after 30000ms' },
+        });
+        expect(pool.hasAvailableWorker()).toBe(true);
+        await pool.close();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('honors a custom timeout and ignores a late worker reply', async () => {
+      vi.useFakeTimers();
+      const outDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-pool-'));
+      try {
+        const pool = await createWorkerPool(sys, {
+          outDir,
+          sitemapOutFile: null,
+          maxWorkers: 1,
+          maxTasksPerWorker: 1,
+          renderTimeout: 10,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        const [worker] = workers;
+        worker.attachListener();
+
+        const timedOut = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+        const partialPath = join(outDir, 'hang.html');
+        worker.emit('message', { type: 'file', pathname: '/hang', filePath: partialPath });
+        await writeFile(partialPath, '<html>partial</html>');
+        await vi.advanceTimersByTimeAsync(9);
+        expect(pool.hasAvailableWorker()).toBe(false);
+        await vi.advanceTimersByTimeAsync(1);
+        await expect(timedOut).resolves.toMatchObject({
+          error: { message: 'SSG render timed out after 10ms' },
+        });
+        await expect(access(partialPath)).rejects.toThrow();
+
+        worker.emit('message', renderResult('/hang'));
+        const next = pool.render({ type: 'render', pathname: '/fine', params: undefined });
+        expect(pool.hasAvailableWorker()).toBe(false);
+        worker.emit('message', renderResult('/fine'));
+        await expect(next).resolves.toMatchObject({ pathname: '/fine', ok: true });
+        expect(pool.hasAvailableWorker()).toBe(true);
+        await pool.close();
+      } finally {
+        vi.useRealTimers();
+        await rm(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it('can restart the worker after the pool timeout settles', async () => {
+      const pool = await createWorkerPool(sys, {
+        outDir: '/out',
+        sitemapOutFile: null,
+        maxWorkers: 1,
+        renderTimeout: 10,
+        workerFilePath: '/run-ssg-worker.js',
+      } as any);
+      workers[0].attachListener();
+
+      const timedOut = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+      await expect(timedOut).resolves.toMatchObject({
+        error: { message: 'SSG render timed out after 10ms' },
+      });
+      await pool.restartWorker('/hang');
+
+      expect(workers).toHaveLength(2);
+      workers[1].attachListener();
+      await pool.close();
+    });
+  });
+
   describe('worker restarts', () => {
     it('restarting a worker for a timed-out route stops its other routes and renders on a new worker', async () => {
       const pool = await createWorkerPool(sys, {

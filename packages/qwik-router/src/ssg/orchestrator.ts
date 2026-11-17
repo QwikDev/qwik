@@ -16,7 +16,7 @@ export async function mainThread(sys: System) {
   log.info('\n' + bold(green('Starting Qwik Router SSG...')));
 
   const qwikRouterConfig = opts.qwikRouterConfig;
-  const renderTimeout = 30_000;
+  const renderTimeout = opts.renderTimeout ?? 30_000;
   const maxRetries = opts.retries ?? 0;
   const failedAttempts = new Map<string, number>();
 
@@ -156,15 +156,17 @@ export async function mainThread(sys: System) {
 
           log.debug(`render done: ${staticRoute.pathname}`);
 
-          if (!result) {
-            const timeoutMessage = `SSG render timed out after ${renderTimeout}ms`;
-            if (!hasRetriesLeft(staticRoute)) {
+          const timeoutMessage = `SSG render timed out after ${renderTimeout}ms`;
+          if (!result || result.error?.message === timeoutMessage) {
+            if (hasRetriesLeft(staticRoute)) {
+              await main.restartWorker(staticRoute.pathname);
+              retryLater(staticRoute, timeoutMessage);
+              flushQueue();
+              return;
+            }
+            if (!result) {
               throw new Error(timeoutMessage);
             }
-            await main.restartWorker(staticRoute.pathname);
-            retryLater(staticRoute, timeoutMessage);
-            flushQueue();
-            return;
           }
 
           if (result.isInterrupted) {

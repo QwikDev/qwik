@@ -13,6 +13,7 @@ export type BundleInfo = {
 export type BundleImport = BundleInfo & {
   $name$: string;
   $state$: number;
+  $failures$?: number;
 };
 
 export type BundleImports = Map<string, BundleImport>;

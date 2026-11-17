@@ -254,9 +254,47 @@ const preloadOne = (bundle: BundleImport) => {
     nextTriggerMacroTask();
   };
   link.onload = () => onSettled(BundleImportState_Loaded);
-  link.onerror = () => onSettled(BundleImportState_None);
+  link.onerror = () => {
+    onSettled(BundleImportState_None);
+    retryFailedPreload(bundle);
+  };
 
   doc.head.appendChild(link);
+};
+
+const RETRY_DELAY_MS = 1000;
+const failedBundles = new Set<BundleImport>();
+
+const queueBundle = (bundle: BundleImport) => {
+  if (bundle.$state$ === BundleImportState_None) {
+    bundle.$state$ = BundleImportState_Queued;
+    queue.push(bundle);
+    queueDirty = true;
+    nextTriggerMacroTask();
+  }
+};
+
+const retryFailedBundlesOnceOnline = () => {
+  for (const bundle of failedBundles) {
+    bundle.$failures$ = 0;
+    queueBundle(bundle);
+  }
+};
+
+const retryFailedPreload = (bundle: BundleImport) => {
+  if (!failedBundles.size) {
+    doc.defaultView!.addEventListener('online', retryFailedBundlesOnceOnline);
+  }
+  failedBundles.add(bundle);
+  bundle.$failures$ = (bundle.$failures$ || 0) + 1;
+  if (bundle.$failures$ > 1 || navigator.onLine === false) {
+    return;
+  }
+  if (isHighestPriority(bundle)) {
+    queueBundle(bundle);
+  } else {
+    setTimeout(queueBundle, RETRY_DELAY_MS, bundle);
+  }
 };
 
 /** Replay a buffered hint after its dependencies become available. */

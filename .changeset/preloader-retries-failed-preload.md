@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: chunks whose preload failed were never preloaded again
+fix: a preload that fails is tried again once, and again when the network comes back

@@ -7,6 +7,7 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
+import { lucide } from '@qds.dev/ui';
 import parserEstree from 'prettier/plugins/estree';
 import parserHtml from 'prettier/plugins/html';
 import parserTs from 'prettier/plugins/typescript';
@@ -116,7 +117,7 @@ const PrettierToggle = component$((props: { 'bind:value': Signal<boolean>; error
     >
       <input type="checkbox" bind:checked={props['bind:value']} style="display: none;" />
       <span class={[props['bind:value'].value ? 'checked' : '', props.error ? 'error' : '']}>
-        P
+        <lucide.wandsparkles class="size-[18px]" />
       </span>
     </label>
   );

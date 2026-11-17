@@ -107,6 +107,20 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('only a slow-to-download import graph shifts the preload probability', () => {
+    const probabilityOf = (depTotal: number) =>
+      convertManifestToBundleGraph({
+        bundles: {
+          'page.js': { size, total, dynamicImports: ['dep.js'], qrlImports: ['dep.js'] },
+          'dep.js': { size, total: depTotal, interactivity: 3 },
+        } as Record<string, QwikBundle>,
+        mapping: {},
+      } as QwikManifest)[1];
+
+    expect(probabilityOf(5_000)).toBe(-7);
+    expect(probabilityOf(50_000)).toBe(-8);
+  });
+
   test('import cycle through the reduced bundle keeps reachable deps', () => {
     const manifest = {
       bundles: {
@@ -220,12 +234,137 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  describe('added layout entry', () => {
+    const entryOf = (graph: (string | number)[], name: string) => {
+      const start = graph.indexOf(name);
+      const end = graph.findIndex((item, index) => index > start && typeof item === 'string');
+      return graph.slice(start + 1, end === -1 ? undefined : end);
+    };
+    const withLayoutAndRoute = () =>
+      convertManifestToBundleGraph(
+        fakeManifest,
+        new Set([
+          () => ({
+            'docs/': { dynamicImports: ['transitive-dep.js'] },
+            DocsLayout: { dynamicImports: ['transitive-dep.js'] },
+          }),
+        ])
+      );
+
+    test('keeps an added entry that no bundle imports', () => {
+      expect(withLayoutAndRoute()).toContain('DocsLayout');
+    });
+
+    test("follows an added layout entry's bundles like a route's", () => {
+      const graph = withLayoutAndRoute();
+
+      expect(entryOf(graph, 'DocsLayout').length).toBeGreaterThan(0);
+      expect(entryOf(graph, 'DocsLayout')).toEqual(entryOf(graph, 'docs/'));
+    });
+  });
+
+  describe('event qrls and render chunks', () => {
+    const component = { ctxKind: 'function', ctxName: 'component$' };
+    const componentManifest = (cardEvent: { ctxKind: string; ctxName: string }) =>
+      ({
+        bundles: {
+          'card.js': { size, total, qrlImports: ['card-render.js'] },
+          'card-render.js': {
+            size,
+            total,
+            imports: ['row.js'],
+            qrlImports: ['card-events.js'],
+            symbols: ['cardRender'],
+          },
+          'card-events.js': {
+            size,
+            total,
+            symbols: ['cardEvent'],
+            interactivity: cardEvent.ctxName === 'onClick$' ? 5 : 2,
+          },
+          'row.js': { size, total, qrlImports: ['row-render.js'] },
+          'row-render.js': {
+            size,
+            total,
+            qrlImports: ['row-events.js'],
+            symbols: ['rowRender'],
+          },
+          'row-events.js': { size, total, symbols: ['rowTask'] },
+        },
+        mapping: {},
+        symbols: {
+          cardRender: component,
+          cardEvent,
+          rowRender: component,
+          rowTask: { ctxKind: 'function', ctxName: 'useTask$' },
+        },
+      }) as unknown as QwikManifest;
+
+    const likelihoodsFrom = (manifest: QwikManifest, start: string) => {
+      const graph = convertManifestToBundleGraph(manifest);
+      const likelihoods = new Map<string, number>();
+      const visit = (name: string, likelihood: number) => {
+        if ((likelihoods.get(name) ?? 0) >= likelihood) {
+          return;
+        }
+        likelihoods.set(name, likelihood);
+        let edge = 1;
+        for (let i = graph.indexOf(name) + 1; typeof graph[i] === 'number'; i++) {
+          const item = graph[i] as number;
+          if (item < 0) {
+            edge = -item / 10;
+          } else {
+            visit(graph[item] as string, likelihood * edge);
+          }
+        }
+      };
+      visit(start, 1);
+      return likelihoods;
+    };
+
+    const onClick = { ctxKind: 'eventHandler', ctxName: 'onClick$' };
+    const onInput = { ctxKind: 'eventHandler', ctxName: 'onInput$' };
+
+    test("ranks a component's event QRL chunk above its render chunk", () => {
+      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
+
+      expect(likelihoods.get('card-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
+    });
+
+    test("ranks a child component's event QRL chunk above its parent's render chunk", () => {
+      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
+
+      expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
+    });
+
+    test('ranks every kind of handler the same', () => {
+      const withClick = likelihoodsFrom(componentManifest(onClick), 'card.js');
+      const withInput = likelihoodsFrom(componentManifest(onInput), 'card.js');
+
+      expect(withInput.get('card-events.js')).toBe(withClick.get('card-events.js'));
+    });
+  });
+
   test(`works`, () => {
+    // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
+    // calls; write them over the tail so the sizes stay the same.
+    const bundles = Object.fromEntries(
+      Object.entries(outputBundles.bundles).map(([name, bundle]: [string, any]) => {
+        const imports = (bundle.dynamicImports ?? [])
+          .map((file: string) => `import("./${file.slice(file.lastIndexOf('/') + 1)}");`)
+          .join('');
+        const code: string = bundle.code ?? '';
+        return [
+          name,
+          { ...bundle, code: code.slice(0, Math.max(0, code.length - imports.length)) + imports },
+        ];
+      })
+    );
     const manifest = generateManifestFromBundles(
       path as any,
       outputBundles.segments as any,
       [],
-      outputBundles.bundles as any,
+      bundles as any,
       { rootDir: '/', outDir: '/' } as any,
       console.error,
       (p) => path.relative('build', p),
@@ -261,9 +400,9 @@ describe('convertManifestToBundleGraph', () => {
         "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js": "3 (727/727)",
         "index.tsx_about_component_useStyles_WOcPLNnm2is.js": "2 (3928/3928)",
         "index.tsx_form_component_useStyles_0pasaG6nmEA.js": "2 (4658/9544)",
-        "index.tsx_routes_component_vG0UuU4cNCg.js": "5 (4886/4886)",
+        "index.tsx_routes_component_vG0UuU4cNCg.js": "3 (4886/4886)",
         "layout.js": "0 (4886/4886)",
-        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "2 (4772/9658)",
+        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "3 (4772/9658)",
         "preloader.js": "0 (5000/5000)",
         "qwik-router.js": "2 (4886/4886)",
         "root.js": "0 (4886/4886)",
@@ -278,7 +417,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
         "index.js",
-        -9,
+        -5,
         18,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
@@ -300,29 +439,29 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
         "layout.js",
-        -9,
+        -10,
         25,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
         27,
         "qwik-router.js",
         -10,
         4,
-        9,
-        17,
-        -9,
-        3,
         5,
-        12,
-        7,
         16,
+        9,
         11,
-        14,
+        27,
+        -5,
+        12,
         "root.js",
-        -9,
-        43,
+        -10,
+        27,
+        -5,
+        42,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
-        -9,
+        -10,
+        -5,
         47,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
@@ -332,112 +471,122 @@ describe('convertManifestToBundleGraph', () => {
         "src-vendor-lib-libB.ts.js",
         49,
         "BjxcCeNQ9ak",
-        -9,
+        -10,
         21,
         "eevMxFvmCM8",
-        -7,
+        -10,
         25,
         "99K9SAWjPFQ",
-        -9,
+        -10,
         21,
         "LopIayqLfMo",
-        -8,
+        -10,
         9,
         "VjDx6RO4Kis",
-        -9,
+        -10,
         17,
         "HEFxKy9cwuk",
-        -9,
+        -10,
         21,
         "6VMZkqoH00Q",
-        -7,
+        -10,
         3,
         "9PcKHFjikV0",
-        -7,
-        43,
+        -10,
+        27,
+        -5,
+        42,
         "9fcUDoGM9Wo",
-        -8,
+        -10,
         9,
         "SHtFir1Ia94",
-        -7,
+        -10,
         25,
         "cH9twROgaEg",
-        -7,
+        -10,
         7,
         "dAo05yeFq1I",
-        -7,
+        -10,
+        27,
+        -5,
         47,
         "ds9jIPT1g9s",
-        -7,
+        -10,
+        27,
+        -5,
         19,
         "lTNqDDf58lI",
-        -7,
+        -10,
         5,
         "m7u9ARcfDGU",
-        -7,
+        -5,
         18,
         "q56DrQcc9VE",
-        -7,
+        -10,
+        27,
+        -5,
         12,
         "vG0UuU4cNCg",
-        -9,
+        -10,
         21,
         "vXTAPbOW0Ig",
-        -7,
+        -10,
         27,
         "0pasaG6nmEA",
-        -7,
+        -10,
+        27,
+        -5,
         19,
         "BMutFDNOKhc",
-        -8,
+        -10,
         9,
         "Iyy38y0K3Hw",
-        -9,
+        -10,
         21,
         "MOLFIZOhXmE",
-        -7,
+        -10,
         25,
         "WOcPLNnm2is",
-        -7,
+        -5,
         18,
         "3mjmVvTlJqo",
-        -6,
+        -10,
         16,
         "5DbAsQLGGo4",
-        -8,
+        -10,
         4,
         "Nhj4Mq4ilm8",
-        -6,
+        -10,
         14,
         "rufUrhffR5k",
-        -6,
+        -10,
         11,
         "0xCNPioszTk",
-        -7,
+        -10,
         5,
         "1F0Ft5Y9bOI",
-        -7,
+        -10,
         3,
         "ANY7TPAnAd8",
-        -7,
+        -10,
         27,
         "BdwdOv10pp0",
-        -8,
+        -10,
         9,
         "YCi2vDzuhns",
-        -7,
+        -10,
         27,
         "dNtHVLGwESE",
-        -7,
+        -10,
         7,
         "ep3t0fF0SDA",
-        -9,
+        -10,
         21,
         "lWJp5Z4VtFs",
-        -7,
+        -10,
         5,
         "s3XioIi2Huw",
-        -8,
+        -10,
         9,
       ]
     `);

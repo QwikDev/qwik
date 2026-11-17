@@ -391,6 +391,7 @@ function* inflateIterator(
         Props,
         Props | null,
         Map<string | symbol, Set<EffectSubscription>> | undefined,
+        boolean?,
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
@@ -399,12 +400,12 @@ function* inflateIterator(
         // Do not let JSXNodeImpl constructor normalize {} to EMPTY_OBJ/null.
         owner.varProps = d[1];
         owner.constProps = d[2];
-
-        owner._proxy = propsProxy;
       }
+      owner._proxy ||= propsProxy;
       propsProxy[_OWNER] = owner;
       const propsHandler = propsProxy[_PROPS_HANDLER];
       propsHandler.$effects$ = d[3];
+      propsHandler.$omitChildren$ = !!d[4];
       restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
       break;
     }

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom } from '../utils/app';
+import { chunkComesFrom, chunkHasVisibleTask, getManifest, ORIGIN } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
@@ -16,6 +16,7 @@ import {
   recordSpeculativePreloads,
   releaseAll,
   resultIsDone,
+  speculativePreloads,
 } from '../utils/gate';
 import {
   countFixtureRoundTrips,
@@ -29,6 +30,16 @@ import {
 const VISIBLE_ABOVE_SOURCE = 'src/components/fixtures/visible/above.tsx';
 const VISIBLE_BELOW_SOURCE = 'src/components/fixtures/visible/below.tsx';
 
+const openOnceASpeculativePreloadStarted = async (page: Page, fixture: Fixture) => {
+  const coreUrl = `${ORIGIN}/build/${getManifest().core}`;
+  const gate = await createGate(page);
+  gate.holdWhilePassing = (url) => url === coreUrl;
+  await page.goto(fixture.path, { waitUntil: 'commit' });
+  await expect.poll(async () => (await speculativePreloads(page)).size).toBeGreaterThan(0);
+  gate.holdWhilePassing = undefined;
+  await releaseAll(gate);
+};
+
 test.describe('visible task in view at load', () => {
   test('its chunks are requested as soon as qwikloader sees it, before any speculative preload', async ({
     page,
@@ -36,23 +47,23 @@ test.describe('visible task in view at load', () => {
     await recordSpeculativePreloads(page);
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
-    await page.goto(VISIBLE_ABOVE.path);
+    await openOnceASpeculativePreloadStarted(page, VISIBLE_ABOVE);
     await expectResult(page, VISIBLE_ABOVE);
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const firstVisibleTaskChunk = requests.findIndex(
-      (url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && !speculative.has(url)
+    const isVisibleTaskChunk = (url: string) =>
+      chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && chunkHasVisibleTask(url);
+    const firstVisibleTaskChunk = requests.findIndex(isVisibleTaskChunk);
+    const firstSpeculativePreload = requests.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     );
-    const firstSpeculativePreload = requests.findIndex((url) => speculative.has(url));
     expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
       'on main, visible task chunks wait for core to load, and speculative preloads start first'
     );
-    if (firstSpeculativePreload >= 0) {
-      expect(firstVisibleTaskChunk).toBeLessThan(firstSpeculativePreload);
-    }
+    expect(firstVisibleTaskChunk).toBeLessThan(firstSpeculativePreload);
   });
 
   test('the chunks of its 3 chained visible tasks go out in one round trip', async ({ page }) => {
@@ -87,10 +98,10 @@ test.describe('visible task below the fold', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const fetchedAsNeeded = requests.filter(
+    const fetchedAtHighestPriority = requests.filter(
       (url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]) && !speculative.has(url)
     );
-    expect(fetchedAsNeeded).toEqual([]);
+    expect(fetchedAtHighestPriority).toEqual([]);
     await releaseAll(opened.gate);
   });
 
@@ -148,21 +159,28 @@ test.describe('visible task chain scrolled into view', () => {
 
 const LOAD_EVENT = 'load';
 
-const loadAndRecordRequests = async (page: Page, fixture: Fixture) => {
+const loadAndRecordRequests = async (
+  page: Page,
+  fixture: Fixture,
+  open: (page: Page, fixture: Fixture) => Promise<unknown> = (page, fixture) =>
+    page.goto(fixture.path)
+) => {
   await recordSpeculativePreloads(page);
   const events: string[] = [];
   page.on('request', (request) => events.push(request.url()));
   page.on('load', () => events.push(LOAD_EVENT));
-  await page.goto(fixture.path);
+  await open(page, fixture);
   await expectResult(page, fixture);
   const speculative = new Set(
     (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
   );
+  const isVisibleTaskChunk = (url: string) =>
+    url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && chunkHasVisibleTask(url);
   return {
-    firstChunk: events.findIndex(
-      (url) => url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && !speculative.has(url)
+    firstChunk: events.findIndex(isVisibleTaskChunk),
+    firstSpeculativePreload: events.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     ),
-    firstSpeculativePreload: events.findIndex((url) => speculative.has(url)),
     load: events.indexOf(LOAD_EVENT),
   };
 };
@@ -183,12 +201,11 @@ test.describe('other visible task strategies', () => {
   }) => {
     const { firstChunk, firstSpeculativePreload, load } = await loadAndRecordRequests(
       page,
-      VISIBLE_DOCUMENT_IDLE
+      VISIBLE_DOCUMENT_IDLE,
+      openOnceASpeculativePreloadStarted
     );
     expect(firstChunk).toBeGreaterThan(load);
     test.fail(true, 'on main, speculative preloads start before document-idle visible task chunks');
-    if (firstSpeculativePreload >= 0) {
-      expect(firstChunk).toBeLessThan(firstSpeculativePreload);
-    }
+    expect(firstChunk).toBeLessThan(firstSpeculativePreload);
   });
 });

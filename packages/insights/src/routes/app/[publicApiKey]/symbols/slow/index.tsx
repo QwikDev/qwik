@@ -1,17 +1,22 @@
+import SymbolFilter from '~/components/symbol-filter';
+import { filterSymbols } from '~/stats/symbol-search';
+import { loadReportScope } from '~/db/report-scope';
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import { getManifestPerformance } from '../../performance';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
 import PageHeader from '~/components/page-header';
 import ResultsPagination from '~/components/results-pagination';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
-import { getSlowEdges, type SlowEdge } from '~/db/query';
-import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { BUCKETS, vectorAvg, vectorSum } from '~/stats/vector';
+import { getSlowEdges, getSymbolDetails, type SlowEdge } from '~/db/query';
+import { BUCKETS, vectorSum } from '~/stats/vector';
 import { paginateResults, type ResultsPage } from '~/stats/pagination';
 
-interface SlowSymbol extends ResultsPage<SlowEdge> {
+interface SlowSymbol extends ResultsPage<
+  SlowEdge & ReturnType<typeof getManifestPerformance> & { fullName?: string; origin?: string }
+> {
   manifestCount: number;
   samples: number;
   symbolCount: number;
@@ -22,14 +27,29 @@ export const head: DocumentHead = {
 };
 
 export const useData = routeLoader$<SlowSymbol>(async ({ params, query }) => {
-  const manifest = query.get('manifest');
   const db = getDB();
-  const manifestHashes = manifest
-    ? manifest.split(',').filter(Boolean).slice(0, 100)
-    : await dbGetManifestHashes(db, params.publicApiKey);
-  const edges = await getSlowEdges(db, params.publicApiKey, manifestHashes);
+  const { selectedHash } = await loadReportScope(db, params.publicApiKey, query);
+  const manifestHashes = selectedHash ? [selectedHash] : [];
+  const [edges, metadata] = await Promise.all([
+    getSlowEdges(db, params.publicApiKey, manifestHashes),
+    selectedHash ? getSymbolDetails(db, params.publicApiKey, { manifestHashes }) : [],
+  ]);
+  const details = new Map(metadata.map((symbol) => [symbol.hash, symbol]));
   return {
-    ...paginateResults(edges, query.get('page')),
+    ...paginateResults(
+      filterSymbols(
+        edges.map((edge) => ({
+          ...edge,
+          hash: edge.to,
+          fullName: details.get(edge.to)?.fullName,
+          origin: details.get(edge.to)?.origin,
+          ...getManifestPerformance(edge.latency),
+        })),
+        query.get('q'),
+        query.get('sort') ?? 'p95'
+      ),
+      query.get('page')
+    ),
     manifestCount: manifestHashes.length,
     samples: edges.reduce((total, edge) => total + vectorSum(edge.latency), 0),
     symbolCount: new Set(edges.map((edge) => edge.to)).size,
@@ -42,9 +62,10 @@ export default component$(() => {
   return (
     <div class="font-editorial-ui text-editorial-primary">
       <PageHeader
+        report="slow"
         eyebrow="Latency outliers"
         title="Slow symbols"
-        description="Find symbols with the slowest execution latency across recorded manifests."
+        description="Find symbols with the slowest loading latency in the selected build."
       />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
@@ -59,6 +80,7 @@ export default component$(() => {
         />
       </dl>
 
+      <SymbolFilter defaultSort="p95" />
       <ResultsPagination page={data.value.page} pageCount={data.value.pageCount} />
 
       {data.value.items.length ? (
@@ -76,7 +98,7 @@ export default component$(() => {
                   Count
                 </th>
                 <th scope="col" class="w-24 py-editorial-4 text-right font-semibold">
-                  Avg.
+                  P95
                 </th>
                 <th scope="col" class="py-editorial-4 pl-editorial-6 font-semibold">
                   Latency distribution
@@ -101,13 +123,13 @@ export default component$(() => {
                     </code>
                   </th>
                   <td class="py-editorial-5 font-editorial-mono font-semibold">
-                    <SymbolTile symbol={edge.to} />
+                    <SymbolTile symbol={edge.to} fullName={edge.fullName} origin={edge.origin} />
                   </td>
                   <td class="py-editorial-5 text-right font-semibold">
                     {vectorSum(edge.latency).toLocaleString('en')}
                   </td>
                   <td class="py-editorial-5 text-right font-semibold">
-                    {Math.round(vectorAvg(edge.latency))} ms
+                    {edge.p95 === null ? 'Collecting data' : `${Math.round(edge.p95)} ms`}
                   </td>
                   <td class="py-editorial-5 pl-editorial-6">
                     <Histogram vector={edge.latency} colors={latencyColors} buckets={BUCKETS} />
@@ -119,9 +141,9 @@ export default component$(() => {
         </div>
       ) : (
         <section class="border-b border-editorial-border py-editorial-16">
-          <h2 class="text-editorial-24 font-semibold">No slow symbols yet</h2>
+          <h2 class="text-editorial-24 font-semibold">No matching slow symbols</h2>
           <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
-            Slow symbols will appear after latency samples are recorded.
+            Clear the search, choose another build, or collect loading latency observations.
           </p>
         </section>
       )}

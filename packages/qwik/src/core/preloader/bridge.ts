@@ -1,8 +1,8 @@
 type Preload = (item: string | string[], probability?: number) => void;
 
-type PreloaderGlobal = typeof globalThis & {
+export type PreloaderGlobal = typeof globalThis & {
   qPreload?: Preload;
-  /** Hints sent before the preloader loaded; shared by core's and the preloader's copy. */
+  /** Hints sent before the preloader loaded; shared by core, qwikloader and the preloader. */
   qPreloadQueue?: Parameters<Preload>[];
 };
 

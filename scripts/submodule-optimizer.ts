@@ -40,6 +40,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
           'launch-editor',
           '@qwik.dev/optimizer',
           '@qwik.dev/ts-optimizer',
+          // Keep the runtime import('vite') external so it resolves from @qwik.dev/core.
+          'vite',
           // Inlined, its minified `class e` trips a WebContainer scoping bug (#9402).
           'magic-string',
         ],

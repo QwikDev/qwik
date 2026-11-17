@@ -46,17 +46,17 @@ function entriesByDisplayName(path: string, mode: 'prod' | 'dev'): Record<string
 
 // Expected values come from the Rust optimizer on the same source.
 const expectedEntries = {
-  'test.tsx_App_component': 'test.tsx_entry_App',
+  'test.tsx_App_component': 'test.tsx_render_App',
   'test.tsx_App_component_useTask': 'test.tsx_entry_App',
-  'test.tsx_App_component_button_q_e_click': null,
+  'test.tsx_App_component_button_q_e_click': 'test.tsx_entry_App',
   'test.tsx_useThing_useTask': 'test.tsx_entry_useThing',
   'test.tsx_useThing_useTask_1': 'test.tsx_entry_useThing',
   'test.tsx_useData_routeLoader': 'test.tsx_entry_useData',
-  'test.tsx_test_component': 'test.tsx_entry_test',
+  'test.tsx_test_component': 'test.tsx_render_test',
 };
 
 describe('smart entry strategy', () => {
-  it('keeps captured handlers separate from their component render', () => {
+  it("groups handlers with the component's other segments, apart from its render", () => {
     const code = readFileSync(
       new URL('../../../../optimizer/core/src/fixtures/smart-lifted-captures.tsx', import.meta.url),
       'utf8'
@@ -76,21 +76,15 @@ describe('smart entry strategy', () => {
     expect(handlers).toHaveLength(2);
     const lifted = handlers.find((handler) => handler.displayName.endsWith('_click'))!;
     expect(lifted.captures).toBe(false);
-    expect(lifted.entry).toBeNull();
-    expect(handlers.find((handler) => handler !== lifted)!.entry).toBeNull();
-    const callback = result.modules.find(
-      (mod) => mod.kind === 'segment' && mod.segment.ctxName === '$'
-    );
-    const render = result.modules.find(
-      (mod) => mod.kind === 'segment' && mod.segment.ctxName === 'component$'
-    );
-    expect(callback?.kind === 'segment' && callback.segment.entry).toBe(
-      render?.kind === 'segment' && render.segment.entry
-    );
-    const event = result.modules.find(
-      (mod) => mod.kind === 'segment' && mod.segment.ctxName === 'event$'
-    );
-    expect(event?.kind === 'segment' && event.segment.entry).toBeNull();
+    const entryOf = (ctxName: string) =>
+      result.modules.flatMap((mod) =>
+        mod.kind === 'segment' && mod.segment.ctxName === ctxName ? [mod.segment.entry] : []
+      )[0];
+    const interactionEntry = entryOf('$');
+    expect(interactionEntry).toBe('test.tsx_entry_App');
+    expect(handlers.map((handler) => handler.entry)).toEqual([interactionEntry, interactionEntry]);
+    expect(entryOf('event$')).toBe(interactionEntry);
+    expect(entryOf('component$')).toBe('test.tsx_render_App');
   });
 
   it('groups segments by their root context in prod mode', () => {
@@ -104,7 +98,7 @@ describe('smart entry strategy', () => {
   it('names a catch-all route entry after the raw file stem', () => {
     const entries = entriesByDisplayName('routes/[[...slug]].tsx', 'prod');
     expect(entries['[[...slug]].tsx_slug_component']).toBe(
-      'routes/[[...slug]].tsx_entry_[[...slug]]'
+      'routes/[[...slug]].tsx_render_[[...slug]]'
     );
     expect(entries['[[...slug]].tsx_useThing_useTask']).toBe(
       'routes/[[...slug]].tsx_entry_useThing'

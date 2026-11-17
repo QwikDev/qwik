@@ -64,6 +64,10 @@ export function getPathnameForDynamicRoute(
       const paramKey = `[${paramName}]`;
       const restParamKey = `[...${paramName}]`;
       const paramValue = params[paramName];
+      if (paramValue === '') {
+        // An empty rest param segment would otherwise leave `//` behind.
+        pathname = pathname.replace(`/${restParamKey}/`, '/');
+      }
       pathname = pathname.replace(restParamKey, paramValue);
       pathname = pathname.replace(paramKey, paramValue);
     }

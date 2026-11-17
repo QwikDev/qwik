@@ -21,6 +21,8 @@ test.describe('<Pending>', () => {
   test.beforeEach(async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto('/e2e/pending');
+    // Leaving the page while qwikloader still loads makes Firefox report the aborted import
+    await page.waitForFunction(() => (window as any)._qwikEv?.roots);
   });
 
   function tests() {

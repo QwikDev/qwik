@@ -6,6 +6,25 @@ export interface MatrixCell {
   value: number;
 }
 
+export function getGroupMatrix<T extends { name: string }>(
+  matrix: MatrixCell[][],
+  symbols: T[],
+  selectedNames: string[]
+) {
+  const selected = new Set(selectedNames);
+  const indices = symbols.flatMap((symbol, index) => (selected.has(symbol.name) ? [index] : []));
+  const columns = new Map(indices.map((original, index) => [original, index]));
+  return {
+    symbols: indices.map((index) => symbols[index]),
+    matrix: indices.map((index) =>
+      (matrix[index] ?? []).flatMap((cell) => {
+        const column = columns.get(cell.column);
+        return column === undefined ? [] : [{ column, value: cell.value }];
+      })
+    ),
+  };
+}
+
 export function createBundleViewData(vectors: SymbolVectors, bundles: Bundle[]) {
   const summaries = new Map(
     vectors.symbols.map((symbol) => [symbol, { ...symbol, children: [] as Symbol['children'] }])

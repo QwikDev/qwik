@@ -1,7 +1,6 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import {
-  computeLatency,
   createEdgeRow,
   createRouteRow,
   delayBucketField,
@@ -124,8 +123,6 @@ export async function getSlowEdges(
         and(eq(edgeTable.publicApiKey, publicApiKey), inArray(edgeTable.manifestHash, manifests))
       )
       .groupBy(edgeTable.manifestHash, edgeTable.to)
-      .orderBy(sql`${computeLatency} DESC`)
-      .limit(400)
       .all();
     return rows.map((edge) => ({
       manifestHash: edge.manifestHash,
@@ -145,6 +142,9 @@ export async function getSymbolDetails(
   publicApiKey: string,
   { manifestHashes }: { manifestHashes: string[] }
 ): Promise<SymbolDetailForApp[]> {
+  if (manifestHashes.length === 0) {
+    return [];
+  }
   return time('symbolDetailTable.getSymbolDetails', async () => {
     return db
       .select({
@@ -161,7 +161,6 @@ export async function getSymbolDetails(
           inArray(symbolDetailTable.manifestHash, manifestHashes)
         )
       )
-      .limit(1000)
       .all();
   });
 }

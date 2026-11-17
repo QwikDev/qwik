@@ -41,8 +41,12 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const preloadRouteBundles = (routeName: string, probability: number = 0.8) => {
+export const preloadRouteBundles = (
+  routeName: string,
+  probability: number = 0.8,
+  newLayoutKeys: string[] = []
+) => {
   if (isBrowser) {
-    preload(toBundleGraphRouteName(routeName), probability);
+    preload([...newLayoutKeys, toBundleGraphRouteName(routeName)], probability);
   }
 };

@@ -153,7 +153,7 @@ Start with the getting started guide, the core concepts pages, and the router gu
       section: 'Start Here',
       title: 'Playground',
       pathname: '/playground/',
-      sourcePath: toSourcePath('playground', 'index!.tsx'),
+      sourcePath: toSourcePath('playground', '[...id]', 'index!.tsx'),
       description:
         'Interactive playground for trying Qwik code, shareable examples, and quick experiments.',
       optional: true,

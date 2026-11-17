@@ -1,4 +1,4 @@
-import type { NoSerialize, Signal } from '@qwik.dev/core';
+import type { NoSerialize } from '@qwik.dev/core';
 import type {
   Diagnostic,
   QwikManifest,
@@ -14,6 +14,7 @@ export interface ReplAppInput {
   entryStrategy: string;
   debug?: boolean;
   outOfOrderStreaming?: boolean;
+  rustOptimizer?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
@@ -58,7 +59,6 @@ export interface ReplModuleOutput {
   path: string;
   code: string;
   size?: string;
-  shorten?: Signal<boolean>;
 }
 
 export interface ReplEvent {

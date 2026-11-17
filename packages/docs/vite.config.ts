@@ -17,7 +17,7 @@ import { defineConfig, loadEnv, type Connect, type Plugin, type UserConfig } fro
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { blogRssData } from './vite-blog-rss';
 import { docsUpdatedData } from './vite-docs-updated';
-import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
+import { examplesData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
@@ -64,7 +64,7 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
 };
 
 /** Paths that host the REPL, which needs crossOriginIsolated for its SharedArrayBuffer. */
-const REPL_PATHS = ['/playground', '/tutorial', '/examples', '/repl'];
+const REPL_PATHS = ['/playground', '/tutorial', '/repl'];
 
 const crossOriginIsolateRepl = (): Plugin => {
   const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
@@ -256,7 +256,6 @@ export default defineConfig(({ mode }) => {
         dest: resolve('dist', '~partytown'),
       }),
       examplesData(routesDir),
-      playgroundData(routesDir),
       blogRssData(routesDir),
       docsUpdatedData(routesDir),
       tutorialData(routesDir),

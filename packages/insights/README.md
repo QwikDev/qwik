@@ -50,6 +50,15 @@ pnpm -C packages/insights dev
 For a hosted database, set `PRIVATE_LIBSQL_DB_URL` to its libSQL URL and
 `PRIVATE_LIBSQL_DB_API_TOKEN` to a token for that database.
 
+### Local identity override
+
+For local inspection without GitHub OAuth, set `PRIVATE_DEV_USER_EMAIL` in `.env.local` to your
+existing Insights database user email. The override runs only in development on `localhost`,
+`127.0.0.1`, or `[::1]`. Keep the dev server bound to loopback. Application access still comes from
+that user's database permissions; the override does not grant access or create a database user.
+Use a read-only database token when inspecting production telemetry. Remove the variable to return
+to GitHub sign-in. Production builds ignore it.
+
 ## Verify the upgrade
 
 Run from the repository root after building the workspace packages:

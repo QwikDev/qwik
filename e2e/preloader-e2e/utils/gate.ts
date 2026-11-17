@@ -1,5 +1,5 @@
 import type { Locator, Page, Request, Route } from '@playwright/test';
-import { bundleFile, chunkHoldsSegmentsFrom, labelRequest, neededWith, ORIGIN } from './app';
+import { chunkHoldsSegmentsFrom, labelRequest, ORIGIN } from './app';
 
 export const FILLER = 'src/components/filler/';
 
@@ -25,11 +25,9 @@ type PreloaderWindow = Window & {
   __preloaderLinks?: PreloaderLink[];
   __speculativeInFlight?: number;
   __maxSpeculativeInFlight?: number;
-  __holdsSpeculativePreloads?: boolean;
-  __heldSpeculativePreloads?: number;
-  __resumeSpeculativePreloads?: () => void;
-  __sendHeldSpeculativePreloads?: (hrefs: string[]) => void;
   __preloadHints?: PreloadHint[];
+  /** Qwik's own hint queue (preloader/bridge.ts), not a test hook. */
+  qPreloadQueue?: [item: string | string[], probability?: number][];
 };
 
 export type PreloadHint = { item: string | string[]; probability?: number };
@@ -48,6 +46,12 @@ export const recordPreloadHints = (page: Page) =>
           preload!(item, probability);
         }),
       set: (value) => {
+        // The preloader drains the hints queued before it loaded without calling the getter
+        if (win.qPreloadQueue) {
+          for (const [item, probability] of win.qPreloadQueue) {
+            hints.push({ item, probability });
+          }
+        }
         preload = value;
       },
     });
@@ -56,29 +60,24 @@ export const recordPreloadHints = (page: Page) =>
 export const preloadHints = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__preloadHints ?? []);
 
+/** Chunks hinted at the highest priority so far, also those waiting for the preloader to load. */
+export const chunksHintedAtHighestPriority = (page: Page) =>
+  page.evaluate(() => {
+    const win = window as PreloaderWindow;
+    const hints = [
+      ...(win.__preloadHints ?? []),
+      ...(win.qPreloadQueue ?? []).map(([item, probability]) => ({ item, probability })),
+    ];
+    return hints.filter((hint) => hint.probability === 1).flatMap((hint) => hint.item);
+  });
+
 export const recordSpeculativePreloads = (page: Page) =>
   page.addInitScript(() => {
     const win = window as PreloaderWindow;
     win.__preloaderLinks = [];
     win.__speculativeInFlight = 0;
     win.__maxSpeculativeInFlight = 0;
-    const heldLinks: [Node, HTMLLinkElement][] = [];
     const appendChild = Node.prototype.appendChild;
-    win.__sendHeldSpeculativePreloads = (hrefs) => {
-      for (let i = heldLinks.length - 1; i >= 0; i--) {
-        const [parent, link] = heldLinks[i];
-        if (hrefs.includes(link.href)) {
-          heldLinks.splice(i, 1);
-          appendChild.call(parent, link);
-        }
-      }
-    };
-    win.__resumeSpeculativePreloads = () => {
-      win.__holdsSpeculativePreloads = false;
-      for (const [parent, link] of heldLinks.splice(0)) {
-        appendChild.call(parent, link);
-      }
-    };
     Node.prototype.appendChild = function <T extends Node>(this: Node, node: T): T {
       if (node instanceof HTMLLinkElement && /preload/i.test(node.rel)) {
         const speculative = node.getAttribute('fetchpriority') === 'low';
@@ -92,38 +91,11 @@ export const recordSpeculativePreloads = (page: Page) =>
           const settled = () => win.__speculativeInFlight!--;
           node.addEventListener('load', settled, { once: true });
           node.addEventListener('error', settled, { once: true });
-          if (win.__holdsSpeculativePreloads) {
-            heldLinks.push([this, node]);
-            win.__heldSpeculativePreloads = heldLinks.length;
-            return node;
-          }
         }
       }
       return appendChild.call(this, node) as T;
     };
   });
-
-export const holdSpeculativePreloads = (page: Page) =>
-  page.addInitScript(() => {
-    (window as PreloaderWindow).__holdsSpeculativePreloads = true;
-  });
-
-/**
- * The preloader counts a held speculative preload as in flight, so it never requests that chunk
- * again once it is needed. Send it when a request makes it needed, as the preloader would.
- */
-const sendHeldPreloadsNeededWith = (page: Page, url: string) => {
-  if (!url.startsWith(`${ORIGIN}/build/`)) {
-    return;
-  }
-  const hrefs = [...neededWith(bundleFile(url))].map((bundle) => `${ORIGIN}/build/${bundle}`);
-  page
-    .evaluate((hrefs) => (window as PreloaderWindow).__sendHeldSpeculativePreloads?.(hrefs), hrefs)
-    .catch(() => {});
-};
-
-const resumeSpeculativePreloads = (page: Page) =>
-  page.evaluate(() => (window as PreloaderWindow).__resumeSpeculativePreloads?.());
 
 export const maxSpeculativeInFlight = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__maxSpeculativeInFlight ?? 0);
@@ -146,9 +118,6 @@ export const createGate = async (page: Page): Promise<Gate> => {
       return route.continue();
     }
     gate.held.push(route);
-    if (gate.mode === 'hold') {
-      sendHeldPreloadsNeededWith(page, request.url());
-    }
   });
   return gate;
 };
@@ -237,7 +206,6 @@ export const waitForNetworkIdle = async (
 
 export const releaseAll = async (gate: Gate, heldBack: Route[] = []) => {
   gate.mode = 'pass';
-  await resumeSpeculativePreloads(gate.page);
   await release([...gate.held.splice(0), ...heldBack.splice(0)]);
 };
 
@@ -246,12 +214,17 @@ export const waitForQwikloader = (page: Page) =>
 
 const urlsOf = (routes: Route[]) => routes.map((route) => route.request().url());
 
+export const withoutSpeculativePreloads = (path: string) => {
+  const url = new URL(path, ORIGIN);
+  url.searchParams.set('maxIdlePreloads', '0');
+  return url.pathname + url.search;
+};
+
 export const openCold = async (page: Page, gate: Gate, path: string) => {
-  await holdSpeculativePreloads(page);
   await waitForNetworkIdle(page, async () => {
-    await page.goto(path);
+    await page.goto(withoutSpeculativePreloads(path));
     await waitForQwikloader(page);
-    await page.waitForFunction(() => (window as PreloaderWindow).__heldSpeculativePreloads, null, {
+    await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
       timeout: 15_000,
     });
   });

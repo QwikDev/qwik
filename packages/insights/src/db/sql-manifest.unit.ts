@@ -106,6 +106,14 @@ test('returns the 100 newest manifest hashes', async () => {
       expectedHashes
     );
     assert.equal(stats[0].latency[0], 0);
+    const selectedStats = await dbGetManifestStats(db, 'app', {
+      manifestHashes: ['hash-120', 'hash-100', 'foreign'],
+    });
+    assert.deepEqual(
+      selectedStats.map((manifest) => manifest.hash),
+      ['hash-120', 'hash-100']
+    );
+    assert.deepEqual(await dbGetManifestStats(db, 'app', { manifestHashes: [] }), []);
     const limitedStats = await dbGetManifestStats(db, 'app', { limit: 2 });
     assert.deepEqual(
       limitedStats.map((manifest) => manifest.hash),
@@ -303,6 +311,26 @@ test.each([
       (await dbGetManifestStats(db, 'app')).map(({ hash }) => hash),
       ['latest', 'previous', 'older']
     );
+  } finally {
+    client.close();
+  }
+});
+
+test('concurrent first uploads share the same manifest record', async () => {
+  const { dbGetManifestInfo } = await import('./sql-manifest');
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.batch([
+      'CREATE TABLE manifests (id INTEGER PRIMARY KEY, public_api_key TEXT, hash TEXT, timestamp INTEGER)',
+      'CREATE UNIQUE INDEX manifest_identity ON manifests(public_api_key, hash)',
+    ]);
+    const db = drizzle(client) as AppDatabase;
+    const [first, second] = await Promise.all([
+      dbGetManifestInfo(db, 'app', 'build'),
+      dbGetManifestInfo(db, 'app', 'build'),
+    ]);
+    assert.deepEqual(first, second);
+    assert.lengthOf((await client.execute('SELECT * FROM manifests')).rows, 1);
   } finally {
     client.close();
   }

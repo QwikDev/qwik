@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, mkdir, readFile, copyFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -69,6 +69,50 @@ async function writeMigrationFiles(directory: string, statements: string[]) {
     statements.map((sql, index) => writeFile(join(directory, `migration_${index}.sql`), sql))
   );
 }
+
+test.each([false, true])('migrated databases preserve distinct symbols and prevent duplicates (existing duplicates: %s)', async (hasDuplicates) => {
+  const { directory, url } = await createDatabaseFixture();
+  const migrationsFolder = fileURLToPath(new URL('../drizzle', import.meta.url));
+  const historicalFolder = join(directory, 'historical');
+  const journal = JSON.parse(await readFile(join(migrationsFolder, 'meta/_journal.json'), 'utf8'));
+  journal.entries = journal.entries.filter((entry: { idx: number }) => entry.idx <= 20);
+  await mkdir(join(historicalFolder, 'meta'), { recursive: true });
+  await writeFile(join(historicalFolder, 'meta/_journal.json'), JSON.stringify(journal));
+  await Promise.all(
+    journal.entries.map((entry: { tag: string }) =>
+      copyFile(
+        join(migrationsFolder, `${entry.tag}.sql`),
+        join(historicalFolder, `${entry.tag}.sql`)
+      )
+    )
+  );
+  expect(runMigrations(url, historicalFolder).status).toBe(0);
+  executeSql(url, "INSERT INTO applications (name, public_api_key) VALUES ('Example', 'app')");
+  executeSql(
+    url,
+    "INSERT INTO manifests (public_api_key, hash, timestamp) VALUES ('app', 'build', 1)"
+  );
+  executeSql(
+    url,
+    "INSERT INTO symbolDetail (hash, public_api_key, manifest_hash, full_name, origin, lo, hi) VALUES ('one','app','build','First','one.tsx',1,10)"
+  );
+  if (hasDuplicates) {
+    executeSql(url, 'DROP INDEX idx_symbolDetail_apiKey_manifestHash');
+    executeSql(url, "INSERT INTO symbolDetail (hash, public_api_key, manifest_hash, full_name, origin, lo, hi) VALUES ('one','app','build','Updated first','one.tsx',1,10)");
+  }
+  expect(runMigrations(url, migrationsFolder).status).toBe(0);
+  executeSql(
+    url,
+    "INSERT INTO symbolDetail (hash, public_api_key, manifest_hash, full_name, origin, lo, hi) VALUES ('two','app','build','Second','two.tsx',1,20)"
+  );
+  expect(runMigrations(url, migrationsFolder).status).toBe(0);
+  executeSql(url, "INSERT OR IGNORE INTO symbolDetail (hash, public_api_key, manifest_hash, full_name, origin, lo, hi) VALUES ('one','app','build','Duplicate','one.tsx',1,10)");
+  expect(executeSql(url, "SELECT full_name FROM symbolDetail WHERE hash='one'")).toEqual([{ full_name: hasDuplicates ? 'Updated first' : 'First' }]);
+  expect(executeSql(url, 'SELECT hash FROM symbolDetail ORDER BY hash')).toEqual([
+    { hash: 'one' },
+    { hash: 'two' },
+  ]);
+});
 
 test('the migration command exits unsuccessfully when SQL fails', async () => {
   const { url } = await createDatabaseFixture();

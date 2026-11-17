@@ -570,12 +570,16 @@ export class Serializer {
   private writeObjectValue(value: {}) {
     if (isPropsProxy(value)) {
       const owner = value[_OWNER];
-      this.output(TypeIds.PropsProxy, [
+      const propsData: unknown[] = [
         _serializationWeakRef(owner),
         owner.varProps,
         owner.constProps,
         value[_PROPS_HANDLER].$effects$,
-      ]);
+      ];
+      if (value[_PROPS_HANDLER].$omitChildren$) {
+        propsData.push(true);
+      }
+      this.output(TypeIds.PropsProxy, propsData);
     } else if (value instanceof SubscriptionData) {
       const { $scopedStyleIdPrefix$, $isConst$ } = value.data;
       if ($scopedStyleIdPrefix$ === null) {

@@ -1,4 +1,4 @@
-use crate::transform::{SegmentData, SegmentKind};
+use crate::transform::SegmentData;
 use serde::{Deserialize, Serialize};
 use swc_atoms::Atom;
 
@@ -93,23 +93,15 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Known events stay separate even when they capture state.
-		if segment.ctx_kind == SegmentKind::EventHandler
-			|| segment.ctx_name == "event$"
-			|| (segment.scoped_idents.is_empty() && segment.ctx_kind != SegmentKind::Function)
-		{
-			return None;
-		}
-
-		// Everything else is put into a single file per component
-		// This means that all QRLs for a component are loaded together
-		// if one is used
-		context.first().map_or_else(
-			// Top-level QRLs are put into a separate file
-			|| None,
-			// Other QRLs are put into a file named after the original file + the root component
-			|root| Some(Atom::from([&segment.origin, "_entry_", root].concat())),
-		)
+		// Render stays apart: resolving any other QRL must not load it
+		let group = match segment.ctx_name.as_ref() {
+			"component$" | "useStyles$" | "useStylesScoped$" => "_render_",
+			_ => "_entry_",
+		};
+		// Top-level QRLs are put into a separate file
+		context
+			.first()
+			.map(|root| Atom::from([&segment.origin, group, root].concat()))
 	}
 }
 

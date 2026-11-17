@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 1025
 expression: output
 ---
 ==INPUT==
@@ -93,12 +92,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_style_css_TRu1FaIoUM0.js (ENTRY POINT)==
 
-import css3 from "./style.css";
-//
-export const style_css_TRu1FaIoUM0 = css3;
+export { default as style_css_TRu1FaIoUM0 } from "./style.css";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qCAQY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AAQY,+DAAI\"}")
 /*
 {
   "origin": "test.tsx",

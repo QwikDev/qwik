@@ -1,8 +1,11 @@
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
+const RENDER_CHUNK_PROBABILITY = 0.5;
+const EVENT_QRL_CHUNK_PROBABILITY = 0.99;
+
 const minimumSpeed = 300; // kbps
-// size that takes 0.5 seconds to download at minimumSpeed
-const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
+// bytes that take 0.5 seconds to download at minimumSpeed
+const slowSize = 0.5 * ((minimumSpeed * 1024) / 8);
 
 /**
  * A function that returns a map of bundle names to their dependencies.
@@ -110,6 +113,44 @@ export function convertManifestToBundleGraph(
   const map = new Map<string, { index: number; deps: Set<string> }>();
   const reduceDeps = createTransitiveReducer(graph);
 
+  const isRenderSymbol = (symbolName: string) => {
+    const symbol = manifest.symbols?.[symbolName];
+    return (
+      symbol?.ctxKind === 'function' &&
+      /(component|useStyles|useStylesScoped)/i.test(symbol.ctxName)
+    );
+  };
+  const isRenderChunk = (bundle: QwikBundle) =>
+    !!bundle.symbols?.length && bundle.symbols.every(isRenderSymbol);
+  const isEventQrlChunk = (bundle: QwikBundle) =>
+    !!bundle.symbols?.some(
+      (symbolName) => manifest.symbols?.[symbolName] && !isRenderSymbol(symbolName)
+    );
+  const isComponentModule = (bundleName: string) =>
+    graph[bundleName].dynamicImports!.some((depName) => isRenderChunk(graph[depName]));
+
+  const depsBesideRenderChunk = new Map<string, Set<string>>();
+  for (const bundleName of names) {
+    const besideRenderChunk = new Set<string>();
+    for (const depName of graph[bundleName].dynamicImports!) {
+      const renderChunk = graph[depName];
+      if (!isRenderChunk(renderChunk)) {
+        continue;
+      }
+      for (const eventQrlChunk of renderChunk.dynamicImports!) {
+        if (!isRenderChunk(graph[eventQrlChunk])) {
+          besideRenderChunk.add(eventQrlChunk);
+        }
+      }
+      for (const childComponent of renderChunk.imports!) {
+        if (isComponentModule(childComponent)) {
+          besideRenderChunk.add(childComponent);
+        }
+      }
+    }
+    depsBesideRenderChunk.set(bundleName, besideRenderChunk);
+  }
+
   /**
    * First pass to collect minimal dependency lists and allocate space for dependencies. Minimal
    * means that if one of your dependencies depends on another of your dependencies, there's no need
@@ -122,9 +163,22 @@ export function convertManifestToBundleGraph(
     reduceDeps(deps, bundleName);
     const dynDeps = new Set(bundle.dynamicImports!);
     reduceDeps(dynDeps, bundleName);
+    const besideRenderChunk = depsBesideRenderChunk.get(bundleName)!;
+    for (const depName of besideRenderChunk) {
+      dynDeps.add(depName);
+    }
     const depProbability = new Map<string, number>();
     for (const depName of dynDeps) {
       const dep = graph[depName];
+
+      if (isRenderChunk(dep)) {
+        depProbability.set(depName, RENDER_CHUNK_PROBABILITY);
+        continue;
+      }
+      if (isEventQrlChunk(dep) || besideRenderChunk.has(depName)) {
+        depProbability.set(depName, EVENT_QRL_CHUNK_PROBABILITY);
+        continue;
+      }
 
       // Calculate the probability of the dependency
       // Start with a 50% chance
@@ -199,10 +253,8 @@ export function convertManifestToBundleGraph(
   return bundleGraph;
 }
 
-/** Builds a reachability-preserving transitive reducer over the static-import graph. */
-function createTransitiveReducer(graph: Record<string, QwikBundle>) {
-  const { componentOf, successors } = condenseImportGraph(graph);
-
+/** Returns a lookup of every component reachable from a component of the condensed graph. */
+export function createReachability(successors: Set<number>[]) {
   const reachCache: (Set<number> | undefined)[] = new Array(successors.length);
   const reachOf = (component: number): Set<number> => {
     const cached = reachCache[component];
@@ -219,6 +271,13 @@ function createTransitiveReducer(graph: Record<string, QwikBundle>) {
     }
     return reach;
   };
+  return reachOf;
+}
+
+/** Builds a reachability-preserving transitive reducer over the static-import graph. */
+function createTransitiveReducer(graph: Record<string, QwikBundle>) {
+  const { componentOf, successors } = condenseImportGraph(graph);
+  const reachOf = createReachability(successors);
 
   return (ownerDeps: Set<string>, ownerBundle: string) => {
     const owner = componentOf.get(ownerBundle)!;

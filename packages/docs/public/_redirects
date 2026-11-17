@@ -2,6 +2,15 @@
 
 # Keep in sync with `src/routes/plugin@redirects.ts`
 
+# Examples moved into the playground
+
+/examples /playground/ 308
+/examples/ /playground/ 308
+/examples/introduction/hello-world/ /playground/ 308
+/examples/introduction/hello-world /playground/ 308
+/examples/:section/:name/ /playground/:name/ 308
+/examples/:section/:name /playground/:name/ 308
+
 # Discord
 
 /chat https://discord.gg/TsNCMd6uGW 307
@@ -9,8 +18,6 @@
 
 # Cute redirects
 
-/examples /examples/introduction/hello-world/ 307
-/examples/ /examples/introduction/hello-world/ 307
 /guide /docs/ 307
 /guide/ /docs/ 307
 /tutorial /tutorial/welcome/overview/ 307

@@ -1,5 +1,6 @@
 import { expect, test, type Browser, type Page, type Request } from '@playwright/test';
 import {
+  bundleFile,
   chunkComesFrom,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
@@ -639,5 +640,70 @@ test.describe('chunk preload fails', () => {
 
     const failedChunks = [...failedWhileOffline].filter(isConditionalChunk);
     expect(failedChunks.filter((url) => !loaded.has(url))).toEqual([]);
+  });
+});
+
+const isClickHandlerChunk = (url: string) =>
+  isConditionalChunk(url) &&
+  !!getManifest().bundles[bundleFile(url)]?.origins?.some((origin) =>
+    origin.includes('_q_e_click')
+  );
+
+const failRequestsOf = async (page: Page, isWanted: (url: string) => boolean) => {
+  const failing = { isOn: true, urls: new Set<string>() };
+  await page.route(`${ORIGIN}/build/**`, (route) => {
+    const url = route.request().url();
+    if (!failing.isOn || !isWanted(url)) {
+      return route.fallback();
+    }
+    failing.urls.add(url);
+    return route.abort();
+  });
+  return failing;
+};
+
+const clickWhileItsChunksFail = async (page: Page, isWanted: (url: string) => boolean) => {
+  await recordSpeculativePreloads(page);
+  await holdSpeculativePreloads(page);
+  const failing = await failRequestsOf(page, isWanted);
+  await waitForNetworkIdle(page, async () => {
+    await page.goto(CONDITIONAL_ALL.path);
+    await waitForQwikloader(page);
+  });
+  await waitForNetworkIdle(page, clickConditional(page));
+  expect(failing.urls.size).toBeGreaterThan(0);
+  failing.isOn = false;
+};
+
+test.describe("the click's own chunk fails to load", () => {
+  test('the click still shows its result once the chunk can load', async ({ page }) => {
+    await clickWhileItsChunksFail(page, isClickHandlerChunk);
+    test.fail(
+      true,
+      "on main, a failed import of the click's handler is not tried again, so the click is lost"
+    );
+    await expectResult(page, CONDITIONAL_ALL);
+  });
+
+  test('clicking again shows the result', async ({ page, browser }) => {
+    await clickWhileItsChunksFail(page, isClickHandlerChunk);
+    await clickConditional(page)();
+    test.fail(keepsFailedModuleFetches(browser), KEEPS_FAILED_MODULE_FETCHES);
+    await expectResult(page, CONDITIONAL_ALL);
+  });
+});
+
+test.describe('a chunk the click needs after its handler fails to load', () => {
+  test('clicking again shows the result', async ({ page }) => {
+    await clickWhileItsChunksFail(
+      page,
+      (url) => isConditionalChunk(url) && !isClickHandlerChunk(url)
+    );
+    await clickConditional(page)();
+    test.fail(
+      true,
+      'on main, a QRL keeps a failed import for good: what it renders never shows, whatever is clicked after'
+    );
+    await expectResult(page, CONDITIONAL_ALL);
   });
 });

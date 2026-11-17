@@ -127,6 +127,21 @@ test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
+test('preloads equally likely hinted bundles in hint order', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 'b.js', 'c.js']);
+  preload(['a.js', 'b.js', 'c.js'], 0.8);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['a.js', 'b.js', 'c.js']);
+});
+
 test('holds speculative preloads while a highest priority bundle is loading', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

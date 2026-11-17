@@ -567,8 +567,8 @@ and dynamic `Slot name`.
         same function (`const g = f`) is a second name for its target: its reads lift `f`, a
         boundary rebinds `g` to `f`'s segment, and an alias nothing reads loses its declaration;
         a conditional alias (`c ? A : B`) is refused. Lowering asks `ctx.lifts` and
-        never re-decides. It fails closed: a boundary reading a reassigned local function or component is an
-        `UnsupportedError`, and a lifted read that no boundary rebinds is an internal `pipeline:`
+        never re-decides. It fails closed: a boundary reading a reassigned local function or component, or a
+        local class, is an `UnsupportedError`, and a lifted read that no boundary rebinds is an internal `pipeline:`
         error. Proven by `lift-analysis.unit.ts` and `local-function-output.unit.ts`, which
         type-checks emitted modules and runs emitted segments.
 - [x] Combine slots with dynamic content, namespaces and async: covered by the projection corpus

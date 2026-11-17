@@ -727,6 +727,24 @@ describe.each([false, true])('emitted local functions (SSR: %s)', (isServer) => 
       `export function make(x) { const f = () => arguments[0]; return $(() => f()); }`,
       'the local function "f", which reads "arguments"',
     ],
+    [
+      'a local class',
+      inApp(`class K { m() { return s.value; } }
+  return <button onClick$={() => new K().m()}>x</button>;`),
+      'the local class "K"',
+    ],
+    [
+      'a local class that reads nothing',
+      inApp(`class K { m() { return 1; } }
+  return <button onClick$={() => new K().m()}>x</button>;`),
+      'the local class "K"',
+    ],
+    [
+      'a local class expression',
+      inApp(`const K = class { m() { return s.value; } };
+  return <button onClick$={() => new K().m()}>x</button>;`),
+      'the local class "K"',
+    ],
   ])('a boundary reading %s is refused', async (_, code, local) => {
     await expect(compile(code, isServer)).rejects.toThrow(`a boundary reading ${local}`);
   });

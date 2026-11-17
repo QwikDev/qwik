@@ -175,7 +175,7 @@ function liveReferences(node: Node | Node[], ctx: LowerContext) {
 
 /**
  * How the author wrote a local holding a local function no segment can hold: reassigned, declared
- * twice, or an alias of one. Null for any other binding.
+ * twice, or an alias of one; or a local class. Null for any other binding.
  */
 function unliftableFunction(binding: LocalId, ctx: LowerContext): string | null {
   const { scope, name } = ctx.plan.bindings[binding];
@@ -188,9 +188,15 @@ function unliftableFunction(binding: LocalId, ctx: LowerContext): string | null 
   }
   const declarations = ctx.bindings.declarationsOf(binding);
   const values = [
-    ...declarations.filter(({ type }) => type === 'FunctionDeclaration'),
+    ...declarations.filter(
+      ({ type }) => type === 'FunctionDeclaration' || type === 'ClassDeclaration'
+    ),
     ...ctx.bindings.assignedValuesOf(binding),
   ].map((value) => unwrapExpression(value)!);
+  // A class cannot serialize either, and it never lifts.
+  if (values.some(({ type }) => type === 'ClassDeclaration' || type === 'ClassExpression')) {
+    return `the local class "${name}"`;
+  }
   const isWritten = ctx.bindings.referencesOf(binding).some(({ isWrite }) => isWrite);
   if (!isWritten && declarations.length === 1) {
     const target = values.length === 1 ? aliasedLiftable(values[0], ctx) : null;

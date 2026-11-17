@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import {
   chunkComesFrom,
+  chunkHoldsEventQrls,
+  chunkHoldsOnlyRender,
   chunkOfSymbolNamed,
   chunkUrlsFrom,
   getManifest,
@@ -125,6 +127,21 @@ const routerChunkUrls = (segment: string) =>
       bundle.origins?.some((origin) => origin.includes(`qwik-router/lib/index.qwik.mjs_${segment}`))
     )
     .map(([file]) => `${ORIGIN}/build/${file}`);
+
+test.describe('speculative order', () => {
+  test('event QRL chunks are preloaded before render chunks', async ({ page }) => {
+    await recordSpeculativePreloads(page);
+    await openWarm(page, await createGate(page), ALL_AT_ONCE);
+    const preloaded = [...new Set((await preloaderLinks(page)).map((link) => link.href))];
+    const medianPositionOf = (isWanted: (url: string) => boolean) => {
+      const positions = preloaded.flatMap((url, index) => (isWanted(url) ? [index] : []));
+      return positions[Math.floor(positions.length / 2)];
+    };
+    expect(medianPositionOf(chunkHoldsEventQrls)).toBeLessThan(
+      medianPositionOf(chunkHoldsOnlyRender)
+    );
+  });
+});
 
 test.describe('what the page asks the preloader for at load', () => {
   test('its root component, its layout and its route, not every chunk it used', async ({

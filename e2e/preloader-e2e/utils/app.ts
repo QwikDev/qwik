@@ -74,6 +74,23 @@ export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'compone
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
+const RENDER_SYMBOLS = ['component$', 'useStyles$', 'useStylesScoped$'];
+
+const symbolKindsOf = (url: string) => {
+  const manifest = getManifest();
+  return (manifest.bundles[bundleFile(url)]?.symbols ?? []).map(
+    (symbol) => manifest.symbols[symbol]?.ctxName
+  );
+};
+
+export const chunkHoldsOnlyRender = (url: string) => {
+  const kinds = symbolKindsOf(url);
+  return kinds.length > 0 && kinds.every((kind) => RENDER_SYMBOLS.includes(kind!));
+};
+
+export const chunkHoldsEventQrls = (url: string) =>
+  symbolKindsOf(url).some((kind) => !RENDER_SYMBOLS.includes(kind!));
+
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
     (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')

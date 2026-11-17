@@ -257,7 +257,7 @@ html[data-theme='dark'] .output-code-theme {
 
 .output-code-theme .prettier-toggle {
   top: 10px;
-  right: 12px;
+  right: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +269,7 @@ html[data-theme='dark'] .output-code-theme {
 .output-code-theme .file-modules > .relative > button.absolute,
 .output-code-theme .file-modules .relative > button.absolute {
   top: 10px;
-  right: 44px;
+  right: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -277,6 +277,14 @@ html[data-theme='dark'] .output-code-theme {
   min-height: 24px;
   padding: 0;
   line-height: 1;
+}
+
+/* Mask the code scrolling underneath the overlay buttons. */
+.output-code-theme .prettier-toggle,
+.output-code-theme .relative > button.absolute {
+  border-radius: 4px;
+  background: var(--color-background-base);
+  box-shadow: 0 0 0 6px var(--color-background-base);
 }
 
 .output-diagnostics {

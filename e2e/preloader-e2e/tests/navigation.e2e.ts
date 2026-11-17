@@ -4,6 +4,7 @@ import {
   chunkComesFrom,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
+  chunkUrlsFrom,
   getManifest,
 } from '../utils/app';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
@@ -22,7 +23,6 @@ import {
   releaseAll,
   resultIsDone,
   settle,
-  speculativePreloads,
   waitForNetworkIdle,
   waitForQwikloader,
   type RoundTrip,
@@ -488,22 +488,21 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
-const navigateToTreeWhilePreloadingSpeculatively = async (page: Page) => {
+const navigateToTreeWithOldPageWorkQueued = async (page: Page) => {
   await recordSpeculativePreloads(page);
   const gate = await createGate(page);
+  gate.holdWhilePassing = (url) => chunkComesFrom(url, OLD_PAGE_SOURCES);
   await page.goto(FROM.off.path);
   await waitForQwikloader(page);
-  await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
-    timeout: 15_000,
-  });
+  await expect.poll(() => gate.held.length, { timeout: 15_000 }).toBe(1);
+  gate.holdWhilePassing = undefined;
   gate.mode = 'hold';
-  const holdsASpeculativePreload = async () => {
-    const speculative = await speculativePreloads(page);
-    return gate.held.some((route) => speculative.has(route.request().url()));
-  };
-  await expect.poll(holdsASpeculativePreload, { timeout: 15_000 }).toBe(true);
   await settle(page, gate);
-  const linksBeforeTheClick = (await preloaderLinks(page)).length;
+  const links = await preloaderLinks(page);
+  const preloaded = new Set(links.map((link) => link.href));
+  const stillQueued = OLD_PAGE_SOURCES.flatMap(chunkUrlsFrom).filter((url) => !preloaded.has(url));
+  expect(stillQueued.length).toBeGreaterThan(0);
+  const linksBeforeTheClick = links.length;
   await countRoundTrips(
     page,
     gate,
@@ -515,7 +514,7 @@ const navigateToTreeWhilePreloadingSpeculatively = async (page: Page) => {
 
 test.describe('after a navigation', () => {
   test('the preloader keeps preloading speculatively', async ({ page }, testInfo) => {
-    const { gate } = await navigateToTreeWhilePreloadingSpeculatively(page);
+    const { gate } = await navigateToTreeWithOldPageWorkQueued(page);
     await releaseAll(gate);
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
@@ -523,7 +522,7 @@ test.describe('after a navigation', () => {
   });
 
   test("the old page's queued speculative preloads aren't sent", async ({ page }) => {
-    const { gate, linksBeforeTheClick } = await navigateToTreeWhilePreloadingSpeculatively(page);
+    const { gate, linksBeforeTheClick } = await navigateToTreeWithOldPageWorkQueued(page);
     await waitForNetworkIdle(page, () => releaseAll(gate), 1500);
     const oldPagePreloads = (await preloaderLinks(page))
       .slice(linksBeforeTheClick)

@@ -280,10 +280,8 @@ export const preload = (item: string | string[], probability?: number) => {
   }
   const inverseProbability = probability ? 1 - probability : 0.4;
   if (Array.isArray(item)) {
-    // We must process in reverse order to ensure first bundles are handled first
-    for (let i = item.length - 1; i >= 0; i--) {
-      const bundle = item[i];
-      handleBundle(bundle, inverseProbability);
+    for (let i = 0; i < item.length; i++) {
+      handleBundle(item[i], inverseProbability);
     }
   } else {
     handleBundle(item, inverseProbability);

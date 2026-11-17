@@ -1,5 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
+assertion_line: 133
 expression: output
 ---
 ==INPUT==
@@ -74,7 +75,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qw
 {
   "origin": "node_modules/library/index.qwik.mjs",
   "name": "s_BBB222bbb22",
-  "entry": "node_modules/library/index.qwik.mjs_entry_Unused",
+  "entry": "node_modules/library/index.qwik.mjs_render_Unused",
   "displayName": "index.qwik.mjs_Unused_component",
   "hash": "BBB222bbb22",
   "canonicalFilename": "index.qwik.mjs_Unused_component_BBB222bbb22",
@@ -134,7 +135,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qw
 {
   "origin": "node_modules/library/index.qwik.mjs",
   "name": "s_DDD444ddd44",
-  "entry": "node_modules/library/index.qwik.mjs_entry_App",
+  "entry": "node_modules/library/index.qwik.mjs_render_App",
   "displayName": "index.qwik.mjs_App_component",
   "hash": "DDD444ddd44",
   "canonicalFilename": "index.qwik.mjs_App_component_DDD444ddd44",

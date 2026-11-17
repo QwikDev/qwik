@@ -148,10 +148,12 @@ const COMPUTEDS_WITH_HANDLER =
   'one round trip on main: the computed chunks go out with the click handler';
 const NO_HANDLER_TO_FETCH =
   'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
-const TASK_SHIPS_WITH_ITS_COMPONENT =
-  "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component";
-const MIDDLE_LINK_LATE =
-  'over the 2-round-trip cap on main: the middle link of an async computed chain loads a round trip late';
+const TASKS_WITH_HANDLER =
+  "one round trip on main: the click handler's chunk also holds the component's tasks";
+const TASKS_FOUND_LEVEL_BY_LEVEL =
+  "over the 2-round-trip cap on main: each component's tasks are only found once the level above has run";
+const RENDER_FOUND_AFTER_TASK =
+  "over the 2-round-trip cap on main: the modal's task loads first, and its render chunk is only found once the task has run";
 
 export const NEVER_SHOWS_RESULT: Record<string, string> = {
   'tree/mixed-computed-chain': NEVER_UPDATES,
@@ -176,19 +178,18 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'single/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
   'tree/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
   'tree-context/visible-task-chain': { roundTrips: 1, reason: NO_HANDLER_TO_FETCH },
-  'single/async-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
-  'single/mixed-computed-chain': { roundTrips: 3, reason: MIDDLE_LINK_LATE },
-  'tree/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
-  'tree-context/async-computed-chain': { roundTrips: 6, reason: MIDDLE_LINK_LATE },
+  'single/async-computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
+  'single/mixed-computed-chain': { roundTrips: 1, reason: COMPUTEDS_WITH_HANDLER },
+  'single/store-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
+  'single/task-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
+  'single/all': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
+  'tree/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree-context/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree-context/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  'tree-context/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
+  modal: { roundTrips: 3, reason: RENDER_FOUND_AFTER_TASK },
 };
-
-export const FETCHES_ITS_COMPONENT_ON_MAIN: Record<string, string> = Object.fromEntries(
-  ['single', 'tree', 'tree-context'].flatMap((setup) =>
-    ['store-chain', 'task-chain', 'all'].map((primitive) => [
-      `${setup}/${primitive}`,
-      TASK_SHIPS_WITH_ITS_COMPONENT,
-    ])
-  )
-);
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

@@ -32,8 +32,6 @@ use swc_ecmascript::visit::{
 };
 
 mod disable_next_line_directive;
-#[path = "transform_event_qrls.rs"]
-mod transform_event_qrls;
 #[path = "transform_worker.rs"]
 mod transform_worker;
 use disable_next_line_directive::DisabledDiagnostics;
@@ -137,7 +135,6 @@ pub struct QwikTransform<'a> {
 	pub options: QwikTransformOptions<'a>,
 
 	segment_names: HashMap<String, u32>,
-	event_only_qrls: HashSet<swc_common::BytePos>,
 	pub extra_top_items: BTreeMap<Id, ast::ModuleItem>,
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
@@ -316,7 +313,6 @@ impl<'a> QwikTransform<'a> {
 			extra_bottom_items: BTreeMap::new(),
 
 			segment_names: HashMap::new(),
-			event_only_qrls: HashSet::new(),
 			qcomponent_fn: options
 				.global_collect
 				.get_imported_local(&QCOMPONENT, &options.core_module),
@@ -1169,13 +1165,10 @@ impl<'a> QwikTransform<'a> {
 		let param_names = Self::extract_param_names(&expr);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
-		let entry = if self.event_only_qrls.contains(&span.lo) {
-			Some(canonical_filename.clone())
-		} else {
-			self.options
-				.entry_policy
-				.get_entry_for_sym(&self.stack_ctxt, &segment_data)
-		};
+		let entry = self
+			.options
+			.entry_policy
+			.get_entry_for_sym(&self.stack_ctxt, &segment_data);
 
 		let mut import_path = ["./", &canonical_filename].concat();
 		if self.options.explicit_extensions {
@@ -3681,19 +3674,6 @@ impl<'a> Fold for QwikTransform<'a> {
 			.into_iter()
 			.filter_map(|id| declarations.get(&id).copied().map(|span| (id, span)))
 			.collect();
-		if matches!(self.options.entry_strategy, EntryStrategy::Smart)
-			&& (self.qsegment_fn.is_some() || self.inlined_qrl_fn.is_some())
-		{
-			self.event_only_qrls = transform_event_qrls::collect_event_only_qrls(
-				&node,
-				&self.options.global_collect,
-				&self.jsx_functions,
-				self.qsegment_fn
-					.iter()
-					.chain(self.inlined_qrl_fn.iter())
-					.cloned(),
-			);
-		}
 
 		let mut body = Vec::with_capacity(node.body.len() + 10);
 		let module_body: Vec<_> = node

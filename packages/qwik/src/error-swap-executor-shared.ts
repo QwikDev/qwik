@@ -11,6 +11,12 @@ type ErrorSwapGlobal = typeof globalThis & {
   qErr?: ErrorSwapExecutor;
 };
 
+type ErrorSwapContainerElement = Element & {
+  qContainer?: {
+    $clearErrorContent$?: (content: Element) => void;
+  };
+};
+
 /**
  * Qwikloader broadcasts document/window events to every matching element in the document, and
  * `display:none` still counts as connected, so a torn-down subtree keeps handling them.
@@ -36,6 +42,8 @@ export const installErrorSwapExecutor = (doc: Document) => {
     if (content && (content as HTMLElement).style) {
       (content as HTMLElement).style.display = 'none';
       stripBroadcastHandlers(content);
+      const container = content.closest(Q_CONTAINER_SELECTOR) as ErrorSwapContainerElement | null;
+      container?.qContainer?.$clearErrorContent$?.(content);
     }
     if (fallback && (fallback as HTMLElement).style) {
       (fallback as HTMLElement).style.display = 'contents';

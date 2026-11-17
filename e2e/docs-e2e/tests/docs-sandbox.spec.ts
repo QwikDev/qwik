@@ -43,6 +43,20 @@ test.describe('Sandbox smoke tests', () => {
   });
 
   test.describe('REPL interactive', () => {
+    test('an example with a CSS file loads without errors', async ({ page }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.goto('/playground/clock/');
+      await expect(page.locator('iframe').contentFrame().locator('body')).not.toBeEmpty();
+      const editor = page.locator('.monaco-editor .view-lines').first();
+      await expect(editor).toContainText('clock.css');
+      // Editing triggers the TypeScript diagnostics over every open file, including the CSS.
+      await page.locator('.monaco-editor textarea').first().focus();
+      await page.keyboard.type('// edit');
+      await expect(page).toHaveURL(/#.*f=/);
+      expect(errors).toEqual([]);
+    });
+
     test('bundler failures appear in the preview', async ({ page }) => {
       await page.addInitScript(() => {
         const NativeWorker = window.Worker;

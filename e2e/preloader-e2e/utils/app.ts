@@ -44,20 +44,23 @@ const getBundleGraph = () => {
   return bundleGraph;
 };
 
-/** What the preloader marks needed with `bundle`: everything it reaches in the bundle graph. */
-export const neededWith = (bundle: string) => {
+/**
+ * What the preloader preloads at the highest priority with `bundle`: everything it reaches in the
+ * bundle graph.
+ */
+export const highestPriorityWith = (bundle: string) => {
   const graph = getBundleGraph();
-  const needed = new Set<string>();
+  const highestPriority = new Set<string>();
   const pending = [bundle];
   while (pending.length) {
     for (const dep of graph.get(pending.pop()!) ?? []) {
-      if (!needed.has(dep)) {
-        needed.add(dep);
+      if (!highestPriority.has(dep)) {
+        highestPriority.add(dep);
         pending.push(dep);
       }
     }
   }
-  return needed;
+  return highestPriority;
 };
 
 const SYMBOL_HASH = /_[A-Za-z0-9]{11}\.js$/;
@@ -107,6 +110,8 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
 export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
+
+export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(

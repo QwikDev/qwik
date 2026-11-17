@@ -18,8 +18,7 @@
     "noUnusedLocals": true,
     "paths": {
       "~/*": ["src/*"],
-      "@examples-data": ["src/routes/examples/apps/examples-data.ts"],
-      "@playground-data": ["src/routes/playground/playground-data.ts"],
+      "@examples-data": ["src/routes/playground/examples/examples-data.ts"],
       "@tutorial-data": ["src/routes/tutorial/tutorial-data.ts"]
     },
     "types": ["node", "vite/client", "@qwik.dev/core"],

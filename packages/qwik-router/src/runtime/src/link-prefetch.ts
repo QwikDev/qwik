@@ -52,7 +52,8 @@ export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) 
     const mode = anchor.getAttribute('data-q-prefetch') || '';
     const routeName = anchor.getAttribute('data-q-route');
     if (mode.includes('b') && routeName) {
-      preloadRouteBundles(routeName);
+      const newLayoutKeys = anchor.getAttribute('data-q-layouts')?.split(' ');
+      preloadRouteBundles(routeName, 0.8, newLayoutKeys);
     }
     if (mode.includes('d')) {
       prefetchRoute(url, true, 0.8, manifestHash, false);

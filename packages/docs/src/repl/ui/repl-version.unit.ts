@@ -4,7 +4,7 @@ vi.mock('../bundler/bundled', () => ({
   bundled: { '@builder.io/qwik': { version: '0.0.1' } },
 }));
 
-import { getReplVersion } from './repl-version';
+import { getReplVersion, resolveReplVersion } from './repl-version';
 
 describe('getReplVersion', () => {
   afterEach(() => {
@@ -54,5 +54,26 @@ describe('getReplVersion', () => {
     expect(JSON.parse(storage.get('qwikNpmData')!)).toMatchObject({
       versions: ['2.0.0', '1.9.0'],
     });
+  });
+
+  it('keeps a shared version when no npm data is cached yet', async () => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn((key: string) => storage.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => storage.set(key, value)),
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          json: async () => ({ tags: { latest: '1.9.0', next: '2.0.0' }, versions: ['1.9.0'] }),
+        })
+        .mockResolvedValueOnce({ json: async () => ({ versions: ['2.0.0'] }) })
+    );
+
+    const replVersion = await resolveReplVersion('2.0.0');
+
+    expect(replVersion.version).toBe('2.0.0');
   });
 });

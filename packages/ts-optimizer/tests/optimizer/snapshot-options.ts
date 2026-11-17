@@ -210,18 +210,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_handler_in_destructuring_default: { transpileTs: true, transpileJsx: true },
   should_transform_loop_handler_between_declarators: { transpileTs: true, transpileJsx: true },
-  smart_event_qrl_render_consumers: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
-  smart_event_qrl_references: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
   smart_visible_task_heavy_library: {
     entryStrategy: { type: 'smart' },
     transpileTs: true,
@@ -313,6 +301,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_invalid_segment_expr1: { transpileTs: true, transpileJsx: true },
   example_capture_imports: { transpileTs: true, transpileJsx: true },
   example_capturing_fn_class: { transpileTs: true, transpileJsx: true },
+  example_reexport_imported_styles: { transpileTs: true, transpileJsx: true },
   example_renamed_exports: { transpileTs: true, transpileJsx: true },
   example_jsx: { transpileTs: true, transpileJsx: true },
   example_jsx_listeners: { transpileTs: true, transpileJsx: true },

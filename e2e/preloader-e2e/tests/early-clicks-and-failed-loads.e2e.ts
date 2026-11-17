@@ -1,5 +1,11 @@
 import { expect, test, type Browser, type Page, type Request } from '@playwright/test';
-import { chunkComesFrom, chunkHoldsModule, getManifest, ORIGIN } from '../utils/app';
+import {
+  chunkComesFrom,
+  chunkHoldsModule,
+  chunkHoldsSegmentsFrom,
+  getManifest,
+  ORIGIN,
+} from '../utils/app';
 import {
   fixtureById,
   NAVIGATION_SOURCES,
@@ -8,7 +14,7 @@ import {
   type Fixture,
 } from '../utils/fixtures';
 import {
-  chunksHintedAsNeeded,
+  chunksHintedAtHighestPriority,
   countRoundTrips,
   createGate,
   holdSpeculativePreloads,
@@ -37,6 +43,21 @@ const TO_TREE: Fixture = {
   expected: '5',
 };
 
+const SHELL_HOME: Fixture = {
+  id: 'navigation/shell-home',
+  path: '/navigation/shell/home/',
+  sources: NAVIGATION_SOURCES,
+};
+const SHELL_DOCS_A: Fixture = {
+  id: 'navigation/shell-docs-a',
+  path: '/navigation/shell/docs/a/',
+  sources: NAVIGATION_SOURCES,
+};
+const DOCS_LAYOUT_SOURCES = [
+  'src/routes/navigation/shell/docs/layout.tsx_',
+  'src/components/fixtures/navigation/docs-sidebar.tsx',
+];
+
 const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
@@ -48,7 +69,11 @@ const clickWhileLoading = async (
   heldUrls: string[],
   trigger: () => Promise<unknown>,
   result: Fixture,
-  { onceTheRestHasLoaded = false, arrivesWithTheFirstRoundTrip = false } = {}
+  {
+    onceTheRestHasLoaded = false,
+    arrivesWithTheFirstRoundTrip = false,
+    from = result === TO_TREE ? FROM_OFF : result,
+  } = {}
 ) => {
   await recordSpeculativePreloads(page);
   await holdSpeculativePreloads(page);
@@ -69,7 +94,7 @@ const clickWhileLoading = async (
   page.on('request', onRequest);
   page.on('requestfinished', onDone);
   page.on('requestfailed', onDone);
-  await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
+  await page.goto(from.path, { waitUntil: 'commit' });
   await waitForQwikloader(page);
   await expect.poll(() => gate.held.length).toBe(heldUrls.length);
   if (onceTheRestHasLoaded) {
@@ -132,7 +157,7 @@ test.describe('click before core loaded', () => {
     ).toHaveLength(1);
   });
 
-  test("the preloader is told the click's chunks are needed while core is still loading", async ({
+  test("the preloader is told to preload the click's chunks at the highest priority while core is still loading", async ({
     page,
   }) => {
     await recordPreloadHints(page);
@@ -145,7 +170,7 @@ test.describe('click before core loaded', () => {
     await clickConditional(page)();
 
     const clickChunksHinted = async () =>
-      (await chunksHintedAsNeeded(page)).filter((chunk) =>
+      (await chunksHintedAtHighestPriority(page)).filter((chunk) =>
         chunkComesFrom(`${ORIGIN}/build/${chunk}`, CONDITIONAL_ALL.sources)
       );
     await expect.poll(clickChunksHinted).toHaveLength(1);
@@ -282,20 +307,20 @@ test.describe('click before the preloader and bundle graph are loaded', () => {
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded as needed`, async ({
+    test(`${arrivesLast}: once both are loaded, the click's chunks are preloaded at the highest priority`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
-      const preloadedAsNeeded = new Set(
+      const preloadedAtHighestPriority = new Set(
         links.filter((link) => !link.speculative).map((link) => link.href)
       );
       expect(clickChunks.size).toBeGreaterThan(0);
-      expect([...clickChunks].filter((url) => !preloadedAsNeeded.has(url))).toEqual([]);
+      expect([...clickChunks].filter((url) => !preloadedAtHighestPriority.has(url))).toEqual([]);
     });
   }
 
   for (const { arrivesLast, heldUrls } of STILL_LOADING) {
-    test(`${arrivesLast}: once both are loaded, the needed preloads go out before any speculative preload`, async ({
+    test(`${arrivesLast}: once both are loaded, the highest priority preloads go out before any speculative preload`, async ({
       page,
     }) => {
       const { links, clickChunks } = await preloadsAfterAnEarlyClick(page, heldUrls());
@@ -371,7 +396,7 @@ test.describe('early click that needs the bundle graph', () => {
     });
   }
 
-  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 3 round trips, over the cap of 2', async ({
+  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 2 round trips', async ({
     page,
   }) => {
     const startupUrls = everyStartupPiece();
@@ -384,11 +409,28 @@ test.describe('early click that needs the bundle graph', () => {
     );
     await releaseAll(gate, startupPiece);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls), {
-      roundTrips: 3,
-      reason:
-        "over the cap on main: the router's navigation code, then the layout and route modules, each cost a round trip before the render chunks",
-    });
+    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls));
+  });
+});
+
+test.describe('early navigation into another layout', () => {
+  test("once the bundle graph is loaded, the layout's chunks are preloaded at the highest priority", async ({
+    page,
+  }) => {
+    const { gate, startupPiece } = await clickWhileLoading(
+      page,
+      [bundleGraphUrl()],
+      () => page.locator('[data-fixture="navigation/shell"] [data-testid=link-docs-a]').click(),
+      SHELL_DOCS_A,
+      { from: SHELL_HOME }
+    );
+    await waitForNetworkIdle(page, () => releaseAll(gate, startupPiece));
+    await expectResult(page, SHELL_DOCS_A);
+    const layoutLinks = (await preloaderLinks(page)).filter((link) =>
+      chunkHoldsSegmentsFrom(link.href, DOCS_LAYOUT_SOURCES)
+    );
+    expect(layoutLinks.length).toBeGreaterThan(0);
+    expect(layoutLinks.filter((link) => link.speculative)).toEqual([]);
   });
 });
 

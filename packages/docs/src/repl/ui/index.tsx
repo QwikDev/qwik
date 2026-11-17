@@ -13,7 +13,7 @@ import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
 import type { ReplStore, ReplAppInput } from '../types';
 import { ReplDetailPanel } from './repl-detail-panel';
-import { getReplVersion } from './repl-version';
+import { getReplVersion, resolveReplVersion } from './repl-version';
 import { ReplInstance } from '../repl-instance';
 import { ReplMainResizer } from './repl-main-resizer';
 
@@ -83,10 +83,9 @@ export const Repl = component$((props: ReplProps) => {
     async () => {
       (store as any).instance = noSerialize(new ReplInstance(store, input));
 
-      // Get the version asap, most likely it will be cached.
-      const v = await getReplVersion(input.version, true);
+      const v = await resolveReplVersion(input.version);
       store.versions = v.versions;
-      const version = v.version || 'bundled';
+      const version = v.version;
       if (input.version === version) {
         store.instance!.markDirty();
       } else {
@@ -94,12 +93,8 @@ export const Repl = component$((props: ReplProps) => {
         input.version = version;
       }
 
-      // Now get the version from the network
-      const vNew = await getReplVersion(input.version, false);
-      store.versions = vNew.versions;
-      if (vNew.version !== input.version) {
-        input.version = v.version;
-      }
+      // Refresh the version list from the network.
+      store.versions = (await getReplVersion(input.version, false)).versions;
     },
     { strategy: 'document-ready' }
   );

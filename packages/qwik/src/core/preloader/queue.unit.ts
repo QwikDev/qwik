@@ -264,7 +264,7 @@ test('keeps a highest priority dependency at the highest priority when another i
   expect(shared.getAttribute('fetchpriority')).toBe(null);
 });
 
-test('preloads a bundle again once it is needed, after its preload failed', async () => {
+test('preloads a bundle again once it is hinted at the highest priority, after its preload failed', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,

@@ -1,5 +1,5 @@
 import { getPlatform } from '@qwik.dev/core';
-import { initPreloader, qTest } from './qwik-copy';
+import { getPreloadOrder, initPreloader, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
@@ -125,25 +125,21 @@ export const includePreloader = (
     typeof options === 'boolean' ? undefined : options
   );
 
-  let allowedSsrPreloads = ssrPreloads;
-
   const base = getBase(container);
 
-  const links = [];
+  const links: string[] = [];
 
   const { resolvedManifest } = container;
-  if (allowedSsrPreloads) {
+  if (ssrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
-    for (let i = 0; i < referencedBundles.length; i++) {
-      const href = referencedBundles[i];
+    // With the bundle graph, link what the client preloader would fetch first for this hint.
+    const ranked = getPreloadOrder(referencedBundles);
+    const candidates = ranked.length ? ranked : referencedBundles;
+    for (let i = 0; i < candidates.length && links.length < ssrPreloads; i++) {
       // we already preload the preloader and core bundles
-      if (href === preloaderBundle || href === coreBundle) {
-        continue;
-      }
-      links.push(href);
-      if (--allowedSsrPreloads === 0) {
-        break;
+      if (candidates[i] !== preloaderBundle && candidates[i] !== coreBundle) {
+        links.push(candidates[i]);
       }
     }
   }

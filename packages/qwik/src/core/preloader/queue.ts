@@ -292,3 +292,26 @@ export const preload = (item: string | string[], probability?: number) => {
     processPendingAdjustments();
   }
 };
+
+/**
+ * Used during SSR: the bundles the client preloader would fetch for this hint, in its order. The
+ * server shares the preloader's state across requests, so forget this request's adjustments.
+ */
+export const getPreloadOrder = (item: string[], probability?: number) => {
+  try {
+    preload(item, probability);
+    sortQueue();
+    return queue.map((bundle) => bundle.$name$);
+  } finally {
+    for (const bundle of bundles.values()) {
+      const deps = bundle.$deps$ || [];
+      for (let i = 0; i < deps.length; i++) {
+        deps[i].$factor$ = 1;
+      }
+    }
+    bundles.clear();
+    queue.length = 0;
+    adjustmentStack.length = 0;
+    isProcessingAdjustments = false;
+  }
+};

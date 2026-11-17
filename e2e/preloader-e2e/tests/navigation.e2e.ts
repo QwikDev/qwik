@@ -493,10 +493,15 @@ const navigateToTreeWhilePreloadingSpeculatively = async (page: Page) => {
   const gate = await createGate(page);
   await page.goto(FROM.off.path);
   await waitForQwikloader(page);
-  await expect
-    .poll(async () => (await speculativePreloads(page)).size, { timeout: 15_000 })
-    .toBeGreaterThan(0);
+  await page.waitForFunction(() => typeof (globalThis as any).qPreload === 'function', null, {
+    timeout: 15_000,
+  });
   gate.mode = 'hold';
+  const holdsASpeculativePreload = async () => {
+    const speculative = await speculativePreloads(page);
+    return gate.held.some((route) => speculative.has(route.request().url()));
+  };
+  await expect.poll(holdsASpeculativePreload, { timeout: 15_000 }).toBe(true);
   await settle(page, gate);
   const linksBeforeTheClick = (await preloaderLinks(page)).length;
   await countRoundTrips(

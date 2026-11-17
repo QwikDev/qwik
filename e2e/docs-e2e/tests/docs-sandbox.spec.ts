@@ -34,7 +34,8 @@ test.describe('Sandbox smoke tests', () => {
     const editor = page.locator('.monaco-editor .view-lines').first();
     await expect(editor).toContainText('useSignal');
     await page.locator('.monaco-editor textarea').first().focus();
-    await page.keyboard.type('// my edit');
+    // One insertion, so the delayed URL update can't capture a half-typed edit.
+    await page.keyboard.insertText('// my edit');
     await expect(page).toHaveURL(/#.*f=/);
     await page.getByLabel('Choose an example').selectOption('clock');
     await expect(editor).not.toContainText('my edit');

@@ -1917,6 +1917,24 @@ export const App = component$(() => {
 }
 
 #[test]
+fn example_reexport_imported_styles() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStyles$ } from '@qwik.dev/core';
+import data from './styles.json' with { type: 'json' };
+
+export const App = component$(() => {
+	useStyles$(data);
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_capturing_fn_class() {
 	test_input!(TestInput {
 		code: r#"

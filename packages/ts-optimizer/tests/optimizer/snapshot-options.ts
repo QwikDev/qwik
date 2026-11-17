@@ -301,6 +301,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_invalid_segment_expr1: { transpileTs: true, transpileJsx: true },
   example_capture_imports: { transpileTs: true, transpileJsx: true },
   example_capturing_fn_class: { transpileTs: true, transpileJsx: true },
+  example_reexport_imported_styles: { transpileTs: true, transpileJsx: true },
   example_renamed_exports: { transpileTs: true, transpileJsx: true },
   example_jsx: { transpileTs: true, transpileJsx: true },
   example_jsx_listeners: { transpileTs: true, transpileJsx: true },

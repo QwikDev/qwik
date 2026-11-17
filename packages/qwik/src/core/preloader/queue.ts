@@ -281,6 +281,7 @@ const retryFailedBundlesOnceOnline = () => {
   }
 };
 
+// Browsers refetch a failed module from Chromium 156 and Firefox 155; no Safari release yet.
 const retryFailedPreload = (bundle: BundleImport) => {
   if (!failedBundles.size) {
     doc.defaultView!.addEventListener('online', retryFailedBundlesOnceOnline);

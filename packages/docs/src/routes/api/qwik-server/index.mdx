@@ -354,7 +354,7 @@ _(Optional)_ Maximum number of simultaneous preload links that the preloader wil
 
 Bundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.
 
-`0` stops the preloader from starting speculative preloads in the browser: code is then only fetched once an interaction needs it, so the first interaction waits for its download on a slow network. The links from `ssrPreloads` are separate and still go out.
+`0` stops the preloader from starting speculative preloads in the browser. An interaction that needs code which has not loaded yet then waits for its download. The links from `ssrPreloads` are separate and still go out.
 
 Defaults to `25`
 

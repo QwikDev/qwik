@@ -75,6 +75,7 @@ describe('modifyBundleGraph', () => {
         filePath: '/home/qwik-app/src/routes/subroute/index.tsx',
         layouts: [
           {
+            id: 'Layout',
             filePath: '/home/qwik-app/src/routes/layout.tsx',
           },
         ] as BuiltLayout[],
@@ -92,6 +93,10 @@ describe('modifyBundleGraph', () => {
         "/subroute/": {
           "dynamicImports": [
             "fake-bundle-part-of-sub-route.js",
+          ],
+        },
+        "Layout": {
+          "dynamicImports": [
             "fake-bundle-part-of-layout.js",
           ],
         },
@@ -105,6 +110,69 @@ describe('modifyBundleGraph', () => {
         },
       }
     `);
+  });
+
+  describe('layouts', () => {
+    const size = 0;
+    const total = 0;
+    const rootLayout = { id: 'Layout', filePath: '/app/src/routes/layout.tsx' } as BuiltLayout;
+    const narrowLayout = {
+      id: 'LayoutNarrow',
+      filePath: '/app/src/routes/layout-narrow.tsx',
+    } as BuiltLayout;
+    const manifest = {
+      bundles: {
+        'layout.js': { size, total, origins: ['src/routes/layout.tsx'] },
+        'layout-narrow.js': { size, total, origins: ['src/routes/layout-narrow.tsx'] },
+        'docs.js': { size, total, origins: ['src/routes/docs/index.tsx'] },
+        'about.js': { size, total, origins: ['src/routes/about/index@narrow.tsx'] },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+    const routes = [
+      { routeName: 'docs/', filePath: '/app/src/routes/docs/index.tsx', layouts: [rootLayout] },
+      {
+        routeName: 'about/',
+        filePath: '/app/src/routes/about/index@narrow.tsx',
+        layouts: [narrowLayout],
+      },
+    ] as BuiltRoute[];
+
+    test('gives each layout file its own entry, keyed by its id', () => {
+      const routeImports = getRouteImports(routes, manifest);
+
+      expect(routeImports['Layout']).toEqual({ dynamicImports: ['layout.js'] });
+      expect(routeImports['docs/']).toEqual({ dynamicImports: ['docs.js'] });
+    });
+
+    test('keeps two layouts of one folder apart', () => {
+      const routeImports = getRouteImports(routes, manifest);
+
+      expect(routeImports['Layout']).toEqual({ dynamicImports: ['layout.js'] });
+      expect(routeImports['LayoutNarrow']).toEqual({ dynamicImports: ['layout-narrow.js'] });
+    });
+
+    test('no layout key equals a route name', () => {
+      const names = Object.keys(getRouteImports(routes, manifest));
+      const layoutKeys = names.filter((name) => !name.endsWith('/'));
+
+      expect(layoutKeys).toEqual(['Layout', 'LayoutNarrow']);
+    });
+
+    test('a bundle that holds both a page and its layout stays under the route', () => {
+      const sharedManifest = {
+        bundles: {
+          'docs-and-layout.js': {
+            size,
+            total,
+            origins: ['src/routes/layout.tsx', 'src/routes/docs/index.tsx'],
+          },
+        } as Record<string, QwikBundle>,
+      } as QwikManifest;
+
+      const routeImports = getRouteImports([routes[0]], sharedManifest);
+
+      expect(routeImports['docs/']).toEqual({ dynamicImports: ['docs-and-layout.js'] });
+    });
   });
 
   test(`GIVEN a mismatch between the bundle graph and the manifest

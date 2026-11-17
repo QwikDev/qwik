@@ -26,7 +26,11 @@ const page = () => Promise.resolve({});
 vi.mock('./router-config', async (importOriginal) => ({
   ...((await importOriginal()) as object),
   findRouterConfig: () => ({
-    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+    routes: {
+      test: { _I: page },
+      product: { _W: { _P: 'id', _I: page } },
+      docs: { _L: Object.assign(() => Promise.resolve({}), { _K: 'DocsLayout' }), _I: page },
+    },
   }),
 }));
 
@@ -125,6 +129,16 @@ describe.each([
     getClientNavPathMock.mockReturnValue('/missing/');
     const unmatched = await renderLink(render);
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
+  it('renders the layouts the link target needs and this page lacks', async () => {
+    getClientNavPathMock.mockReturnValue('/docs/');
+    const underAnotherLayout = await renderLink(render);
+    expect(underAnotherLayout.anchor.getAttribute('data-q-layouts')).toBe('DocsLayout');
+
+    getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
+    const underTheSameLayouts = await renderLink(render);
+    expect(underTheSameLayouts.anchor.hasAttribute('data-q-layouts')).toBe(false);
   });
 
   it('renders a link whose href has a malformed escape, without a route name', async () => {

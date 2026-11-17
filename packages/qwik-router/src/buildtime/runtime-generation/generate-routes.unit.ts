@@ -1,5 +1,7 @@
 import { assert, describe, test } from 'vitest';
 import type { BuildTrieNode, BuiltRoute, RouteSourceFile } from '../types';
+import type { QwikManifest } from '@qwik.dev/core/optimizer';
+import { getRouteImports } from '../vite/get-route-imports';
 import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 
 /** Create a minimal BuildTrieNode */
@@ -46,20 +48,21 @@ const mockQwikPlugin = {
   },
 } as any;
 
-/** Extract the `routes = ...` expression from generated code */
-function getRoutesExpr(
+type GenerateExtra = {
+  basePathname?: string;
+  layouts?: Parameters<typeof createRoutes>[0]['layouts'];
+  serverPlugins?: Parameters<typeof createRoutes>[0]['serverPlugins'];
+  isSSR?: boolean;
+  serverExcludePaths?: ReadonlySet<string>;
+  routeLoaderSourceFiles?: RouteLoaderSourceFiles;
+};
+
+function getGeneratedLines(
   trie: BuildTrieNode,
   routes: BuiltRoute[] = [],
   loadersByFile?: Map<string, string[]>,
-  extra?: {
-    basePathname?: string;
-    layouts?: Parameters<typeof createRoutes>[0]['layouts'];
-    serverPlugins?: Parameters<typeof createRoutes>[0]['serverPlugins'];
-    isSSR?: boolean;
-    serverExcludePaths?: ReadonlySet<string>;
-    routeLoaderSourceFiles?: RouteLoaderSourceFiles;
-  }
-): string {
+  extra?: GenerateExtra
+): string[] {
   const c: string[] = [];
   const esmImports: string[] = [];
   const ctx = {
@@ -99,6 +102,17 @@ function getRoutesExpr(
     extra?.serverExcludePaths,
     extra?.routeLoaderSourceFiles
   );
+  return c;
+}
+
+/** Extract the `routes = ...` expression from generated code */
+function getRoutesExpr(
+  trie: BuildTrieNode,
+  routes: BuiltRoute[] = [],
+  loadersByFile?: Map<string, string[]>,
+  extra?: GenerateExtra
+): string {
+  const c = getGeneratedLines(trie, routes, loadersByFile, extra);
   const routesLine = c.find((line) => line.startsWith('export const routes'));
   assert.ok(routesLine, 'should have a routes export');
   return routesLine;
@@ -176,6 +190,31 @@ describe('generate-routes: underscore-prefixed static segments', () => {
     const expr = getRoutesExpr(root, [], undefined, { basePathname: '/_app/' });
     assert.include(expr, '{ "__app": ');
     assert.include(expr, '_G: "/__app/__drafts/_W"');
+  });
+});
+
+describe('generate-routes: layout keys', () => {
+  test("writes each layout's key beside its loader, the same key the bundle graph uses", () => {
+    const root = makeNode();
+    const page = makeRouteFile('/routes/docs');
+    const layoutFile = { ...makeRouteFile('/routes/docs', 'layout'), type: 'layout' as const };
+    root._files = [page, layoutFile];
+    const layout = {
+      id: 'DocsLayout',
+      filePath: layoutFile.filePath,
+      dirPath: layoutFile.dirPath,
+      layoutType: 'nested' as const,
+      layoutName: '',
+    };
+    const route = { ...makeBuiltRoute(page.filePath), routeName: 'docs/', layouts: [layout] };
+
+    const generated = getGeneratedLines(root, [route], undefined, { layouts: [layout] });
+    const routeImports = getRouteImports([route], {
+      bundles: { 'layout.js': { size: 0, total: 0, origins: ['routes/docs/layout.tsx'] } },
+    } as unknown as QwikManifest);
+
+    assert.include(generated, 'DocsLayout._K = "DocsLayout";');
+    assert.deepEqual(routeImports['DocsLayout'], { dynamicImports: ['layout.js'] });
   });
 });
 

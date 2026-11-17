@@ -136,7 +136,7 @@ export const holdSpeculativePreloads = (page: Page) =>
 /**
  * The preloader counts a held speculative preload as in flight, so it never requests that chunk
  * again once it becomes highest priority. Send it when a request makes it so, as the preloader
- * would.
+ * would. A plain import() of a chunk the preloader never linked makes nothing highest priority.
  */
 const sendHeldPreloadsAtHighestPriorityWith = (page: Page, url: string) => {
   if (!url.startsWith(`${ORIGIN}/build/`)) {
@@ -146,7 +146,15 @@ const sendHeldPreloadsAtHighestPriorityWith = (page: Page, url: string) => {
     (bundle) => `${ORIGIN}/build/${bundle}`
   );
   page
-    .evaluate((hrefs) => (window as PreloaderWindow).__sendHeldSpeculativePreloads?.(hrefs), hrefs)
+    .evaluate(
+      ({ url, hrefs }) => {
+        const win = window as PreloaderWindow;
+        if (win.__preloaderLinks?.some((link) => link.href === url)) {
+          win.__sendHeldSpeculativePreloads?.(hrefs);
+        }
+      },
+      { url, hrefs }
+    )
     .catch(() => {});
 };
 

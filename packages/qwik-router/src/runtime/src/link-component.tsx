@@ -2,7 +2,7 @@ import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from 
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
-import { matchRouteTree } from './routing';
+import { getLayoutKeys, getNewLayoutKeys, matchRouteTree } from './routing';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
@@ -57,6 +57,15 @@ export const Link = component$<LinkProps>((props) => {
         return undefined;
       }
     });
+  const newLayoutKeys =
+    shouldVisiblePrefetchBundles && routes && route && !route.notFound
+      ? untrack(() =>
+          getNewLayoutKeys(
+            getLayoutKeys(matchRouteTree(routes, loc.url.pathname).loaders),
+            getLayoutKeys(route.loaders)
+          )
+        )
+      : undefined;
 
   const shouldPrefetchBundles =
     !!clientNavPath &&
@@ -154,6 +163,7 @@ export const Link = component$<LinkProps>((props) => {
               : null
       }
       data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
+      data-q-layouts={newLayoutKeys?.length ? newLayoutKeys.join(' ') : undefined}
       onClick$={[
         preventDefault,
         handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.

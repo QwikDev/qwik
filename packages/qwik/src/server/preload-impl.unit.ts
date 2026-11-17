@@ -289,6 +289,152 @@ describe('preloader', () => {
     }
   });
 
+  describe("core's handler bundles linked mid-stream", () => {
+    // run.js and task.js statically import glue.js, which imports core.js; run.js loads lazy.js.
+    const bundleGraph = [
+      'run.js',
+      8,
+      -9,
+      11,
+      'task.js',
+      8,
+      'handler.js',
+      10,
+      'glue.js',
+      10,
+      'core.js',
+      'lazy.js',
+    ];
+
+    const withCoreHandlerBundles = async (
+      test: (handlers: { run: unknown; task: unknown }) => Promise<void>
+    ) => {
+      const { getPlatform, setPlatform } = await import('@qwik.dev/core');
+      const { runQrl, taskQrl } = await import('../core/shared/qrl/handler-qrls');
+      const bundleOf: Record<string, string> = {
+        [runQrl().$symbol$]: 'run.js',
+        [taskQrl().$symbol$]: 'task.js',
+      };
+      const platform = getPlatform();
+      setPlatform({
+        ...platform,
+        chunkForSymbol: (symbol, chunk) => [symbol, bundleOf[symbol] ?? chunk!],
+      });
+      try {
+        await test({ run: runQrl(), task: taskQrl().w([{}]) });
+      } finally {
+        setPlatform(platform);
+      }
+    };
+
+    const createContainerUsing = (coreHandlerQrl: unknown, buildBase?: string) => {
+      const created = createContainer(buildBase);
+      created.container.resolvedManifest.manifest.bundleGraph = bundleGraph;
+      created.container.serializationCtx.$coreHandlerQrl$ = coreHandlerQrl;
+      return created;
+    };
+
+    it("links core, the rest of _run's static imports, then _run's bundle, from a script that removes itself", () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run, '/build/');
+
+        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+
+        const script = getScriptContent();
+        expect(script).toContain('["core.js","glue.js","run.js"].map(');
+        expect(script).toContain('"/build/"+l');
+        expect(script).not.toContain('lazy.js');
+        expect(script).toContain('document.currentScript.remove()');
+      }));
+
+    it("links _task's bundle on a page whose only handler is a visible task", () =>
+      withCoreHandlerBundles(async ({ task }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(task);
+
+        preloadHandlerBundles(container, { ssrPreloads: 5 });
+
+        expect(getScriptContent()).toContain('["core.js","glue.js","task.js"].map(');
+      }));
+
+    it('follows a static import cycle once', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+        // run.js and a.js import each other; a.js imports core.js.
+        container.resolvedManifest.manifest.bundleGraph = ['run.js', 2, 'a.js', 0, 5, 'core.js'];
+
+        preloadHandlerBundles(container, { ssrPreloads: 5 });
+
+        expect(getScriptContent()).toContain('["core.js","a.js","run.js"].map(');
+      }));
+
+    it("links nothing early when the handler's bundle isn't in the bundle graph", () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+        container.resolvedManifest.manifest.bundleGraph = ['other.js'];
+
+        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+        expect(getScriptContent()).toBe('');
+      }));
+
+    it('links only core when ssrPreloads allows one link', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+
+        preloadHandlerBundles(container, { ssrPreloads: 1 });
+
+        expect(getScriptContent()).toContain('["core.js"].map(');
+      }));
+
+    it("waits until the page's events run through one of core's handlers", () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(null);
+
+        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(false);
+        expect(getScriptContent()).toBe('');
+
+        container.serializationCtx.$coreHandlerQrl$ = run;
+        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+        expect(getScriptContent()).toContain('"run.js"');
+      }));
+
+    it('links nothing early without ssrPreloads or with the preloader off', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const disabled = [{ ssrPreloads: 0 }, false] as const;
+        for (let i = 0; i < disabled.length; i++) {
+          const options = disabled[i];
+          const { container, getScriptContent } = createContainerUsing(run);
+
+          expect(preloadHandlerBundles(container, options)).toBe(true);
+
+          expect(getScriptContent()).toBe('');
+        }
+      }));
+
+    it('leaves those bundles out of the links at the end and counts them', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { initPreloader } = await import('../core/preloader/bundle-graph');
+        const { includePreloader, preloadHandlerBundles } = await import('./preload-impl');
+        initPreloader(bundleGraph);
+        const { container, getScriptContent } = createContainerUsing(run);
+
+        preloadHandlerBundles(container, { ssrPreloads: 4 });
+        const early = getScriptContent();
+        includePreloader(container, { ssrPreloads: 4 }, ['run.js', 'handler.js']);
+
+        const [linksAtTheEnd] = getScriptContent()
+          .slice(early.length)
+          .split(`window.addEventListener('load'`);
+        expect(linksAtTheEnd).toContain('["handler.js"].map(');
+      }));
+  });
+
   it("ranks each render's hint afresh, since SSR shares the preloader's state", async () => {
     const { initPreloader } = await import('../core/preloader/bundle-graph');
     const { getPreloadOrder } = await import('../core/preloader/queue');

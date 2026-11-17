@@ -102,6 +102,89 @@ export const preloaderPre = (
   }
 };
 
+/** We only use modulepreload links because they behave best. */
+const createLinksScript = (base: string, links: string[]) =>
+  `${JSON.stringify(links)}.map((l,e)=>{` +
+  `e=document.createElement('link');` +
+  `e.rel='modulepreload';` +
+  `e.href=${JSON.stringify(base)}+l;` +
+  `document.head.appendChild(e)` +
+  `});`;
+
+/**
+ * A bundle and everything it imports statically, imports first. The graph lists a bundle's direct
+ * static imports before its first dynamic-import marker, without those reachable through another.
+ */
+const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: string) => {
+  const closure: string[] = [];
+  // Marked before visiting imports, since the graph keeps static import cycles
+  const seen = new Set<string>();
+  const visit = (name: string) => {
+    if (seen.has(name)) {
+      return;
+    }
+    seen.add(name);
+    const nameIdx = bundleGraph?.indexOf(name) ?? -1;
+    for (let i = nameIdx + 1; nameIdx >= 0 && typeof bundleGraph![i] === 'number'; i++) {
+      const depIdx = bundleGraph![i] as number;
+      if (depIdx < 0) {
+        break;
+      }
+      visit(bundleGraph![depIdx] as string);
+    }
+    closure.push(name);
+  };
+  visit(bundle);
+  return closure;
+};
+
+const handlerBundlesLinked = new WeakMap<SSRContainer, string[]>();
+
+/**
+ * Links core, through the bundle of the first of core's handlers (`_run`, `_task`, …) that the
+ * page's events run through and its static imports, instead of when the page has finished
+ * streaming.
+ *
+ * @returns Whether there is nothing left to link early.
+ */
+export const preloadHandlerBundles = (
+  container: SSRContainer,
+  options: RenderToStreamOptions['preloader'],
+  nonce?: string
+): boolean => {
+  const coreHandlerQrl = container.serializationCtx.$coreHandlerQrl$ as QRLInternal | null;
+  // Runs before every element until then, so this check comes first
+  if (!coreHandlerQrl) {
+    return false;
+  }
+  if (options === false || (import.meta.env?.DEV && !qTest)) {
+    return true;
+  }
+  const { ssrPreloads } = normalizePreLoaderOptions(
+    typeof options === 'boolean' ? undefined : options
+  );
+  if (!ssrPreloads) {
+    return true;
+  }
+  const [handlerBundle] = getBundles([coreHandlerQrl]);
+  const manifest = container.resolvedManifest?.manifest;
+  // Like the links at the end, skip names the bundle graph doesn't know: they may not be files
+  if (!handlerBundle || !manifest?.bundleGraph?.includes(handlerBundle)) {
+    return true;
+  }
+  const links = getStaticClosure(manifest?.bundleGraph, handlerBundle)
+    .filter((bundle) => bundle !== manifest?.preloader)
+    .slice(0, ssrPreloads);
+  handlerBundlesLinked.set(container, links);
+  const attrs: Record<string, string> = nonce ? { nonce } : {};
+  // Inside the app's elements, so it must not stay in their DOM.
+  container.writeScript(
+    attrs,
+    createLinksScript(getBase(container), links) + 'document.currentScript.remove()'
+  );
+  return true;
+};
+
 export const includePreloader = (
   container: SSRContainer,
   options: PreloaderOptions | boolean | undefined,
@@ -118,6 +201,7 @@ export const includePreloader = (
   const base = getBase(container);
 
   const links: string[] = [];
+  const linkedEarly = handlerBundlesLinked.get(container) ?? [];
 
   const { resolvedManifest } = container;
   if (ssrPreloads) {
@@ -125,27 +209,16 @@ export const includePreloader = (
     // With the bundle graph, link what the client preloader would fetch first for this hint.
     const ranked = getPreloadOrder(referencedBundles);
     const candidates = ranked.length ? ranked : referencedBundles;
-    for (let i = 0; i < candidates.length && links.length < ssrPreloads; i++) {
-      // we already preload the preloader bundle
-      if (candidates[i] !== preloaderBundle) {
+    for (let i = 0; i < candidates.length && links.length + linkedEarly.length < ssrPreloads; i++) {
+      // we already preload the preloader bundle and the handler bundles linked mid-stream
+      if (candidates[i] !== preloaderBundle && !linkedEarly.includes(candidates[i])) {
         links.push(candidates[i]);
       }
     }
   }
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
-  const insertLinks = links.length
-    ? /**
-       * We only use modulepreload links because they behave best. Older browsers can rely on the
-       * preloader which does feature detection and which will be available soon after inserting these
-       * links.
-       */
-      `${JSON.stringify(links)}.map((l,e)=>{` +
-      `e=document.createElement('link');` +
-      `e.rel='modulepreload';` +
-      `e.href=${JSON.stringify(base)}+l;` +
-      `document.head.appendChild(e)` +
-      `});`
-    : '';
+  // Older browsers can rely on the preloader, which does feature detection.
+  const insertLinks = links.length ? createLinksScript(base, links) : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
   if (preloaderBundle) {

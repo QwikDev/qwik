@@ -118,7 +118,7 @@ import {
   recordExternalRootEffect,
   type SubscriptionPatchRecord,
 } from './ooos-utils';
-import { preloaderPost, preloaderPre } from './preload-impl';
+import { preloaderPost, preloaderPre, preloadHandlerBundles } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
@@ -761,6 +761,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   $noScriptHere$: number = 0;
+  private handlerBundlesPreloaded = false;
   $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
@@ -789,6 +790,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
+      }
+      // Segments stream inside <template>, where scripts don't run
+      if (!this.handlerBundlesPreloaded && !isDev && !(this instanceof SSRSegmentContainer)) {
+        this.handlerBundlesPreloaded = preloadHandlerBundles(
+          this,
+          this.renderOptions.preloader,
+          this.renderOptions.serverData?.nonce
+        );
       }
       if (this.emittedQwikEventNames.size !== this.serializationCtx.$eventNames$.size) {
         // Lets qwikloader catch interactions while the rest of the page streams in

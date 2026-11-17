@@ -44,6 +44,7 @@ export function setEvent(
     ) {
       // The preloader needs `_run`'s bundle too: qwikloader imports it with the handler's.
       serializationCtx.$eventQrls$.add(runQrl());
+      serializationCtx.$coreHandlerQrl$ ||= runQrl();
       // Listing the handler chunk lets qwikloader import it with core instead of after it
       return qrlToChunks(serializationCtx, runQrl().w([qrl]), qrl);
     }
@@ -52,6 +53,9 @@ export function setEvent(
   const appendQrl = (qrl: QRLInternal<unknown>) => {
     // The optimizer's `bind:` handlers serialize and preload as core's own.
     qrl = toCoreHandlerQrl(qrl);
+    if (readsOwnCaptures(qrl)) {
+      serializationCtx.$coreHandlerQrl$ ||= qrl;
+    }
     appendToValue(getQrlString(qrl));
     addQwikEventToSerializationContext(serializationCtx, key, qrl);
   };

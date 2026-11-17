@@ -12,6 +12,7 @@ import {
   Link,
   useLocation,
   useNavigate,
+  usePreventNavigate$,
   type DocumentHead,
   type RequestHandler,
   type StaticGenerateHandler,
@@ -54,6 +55,18 @@ const applyShareHash = (store: PlaygroundStore) => {
   store.rustOptimizer = shareData.rustOptimizer;
   if (shareData.files.length > 0) {
     store.files = shareData.files;
+  }
+};
+
+const writeShareUrl = (store: PlaygroundStore) => {
+  const shareUrl = createPlaygroundShareUrl(
+    store,
+    getExampleUrl(store.exampleId),
+    getExample(store.exampleId).inputs
+  );
+  // Back/forward may already show another example's entry.
+  if (new URL(shareUrl, location.href).pathname === location.pathname) {
+    history.replaceState(history.state, '', shareUrl);
   }
 };
 
@@ -110,19 +123,22 @@ export default component$(() => {
         clearTimeout(shareUrlTmr.value);
 
         shareUrlTmr.value = setTimeout(() => {
-          const shareUrl = createPlaygroundShareUrl(
-            store,
-            getExampleUrl(store.exampleId),
-            getExample(store.exampleId).inputs
-          );
-          // A slow back/forward may already show another example's entry.
-          if (new URL(shareUrl, location.href).pathname === location.pathname) {
-            history.replaceState(history.state, '', shareUrl);
-          }
+          shareUrlTmr.value = undefined;
+          writeShareUrl(store);
         }, 1000);
         cleanup(() => clearTimeout(shareUrlTmr.value));
       }
     }
+  });
+
+  // Save edits still waiting for the delayed update, so going back restores them.
+  usePreventNavigate$(() => {
+    if (shareUrlTmr.value !== undefined) {
+      clearTimeout(shareUrlTmr.value);
+      shareUrlTmr.value = undefined;
+      writeShareUrl(store);
+    }
+    return false;
   });
 
   return (

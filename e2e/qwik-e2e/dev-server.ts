@@ -490,7 +490,8 @@ async function main() {
       const pkgPath = join(appDir, 'package.json');
       const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
-      await buildApp(appDir, buildTarget, enableRouterServer);
+      const externalLibraries = pkgJson.__qwik__?.externalLibraries ?? [];
+      await buildApp(appDir, buildTarget, enableRouterServer, externalLibraries);
       console.log(`\n✅ Successfully built ${buildTarget}\n`);
       process.exit(0);
     } catch (error: any) {

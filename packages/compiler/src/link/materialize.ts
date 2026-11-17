@@ -56,6 +56,7 @@ export function materializeModules(
         binding: target.binding,
         declaration,
         ...(target.namespace === undefined ? {} : { namespace: target.namespace }),
+        ...(target.inspector === undefined ? {} : { inspector: target.inspector }),
         isValue:
           declaration.ok &&
           declaration.value.table === DeclTable.Bindings &&

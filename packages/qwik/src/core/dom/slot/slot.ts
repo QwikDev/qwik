@@ -319,9 +319,15 @@ export interface SsrDynamicTagContext extends SsrSlotContext {
 type SsrTagRender = (props: unknown, ctx: SsrDynamicTagContext) => ValueOrPromise<SsrOutput>;
 
 /** A dynamic tag's whole props record rides one props effect. @internal */
-export function _tagProps(props: Record<string, unknown>): Record<string, unknown> {
-  return props;
+export function _tagProps(
+  props: Record<string, unknown>,
+  inspector?: string
+): Record<string, unknown> {
+  // Dev tools read the authored `file:line:column` of an element from this attribute.
+  return isDev && inspector !== undefined ? { ...props, 'data-qwik-inspector': inspector } : props;
 }
+
+type TagPropsArgs = [props: Record<string, unknown>, inspector?: string];
 
 /**
  * A capitalized tag whose binding is a plain value — `const Tag = props.tag ?? 'h1'`. Only the
@@ -330,7 +336,8 @@ export function _tagProps(props: Record<string, unknown>): Record<string, unknow
 export function renderSsrDynamicTag(
   tag: unknown,
   props: Record<string, unknown>,
-  ctx: SsrDynamicTagContext
+  ctx: SsrDynamicTagContext,
+  inspector?: string
 ): ValueOrPromise<SsrOutput> {
   if (typeof tag !== 'string') {
     return (tag as SsrTagRender)(props, ctx);
@@ -340,8 +347,11 @@ export function renderSsrDynamicTag(
   const nodeId = ctx.nextId();
   const domProps = renderSsrProps(
     nodeId,
-    [props],
-    inlinedQrl(_tagProps, '_tagProps') as DomPropsQrl<[Record<string, unknown>]>,
+    // Written out at both call sites so a production build folds it to `[props]`.
+    (isDev && inspector !== undefined && tag !== 'head'
+      ? [props, inspector]
+      : [props]) as TagPropsArgs,
+    inlinedQrl(_tagProps, '_tagProps') as DomPropsQrl<TagPropsArgs>,
     ctx.eventAttr
   );
   return maybeThen(domProps, ({ attrs, innerHTML, ref }) => {
@@ -370,7 +380,8 @@ export function createDynamicTag(
   tag: unknown,
   props: Record<string, unknown>,
   ctx: ContainerContext,
-  namespace?: 'svg' | 'math'
+  namespace?: 'svg' | 'math',
+  inspector?: string
 ): ValueOrPromise<MaybeNodeOutput> {
   if (typeof tag !== 'string') {
     return (tag as CsrTagRender)(props, ctx);
@@ -379,7 +390,16 @@ export function createDynamicTag(
     namespace === undefined
       ? ctx.document.createElement(tag)
       : ctx.document.createElementNS(namespace === 'svg' ? SVG_NS : MATH_NS, tag);
-  ctx.scheduler.run(createPropsEffect(element, [props], _tagProps, ctx.scheduler));
+  ctx.scheduler.run(
+    createPropsEffect(
+      element,
+      (isDev && inspector !== undefined && tag !== 'head'
+        ? [props, inspector]
+        : [props]) as TagPropsArgs,
+      _tagProps,
+      ctx.scheduler
+    )
+  );
   // the props effect already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
   if (VOID_TAGS.has(tag) || props[DangerousInnerHTMLAttr] !== undefined) {
     return element;

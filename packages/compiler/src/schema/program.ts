@@ -56,6 +56,13 @@ export const enum ComponentTargetKind {
   Dynamic = 'dynamic',
 }
 
+/** What the element needs when the runtime finds the tag is an element name. */
+export interface RuntimeTagFacts {
+  namespace?: 'svg' | 'math';
+  /** The authored `file:line:column`, when dev tools stamp elements. */
+  inspector?: string;
+}
+
 export const enum ComponentPropsKind {
   Entries = 'entries',
   Proxy = 'proxy',
@@ -138,9 +145,9 @@ export type Op =
   | {
       op: OpKind.Component;
       target:
-        | { t: ComponentTargetKind.Raw; binding: LocalId; namespace?: 'svg' | 'math' }
+        | ({ t: ComponentTargetKind.Raw; binding: LocalId } & RuntimeTagFacts)
         /** A member tag such as `<UI.Button />`; the runtime picks element or component. */
-        | { t: ComponentTargetKind.Dynamic; value: ValueIR; namespace?: 'svg' | 'math' };
+        | ({ t: ComponentTargetKind.Dynamic; value: ValueIR } & RuntimeTagFacts);
       props:
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };

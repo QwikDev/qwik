@@ -44,7 +44,7 @@ import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { LocalKind } from './locals';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
-import { QRL_SUFFIX, QwikDirective, SegmentContext } from '../words';
+import { QRL_SUFFIX, QwikAttr, QwikDirective, SegmentContext } from '../words';
 import { lowerFunctionQrl, lowerQrlArgument, type QrlArgumentBoundary } from './lower-function';
 import { isHandlerList, lowerAttribute } from './lower-element';
 import { isProjectionChild, lowerDynamicSlotSegment, lowerProjections } from './lower-projection';
@@ -91,6 +91,18 @@ export function tagNamespace(namespace: 'svg' | 'math' | null): { namespace?: 's
   return namespace === null ? {} : { namespace };
 }
 
+/** The authored location dev tools stamp on an element, unless the author wrote one. */
+export function tagInspector(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext
+): { inspector?: string } {
+  const isStamped =
+    ctx.inspectorLocation !== null &&
+    !attributes.some((attribute) => jsxAttributeName(attribute) === QwikAttr.Inspector);
+  return isStamped ? { inspector: ctx.inspectorLocation!(element.start) } : {};
+}
+
 /** A tag read from props or a setup local can change; a module object is fixed. */
 export function lowerDynamicTag(
   element: JSXElement,
@@ -99,7 +111,12 @@ export function lowerDynamicTag(
   root: LocalId,
   ctx: LowerContext
 ): Op {
-  const target = { t: ComponentTargetKind.Dynamic, value, ...tagNamespace(ctx.namespace) } as const;
+  const target = {
+    t: ComponentTargetKind.Dynamic,
+    value,
+    ...tagNamespace(ctx.namespace),
+    ...tagInspector(element, attributes, ctx),
+  } as const;
   const lower = () => lowerComponentOp(element, attributes, target, ctx);
   if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
     return lower();

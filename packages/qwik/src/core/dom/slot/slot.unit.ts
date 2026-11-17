@@ -16,6 +16,7 @@ import type { ValueOrPromise } from '../../shared/utils/types';
 import type { ContainerContext } from '../../runtime/container-context';
 import type { SsrOutput } from '../../ssr/output';
 import {
+  createDynamicTag,
   createSlot,
   createSlotScope,
   registerProjection,
@@ -307,4 +308,45 @@ describe('slots', () => {
       );
     }
   );
+
+  describe('the source location of a tag chosen at runtime', () => {
+    const location = '/src/routes/index.tsx:6:7';
+    const ssrContext = {
+      nextId: () => 0,
+      eventAttr: () => '',
+      setRef: () => undefined,
+    } as unknown as SsrDynamicTagContext;
+
+    it('is written on the element the server renders', async () => {
+      const output = await runWithTestContainer(new Scheduler(noopSchedule), () =>
+        renderSsrDynamicTag('img', {}, ssrContext, location)
+      );
+
+      expect(JSON.stringify(output)).toContain(` data-qwik-inspector=\\"${location}\\"`);
+    });
+
+    it('is written on the element the client creates', async () => {
+      const window = createWindow({ html: '<div q:container></div>' });
+      const container = createContainerContext(window.document.body.firstElementChild!);
+
+      const element = await runWithTestContainer(container.scheduler, () =>
+        createDynamicTag('img', {}, container, undefined, location)
+      );
+
+      expect((element as Element).getAttribute('data-qwik-inspector')).toBe(location);
+    });
+
+    it('never reaches a component', () => {
+      const props = {};
+      let received: unknown[] = [];
+      const component = (...args: unknown[]) => {
+        received = args;
+        return '';
+      };
+
+      renderSsrDynamicTag(component, props, ssrContext, location);
+
+      expect(received).toEqual([props, ssrContext]);
+    });
+  });
 });

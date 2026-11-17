@@ -19,7 +19,14 @@ import type {
   Range,
 } from './shared';
 import type { EsmEdge, Payload } from './value';
-import { ComponentTargetKind, OpKind, ProgramBodyKind, type Op, type Program } from './program';
+import {
+  ComponentTargetKind,
+  OpKind,
+  ProgramBodyKind,
+  type Op,
+  type Program,
+  type RuntimeTagFacts,
+} from './program';
 import type {
   AssemblyIntent,
   AssemblyKind,
@@ -106,7 +113,7 @@ export type LinkedOp =
   | (Omit<ElementOp, 'children'> & { children: LinkedOp[] })
   | (Omit<ComponentOp, 'target'> & {
       target:
-        | {
+        | ({
             t: ComponentTargetKind.Declaration;
             binding: LocalId;
             declaration: Maybe<DeclRef>;
@@ -114,8 +121,7 @@ export type LinkedOp =
             isValue: boolean;
             /** Whether the linked component reads `props.children`; unknown for an external one. */
             readsChildren: Maybe<boolean>;
-            namespace?: 'svg' | 'math';
-          }
+          } & RuntimeTagFacts)
         | Extract<ComponentOp['target'], { t: ComponentTargetKind.Dynamic }>;
     });
 

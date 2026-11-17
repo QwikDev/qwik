@@ -2,6 +2,7 @@
 import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 import { renderCode } from './fixtures';
+import { transformModules } from '../transform-modules';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should stamp elements with their source location for the inspector', async () => {
@@ -34,6 +35,36 @@ export default (props: Props) => {
     expect(code).toContain('custom.tsx:1:1');
     expect(code).not.toContain('/src/routes/index.tsx:8:');
     expect(code).not.toContain('/src/routes/index.tsx:7:');
+  });
+
+  test('should stamp an element whose tag is chosen at runtime with its source location', async () => {
+    const output = await transformModules({
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: mode === 'ssr',
+      inspector: true,
+      input: [
+        {
+          path: 'src/component.tsx',
+          devPath: '/src/routes/index.tsx',
+          code: `type Props = { as?: string };
+export default (props: Props) => {
+  const Tag = props.as;
+  return (
+    <section>
+      <Tag class="x">hi</Tag>
+    </section>
+  );
+};
+`,
+        },
+      ],
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain('/src/routes/index.tsx:5:5');
+    expect(code).toContain('/src/routes/index.tsx:6:7');
   });
 
   test('should let the runtime own the scoped class when a spread owns the attributes', async () => {

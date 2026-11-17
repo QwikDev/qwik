@@ -35,6 +35,7 @@ import {
   lowerDynamicTag,
   lowerPropsChunk,
   requireComponentBinding,
+  tagInspector,
   tagNamespace,
 } from './lower-component';
 import {
@@ -86,7 +87,12 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
       lowerComponentOp(
         element,
         attributes,
-        { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx.namespace) },
+        {
+          t: ComponentTargetKind.Raw,
+          binding,
+          ...tagNamespace(ctx.namespace),
+          ...tagInspector(element, attributes, ctx),
+        },
         ctx
       ),
     ];
@@ -123,16 +129,9 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
       props.splice(i, 1);
     }
   }
-  const isInspected =
-    ctx.inspectorLocation !== null &&
-    tag !== 'head' &&
-    !expanded.some((attribute) => jsxAttributeName(attribute) === QwikAttr.Inspector);
-  if (isInspected) {
-    props.push({
-      k: PropKind.Static,
-      name: QwikAttr.Inspector,
-      value: ctx.inspectorLocation!(element.start),
-    });
+  const inspector = tag === 'head' ? undefined : tagInspector(element, expanded, ctx).inspector;
+  if (inspector !== undefined) {
+    props.push({ k: PropKind.Static, name: QwikAttr.Inspector, value: inspector });
   }
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   // With a spread the runtime props object writes `class`, scope included; a static one would print twice.

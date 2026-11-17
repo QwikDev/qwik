@@ -19,7 +19,7 @@ import {
 } from '../schema';
 import { collectHookDependencies, collectQrlDependencies } from './qrl-dependencies';
 import { localComponentSetups } from './render-results';
-import { createSetupFacts } from './link-hooks';
+import { createSetupFacts, type SetupFacts } from './link-hooks';
 import { type Resolution, unknown } from './resolve';
 
 /** Ops gain resolved declarations and programs their linked facts, one materialized module each. */
@@ -93,15 +93,69 @@ export function materializeModules(
                   ops: program.body.ops.map((op) => linkOperation(module, op)),
                 }
               : program.body,
-          facts: {
-            ...setupFacts(module, program.setup),
-          },
+          facts: linkedFacts(setupFacts(module, program.setup)),
         })
       )
     )
   );
+  linkEventCarriers(linkedModules);
 
   return linkedModules;
+}
+
+function linkedFacts(setup: SetupFacts): LinkedProgram['facts'] {
+  return { ...setup, carriesEvents: setup.registersEvents };
+}
+
+/** The first element a component renders may be its root component's, so that one carries too. */
+function linkEventCarriers(modules: readonly LinkedModule[]): void {
+  let hasNewCarrier = true;
+  while (hasNewCarrier) {
+    hasNewCarrier = false;
+    for (const module of modules) {
+      for (const program of module.programs) {
+        const root = mayCarryEvents(program) ? rootComponent(modules, program) : null;
+        if (root !== null && !mayCarryEvents(root)) {
+          root.facts.carriesEvents = program.facts.carriesEvents;
+          hasNewCarrier = true;
+        }
+      }
+    }
+  }
+}
+
+/** An unknown fact counts: the emitter stays safe by keeping a carrier. */
+function mayCarryEvents({ facts }: LinkedProgram): boolean {
+  return !facts.carriesEvents.ok || facts.carriesEvents.value;
+}
+
+/** The linked component a program renders first, when no element of its own comes before it. */
+function rootComponent(
+  modules: readonly LinkedModule[],
+  program: LinkedProgram
+): LinkedProgram | null {
+  if (program.body.kind !== ProgramBodyKind.Ops) {
+    return null;
+  }
+  const ops = program.body.ops;
+  // A static element among the roots already carries the events.
+  if (ops.some((op) => op.op === OpKind.Element)) {
+    return null;
+  }
+  const root = ops.find(
+    (op) => op.op === OpKind.Component || op.op === OpKind.Branch || op.op === OpKind.Content
+  );
+  if (
+    root?.op !== OpKind.Component ||
+    root.target.t !== ComponentTargetKind.Declaration ||
+    !root.target.declaration.ok ||
+    root.target.declaration.value.table !== DeclTable.Qrls
+  ) {
+    return null;
+  }
+  const { module, index } = root.target.declaration.value;
+  const body = modules[module].qrls[index].body;
+  return body.b === QrlBodyKind.Program ? modules[module].programs[body.program] : null;
 }
 
 function materializeModule(

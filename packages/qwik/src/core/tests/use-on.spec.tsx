@@ -1012,6 +1012,43 @@ describe(`${name}: useOn`, () => {
       cleanup();
     });
   });
+
+  it('attaches element events through a child component whose root is a plain element', async () => {
+    const Child = component$((props: { count: number }) => <button>{props.count}</button>);
+    const App = component$(() => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <Child count={count.value} />;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
+    const button = container.querySelector('button')!;
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('1');
+  });
+
+  it('attaches element events through a child component whose root is a branch', async () => {
+    const Child = component$((props: { count: number }) => (
+      <>{props.count >= 0 ? <button>{props.count}</button> : <a>link</a>}</>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <Child count={count.value} />;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('button')!.textContent).toBe('1');
+  });
 });
 
 describe(`${name}: events`, () => {

@@ -393,7 +393,7 @@ function componentTargetJs(
 export function useOnRootOps(module: LinkedModule): ReadonlySet<LinkedOp> {
   const roots = new Set<LinkedOp>();
   for (const program of module.programs) {
-    if (program.body.kind !== ProgramBodyKind.Ops || !mayBe(program.facts.registersEvents)) {
+    if (program.body.kind !== ProgramBodyKind.Ops || !mayBe(program.facts.carriesEvents)) {
       continue;
     }
     const ops = program.body.ops;

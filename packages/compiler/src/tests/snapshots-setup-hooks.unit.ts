@@ -1017,6 +1017,48 @@ export default () => {
     }
   });
 
+  test('should let the component a useOn component renders as its root carry the events', async () => {
+    const output = await testInputs(mode, 'setup-use-on-root-component', [
+      {
+        code: `import { component$, useOn, $ } from '@qwik.dev/core';
+export const Button = component$((props: { label: string }) => <button>{props.label}</button>);
+export const Plain = component$(() => <p>plain</p>);
+export default component$(() => {
+  useOn('click', $(() => 1));
+  return <Button label="go" />;
+});
+`,
+      },
+      {
+        path: 'src/toggle.tsx',
+        code: `import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
+export const Toggle = component$((props: { on: boolean }) => (
+  <>{props.on ? <b>on</b> : <i>off</i>}</>
+));
+export default component$(() => {
+  const on = useSignal(true);
+  useOn('click', $(() => (on.value = !on.value)));
+  return <Toggle on={on.value} />;
+});
+`,
+      },
+    ]);
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The child's structural root reapplies the events on every commit, on both sides.
+    expect(code).toMatch(/(createBranch|renderSsrBranch)\([^;]*segment_2_\w+,\s*true\s*\)/);
+    if (mode === 'ssr') {
+      // The runtime splices the events into the child's root tag; an unrelated component stays flat.
+      expect(code).toContain(
+        'createSsrOpenTag("<button q:id=\\"", createSsrNodeId(id0), "\\"", ">")'
+      );
+      expect(code).not.toContain('createSsrOpenTag("<p"');
+      expect(code).toContain('"<p>plain</p>"');
+    } else {
+      expect(code).not.toContain('createSsrOpenTag');
+    }
+  });
+
   test('should answer an import.meta.env build flag the same way', async () => {
     const output = await testInput(mode, 'build-constants-env', {
       code: `import { component$, useSignal, useTask$ } from '@qwik.dev/core';

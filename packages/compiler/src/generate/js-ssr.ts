@@ -179,7 +179,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         .filter(
           (program) =>
             program.body.kind === ProgramBodyKind.Ops &&
-            ((program.body.ops[0]?.op === OpKind.Catch && mayBe(program.facts.registersEvents)) ||
+            ((program.body.ops[0]?.op === OpKind.Catch && mayBe(program.facts.carriesEvents)) ||
               useOnRoots.has(program.body.ops[0]))
         )
         .map((program) => program.lifetime)
@@ -346,7 +346,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // Dynamic roots before it fill in later, so the first static element carries the events.
     const carrierIndex =
-      mayBe(program.facts.registersEvents) || lifetime !== null
+      mayBe(program.facts.carriesEvents) || lifetime !== null
         ? body.ops.findIndex((op) => op.op === OpKind.Element)
         : -1;
     body.ops.forEach((op, index) =>

@@ -1,0 +1,437 @@
+==INPUT==
+
+// src/component.tsx
+import { component$, useOn, $ } from '@qwik.dev/core';
+export const Button = component$((props: { label: string }) => <button>{props.label}</button>);
+export const Plain = component$(() => <p>plain</p>);
+export default component$(() => {
+  useOn('click', $(() => 1));
+  return <Button label="go" />;
+});
+
+// src/toggle.tsx
+import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
+export const Toggle = component$((props: { on: boolean }) => (
+  <>{props.on ? <b>on</b> : <i>off</i>}</>
+));
+export default component$(() => {
+  const on = useSignal(true);
+  useOn('click', $(() => (on.value = !on.value)));
+  return <Toggle on={on.value} />;
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+import { Plain_component_25y3k1m6p49gx as Plain } from './component.tsx_Plain_component_25y3k1m6p49gx';
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+export { Button };
+export { Plain };
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_Button_component_12fjhbonwyrlb.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_Button_component_12fjhbonwyrlb = /*#__PURE__*/ _noopQrl('Button_component_12fjhbonwyrlb');
+_markComponent(Button_component_12fjhbonwyrlb, q_Button_component_12fjhbonwyrlb);
+
+export function Button_component_12fjhbonwyrlb(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'label');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    createSsrOpenTag('<button q:id="', createSsrNodeId(id0), '"', '>'),
+    escapeHTML(text0),
+    '</button>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Button_component_12fjhbonwyrlb",
+  "entry": null,
+  "displayName": "Button_component",
+  "hash": "12fjhbonwyrlb",
+  "canonicalFilename": "component.tsx_Button_component_12fjhbonwyrlb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    55,
+    150
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_Plain_component_25y3k1m6p49gx.js (ENTRY POINT)==
+
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_Plain_component_25y3k1m6p49gx = /*#__PURE__*/ _noopQrl('Plain_component_25y3k1m6p49gx');
+_markComponent(Plain_component_25y3k1m6p49gx, q_Plain_component_25y3k1m6p49gx);
+
+export function Plain_component_25y3k1m6p49gx(props0, ctx) {
+  return '<p>plain</p>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "Plain_component_25y3k1m6p49gx",
+  "entry": null,
+  "displayName": "Plain_component",
+  "hash": "25y3k1m6p49gx",
+  "canonicalFilename": "component.tsx_Plain_component_25y3k1m6p49gx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    151,
+    203
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
+
+export const component_qrl_segment_0_2fpowujm1ejve = () => {
+  return 1;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_0_2fpowujm1ejve",
+  "entry": null,
+  "displayName": "component_qrl_segment_0",
+  "hash": "2fpowujm1ejve",
+  "canonicalFilename": "component.tsx_component_qrl_segment_0_2fpowujm1ejve",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    255,
+    265
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import { useOn, createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+const component_qrl_segment_0_2fpowujm1ejve = () => {
+  return 1;
+};
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props0, ctx) {
+  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve);
+  const component0 = ctx.observeError(createComponent(Button, { label: 'go' }, ctx));
+  return component0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    204,
+    303
+  ],
+  "paramNames": []
+}
+*/
+============================= src/toggle.tsx ==
+
+import { Toggle_component_18e6uvw5eoxhm as Toggle } from './toggle.tsx_Toggle_component_18e6uvw5eoxhm';
+import { default_component_le8aejiwz0pb } from './toggle.tsx_default_component_le8aejiwz0pb';
+export { Toggle };
+export { default_component_le8aejiwz0pb as default };
+============================= src/toggle.tsx_toggle_branch_condition_segment_0_2t3ocdhekhsjn.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const toggle_branch_condition_segment_0_2t3ocdhekhsjn = () => {
+  const [props] = _capturesObj._;
+  return props.on;
+};
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "toggle_branch_condition_segment_0_2t3ocdhekhsjn",
+  "entry": null,
+  "displayName": "toggle_branch_condition_segment_0",
+  "hash": "2t3ocdhekhsjn",
+  "canonicalFilename": "toggle.tsx_toggle_branch_condition_segment_0_2t3ocdhekhsjn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    134,
+    142
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/toggle.tsx_toggle_branch_then_segment_1_26zziw34l1i2g.js (ENTRY POINT)==
+
+import { createSsrOpenTag } from '@qwik.dev/core';
+
+export const toggle_branch_then_segment_1_26zziw34l1i2g = (ctx) => {
+  return [createSsrOpenTag('<b', '>'), 'on</b>'];
+};
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "toggle_branch_then_segment_1_26zziw34l1i2g",
+  "entry": null,
+  "displayName": "toggle_branch_then_segment_1",
+  "hash": "26zziw34l1i2g",
+  "canonicalFilename": "toggle.tsx_toggle_branch_then_segment_1_26zziw34l1i2g",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    145,
+    154
+  ],
+  "paramNames": []
+}
+*/
+============================= src/toggle.tsx_toggle_branch_else_segment_2_1qiush0zwl30b.js (ENTRY POINT)==
+
+import { createSsrOpenTag } from '@qwik.dev/core';
+
+export const toggle_branch_else_segment_2_1qiush0zwl30b = (ctx) => {
+  return [createSsrOpenTag('<i', '>'), 'off</i>'];
+};
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "toggle_branch_else_segment_2_1qiush0zwl30b",
+  "entry": null,
+  "displayName": "toggle_branch_else_segment_2",
+  "hash": "1qiush0zwl30b",
+  "canonicalFilename": "toggle.tsx_toggle_branch_else_segment_2_1qiush0zwl30b",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    157,
+    167
+  ],
+  "paramNames": []
+}
+*/
+============================= src/toggle.tsx_Toggle_component_18e6uvw5eoxhm.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  renderSsrBranch,
+  createSsrNodeId,
+  _noopQrl,
+  createSsrOpenTag,
+  _markComponent,
+} from '@qwik.dev/core';
+const toggle_branch_condition_segment_0_2t3ocdhekhsjn = () => {
+  const [props] = _capturesObj._;
+  return props.on;
+};
+const q_toggle_branch_condition_segment_0_2t3ocdhekhsjn = /*#__PURE__*/ _noopQrl(
+  'toggle_branch_condition_segment_0_2t3ocdhekhsjn'
+);
+q_toggle_branch_condition_segment_0_2t3ocdhekhsjn.s(
+  toggle_branch_condition_segment_0_2t3ocdhekhsjn
+);
+const toggle_branch_then_segment_1_26zziw34l1i2g = (ctx) => {
+  return [createSsrOpenTag('<b', '>'), 'on</b>'];
+};
+const q_toggle_branch_then_segment_1_26zziw34l1i2g = /*#__PURE__*/ _noopQrl(
+  'toggle_branch_then_segment_1_26zziw34l1i2g'
+);
+q_toggle_branch_then_segment_1_26zziw34l1i2g.s(toggle_branch_then_segment_1_26zziw34l1i2g);
+const toggle_branch_else_segment_2_1qiush0zwl30b = (ctx) => {
+  return [createSsrOpenTag('<i', '>'), 'off</i>'];
+};
+const q_toggle_branch_else_segment_2_1qiush0zwl30b = /*#__PURE__*/ _noopQrl(
+  'toggle_branch_else_segment_2_1qiush0zwl30b'
+);
+q_toggle_branch_else_segment_2_1qiush0zwl30b.s(toggle_branch_else_segment_2_1qiush0zwl30b);
+const q_Toggle_component_18e6uvw5eoxhm = /*#__PURE__*/ _noopQrl('Toggle_component_18e6uvw5eoxhm');
+_markComponent(Toggle_component_18e6uvw5eoxhm, q_Toggle_component_18e6uvw5eoxhm);
+
+export function Toggle_component_18e6uvw5eoxhm(props, ctx) {
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_toggle_branch_condition_segment_0_2t3ocdhekhsjn.w([props]),
+      q_toggle_branch_then_segment_1_26zziw34l1i2g,
+      q_toggle_branch_else_segment_2_1qiush0zwl30b,
+      true
+    )
+  );
+  return ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>'];
+}
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "Toggle_component_18e6uvw5eoxhm",
+  "entry": null,
+  "displayName": "Toggle_component",
+  "hash": "18e6uvw5eoxhm",
+  "canonicalFilename": "toggle.tsx_Toggle_component_18e6uvw5eoxhm",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    66,
+    175
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/toggle.tsx_toggle_qrl_segment_3_3ojs49lgeifax.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const toggle_qrl_segment_3_3ojs49lgeifax = () => {
+  const [on] = _capturesObj._;
+  return (on.value = !on.value);
+};
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "toggle_qrl_segment_3_3ojs49lgeifax",
+  "entry": null,
+  "displayName": "toggle_qrl_segment_3",
+  "hash": "3ojs49lgeifax",
+  "canonicalFilename": "toggle.tsx_toggle_qrl_segment_3_3ojs49lgeifax",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    257,
+    288
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "on"
+  ]
+}
+*/
+============================= src/toggle.tsx_default_component_le8aejiwz0pb.js (ENTRY POINT)==
+
+import {
+  useSignal,
+  useOn,
+  _capturesObj,
+  readTrackedValue,
+  _props,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Toggle_component_18e6uvw5eoxhm as Toggle } from './toggle.tsx_Toggle_component_18e6uvw5eoxhm';
+const toggle_qrl_segment_3_3ojs49lgeifax = () => {
+  const [on] = _capturesObj._;
+  return (on.value = !on.value);
+};
+const q_toggle_qrl_segment_3_3ojs49lgeifax = /*#__PURE__*/ _noopQrl(
+  'toggle_qrl_segment_3_3ojs49lgeifax'
+);
+q_toggle_qrl_segment_3_3ojs49lgeifax.s(toggle_qrl_segment_3_3ojs49lgeifax);
+const q_default_component_le8aejiwz0pb = /*#__PURE__*/ _noopQrl('default_component_le8aejiwz0pb');
+_markComponent(default_component_le8aejiwz0pb, q_default_component_le8aejiwz0pb);
+
+export function default_component_le8aejiwz0pb(props0, ctx) {
+  const on = useSignal(true);
+  useOn('click', q_toggle_qrl_segment_3_3ojs49lgeifax.w([on]));
+  ctx.addRoot(on);
+  const component0 = ctx.observeError(
+    createComponent(
+      Toggle,
+      _props(
+        {
+          get on() {
+            return readTrackedValue(on);
+          },
+        },
+        { on: on }
+      ),
+      ctx
+    )
+  );
+  return component0;
+}
+/*
+{
+  "origin": "toggle.tsx",
+  "name": "default_component_le8aejiwz0pb",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "le8aejiwz0pb",
+  "canonicalFilename": "toggle.tsx_default_component_le8aejiwz0pb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    176,
+    329
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

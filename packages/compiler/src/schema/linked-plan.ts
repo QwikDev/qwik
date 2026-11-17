@@ -135,6 +135,8 @@ export interface LinkedProgram extends Omit<Program, 'body'> {
     providesContextEffective: Maybe<boolean>;
     /** Whether the setup registers `useOn*` events; unknown when a callee's body is not linked. */
     registersEvents: Maybe<boolean>;
+    /** Whether its first element carries `useOn*` events: its own, or those of a component it roots. */
+    carriesEvents: Maybe<boolean>;
     /** Whether the setup calls `useChildrenInfo()`, so the parent must describe its children. */
     readsChildrenInfo: Maybe<boolean>;
   };

@@ -6,10 +6,9 @@ import {
   resetLinkPrefetchState,
 } from './link-prefetch';
 
-const { prefetchRouteMock, preloadRouteBundlesMock, preloadLayoutBundlesMock } = vi.hoisted(() => ({
+const { prefetchRouteMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
   preloadRouteBundlesMock: vi.fn(),
-  preloadLayoutBundlesMock: vi.fn(),
 }));
 
 vi.mock('./prefetch-route', () => ({
@@ -18,7 +17,6 @@ vi.mock('./prefetch-route', () => ({
 
 vi.mock('./client-navigate', () => ({
   preloadRouteBundles: preloadRouteBundlesMock,
-  preloadLayoutBundles: preloadLayoutBundlesMock,
 }));
 
 class MockIntersectionObserver {
@@ -89,7 +87,6 @@ describe('link prefetch observer', () => {
     resetLinkPrefetchState();
     prefetchRouteMock.mockClear();
     preloadRouteBundlesMock.mockClear();
-    preloadLayoutBundlesMock.mockClear();
   });
 
   afterEach(() => {
@@ -116,7 +113,7 @@ describe('link prefetch observer', () => {
     observer.trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.8, undefined);
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
@@ -131,7 +128,7 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances[0].trigger(unmatched);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]', 0.8, undefined);
     cleanup();
   });
 
@@ -144,9 +141,11 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances[0].trigger(underNewLayouts);
     MockIntersectionObserver.instances[0].trigger(underTheSameLayouts);
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro');
-    expect(preloadLayoutBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadLayoutBundlesMock).toHaveBeenCalledWith(['DocsLayout', 'GuideLayout']);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro', 0.8, [
+      'DocsLayout',
+      'GuideLayout',
+    ]);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.8, undefined);
     cleanup();
   });
 

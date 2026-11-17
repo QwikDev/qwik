@@ -158,7 +158,7 @@ test.describe('cold SPA navigation', () => {
     await releaseAll(gate);
     await expectResult(page, TO_TREE);
     const routeProbabilities = (await preloadHints(page))
-      .filter(({ item }) => item === TO_TREE_ROUTE)
+      .filter(({ item }) => [item].flat().includes(TO_TREE_ROUTE))
       .map(({ probability }) => probability);
     expect(routeProbabilities.length).toBeGreaterThan(0);
     expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);

@@ -1,6 +1,5 @@
 import { isBrowser, isDev } from '@qwik.dev/core';
-import { _requestPreload as preload } from '@qwik.dev/core/internal';
-import { ensureSlash } from '../../utils/pathname';
+import { preloadRouteBundles } from './client-navigate';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';
 import { getLayoutKeys, getNewLayoutKeys, loadRoute, matchRouteTree } from './routing';
@@ -39,17 +38,12 @@ export async function prefetchRoute(
       // Preload JS bundles using the route NAME (not pathname) — the bundle graph
       // is keyed by route name (e.g. "products/[id]/") not actual path
       const destRoute = matchRouteTree(routes, url.pathname);
-      let routeName = '/' + destRoute.routeParts.join('/');
-      routeName = ensureSlash(routeName);
-      if (routeName.length > 1 && routeName.startsWith('/')) {
-        routeName = routeName.slice(1);
-      }
       const currentRoute = matchRouteTree(routes, (currentUrl ?? location).pathname);
       const newLayoutKeys = getNewLayoutKeys(
         getLayoutKeys(currentRoute.loaders),
         getLayoutKeys(destRoute.loaders)
       );
-      preload([...newLayoutKeys, routeName], probability);
+      preloadRouteBundles('/' + destRoute.routeParts.join('/'), probability, newLayoutKeys);
     }
 
     const isNavigating = probability === 1;

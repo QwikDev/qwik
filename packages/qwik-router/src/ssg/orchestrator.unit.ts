@@ -90,6 +90,34 @@ test('should not prefix the base pathname twice when reconstructing routes', asy
   assert.deepEqual(result.staticPaths, ['/frameworks/keyed/qwik2/dist/']);
 });
 
+test('static generation discovers every parameter sibling with its prefix and suffix', async () => {
+  const page = async () => ({
+    default: () => null as any,
+    onStaticGenerate: () => ({ params: [{ product: 'camera' }] }),
+  });
+  const sys = createSystem({
+    routes: {
+      _W: [
+        { _P: 'product', _I: page },
+        { _P: 'product', _9: '-reviews', _I: page },
+        { _P: 'product', _9: '-specs', _I: page },
+        { _P: 'product', _0: 'buy-', _9: '-reviews', _I: page, _4: page },
+      ],
+    },
+    render: async ({ pathname }) => createRenderResult(pathname),
+  });
+
+  const result = await mainThread(sys);
+
+  assert.equal(result.rendered, 4);
+  assert.deepEqual(result.staticPaths.sort(), [
+    '/buy-camera-reviews',
+    '/camera',
+    '/camera-reviews',
+    '/camera-specs',
+  ]);
+});
+
 test('should prerender <dir>/404.html for each _4 / _E boundary', async () => {
   const sys = createSystem({
     routes: {

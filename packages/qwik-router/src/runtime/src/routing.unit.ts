@@ -75,6 +75,72 @@ function buildTree(pattern: string, loader = makeLoader()): RouteData {
 
 // ─── Route matching tests ─────────────────────────────────────────────────────
 
+test('wildcard siblings backtrack when a more specific route has no matching child', () => {
+  const bareLoader = makeLoader();
+  const suffixLoader = makeLoader();
+  const routes: RouteData = {
+    _W: [
+      { _P: 'product', details: { _I: bareLoader } },
+      { _P: 'product', _9: '-reviews', ratings: { _I: suffixLoader } },
+    ],
+  };
+  const details = matchRouteTree(routes, '/camera-reviews/details/');
+  assert.deepEqual(details.loaders, [bareLoader]);
+  assert.deepEqual(details.params, { product: 'camera-reviews' });
+  const ratings = matchRouteTree(routes, '/camera-reviews/ratings/');
+  assert.deepEqual(ratings.loaders, [suffixLoader]);
+  assert.deepEqual(ratings.params, { product: 'camera' });
+});
+
+test('a longer prefix or suffix wins across groups and before deeper static segments', () => {
+  const specificLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      { _W: { _P: 'product', details: { _I: makeLoader() } } },
+      {
+        _W: [
+          { _P: 'product', _9: '-reviews', details: { _I: makeLoader() } },
+          {
+            _P: 'product',
+            _0: 'buy-',
+            _9: '-reviews',
+            _W: { _P: 'section', _I: specificLoader },
+          },
+        ],
+      },
+    ],
+  };
+  const result = matchRouteTree(routes, '/buy-Camera-reviews/details/');
+  assert.deepEqual(result.loaders, [specificLoader]);
+  assert.deepEqual(result.params, { product: 'Camera', section: 'details' });
+});
+
+test('nonmatching or empty infix parameters fall back to a rest route', () => {
+  const restLoader = makeLoader();
+  const routes: RouteData = {
+    _W: [{ _P: 'product', _0: 'buy-', _9: '-reviews', _I: makeLoader() }],
+    _A: { _P: 'path', _I: restLoader },
+  };
+  for (const path of ['buy--reviews', 'camera-reviews', 'buy-camera', 'other']) {
+    const result = matchRouteTree(routes, `/${path}/`);
+    assert.deepEqual(result.loaders, [restLoader]);
+    assert.deepEqual(result.params, { path });
+  }
+});
+
+test('existing single wildcard plans retain infix rewrite targets', () => {
+  const page = makeLoader();
+  const routes: RouteData = {
+    target: { _W: { _P: 'product', _9: '-reviews', _I: page, _R: ['reviews'] } },
+    source: { _W: { _P: 'product', _9: '-reviews', _G: 'target/_W' } },
+  };
+  const result = matchRouteTree(routes, '/source/camera-reviews/');
+  assert.deepEqual(result.loaders, [page]);
+  assert.deepEqual(result.params, { product: 'camera' });
+  assert.deepEqual(result.loaderPathsByHash, { reviews: '/target/camera-reviews/' });
+  assert.deepEqual(result.loaderParamsByHash, { reviews: { product: 'camera' } });
+});
+
 const routeTests: Array<{
   pattern: string;
   pathname: string;

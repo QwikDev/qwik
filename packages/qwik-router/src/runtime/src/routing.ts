@@ -2,7 +2,10 @@ import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
 import {
   escapeStaticTrieKey,
+  getWildcardChildren,
+  getWildcardTrieKey,
   isStaticTrieKey,
+  isWildcardTrieKey,
   unescapeStaticTrieKey,
 } from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
@@ -132,7 +135,12 @@ function walkTrieKeys(
   };
   collect(root);
   for (const key of keys) {
-    const match = descendGroups(node, (candidate) => candidate[key] as RouteData | undefined);
+    const match = descendGroups(node, (candidate) => {
+      if (!isWildcardTrieKey(key) || (key === '_W' && !Array.isArray(candidate._W))) {
+        return candidate[key] as RouteData | undefined;
+      }
+      return getWildcardChildren(candidate).find((child) => getWildcardTrieKey(child) === key);
+    });
     if (!match) {
       return undefined;
     }
@@ -366,52 +374,52 @@ function tryWildcardMatch(
   part: string,
   partLower: string
 ): Omit<ChildMatch, 'groups'> | undefined {
-  return matchWildcardNode(node, part, partLower) ?? matchRestNode(node);
+  return (
+    matchWildcardNodes(node, part, partLower).sort(compareChildMatches)[0] ?? matchRestNode(node)
+  );
 }
 
-/** Try to match a segment against a node's `[param]` wildcard child (`_W`). */
-function matchWildcardNode(
+/** Match every parameter child so deeper routes can backtrack. */
+function matchWildcardNodes(
   node: RouteData,
   part: string,
   partLower: string
-): Omit<ChildMatch, 'groups'> | undefined {
-  const next = node._W as RouteData | undefined;
-  if (next) {
-    const prefix = next._0;
-    const suffix = next._9;
-    if (prefix || suffix) {
-      const pre = prefix || '';
-      const suf = suffix || '';
-      if (
-        partLower.length > pre.length + suf.length &&
-        (!pre || partLower.startsWith(pre.toLowerCase())) &&
-        (!suf || partLower.endsWith(suf.toLowerCase()))
-      ) {
-        const paramName = next._P!;
-        const value = part.slice(pre.length, suf ? part.length - suf.length : undefined);
-        return {
-          next,
-          routePart: `${pre}[${paramName}]${suf}`,
-          done: false,
-          kind: ChildMatchKind.Wildcard,
-          paramName,
-          paramValue: value,
-        };
-      }
-    } else {
-      const paramName = next._P!;
-      return {
-        next,
-        routePart: `[${paramName}]`,
-        done: false,
-        kind: ChildMatchKind.Wildcard,
-        paramName,
-        paramValue: part,
-      };
+): Omit<ChildMatch, 'groups'>[] {
+  const matches: Omit<ChildMatch, 'groups'>[] = [];
+  for (const next of getWildcardChildren(node)) {
+    const prefix = next._0 ?? '';
+    const suffix = next._9 ?? '';
+    if (
+      partLower.length <= prefix.length + suffix.length ||
+      !partLower.startsWith(prefix.toLowerCase()) ||
+      !partLower.endsWith(suffix.toLowerCase())
+    ) {
+      continue;
     }
+    const paramName = next._P!;
+    matches.push({
+      next,
+      routePart: `${prefix}[${paramName}]${suffix}`,
+      done: false,
+      kind: ChildMatchKind.Wildcard,
+      paramName,
+      paramValue: part.slice(prefix.length, part.length - suffix.length),
+    });
   }
 
-  return undefined;
+  return matches;
+}
+
+function compareChildMatches(
+  a: Pick<ChildMatch, 'kind' | 'next'>,
+  b: Pick<ChildMatch, 'kind' | 'next'>
+) {
+  const kindOrder = a.kind - b.kind;
+  if (kindOrder !== 0 || a.kind !== ChildMatchKind.Wildcard) {
+    return kindOrder;
+  }
+  const specificity = (node: RouteData) => (node._0?.length ?? 0) + (node._9?.length ?? 0);
+  return specificity(b.next) - specificity(a.next);
 }
 
 /** Try to match the remaining segments against a node's `[...param]` rest child (`_A`). */
@@ -506,8 +514,7 @@ function findChildAll(
     }
   }
 
-  const wildcard = matchWildcardNode(node, part, partLower);
-  if (wildcard) {
+  for (const wildcard of matchWildcardNodes(node, part, partLower)) {
     candidates.push({ ...wildcard, groups: [] });
   }
 
@@ -548,17 +555,18 @@ function findMatchChain(
 
   const part = parts[i];
   const candidates = findChildAll(node, part, part.toLowerCase(), parts, i).sort(
-    (a, b) => a.kind - b.kind
+    compareChildMatches
   );
 
   let best: ChildMatch[] | undefined;
   for (let c = 0; c < candidates.length; c++) {
     const found = candidates[c];
     const bound = best ?? toBeat;
-    if (bound && found.kind > bound[0].kind) {
+    const comparison = bound ? compareChildMatches(found, bound[0]) : -1;
+    if (comparison > 0) {
       break;
     }
-    const tailToBeat = bound && found.kind === bound[0].kind ? bound.slice(1) : undefined;
+    const tailToBeat = bound && comparison === 0 ? bound.slice(1) : undefined;
     const tail = found.done
       ? matchRestTail(found.next, tailToBeat)
       : findMatchChain(found.next, parts, i + (found.span ?? 1), tailToBeat);

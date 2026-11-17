@@ -31,12 +31,12 @@ type AdjustmentFrame = {
 
 const adjustmentStack: AdjustmentFrame[] = [];
 
-const isNeeded = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
+const isHighestPriority = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
 
 // Read live: a speculative preload may since have been requested at probability 1
-const isNeededInFlight = () => {
+const isHighestPriorityInFlight = () => {
   for (const bundle of inFlight) {
-    if (isNeeded(bundle)) {
+    if (isHighestPriority(bundle)) {
       return true;
     }
   }
@@ -70,13 +70,13 @@ function trigger() {
   while (queue.length) {
     const bundle = queue[0];
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
+    // Speculative preloads wait while highest priority bundles load, so they don't take their bandwidth.
     if (
-      isNeeded(bundle) ||
+      isHighestPriority(bundle) ||
       (!isWaitingForGraph &&
         !adjustmentStack.length &&
         inFlight.size < config.$maxIdlePreloads$ &&
-        !isNeededInFlight())
+        !isHighestPriorityInFlight())
     ) {
       queue.shift();
       preloadOne(bundle);
@@ -154,13 +154,13 @@ const processAdjustmentFrame = () => {
     return false;
   }
 
-  const wasNeeded = isNeeded(bundle);
+  const wasHighestPriority = isHighestPriority(bundle);
   const previousInverseProbability = bundle.$inverseProbability$;
   bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Replay and needed transitions must reach dependencies.
+  // Replay and highest priority transitions must reach dependencies.
   if (
     !frame.$isReplay$ &&
-    wasNeeded === isNeeded(bundle) &&
+    wasHighestPriority === isHighestPriority(bundle) &&
     previousInverseProbability - bundle.$inverseProbability$ < 0.01
   ) {
     adjustmentStack.pop();
@@ -241,7 +241,7 @@ const preloadOne = (bundle: BundleImport) => {
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
-  if (!isNeeded(bundle)) {
+  if (!isHighestPriority(bundle)) {
     link.setAttribute('fetchpriority', 'low');
   }
   // Handle completion of the preload

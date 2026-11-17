@@ -173,10 +173,6 @@ test.describe("helper shared from another component's file", () => {
         'src/components/fixtures/shared-helper/sparkline.ts',
       ])
     );
-    test.fail(
-      true,
-      "on main, the helper's module lists Card's segments as dynamic imports, so Card's render, its click handler and sparkline.ts go out as needed chunks"
-    );
     expect(cardChunks).toEqual([]);
   });
 });

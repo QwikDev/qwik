@@ -513,6 +513,7 @@ const HAND_WRITTEN = [
   { group: 'other', href: '/qrl-prop/', label: 'QRL prop' },
   { group: 'other', href: '/sync/', label: 'sync$' },
   { group: 'other', href: '/barrel/', label: 'barrel file' },
+  { group: 'other', href: '/streaming/', label: 'click while streaming' },
   { group: 'visible', href: '/visible/above/', label: 'above the fold' },
   { group: 'visible', href: '/visible/below/', label: 'below the fold' },
   { group: 'visible', href: '/visible/document-ready/', label: 'document-ready' },

@@ -32,6 +32,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const outOfOrderStreaming = params.get('ooos') ?? params.get('outOfOrder');
       data.outOfOrderStreaming = outOfOrderStreaming === null || outOfOrderStreaming === '1';
 
+      data.rustOptimizer = params.get('rust') === '1';
+
       if (params.has('files')) {
         // Old URLs that didn't compress
         // the files, used the `files` key
@@ -45,9 +47,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
           data.files = parseCompressedFiles(filesBase64);
         }
       }
-      if (data.files.length > 0) {
-        return data;
-      }
+      // Files are omitted when they match the selected example.
+      return data;
     } catch (e) {
       console.error(e);
     }
@@ -122,7 +123,11 @@ export const dictionary = strToU8(
   ])
 );
 
-export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/playground/') => {
+export const createPlaygroundShareUrl = (
+  data: PlaygroundShareUrl,
+  pathname = '/playground/',
+  exampleFiles?: PlaygroundShareUrl['files']
+) => {
   const params = new URLSearchParams();
   if (data.version !== 'bundled') {
     params.set('v', data.version);
@@ -136,10 +141,16 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   if (data.outOfOrderStreaming === false) {
     params.set('ooos', '0');
   }
+  if (data.rustOptimizer) {
+    params.set('rust', '1');
+  }
 
-  params.set('f', compressFiles(data.files));
+  if (!exampleFiles || filesToStr(data.files) !== filesToStr(exampleFiles)) {
+    params.set('f', compressFiles(data.files));
+  }
 
-  return `${pathname}#${params.toString()}`;
+  const hash = params.toString();
+  return hash ? `${pathname}#${hash}` : pathname;
 };
 
 export function compressFiles(files: any[]) {
@@ -192,5 +203,6 @@ interface PlaygroundShareUrl {
   buildMode: any;
   entryStrategy: any;
   outOfOrderStreaming?: boolean;
+  rustOptimizer?: boolean;
   files: any[];
 }

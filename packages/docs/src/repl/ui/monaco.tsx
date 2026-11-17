@@ -274,7 +274,7 @@ const loadDeps = async (pkgVersion: string) => {
     },
   ];
 
-  const depUrls = getDeps(pkgVersion);
+  const depUrls = getDeps(pkgVersion, pkgVersion);
   const toFetch: Record<string, Promise<string>> = {};
   for (const dep of deps) {
     let storedDep = monacoCtx.deps.find(

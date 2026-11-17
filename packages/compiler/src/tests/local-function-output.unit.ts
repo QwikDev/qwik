@@ -661,6 +661,55 @@ describe.each([false, true])('emitted local functions (SSR: %s)', (isServer) => 
       'the reassigned local function "g"',
     ],
     [
+      'an alias of a local function later set to null',
+      inApp(`const f = () => s.value;
+  let g = f;
+  g = null;
+  return <button onClick$={() => g()}>x</button>;`),
+      'the reassigned local function "g"',
+    ],
+    [
+      'a var alias of a local function later set to undefined',
+      inApp(`const f = () => s.value;
+  var g = f;
+  g = undefined;
+  return <button onClick$={() => g()}>x</button>;`),
+      'the reassigned local function "g"',
+    ],
+    [
+      'an alias of an alias later set to null',
+      inApp(`const f = () => s.value;
+  const g = f;
+  let h = g;
+  h = null;
+  return <button onClick$={() => h()}>x</button>;`),
+      'the reassigned local function "h"',
+    ],
+    [
+      'an alias of a local function reassigned by destructuring',
+      inApp(`const f = () => s.value;
+  const other = () => 1;
+  let g = f;
+  if (show.value) [g] = [other];
+  return <button onClick$={() => g()}>x</button>;`),
+      'the reassigned local function "g"',
+    ],
+    [
+      'a local function later set to null',
+      inApp(`let f = () => s.value;
+  if (show.value) f = null;
+  return <button onClick$={() => f()}>x</button>;`),
+      'the reassigned local function "f"',
+    ],
+    [
+      'a local that starts null and is given a local function with ??=',
+      inApp(`const f = () => s.value;
+  let g = null;
+  g ??= f;
+  return <button onClick$={() => g()}>x</button>;`),
+      'the reassigned local function "g"',
+    ],
+    [
       'a conditional alias of local components',
       inApp(`const A = component$(() => <a>{s.value}</a>);
   const B = component$(() => <b/>);

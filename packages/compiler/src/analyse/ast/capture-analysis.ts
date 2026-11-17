@@ -202,7 +202,8 @@ function unliftableFunction(binding: LocalId, ctx: LowerContext): string | null 
     isComponentDeclaration(value, ctx.bindings, ctx.coreBindings) ||
     isHeuristicComponent(value, binding, ctx.jsx, ctx.bindings);
   const isFunction = (value: Node) => isFunctionLike(value) || aliasedLiftable(value, ctx) !== null;
-  if (values.length === 0 || !values.every((value) => isFunction(value) || isComponent(value))) {
+  // One function among the values is enough: a capture list cannot hold it.
+  if (!values.some((value) => isFunction(value) || isComponent(value))) {
     return null;
   }
   const kind = values.some(isComponent) ? 'component' : 'function';

@@ -127,11 +127,14 @@ const routerChunkUrls = (segment: string) =>
     .map(([file]) => `${ORIGIN}/build/${file}`);
 
 test.describe('what the page asks the preloader for at load', () => {
-  test('its root component and its route, not every chunk it used', async ({ page }) => {
+  test('its root component, its layout and its route, not every chunk it used', async ({
+    page,
+  }) => {
     const response = await page.goto(CONDITIONAL_ALL.path);
     const [, askedFor] = (await response!.text()).match(/\.then\(\(\{p\}\)=>p\((\[[^\]]*\])\)\)/)!;
     expect(JSON.parse(askedFor)).toEqual([
       chunkOfSymbolNamed('root.tsx_root_component'),
+      'Layout',
       'conditional/all/',
     ]);
   });

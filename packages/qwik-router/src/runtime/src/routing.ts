@@ -91,6 +91,7 @@ export const loadRoute = async (
     $mods$: modules,
     $menu$: deepFreeze(menu),
     $routeBundleNames$: routeBundleNames,
+    $layoutKeys$: getLayoutKeys(loaders),
     $notFound$: notFound,
     $errorLoader$: errorLoader,
     $loaders$: loaderPathsByHash && Object.keys(loaderPathsByHash),

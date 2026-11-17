@@ -48,6 +48,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent, trustForwardedH
 
   const routeLoaderCtx = getRouteLoaderCtx(requestEv);
   const loaderValues = getRouteLoaderValues(requestEv);
+  const loadedRoute = getRequestRoute(requestEv);
 
   return {
     url: getServerDataUrl(originalUrl, request.headers, trustForwardedHeaders),
@@ -58,12 +59,14 @@ export function getQwikRouterServerData(requestEv: RequestEvent, trustForwardedH
     containerAttributes: {
       [Q_ROUTE]: routeName,
     },
-    preloadSeeds: routeName ? [toBundleGraphRouteName(routeName)] : undefined,
+    preloadSeeds: routeName
+      ? [...(loadedRoute?.$layoutKeys$ ?? []), toBundleGraphRouteName(routeName)]
+      : undefined,
     qwikrouter: {
       routeName,
       ev: requestEv,
       params: { ...params },
-      loadedRoute: getRequestRoute(requestEv),
+      loadedRoute,
       routeLoaderCtx,
       loaderValues,
       response: {

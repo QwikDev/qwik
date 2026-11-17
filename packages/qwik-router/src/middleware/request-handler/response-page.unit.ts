@@ -35,7 +35,7 @@ describe('getServerDataUrl', () => {
   });
 });
 
-const serverDataFor = (routeName: string) => {
+const serverDataFor = (routeName: string, layoutKeys?: string[]) => {
   const url = 'http://localhost:3000/test';
   const serverRequestEv = {
     mode: 'server',
@@ -47,7 +47,12 @@ const serverDataFor = (routeName: string) => {
     getClientConn: vi.fn(() => ({ ip: '127.0.0.1' })),
     getWritableStream: vi.fn(),
   } as unknown as ServerRequestEvent;
-  const route: LoadedRoute = { $routeName$: routeName, $params$: {}, $mods$: [] };
+  const route: LoadedRoute = {
+    $routeName$: routeName,
+    $params$: {},
+    $mods$: [],
+    $layoutKeys$: layoutKeys,
+  };
   const requestEv = createRequestEvent(serverRequestEv, route, [], '/', vi.fn());
   requestEv.sharedMap.set(RequestRouteName, routeName);
   return getQwikRouterServerData(requestEv, false);
@@ -64,5 +69,13 @@ describe('getQwikRouterServerData', () => {
 
   it('names the home route as a single slash', () => {
     expect(serverDataFor('/').preloadSeeds).toEqual(['/']);
+  });
+
+  it("names the route's layouts before the route, outermost first", () => {
+    expect(serverDataFor('/docs/intro/', ['Layout', 'DocsLayout']).preloadSeeds).toEqual([
+      'Layout',
+      'DocsLayout',
+      'docs/intro/',
+    ]);
   });
 });

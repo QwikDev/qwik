@@ -391,6 +391,7 @@ function* inflateIterator(
         Props,
         Props | null,
         Map<string | symbol, Set<EffectSubscription>> | undefined,
+        boolean?,
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
@@ -405,6 +406,7 @@ function* inflateIterator(
       propsProxy[_OWNER] = owner;
       const propsHandler = propsProxy[_PROPS_HANDLER];
       propsHandler.$effects$ = d[3];
+      propsHandler.$omitChildren$ = !!d[4];
       restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
       break;
     }

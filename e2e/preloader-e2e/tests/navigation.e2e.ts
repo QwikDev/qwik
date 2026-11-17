@@ -125,6 +125,9 @@ const isRouterNavigationCode = (url: string) =>
 const roundTripOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean) =>
   roundTrips.findIndex((roundTrip) => roundTrip.urls.some(isWanted));
 
+const roundTripsOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean) =>
+  roundTrips.flatMap(({ urls }, index) => (urls.some(isWanted) ? [index] : []));
+
 const treeLink = (page: Page, from: Fixture) =>
   fixtureRoot(page, from).locator('[data-testid=link-tree]');
 
@@ -242,7 +245,9 @@ test.describe('cold navigation into another layout', () => {
     const { roundTrips } = await navigateIntoDocs(page);
     const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_A));
     expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
-    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
+    expect(roundTripsOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toEqual([
+      pageRoundTrip,
+    ]);
   });
 
   test('none of the layouts the two pages share is fetched', async ({ page }) => {
@@ -319,7 +324,9 @@ test.describe('Link kept on screen across a navigation', () => {
     await releaseAll(opened.gate);
     const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_B));
     expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
-    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
+    expect(roundTripsOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toEqual([
+      pageRoundTrip,
+    ]);
   });
 });
 
@@ -380,7 +387,9 @@ test.describe('cold navigation with nav()', () => {
     );
     const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(DOCS_A));
     expect(pageRoundTrip).toBeGreaterThanOrEqual(0);
-    expect(roundTripOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(pageRoundTrip);
+    expect(roundTripsOf(roundTrips, holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toEqual([
+      pageRoundTrip,
+    ]);
   });
 
   test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {

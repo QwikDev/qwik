@@ -304,6 +304,10 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * @public
  */
 export interface RouteData {
+  /** Canonical spellings of conflicting segments, indexed by route position. */
+  _C?: Record<number, string>;
+  /** Original static segment spelling when different from its lowercase key. */
+  _S?: string;
   /** This node's layout loader (single). Runtime accumulates these during trie traversal. */
   _L?: ContentModuleLoader;
   /**
@@ -338,6 +342,7 @@ export interface RouteData {
   _D?: string[];
   /** Child route segments (any key not starting with a single `_`) */
   [part: string]:
+    | Record<number, string>
     | RouteData
     | RouteData[]
     | ModuleLoader[]

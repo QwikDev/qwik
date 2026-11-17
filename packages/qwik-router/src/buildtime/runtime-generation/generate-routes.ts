@@ -1,6 +1,8 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
+import { dirname } from 'node:path';
 import {
   createFileId,
+  getPathnameFromDirPath,
   caughtErrorName,
   isModuleExt,
   isPageExt,
@@ -11,6 +13,7 @@ import {
 import { escapeStaticTrieKey } from '../../utils/route-trie-key';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
+import { parseDirName } from '../routing/walk-routes-dir';
 
 export type RouteLoaderSourceFiles = ReadonlyMap<string, readonly string[]>;
 
@@ -25,8 +28,24 @@ function toRuntimeTrieKey(key: string) {
 }
 
 /** A rewrite target or base path with each segment converted to its runtime trie key. */
-function toRuntimeTriePath(path: string) {
-  return path.split('/').map(toRuntimeTrieKey).join('/');
+function toRuntimeTriePath(path: string, basePathname: string) {
+  const baseKeys = basePathname
+    .split('/')
+    .map((segment) => escapeStaticTrieKey(segment.toLowerCase()));
+  return baseKeys.join('/') + path.split('/').map(toRuntimeTrieKey).join('/');
+}
+
+function getRouteTriePath(routeName: string) {
+  return routeName
+    .split('/')
+    .map((segment) => {
+      const { key, paramName, prefix, suffix } = parseDirName(segment);
+      return paramName
+        ? `${prefix?.toLowerCase() ?? ''}[${key}]${suffix?.toLowerCase() ?? ''}`
+        : key;
+    })
+    .filter((key) => key != null)
+    .join('/');
 }
 
 /**
@@ -53,12 +72,22 @@ export function createRoutes(
   serverExcludePaths?: ReadonlySet<string>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ) {
+  const routesByFilePath = new Map<string, BuiltRoute>();
+  for (const route of ctx.routes) {
+    if (
+      !routesByFilePath.has(route.filePath) ||
+      route.pathname === getPathnameFromDirPath(ctx.opts, dirname(route.filePath))
+    ) {
+      routesByFilePath.set(route.filePath, route);
+    }
+  }
   const includeEndpoints = isSSR;
   const dynamicImports = ctx.dynamicImports;
 
   // First pass: collect all layout, route, and menu file IDs, emit imports
   const layoutIdMap = new Map<string, string>(); // filePath → varName
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
+  const routeNamesByTriePath = new Map<string, string>();
   const menuIdMap = new Map<string, string>(); // filePath → varName
 
   let layoutCount = 0;
@@ -74,7 +103,7 @@ export function createRoutes(
         layoutCount++;
       }
     } else if (file.type === 'route') {
-      const route = ctx.routes.find((r) => r.filePath === file.filePath);
+      const route = routesByFilePath.get(file.filePath);
       if (route) {
         routeCount++;
       }
@@ -116,6 +145,8 @@ export function createRoutes(
   // Emit route imports and build loader expression map
   c.push(`\n/** Qwik Router Routes (${routeCount}) */`);
   for (const route of ctx.routes) {
+    const name = route.routeName.split('/').filter(Boolean).join('/');
+    routeNamesByTriePath.set(getRouteTriePath(name), name);
     if (isPageExt(route.ext)) {
       // Skip the loader so the trie node prunes and the chunk tree-shakes out of the server bundle.
       if (serverExcludePaths?.has(route.filePath)) {
@@ -137,6 +168,8 @@ export function createRoutes(
     }
   }
 
+  const baseSegments = ctx.opts.basePathname.split('/').filter((s) => s.length > 0);
+
   // Serialize the trie
   const trieStr = serializeBuildTrie(
     ctx,
@@ -144,9 +177,13 @@ export function createRoutes(
     ctx.routeTrie,
     layoutIdMap,
     routeIdMap,
+    routesByFilePath,
     menuIdMap,
     isSSR,
     '',
+    baseSegments.join('/'),
+    getRouteTriePath(baseSegments.join('/')),
+    routeNamesByTriePath,
     loadersByFile,
     routeLoaderSourceFiles
   );
@@ -157,10 +194,14 @@ export function createRoutes(
 
   // Wrap the trie in the base pathname segments (e.g., '/qwikrouter-test/' → 'qwikrouter-test')
   // The runtime matcher receives the full URL pathname, so the trie must include the base prefix.
-  const baseSegments = ctx.opts.basePathname.split('/').filter((s) => s.length > 0);
   let routesExpr = trieStr;
   for (let j = baseSegments.length - 1; j >= 0; j--) {
-    routesExpr = `{ ${JSON.stringify(escapeStaticTrieKey(baseSegments[j]))}: ${routesExpr} }`;
+    const segment = baseSegments[j];
+    const key = segment.toLowerCase();
+    if (segment !== key) {
+      routesExpr = `{ _S: ${JSON.stringify(segment)},${routesExpr.slice(1)}`;
+    }
+    routesExpr = `{ ${JSON.stringify(escapeStaticTrieKey(key))}: ${routesExpr} }`;
   }
 
   c.push(`export const routes = ${routesExpr};`);
@@ -185,9 +226,13 @@ function serializeBuildTrie(
   node: BuildTrieNode,
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
+  routesByFilePath: ReadonlyMap<string, BuiltRoute>,
   menuIdMap: Map<string, string>,
   isSSR: boolean,
   indent: string,
+  routeName: string,
+  triePath: string,
+  routeNamesByTriePath: ReadonlyMap<string, string>,
   loadersByFile?: Map<string, string[]>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ): string {
@@ -207,12 +252,13 @@ function serializeBuildTrie(
 
   // _G rewrite target
   if (node._G != null) {
-    const target = toRuntimeTriePath(ctx.opts.basePathname + node._G);
+    const target = toRuntimeTriePath(node._G, ctx.opts.basePathname);
     lines.push(`${nextIndent}_G: ${JSON.stringify(target)},`);
   }
 
   // Process _files at this node
   let layoutExpr: string | undefined;
+  let layoutFile: RouteSourceFile | undefined;
   let indexExpr: string | undefined;
   let errorExpr: string | undefined;
   let notFoundExpr: string | undefined;
@@ -231,6 +277,7 @@ function serializeBuildTrie(
       if (layoutId) {
         if (file.extlessName === 'layout' || file.extlessName === 'layout!') {
           layoutExpr = layoutId;
+          layoutFile = file;
         }
       }
     }
@@ -246,7 +293,7 @@ function serializeBuildTrie(
       continue;
     }
 
-    const route = ctx.routes.find((route) => route.filePath === file.filePath);
+    const route = routesByFilePath.get(file.filePath);
     const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, route?.layouts ?? []);
 
     // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
@@ -266,6 +313,18 @@ function serializeBuildTrie(
   // Emit _L (single layout loader for this node)
   if (layoutExpr) {
     lines.push(`${nextIndent}_L: ${layoutExpr},`);
+  }
+
+  if (indexExpr || node._G != null || layoutFile) {
+    const canonicalName =
+      bundleRoute?.routeName ??
+      (layoutFile
+        ? getPathnameFromDirPath(ctx.opts, layoutFile.dirPath)
+        : routeNamesByTriePath.get(triePath));
+    const canonicalParts = canonicalName?.split('/').filter(Boolean);
+    if (canonicalParts && canonicalParts.join('/') !== routeName) {
+      lines.push(`${nextIndent}_C: ${JSON.stringify(canonicalParts)},`);
+    }
   }
 
   // Emit _I (index/page loader)
@@ -352,9 +411,13 @@ function serializeBuildTrie(
         child,
         layoutIdMap,
         routeIdMap,
+        routesByFilePath,
         menuIdMap,
         isSSR,
         nextIndent,
+        routeName,
+        triePath,
+        routeNamesByTriePath,
         loadersByFile,
         routeLoaderSourceFiles
       );
@@ -369,15 +432,23 @@ function serializeBuildTrie(
 
   // Serialize regular children, skipping empty nodes
   for (const [key, child] of regularChildren) {
+    const segment = child._P
+      ? `${child._0 ?? ''}[${key === '_A' ? '...' : ''}${child._P}]${child._9 ?? ''}`
+      : (child._S ?? key);
+    const childRouteName = routeName ? `${routeName}/${segment}` : segment;
     const childStr = serializeBuildTrie(
       ctx,
       qwikPlugin,
       child,
       layoutIdMap,
       routeIdMap,
+      routesByFilePath,
       menuIdMap,
       isSSR,
       nextIndent,
+      childRouteName,
+      triePath ? `${triePath}/${getRouteTriePath(segment)}` : getRouteTriePath(segment),
+      routeNamesByTriePath,
       loadersByFile,
       routeLoaderSourceFiles
     );
@@ -389,6 +460,9 @@ function serializeBuildTrie(
 
   if (lines.length === 0) {
     return '{}';
+  }
+  if (node._S) {
+    lines.unshift(`${nextIndent}_S: ${JSON.stringify(node._S)},`);
   }
   return `{\n${lines.join('\n')}\n${indent}}`;
 }

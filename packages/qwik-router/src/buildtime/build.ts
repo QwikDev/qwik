@@ -178,7 +178,7 @@ function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
   const translatedRoutes: BuiltRoute[] = [];
 
   let segmentsToTranslate = ctx.opts.rewriteRoutes.flatMap((rewriteConfig) => {
-    return Object.keys(rewriteConfig.paths || {});
+    return Object.keys(rewriteConfig.paths || {}).map((segment) => segment.toLowerCase());
   });
 
   segmentsToTranslate = Array.from(new Set(segmentsToTranslate));
@@ -188,10 +188,14 @@ function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
 
     const currentRouteSegments = route.pathname.split('/');
     const foundSegmentToTranslate = currentRouteSegments.some((segment) =>
-      segmentsToTranslate.includes(segment)
+      segmentsToTranslate.includes(segment.toLowerCase())
     );
 
-    if (foundSegmentToTranslate || route.pathname === '/') {
+    if (
+      foundSegmentToTranslate ||
+      route.pathname === '/' ||
+      ctx.opts.rewriteRoutes.some((config) => config.prefix)
+    ) {
       ctx.opts.rewriteRoutes.forEach((config, configIndex) => {
         if (route.pathname === '/' && !config.prefix) {
           return;
@@ -218,7 +222,8 @@ function translateRoute(
   config: RewriteRouteOption,
   configIndex: number
 ): BuiltRoute {
-  const replacePath = (part: string) => (config.paths || {})[part] ?? part;
+  const translations = getRewriteTranslations(config);
+  const replacePath = (part: string) => translations.get(part.toLowerCase()) ?? part;
 
   const pathnamePrefix = config.prefix ? '/' + config.prefix : '';
   const routeNamePrefix = config.prefix ? ensureSlash(config.prefix) : '';
@@ -271,6 +276,12 @@ function translateRoute(
   };
 }
 
+function getRewriteTranslations(config: RewriteRouteOption) {
+  return new Map(
+    Object.entries(config.paths ?? {}).map(([key, value]) => [key.toLowerCase(), value])
+  );
+}
+
 /**
  * Walk the trie and create _G (rewrite) nodes for each rewriteRoutes config.
  *
@@ -284,6 +295,7 @@ function translateRoute(
 function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOption[]) {
   interface TriePathStep {
     key: string;
+    staticName?: string;
     paramName?: string;
     prefix?: string;
     suffix?: string;
@@ -309,6 +321,7 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
           ...steps,
           {
             key,
+            staticName: child._S,
             paramName: child._P,
             prefix: child._0,
             suffix: child._9,
@@ -321,8 +334,7 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
   walk(root, []);
 
   for (const config of rewriteConfigs) {
-    const translations = config.paths || {};
-    const translatable = new Set(Object.keys(translations).map((k) => k.toLowerCase()));
+    const translations = getRewriteTranslations(config);
     const isExcluded = config.exclude?.length
       ? createRouteTester('/', config.exclude, undefined)
       : undefined;
@@ -333,7 +345,7 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
         continue;
       }
       // Check if any segment is translatable or if there's a prefix
-      const hasTranslatable = steps.some((s) => translatable.has(s.key));
+      const hasTranslatable = steps.some((s) => translations.has(s.key));
       if (!hasTranslatable && !config.prefix) {
         continue;
       }
@@ -346,14 +358,21 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
       const translatedSteps: TriePathStep[] = [];
 
       if (config.prefix) {
-        translatedSteps.push({ key: config.prefix.toLowerCase() });
+        const key = config.prefix.toLowerCase();
+        translatedSteps.push({
+          key,
+          staticName: config.prefix !== key ? config.prefix : undefined,
+        });
       }
 
       for (const step of steps) {
-        const translated = translations[step.key];
+        const translated = translations.get(step.key);
+        const key = translated ? translated.toLowerCase() : step.key;
+        const staticName = translated || step.staticName;
         translatedSteps.push({
           ...step,
-          key: translated ? translated.toLowerCase() : step.key,
+          key,
+          staticName: staticName !== key ? staticName : undefined,
         });
       }
 
@@ -372,6 +391,9 @@ function applyRewriteRoutes(root: BuildTrieNode, rewriteConfigs: RewriteRouteOpt
             _files: [],
             children: new Map(),
           };
+          if (step.staticName) {
+            child._S = step.staticName;
+          }
           if (step.paramName) {
             child._P = step.paramName;
           }

@@ -8,6 +8,8 @@ import type { SerializationStrategy } from '@qwik.dev/core/internal';
  * `_E` are emitted as JS expressions.
  */
 export interface BuildTrieNode {
+  /** Original static segment spelling when different from its lowercase key. */
+  _S?: string;
   /** Parameter name (for `_W` and `_A` nodes) */
   _P?: string;
   /** Prefix for infix params (e.g. `pre` for `pre[slug]post`) — only on `_W` nodes */

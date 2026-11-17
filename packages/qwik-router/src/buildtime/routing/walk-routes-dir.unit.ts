@@ -41,3 +41,25 @@ test('param directory names may contain dashes', () => {
   });
   assert.deepEqual(parseDirName('[...rest-path]'), { key: '_A', paramName: 'rest-path' });
 });
+
+test('stores original static spelling only when its lookup key differs', async () => {
+  const entries: Record<string, string[]> = {
+    '/app/routes': ['Product', 'docs'],
+    '/app/routes/Product': ['[ItemId]'],
+    '/app/routes/Product/[ItemId]': ['index.tsx'],
+    '/app/routes/docs': ['index.tsx'],
+  };
+  vi.spyOn(fs.promises, 'readdir').mockImplementation(async (path) => entries[String(path)] as any);
+  vi.spyOn(fs.promises, 'stat').mockImplementation(
+    async (path) =>
+      ({
+        isDirectory: () => !String(path).endsWith('.tsx'),
+      }) as fs.Stats
+  );
+
+  const root = await walkRoutes('/app/routes');
+  const product = root.children.get('product')!;
+  assert.equal(product._S, 'Product');
+  assert.notProperty(product.children.get('_W')!, '_S');
+  assert.notProperty(root.children.get('docs')!, '_S');
+});

@@ -522,8 +522,9 @@ export interface RouteData {
     _0?: string;
     _4?: ContentModuleLoader | ModuleLoader[];
     _9?: string;
-    [part: string]: RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
+    [part: string]: Record<number, string> | RouteData | RouteData[] | ModuleLoader[] | ContentModuleLoader | MenuModuleLoader | string[] | string | undefined;
     _B?: string[];
+    _C?: Record<number, string>;
     _D?: string[];
     _E?: ContentModuleLoader | ModuleLoader[];
     _G?: string;
@@ -536,6 +537,7 @@ export interface RouteData {
     _N?: MenuModuleLoader;
     _P?: string;
     _R?: string[];
+    _S?: string;
 }
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructor" needs to be exported by the entry point index.d.ts

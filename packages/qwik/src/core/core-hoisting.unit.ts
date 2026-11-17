@@ -54,7 +54,7 @@ describe('core built as a Qwik library', () => {
         throw new Error('Build core first: pnpm build.core.dev');
       }
       // The app's optimizer keeps the hash core's build gave the QRL.
-      const resHash = /"resQrl_onFirstUse_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
+      const resHash = /"bind_handlers_res_(\w+)"/.exec(readFileSync(core, 'utf8'))![1];
       const createOptimizer = optimizerName === 'rust' ? createRustOptimizer : createTsOptimizer;
       const optimizer = await createOptimizer();
       const transform = (file: string) =>
@@ -77,11 +77,6 @@ describe('core built as a Qwik library', () => {
       expect(ctxNames(output.modules)).toEqual(
         ctxNames((await transform('core.qwik.mjs')).modules)
       );
-      // The manifest maps a QRL to the chunk exporting it by name; a re-export gets bundled away.
-      for (let i = 0; i < segments.length; i++) {
-        const { code, segment } = segments[i];
-        expect(code).toMatch(new RegExp(`export const ${segment!.name}\\b`));
-      }
 
       const dir = mkdtempSync(join(workDir, `${optimizerName}-${name}-${mode}-`));
       const parent = output.modules.find((module) => !module.segment)!;

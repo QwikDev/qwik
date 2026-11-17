@@ -12,30 +12,17 @@ const onFirstUse = <T>(create: () => T) => {
   return () => (value ??= create());
 };
 
-/**
- * A segment whose body is a bare imported name compiles to a re-export, which the bundler hides
- * behind a namespace object, so the manifest can't map the QRL to a chunk exporting it by name.
- */
-function forward<F extends (...args: any[]) => any>(fn: F): F {
-  // A declaration, since server builds hoist the QRLs that call it above this line.
-  return function (this: unknown, ...args: Parameters<F>) {
-    return fn.apply(this, args);
-  } as F;
-}
-
 /*
  * Core functions that read their own captures; the qwikloader calls most of them with the
  * serialized captures as `this`. Bind captures with `.w([...])`.
  */
-export const runQrl = onFirstUse(() => $(forward(_run)) as QRLInternal<typeof _run>);
-export const chkQrl = onFirstUse(() => $(forward(_chk)) as QRLInternal<typeof _chk>);
-export const valQrl = onFirstUse(() => $(forward(_val)) as QRLInternal<typeof _val>);
-export const resQrl = onFirstUse(() => $(forward(_res)) as QRLInternal<typeof _res>);
-export const taskQrl = onFirstUse(
-  () => $(forward(scheduleTask)) as QRLInternal<typeof scheduleTask>
-);
-export const hmrQrl = onFirstUse(() => $(forward(_hmr)) as QRLInternal<typeof _hmr>);
-export const rscQrl = onFirstUse(() => $(forward(_rsc)) as QRLInternal<typeof _rsc>);
+export const runQrl = onFirstUse(() => $(_run) as QRLInternal<typeof _run>);
+export const chkQrl = onFirstUse(() => $(_chk) as QRLInternal<typeof _chk>);
+export const valQrl = onFirstUse(() => $(_val) as QRLInternal<typeof _val>);
+export const resQrl = onFirstUse(() => $(_res) as QRLInternal<typeof _res>);
+export const taskQrl = onFirstUse(() => $(scheduleTask) as QRLInternal<typeof scheduleTask>);
+export const hmrQrl = onFirstUse(() => $(_hmr) as QRLInternal<typeof _hmr>);
+export const rscQrl = onFirstUse(() => $(_rsc) as QRLInternal<typeof _rsc>);
 
 /** Whether the qwikloader can call `qrl` directly, as it deserializes its own captures. */
 export const readsOwnCaptures = (qrl: QRLInternal<unknown>) =>

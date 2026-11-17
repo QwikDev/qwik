@@ -13,6 +13,7 @@ describe('setEvent', () => {
     $addRoot$: () => 0,
     $eventQrls$: new Set(),
     $eventNames$: new Set(),
+    $coreHandlerQrls$: new Map(),
   } as unknown as SerializationContext;
 
   it('does not wrap a capture-free sibling of moved captures', () => {
@@ -53,22 +54,23 @@ describe('setEvent', () => {
     expect(symbols(context.$eventQrls$)).toEqual([runQrl().$symbol$, 'handler']);
   });
 
-  describe("remembers the first of core's handlers the page's events run through", () => {
+  describe("remembers each of core's handlers the page's events run through", () => {
     const freshContext = () =>
       ({
         $symbolToChunkResolver$: () => 'runtime',
         $addRoot$: () => 0,
         $eventQrls$: new Set(),
         $eventNames$: new Set(),
-        $coreHandlerQrl$: null,
+        $coreHandlerQrls$: new Map(),
       }) as unknown as SerializationContext;
+    const rememberedHashes = (ctx: SerializationContext) => [...ctx.$coreHandlerQrls$.keys()];
 
     it('_run, for a handler with captures', () => {
       const ctx = freshContext();
 
       setEvent(ctx, 'q-e:click', createQRL('chunk', 'handler', () => {}).m(), true);
 
-      expect(ctx.$coreHandlerQrl$).toBe(runQrl());
+      expect(rememberedHashes(ctx)).toEqual([runQrl().getHash()]);
     });
 
     it("_task, when the page's only handler is a visible task", () => {
@@ -76,7 +78,7 @@ describe('setEvent', () => {
 
       setEvent(ctx, 'q-e:qvisible', taskQrl().w([{}]), false);
 
-      expect(ctx.$coreHandlerQrl$?.getHash()).toBe(taskQrl().getHash());
+      expect(rememberedHashes(ctx)).toEqual([taskQrl().getHash()]);
     });
 
     it('none, for a handler without captures', () => {
@@ -89,16 +91,17 @@ describe('setEvent', () => {
         true
       );
 
-      expect(ctx.$coreHandlerQrl$).toBe(null);
+      expect(rememberedHashes(ctx)).toEqual([]);
     });
 
-    it('the first one only', () => {
+    it('each one once, in the order they appear', () => {
       const ctx = freshContext();
 
       setEvent(ctx, 'q-e:qvisible', taskQrl().w([{}]), false);
       setEvent(ctx, 'q-e:click', createQRL('chunk', 'handler', () => {}).m(), true);
+      setEvent(ctx, 'q-e:qvisible', taskQrl().w([{}]), false);
 
-      expect(ctx.$coreHandlerQrl$?.getHash()).toBe(taskQrl().getHash());
+      expect(rememberedHashes(ctx)).toEqual([taskQrl().getHash(), runQrl().getHash()]);
     });
   });
 

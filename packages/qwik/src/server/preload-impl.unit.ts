@@ -16,6 +16,7 @@ const createContainer = (buildBase = '/') => {
     },
     serializationCtx: {
       $eventQrls$: new Set(),
+      $coreHandlerQrls$: new Map(),
     },
     openElement(tagName: string, _key: any, attrs: Record<string, string>) {
       elements.push({ tagName, attrs });
@@ -191,7 +192,7 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), false);
   });
 
-  it('links the first 5 bundles before page load by default', async () => {
+  it('links no bundle before page load by default', async () => {
     const { container, getScriptContent } = createContainer();
     const { includePreloader } = await import('./preload-impl');
     const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
@@ -199,8 +200,7 @@ describe('preloader', () => {
     includePreloader(container, undefined, bundles);
 
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
-    expect(immediateScript).toContain('route-5.js');
-    expect(immediateScript).not.toContain('route-6.js');
+    expect(immediateScript).toBe('');
   });
 
   it('emits speculative preload links when ssrPreloads is opted into', async () => {
@@ -357,10 +357,15 @@ describe('preloader', () => {
       }
     };
 
+    const use = (container: { serializationCtx: any }, handler: any) =>
+      container.serializationCtx.$coreHandlerQrls$.set(handler.$hash$, handler);
+
     const createContainerUsing = (coreHandlerQrl: unknown, buildBase?: string) => {
       const created = createContainer(buildBase);
       created.container.resolvedManifest.manifest.bundleGraph = bundleGraph;
-      created.container.serializationCtx.$coreHandlerQrl$ = coreHandlerQrl;
+      if (coreHandlerQrl) {
+        use(created.container, coreHandlerQrl);
+      }
       return created;
     };
 
@@ -369,7 +374,7 @@ describe('preloader', () => {
         const { preloadHandlerBundles } = await import('./preload-impl');
         const { container, getScriptContent } = createContainerUsing(run, '/build/');
 
-        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+        preloadHandlerBundles(container, undefined);
 
         const script = getScriptContent();
         expect(script).toContain('["core.js","glue.js","run.js"].map(');
@@ -383,7 +388,7 @@ describe('preloader', () => {
         const { preloadHandlerBundles } = await import('./preload-impl');
         const { container, getScriptContent } = createContainerUsing(task);
 
-        preloadHandlerBundles(container, { ssrPreloads: 5 });
+        preloadHandlerBundles(container, undefined);
 
         expect(getScriptContent()).toContain('["core.js","glue.js","task.js"].map(');
       }));
@@ -395,7 +400,7 @@ describe('preloader', () => {
         // run.js and a.js import each other; a.js imports core.js.
         container.resolvedManifest.manifest.bundleGraph = ['run.js', 2, 'a.js', 0, 5, 'core.js'];
 
-        preloadHandlerBundles(container, { ssrPreloads: 5 });
+        preloadHandlerBundles(container, undefined);
 
         expect(getScriptContent()).toContain('["core.js","a.js","run.js"].map(');
       }));
@@ -406,18 +411,9 @@ describe('preloader', () => {
         const { container, getScriptContent } = createContainerUsing(run);
         container.resolvedManifest.manifest.bundleGraph = ['other.js'];
 
-        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+        preloadHandlerBundles(container, undefined);
+
         expect(getScriptContent()).toBe('');
-      }));
-
-    it('links only core when ssrPreloads allows one link', () =>
-      withCoreHandlerBundles(async ({ run }) => {
-        const { preloadHandlerBundles } = await import('./preload-impl');
-        const { container, getScriptContent } = createContainerUsing(run);
-
-        preloadHandlerBundles(container, { ssrPreloads: 1 });
-
-        expect(getScriptContent()).toContain('["core.js"].map(');
       }));
 
     it("waits until the page's events run through one of core's handlers", () =>
@@ -425,38 +421,64 @@ describe('preloader', () => {
         const { preloadHandlerBundles } = await import('./preload-impl');
         const { container, getScriptContent } = createContainerUsing(null);
 
-        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(false);
+        preloadHandlerBundles(container, undefined);
         expect(getScriptContent()).toBe('');
 
-        container.serializationCtx.$coreHandlerQrl$ = run;
-        expect(preloadHandlerBundles(container, { ssrPreloads: 5 })).toBe(true);
+        use(container, run);
+        preloadHandlerBundles(container, undefined);
         expect(getScriptContent()).toContain('"run.js"');
       }));
 
-    it('links nothing early without ssrPreloads or with the preloader off', () =>
+    it('links them with ssrPreloads at 0, and nothing with the preloader off', () =>
       withCoreHandlerBundles(async ({ run }) => {
         const { preloadHandlerBundles } = await import('./preload-impl');
-        const disabled = [{ ssrPreloads: 0 }, false] as const;
-        for (let i = 0; i < disabled.length; i++) {
-          const options = disabled[i];
-          const { container, getScriptContent } = createContainerUsing(run);
+        const withoutExtraLinks = createContainerUsing(run);
+        const preloaderOff = createContainerUsing(run);
 
-          expect(preloadHandlerBundles(container, options)).toBe(true);
+        preloadHandlerBundles(withoutExtraLinks.container, { ssrPreloads: 0 });
+        preloadHandlerBundles(preloaderOff.container, false);
 
-          expect(getScriptContent()).toBe('');
-        }
+        expect(withoutExtraLinks.getScriptContent()).toContain(
+          '["core.js","glue.js","run.js"].map('
+        );
+        expect(preloaderOff.getScriptContent()).toBe('');
       }));
 
-    it('leaves those bundles out of the links at the end and counts them', () =>
+    it("links each of core's handlers the page uses, and core only once", () =>
+      withCoreHandlerBundles(async ({ run, task }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+        preloadHandlerBundles(container, undefined);
+        const linkedForRun = getScriptContent();
+
+        use(container, task);
+        preloadHandlerBundles(container, undefined);
+
+        expect(getScriptContent().slice(linkedForRun.length)).toContain('["task.js"].map(');
+      }));
+
+    it('links a handler that only appears on the last element, when the stream ends', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloaderPost } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+        container.serializationCtx.$eventQrls$.add(run);
+
+        preloaderPost(container, {} as any);
+
+        const [links] = getScriptContent().split(`window.addEventListener('load'`);
+        expect(links).toContain('["core.js","glue.js","run.js"].map(');
+      }));
+
+    it('leaves those bundles out of the links at the end, without counting them', () =>
       withCoreHandlerBundles(async ({ run }) => {
         const { initPreloader } = await import('../core/preloader/bundle-graph');
         const { includePreloader, preloadHandlerBundles } = await import('./preload-impl');
         initPreloader(bundleGraph);
         const { container, getScriptContent } = createContainerUsing(run);
 
-        preloadHandlerBundles(container, { ssrPreloads: 4 });
+        preloadHandlerBundles(container, undefined);
         const early = getScriptContent();
-        includePreloader(container, { ssrPreloads: 4 }, ['run.js', 'handler.js']);
+        includePreloader(container, { ssrPreloads: 1 }, ['run.js', 'handler.js']);
 
         const [linksAtTheEnd] = getScriptContent()
           .slice(early.length)

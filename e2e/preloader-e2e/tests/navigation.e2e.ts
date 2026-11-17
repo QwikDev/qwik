@@ -105,6 +105,11 @@ const DOCS_A = navPage('shell-docs-a', 'shell/docs/a');
 const DOCS_B = navPage('shell-docs-b', 'shell/docs/b');
 const BY_URL_A = navPage('by-url-a', 'by-url/a');
 const BY_URL_B = navPage('by-url-b', 'by-url/b');
+const CHAIN_A = navPage('chain-a', 'chain/a');
+const CHAIN_B = navPage('chain-b', 'chain/b');
+const CHAIN_C = navPage('chain-c', 'chain/c');
+const CYCLE_A = navPage('cycle-a', 'cycle/a');
+const CYCLE_B = navPage('cycle-b', 'cycle/b');
 const PRODUCT: Fixture = {
   id: 'navigation/product',
   path: '/navigation/product/1/',
@@ -307,6 +312,83 @@ test.describe('cold navigation that needs no new layout', () => {
       async () => (await fixtureResult(page, PRODUCT).textContent())?.trim() === '2'
     );
     expect(segmentsNotFromThePage(fetched, ['src/routes/navigation/product/'])).toEqual([]);
+  });
+});
+
+const onwardLink = (page: Page, from: Fixture) =>
+  fixtureRoot(page, from).locator('[data-testid=link-on]');
+
+test.describe('navigation to a page that links on to a third page', () => {
+  const navigateFromAToB = (page: Page) =>
+    navigateFrom(page, CHAIN_A, () => onwardLink(page, CHAIN_A).click(), isShown(page, CHAIN_B));
+
+  test("a click on A's Link fetches B's chunks and none of C's", async ({ page }) => {
+    const { fetched } = await navigateFromAToB(page);
+    expect(fetched.some(holdsPageChunk(CHAIN_B))).toBe(true);
+    expect(fetched.filter(holdsPageChunk(CHAIN_C))).toEqual([]);
+    expect(segmentsNotFromThePage(fetched, CHAIN_B.pageSources)).toEqual([]);
+  });
+
+  test("C's chunks are only preloaded once B shows, and never at the highest priority", async ({
+    page,
+  }) => {
+    const linksToC = async () =>
+      (await preloaderLinks(page)).filter((link) => holdsPageChunk(CHAIN_C)(link.href));
+    const opened = await openFixture(page, CHAIN_A, 'warm');
+    expect(await linksToC()).toEqual([]);
+
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => onwardLink(page, CHAIN_A).click(),
+      isShown(page, CHAIN_B)
+    );
+    await waitForNetworkIdle(page, () => releaseAll(opened.gate));
+
+    const neededToShowB = roundTrips.flatMap((roundTrip) => roundTrip.urls);
+    expect(neededToShowB.filter(holdsPageChunk(CHAIN_C))).toEqual([]);
+    expect((await linksToC()).length).toBeGreaterThan(0);
+    expect((await linksToC()).filter((link) => !link.speculative)).toEqual([]);
+  });
+
+  test('the new page shows in 2 round trips', async ({ page }) => {
+    const { roundTrips } = await navigateFromAToB(page);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips);
+  });
+});
+
+test.describe('navigation to a page that links back', () => {
+  test("a click on A's Link fetches B's chunks and none of A's", async ({ page }) => {
+    const { fetched } = await navigateFrom(
+      page,
+      CYCLE_A,
+      () => onwardLink(page, CYCLE_A).click(),
+      isShown(page, CYCLE_B)
+    );
+    expect(fetched.some(holdsPageChunk(CYCLE_B))).toBe(true);
+    expect(fetched.filter(holdsPageChunk(CYCLE_A))).toEqual([]);
+    expect(segmentsNotFromThePage(fetched, CYCLE_B.pageSources)).toEqual([]);
+  });
+
+  test("clicking B's Link back fetches A's chunks and none of B's", async ({ page }) => {
+    const opened = await openFixture(page, CYCLE_A, 'cold');
+    await countFixtureRoundTrips(
+      opened,
+      () => onwardLink(page, CYCLE_A).click(),
+      isShown(page, CYCLE_B)
+    );
+    await release(opened.gate.held.splice(0));
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => onwardLink(page, CYCLE_B).click(),
+      isShown(page, CYCLE_A)
+    );
+    const stillOngoing = opened.gate.held.map((route) => route.request().url());
+    await releaseAll(opened.gate);
+    const fetched = [...roundTrips.flatMap((roundTrip) => roundTrip.urls), ...stillOngoing];
+    expect(fetched.some(holdsPageChunk(CYCLE_A))).toBe(true);
+    expect(fetched.filter(holdsPageChunk(CYCLE_B))).toEqual([]);
+    expect(segmentsNotFromThePage(fetched, CYCLE_A.pageSources)).toEqual([]);
   });
 });
 

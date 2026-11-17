@@ -526,6 +526,8 @@ const HAND_WRITTEN = [
   { group: 'navigation', href: '/navigation/shell/home/', label: 'nested layouts' },
   { group: 'navigation', href: '/navigation/by-url/a/', label: 'layout that renders from the URL' },
   { group: 'navigation', href: '/navigation/product/1/', label: 'route with a param' },
+  { group: 'navigation', href: '/navigation/chain/a/', label: 'three pages linked in a chain' },
+  { group: 'navigation', href: '/navigation/cycle/a/', label: 'two pages that link to each other' },
   { group: 'navigation', href: '/navigation/action/', label: 'form action' },
   { group: 'harness', href: '/harness/import-chain/', label: 'import chain' },
 ];

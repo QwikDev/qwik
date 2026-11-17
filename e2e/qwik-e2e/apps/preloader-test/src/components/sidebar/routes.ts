@@ -347,6 +347,16 @@ export const routes = [
   },
   {
     group: 'navigation',
+    href: '/navigation/chain/a/',
+    label: 'three pages linked in a chain',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/cycle/a/',
+    label: 'two pages that link to each other',
+  },
+  {
+    group: 'navigation',
     href: '/navigation/action/',
     label: 'form action',
   },

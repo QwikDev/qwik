@@ -488,20 +488,31 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
+const SPECULATIVE_PROBABILITY = 0.9;
+
 const navigateToTreeWithOldPageWorkQueued = async (page: Page) => {
+  const oldPageChunks = OLD_PAGE_SOURCES.flatMap(chunkUrlsFrom);
+  await page.addInitScript(
+    ([bundles, probability]) => {
+      (window as any).qPreloadQueue = bundles.map((bundle) => [bundle, probability]);
+    },
+    [oldPageChunks.map(bundleFile), SPECULATIVE_PROBABILITY] as const
+  );
   await recordSpeculativePreloads(page);
   const gate = await createGate(page);
-  gate.holdWhilePassing = (url) => chunkComesFrom(url, OLD_PAGE_SOURCES);
+  gate.holdWhilePassing = (url) => oldPageChunks.includes(url);
   await page.goto(FROM.off.path);
   await waitForQwikloader(page);
   await expect.poll(() => gate.held.length, { timeout: 15_000 }).toBe(1);
+  const heldUrl = gate.held[0].request().url();
   gate.holdWhilePassing = undefined;
   gate.mode = 'hold';
   await settle(page, gate);
   const links = await preloaderLinks(page);
+  expect(links.find((link) => link.href === heldUrl)?.speculative).toBe(true);
   const preloaded = new Set(links.map((link) => link.href));
-  const stillQueued = OLD_PAGE_SOURCES.flatMap(chunkUrlsFrom).filter((url) => !preloaded.has(url));
-  expect(stillQueued.length).toBeGreaterThan(0);
+  const hintedButNotYetPreloaded = oldPageChunks.filter((url) => !preloaded.has(url));
+  expect(hintedButNotYetPreloaded.length).toBeGreaterThan(0);
   const linksBeforeTheClick = links.length;
   await countRoundTrips(
     page,

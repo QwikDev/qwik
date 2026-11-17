@@ -58,7 +58,7 @@ export const preloaderPre = (
     // Add the preloader script to the head
     const opts: string[] = [];
     if (options) {
-      if (options.maxIdlePreloads) {
+      if (options.maxIdlePreloads != null) {
         opts.push(`P:${options.maxIdlePreloads}`);
       }
     }

@@ -40,6 +40,9 @@ export interface PreloaderOptions {
    * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
    * immediately, no limit.
    *
+   * `0` turns speculative preloading off: code is only fetched once an interaction needs it, so the
+   * first interaction waits for its download on a slow network.
+   *
    * Defaults to `25`
    */
   maxIdlePreloads?: number;

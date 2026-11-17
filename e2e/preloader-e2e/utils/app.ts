@@ -111,6 +111,8 @@ export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useS
 
 export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
 
+export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
+
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
     (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')

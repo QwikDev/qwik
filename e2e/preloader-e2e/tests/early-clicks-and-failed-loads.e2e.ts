@@ -467,24 +467,45 @@ test.describe('early click on a handler with static imports', () => {
   });
 });
 
-test.describe('click while the page is still streaming', () => {
-  test("the handler's chunk is requested before the stream ends, and the handler runs once it has", async ({
-    page,
-  }) => {
-    const requests: string[] = [];
-    page.on('request', (request) => requests.push(request.url()));
-    await page.goto(STREAMING.path, { waitUntil: 'commit' });
-    try {
-      await fixtureRoot(page, STREAMING).locator('[data-testid=trigger]').click();
-      await expect
-        .poll(() => requests.filter((url) => chunkComesFrom(url, STREAMING.sources)).length)
-        .toBeGreaterThan(0);
-      await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
-      await expect(fixtureResult(page, STREAMING)).not.toHaveAttribute('data-done');
-    } finally {
-      await page.request.get(`${ORIGIN}/streaming/release/`);
-    }
-    await expectResult(page, STREAMING);
+test.describe('streaming pages', () => {
+  // Each test releases every held stream, so they must not overlap.
+  test.describe.configure({ mode: 'default' });
+
+  test.describe('page still streaming', () => {
+    test('core is requested once the page has a handler, before the stream ends', async ({
+      page,
+    }) => {
+      const requests: string[] = [];
+      page.on('request', (request) => requests.push(request.url()));
+      await page.goto(STREAMING.path, { waitUntil: 'commit' });
+      try {
+        await expect.poll(() => requests).toContain(coreUrl());
+        await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
+      } finally {
+        await page.request.get(`${ORIGIN}/streaming/release/`);
+      }
+    });
+  });
+
+  test.describe('click while the page is still streaming', () => {
+    test("the handler's chunk is requested before the stream ends, and the handler runs once it has", async ({
+      page,
+    }) => {
+      const requests: string[] = [];
+      page.on('request', (request) => requests.push(request.url()));
+      await page.goto(STREAMING.path, { waitUntil: 'commit' });
+      try {
+        await fixtureRoot(page, STREAMING).locator('[data-testid=trigger]').click();
+        await expect
+          .poll(() => requests.filter((url) => chunkComesFrom(url, STREAMING.sources)).length)
+          .toBeGreaterThan(0);
+        await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
+        await expect(fixtureResult(page, STREAMING)).not.toHaveAttribute('data-done');
+      } finally {
+        await page.request.get(`${ORIGIN}/streaming/release/`);
+      }
+      await expectResult(page, STREAMING);
+    });
   });
 });
 

@@ -26,6 +26,7 @@ import {
 /** Roles the server never opens: it writes the symbol into the HTML and the browser runs the body. */
 const SERIALIZED_ONLY: ReadonlySet<BoundaryRole> = new Set([
   BoundaryRole.Event,
+  BoundaryRole.EventProp,
   BoundaryRole.Prop,
   BoundaryRole.Slot,
   BoundaryRole.Projection,

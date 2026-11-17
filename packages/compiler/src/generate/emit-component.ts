@@ -278,7 +278,7 @@ function emitComponentProps(
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL component event handler');
           }
-          const { qrl, reference, args } = resolveQrl(handler.value.use, false);
+          const { qrl, reference, args } = resolveQrl(handler.value.use, true);
           if (qrl.payloadKind !== QrlPayloadKind.Function) {
             throw new UnsupportedError('a non-function component event QRL');
           }

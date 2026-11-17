@@ -545,7 +545,8 @@ function deriveIndexMode(
       continue;
     }
     const escapes =
-      qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === BoundaryRole.Event;
+      qrl.boundary.kind === BoundaryKind.Implicit &&
+      (qrl.boundary.role === BoundaryRole.Event || qrl.boundary.role === BoundaryRole.EventProp);
     if (escapes) {
       return IndexMode.Escapes;
     }

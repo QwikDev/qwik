@@ -153,9 +153,13 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  return console.log('go');
+};
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
+q_component_q_e_click_segment_0_2xwyg1cinvmpz.s(component_q_e_click_segment_0_2xwyg1cinvmpz);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
   return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'go<!/s>'];
 };

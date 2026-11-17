@@ -34,6 +34,8 @@ export const enum BoundaryKind {
 /** What an implicit boundary is for: the emitters and the link dispatch on it. */
 export const enum BoundaryRole {
   Event = 'event',
+  /** An `on*$` prop of a component: an event its child attaches or calls, also on the server. */
+  EventProp = 'event-prop',
   Prop = 'prop',
   JsxFactory = 'jsx-factory',
   Hook = 'hook',

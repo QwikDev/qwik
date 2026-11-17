@@ -137,7 +137,12 @@ function propsPartJs(
     case PropsPartKind.Spread:
       return `...${extractPayloadJs(module, part.value, undefined, undefined, [], emitQrl)}`;
     case PropsPartKind.Event: {
-      return `${JSON.stringify(part.name)}: ${emitFunctionQrl(part.use, qrlPropsName(module, owner, 'props'), emission, resolveQrlUse, false)}`;
+      const propsName = qrlPropsName(module, owner, 'props');
+      const { boundary } = resolveQrlUse(part.use, propsName).qrl;
+      // A child may call a component's prop on the server; an element's event runs in the browser.
+      const isElementEvent =
+        boundary.kind === BoundaryKind.Implicit && boundary.role === BoundaryRole.Event;
+      return `${JSON.stringify(part.name)}: ${emitFunctionQrl(part.use, propsName, emission, resolveQrlUse, !isElementEvent)}`;
     }
   }
 }

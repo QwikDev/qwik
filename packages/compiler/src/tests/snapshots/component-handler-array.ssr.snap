@@ -72,14 +72,23 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { useSignal, createComponent, _capturesObj, _noopQrl, _markComponent } from '@qwik.dev/core';
 import { Button } from './button';
+const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
+q_component_q_e_click_segment_0_2xwyg1cinvmpz.s(component_q_e_click_segment_0_2xwyg1cinvmpz);
+const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  return console.log('clicked');
+};
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
+q_component_q_e_click_segment_1_2xwyfnber1kpg.s(component_q_e_click_segment_1_2xwyfnber1kpg);
 const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
 _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 

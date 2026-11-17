@@ -148,9 +148,11 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
 ============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
 
 import { _noopQrl, _capturesObj } from '@qwik.dev/core';
+import { component_q_e_save_segment_1_3krcbiqvmvgft } from './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft';
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+q_component_q_e_save_segment_1_3krcbiqvmvgft.s(component_q_e_save_segment_1_3krcbiqvmvgft);
 
 export const component_props_segment_2_208o0eee4yc6n = () => {
   const [attributes, count] = _capturesObj._;
@@ -200,9 +202,14 @@ const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
   'component_props_segment_2_208o0eee4yc6n'
 );
 q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
+const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+q_component_q_e_save_segment_1_3krcbiqvmvgft.s(component_q_e_save_segment_1_3krcbiqvmvgft);
 const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
 _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 

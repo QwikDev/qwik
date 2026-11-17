@@ -27,7 +27,8 @@ export function lowerEventAttribute(
   attribute: JSXAttribute,
   ctx: LowerContext,
   authored: string,
-  scope: string
+  scope: string,
+  role: BoundaryRole.Event | BoundaryRole.EventProp
 ): { event: Extract<Prop, { k: PropKind.Event }>; expression: Expression } | null {
   const expression = qrlAttributeExpression(attribute);
   if (expression === null) {
@@ -38,7 +39,7 @@ export function lowerEventAttribute(
       nameCtx: scope,
       subject: 'an event handler',
       ctxName: authored,
-      boundary: { kind: BoundaryKind.Implicit, role: BoundaryRole.Event },
+      boundary: { kind: BoundaryKind.Implicit, role },
       origin: {
         range: [attribute.start, attribute.end],
         calleeRange: null,

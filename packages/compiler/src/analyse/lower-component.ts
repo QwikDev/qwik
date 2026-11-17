@@ -223,6 +223,9 @@ export function lowerPropsChunk(
   ctx: LowerContext,
   payloadKind: QrlPayloadKind
 ): QrlUse {
+  // Only a component's props compute as a function; an element's props effect is a value.
+  const eventRole =
+    payloadKind === QrlPayloadKind.Function ? BoundaryRole.EventProp : BoundaryRole.Event;
   const parts: Qrl['propsParts'] = [];
   const expressions: Expression[] = [];
   /** The chunk's own code: handler and factory values are segments of their own. */
@@ -271,7 +274,7 @@ export function lowerPropsChunk(
         addExpression(authored, { kind: PropsPartKind.Expression, name });
         continue;
       }
-      const lowered = lowerEventAttribute(attribute, ctx, name, scope);
+      const lowered = lowerEventAttribute(attribute, ctx, name, scope, eventRole);
       if (lowered === null) {
         continue;
       }

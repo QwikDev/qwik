@@ -141,11 +141,18 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { useSignal, createComponent, _capturesObj, _noopQrl, _markComponent } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
+  const [count] = _capturesObj._;
+  const next = count.value + 1;
+  if (next > 10) return;
+  count.value = next;
+};
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+q_component_q_e_save_segment_1_3krcbiqvmvgft.s(component_q_e_save_segment_1_3krcbiqvmvgft);
 const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
 _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 

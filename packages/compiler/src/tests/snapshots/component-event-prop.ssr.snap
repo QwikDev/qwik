@@ -167,14 +167,24 @@ export const component_q_e_save_segment_2_3krcacnjwdae8 = () => {
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { useSignal, createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { useSignal, createComponent, _capturesObj, _noopQrl, _markComponent } from '@qwik.dev/core';
 import { Child_component_syc3erfxihm7 as Child } from './component.tsx_Child_component_syc3erfxihm7';
+const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+q_component_q_e_save_segment_1_3krcbiqvmvgft.s(component_q_e_save_segment_1_3krcbiqvmvgft);
+const component_q_e_save_segment_2_3krcacnjwdae8 = () => {
+  const [count] = _capturesObj._;
+  return count.value--;
+};
 const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_2_3krcacnjwdae8'
 );
+q_component_q_e_save_segment_2_3krcacnjwdae8.s(component_q_e_save_segment_2_3krcacnjwdae8);
 const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
 _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 

@@ -172,14 +172,23 @@ export const component_q_e_reset_segment_2_3clnjugf9bxli = (
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { createComponent, _capturesObj, _noopQrl, _markComponent } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
+const component_q_e_save_segment_1_3krcbiqvmvgft = (...args0) => {
+  const [fallback] = _capturesObj._;
+  return (({ type = fallback } = {}, ...rest) => [type, rest.length])(...args0);
+};
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+q_component_q_e_save_segment_1_3krcbiqvmvgft.s(component_q_e_save_segment_1_3krcbiqvmvgft);
+const component_q_e_reset_segment_2_3clnjugf9bxli = ([first, ...rest], { id = 'button' }) => {
+  return [first, rest, id];
+};
 const q_component_q_e_reset_segment_2_3clnjugf9bxli = /*#__PURE__*/ _noopQrl(
   'component_q_e_reset_segment_2_3clnjugf9bxli'
 );
+q_component_q_e_reset_segment_2_3clnjugf9bxli.s(component_q_e_reset_segment_2_3clnjugf9bxli);
 const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
 _markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
 

@@ -292,7 +292,9 @@ transformation:
 - [x] Non-event prop boundaries such as `fallback$`, `render$` and `then$`. Any `$` prop of a
       component lowers like a `$` argument and is passed as a QRL under its authored key, on the
       direct and the proxied props path alike; a non-event `$` attribute on an element is
-      diagnosed, since no runtime consumer exists.
+      diagnosed, since no runtime consumer exists. An `on*$` prop of a component has its own
+      boundary role: the server build never strips it and keeps its body, so a child task can
+      call it there (`component.spec.tsx` "an on$ prop a child task calls").
 - [x] Correct captures and imports at every nested boundary. A QRL nested in another callback
       captures that callback's parameters and locals (`const v = track(...); $(() => v)`), in
       components and in custom hook bodies alike; module bindings keep importing.

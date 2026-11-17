@@ -1,6 +1,7 @@
 /** Native elements: attributes, form values, bindings, refs, innerHTML and style scopes. */
 import type { JSXAttribute, Expression, JSXAttributeItem } from 'oxc-parser';
 import {
+  BoundaryRole,
   ResumeKind,
   Shape,
   ExprKind,
@@ -282,7 +283,13 @@ export function lowerAttribute(
         effect: null,
       };
     }
-    const lowered = lowerEventAttribute(attribute, ctx, authored, scope);
+    const lowered = lowerEventAttribute(
+      attribute,
+      ctx,
+      authored,
+      scope,
+      target === 'component' ? BoundaryRole.EventProp : BoundaryRole.Event
+    );
     if (lowered === null) {
       return null;
     }

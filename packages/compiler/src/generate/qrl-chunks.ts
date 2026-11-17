@@ -89,7 +89,8 @@ export function getSegmentAnalysis(
   const origin = segmentOrigin(module, options.srcDir);
   const canonicalFilename = chunkCanonicalFilename(module, qrl);
   const ctxKind =
-    qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === BoundaryRole.Event
+    qrl.boundary.kind === BoundaryKind.Implicit &&
+    (qrl.boundary.role === BoundaryRole.Event || qrl.boundary.role === BoundaryRole.EventProp)
       ? 'eventHandler'
       : 'function';
   const captures = qrl.captures.length > 0;

@@ -201,14 +201,21 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = async function (event
 */
 ============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
 
-import { createComponent, _noopQrl, _markComponent } from '@qwik.dev/core';
+import { createComponent, _noopQrl, _capturesObj, _markComponent } from '@qwik.dev/core';
 import { Button_component_12fjhbonwyrlb as Button } from './component.tsx_Button_component_12fjhbonwyrlb';
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
+const component_q_e_save_segment_2_3krcacnjwdae8 = function () {
+  const [props] = _capturesObj._;
+  return function save(value = props.initial) {
+    return props.onSave$(value);
+  }.apply(this, arguments);
+};
 const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_2_3krcacnjwdae8'
 );
+q_component_q_e_save_segment_2_3krcacnjwdae8.s(component_q_e_save_segment_2_3krcacnjwdae8);
 const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_3_2xwygfdmkpoqi'
 );

@@ -161,6 +161,62 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  describe('an on$ prop a child task calls', () => {
+    const Child = component$((props: { onReady$: QRL<(value: number) => void> }) => {
+      useTask$(() => props.onReady$(1));
+      return <i />;
+    });
+
+    it('should run an arrow function', async () => {
+      const Parent = component$(() => {
+        const seen = useSignal(0);
+        return (
+          <div>
+            <Child onReady$={(value) => (seen.value = value)} />
+            <span>{seen.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(Parent, { debug });
+
+      expect(container.querySelector('span')!.textContent).toBe('1');
+    });
+
+    it('should run a $() function', async () => {
+      const Parent = component$(() => {
+        const seen = useSignal(0);
+        return (
+          <div>
+            <Child onReady$={$((value: number) => (seen.value = value))} />
+            <span>{seen.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(Parent, { debug });
+
+      expect(container.querySelector('span')!.textContent).toBe('1');
+    });
+
+    it('should run a local function', async () => {
+      const Parent = component$(() => {
+        const seen = useSignal(0);
+        const record = (value: number) => (seen.value = value);
+        return (
+          <div>
+            <Child onReady$={record} />
+            <span>{seen.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(Parent, { debug });
+
+      expect(container.querySelector('span')!.textContent).toBe('1');
+    });
+  });
+
   it('should render component with fragment', async () => {
     const MyComp = component$(() => {
       return <>Hello Qwik</>;

@@ -441,6 +441,19 @@ test.describe('navigation to a page with a routeLoader$', () => {
   });
 });
 
+test.describe('Link that prefetches when visible', () => {
+  test("a Link to a page under another layout: that layout's chunks are preloaded before any click", async ({
+    page,
+  }) => {
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
+    const { gate } = await openFixture(page, SHELL_HOME, 'warm');
+    await releaseAll(gate);
+    expect(requests.some(holdsPageChunk(DOCS_B))).toBe(true);
+    expect(requests.some(holdsLayoutSegments(DOCS_LAYOUT_SOURCES))).toBe(true);
+  });
+});
+
 test.describe('hover on a Link that prefetches on intent', () => {
   test("the new route's chunks are requested", async ({ page }) => {
     const { gate } = await openFixture(page, FROM.intent, 'cold');

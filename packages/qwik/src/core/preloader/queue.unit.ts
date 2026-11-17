@@ -885,6 +885,21 @@ test('sends a bundle hinted at the highest priority before the preloader started
   expect(linkNames(document)).toEqual(['highest-priority.js']);
 });
 
+test('a hint on a bundle whose dependencies lead back to it preloads each bundle once', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['page-a.js', -7, 3, 'page-b.js', -7, 0]);
+  preload('page-a.js', 1);
+  vi.runAllTimers();
+
+  expect(linkNames(document).sort()).toEqual(['page-a.js', 'page-b.js']);
+});
+
 const LAYOUT_AND_ROUTE_GRAPH = ['DocsLayout', -7, 3, 'layout.js', 'docs/intro/', -7, 7, 'page.js'];
 
 test('a highest priority hint of several names preloads the bundles of each, never the names', async () => {

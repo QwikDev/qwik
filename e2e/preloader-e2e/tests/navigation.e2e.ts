@@ -11,15 +11,20 @@ import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
+  createGate,
   FILLER,
   preloadHints,
   preloaderLinks,
   recordPreloadHints,
   recordSpeculativeOrder,
+  recordSpeculativePreloads,
   release,
   releaseAll,
   resultIsDone,
+  settle,
+  speculativePreloads,
   waitForNetworkIdle,
+  waitForQwikloader,
   type RoundTrip,
 } from '../utils/gate';
 import {
@@ -483,9 +488,29 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
+const navigateToTreeWhilePreloadingSpeculatively = async (page: Page) => {
+  await recordSpeculativePreloads(page);
+  const gate = await createGate(page);
+  await page.goto(FROM.off.path);
+  await waitForQwikloader(page);
+  await expect
+    .poll(async () => (await speculativePreloads(page)).size, { timeout: 15_000 })
+    .toBeGreaterThan(0);
+  gate.mode = 'hold';
+  await settle(page, gate);
+  const linksBeforeTheClick = (await preloaderLinks(page)).length;
+  await countRoundTrips(
+    page,
+    gate,
+    () => treeLink(page, FROM.off).click(),
+    resultIsDone(fixtureResult(page, TO_TREE))
+  );
+  return { gate, linksBeforeTheClick };
+};
+
 test.describe('after a navigation', () => {
   test('the preloader keeps preloading speculatively', async ({ page }, testInfo) => {
-    const { gate } = await navigateToTree(FROM.off, 'cold', page);
+    const { gate } = await navigateToTreeWhilePreloadingSpeculatively(page);
     await releaseAll(gate);
     const order = await recordSpeculativeOrder(page, gate);
     await testInfo.attach('order.txt', { body: order, contentType: 'text/plain' });
@@ -493,14 +518,8 @@ test.describe('after a navigation', () => {
   });
 
   test("the old page's queued speculative preloads aren't sent", async ({ page }) => {
-    const opened = await openFixture(page, FROM.off, 'cold');
-    const linksBeforeTheClick = (await preloaderLinks(page)).length;
-    await countFixtureRoundTrips(
-      opened,
-      () => treeLink(page, FROM.off).click(),
-      resultIsDone(fixtureResult(page, TO_TREE))
-    );
-    await waitForNetworkIdle(page, () => releaseAll(opened.gate), 1500);
+    const { gate, linksBeforeTheClick } = await navigateToTreeWhilePreloadingSpeculatively(page);
+    await waitForNetworkIdle(page, () => releaseAll(gate), 1500);
     const oldPagePreloads = (await preloaderLinks(page))
       .slice(linksBeforeTheClick)
       .filter((link) => link.speculative && chunkComesFrom(link.href, OLD_PAGE_SOURCES))

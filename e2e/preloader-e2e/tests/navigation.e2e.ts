@@ -318,6 +318,28 @@ test.describe('cold navigation that needs no new layout', () => {
 const onwardLink = (page: Page, from: Fixture) =>
   fixtureRoot(page, from).locator('[data-testid=link-on]');
 
+type PreloadAndWhetherBShowed = { href: string; wasBShown: boolean };
+type WindowWithPreloads = Window & { __preloadsAndWhetherBShowed?: PreloadAndWhetherBShowed[] };
+
+const recordWhetherBShowsAtEachPreload = (page: Page) =>
+  page.addInitScript((shownResultOfB) => {
+    const preloads: PreloadAndWhetherBShowed[] = [];
+    (window as WindowWithPreloads).__preloadsAndWhetherBShowed = preloads;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof HTMLLinkElement && /preload/i.test(node.rel)) {
+            const resultOfB = document.querySelector(shownResultOfB);
+            preloads.push({ href: node.href, wasBShown: !!resultOfB?.checkVisibility() });
+          }
+        });
+      }
+    }).observe(document, { childList: true, subtree: true });
+  }, `[data-fixture="${CHAIN_B.id}"] [data-testid=result][data-done]`);
+
+const preloadsAndWhetherBShowed = (page: Page) =>
+  page.evaluate(() => (window as WindowWithPreloads).__preloadsAndWhetherBShowed ?? []);
+
 test.describe('navigation to a page that links on to a third page', () => {
   const navigateFromAToB = (page: Page) =>
     navigateFrom(page, CHAIN_A, () => onwardLink(page, CHAIN_A).click(), isShown(page, CHAIN_B));
@@ -332,22 +354,24 @@ test.describe('navigation to a page that links on to a third page', () => {
   test("C's chunks are only preloaded once B shows, and never at the highest priority", async ({
     page,
   }) => {
-    const linksToC = async () =>
-      (await preloaderLinks(page)).filter((link) => holdsPageChunk(CHAIN_C)(link.href));
+    await recordWhetherBShowsAtEachPreload(page);
     const opened = await openFixture(page, CHAIN_A, 'warm');
-    expect(await linksToC()).toEqual([]);
-
-    const roundTrips = await countFixtureRoundTrips(
+    await countFixtureRoundTrips(
       opened,
       () => onwardLink(page, CHAIN_A).click(),
       isShown(page, CHAIN_B)
     );
     await waitForNetworkIdle(page, () => releaseAll(opened.gate));
 
-    const neededToShowB = roundTrips.flatMap((roundTrip) => roundTrip.urls);
-    expect(neededToShowB.filter(holdsPageChunk(CHAIN_C))).toEqual([]);
-    expect((await linksToC()).length).toBeGreaterThan(0);
-    expect((await linksToC()).filter((link) => !link.speculative)).toEqual([]);
+    const preloadsOfC = (await preloadsAndWhetherBShowed(page)).filter(({ href }) =>
+      holdsPageChunk(CHAIN_C)(href)
+    );
+    const linksToC = (await preloaderLinks(page)).filter((link) =>
+      holdsPageChunk(CHAIN_C)(link.href)
+    );
+    expect(preloadsOfC.length).toBeGreaterThan(0);
+    expect(preloadsOfC.filter(({ wasBShown }) => !wasBShown)).toEqual([]);
+    expect(linksToC.filter((link) => !link.speculative)).toEqual([]);
   });
 
   test('the new page shows in 2 round trips', async ({ page }) => {

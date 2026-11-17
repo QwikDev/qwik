@@ -4,14 +4,22 @@ import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => ({
-  prefetchRouteMock: vi.fn(),
-  getClientNavPathMock: vi.fn(),
-  gotoMock: vi.fn(),
-}));
+const { prefetchRouteMock, preloadRouteBundlesMock, getClientNavPathMock, gotoMock } = vi.hoisted(
+  () => ({
+    prefetchRouteMock: vi.fn(),
+    preloadRouteBundlesMock: vi.fn(),
+    getClientNavPathMock: vi.fn(),
+    gotoMock: vi.fn(),
+  })
+);
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
+}));
+
+vi.mock('./client-navigate', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  preloadRouteBundles: preloadRouteBundlesMock,
 }));
 
 const page = () => Promise.resolve({});
@@ -88,6 +96,7 @@ describe.each([
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+    preloadRouteBundlesMock.mockClear();
     onPointerEnterMock.mockClear();
     onMouseOverMock.mockClear();
   });
@@ -105,14 +114,24 @@ describe.each([
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
   });
 
-  it('renders the route name of the link target for bundle prefetch', async () => {
+  it('renders the route name of the link target on every client-side link', async () => {
     getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
     const dynamic = await renderLink(render);
     expect(dynamic.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
 
+    const withoutPrefetch = await renderLink(render, { prefetchBundles: 'off' });
+    expect(withoutPrefetch.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+
     getClientNavPathMock.mockReturnValue('/missing/');
     const unmatched = await renderLink(render);
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
+  it('renders a link whose href has a malformed escape, without a route name', async () => {
+    getClientNavPathMock.mockReturnValue('/product/100%');
+    const { anchor } = await renderLink(render, { prefetchBundles: 'off' });
+    expect(anchor.getAttribute('href')).toBe('/product/100%');
+    expect(anchor.hasAttribute('data-q-route')).toBe(false);
   });
 
   it('prefetches route data on intent', async () => {
@@ -294,14 +313,31 @@ describe.each([
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
-  it('preloads route bundles on click before navigation', async () => {
-    const ClickRoot = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test">Test Link</Link>
-        </QwikRouterMockProvider>
-      );
+  const ClickRoot = component$(() => {
+    return (
+      <QwikRouterMockProvider>
+        <Link href="/test">Test Link</Link>
+      </QwikRouterMockProvider>
+    );
+  });
+
+  it('hints the target route at the highest priority on click, before the router config loads', async () => {
+    const { document } = await render(<ClickRoot />, {
+      debug,
     });
+    const anchor = document.querySelector('a');
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'click');
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test', 1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  it('resolves the route on click when the link has no route name', async () => {
+    getClientNavPathMock.mockReturnValue('http://localhost/missing/');
     const { document } = await render(<ClickRoot />, {
       debug,
     });
@@ -311,7 +347,8 @@ describe.each([
     await trigger(document.body, anchor, 'click');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 1);
+    expectPrefetchRouteCall(0, '/missing/', false, 1);
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
 
   describe('navigating state', () => {

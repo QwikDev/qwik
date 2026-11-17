@@ -327,6 +327,11 @@ export const routes = [
   },
   {
     group: 'navigation',
+    href: '/navigation/from/nav/',
+    label: 'from (nav() in a button)',
+  },
+  {
+    group: 'navigation',
     href: '/navigation/action/',
     label: 'form action',
   },

@@ -371,7 +371,7 @@ test.describe('early click that needs the bundle graph', () => {
     });
   }
 
-  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 3 round trips, over the cap of 2', async ({
+  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 1 round trip', async ({
     page,
   }) => {
     const startupUrls = everyStartupPiece();
@@ -384,11 +384,7 @@ test.describe('early click that needs the bundle graph', () => {
     );
     await releaseAll(gate, startupPiece);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls), {
-      roundTrips: 3,
-      reason:
-        "over the cap on main: the router's navigation code, then the layout and route modules, each cost a round trip before the render chunks",
-    });
+    expect(roundTripsAfterStartup(roundTrips, startupUrls)).toHaveLength(1);
   });
 });
 

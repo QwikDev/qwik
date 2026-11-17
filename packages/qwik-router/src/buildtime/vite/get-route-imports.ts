@@ -34,10 +34,26 @@ export function getRouteImports(routes: BuiltRoute[], manifest: QwikManifest) {
           manifest.bundles[d].origins?.some((s) => s.endsWith('menu.md'))
         ),
       };
+      addRouterConfigToItsImporters(manifest, bundleName, result);
       break;
     }
   }
   return result;
+}
+
+function addRouterConfigToItsImporters(
+  manifest: QwikManifest,
+  routerConfigBundleName: string,
+  result: Record<string, { imports?: string[]; dynamicImports?: string[] }>
+) {
+  for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
+    if (bundle.dynamicImports?.includes(routerConfigBundleName)) {
+      result[bundleName] = {
+        ...bundle,
+        dynamicImports: [...(bundle.qrlImports ?? []), routerConfigBundleName],
+      };
+    }
+  }
 }
 
 function isBundlePartOfRoute(bundle: QwikBundle, routeAndLayoutPaths: string[]) {

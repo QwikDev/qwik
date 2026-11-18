@@ -701,12 +701,26 @@ describe('qwikloader behavior', () => {
       expect(win.qPreloadQueue).toEqual([[['click.js'], 1]]);
     });
 
+    test('preloads a chunk once, however often the pointer comes back', () => {
+      const { doc, win } = createLoaderEnvironment(['e:click']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const card = createMockElement(container, { 'q-e:click': 'card.js#handler' });
+      const label = createMockElement(card, {});
+      const icon = createMockElement(card, {});
+
+      getSingleListener(doc, 'pointerover').handler(intentOn(label, 'pointerover'));
+      getSingleListener(doc, 'pointerover').handler(intentOn(icon, 'pointerover'));
+
+      expect(win.qPreloadQueue).toEqual([[['card.js'], 1]]);
+    });
+
     test.each([
       ['no handler', {}],
       ['only a sync handler', { 'q-e:click': '#0' }],
       ['only a document handler', { 'q-d:click': 'document.js#handler' }],
+      ['only a visible task', { 'q-e:qvisible': 'visible.js#task' }],
     ])('preloads nothing for an element with %s', (_title, attrs) => {
-      const { doc, win } = createLoaderEnvironment(['e:click', 'd:click']);
+      const { doc, win } = createLoaderEnvironment(['e:click', 'd:click', 'e:qvisible']);
       const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
       const element = createMockElement(container, attrs);
       win.qPreload = vi.fn();

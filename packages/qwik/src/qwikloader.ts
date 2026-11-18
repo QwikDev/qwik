@@ -55,6 +55,7 @@ const QwikEvContainerReady = 0;
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
+const chunksPreloadedOnIntent = new Set<string>();
 const readyContainers: Record<string, 1> = {};
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
@@ -171,20 +172,28 @@ const preloadAtHighestPriority = (chunks: string[]) => {
     : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
 };
 
+const isNewOnIntent = (chunk: string) => !chunksPreloadedOnIntent.has(chunk);
+
 const preloadHandlersOnIntent = (ev: Event) => {
   const path = ev.composedPath() as Element[];
-  for (let i = 0; i < path.length; i++) {
-    // eslint-disable-next-line qwik-local/loop-style
-    events.forEach((scopedKebabName) => {
-      const qrls =
-        scopedKebabName.charAt(0) === elementPrefix &&
-        path[i].getAttribute?.('q-' + scopedKebabName)?.split('|');
+  // eslint-disable-next-line qwik-local/loop-style
+  events.forEach((scopedKebabName) => {
+    const { scope, eventName } = parseKebabEvent(scopedKebabName);
+    if (getRootScope(scope) !== elementPrefix || isQwikLifecycleEvent(eventName)) {
+      return;
+    }
+    for (let i = 0; i < path.length; i++) {
+      const qrls = path[i].getAttribute?.('q-' + scopedKebabName)?.split('|');
       for (let j = 0; qrls && j < qrls.length; j++) {
         const [chunk, , , otherChunks] = qrls[j].split('#');
-        chunk && preloadAtHighestPriority(getChunks(chunk, otherChunks));
+        const newChunks = chunk ? getChunks(chunk, otherChunks).filter(isNewOnIntent) : [];
+        for (let k = 0; k < newChunks.length; k++) {
+          chunksPreloadedOnIntent.add(newChunks[k]);
+        }
+        newChunks.length && preloadAtHighestPriority(newChunks);
       }
-    });
-  }
+    }
+  });
 };
 
 const isCaptureHandlerElement = (

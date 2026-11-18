@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   chunkComesFrom,
+  chunkIsImportedStatically,
   chunkKind,
   chunkOfSymbolNamed,
   chunkUrlsFrom,
@@ -138,7 +139,12 @@ test.describe('speculative order', () => {
     await recordSpeculativePreloads(page);
     await openWarm(page, await createGate(page), ALL_AT_ONCE);
     const kinds = (await preloaderLinks(page))
-      .filter((link) => link.speculative && chunkComesFrom(link.href, LAYOUT_SOURCES))
+      .filter(
+        (link) =>
+          link.speculative &&
+          chunkComesFrom(link.href, LAYOUT_SOURCES) &&
+          !chunkIsImportedStatically(link.href)
+      )
       .map((link) => chunkKind(link.href))
       .filter((kind) => kind !== undefined);
     expect(new Set(kinds)).toEqual(new Set(KIND_ORDER));

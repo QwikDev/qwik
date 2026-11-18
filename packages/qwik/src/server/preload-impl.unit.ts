@@ -1,3 +1,4 @@
+import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const createContainer = (buildBase = '/') => {
@@ -252,6 +253,26 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
+  });
+
+  it('keeps a build base holding </script> inside its scripts, and in the links it adds', async () => {
+    const base = '/a"</script><b>/';
+    const { container, getScriptContent } = createContainer(base);
+    const { includePreloader, preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+    includePreloader(container, { ssrPreloads: 1 }, ['x.js']);
+
+    // Only `</script` ends a script element while the HTML is parsed.
+    expect(getScriptContent()).not.toMatch(/<\/script/i);
+    const linksScript = getScriptContent().split('window.addEventListener').at(-2)!;
+    const hrefs: string[] = [];
+    const document = {
+      createElement: () => ({}),
+      head: { appendChild: (link: { href: string }) => hrefs.push(link.href) },
+    };
+    runInNewContext(linksScript.slice(linksScript.indexOf('["x.js"]')), { document });
+    expect(hrefs).toEqual([`${base}x.js`]);
   });
 
   it('links what the client preloader would fetch first, not the first bundles in render order', async () => {

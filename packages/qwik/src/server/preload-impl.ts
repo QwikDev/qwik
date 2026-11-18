@@ -24,6 +24,9 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
 // The Vite dev server has no built manifest, so it never preloads bundles from here.
 const getBase = (container: SSRContainer) => container.$buildBase$!;
 
+/** A JS literal for an inline script: `</script>` in a value would end the script element. */
+const toScriptLiteral = (value: unknown) => JSON.stringify(value).replaceAll('<', '\\u003C');
+
 const afterPagePaint = (task: string) =>
   `window.addEventListener('load',f=>{` +
   `f=_=>${task};` +
@@ -85,9 +88,9 @@ export const preloaderPre = (
     container.closeElement();
 
     const script = afterPagePaint(
-      `{let b=fetch("${bundleGraphPath}");` +
-        `import("${preloaderBundle}").then(({l})=>` +
-        `l(${JSON.stringify(base)},b${optsStr})` +
+      `{let b=fetch(${toScriptLiteral(bundleGraphPath)});` +
+        `import(${toScriptLiteral(preloaderBundle)}).then(({l})=>` +
+        `l(${toScriptLiteral(base)},b${optsStr})` +
         `)}`
     );
     const scriptAttrs: Record<string, string | boolean> = {
@@ -150,10 +153,10 @@ export const includePreloader = (
        * preloader which does feature detection and which will be available soon after inserting these
        * links.
        */
-      `${JSON.stringify(links)}.map((l,e)=>{` +
+      `${toScriptLiteral(links)}.map((l,e)=>{` +
       `e=document.createElement('link');` +
       `e.rel='modulepreload';` +
-      `e.href=${JSON.stringify(base)}+l;` +
+      `e.href=${toScriptLiteral(base)}+l;` +
       `document.head.appendChild(e)` +
       `});`
     : '';
@@ -161,7 +164,7 @@ export const includePreloader = (
   let script = insertLinks;
   if (preloaderBundle) {
     script += afterPagePaint(
-      `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}))`
+      `import(${toScriptLiteral(preloaderBundle)}).then(({p})=>p(${toScriptLiteral(referencedBundles)}))`
     );
   }
   if (script) {

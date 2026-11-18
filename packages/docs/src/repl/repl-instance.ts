@@ -151,7 +151,7 @@ export class ReplInstance {
       // You can't pass proxies to web workers
       srcInputs: this.input.files.map(unwrapStore),
       buildMode: this.input.buildMode,
-      entryStrategy: { type: (this.input.entryStrategy as any) || 'component' },
+      entryStrategy: { type: (this.input.entryStrategy as any) || 'segment' },
       debug: this.input.debug,
     });
 

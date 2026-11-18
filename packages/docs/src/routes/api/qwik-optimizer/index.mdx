@@ -75,59 +75,6 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 <h2 id="experimentalfeatures-catchboundary">catchBoundary</h2>
 
-<h2 id="componententrystrategy">ComponentEntryStrategy</h2>
-
-```typescript
-export interface ComponentEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-manual?
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-type
-
-</td><td>
-
-</td><td>
-
-'component'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
 <h2 id="createoptimizer">createOptimizer</h2>
 
 ```typescript
@@ -394,13 +341,11 @@ export type EntryStrategy =
   | InlineEntryStrategy
   | HoistEntryStrategy
   | SingleEntryStrategy
-  | HookEntryStrategy
   | SegmentEntryStrategy
-  | ComponentEntryStrategy
   | SmartEntryStrategy;
 ```
 
-**References:** [InlineEntryStrategy](#inlineentrystrategy), [HoistEntryStrategy](#hoistentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
+**References:** [InlineEntryStrategy](#inlineentrystrategy), [HoistEntryStrategy](#hoistentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
@@ -711,63 +656,6 @@ type
 </td><td>
 
 'hoist'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-<h2 id="hookentrystrategy">HookEntryStrategy</h2>
-
-> Warning: This API is now obsolete.
->
-> Use SegmentStrategy instead
-
-```typescript
-export interface HookEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-manual?
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-type
-
-</td><td>
-
-</td><td>
-
-'hook'
 
 </td><td>
 

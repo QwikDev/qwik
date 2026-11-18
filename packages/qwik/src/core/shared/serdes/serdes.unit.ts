@@ -1707,6 +1707,22 @@ describe('shared-serialization', () => {
       expect(qrl.$symbol$).toBe('repeated_component');
       expect(second[SERIALIZABLE_STATE][0]).toBe(qrl);
     });
+    it('keeps omitted component children omitted after resume', async () => {
+      const Cmp = componentQrl(inlinedQrl(() => 'hi', 'omitted_component_children'));
+      const jsx = (Cmp as any)({ children: 'hello' }, null, 0) as JSXNodeImpl;
+      const props = jsx.props;
+      delete props.children;
+
+      const [restoredJsx, restoredProps] = deserialize(await serialize(jsx, props)) as [
+        JSXNodeImpl,
+        typeof props,
+      ];
+      expect(restoredJsx.children).toBe('hello');
+      expect(restoredJsx.props).toBe(restoredProps);
+      expect(restoredProps.children).toBeUndefined();
+      expect('children' in restoredProps).toBe(false);
+      expect(Object.keys(restoredProps)).not.toContain('children');
+    });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize(createSignal('hi'));
       const signal = deserialize(objs)[0] as SignalImpl;

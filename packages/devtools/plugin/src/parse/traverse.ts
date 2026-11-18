@@ -136,9 +136,3 @@ export function traverseProgram(program: unknown, visitor: Visitor, state?: any)
 
   traverse(program, null, null, null);
 }
-
-/** Parses code and traverses the resulting AST */
-export function traverseQwik(code: string, visitor: Visitor, state?: any): void {
-  const program = parseProgram(code);
-  traverseProgram(program, visitor, state);
-}

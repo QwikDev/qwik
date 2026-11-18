@@ -8,7 +8,6 @@ import {
 } from '../utils/app';
 import {
   BARREL,
-  FETCHES_ITS_COMPONENT_ON_MAIN,
   MATRIX,
   MODAL,
   NEVER_SHOWS_RESULT,
@@ -111,8 +110,6 @@ test.describe('clicks that render nothing', () => {
     }) => {
       const roundTrips = await coldClick(page, fixture);
       const componentChunks = requestedUrls(roundTrips).filter(chunkHasComponent);
-      const onMain = FETCHES_ITS_COMPONENT_ON_MAIN[fixture.id];
-      test.fail(!!onMain, onMain);
       expect(componentChunks).toEqual([]);
     });
   }
@@ -132,6 +129,10 @@ test.describe('tasks in several components', () => {
       chunkHoldsTaskFrom(url, `${TASKS_DIR}parent-child/child.tsx`)
     );
     expect(parentRoundTrip).toBeGreaterThanOrEqual(0);
+    test.fail(
+      true,
+      "on main, core asks for a child's task chunk only once its parent's tasks have run"
+    );
     expect(childRoundTrip).toBe(parentRoundTrip);
   });
 

@@ -22,9 +22,9 @@ export const getReplVersion = async (version: string | undefined, offline: boole
     if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_V1_DATA}`);
-      const fetchedNpmData = (await fetch(QWIK_NPM_V1_DATA).then((r) => r.json())) as NpmData;
+      const fetchedNpmData = (await fetchNpmData(QWIK_NPM_V1_DATA)) as NpmData;
       fetchedNpmData.timestamp = Date.now();
-      const v2Data = await fetch(QWIK_NPM_V2_DATA).then((r) => r.json());
+      const v2Data = await fetchNpmData(QWIK_NPM_V2_DATA);
       fetchedNpmData.versions.unshift(...v2Data.versions);
       npmData = fetchedNpmData;
       localStorage.setItem(NPM_STORAGE_KEY, JSON.stringify(npmData));
@@ -99,6 +99,16 @@ export const getReplVersion = async (version: string | undefined, offline: boole
   return { version, versions };
 };
 
+/** Resolves the version to build first, from cached npm data when it knows the requested version. */
+export const resolveReplVersion = async (requestedVersion: string | undefined) => {
+  const cached = await getReplVersion(requestedVersion, true);
+  if (!requestedVersion || cached.version === requestedVersion) {
+    return cached;
+  }
+  // A first visit has no cached npm data, so it can't know a shared `v=` yet.
+  return getReplVersion(requestedVersion, false);
+};
+
 const isExpiredNpmData = (npmData: NpmData | null) => {
   if (npmData && typeof npmData.timestamp === 'number') {
     if (npmData.timestamp + 1000 * 60 * 60 * 2 > Date.now()) {
@@ -107,6 +117,10 @@ const isExpiredNpmData = (npmData: NpmData | null) => {
   }
   return true;
 };
+
+// A first visit with a shared `v=` waits on this, so a stalled CDN must not block the REPL.
+const fetchNpmData = (url: string) =>
+  fetch(url, { signal: AbortSignal.timeout(5000) }).then((r) => r.json());
 
 const QWIK_NPM_V1_DATA = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
 const QWIK_NPM_V2_DATA = `https://data.jsdelivr.com/v1/package/npm/@qwik.dev/core`;

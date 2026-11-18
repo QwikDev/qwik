@@ -1,5 +1,5 @@
 import { assert, describe, test, vi } from 'vitest';
-import { loadRoute, matchRouteTree } from './routing';
+import { getLayoutKeys, getNewLayoutKeys, loadRoute, matchRouteTree } from './routing';
 import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 
 // A minimal sync module loader for testing.
@@ -1326,4 +1326,55 @@ test('loadRoute — chained rewrites keep target layout paths and dynamic params
     page: { id: '42' },
   });
   assert.deepEqual(result.$params$, { id: '42' });
+});
+
+const makeLayout = (key: string): ModuleLoader => Object.assign(makeLoader(), { _K: key });
+
+describe('getLayoutKeys', () => {
+  test('returns the layout keys of a matched route, outermost first', () => {
+    const routes: RouteData = {
+      _L: makeLayout('Layout'),
+      docs: { _L: makeLayout('DocsLayout'), intro: { _I: makeLoader() } },
+    };
+
+    const { loaders } = matchRouteTree(routes, '/docs/intro/');
+
+    assert.deepEqual(getLayoutKeys(loaders), ['Layout', 'DocsLayout']);
+  });
+
+  test('includes the layouts of pathless groups', () => {
+    const routes: RouteData = {
+      _L: makeLayout('Layout'),
+      _M: [{ _L: makeLayout('AppLayout'), about: { _I: makeLoader() } }],
+    };
+
+    const { loaders } = matchRouteTree(routes, '/about/');
+
+    assert.deepEqual(getLayoutKeys(loaders), ['Layout', 'AppLayout']);
+  });
+});
+
+describe('getNewLayoutKeys', () => {
+  test('same layouts: none', () => {
+    assert.deepEqual(getNewLayoutKeys(['Layout', 'Docs'], ['Layout', 'Docs']), []);
+  });
+
+  test('one more layout on the destination: that layout', () => {
+    assert.deepEqual(getNewLayoutKeys(['Layout'], ['Layout', 'Docs']), ['Docs']);
+  });
+
+  test('a different layout at the same depth: it and every deeper one', () => {
+    assert.deepEqual(
+      getNewLayoutKeys(['Layout', 'Blog', 'Sidebar'], ['Layout', 'Docs', 'Sidebar']),
+      ['Docs', 'Sidebar']
+    );
+  });
+
+  test('fewer layouts on the destination: none', () => {
+    assert.deepEqual(getNewLayoutKeys(['Layout', 'Docs'], ['Layout']), []);
+  });
+
+  test('current route unknown: every layout of the destination', () => {
+    assert.deepEqual(getNewLayoutKeys(undefined, ['Layout', 'Docs']), ['Layout', 'Docs']);
+  });
 });

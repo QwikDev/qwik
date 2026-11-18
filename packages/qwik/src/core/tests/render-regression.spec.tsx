@@ -11,7 +11,7 @@ import {
   type QRL,
 } from '@qwik.dev/core';
 import { trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
 import '../../testing/vdom-diff.unit-util';
 
@@ -453,6 +453,42 @@ describe.each([
       const { container, document } = await render(<Cmp />, { debug });
       await trigger(container.element, 'button', 'click');
       expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+  });
+
+  describe('issue #9328', () => {
+    it('should leave projected content in place when the preceding key changes', async () => {
+      const Box = component$<{ lang: string }>((props) => (
+        <div>
+          <div key={props.lang}>{props.lang}</div>
+          <Slot />
+        </div>
+      ));
+      const Parent = component$(() => {
+        const lang = useSignal('en');
+        return (
+          <Box lang={lang.value}>
+            <button onClick$={() => (lang.value = lang.value === 'en' ? 'fr' : 'en')}>
+              toggle
+            </button>
+          </Box>
+        );
+      });
+      const { container, document } = await render(<Parent />, { debug });
+      const button = document.querySelector('button')!;
+      const move = vi.spyOn(document as any, 'mutateMove');
+      const remove = vi.spyOn(document as any, 'mutateRemove');
+
+      await trigger(container.element, 'button', 'click');
+      expect(button.previousSibling?.textContent).toBe('fr');
+      expect(document.querySelector('button')).toBe(button);
+      expect(move.mock.calls.some(([node]) => node === button)).toBe(false);
+      expect(remove.mock.calls.some(([node]) => node === button)).toBe(false);
+
+      await trigger(container.element, 'button', 'click');
+      expect(button.previousSibling?.textContent).toBe('en');
+      expect(move.mock.calls.some(([node]) => node === button)).toBe(false);
+      expect(remove.mock.calls.some(([node]) => node === button)).toBe(false);
     });
   });
 

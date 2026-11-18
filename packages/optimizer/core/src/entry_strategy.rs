@@ -1,4 +1,4 @@
-use crate::transform::{SegmentData, SegmentKind};
+use crate::transform::SegmentData;
 use serde::{Deserialize, Serialize};
 use swc_atoms::Atom;
 
@@ -15,9 +15,7 @@ pub enum EntryStrategy {
 	Inline,
 	Hoist,
 	Single,
-	Hook,
 	Segment,
-	Component,
 	Smart,
 }
 
@@ -65,24 +63,6 @@ impl EntryPolicy for PerSegmentStrategy {
 }
 
 #[derive(Clone)]
-pub struct PerComponentStrategy {}
-
-impl PerComponentStrategy {
-	pub const fn new() -> Self {
-		Self {}
-	}
-}
-
-impl EntryPolicy for PerComponentStrategy {
-	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		context.first().map_or_else(
-			|| Some(ENTRY_SEGMENTS.clone()),
-			|root| Some(Atom::from([&segment.origin, "_entry_", root].concat())),
-		)
-	}
-}
-
-#[derive(Clone)]
 pub struct SmartStrategy {}
 
 impl SmartStrategy {
@@ -93,33 +73,23 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Known events stay separate even when they capture state.
-		if segment.ctx_kind == SegmentKind::EventHandler
-			|| segment.ctx_name == "event$"
-			|| (segment.scoped_idents.is_empty() && segment.ctx_kind != SegmentKind::Function)
-		{
-			return None;
-		}
-
-		// Everything else is put into a single file per component
-		// This means that all QRLs for a component are loaded together
-		// if one is used
-		context.first().map_or_else(
-			// Top-level QRLs are put into a separate file
-			|| None,
-			// Other QRLs are put into a file named after the original file + the root component
-			|root| Some(Atom::from([&segment.origin, "_entry_", root].concat())),
-		)
+		// Render stays apart: resolving any other QRL must not load it
+		let group = match segment.ctx_name.as_ref() {
+			"component$" | "useStyles$" | "useStylesScoped$" => "_render_",
+			_ => "_entry_",
+		};
+		// Top-level QRLs are put into a separate file
+		context
+			.first()
+			.map(|root| Atom::from([&segment.origin, group, root].concat()))
 	}
 }
 
 pub fn parse_entry_strategy(strategy: &EntryStrategy) -> Box<dyn EntryPolicy> {
 	match strategy {
 		EntryStrategy::Inline | EntryStrategy::Hoist => Box::<InlineStrategy>::default(),
-		EntryStrategy::Hook => Box::new(PerSegmentStrategy::new()),
 		EntryStrategy::Segment => Box::new(PerSegmentStrategy::new()),
 		EntryStrategy::Single => Box::new(SingleStrategy::new()),
-		EntryStrategy::Component => Box::new(PerComponentStrategy::new()),
 		EntryStrategy::Smart => Box::new(SmartStrategy::new()),
 	}
 }

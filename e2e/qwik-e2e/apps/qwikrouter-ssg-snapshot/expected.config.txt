@@ -9,6 +9,7 @@ export const serverPlugins = [
 
 /** Qwik Router Layouts (1) */
 const SubLayout = ()=>import("<app>/src/routes/sub/layout");
+SubLayout._K = "SubLayout";
 
 /** Qwik Router Routes (2) */
 export const routes = {

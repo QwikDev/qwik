@@ -21,8 +21,9 @@ export interface SerializeDocumentOptions {
 export interface PreloaderOptions {
   /**
    * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
-   * bundles before the preloader script is active. This most likely includes the core and the
-   * preloader script itself. Setting this to 0 will disable all preload links.
+   * bundles before the preloader script is active: the first ones the preloader would fetch for the
+   * page, ranked the same way by probability, so shared static imports come first. Setting this to
+   * 0 will disable all preload links.
    *
    * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
    * a Core Web Vital but more noticeable to the user.
@@ -38,6 +39,10 @@ export interface PreloaderOptions {
    *
    * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
    * immediately, no limit.
+   *
+   * `0` stops the preloader from starting speculative preloads in the browser. An interaction that
+   * needs code which has not loaded yet then waits for its download. The links from `ssrPreloads`
+   * are separate and still go out.
    *
    * Defaults to `25`
    */

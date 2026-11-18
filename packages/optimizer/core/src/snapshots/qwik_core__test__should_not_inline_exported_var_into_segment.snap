@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6906
 expression: output
 ---
 ==INPUT==
@@ -36,12 +35,10 @@ export const featureAction = formActionQrl(q_featureAction_formAction_cZgh2PzV1c
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACE,SAAS,SAAS,EAAE,MAAM,QAAQ,QAAQ;;;;;AAG1C,MAAM,cAAc,SAAS,cAAc;AAC3C,OAAO,MAAM,gBAAgB,UAAU,aAAa;AAEpD,OAAO,MAAM,gBAAgB,sDAI1B,8DAA0B\"}")
 ============================= test.tsx_featureAction_formAction_valiForm_3yxd03SSzJ8.js (ENTRY POINT)==
 
-import { FeatureSchema } from "./test";
-//
-export const featureAction_formAction_valiForm_3yxd03SSzJ8 = FeatureSchema;
+export { FeatureSchema as featureAction_formAction_valiForm_3yxd03SSzJ8 } from "./test";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAWe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AAWe,wFAAa\"}")
 /*
 {
   "origin": "test.tsx",

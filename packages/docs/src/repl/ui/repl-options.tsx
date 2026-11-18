@@ -25,6 +25,8 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
 
       <StoreBoolean label="Out of Order Streaming" inputProp="outOfOrderStreaming" input={input} />
 
+      <StoreBoolean label="Rust Optimizer" inputProp="rustOptimizer" input={input} />
+
       <StoreBoolean label="Debug" inputProp="debug" input={input} />
     </div>
   );

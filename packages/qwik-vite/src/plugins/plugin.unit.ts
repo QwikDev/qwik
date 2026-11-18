@@ -135,10 +135,22 @@ test('csr', async () => {
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({
-    entryStrategy: { type: 'component' },
+    entryStrategy: { type: 'single' },
     buildMode: 'production',
   });
-  assert.deepEqual(opts.entryStrategy.type, 'component');
+  assert.deepEqual(opts.entryStrategy.type, 'single');
+});
+
+test.each([
+  { removed: 'component', replacement: 'smart' },
+  { removed: 'hook', replacement: 'segment' },
+])('rejects the removed $removed entry strategy and names $replacement', async (strategy) => {
+  const plugin = await mockPlugin();
+  await expect(
+    plugin.normalizeOptions({ entryStrategy: { type: strategy.removed } as any })
+  ).rejects.toThrow(
+    `The "${strategy.removed}" entry strategy was removed. Use "${strategy.replacement}" instead.`
+  );
 });
 
 test('entryStrategy, smart', async () => {
@@ -222,12 +234,13 @@ test.each([
       client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
     ).toBe(task.segment.entry);
     expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
-    expect(callback.segment.entry).toBe(
-      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    expect(callback.segment.entry).toBe('example.tsx_entry_App');
+    expect(client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry).toBe(
+      'example.tsx_render_App'
     );
-    expect(
-      client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
-    ).toBeNull();
+    expect(client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry).toBe(
+      callback.segment.entry
+    );
     expect(server.code).toContain('shared-task');
     expect(server.code).toContain('shared-callback');
     if (compiled) {

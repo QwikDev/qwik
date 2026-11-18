@@ -15,7 +15,7 @@ type Manifest = {
   preloader?: string;
   bundleGraphAsset?: string;
   bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
-  symbols: Record<string, { ctxName?: string; displayName?: string }>;
+  symbols: Record<string, { ctxName?: string; ctxKind?: string; displayName?: string }>;
   mapping: Record<string, string>;
 };
 
@@ -74,22 +74,23 @@ export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'compone
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
-const RENDER_SYMBOLS = ['component$', 'useStyles$', 'useStylesScoped$'];
+export type ChunkKind = 'handler' | 'qrl' | 'component';
 
-const symbolKindsOf = (url: string) => {
+export const chunkKind = (url: string): ChunkKind | undefined => {
   const manifest = getManifest();
-  return (manifest.bundles[bundleFile(url)]?.symbols ?? []).map(
-    (symbol) => manifest.symbols[symbol]?.ctxName
-  );
+  const symbols = (manifest.bundles[bundleFile(url)]?.symbols ?? [])
+    .map((symbol) => manifest.symbols[symbol])
+    .filter((symbol) => !!symbol);
+  if (!symbols.length) {
+    return undefined;
+  }
+  if (symbols.some((symbol) => symbol.ctxKind !== 'function')) {
+    return 'handler';
+  }
+  return symbols.every((symbol) => /^(component|useStyles)/.test(symbol.ctxName ?? ''))
+    ? 'component'
+    : 'qrl';
 };
-
-export const chunkHoldsOnlyRender = (url: string) => {
-  const kinds = symbolKindsOf(url);
-  return kinds.length > 0 && kinds.every((kind) => RENDER_SYMBOLS.includes(kind!));
-};
-
-export const chunkHoldsEventQrls = (url: string) =>
-  symbolKindsOf(url).some((kind) => !RENDER_SYMBOLS.includes(kind!));
 
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(

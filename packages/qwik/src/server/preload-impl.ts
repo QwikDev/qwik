@@ -11,34 +11,28 @@ import type {
 
 type BundleGraph = ReturnType<typeof parseBundleGraph>;
 
-const DEFAULT_PRELOAD_PROBABILITY = 0.6;
-const IGNORED_BELOW_PROBABILITY = 0.01;
-
 const parsedBundleGraphs = new WeakMap<
   object,
-  { $graph$: BundleGraph; $preloadedBySeeds$: Map<string, Map<string, number>> }
+  { $graph$: BundleGraph; $preloadedBySeeds$: Map<string, Set<string>> }
 >();
 
 const bundlesPreloadedFrom = (graph: BundleGraph, seeds: string[]) => {
-  const probabilities = new Map<string, number>();
-  const pending: [name: string, probability: number][] = [];
-  for (let i = 0; i < seeds.length; i++) {
-    pending.push([seeds[i], DEFAULT_PRELOAD_PROBABILITY]);
-  }
+  const reached = new Set<string>();
+  const pending = seeds.slice();
   while (pending.length) {
-    const [name, probability] = pending.pop()!;
-    if (probability < IGNORED_BELOW_PROBABILITY || probability <= (probabilities.get(name) ?? 0)) {
+    const name = pending.pop()!;
+    if (reached.has(name)) {
       continue;
     }
-    probabilities.set(name, probability);
-    const deps = graph.get(name);
+    reached.add(name);
+    const deps = graph.get(name)?.$deps$;
     if (deps) {
       for (let i = 0; i < deps.length; i++) {
-        pending.push([deps[i].$name$, probability * deps[i].$importProbability$]);
+        pending.push(deps[i].$name$);
       }
     }
   }
-  return probabilities;
+  return reached;
 };
 
 const seedsWithUnreachedBundles = (

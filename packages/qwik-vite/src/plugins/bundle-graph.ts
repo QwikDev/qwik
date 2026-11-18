@@ -1,11 +1,9 @@
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
-const RENDER_CHUNK_PROBABILITY = 0.5;
-const EVENT_QRL_CHUNK_PROBABILITY = 0.99;
-
-const minimumSpeed = 300; // kbps
-// bytes that take 0.5 seconds to download at minimumSpeed
-const slowSize = 0.5 * ((minimumSpeed * 1024) / 8);
+const DYNAMIC_IMPORTS_MARKER = -1;
+const HANDLER_CHUNK_MARKER = -2;
+const QRL_CHUNK_MARKER = -3;
+const COMPONENT_CHUNK_MARKER = -4;
 
 /**
  * A function that returns a map of bundle names to their dependencies.
@@ -29,10 +27,11 @@ const getSymbolHash = (symbolName: string) => {
  * format is:
  *
  * ```
- *   [...(bundleName: string, ...directImports: index[], ...dynamicImports: [-1, ...index[]] | [])]
+ *   [...(bundleName: string, kind?: -2 | -3 | -4, ...directImports: index[], ...dynamicImports: [-1, ...index[]] | [])]
  * ```
  *
- * (index is the position of the dependency in the bundleGraph array)
+ * (index is the position of the dependency in the bundleGraph array; kind is -2 for a chunk that
+ * holds a handler, -3 for one that holds other QRLs, -4 for one that only holds components)
  *
  * This format allows any string to denote a set of dependencies, which is useful for symbols and
  * SPA paths.
@@ -113,54 +112,6 @@ export function convertManifestToBundleGraph(
   const map = new Map<string, { index: number; deps: Set<string> }>();
   const reduceDeps = createTransitiveReducer(graph);
 
-  const isRenderSymbol = (symbolName: string) => {
-    const symbol = manifest.symbols?.[symbolName];
-    return (
-      symbol?.ctxKind === 'function' &&
-      /(component|useStyles|useStylesScoped)/i.test(symbol.ctxName)
-    );
-  };
-  const isRenderChunk = (bundle: QwikBundle) =>
-    !!bundle.symbols?.length && bundle.symbols.every(isRenderSymbol);
-  const isEventQrlChunk = (bundle: QwikBundle) =>
-    !!bundle.symbols?.some(
-      (symbolName) => manifest.symbols?.[symbolName] && !isRenderSymbol(symbolName)
-    );
-  const componentNamesIn = (renderChunk: QwikBundle) =>
-    renderChunk.symbols!.map(getSymbolHash).filter((componentName) => graph[componentName]);
-
-  const depsBesideRenderChunk = new Map<string, Set<string>>();
-  for (const bundleName of names) {
-    const ownDynamicImports = graph[bundleName].dynamicImports!;
-    const besideRenderChunk = new Set<string>();
-    for (const depName of ownDynamicImports) {
-      const renderChunk = graph[depName];
-      if (!isRenderChunk(renderChunk)) {
-        continue;
-      }
-      for (const qrlHolderName of [depName, ...renderChunk.imports!]) {
-        const heldQrlChunks = graph[qrlHolderName].dynamicImports!;
-        const isComponentFile = qrlHolderName === depName || heldQrlChunks.includes(depName);
-        for (const qrlChunkName of heldQrlChunks) {
-          const qrlChunk = graph[qrlChunkName];
-          if (!isRenderChunk(qrlChunk)) {
-            if (isComponentFile) {
-              besideRenderChunk.add(qrlChunkName);
-            }
-            continue;
-          }
-          if (ownDynamicImports.includes(qrlChunkName)) {
-            continue;
-          }
-          for (const childComponent of componentNamesIn(qrlChunk)) {
-            besideRenderChunk.add(childComponent);
-          }
-        }
-      }
-    }
-    depsBesideRenderChunk.set(bundleName, besideRenderChunk);
-  }
-
   /**
    * First pass to collect minimal dependency lists and allocate space for dependencies. Minimal
    * means that if one of your dependencies depends on another of your dependencies, there's no need
@@ -168,68 +119,23 @@ export function convertManifestToBundleGraph(
    */
   for (const bundleName of names) {
     const bundle = graph[bundleName];
+    const deps = new Set<string>();
+    const kindMarker = getKindMarker(bundle, manifest);
+    if (kindMarker) {
+      deps.add(kindMarker as any as string);
+    }
     // external dependencies are not included in `graph`
-    const deps = new Set(bundle.imports!);
-    reduceDeps(deps, bundleName);
+    const staticDeps = new Set(bundle.imports!);
+    reduceDeps(staticDeps, bundleName);
+    for (const depName of staticDeps) {
+      deps.add(depName);
+    }
     const dynDeps = new Set(bundle.dynamicImports!);
     reduceDeps(dynDeps, bundleName);
-    const besideRenderChunk = depsBesideRenderChunk.get(bundleName)!;
-    for (const depName of besideRenderChunk) {
-      dynDeps.add(depName);
-    }
-    const depProbability = new Map<string, number>();
-    for (const depName of dynDeps) {
-      const dep = graph[depName];
-
-      if (isRenderChunk(dep)) {
-        depProbability.set(depName, RENDER_CHUNK_PROBABILITY);
-        continue;
-      }
-      if (isEventQrlChunk(dep) || besideRenderChunk.has(depName)) {
-        depProbability.set(depName, EVENT_QRL_CHUNK_PROBABILITY);
-        continue;
-      }
-
-      // Calculate the probability of the dependency
-      // Start with a 50% chance
-      let probability = 0.5;
-      // Add a 8% chance for each interactivity point (max 40%)
-      probability += (dep.interactivity || 0) * 0.08;
-
-      // If the dependency has a segment from the same parent, it's more likely to be loaded
-      if (bundle.origins && dep.origins) {
-        for (const origin of bundle.origins) {
-          if (dep.origins.some((o) => o.startsWith(origin))) {
-            // Add a 25% chance
-            probability += 0.25;
-            break;
-          }
-        }
-      }
-
-      // If the dependency is a likely big import graph, it should be loaded earlier so it doesn't get blocked by smaller files, but when unlikely it should be loaded later so it doesn't block other files
-      if (dep.total > slowSize) {
-        probability += probability > 0.5 ? 0.02 : -0.02;
-      }
-      // OTOH, if the dependency is small, load it sooner since it won't block much
-      if (dep.total < 1000) {
-        probability += 0.15;
-      }
-
-      depProbability.set(depName, Math.min(probability, 0.99));
-    }
-
     if (dynDeps.size > 0) {
-      const sorted = Array.from(dynDeps).sort(
-        (a, b) => depProbability.get(b)! - depProbability.get(a)!
-      );
-      let lastProbability = -1;
       // We rely on the Set keeping the items in order, everything after this is dynamic
-      for (const depName of sorted) {
-        if (depProbability.get(depName)! !== lastProbability) {
-          lastProbability = depProbability.get(depName)!;
-          deps.add(-Math.round(lastProbability * 10) as any as string);
-        }
+      deps.add(DYNAMIC_IMPORTS_MARKER as any as string);
+      for (const depName of dynDeps) {
         deps.add(depName);
       }
     }
@@ -250,7 +156,6 @@ export function convertManifestToBundleGraph(
     index++;
     for (const depName of deps) {
       if (typeof depName === 'number') {
-        // negative number means dynamic import
         bundleGraph[index++] = depName;
         continue;
       }
@@ -261,6 +166,27 @@ export function convertManifestToBundleGraph(
   }
 
   return bundleGraph;
+}
+
+const isComponentSymbol = (ctxName: string) => /^(component|useStyles)/.test(ctxName);
+
+function getKindMarker(bundle: QwikBundle, manifest: QwikManifest) {
+  let marker: number | undefined;
+  for (const symbolName of bundle.symbols || []) {
+    const symbol = manifest.symbols?.[symbolName];
+    if (!symbol) {
+      continue;
+    }
+    if (symbol.ctxKind !== 'function') {
+      return HANDLER_CHUNK_MARKER;
+    }
+    if (!isComponentSymbol(symbol.ctxName)) {
+      marker = QRL_CHUNK_MARKER;
+    } else if (!marker) {
+      marker = COMPONENT_CHUNK_MARKER;
+    }
+  }
+  return marker;
 }
 
 /** Returns a lookup of every component reachable from a component of the condensed graph. */

@@ -47,6 +47,6 @@ export const preloadRouteBundles = (
   newLayoutKeys: string[] = []
 ) => {
   if (isBrowser) {
-    preload([...newLayoutKeys, toBundleGraphRouteName(routeName)], probability);
+    preload([...newLayoutKeys, toBundleGraphRouteName(routeName)], probability, true);
   }
 };

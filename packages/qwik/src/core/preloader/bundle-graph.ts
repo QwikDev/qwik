@@ -1,7 +1,7 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
 import { bundles, nextTriggerMacroTask, replayBundle } from './queue';
-import type { BundleGraph, ImportProbability } from './types';
+import type { BundleDep, BundleGraph } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
 // Note, making these singletons pulls in too much code and they are ok being module-scoped
@@ -9,12 +9,14 @@ export let base: string | undefined;
 export let graph: BundleGraph;
 export let isWaitingForGraph = false;
 
-const makeBundle = (name: string, deps?: ImportProbability[]) => {
+const makeBundle = (name: string, deps?: BundleDep[], kind = 0) => {
   return {
     $name$: name,
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: deps,
     $inverseProbability$: 1,
+    $kind$: kind,
+    $rank$: 0,
   };
 };
 
@@ -23,22 +25,21 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
   let i = 0;
   while (i < serialized.length) {
     const name = serialized[i++] as string;
-    const deps: ImportProbability[] = [];
+    const deps: BundleDep[] = [];
     let idx: number | string;
-    let probability = 1;
+    let kind = 0;
+    let isStatic = true;
     while (((idx = serialized[i]), typeof idx === 'number')) {
-      if (idx < 0) {
-        probability = -idx / 10;
+      if (idx >= 0) {
+        deps.push({ $name$: serialized[idx] as string, $isStatic$: isStatic });
+      } else if (isStatic && !deps.length && idx < -1 && idx > -5) {
+        kind = -idx - 1;
       } else {
-        deps.push({
-          $name$: serialized[idx] as string,
-          $importProbability$: probability,
-          $factor$: 1,
-        });
+        isStatic = false;
       }
       i++;
     }
-    graph.set(name, deps);
+    graph.set(name, { $deps$: deps, $kind$: kind });
   }
   return graph;
 };
@@ -46,17 +47,19 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
 export const getBundle = (name: string) => {
   let bundle = bundles.get(name);
   if (!bundle) {
-    let deps: ImportProbability[] | undefined;
+    let deps: BundleDep[] | undefined;
+    let kind: number | undefined;
     if (graph) {
-      deps = graph.get(name);
-      if (!deps) {
+      const entry = graph.get(name);
+      if (!entry) {
         return;
       }
-      if (!deps.length) {
-        deps = undefined;
+      kind = entry.$kind$;
+      if (entry.$deps$.length) {
+        deps = entry.$deps$;
       }
     }
-    bundle = makeBundle(name, deps);
+    bundle = makeBundle(name, deps, kind);
     bundles.set(name, bundle);
   }
   return bundle;
@@ -94,9 +97,10 @@ export const loadBundleGraph = (
           const deadline = performance.now() + yieldInterval;
           while (nextIndex < pendingBundles.length) {
             const bundle = pendingBundles[nextIndex++];
-            const deps = graph.get(bundle.$name$);
-            if (deps) {
-              bundle.$deps$ = deps;
+            const entry = graph.get(bundle.$name$);
+            if (entry) {
+              bundle.$deps$ = entry.$deps$;
+              bundle.$kind$ = entry.$kind$;
               if (bundle.$inverseProbability$ < 1) {
                 replayBundle(bundle);
               }

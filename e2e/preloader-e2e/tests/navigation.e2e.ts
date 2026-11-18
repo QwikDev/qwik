@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   bundleFile,
   chunkComesFrom,
+  chunkKind,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
   chunkUrlsFrom,
@@ -70,6 +71,7 @@ const OLD_PAGE_SOURCES = [
 ];
 
 const TO_TREE_ROUTE = 'navigation/to-tree/';
+const FROM_OFF_ROUTE = 'navigation/from/off/';
 
 const TO_TREE_MODULE = 'src/routes/navigation/to-tree/index.tsx';
 
@@ -574,6 +576,23 @@ test.describe('Link that prefetches when visible', () => {
   });
 });
 
+test.describe('Link that prefetches when visible', () => {
+  test("the new page's components are preloaded before its tasks and computeds", async ({
+    page,
+  }) => {
+    const { gate } = await openFixture(page, FROM.visible, 'warm');
+    await releaseAll(gate);
+    const kinds = (await preloaderLinks(page))
+      .filter((link) => link.speculative && chunkComesFrom(link.href, TO_TREE_SOURCES))
+      .map((link) => chunkKind(link.href));
+    const lastComponent = kinds.lastIndexOf('component');
+    const firstOtherQrl = kinds.indexOf('qrl');
+    expect(lastComponent).toBeGreaterThanOrEqual(0);
+    expect(firstOtherQrl).toBeGreaterThanOrEqual(0);
+    expect(lastComponent).toBeLessThan(firstOtherQrl);
+  });
+});
+
 test.describe('hover on a Link that prefetches on intent', () => {
   test("the new route's chunks are requested", async ({ page }) => {
     const { gate } = await openFixture(page, FROM.intent, 'cold');
@@ -654,9 +673,24 @@ test.describe('after a navigation', () => {
 });
 
 test.describe('back button', () => {
+  test('after a navigation, the page the user left is preloaded as a page to render', async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const { gate } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
+    await expectResult(page, TO_TREE);
+    const hintsForThePageLeft = (await preloadHints(page)).filter(({ item }) =>
+      [item].flat().includes(FROM_OFF_ROUTE)
+    );
+    expect(hintsForThePageLeft).toEqual([
+      { item: [FROM_OFF_ROUTE], probability: 0.6, isPageToRender: true },
+    ]);
+  });
+
   test('the previous page shows with no JS request', async ({ page }) => {
     const { gate } = await navigateToTree(FROM.visible, 'warm', page);
-    await releaseAll(gate);
+    await waitForNetworkIdle(page, () => releaseAll(gate));
     await expectResult(page, TO_TREE);
     gate.mode = 'hold';
     const roundTrips = await countRoundTrips(

@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 import {
   chunkComesFrom,
-  chunkHoldsEventQrls,
-  chunkHoldsOnlyRender,
+  chunkKind,
   chunkOfSymbolNamed,
   chunkUrlsFrom,
   getManifest,
   labelRequest,
   ORIGIN,
+  type ChunkKind,
 } from '../utils/app';
 import { fixtureById, MODAL, type Fixture } from '../utils/fixtures';
 import {
@@ -129,30 +129,32 @@ const routerChunkUrls = (segment: string) =>
     )
     .map(([file]) => `${ORIGIN}/build/${file}`);
 
+const KIND_ORDER: ChunkKind[] = ['handler', 'qrl', 'component'];
+
 test.describe('speculative order', () => {
-  test('event QRL chunks are preloaded before render chunks', async ({ page }) => {
+  test('handlers are preloaded first, then tasks and computeds, then components', async ({
+    page,
+  }) => {
     await recordSpeculativePreloads(page);
     await openWarm(page, await createGate(page), ALL_AT_ONCE);
-    const preloaded = [...new Set((await preloaderLinks(page)).map((link) => link.href))];
-    const medianPositionOf = (isWanted: (url: string) => boolean) => {
-      const positions = preloaded.flatMap((url, index) => (isWanted(url) ? [index] : []));
-      return positions[Math.floor(positions.length / 2)];
-    };
-    expect(medianPositionOf(chunkHoldsEventQrls)).toBeLessThan(
-      medianPositionOf(chunkHoldsOnlyRender)
-    );
+    const kinds = (await preloaderLinks(page))
+      .filter((link) => link.speculative && chunkComesFrom(link.href, LAYOUT_SOURCES))
+      .map((link) => chunkKind(link.href))
+      .filter((kind) => kind !== undefined);
+    expect(new Set(kinds)).toEqual(new Set(KIND_ORDER));
+    expect(kinds).toEqual([...kinds].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b)));
   });
 
-  test("a layout's event QRL chunks are preloaded before the page's", async ({ page }) => {
+  test("a layout's handlers are preloaded before the page's", async ({ page }) => {
     await recordSpeculativePreloads(page);
     await openWarm(page, await createGate(page), MODAL.path);
     const preloaded = [...new Set((await preloaderLinks(page)).map((link) => link.href))];
-    const positionsOfEventQrlChunksFrom = (sources: string[]) =>
+    const positionsOfHandlerChunksFrom = (sources: string[]) =>
       preloaded.flatMap((url, index) =>
-        chunkHoldsEventQrls(url) && chunkComesFrom(url, sources) ? [index] : []
+        chunkKind(url) === 'handler' && chunkComesFrom(url, sources) ? [index] : []
       );
-    const inTheLayout = positionsOfEventQrlChunksFrom(LAYOUT_SOURCES);
-    const inThePage = positionsOfEventQrlChunksFrom(MODAL.sources);
+    const inTheLayout = positionsOfHandlerChunksFrom(LAYOUT_SOURCES);
+    const inThePage = positionsOfHandlerChunksFrom(MODAL.sources);
     expect(inTheLayout.length).toBeGreaterThan(0);
     expect(inThePage.length).toBeGreaterThan(0);
     expect(Math.max(...inTheLayout)).toBeLessThan(Math.min(...inThePage));

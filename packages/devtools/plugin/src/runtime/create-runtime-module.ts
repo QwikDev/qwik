@@ -34,10 +34,6 @@ export function createRuntimeVar(name: string, value: string): string {
   return `var ${name} = ${JSON.stringify(value)};`;
 }
 
-export function windowGlobalAccess(key: string): string {
-  return `window.${key}`;
-}
-
 export function serializeRuntimeValue(value: unknown): string {
   if (isRuntimeExpression(value)) {
     return value.__runtimeExpression;

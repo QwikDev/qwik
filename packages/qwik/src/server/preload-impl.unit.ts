@@ -277,22 +277,6 @@ describe('preloader', () => {
     expect(getScriptContent()).toContain('p(["root.js","other.js"])');
   });
 
-  it('still sends a chunk the seeds reach with too low a probability to be preloaded', async () => {
-    const chain = ['a.js', -5, 3, 'b.js', -5, 6, 'c.js', -5, 9, 'd.js', -5, 12, 'e.js', -5, 15];
-    const { container, getScriptContent } = createContainer('/', [
-      ...chain,
-      'f.js',
-      -5,
-      18,
-      'g.js',
-    ]);
-    const { includePreloader } = await import('./preload-impl');
-
-    includePreloader(container, undefined, ['f.js', 'g.js'], undefined, ['a.js']);
-
-    expect(getScriptContent()).toContain('p(["a.js","g.js"])');
-  });
-
   it('does not list core or the preloader next to the seeds', async () => {
     const { container, getScriptContent } = createContainer('/', GRAPH);
     const { includePreloader } = await import('./preload-impl');
@@ -360,14 +344,14 @@ describe('preloader', () => {
   it('links what the client preloader would fetch first, not the first bundles in render order', async () => {
     const { initPreloader } = await import('../core/preloader/bundle-graph');
     const { includePreloader } = await import('./preload-impl');
-    // Both bundles statically import shared.js, so the client rates it above either of them.
-    initPreloader(['a.js', 2, 'shared.js', 'b.js', 2]);
+    // a.js only holds a component and b.js holds a handler, so the client fetches b.js first.
+    initPreloader(['a.js', -4, 'b.js', -2]);
     const { container, getScriptContent } = createContainer();
 
     includePreloader(container, { ssrPreloads: 1 }, ['a.js', 'b.js']);
 
     const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
-    expect(linksScript).toContain('["shared.js"].map(');
+    expect(linksScript).toContain('["b.js"].map(');
     expect(afterLoad).toContain('p(["a.js","b.js"])');
   });
 
@@ -392,8 +376,8 @@ describe('preloader', () => {
     ]);
 
     expect(getPreloadOrder(['a.js', 'b.js', 'c.js'])).toEqual([
-      'core.js',
       'a.js',
+      'core.js',
       'a-dep.js',
       'b.js',
       'b-dep.js',

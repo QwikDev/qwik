@@ -55,6 +55,8 @@ const QwikEvContainerReady = 0;
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols = new Map<string, Handler>();
+const INTENT_PROBABILITY = 0.9;
+let lastIntent: string | undefined;
 const readyContainers: Record<string, 1> = {};
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
@@ -161,6 +163,40 @@ const getRootScope = (scope: QwikLoaderEventScope): 'e' | 'd' | 'w' =>
 
 const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
 
+const getChunks = (chunk: string, otherChunks: string | undefined) =>
+  otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+
+const preloadHandlersOnIntent = (ev: Event) => {
+  const preload = (win as unknown as PreloaderGlobal).qPreload;
+  if (!preload) {
+    return;
+  }
+  const handlerAttributes: string[] = [];
+  // eslint-disable-next-line qwik-local/loop-style
+  events.forEach((scopedKebabName) => {
+    const { scope, eventName } = parseKebabEvent(scopedKebabName);
+    if (getRootScope(scope) === elementPrefix && !isQwikLifecycleEvent(eventName)) {
+      handlerAttributes.push('q-' + scopedKebabName);
+    }
+  });
+  const path = ev.composedPath() as Element[];
+  const chunks: string[] = [];
+  for (let i = 0; i < path.length; i++) {
+    for (let j = 0; j < handlerAttributes.length; j++) {
+      const qrls = path[i].getAttribute?.(handlerAttributes[j])?.split('|');
+      for (let k = 0; qrls && k < qrls.length; k++) {
+        const [chunk, , , otherChunks] = qrls[k].split('#');
+        chunk && chunks.push(...getChunks(chunk, otherChunks));
+      }
+    }
+  }
+  const intent = chunks.join();
+  if (intent && intent !== lastIntent) {
+    lastIntent = intent;
+    preload(chunks, INTENT_PROBABILITY);
+  }
+};
+
 const isCaptureHandlerElement = (
   element: Element,
   scopedKebabName: string,
@@ -208,7 +244,7 @@ const resolveHandler = (
     return handler;
   }
 
-  const chunks = otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+  const chunks = getChunks(chunk, otherChunks);
   // Told now, the preloader fetches what these chunks import while they download.
   // Page lifecycle handlers stay out, or their whole import graph would load with the page.
   if (isUserEvent) {
@@ -666,5 +702,7 @@ if (!_qwikEv?.roots) {
     push: addEventOrRoot,
   };
   addEventListener(doc, readyStateChange, processReadyStateChange);
+  addEventListener(doc, 'pointerover', preloadHandlersOnIntent, true, true);
+  addEventListener(doc, 'focusin', preloadHandlersOnIntent, true, true);
   processReadyStateChange();
 }

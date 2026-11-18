@@ -1068,3 +1068,71 @@ test("an element in view raises every chunk of its handlers, but not its documen
   expect(probabilityOf('second.js')).toBeGreaterThan(probabilityOf('first.js'));
   expect(probabilityOf('third.js')).toBe(probabilityOf('second.js'));
 });
+
+test('a later speculative hint is preloaded before an earlier one of the same probability', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 'b.js', 'c.js']);
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  preload('c.js', 0.9);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['c.js', 'b.js', 'a.js']);
+});
+
+test('hinting a queued bundle again moves it to the front of its probability', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 'b.js', 'c.js']);
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  preload('c.js', 0.9);
+  preload('a.js', 0.9);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['a.js', 'c.js', 'b.js']);
+});
+
+test('a later hint brings what its bundle imports to the front with it', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 2, 'a-import.js', 'b.js', 5, 'b-import.js']);
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['b.js', 'b-import.js', 'a.js', 'a-import.js']);
+});
+
+test('a weaker hint does not move a bundle ahead of its equals', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 'b.js']);
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  preload('a.js', 0.6);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['b.js', 'a.js']);
+});

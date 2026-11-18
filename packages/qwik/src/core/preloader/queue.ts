@@ -23,6 +23,7 @@ let isProcessingAdjustments = false;
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
+  $hintOrder$: number;
   $isReplay$?: boolean;
   $seen$?: Set<BundleImport>;
   $deps$?: ImportProbability[];
@@ -30,6 +31,7 @@ type AdjustmentFrame = {
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
+let hintCount = 0;
 
 const isHighestPriority = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
 
@@ -45,7 +47,9 @@ const isHighestPriorityInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+    queue.sort(
+      (a, b) => a.$inverseProbability$ - b.$inverseProbability$ || b.$hintOrder$ - a.$hintOrder$
+    );
     queueDirty = false;
   }
 };
@@ -97,12 +101,14 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
+  hintOrder: number,
   isReplay?: boolean
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
+    $hintOrder$: hintOrder,
     $isReplay$: isReplay,
   });
 };
@@ -144,6 +150,7 @@ const processAdjustmentFrame = () => {
     adjustmentStack.push({
       $bundle$: depBundle,
       $inverseProbability$: newInverseProbability,
+      $hintOrder$: frame.$hintOrder$,
       $seen$: frame.$seen$,
     });
     return true;
@@ -157,6 +164,10 @@ const processAdjustmentFrame = () => {
   const wasHighestPriority = isHighestPriority(bundle);
   const previousInverseProbability = bundle.$inverseProbability$;
   bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
+  if (frame.$inverseProbability$ <= previousInverseProbability) {
+    bundle.$hintOrder$ = frame.$hintOrder$;
+    queueDirty = true;
+  }
   // Replay and highest priority transitions must reach dependencies.
   if (
     !frame.$isReplay$ &&
@@ -259,7 +270,7 @@ const preloadOne = (bundle: BundleImport) => {
 
 /** Replay a buffered hint after its dependencies become available. */
 export const replayBundle = (bundle: BundleImport) => {
-  enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
+  enqueueAdjustment(bundle, bundle.$inverseProbability$, bundle.$hintOrder$, true);
   if (isBrowser) {
     scheduleAdjustments();
   } else {
@@ -270,7 +281,7 @@ export const replayBundle = (bundle: BundleImport) => {
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, inverseProbability);
+    enqueueAdjustment(bundle, inverseProbability, hintCount);
   }
 };
 
@@ -279,6 +290,7 @@ export const preload = (item: string | string[], probability?: number) => {
     return;
   }
   const inverseProbability = probability ? 1 - probability : 0.4;
+  hintCount++;
   if (Array.isArray(item)) {
     for (let i = 0; i < item.length; i++) {
       handleBundle(item[i], inverseProbability);

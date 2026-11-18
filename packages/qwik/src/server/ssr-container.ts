@@ -762,6 +762,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
 
   $noScriptHere$: number = 0;
   private coreHandlersLinked = 0;
+
+  linkCoreHandlerBundles(): void {
+    if (
+      this.coreHandlersLinked === this.serializationCtx.$coreHandlerQrls$.size ||
+      isDev ||
+      // Segments stream inside <template>, where scripts don't run; their root links them
+      this instanceof SSRSegmentContainer
+    ) {
+      return;
+    }
+    this.coreHandlersLinked = this.serializationCtx.$coreHandlerQrls$.size;
+    preloadHandlerBundles(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+  }
   $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
@@ -791,19 +804,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
-      // Segments stream inside <template>, where scripts don't run
-      if (
-        this.coreHandlersLinked !== this.serializationCtx.$coreHandlerQrls$.size &&
-        !isDev &&
-        !(this instanceof SSRSegmentContainer)
-      ) {
-        this.coreHandlersLinked = this.serializationCtx.$coreHandlerQrls$.size;
-        preloadHandlerBundles(
-          this,
-          this.renderOptions.preloader,
-          this.renderOptions.serverData?.nonce
-        );
-      }
+      this.linkCoreHandlerBundles();
       if (this.emittedQwikEventNames.size !== this.serializationCtx.$eventNames$.size) {
         // Lets qwikloader catch interactions while the rest of the page streams in
         this.emitNewQwikEvents(false, true);
@@ -2371,6 +2372,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
     for (const qrl of segmentSerializationCtx.$eventQrls$) {
       rootContainer.serializationCtx.$eventQrls$.add(qrl);
+    }
+    for (const [hash, qrl] of segmentSerializationCtx.$coreHandlerQrls$) {
+      rootContainer.serializationCtx.$coreHandlerQrls$.set(hash, qrl);
     }
   }
 

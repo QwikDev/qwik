@@ -126,39 +126,35 @@ export function convertManifestToBundleGraph(
     !!bundle.symbols?.some(
       (symbolName) => manifest.symbols?.[symbolName] && !isRenderSymbol(symbolName)
     );
-  const componentNamesOf = (bundleName: string) => {
-    const componentNames: string[] = [];
-    for (const depName of graph[bundleName].dynamicImports!) {
-      const renderChunk = graph[depName];
-      if (!isRenderChunk(renderChunk)) {
-        continue;
-      }
-      for (const symbolName of renderChunk.symbols!) {
-        const componentName = getSymbolHash(symbolName);
-        if (graph[componentName]) {
-          componentNames.push(componentName);
-        }
-      }
-    }
-    return componentNames;
-  };
+  const componentNamesIn = (renderChunk: QwikBundle) =>
+    renderChunk.symbols!.map(getSymbolHash).filter((componentName) => graph[componentName]);
 
   const depsBesideRenderChunk = new Map<string, Set<string>>();
   for (const bundleName of names) {
+    const ownDynamicImports = graph[bundleName].dynamicImports!;
     const besideRenderChunk = new Set<string>();
-    for (const depName of graph[bundleName].dynamicImports!) {
+    for (const depName of ownDynamicImports) {
       const renderChunk = graph[depName];
       if (!isRenderChunk(renderChunk)) {
         continue;
       }
-      for (const eventQrlChunk of renderChunk.dynamicImports!) {
-        if (!isRenderChunk(graph[eventQrlChunk])) {
-          besideRenderChunk.add(eventQrlChunk);
-        }
-      }
-      for (const childComponentHolder of [depName, ...renderChunk.imports!]) {
-        for (const childComponent of componentNamesOf(childComponentHolder)) {
-          besideRenderChunk.add(childComponent);
+      for (const qrlHolderName of [depName, ...renderChunk.imports!]) {
+        const heldQrlChunks = graph[qrlHolderName].dynamicImports!;
+        const isComponentFile = qrlHolderName === depName || heldQrlChunks.includes(depName);
+        for (const qrlChunkName of heldQrlChunks) {
+          const qrlChunk = graph[qrlChunkName];
+          if (!isRenderChunk(qrlChunk)) {
+            if (isComponentFile) {
+              besideRenderChunk.add(qrlChunkName);
+            }
+            continue;
+          }
+          if (ownDynamicImports.includes(qrlChunkName)) {
+            continue;
+          }
+          for (const childComponent of componentNamesIn(qrlChunk)) {
+            besideRenderChunk.add(childComponent);
+          }
         }
       }
     }

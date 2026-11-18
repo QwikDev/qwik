@@ -1,6 +1,6 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { bundles, nextTriggerMacroTask, replayBundle } from './queue';
+import { bundles, nextTriggerMacroTask, preloadHandlersInView, replayBundle } from './queue';
 import type { BundleGraph, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
@@ -80,6 +80,7 @@ export const loadBundleGraph = (
     return;
   }
   base = basePath;
+  preloadHandlersInView();
 
   if (serializedResponse) {
     isWaitingForGraph = true;

@@ -11,6 +11,33 @@ const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
 const originalMessageChannel = globalThis.MessageChannel;
+const originalIntersectionObserver = globalThis.IntersectionObserver;
+
+type ViewEntry = { target: unknown; isIntersecting: boolean };
+
+const installViewObserver = (document: Document, elementsWithHandlers: unknown[] = []) => {
+  const watched = new Set<unknown>();
+  let reportToPreloader: (entries: ViewEntry[]) => void = () => {};
+  class TestIntersectionObserver {
+    constructor(callback: (entries: ViewEntry[]) => void) {
+      reportToPreloader = callback;
+    }
+    observe = (element: unknown) => watched.add(element);
+    unobserve = (element: unknown) => watched.delete(element);
+  }
+  Object.assign(globalThis, { IntersectionObserver: TestIntersectionObserver });
+  Object.assign(document, {
+    evaluate: () => ({
+      snapshotLength: elementsWithHandlers.length,
+      snapshotItem: (index: number) => elementsWithHandlers[index],
+    }),
+  });
+  return { watched, report: (entries: ViewEntry[]) => reportToPreloader(entries) };
+};
+
+const elementWith = (attributes: Record<string, string>) => ({
+  attributes: Object.entries(attributes).map(([name, value]) => ({ name, value })),
+});
 
 const installBrowserGlobals = () => {
   const document = createDocument();
@@ -22,6 +49,7 @@ const installBrowserGlobals = () => {
     document,
     HTMLElement,
   });
+  installViewObserver(document);
 
   return document;
 };
@@ -78,6 +106,7 @@ afterEach(() => {
     document: originalDocument,
     HTMLElement: originalHTMLElement,
     MessageChannel: originalMessageChannel,
+    IntersectionObserver: originalIntersectionObserver,
   });
 });
 
@@ -959,4 +988,83 @@ test('a limit of 0 starts no speculative preload, and still preloads at the high
   preload('highest-priority.js', 1);
   await vi.runAllTimersAsync();
   expect(linkNames(document)).toEqual(['highest-priority.js']);
+});
+
+const loadGraphOfThreeHandlers = async () => {
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  const graph = { text: async () => JSON.stringify(['first.js', 'second.js', 'third.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 1 });
+  preload(['first.js', 'second.js', 'third.js']);
+};
+
+test('preloads the handlers of an element in view before the other speculative preloads', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+  const view = installViewObserver(document, [button]);
+
+  await loadGraphOfThreeHandlers();
+  view.report([{ target: button, isIntersecting: true }]);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['third.js']);
+});
+
+test('leaves the handlers of an element out of view at their place, and keeps watching it', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+  const view = installViewObserver(document, [button]);
+
+  await loadGraphOfThreeHandlers();
+  view.report([{ target: button, isIntersecting: false }]);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['first.js']);
+  expect(view.watched.has(button)).toBe(true);
+});
+
+test('stops watching an element once it came into view', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+  const view = installViewObserver(document, [button]);
+
+  await loadGraphOfThreeHandlers();
+  expect(view.watched.has(button)).toBe(true);
+  view.report([{ target: button, isIntersecting: true }]);
+
+  expect(view.watched.has(button)).toBe(false);
+});
+
+test("an element in view raises every chunk of its handlers, but not its document handlers'", async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { bundles } = await import('./queue');
+  const input = elementWith({
+    'q-e:input': 'second.js#s_input##third.js|#0',
+    'q-d:scroll': 'first.js#s_scroll',
+  });
+  const view = installViewObserver(document, [input]);
+
+  await loadGraphOfThreeHandlers();
+  view.report([{ target: input, isIntersecting: true }]);
+  await vi.runAllTimersAsync();
+
+  const probabilityOf = (name: string) => 1 - bundles.get(name)!.$inverseProbability$;
+  expect(probabilityOf('second.js')).toBeGreaterThan(probabilityOf('first.js'));
+  expect(probabilityOf('third.js')).toBe(probabilityOf('second.js'));
 });

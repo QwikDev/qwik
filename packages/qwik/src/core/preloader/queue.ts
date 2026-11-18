@@ -23,7 +23,6 @@ let isProcessingAdjustments = false;
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
-  /** The rank of the bundle that leads here, which a bundle with no QRL takes over */
   $importerRank$: number;
   $isStaticImport$?: boolean;
   $rendersPage$?: boolean;
@@ -115,7 +114,6 @@ const enqueueAdjustment = (
 
 const HIGHEST_KIND = 3;
 
-/** On the page handlers go first; for a page still to render, components do. */
 const getRank = (bundle: BundleImport, frame: AdjustmentFrame) => {
   const kind = bundle.$kind$;
   const ownRank = kind
@@ -147,7 +145,6 @@ const processAdjustmentFrame = () => {
 
     adjustmentStack.push({
       $bundle$: depBundle,
-      // A highest priority bundle makes everything it reaches highest priority too
       $inverseProbability$: isHighestPriority(bundle)
         ? dep.$isStatic$
           ? 0
@@ -322,7 +319,6 @@ export const handleBundle = (name: string, inverseProbability: number, rendersPa
   }
 };
 
-/** `isPageToRender` is for a page the user may go to: its components are needed first. */
 export const preload = (
   item: string | string[],
   probability?: number,

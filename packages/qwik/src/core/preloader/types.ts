@@ -13,9 +13,8 @@ export type BundleInfo = {
 export type BundleImport = BundleInfo & {
   $name$: string;
   $state$: number;
-  /** 0: no QRL, 1: handler, 2: other QRL, 3: component */
+  /** 0 none, 1 handler, 2 other QRL, 3 component */
   $kind$: number;
-  /** Order among the bundles of the same probability, lowest first */
   $rank$: number;
   $rendersPage$?: boolean;
   $failures$?: number;

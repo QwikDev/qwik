@@ -28,14 +28,6 @@ export function buildPackageMetadataUrl(registryUrl: string, packageName: string
   return `${normalizeRegistryUrl(registryUrl)}/${encodeURIComponent(packageName)}`;
 }
 
-export function buildPackageVersionUrl(
-  registryUrl: string,
-  packageName: string,
-  version: string
-): string {
-  return `${buildPackageMetadataUrl(registryUrl, packageName)}/${encodeURIComponent(version)}`;
-}
-
 export function buildPackageSearchUrl(registryUrl: string, query: string, size = 20): string {
   const url = new URL(`${normalizeRegistryUrl(registryUrl)}/-/v1/search`);
   url.searchParams.set('text', query);
@@ -89,14 +81,6 @@ export async function fetchPackageMetadata(
   packageName: string
 ): Promise<RegistryMetadata | null> {
   return fetchJson<RegistryMetadata>(buildPackageMetadataUrl(registryUrl, packageName));
-}
-
-export async function fetchPackageVersionMetadata(
-  registryUrl: string,
-  packageName: string,
-  version: string
-): Promise<RegistryMetadata | null> {
-  return fetchJson<RegistryMetadata>(buildPackageVersionUrl(registryUrl, packageName, version));
 }
 
 export function normalizeSearchResponse(

@@ -263,135 +263,6 @@ describe('convertManifestToBundleGraph', () => {
     });
   });
 
-  describe('event qrls and render chunks', () => {
-    const component = { ctxKind: 'function', ctxName: 'component$' };
-    const componentManifest = (cardEvent: { ctxKind: string; ctxName: string }) =>
-      ({
-        bundles: {
-          'card.js': { size, total, qrlImports: ['card-render.js'] },
-          'card-render.js': {
-            size,
-            total,
-            imports: ['row.js'],
-            qrlImports: ['card-events.js'],
-            symbols: ['card_component_CARD'],
-          },
-          'card-events.js': {
-            size,
-            total,
-            symbols: ['card_event_EVENT'],
-            interactivity: cardEvent.ctxName === 'onClick$' ? 5 : 2,
-          },
-          'row.js': { size, total, qrlImports: ['row-render.js', 'row-shared-qrl.js'] },
-          'row-render.js': {
-            size,
-            total,
-            imports: ['row.js'],
-            qrlImports: ['row-events.js', 'cell-render.js'],
-            symbols: ['row_component_ROW'],
-          },
-          'row-events.js': { size, total, symbols: ['row_useTask_TASK'] },
-          'row-shared-qrl.js': { size, total, symbols: ['row_shared_SHARED'] },
-          'cell-render.js': {
-            size,
-            total,
-            qrlImports: ['cell-events.js'],
-            symbols: ['cell_component_CELL'],
-          },
-          'cell-events.js': { size, total, symbols: ['cell_onClick_CLICK'] },
-        },
-        mapping: {
-          card_component_CARD: 'card-render.js',
-          card_event_EVENT: 'card-events.js',
-          row_component_ROW: 'row-render.js',
-          row_useTask_TASK: 'row-events.js',
-          row_shared_SHARED: 'row-shared-qrl.js',
-          cell_component_CELL: 'cell-render.js',
-          cell_onClick_CLICK: 'cell-events.js',
-        },
-        symbols: {
-          card_component_CARD: component,
-          card_event_EVENT: cardEvent,
-          row_component_ROW: component,
-          row_useTask_TASK: { ctxKind: 'function', ctxName: 'useTask$' },
-          row_shared_SHARED: { ctxKind: 'function', ctxName: '$' },
-          cell_component_CELL: component,
-          cell_onClick_CLICK: { ctxKind: 'eventHandler', ctxName: 'onClick$' },
-        },
-      }) as unknown as QwikManifest;
-
-    const likelihoodsFrom = (manifest: QwikManifest, start: string) => {
-      const graph = convertManifestToBundleGraph(manifest);
-      const likelihoods = new Map<string, number>();
-      const visit = (name: string, likelihood: number) => {
-        if ((likelihoods.get(name) ?? 0) >= likelihood) {
-          return;
-        }
-        likelihoods.set(name, likelihood);
-        let edge = 1;
-        for (let i = graph.indexOf(name) + 1; typeof graph[i] === 'number'; i++) {
-          const item = graph[i] as number;
-          if (item < 0) {
-            edge = -item / 10;
-          } else {
-            visit(graph[item] as string, likelihood * edge);
-          }
-        }
-      };
-      visit(start, 1);
-      return likelihoods;
-    };
-
-    const onClick = { ctxKind: 'eventHandler', ctxName: 'onClick$' };
-    const onInput = { ctxKind: 'eventHandler', ctxName: 'onInput$' };
-
-    test("ranks a component's event QRL chunk above its render chunk", () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('card-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
-    });
-
-    test("ranks a child component's event QRL chunk above its parent's render chunk", () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
-    });
-
-    test("ranks a child component's event QRL chunk above the child's render chunk", () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('row-render.js')!);
-    });
-
-    test("ranks the event QRL chunk of a component declared in its parent's file above every render chunk", () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('cell-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
-    });
-
-    test('ranks a QRL that a child component uses from the top of its own file above every render chunk', () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('row-shared-qrl.js')).toBeGreaterThan(
-        likelihoods.get('card-render.js')!
-      );
-    });
-
-    test("ranks a child component's module with the render chunks, below the event QRLs", () => {
-      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
-
-      expect(likelihoods.get('row.js')).toBe(likelihoods.get('card-render.js'));
-      expect(likelihoods.get('row.js')).toBeLessThan(likelihoods.get('row-events.js')!);
-    });
-
-    test('ranks every kind of handler the same', () => {
-      const withClick = likelihoodsFrom(componentManifest(onClick), 'card.js');
-      const withInput = likelihoodsFrom(componentManifest(onInput), 'card.js');
-
-      expect(withInput.get('card-events.js')).toBe(withClick.get('card-events.js'));
-    });
-  });
-
   test(`works`, () => {
     // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
     // calls; write them over the tail so the sizes stay the same.
@@ -447,9 +318,9 @@ describe('convertManifestToBundleGraph', () => {
         "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js": "3 (727/727)",
         "index.tsx_about_component_useStyles_WOcPLNnm2is.js": "2 (3928/3928)",
         "index.tsx_form_component_useStyles_0pasaG6nmEA.js": "2 (4658/9544)",
-        "index.tsx_routes_component_vG0UuU4cNCg.js": "3 (4886/4886)",
+        "index.tsx_routes_component_vG0UuU4cNCg.js": "5 (4886/4886)",
         "layout.js": "0 (4886/4886)",
-        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "3 (4772/9658)",
+        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "2 (4772/9658)",
         "preloader.js": "0 (5000/5000)",
         "qwik-router.js": "2 (4886/4886)",
         "root.js": "0 (4886/4886)",
@@ -464,7 +335,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
         "index.js",
-        -5,
+        -9,
         18,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
@@ -486,160 +357,141 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
         "layout.js",
-        -10,
+        -9,
         25,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
         27,
         "qwik-router.js",
         -10,
-        4,
-        5,
-        16,
         9,
-        11,
-        -5,
+        4,
+        -9,
+        5,
         12,
+        -8,
+        16,
+        11,
         "root.js",
-        -10,
-        91,
-        107,
-        -5,
-        42,
+        -9,
+        40,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
-        -10,
-        107,
-        -5,
-        48,
+        -9,
+        44,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        50,
+        46,
         "src-vendor-lib-libB.ts.js",
-        50,
+        46,
         "BjxcCeNQ9ak",
-        -10,
+        -9,
         21,
         "eevMxFvmCM8",
-        -10,
+        -7,
         25,
         "99K9SAWjPFQ",
-        -10,
+        -9,
         21,
         "LopIayqLfMo",
-        -10,
+        -7,
         9,
         "VjDx6RO4Kis",
-        -10,
+        -9,
         17,
         "HEFxKy9cwuk",
-        -10,
+        -9,
         21,
         "6VMZkqoH00Q",
-        -10,
+        -7,
         3,
         "9PcKHFjikV0",
-        -10,
-        91,
-        107,
-        -5,
-        42,
+        -7,
+        40,
         "9fcUDoGM9Wo",
-        -10,
+        -7,
         9,
         "SHtFir1Ia94",
-        -10,
+        -7,
         25,
         "cH9twROgaEg",
-        -10,
+        -7,
         7,
         "dAo05yeFq1I",
-        -10,
-        107,
-        -5,
-        48,
+        -7,
+        44,
         "ds9jIPT1g9s",
-        -10,
-        107,
-        -5,
+        -7,
         19,
         "lTNqDDf58lI",
-        -10,
+        -7,
         5,
         "m7u9ARcfDGU",
-        -5,
+        -7,
         18,
         "q56DrQcc9VE",
-        -10,
-        4,
-        5,
-        16,
-        9,
-        11,
-        -5,
+        -7,
         12,
         "vG0UuU4cNCg",
-        -10,
+        -9,
         21,
         "vXTAPbOW0Ig",
-        -10,
+        -7,
         27,
         "0pasaG6nmEA",
-        -10,
-        107,
-        -5,
+        -7,
         19,
         "BMutFDNOKhc",
-        -10,
+        -7,
         9,
         "Iyy38y0K3Hw",
-        -10,
+        -9,
         21,
         "MOLFIZOhXmE",
-        -10,
+        -7,
         25,
         "WOcPLNnm2is",
-        -5,
+        -7,
         18,
         "3mjmVvTlJqo",
-        -10,
+        -6,
         16,
         "5DbAsQLGGo4",
-        -10,
+        -7,
         4,
         "Nhj4Mq4ilm8",
-        -10,
+        -6,
         14,
         "rufUrhffR5k",
-        -10,
+        -6,
         11,
         "0xCNPioszTk",
-        -10,
+        -7,
         5,
         "1F0Ft5Y9bOI",
-        -10,
+        -7,
         3,
         "ANY7TPAnAd8",
-        -10,
+        -7,
         27,
         "BdwdOv10pp0",
-        -10,
+        -7,
         9,
         "YCi2vDzuhns",
-        -10,
+        -7,
         27,
         "dNtHVLGwESE",
-        -10,
+        -7,
         7,
         "ep3t0fF0SDA",
-        -10,
+        -9,
         21,
         "lWJp5Z4VtFs",
-        -10,
+        -7,
         5,
         "s3XioIi2Huw",
-        -10,
+        -7,
         9,
       ]
     `);

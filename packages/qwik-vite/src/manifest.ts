@@ -278,7 +278,10 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
             score += 2;
           }
         } else {
-          score += 2;
+          score += 1;
+          if (/(click|mouse|pointer|touch|key|scroll|gesture|wheel)/i.test(symbol.ctxName)) {
+            score += 3;
+          }
         }
       }
       maxScore = Math.max(maxScore, score);

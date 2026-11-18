@@ -16,6 +16,7 @@ export async function finalizeAndSwapOutOfOrderSegment(
     ssr.write(`<template ${QPendingResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
     ssr.write(result.html);
     ssr.write('</template>');
+    ssr.linkCoreHandlerBundles();
     ssr.emitOutOfOrderSegmentScripts(result.scripts);
     ssr.emitOutOfOrderExecutorIfNeeded();
     ssr.emitInlineScript(`qO(${boundaryId})`);

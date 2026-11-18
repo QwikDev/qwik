@@ -71,6 +71,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.resetModules();
 
   Object.assign(globalThis, {
@@ -262,6 +263,142 @@ test('keeps a highest priority dependency at the highest priority when another i
   const links = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
   const shared = links.find((link) => link.href.endsWith('shared.js'))!;
   expect(shared.getAttribute('fetchpriority')).toBe(null);
+});
+
+test('preloads a bundle again once it is hinted at the highest priority, after its preload failed', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  const failed = document.head.querySelector('link') as HTMLLinkElement;
+  failed.onerror!(new Event('error'));
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  const retried = document.head.querySelector('link') as HTMLLinkElement;
+  expect(retried.href.split('/').pop()).toBe('entry-a.js');
+  expect(retried.getAttribute('fetchpriority')).toBe(null);
+});
+
+const startPreloaderWith = async (graph: (string | number)[]) => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+  initPreloader(graph);
+  return { document, preload };
+};
+
+const failPreload = (document: Document) =>
+  (document.head.querySelector('link') as HTMLLinkElement).onerror!(new Event('error'));
+
+const preloadLinks = (document: Document) =>
+  Array.from(document.head.querySelectorAll('link'), (link) => ({
+    name: link.href.split('/').pop(),
+    priority: link.getAttribute('fetchpriority'),
+  }));
+
+test('retries a failed speculative preload once, after a delay', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+
+  failPreload(document);
+  vi.advanceTimersByTime(100);
+  expect(preloadLinks(document)).toEqual([]);
+
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+});
+
+test('retries a failed highest priority preload at once', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  failPreload(document);
+  vi.advanceTimersByTime(10);
+
+  expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: null }]);
+});
+
+test('stops after the retry fails too, even when the same hint comes again', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  failPreload(document);
+  vi.runAllTimers();
+
+  failPreload(document);
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([]);
+
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([]);
+});
+
+test('does not retry a preload that failed while the browser is offline', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  vi.stubGlobal('navigator', { onLine: false });
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+
+  failPreload(document);
+  vi.runAllTimers();
+
+  expect(preloadLinks(document)).toEqual([]);
+});
+
+test('gives every failed preload two new attempts when the network comes back', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  const listen = vi.fn();
+  document.defaultView!.addEventListener = listen;
+  vi.stubGlobal('navigator', { onLine: false });
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  failPreload(document);
+  vi.runAllTimers();
+
+  vi.stubGlobal('navigator', { onLine: true });
+  const onNetworkBack = listen.mock.calls.find(([type]) => type === 'online')![1];
+  onNetworkBack();
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+
+  failPreload(document);
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+
+  failPreload(document);
+  vi.runAllTimers();
+  expect(preloadLinks(document)).toEqual([]);
+});
+
+test('a hint at the highest priority still preloads a bundle whose two attempts failed', async () => {
+  const { document, preload } = await startPreloaderWith(['entry-a.js']);
+  preload('entry-a.js', 0.8);
+  vi.runAllTimers();
+  failPreload(document);
+  vi.runAllTimers();
+  failPreload(document);
+  vi.runAllTimers();
+
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: null }]);
 });
 
 test('applies hints buffered before the preloader chunk loaded', async () => {

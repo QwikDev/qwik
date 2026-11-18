@@ -15,6 +15,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: deps,
     $inverseProbability$: 1,
+    $hintOrder$: 0,
   };
 };
 

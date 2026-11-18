@@ -134,6 +134,39 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
   });
 
+  test('points a qrl import of a re-exported segment at the facade chunk that exports it', () => {
+    // A segment like `$(importedFn)` lives in a group chunk; only its facade exports the symbol.
+    const page = {
+      ...chunk('page', 'page.js'),
+      code: 'qrl(() => import("./seg-entry.js"));',
+      modules: { '/app/page.tsx': {} },
+    };
+    page.dynamicImports = ['seg-entry.js'];
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'page.js': page,
+        'seg-entry.js': {
+          ...chunk('seg', 'seg-entry.js'),
+          imports: ['group.js'],
+          facadeModuleId: '/app/page.tsx_seg.js',
+        },
+        'group.js': { ...chunk('group', 'group.js'), modules: { '/app/page.tsx_seg.js': {} } },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        id === '/app/page.tsx'
+          ? ({ dynamicallyImportedIds: ['/app/page.tsx_seg.js'], meta: {} } as any)
+          : ({ dynamicallyImportedIds: [], meta: { segment: true } } as any)
+    );
+    expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg-entry.js']);
+    expect(manifest.bundles['seg-entry.js'].origins).toEqual([path.join('app', 'page.tsx_seg.js')]);
+  });
+
   test('leaves out dynamic imports that tree-shaking removed from the code', () => {
     // A library exports two components; the app uses only one, so the other's qrl() is gone.
     const lib = {

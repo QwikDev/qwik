@@ -432,6 +432,17 @@ export function generateManifestFromBundles(
       }
     }
   }
+  // A re-exported segment's code sits in its group chunk, but only its facade exports the symbol
+  for (const outputBundle of Object.values(outputBundles)) {
+    const { facadeModuleId } = outputBundle as Rolldown.OutputChunk;
+    if (
+      outputBundle.type === 'chunk' &&
+      facadeModuleId &&
+      !(facadeModuleId in outputBundle.modules)
+    ) {
+      bundleByModuleId.set(facadeModuleId, getBundleName(outputBundle.fileName)!);
+    }
+  }
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type === 'asset') {
       // we don't record map files as assets
@@ -494,7 +505,10 @@ export function generateManifestFromBundles(
       }
     }
 
-    const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
+    const moduleIds = outputBundle.moduleIds || Object.keys(outputBundle.modules);
+    // A facade holds no module; its origin is the one it exports, for same-parent preload ratings
+    const ids =
+      moduleIds.length || !outputBundle.facadeModuleId ? moduleIds : [outputBundle.facadeModuleId];
     const modulePaths = ids
       .filter((m) => !m.startsWith(`\u0000`))
       .map((m) => path.relative(opts.rootDir, m));

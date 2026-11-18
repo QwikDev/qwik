@@ -559,6 +559,13 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
   }
 };
 
+/** @internal */
+export const restoreQrlCaptures = (qrl: QRLInternal) => {
+  const runningCaptures = _capturesObj._;
+  qrl.getCaptured();
+  setCaptures(runningCaptures);
+};
+
 // Wrap functions to provide their lexical scope
 const bindCaptures = <TYPE>(qrl: QRLClass<unknown>, ref: TYPE): TYPE => {
   if (typeof ref !== 'function' || !qrl.$captures$) {

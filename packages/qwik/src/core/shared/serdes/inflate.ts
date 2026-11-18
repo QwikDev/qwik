@@ -8,6 +8,7 @@ import {
   vnode_isVNode,
 } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
+import { requestPreload } from '../../preloader/bridge';
 import type { BackRef } from '../../reactive-primitives/backref';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -34,7 +35,7 @@ import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
 import { isServerPlatform } from '../platform/platform';
-import type { QRLInternal } from '../qrl/qrl-class';
+import { restoreQrlCaptures, type QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isObject, isString } from '../utils/types';
@@ -254,6 +255,9 @@ function* inflateIterator(
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
+      if (qTest ? !isServerPlatform() : !isServer) {
+        preloadTaskChain(task);
+      }
       break;
     }
     case TypeIds.Component:
@@ -549,6 +553,14 @@ function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }
+
+const preloadTaskChain = (task: Task) => {
+  restoreQrlCaptures(task.$qrl$);
+  const chunk = task.$qrl$.$chunk$;
+  if (chunk) {
+    requestPreload(chunk, 1);
+  }
+};
 
 function restoreEffectBackRefForEffects(
   effects: Set<EffectSubscription> | null | undefined,

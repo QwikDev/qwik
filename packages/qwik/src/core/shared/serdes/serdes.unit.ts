@@ -11,7 +11,7 @@ import {
   SerializerSymbol,
   type AsyncSignal,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -29,9 +29,12 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { getTestPlatform } from '../../../testing/platform';
+import type { PreloaderGlobal } from '../../preloader/bridge';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { _capturesObj, createQRL, setCaptures, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
@@ -1830,6 +1833,74 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: false, $scopedStyleIdPrefix$: null });
+    });
+  });
+
+  describe('restoring a task', () => {
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+    const preloaderGlobal = globalThis as PreloaderGlobal;
+    const preloadHints = () => preloaderGlobal.qPreloadQueue ?? [];
+    const taskQrl = (symbol: string, captures: unknown[] | null = null) =>
+      createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
+    const createTask = (qrl: QRLInternal) =>
+      new Task(TaskFlags.TASK, 0, shared1 as any, qrl as any, null);
+    const restore = (objs: unknown[], isServer: boolean) => {
+      setPlatform({ ...getTestPlatform(), isServer });
+      return deserialize(objs)[0] as Task;
+    };
+    const restoreInBrowser = (objs: unknown[]) => restore(objs, false);
+    const restoreOnServer = (objs: unknown[]) => restore(objs, true);
+
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    afterEach(() => {
+      setPlatform(platformBeforeTest);
+      setCaptures(null);
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    it("asks for the task's chunk at the highest priority", async () => {
+      const objs = await serialize(createTask(taskQrl('s_task')));
+
+      restoreInBrowser(objs);
+
+      expect(preloadHints()).toContainEqual(['s_task.js', 1]);
+    });
+
+    it('restores the signals the task captures, and the tasks subscribed to them', async () => {
+      const written = createSignal(0) as SignalImpl;
+      const next = createTask(taskQrl('s_next'));
+      written.$effects$ = new Set([
+        new EffectSubscription(next, EffectProperty.COMPONENT, null, null),
+      ]);
+      const objs = await serialize(createTask(taskQrl('s_first', [written])));
+
+      const first = restoreInBrowser(objs);
+
+      expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
+      expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it('leaves the captures of the QRL that is running untouched', async () => {
+      const runningCaptures = ['running'];
+      const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
+      setCaptures(runningCaptures);
+
+      restoreInBrowser(objs);
+
+      expect(_capturesObj._).toBe(runningCaptures);
+    });
+
+    it('does neither on the server', async () => {
+      const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
+
+      const task = restoreOnServer(objs);
+
+      expect(task.$qrl$.$captures$).toBeTypeOf('string');
+      expect(preloadHints()).toEqual([]);
     });
   });
 

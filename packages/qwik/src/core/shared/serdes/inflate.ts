@@ -554,11 +554,24 @@ function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }
 
+let tasksToPreload: Task[] | null = null;
+
 const preloadTaskChain = (task: Task) => {
-  restoreQrlCaptures(task.$qrl$);
-  const chunk = task.$qrl$.$chunk$;
-  if (chunk) {
-    requestPreload(chunk, 1);
+  if (tasksToPreload) {
+    tasksToPreload.push(task);
+    return;
+  }
+  tasksToPreload = [task];
+  try {
+    for (let i = 0; i < tasksToPreload.length; i++) {
+      const qrl = tasksToPreload[i].$qrl$;
+      restoreQrlCaptures(qrl);
+      if (qrl.$chunk$) {
+        requestPreload(qrl.$chunk$, 1);
+      }
+    }
+  } finally {
+    tasksToPreload = null;
   }
 };
 

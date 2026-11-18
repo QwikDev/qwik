@@ -1844,6 +1844,11 @@ describe('shared-serialization', () => {
       createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
     const createTask = (qrl: QRLInternal) =>
       new Task(TaskFlags.TASK, 0, shared1 as any, qrl as any, null);
+    const subscribeTaskTo = (signal: SignalImpl, task: Task) => {
+      signal.$effects$ = new Set([
+        new EffectSubscription(task, EffectProperty.COMPONENT, null, null),
+      ]);
+    };
     const restore = (objs: unknown[], isServer: boolean) => {
       setPlatform({ ...getTestPlatform(), isServer });
       return deserialize(objs)[0] as Task;
@@ -1872,16 +1877,31 @@ describe('shared-serialization', () => {
 
     it('restores the signals the task captures, and the tasks subscribed to them', async () => {
       const written = createSignal(0) as SignalImpl;
-      const next = createTask(taskQrl('s_next'));
-      written.$effects$ = new Set([
-        new EffectSubscription(next, EffectProperty.COMPONENT, null, null),
-      ]);
+      subscribeTaskTo(written, createTask(taskQrl('s_next')));
       const objs = await serialize(createTask(taskQrl('s_first', [written])));
 
       const first = restoreInBrowser(objs);
 
       expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
       expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it("restores a chain of 400 tasks and asks for every task's chunk", async () => {
+      const tasks: Task[] = [];
+      let input = createSignal(0) as SignalImpl;
+      for (let i = 0; i < 400; i++) {
+        const output = createSignal(0) as SignalImpl;
+        const task = createTask(taskQrl(`s_task${i}`, [input, output]));
+        subscribeTaskTo(input, task);
+        tasks.push(task);
+        input = output;
+      }
+      const objs = await serialize(tasks[0]);
+
+      restoreInBrowser(objs);
+
+      const hintedChunks = preloadHints().map(([chunk]) => chunk);
+      expect(new Set(hintedChunks)).toEqual(new Set(tasks.map((task) => task.$qrl$.$chunk$)));
     });
 
     it('leaves the captures of the QRL that is running untouched', async () => {

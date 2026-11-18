@@ -67,6 +67,9 @@ export {
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
 export {
+  BINARY_VNODE_CODES,
+  BinaryVNodeKind,
+  BinaryVNodeOther,
   VNodeDataChar,
   VNodeDataSeparator,
   getSegmentVNodeRefId,

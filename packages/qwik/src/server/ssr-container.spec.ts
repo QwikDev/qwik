@@ -3,6 +3,7 @@ import { createDocument } from '@qwik.dev/core/testing';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { parseStateScript } from '../testing/rendering.unit-util';
 import {
+  _binaryStateToJson,
   _createQRL,
   _getSubscriber,
   _fnSignal,
@@ -15,6 +16,9 @@ import type { EffectSubscription, SignalImpl } from './qwik-types';
 import { collectSubscriptionPatches } from './ooos-utils';
 import { SSRSegmentContainer, ssrCreateContainer } from './ssr-container';
 import {
+  BINARY_VNODE_CODES,
+  BinaryVNodeKind,
+  BinaryVNodeOther,
   QDefaultSlot,
   QError,
   OnRenderProp,
@@ -126,6 +130,20 @@ const getIds = (html: string) =>
       .textContent!.matchAll(/=(\d+)/g),
     (match) => Number(match[1])
   );
+
+/** Turns the typeId/value pairs of a binary state dump back into plain values. */
+const fromDumpPairs = (pairs: unknown[]): unknown[] => {
+  const values: unknown[] = [];
+  for (let i = 1; i < pairs.length; i += 2) {
+    const value = pairs[i];
+    values.push(Array.isArray(value) ? fromDumpPairs(value) : value);
+  }
+  return values;
+};
+
+/** Writes the vnode data in the text format, which builds without binary state use. */
+const emitTextVNodeData = (container: unknown) =>
+  (container as any).emitVNodeDataScript(undefined, (container as any).vNodeDatas.entries());
 
 describe('SSR Container', () => {
   it.each(['original </script> streamed string', 12345678901234567890n])(
@@ -637,6 +655,56 @@ describe('SSR Container', () => {
     }
   });
 
+  it('writes vnode attributes into binary vnode data without markup', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+    Reflect.set(container, '$noMoreRoots$', true);
+    const customKey = '</script><script>globalThis.__qwik_xss=1</script>';
+    const slotName = '</script>|~;=?@ zażółć';
+    const componentHash = '</script>|{component}~';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        {
+          [customKey]: 'projection-ref',
+          [QSlot]: slotName,
+          [QDefaultSlot]: '-1A',
+          [OnRenderProp]: _createQRL(null, `s_${componentHash}`, () => undefined),
+        },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitBinaryVNodeDataScript((container as any).vNodeDatas.entries());
+
+    const output = writer.toString();
+    expect(output.indexOf('</script>')).toBe(output.lastIndexOf('</script>'));
+    const script = output.match(/<script type="qwik\/vnode"[^>]*>([\s\S]*)<\/script>/)![1];
+    const other = (payload: number) => payload * 4 + BinaryVNodeKind.Other;
+    const code = (char: string) =>
+      other(BINARY_VNODE_CODES.indexOf(char) + BinaryVNodeOther.FirstCode);
+    const customCode = other(BINARY_VNODE_CODES.length + BinaryVNodeOther.FirstCode);
+    // The tokens are written last first, for the reader that reads backwards.
+    const [tokens] = fromDumpPairs(_binaryStateToJson(script)) as unknown[][];
+    expect(tokens.reverse()).toEqual([
+      BinaryVNodeKind.ElementStart,
+      other(BinaryVNodeOther.OpenVirtual),
+      customCode,
+      customKey,
+      'projection-ref',
+      code(VNodeDataChar.SLOT_CHAR),
+      slotName,
+      customCode,
+      QDefaultSlot,
+      '-1A',
+      code(VNodeDataChar.RENDER_FN_CHAR),
+      VNodeDataChar.RENDER_HASH_PREFIX_CHAR + componentHash,
+      other(BinaryVNodeOther.CloseVirtual),
+    ]);
+  });
+
   it('should encode custom attributes with separators in emitVNodeData', () => {
     const writer = new StringSSRWriter();
 
@@ -666,7 +734,7 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitVNodeData();
+    emitTextVNodeData(container);
 
     const output = writer.toString();
 
@@ -703,7 +771,7 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitVNodeData();
+    emitTextVNodeData(container);
 
     const encodedHash = encodeVNodeDataString(encodeVNodeDataKey(componentHash));
     expect(writer.toString()).toContain(`${VNodeDataChar.RENDER_FN_CHAR}_${encodedHash}`);
@@ -725,7 +793,7 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitVNodeData();
+    emitTextVNodeData(container);
 
     const output = writer.toString();
     const encodedKey = encodeVNodeDataString(encodeVNodeDataKey(customKey));
@@ -751,7 +819,7 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitVNodeData();
+    emitTextVNodeData(container);
 
     const output = writer.toString();
     const encodedSlotName = encodeVNodeDataString(encodeVNodeDataKey(slotName));
@@ -788,7 +856,7 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitVNodeData();
+    emitTextVNodeData(container);
 
     const output = writer.toString();
     const vnodeStart = output.indexOf('<script type="qwik/vnode" :="">');

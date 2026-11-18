@@ -324,6 +324,7 @@ export interface _ContainerElement extends HTMLElement {
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _VNode>;
+    qVNodeTableIndex?: number;
 }
 
 // @public
@@ -996,12 +997,13 @@ export interface _QDocument extends Document {
     qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
-    qVNodeData: WeakMap<Element, string>;
+    qVNodeData: WeakMap<Element, string | number>;
     qVNodeDataCallbacks?: Array<() => void>;
     qVNodeDataProcessed?: boolean;
     qVNodeDataReady?: boolean;
     qVNodeDataStarted?: boolean;
     qVNodeDataState?: unknown;
+    qVNodeTables?: unknown[][];
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts

@@ -1,5 +1,7 @@
 import { createSerializationContext } from './serialization-context';
 
+export { BinaryStateWriter } from './binary-state-writer';
+export { BINARY_VNODE_PREFIX } from './qwik-copy';
 export {
   createSerializationContext,
   type SeenRef,

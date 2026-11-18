@@ -84,6 +84,14 @@ export const BINARY_STATE_PREFIX = '~';
  */
 export const isBinaryState = (text: string): boolean => text.charCodeAt(0) === 126;
 
+/**
+ * The first character of binary vnode data. Text vnode data can start with `~`, never with `}`.
+ *
+ * @internal
+ */
+export const BINARY_VNODE_PREFIX = '}';
+export const isBinaryVNodeData = (text: string): boolean => text.charCodeAt(0) === 125;
+
 const MAX_ROOTS = BinaryCode.MaxRoots;
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 
@@ -152,7 +160,7 @@ export class BinaryStateReader {
   /** Called when a state patch has added roots. */
   $onRootsAdded$: () => void = () => {};
 
-  /** @param text The content of the root state script, if the container has one. */
+  /** @param text - The content of the root state script, if the container has one. */
   constructor(text?: string) {
     if (text) {
       this.$appendScript$(text);
@@ -203,6 +211,30 @@ export class BinaryStateReader {
       }
     }
     return { $forwardRefs$: forwardRefs, $extraRootId$: extraRootId };
+  }
+
+  /**
+   * Positions on the last item of the array root `rootIndex`, to read it backwards with
+   * `$readNext$`.
+   */
+  $openArrayRoot$(rootIndex: number): number {
+    this.$seek$(this.$rootEnds$[rootIndex]);
+    if (this.$unit$(this.$pos$--) !== BinaryCode.ArrayEnd) {
+      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
+    }
+    return this.$openArray$();
+  }
+
+  /** Restores the plain value at the current position and moves before it. */
+  $readNext$(): unknown {
+    const code = this.$unit$(this.$pos$);
+    if (code >= BinaryCode.Num0) {
+      // Most tokens are small integers; skip the general restore.
+      this.$charge$(1);
+      this.$pos$--;
+      return code - BinaryCode.Num0;
+    }
+    return this.$restore$(null!, -1, false);
   }
 
   $restoreRoot$(container: DeserializeContainer, rootIndex: number): unknown {
@@ -490,8 +522,8 @@ export class BinaryStateReader {
   /**
    * Restores the value that ends at the current position and moves before it.
    *
-   * @param rootIndex The root this value is, or -1.
-   * @param isNested Whether the value is an item of another value.
+   * @param rootIndex - The root this value is, or -1.
+   * @param isNested - Whether the value is an item of another value.
    */
   private $restore$(
     container: DeserializeContainer,

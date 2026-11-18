@@ -161,6 +161,32 @@ const getRootScope = (scope: QwikLoaderEventScope): 'e' | 'd' | 'w' =>
 
 const isElementNode = (node: Node | null): node is Element => !!node && node.nodeType === 1;
 
+const getChunks = (chunk: string, otherChunks: string | undefined) =>
+  otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+
+const preloadAtHighestPriority = (chunks: string[]) => {
+  const preloaderGlobal = win as unknown as PreloaderGlobal;
+  preloaderGlobal.qPreload
+    ? preloaderGlobal.qPreload(chunks, 1)
+    : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+};
+
+const preloadHandlersOnIntent = (ev: Event) => {
+  const path = ev.composedPath() as Element[];
+  for (let i = 0; i < path.length; i++) {
+    // eslint-disable-next-line qwik-local/loop-style
+    events.forEach((scopedKebabName) => {
+      const qrls =
+        scopedKebabName.charAt(0) === elementPrefix &&
+        path[i].getAttribute?.('q-' + scopedKebabName)?.split('|');
+      for (let j = 0; qrls && j < qrls.length; j++) {
+        const [chunk, , , otherChunks] = qrls[j].split('#');
+        chunk && preloadAtHighestPriority(getChunks(chunk, otherChunks));
+      }
+    });
+  }
+};
+
 const isCaptureHandlerElement = (
   element: Element,
   scopedKebabName: string,
@@ -208,14 +234,11 @@ const resolveHandler = (
     return handler;
   }
 
-  const chunks = otherChunks ? [chunk, ...otherChunks.split(',')] : [chunk];
+  const chunks = getChunks(chunk, otherChunks);
   // Told now, the preloader fetches what these chunks import while they download.
   // Page lifecycle handlers stay out, or their whole import graph would load with the page.
   if (isUserEvent) {
-    const preloaderGlobal = win as unknown as PreloaderGlobal;
-    preloaderGlobal.qPreload
-      ? preloaderGlobal.qPreload(chunks, 1)
-      : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+    preloadAtHighestPriority(chunks);
   }
 
   const href = new URL(chunk, base).href;
@@ -666,5 +689,7 @@ if (!_qwikEv?.roots) {
     push: addEventOrRoot,
   };
   addEventListener(doc, readyStateChange, processReadyStateChange);
+  addEventListener(doc, 'pointerover', preloadHandlersOnIntent, true, true);
+  addEventListener(doc, 'focusin', preloadHandlersOnIntent, true, true);
   processReadyStateChange();
 }

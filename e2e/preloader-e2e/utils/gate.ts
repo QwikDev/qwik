@@ -68,7 +68,9 @@ export const chunksHintedAtHighestPriority = (page: Page) =>
       ...(win.__preloadHints ?? []),
       ...(win.qPreloadQueue ?? []).map(([item, probability]) => ({ item, probability })),
     ];
-    return hints.filter((hint) => hint.probability === 1).flatMap((hint) => hint.item);
+    return [
+      ...new Set(hints.filter((hint) => hint.probability === 1).flatMap((hint) => hint.item)),
+    ];
   });
 
 export const recordSpeculativePreloads = (page: Page) =>

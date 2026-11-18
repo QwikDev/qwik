@@ -73,6 +73,8 @@ export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'compone
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
+export const chunkHasClickHandler = (url: string) => chunkHasSymbolOf(url, 'onClick$');
+
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
     (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')

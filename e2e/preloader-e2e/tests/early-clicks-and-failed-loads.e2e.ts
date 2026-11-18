@@ -640,6 +640,13 @@ test.describe('chunk preload fails', () => {
     await expect
       .poll(() => [...failedWhileOffline].filter(isConditionalChunk).length)
       .toBeGreaterThan(0);
+    await page.waitForFunction(
+      (failedUrls) =>
+        !Array.from(document.head.querySelectorAll('link')).some((link) =>
+          failedUrls.includes(link.href)
+        ),
+      [...failedWhileOffline]
+    );
 
     await waitForNetworkIdle(page, () => context.setOffline(false), LONGER_THAN_THE_RETRY_DELAY_MS);
 

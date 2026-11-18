@@ -286,22 +286,33 @@ describe('convertManifestToBundleGraph', () => {
           'row-render.js': {
             size,
             total,
-            qrlImports: ['row-events.js'],
+            qrlImports: ['row-events.js', 'cell-render.js'],
             symbols: ['row_component_ROW'],
           },
           'row-events.js': { size, total, symbols: ['row_useTask_TASK'] },
+          'cell-render.js': {
+            size,
+            total,
+            qrlImports: ['cell-events.js'],
+            symbols: ['cell_component_CELL'],
+          },
+          'cell-events.js': { size, total, symbols: ['cell_onClick_CLICK'] },
         },
         mapping: {
           card_component_CARD: 'card-render.js',
           card_event_EVENT: 'card-events.js',
           row_component_ROW: 'row-render.js',
           row_useTask_TASK: 'row-events.js',
+          cell_component_CELL: 'cell-render.js',
+          cell_onClick_CLICK: 'cell-events.js',
         },
         symbols: {
           card_component_CARD: component,
           card_event_EVENT: cardEvent,
           row_component_ROW: component,
           row_useTask_TASK: { ctxKind: 'function', ctxName: 'useTask$' },
+          cell_component_CELL: component,
+          cell_onClick_CLICK: { ctxKind: 'eventHandler', ctxName: 'onClick$' },
         },
       }) as unknown as QwikManifest;
 
@@ -340,6 +351,18 @@ describe('convertManifestToBundleGraph', () => {
       const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
 
       expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
+    });
+
+    test("ranks a child component's event QRL chunk above the child's render chunk", () => {
+      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
+
+      expect(likelihoods.get('row-events.js')).toBeGreaterThan(likelihoods.get('row-render.js')!);
+    });
+
+    test("ranks the event QRL chunk of a component declared in its parent's file above every render chunk", () => {
+      const likelihoods = likelihoodsFrom(componentManifest(onClick), 'card.js');
+
+      expect(likelihoods.get('cell-events.js')).toBeGreaterThan(likelihoods.get('card-render.js')!);
     });
 
     test("ranks a child component's module with the render chunks, below the event QRLs", () => {
@@ -462,27 +485,28 @@ describe('convertManifestToBundleGraph', () => {
         16,
         9,
         11,
-        106,
+        108,
         -5,
         12,
         "root.js",
         -10,
-        106,
+        92,
+        108,
         -5,
-        42,
+        43,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
         -10,
-        106,
+        108,
         -5,
-        48,
+        49,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        50,
+        51,
         "src-vendor-lib-libB.ts.js",
-        50,
+        51,
         "BjxcCeNQ9ak",
         -10,
         21,
@@ -506,9 +530,10 @@ describe('convertManifestToBundleGraph', () => {
         3,
         "9PcKHFjikV0",
         -10,
-        106,
+        92,
+        108,
         -5,
-        42,
+        43,
         "9fcUDoGM9Wo",
         -10,
         9,
@@ -520,12 +545,12 @@ describe('convertManifestToBundleGraph', () => {
         7,
         "dAo05yeFq1I",
         -10,
-        106,
+        108,
         -5,
-        48,
+        49,
         "ds9jIPT1g9s",
         -10,
-        106,
+        108,
         -5,
         19,
         "lTNqDDf58lI",
@@ -536,7 +561,7 @@ describe('convertManifestToBundleGraph', () => {
         18,
         "q56DrQcc9VE",
         -10,
-        106,
+        108,
         -5,
         12,
         "vG0UuU4cNCg",
@@ -547,7 +572,7 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "0pasaG6nmEA",
         -10,
-        106,
+        108,
         -5,
         19,
         "BMutFDNOKhc",

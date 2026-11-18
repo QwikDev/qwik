@@ -658,13 +658,15 @@ describe('qwikloader behavior', () => {
       return createMockEvent(target, eventName, { composedPath: () => path });
     };
 
+    const resumedContainer = () =>
+      createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+
     test.each([
       ['the pointer reaching an element', 'pointerover'],
       ['an element taking the focus', 'focusin'],
-    ])("%s preloads its handlers' chunks at the highest priority", (_title, eventName) => {
+    ])("%s sends its handlers' chunks as one speculative hint", (_title, eventName) => {
       const { doc, win } = createLoaderEnvironment(['e:click', 'ep:scroll']);
-      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-      const button = createMockElement(container, {
+      const button = createMockElement(resumedContainer(), {
         'q-e:click': 'click.js#handler##other.js|second.js#second',
         'q-ep:scroll': 'scroll.js#handler',
       });
@@ -673,45 +675,60 @@ describe('qwikloader behavior', () => {
       getSingleListener(doc, eventName).handler(intentOn(button, eventName));
 
       expect(win.qPreload.mock.calls).toEqual([
-        [['click.js', 'other.js'], 1],
-        [['second.js'], 1],
-        [['scroll.js'], 1],
+        [['click.js', 'other.js', 'second.js', 'scroll.js'], 0.9],
       ]);
     });
 
-    test("the pointer reaching a child preloads its ancestors' handlers too", () => {
+    test("the pointer reaching a child hints its ancestors' handlers too, nearest first", () => {
       const { doc, win } = createLoaderEnvironment(['e:click']);
-      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-      const card = createMockElement(container, { 'q-e:click': 'card.js#handler' });
-      const label = createMockElement(card, {});
+      const card = createMockElement(resumedContainer(), { 'q-e:click': 'card.js#handler' });
+      const button = createMockElement(card, { 'q-e:click': 'button.js#handler' });
+      const label = createMockElement(button, {});
       win.qPreload = vi.fn();
 
       getSingleListener(doc, 'pointerover').handler(intentOn(label, 'pointerover'));
 
-      expect(win.qPreload.mock.calls).toEqual([[['card.js'], 1]]);
+      expect(win.qPreload.mock.calls).toEqual([[['button.js', 'card.js'], 0.9]]);
     });
 
-    test('queues the chunks for a preloader that has not loaded yet', () => {
+    test('sends one hint while the pointer moves inside the same element', () => {
       const { doc, win } = createLoaderEnvironment(['e:click']);
-      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-      const button = createMockElement(container, { 'q-e:click': 'click.js#handler' });
-
-      getSingleListener(doc, 'pointerover').handler(intentOn(button, 'pointerover'));
-
-      expect(win.qPreloadQueue).toEqual([[['click.js'], 1]]);
-    });
-
-    test('preloads a chunk once, however often the pointer comes back', () => {
-      const { doc, win } = createLoaderEnvironment(['e:click']);
-      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-      const card = createMockElement(container, { 'q-e:click': 'card.js#handler' });
+      const card = createMockElement(resumedContainer(), { 'q-e:click': 'card.js#handler' });
       const label = createMockElement(card, {});
       const icon = createMockElement(card, {});
+      win.qPreload = vi.fn();
 
       getSingleListener(doc, 'pointerover').handler(intentOn(label, 'pointerover'));
       getSingleListener(doc, 'pointerover').handler(intentOn(icon, 'pointerover'));
 
-      expect(win.qPreloadQueue).toEqual([[['card.js'], 1]]);
+      expect(win.qPreload.mock.calls).toEqual([[['card.js'], 0.9]]);
+    });
+
+    test('hints an element again when the pointer comes back to it after another one', () => {
+      const { doc, win } = createLoaderEnvironment(['e:click']);
+      const container = resumedContainer();
+      const first = createMockElement(container, { 'q-e:click': 'first.js#handler' });
+      const second = createMockElement(container, { 'q-e:click': 'second.js#handler' });
+      win.qPreload = vi.fn();
+
+      getSingleListener(doc, 'pointerover').handler(intentOn(first, 'pointerover'));
+      getSingleListener(doc, 'pointerover').handler(intentOn(second, 'pointerover'));
+      getSingleListener(doc, 'pointerover').handler(intentOn(first, 'pointerover'));
+
+      expect(win.qPreload.mock.calls).toEqual([
+        [['first.js'], 0.9],
+        [['second.js'], 0.9],
+        [['first.js'], 0.9],
+      ]);
+    });
+
+    test('sends no hint while the preloader has not loaded', () => {
+      const { doc, win } = createLoaderEnvironment(['e:click']);
+      const button = createMockElement(resumedContainer(), { 'q-e:click': 'click.js#handler' });
+
+      getSingleListener(doc, 'pointerover').handler(intentOn(button, 'pointerover'));
+
+      expect(win.qPreloadQueue).toBeUndefined();
     });
 
     test.each([
@@ -719,16 +736,14 @@ describe('qwikloader behavior', () => {
       ['only a sync handler', { 'q-e:click': '#0' }],
       ['only a document handler', { 'q-d:click': 'document.js#handler' }],
       ['only a visible task', { 'q-e:qvisible': 'visible.js#task' }],
-    ])('preloads nothing for an element with %s', (_title, attrs) => {
+    ])('sends no hint for an element with %s', (_title, attrs) => {
       const { doc, win } = createLoaderEnvironment(['e:click', 'd:click', 'e:qvisible']);
-      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
-      const element = createMockElement(container, attrs);
+      const element = createMockElement(resumedContainer(), attrs);
       win.qPreload = vi.fn();
 
       getSingleListener(doc, 'pointerover').handler(intentOn(element, 'pointerover'));
 
       expect(win.qPreload).not.toHaveBeenCalled();
-      expect(win.qPreloadQueue).toBeUndefined();
     });
   });
 

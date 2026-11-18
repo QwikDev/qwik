@@ -215,6 +215,20 @@ routesDir?: string;
 serverPluginsDir?: string;
 ```
 
+#### `ignoreRoutes`
+
+```js
+/**
+ * Globs matched against file and folder paths relative to
+ * `routesDir`. Matching files are not routes and are not
+ * built, for client, SSR or SSG alike.
+ */
+ignoreRoutes?: string[];
+```
+
+Use it to keep dev-only or internal routes out of production builds - a server-side 404 hides a page
+but still ships its chunk. See [Ignoring routes](/docs/(qwikrouter)/routing/index.mdx#ignoring-routes).
+
 #### `basePathname`
 
 ```js

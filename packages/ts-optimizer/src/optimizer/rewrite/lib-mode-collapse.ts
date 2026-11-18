@@ -485,14 +485,25 @@ function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<str
   const noopImportRe =
     /import\s*\{\s*_noopQrl(?:DEV)?\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
   const match = noopImportRe.exec(source);
-  if (match) {
-    const helpers = [...usedHelpers].sort().join(', ');
-    edits.overwrite(
-      match.index,
-      match.index + match[0].length,
-      `import { ${helpers} } from "@qwik.dev/core";\n`
-    );
+  if (!match) {
+    return;
   }
+  // `bind:` handlers may already import `inlinedQrl`; a second import fails to parse.
+  const helpers = [...usedHelpers]
+    .filter((helper) => !isImportedFromCore(source, helper))
+    .sort()
+    .join(', ');
+  edits.overwrite(
+    match.index,
+    match.index + match[0].length,
+    helpers ? `import { ${helpers} } from "@qwik.dev/core";\n` : ''
+  );
+}
+
+function isImportedFromCore(source: string, name: string): boolean {
+  return new RegExp(`import\\s*\\{\\s*${name}\\s*\\}\\s*from\\s*(["'])@qwik\\.dev/core\\1`).test(
+    source
+  );
 }
 
 function includeTrailingNewline(source: string, end: number): number {

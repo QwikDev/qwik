@@ -330,9 +330,9 @@ export const getPreloadOrder = (item: string[], probability?: number) => {
 
 const IN_VIEW_PROBABILITY = 0.8;
 const ELEMENT_HANDLER_ATTRIBUTE_PREFIX = 'q-e';
-const UNORDERED_NODE_SNAPSHOT_TYPE = 6;
+const ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
-const preloadHandlersOf = (element: Element) => {
+const addHandlerChunksOf = (element: Element, chunks: string[]) => {
   const attributes = element.attributes;
   for (let i = 0; i < attributes.length; i++) {
     const { name, value } = attributes[i];
@@ -343,7 +343,7 @@ const preloadHandlersOf = (element: Element) => {
     for (let j = 0; j < qrls.length; j++) {
       const [chunk, , , otherChunks] = qrls[j].split('#');
       if (chunk) {
-        preload(otherChunks ? [chunk, ...otherChunks.split(',')] : chunk, IN_VIEW_PROBABILITY);
+        chunks.push(chunk, ...(otherChunks ? otherChunks.split(',') : []));
       }
     }
   }
@@ -351,19 +351,21 @@ const preloadHandlersOf = (element: Element) => {
 
 export const preloadHandlersInView = () => {
   const observer = new IntersectionObserver((entries) => {
+    const chunksInView: string[] = [];
     for (let i = 0; i < entries.length; i++) {
       const { target, isIntersecting } = entries[i];
       if (isIntersecting) {
         observer.unobserve(target);
-        preloadHandlersOf(target);
+        addHandlerChunksOf(target, chunksInView);
       }
     }
+    preload(chunksInView, IN_VIEW_PROBABILITY);
   });
   const elementsWithHandlers = doc.evaluate(
     `//*[@*[starts-with(name(),'${ELEMENT_HANDLER_ATTRIBUTE_PREFIX}')]]`,
     doc,
     null,
-    UNORDERED_NODE_SNAPSHOT_TYPE
+    ORDERED_NODE_SNAPSHOT_TYPE
   );
   for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
     observer.observe(elementsWithHandlers.snapshotItem(i) as Element);

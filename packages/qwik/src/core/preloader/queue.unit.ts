@@ -990,11 +990,11 @@ test('a limit of 0 starts no speculative preload, and still preloads at the high
   expect(linkNames(document)).toEqual(['highest-priority.js']);
 });
 
-const loadGraphOfThreeHandlers = async () => {
+const loadGraphOfThreeHandlers = async (maxIdlePreloads = 1) => {
   const { loadBundleGraph } = await import('./bundle-graph');
   const { preload } = await import('./queue');
   const graph = { text: async () => JSON.stringify(['first.js', 'second.js', 'third.js']) };
-  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 1 });
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: maxIdlePreloads });
   preload(['first.js', 'second.js', 'third.js']);
 };
 
@@ -1045,6 +1045,26 @@ test('stops watching an element once it came into view', async () => {
   view.report([{ target: button, isIntersecting: true }]);
 
   expect(view.watched.has(button)).toBe(false);
+});
+
+test('keeps the order of the elements that come into view together', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const upper = elementWith({ 'q-e:click': 'second.js#s_click' });
+  const lower = elementWith({ 'q-e:click': 'third.js#s_click' });
+  const view = installViewObserver(document, [upper, lower]);
+
+  await loadGraphOfThreeHandlers(2);
+  view.report([
+    { target: upper, isIntersecting: true },
+    { target: lower, isIntersecting: true },
+  ]);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['second.js', 'third.js']);
 });
 
 test("an element in view raises every chunk of its handlers, but not its document handlers'", async () => {

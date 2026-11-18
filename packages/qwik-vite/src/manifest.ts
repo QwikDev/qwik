@@ -264,32 +264,6 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
   return undefined;
 }
 
-const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
-  let maxScore = 0;
-  if (bundle.symbols) {
-    for (const symbolName of bundle.symbols) {
-      let score = 1;
-      const symbol = manifest.symbols[symbolName];
-      if (symbol) {
-        if (symbol.ctxKind === 'function') {
-          if (/(component|useStyles|useStylesScoped)/i.test(symbol.ctxName)) {
-            score += 1;
-          } else if (/(useComputed|useTask|useVisibleTask|useOn)/i.test(symbol.ctxName)) {
-            score += 2;
-          }
-        } else {
-          score += 1;
-          if (/(click|mouse|pointer|touch|key|scroll|gesture|wheel)/i.test(symbol.ctxName)) {
-            score += 3;
-          }
-        }
-      }
-      maxScore = Math.max(maxScore, score);
-    }
-  }
-  return maxScore;
-};
-
 /** Sets each bundle's `total`: its own size plus every bundle it statically imports, each once. */
 export function computeTotals(graph: QwikManifest['bundles']): void {
   const { components, successors } = condenseImportGraph(graph);
@@ -544,11 +518,6 @@ export function generateManifestFromBundles(
     }
   } else {
     console.error('Qwik core bundle not found, is Qwik actually used in this project?');
-  }
-
-  for (const bundle of Object.values(manifest.bundles)) {
-    const interactivityScore = getBundleInteractivity(bundle, manifest);
-    bundle.interactivity = interactivityScore;
   }
 
   computeTotals(manifest.bundles);

@@ -625,15 +625,17 @@ test.describe('chunk preload fails', () => {
   }) => {
     test.skip(keepsFailedModuleFetches(browser), KEEPS_FAILED_MODULE_FETCHES);
     await recordSpeculativePreloads(page);
-    await holdSpeculativePreloads(page);
     const gate = await createGate(page);
+    gate.holdWhilePassing = isConditionalChunk;
     const failedWhileOffline = new Set<string>();
     const loaded = new Set<string>();
     page.on('requestfailed', (request) => failedWhileOffline.add(request.url()));
     page.on('requestfinished', (request) => loaded.add(request.url()));
     await page.goto(CONDITIONAL_ALL.path);
     await waitForQwikloader(page);
+    await expect.poll(() => gate.held.length).toBeGreaterThan(0);
     await context.setOffline(true);
+    gate.holdWhilePassing = undefined;
     await releaseAll(gate);
     await expect
       .poll(() => [...failedWhileOffline].filter(isConditionalChunk).length)
@@ -667,10 +669,9 @@ const failRequestsOf = async (page: Page, isWanted: (url: string) => boolean) =>
 
 const clickWhileItsChunksFail = async (page: Page, isWanted: (url: string) => boolean) => {
   await recordSpeculativePreloads(page);
-  await holdSpeculativePreloads(page);
   const failing = await failRequestsOf(page, isWanted);
   await waitForNetworkIdle(page, async () => {
-    await page.goto(CONDITIONAL_ALL.path);
+    await page.goto(withoutSpeculativePreloads(CONDITIONAL_ALL.path));
     await waitForQwikloader(page);
   });
   await waitForNetworkIdle(page, clickConditional(page));

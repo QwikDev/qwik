@@ -191,6 +191,20 @@ When touching these areas:
 - test root and nested/container cases when a feature can appear in both;
 - include streaming or out-of-order cases when state can arrive after initial event listeners.
 
+VNode data formats:
+
+- With `binaryState`, the root `qwik/vnode` script is a binary token stream (prefix `}`); segment
+  and `q:patch` vnode scripts stay text. Both become the same flat record before materializing, so
+  change the server's attribute resolution and the client's `setVNodeAttr` together, and test in
+  both modes (`QWIK_BINARY_STATE=1`).
+- Root ids in the token stream are distances from earlier ids, so it can only be decoded in order:
+  the startup walk decodes it into one table per container. Size and startup trade against each
+  other here; measure both (page brotli and the resume benchmark) before changing the layout.
+- Find an element's record through the document, not the element's container: projection can
+  materialize an element while it is detached, and a failed lookup there fails silently.
+- Each build must drop the other format's reader: guard with inlined `__EXPERIMENTAL__` expressions
+  and compare both core sizes the SSG snapshot test prints.
+
 Out-of-order (OOOS) invariants:
 
 - Root vnode data is written before deferred segments resolve, so a component whose attrs were not

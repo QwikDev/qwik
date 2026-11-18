@@ -18,11 +18,12 @@ import { Note } from '~/components/note/note';
 
 Qwik serializes the state of your application into the HTML so the client can resume. By default
 that state is JSON. With `binaryState`, it is a compact stream that the client reads directly,
-without `JSON.parse` and without building intermediate arrays.
+without `JSON.parse` and without building intermediate arrays. The data the client uses to rebuild
+its virtual DOM from the HTML is written the same way.
 
 On pages with a lot of state this makes the container ready sooner and the first interaction
 faster, and the document is smaller before compression. On small pages the difference is not
-noticeable. The core bundle grows by about 1.4 kB (brotli).
+noticeable. The core bundle grows by about 1.2 kB (brotli).
 
 To use it, add `experimental: ['binaryState']` to your `qwikVite` plugin options:
 
@@ -51,8 +52,8 @@ No application code needs to change. The flag also switches the payloads of `rou
   `Content-Type: text/html; charset=utf-8`; if you serve HTML yourself, make sure the charset is
   set.
 - **Do not edit the state text.** Anything that rewrites text inside the
-  `<script type="qwik/state">` elements or inside a loader or action response, such as a proxy or
-  a middleware doing search and replace, breaks the state. Change the data before it is serialized
-  instead.
+  `<script type="qwik/state">` or `<script type="qwik/vnode">` elements or inside a loader or
+  action response, such as a proxy or a middleware doing search and replace, breaks the state.
+  Change the data before it is serialized instead.
 - **Deploy server and client together.** A client built with the flag only reads binary state, so
   the HTML and the JavaScript must come from the same build.

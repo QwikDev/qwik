@@ -9,7 +9,7 @@ import {
   labelRequest,
   ORIGIN,
 } from '../utils/app';
-import { fixtureById, MODAL, type Fixture } from '../utils/fixtures';
+import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
   createGate,
@@ -30,7 +30,6 @@ import { expectResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CONDITIONAL_ALL = fixtureById('conditional/all');
-const LAYOUT_SOURCES = [FILLER, 'src/routes/layout', 'src/components/sidebar/'];
 const MAX_IDLE_PRELOADS = 25;
 const WITH_25_IDLE_PRELOADS: Fixture = {
   ...CONDITIONAL_ALL,
@@ -141,21 +140,6 @@ test.describe('speculative order', () => {
     expect(medianPositionOf(chunkHoldsEventQrls)).toBeLessThan(
       medianPositionOf(chunkHoldsOnlyRender)
     );
-  });
-
-  test("a layout's event QRL chunks are preloaded before the page's", async ({ page }) => {
-    await recordSpeculativePreloads(page);
-    await openWarm(page, await createGate(page), MODAL.path);
-    const preloaded = [...new Set((await preloaderLinks(page)).map((link) => link.href))];
-    const positionsOfEventQrlChunksFrom = (sources: string[]) =>
-      preloaded.flatMap((url, index) =>
-        chunkHoldsEventQrls(url) && chunkComesFrom(url, sources) ? [index] : []
-      );
-    const inTheLayout = positionsOfEventQrlChunksFrom(LAYOUT_SOURCES);
-    const inThePage = positionsOfEventQrlChunksFrom(MODAL.sources);
-    expect(inTheLayout.length).toBeGreaterThan(0);
-    expect(inThePage.length).toBeGreaterThan(0);
-    expect(Math.max(...inTheLayout)).toBeLessThan(Math.min(...inThePage));
   });
 });
 

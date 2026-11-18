@@ -295,28 +295,29 @@
   {string} "href"
   RootRef [omitted]
 ]
-60 {string} "s_QwONcWD5gIg"
-61 EffectSubscriptionNoData [
+60 {string} "q-xxxxxxxx.js"
+61 {string} "s_QwONcWD5gIg"
+62 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant ':'
 ]
-62 {string} "q-xxxxxxxx.js"
-63 {string} "s_LqnNyU1Iy8c"
-64 ComputedSignal [
+63 {string} "q-xxxxxxxx.js"
+64 {string} "s_LqnNyU1Iy8c"
+65 ComputedSignal [
   QRL "[omitted]"
   Set [
     RootRef [omitted]
   ]
   RootRef [omitted]
 ]
-65 QRL "[omitted]"
-66 Object [
+66 QRL "[omitted]"
+67 Object [
   {string} "r"
   RootRef [omitted]
 ]
-67 {string} "q-xxxxxxxx.js"
-68 {string} "_rsc"
-69 Object [
+68 {string} "q-xxxxxxxx.js"
+69 {string} "_rsc"
+70 Object [
   {string} "total"
   {number} 18
   {string} "selectedCount"
@@ -324,23 +325,23 @@
   {string} "clicks"
   {number} 2
 ]
-70 Array [
+71 Array [
   {string} "alpha"
   {string} "beta"
 ]
-71 Array [
+72 Array [
   {number} 2
   {number} 6
   {number} 15
   {number} 32
 ]
-72 {string} "q-xxxxxxxx.js"
-73 {string} "s_9CrWYOoCpgY"
-74 EffectSubscriptionNoData [
+73 {string} "q-xxxxxxxx.js"
+74 {string} "s_9CrWYOoCpgY"
+75 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant ':'
 ]
-75 AsyncSignal [
+76 AsyncSignal [
   QRL "[omitted]"
   Set [
     RootRef [omitted]
@@ -355,25 +356,25 @@
   ]
   {number} 0
 ]
-76 EffectSubscriptionNoData [
+77 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant '.'
 ]
-77 Array [
+78 Array [
   {string} "alpha"
   {string} "beta"
 ]
-78 EffectSubscriptionNoData [
+79 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant '.'
 ]
-79 EffectSubscription [
+80 EffectSubscription [
   RootRef [omitted]
   {string} "href"
   SubscriptionDataConstTrue 0
 ]
-80 {string} "s_lKDAUb7ao7U"
-81 Store [
+81 {string} "s_lKDAUb7ao7U"
+82 Store [
   Object [
     {string} "headline"
     {string} "router-state:stable"
@@ -462,10 +463,10 @@
     ]
   ]
 ]
-82 Promise [
+83 Promise [
   Constant true
   RootRef [omitted]
 ]
-83 ForwardRefs [
-  82
+84 ForwardRefs [
+  83
 ]

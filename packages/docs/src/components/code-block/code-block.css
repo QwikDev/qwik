@@ -184,20 +184,15 @@ pre[class*='language-'] {
 }
 
 .prettier-toggle span {
-  display: inline-block;
-  padding: 0px 4px;
-  background: var(--p-background);
-  border: 1px solid var(--p-border);
+  display: inline-flex;
+  padding: 3px;
   color: var(--p-text);
-  font-weight: normal;
-  font-size: 14px;
   border-radius: 4px;
 }
 
 .prettier-toggle span.checked {
   background: var(--color-primary-background-base);
   color: var(--color-primary-foreground-base);
-  font-weight: bold;
 }
 .prettier-toggle span.checked.error {
   background: var(--color-alert-background-base);

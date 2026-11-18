@@ -884,3 +884,79 @@ test('sends a bundle hinted at the highest priority before the preloader started
 
   expect(linkNames(document)).toEqual(['highest-priority.js']);
 });
+
+test('a hint on a bundle whose dependencies lead back to it preloads each bundle once', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['page-a.js', -7, 3, 'page-b.js', -7, 0]);
+  preload('page-a.js', 1);
+  vi.runAllTimers();
+
+  expect(linkNames(document).sort()).toEqual(['page-a.js', 'page-b.js']);
+});
+
+const LAYOUT_AND_ROUTE_GRAPH = ['DocsLayout', -7, 3, 'layout.js', 'docs/intro/', -7, 7, 'page.js'];
+
+test('a highest priority hint of several names preloads the bundles of each, never the names', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(LAYOUT_AND_ROUTE_GRAPH);
+  preload(['DocsLayout', 'docs/intro/'], 1);
+  vi.runAllTimers();
+
+  expect(linkNames(document).sort()).toEqual(['layout.js', 'page.js']);
+});
+
+test('a layout key hinted before the bundle graph loaded is preloaded once it loads', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { nextTriggerMacroTask, preload } = await import('./queue');
+
+  preload(['DocsLayout', 'docs/intro/'], 1);
+  await vi.runAllTimersAsync();
+  let deliverGraph!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  nextTriggerMacroTask();
+  deliverGraph({ text: async () => JSON.stringify(LAYOUT_AND_ROUTE_GRAPH) } as Response);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document).sort()).toEqual(['layout.js', 'page.js']);
+});
+
+test('a limit of 0 starts no speculative preload, and still preloads at the highest priority', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const graph = { text: async () => JSON.stringify(['speculative.js', 'highest-priority.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 0 });
+  await vi.runAllTimersAsync();
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  preload('highest-priority.js', 1);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual(['highest-priority.js']);
+});

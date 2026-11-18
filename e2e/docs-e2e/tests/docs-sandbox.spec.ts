@@ -34,7 +34,8 @@ test.describe('Sandbox smoke tests', () => {
     const editor = page.locator('.monaco-editor .view-lines').first();
     await expect(editor).toContainText('useSignal');
     await page.locator('.monaco-editor textarea').first().focus();
-    await page.keyboard.type('// my edit');
+    // One insertion, so the delayed URL update can't capture a half-typed edit.
+    await page.keyboard.insertText('// my edit');
     await expect(page).toHaveURL(/#.*f=/);
     await page.getByLabel('Choose an example').selectOption('clock');
     await expect(editor).not.toContainText('my edit');
@@ -42,7 +43,37 @@ test.describe('Sandbox smoke tests', () => {
     await expect(editor).toContainText('my edit');
   });
 
+  test('switching examples right after an edit keeps the edit for going back', async ({ page }) => {
+    await page.goto('/playground/counter/');
+    const editor = page.locator('.monaco-editor .view-lines').first();
+    await expect(editor).toContainText('useSignal');
+    // Wait until the REPL is ready, so the edit is the only pending URL update.
+    await expect(page.locator('iframe').contentFrame().locator('body')).toContainText('Count');
+    await page.locator('.monaco-editor textarea').first().focus();
+    await page.keyboard.insertText('// my edit');
+    // Past the editor's 200ms change debounce, well inside the 1s URL update delay.
+    await page.waitForTimeout(300);
+    await page.getByLabel('Choose an example').selectOption('clock');
+    await expect(editor).not.toContainText('my edit');
+    await page.goBack();
+    await expect(editor).toContainText('my edit');
+  });
+
   test.describe('REPL interactive', () => {
+    test('an example with a CSS file loads without errors', async ({ page }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.goto('/playground/clock/');
+      await expect(page.locator('iframe').contentFrame().locator('body')).not.toBeEmpty();
+      const editor = page.locator('.monaco-editor .view-lines').first();
+      await expect(editor).toContainText('clock.css');
+      // Editing triggers the TypeScript diagnostics over every open file, including the CSS.
+      await page.locator('.monaco-editor textarea').first().focus();
+      await page.keyboard.type('// edit');
+      await expect(page).toHaveURL(/#.*f=/);
+      expect(errors).toEqual([]);
+    });
+
     test('bundler failures appear in the preview', async ({ page }) => {
       await page.addInitScript(() => {
         const NativeWorker = window.Worker;

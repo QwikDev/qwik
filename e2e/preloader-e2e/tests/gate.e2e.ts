@@ -1,21 +1,19 @@
 import { expect, test } from '@playwright/test';
-import { bundleFile, chunkComesFrom, chunkHasComponent, chunkUrlsFrom } from '../utils/app';
+import { chunkComesFrom, chunkUrlsFrom } from '../utils/app';
 import { fixtureById, IMPORT_CHAIN } from '../utils/fixtures';
 import {
   createGate,
   openCold,
+  preloaderLinks,
   recordSpeculativePreloads,
   release,
   releaseAll,
   speculativePreloads,
   waitForQwikloader,
 } from '../utils/gate';
-import { clickTrigger, openFixture, warmClick } from '../utils/scenarios';
+import { clickTrigger, expectResult, warmClick } from '../utils/scenarios';
 
 const SINGLE_TASK_CHAIN = fixtureById('single/task-chain');
-const TREE_CONTEXT = fixtureById('tree-context/render');
-const TREE_CONTEXT_DIR = 'src/components/fixtures/tree-context/render/';
-const JUST_BELOW_HIGHEST_PRIORITY = 0.985;
 const unusedChunk = () => chunkUrlsFrom('src/components/fixtures/conditional/all/level-3.tsx')[0];
 
 const openHolding = async (page: import('@playwright/test').Page) => {
@@ -80,7 +78,7 @@ test.describe('gate: keeping requests ongoing', () => {
 });
 
 test.describe('gate: cold click setup', () => {
-  test("lets the page's own load work finish, then holds one speculative preload", async ({
+  test("lets the page's own load work finish, and starts no speculative preload", async ({
     page,
   }) => {
     await recordSpeculativePreloads(page);
@@ -88,34 +86,24 @@ test.describe('gate: cold click setup', () => {
     page.on('request', (request) => requests.push(request.url()));
     const gate = await createGate(page);
     await openCold(page, gate, SINGLE_TASK_CHAIN.path);
-    expect((await speculativePreloads(page)).size).toBe(1);
+    expect((await speculativePreloads(page)).size).toBe(0);
     expect(requests.filter((url) => chunkComesFrom(url, SINGLE_TASK_CHAIN.sources))).toEqual([]);
     expect(gate.held).toEqual([]);
     await releaseAll(gate);
   });
-});
 
-test.describe('gate: cold click', () => {
-  test('a held speculative preload goes out with the round trip that needs it', async ({
-    page,
-  }) => {
-    const [contexts] = chunkUrlsFrom(`${TREE_CONTEXT_DIR}contexts.ts`);
-    const contextConsumers = chunkUrlsFrom(`${TREE_CONTEXT_DIR}level-3.tsx`).filter(
-      chunkHasComponent
+  test('a click still preloads its chunks at the highest priority', async ({ page }) => {
+    await recordSpeculativePreloads(page);
+    const gate = await createGate(page);
+    await openCold(page, gate, SINGLE_TASK_CHAIN.path);
+    const roundTrips = await clickTrigger({ page, fixture: SINGLE_TASK_CHAIN, gate });
+    await releaseAll(gate);
+    await expectResult(page, SINGLE_TASK_CHAIN);
+    const clickLinks = (await preloaderLinks(page)).filter((link) =>
+      chunkComesFrom(link.href, SINGLE_TASK_CHAIN.sources)
     );
-    await page.addInitScript(
-      ([bundle, probability]) => {
-        (window as any).qPreloadQueue = [[bundle, probability]];
-      },
-      [bundleFile(contexts), JUST_BELOW_HIGHEST_PRIORITY] as const
-    );
-    const opened = await openFixture(page, TREE_CONTEXT, 'cold');
-    expect([...(await speculativePreloads(page))]).toEqual([contexts]);
-    const roundTrips = await clickTrigger(opened);
-    await releaseAll(opened.gate);
-    const withConsumers = roundTrips.find(({ urls }) =>
-      urls.some((url) => contextConsumers.includes(url))
-    )!;
-    expect(withConsumers.urls).toContain(contexts);
+    expect(roundTrips.length).toBeGreaterThan(0);
+    expect(clickLinks.length).toBeGreaterThan(0);
+    expect(clickLinks.filter((link) => link.speculative)).toEqual([]);
   });
 });

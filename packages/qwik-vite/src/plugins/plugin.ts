@@ -1,4 +1,4 @@
-import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
+import type { CodeSplittingOptions, ChunkingContext, ModuleInfo } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -1186,7 +1186,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             ctx.emitFile({
               id: key,
               type: 'chunk',
-              preserveSignature: 'allow-extension',
+              // A group chunk drops the symbol name of a re-export, so it gets a facade chunk.
+              preserveSignature: isReExportSegment(mod.code) ? 'strict' : 'allow-extension',
             });
           }
           // Notify segment callbacks
@@ -1444,35 +1445,60 @@ export const isDev = ${JSON.stringify(isDev)};
   }
 
   /** Client-only; the server bundle needs no Qwik chunking. */
-  const codeSplitting = (): CodeSplittingOptions => ({
-    groups: [
-      // core and handlers share a chunk: no import waterfall
-      {
-        name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
-        includeDependenciesRecursively: false,
-      },
-      {
-        name: 'qwik-preloader',
-        test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
-        includeDependenciesRecursively: false,
-      },
-      {
-        includeDependenciesRecursively: false,
-        name: (id: string, ctx: ChunkingContext) => {
-          const segment = ctx?.getModuleInfo(id)?.meta.segment as SegmentAnalysis | undefined;
-          if (!segment) {
-            // Non-qwik code: let the bundler decide.
-            return null;
-          }
-          // Group segments by entry or Qwik Insights hash.
-          const chunkName =
-            (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] || segment.entry;
-          return chunkName ? sanitizeChunkGroupName(chunkName) : null;
+  const codeSplitting = (): CodeSplittingOptions => {
+    const getSegmentGroupName = (segment: SegmentAnalysis) => {
+      // Group segments by entry or Qwik Insights hash.
+      const chunkName =
+        (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] || segment.entry;
+      return chunkName ? sanitizeChunkGroupName(chunkName) : null;
+    };
+    // A styles value that isn't a plain re-export (`useStyles$(`${a}${b}`)`) reads its imports
+    // on load. Left to the bundler, they land in the segment's entry chunk, which cycles with the
+    // group chunk and is read before it runs. So they join the styles segments' group.
+    const getValueImportGroupName = (info: ModuleInfo, ctx: ChunkingContext) => {
+      if (info.isEntry || info.dynamicImporters.length || !info.importers.length) {
+        return null;
+      }
+      const groupNames = new Set<string | null>();
+      for (const importer of info.importers) {
+        const importerInfo = ctx.getModuleInfo(importer);
+        const segment = importerInfo?.meta.segment as SegmentAnalysis | undefined;
+        if (!segment || !isStylesValueSegment(segment, importerInfo!.code)) {
+          return null;
+        }
+        groupNames.add(getSegmentGroupName(segment));
+      }
+      const [groupName] = groupNames;
+      return groupNames.size === 1 ? groupName : null;
+    };
+    const getGroupName = (id: string, ctx: ChunkingContext): string | null => {
+      const info = ctx?.getModuleInfo(id);
+      if (!info) {
+        return null;
+      }
+      const segment = info.meta.segment as SegmentAnalysis | undefined;
+      return segment ? getSegmentGroupName(segment) : getValueImportGroupName(info, ctx);
+    };
+    return {
+      groups: [
+        // core and handlers share a chunk: no import waterfall
+        {
+          name: 'qwik-core',
+          test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+          includeDependenciesRecursively: false,
         },
-      },
-    ],
-  });
+        {
+          name: 'qwik-preloader',
+          test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+          includeDependenciesRecursively: false,
+        },
+        {
+          includeDependenciesRecursively: false,
+          name: getGroupName,
+        },
+      ],
+    };
+  };
 
   async function generateManifest(
     ctx: Rolldown.PluginContext,
@@ -1740,3 +1766,12 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export type QwikBuildMode = 'production' | 'development';
 
 const globalManifestKey = '__QWIK_MANIFEST__';
+
+const STYLES_CTX_NAMES = new Set(['useStyles$', 'useStylesScoped$']);
+
+/** A qrl of an imported binding, like `$(importedFn)`, compiles to a re-export without a value. */
+const isReExportSegment = (code: string) => !code.includes('export const ');
+
+/** Re-exported styles hold a live binding; only computed styles read imports on load. */
+const isStylesValueSegment = (segment: SegmentAnalysis, code: string | null) =>
+  STYLES_CTX_NAMES.has(segment.ctxName) && !!code && !isReExportSegment(code);

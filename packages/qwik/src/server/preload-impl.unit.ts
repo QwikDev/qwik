@@ -178,6 +178,15 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), true);
   });
 
+  it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
+    const { container, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, { maxIdlePreloads: limit });
+
+    expect(getScriptContent()).toContain(`{P:${limit}}`);
+  });
+
   it('falls back to the next paint without a fixed delay', async () => {
     const { container, getScriptContent } = createContainer();
     const { preloaderPre } = await import('./preload-impl');

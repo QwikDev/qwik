@@ -60,3 +60,31 @@ test('invalid null/undefined', () => {
   assert.deepEqual(isJSXNode(null), false);
   assert.deepEqual(isJSXNode(undefined), false);
 });
+
+test('omitting component children from props preserves the JSX projection', () => {
+  const v = jsx('span', { id: 'leaf', children: 'hello' });
+  const props = v.props;
+  assert.deepEqual(props.children, 'hello');
+
+  delete props.children;
+
+  assert.deepEqual(v.children, 'hello');
+  assert.deepEqual(props.children, undefined);
+  assert.deepEqual('children' in props, false);
+  assert.deepEqual(Object.keys(props), ['id']);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(props, 'children'), undefined);
+  assert.deepEqual({ ...props }, { id: 'leaf' });
+});
+
+test('children can be assigned after being omitted from props', () => {
+  const v = jsx('span', { children: 'hello' });
+  const props = v.props;
+  delete props.children;
+
+  props.children = 'again';
+
+  assert.deepEqual(v.children, 'again');
+  assert.deepEqual(props.children, 'again');
+  assert.deepEqual('children' in props, true);
+  assert.deepEqual(Object.keys(props), ['children']);
+});

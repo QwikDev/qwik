@@ -234,6 +234,35 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  describe('added layout entry', () => {
+    const entryOf = (graph: (string | number)[], name: string) => {
+      const start = graph.indexOf(name);
+      const end = graph.findIndex((item, index) => index > start && typeof item === 'string');
+      return graph.slice(start + 1, end === -1 ? undefined : end);
+    };
+    const withLayoutAndRoute = () =>
+      convertManifestToBundleGraph(
+        fakeManifest,
+        new Set([
+          () => ({
+            'docs/': { dynamicImports: ['transitive-dep.js'] },
+            DocsLayout: { dynamicImports: ['transitive-dep.js'] },
+          }),
+        ])
+      );
+
+    test('keeps an added entry that no bundle imports', () => {
+      expect(withLayoutAndRoute()).toContain('DocsLayout');
+    });
+
+    test("follows an added layout entry's bundles like a route's", () => {
+      const graph = withLayoutAndRoute();
+
+      expect(entryOf(graph, 'DocsLayout').length).toBeGreaterThan(0);
+      expect(entryOf(graph, 'DocsLayout')).toEqual(entryOf(graph, 'docs/'));
+    });
+  });
+
   test(`works`, () => {
     // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
     // calls; write them over the tail so the sizes stay the same.

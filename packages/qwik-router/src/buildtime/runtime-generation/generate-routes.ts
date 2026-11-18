@@ -96,6 +96,7 @@ export function createRoutes(
         esmImports.push(`import * as ${id}_ from ${importPath};`);
         c.push(`const ${id} = ()=>${id}_;`);
       }
+      c.push(`${id}._K = ${JSON.stringify(id)};`);
     }
   }
 

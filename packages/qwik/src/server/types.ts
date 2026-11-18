@@ -40,6 +40,10 @@ export interface PreloaderOptions {
    * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
    * immediately, no limit.
    *
+   * `0` stops the preloader from starting speculative preloads in the browser. An interaction that
+   * needs code which has not loaded yet then waits for its download. The links from `ssrPreloads`
+   * are separate and still go out.
+   *
    * Defaults to `25`
    */
   maxIdlePreloads?: number;

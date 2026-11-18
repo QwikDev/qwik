@@ -1,5 +1,11 @@
 import { expect, test, type Page, type Request } from '@playwright/test';
-import { chunkComesFrom, chunkHoldsModule, getManifest, ORIGIN } from '../utils/app';
+import {
+  chunkComesFrom,
+  chunkHoldsModule,
+  chunkHoldsSegmentsFrom,
+  getManifest,
+  ORIGIN,
+} from '../utils/app';
 import {
   fixtureById,
   NAVIGATION_SOURCES,
@@ -11,7 +17,6 @@ import {
   chunksHintedAtHighestPriority,
   countRoundTrips,
   createGate,
-  holdSpeculativePreloads,
   preloaderLinks,
   recordPreloadHints,
   recordSpeculativePreloads,
@@ -19,6 +24,7 @@ import {
   resultIsDone,
   waitForNetworkIdle,
   waitForQwikloader,
+  withoutSpeculativePreloads,
   type RoundTrip,
 } from '../utils/gate';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
@@ -37,6 +43,21 @@ const TO_TREE: Fixture = {
   expected: '5',
 };
 
+const SHELL_HOME: Fixture = {
+  id: 'navigation/shell-home',
+  path: '/navigation/shell/home/',
+  sources: NAVIGATION_SOURCES,
+};
+const SHELL_DOCS_A: Fixture = {
+  id: 'navigation/shell-docs-a',
+  path: '/navigation/shell/docs/a/',
+  sources: NAVIGATION_SOURCES,
+};
+const DOCS_LAYOUT_SOURCES = [
+  'src/routes/navigation/shell/docs/layout.tsx_',
+  'src/components/fixtures/navigation/docs-sidebar.tsx',
+];
+
 const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
@@ -48,10 +69,14 @@ const clickWhileLoading = async (
   heldUrls: string[],
   trigger: () => Promise<unknown>,
   result: Fixture,
-  { onceTheRestHasLoaded = false, arrivesWithTheFirstRoundTrip = false } = {}
+  {
+    onceTheRestHasLoaded = false,
+    arrivesWithTheFirstRoundTrip = false,
+    from = result === TO_TREE ? FROM_OFF : result,
+    withSpeculativePreloads = false,
+  } = {}
 ) => {
   await recordSpeculativePreloads(page);
-  await holdSpeculativePreloads(page);
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => heldUrls.includes(url);
   const loading = new Set<Request>();
@@ -69,7 +94,9 @@ const clickWhileLoading = async (
   page.on('request', onRequest);
   page.on('requestfinished', onDone);
   page.on('requestfailed', onDone);
-  await page.goto(result === TO_TREE ? FROM_OFF.path : result.path, { waitUntil: 'commit' });
+  await page.goto(withSpeculativePreloads ? from.path : withoutSpeculativePreloads(from.path), {
+    waitUntil: 'commit',
+  });
   await waitForQwikloader(page);
   await expect.poll(() => gate.held.length).toBe(heldUrls.length);
   if (onceTheRestHasLoaded) {
@@ -189,7 +216,8 @@ const preloadsAfterAnEarlyClick = async (page: Page, heldUrls: string[]) => {
     page,
     heldUrls,
     clickConditional(page),
-    CONDITIONAL_ALL
+    CONDITIONAL_ALL,
+    { withSpeculativePreloads: true }
   );
   const clickChunks = new Set(
     roundTrips
@@ -371,7 +399,7 @@ test.describe('early click that needs the bundle graph', () => {
     });
   }
 
-  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 3 round trips, over the cap of 2', async ({
+  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 2 round trips', async ({
     page,
   }) => {
     const startupUrls = everyStartupPiece();
@@ -384,11 +412,28 @@ test.describe('early click that needs the bundle graph', () => {
     );
     await releaseAll(gate, startupPiece);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls), {
-      roundTrips: 3,
-      reason:
-        "over the cap on main: the router's navigation code, then the layout and route modules, each cost a round trip before the render chunks",
-    });
+    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls));
+  });
+});
+
+test.describe('early navigation into another layout', () => {
+  test("once the bundle graph is loaded, the layout's chunks are preloaded at the highest priority", async ({
+    page,
+  }) => {
+    const { gate, startupPiece } = await clickWhileLoading(
+      page,
+      [bundleGraphUrl()],
+      () => page.locator('[data-fixture="navigation/shell"] [data-testid=link-docs-a]').click(),
+      SHELL_DOCS_A,
+      { from: SHELL_HOME, withSpeculativePreloads: true }
+    );
+    await waitForNetworkIdle(page, () => releaseAll(gate, startupPiece));
+    await expectResult(page, SHELL_DOCS_A);
+    const layoutLinks = (await preloaderLinks(page)).filter((link) =>
+      chunkHoldsSegmentsFrom(link.href, DOCS_LAYOUT_SOURCES)
+    );
+    expect(layoutLinks.length).toBeGreaterThan(0);
+    expect(layoutLinks.filter((link) => link.speculative)).toEqual([]);
   });
 });
 

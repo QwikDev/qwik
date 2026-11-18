@@ -138,6 +138,8 @@ const roundTripOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean
 const roundTripsOf = (roundTrips: RoundTrip[], isWanted: (url: string) => boolean) =>
   roundTrips.flatMap(({ urls }, index) => (urls.some(isWanted) ? [index] : []));
 
+const INTENT_PROBABILITY = 0.9;
+
 const treeLink = (page: Page, from: Fixture) =>
   fixtureRoot(page, from).locator('[data-testid=link-tree]');
 
@@ -591,6 +593,21 @@ test.describe('hover on a Link that prefetches on intent', () => {
     );
     await releaseAll(gate);
     expect(urls.some(holdsLayoutSegments(BY_URL_LAYOUT_SOURCES))).toBe(true);
+  });
+});
+
+test.describe('hover on a Link with prefetch off', () => {
+  test('the new route is not hinted to the preloader, and its chunks are not requested', async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const { gate } = await openFixture(page, FROM.off, 'warm');
+    const urls = await collectUntilQuiet(page, gate, () => treeLink(page, FROM.off).hover());
+    await releaseAll(gate);
+    const hints = await preloadHints(page);
+    expect(hints.filter(({ probability }) => probability === INTENT_PROBABILITY)).not.toEqual([]);
+    expect(hints.filter(({ item }) => [item].flat().includes(TO_TREE_ROUTE))).toEqual([]);
+    expect(urls.filter((url) => chunkComesFrom(url, TO_TREE_SOURCES))).toEqual([]);
   });
 });
 

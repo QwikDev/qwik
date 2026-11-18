@@ -1,4 +1,4 @@
-type Preload = (item: string | string[], probability?: number) => void;
+type Preload = (item: string | string[], probability?: number, isPageToRender?: boolean) => void;
 
 export type PreloaderGlobal = typeof globalThis & {
   qPreload?: Preload;
@@ -7,9 +7,9 @@ export type PreloaderGlobal = typeof globalThis & {
 };
 
 /** @internal */
-export const requestPreload: Preload = (item, probability) => {
+export const requestPreload: Preload = (...hint) => {
   const g = globalThis as PreloaderGlobal;
-  g.qPreload ? g.qPreload(item, probability) : (g.qPreloadQueue ||= []).push([item, probability]);
+  g.qPreload ? g.qPreload(...hint) : (g.qPreloadQueue ||= []).push(hint);
 };
 
 export const setPreloader = (preload: Preload | undefined) => {

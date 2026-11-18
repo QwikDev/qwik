@@ -257,14 +257,14 @@ describe('preloader', () => {
   it('links what the client preloader would fetch first, not the first bundles in render order', async () => {
     const { initPreloader } = await import('../core/preloader/bundle-graph');
     const { includePreloader } = await import('./preload-impl');
-    // Both bundles statically import shared.js, so the client rates it above either of them.
-    initPreloader(['a.js', 2, 'shared.js', 'b.js', 2]);
+    // a.js only holds a component and b.js holds a handler, so the client fetches b.js first.
+    initPreloader(['a.js', -4, 'b.js', -2]);
     const { container, getScriptContent } = createContainer();
 
     includePreloader(container, { ssrPreloads: 1 }, ['a.js', 'b.js']);
 
     const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
-    expect(linksScript).toContain('["shared.js"].map(');
+    expect(linksScript).toContain('["b.js"].map(');
     expect(afterLoad).toContain('p(["a.js","b.js"])');
   });
 
@@ -289,8 +289,8 @@ describe('preloader', () => {
     ]);
 
     expect(getPreloadOrder(['a.js', 'b.js', 'c.js'])).toEqual([
-      'core.js',
       'a.js',
+      'core.js',
       'a-dep.js',
       'b.js',
       'b-dep.js',

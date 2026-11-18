@@ -1,7 +1,7 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { base, getBundle, isWaitingForGraph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
-import type { BundleImport, BundleImports, ImportProbability } from './types';
+import type { BundleDep, BundleImport, BundleImports } from './types';
 import {
   BundleImportState_Loaded,
   BundleImportState_None,
@@ -23,9 +23,12 @@ let isProcessingAdjustments = false;
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
+  /** The rank of the bundle that leads here, which a bundle with no QRL takes over */
+  $importerRank$: number;
+  $isStaticImport$?: boolean;
+  $rendersPage$?: boolean;
   $isReplay$?: boolean;
-  $seen$?: Set<BundleImport>;
-  $deps$?: ImportProbability[];
+  $deps$?: BundleDep[];
   $index$?: number;
 };
 
@@ -45,7 +48,7 @@ const isHighestPriorityInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$ || a.$rank$ - b.$rank$);
     queueDirty = false;
   }
 };
@@ -97,14 +100,30 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
+  rendersPage?: boolean,
   isReplay?: boolean
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
+    $importerRank$: 0,
+    $rendersPage$: rendersPage,
     $isReplay$: isReplay,
   });
+};
+
+const HIGHEST_KIND = 3;
+
+/** On the page handlers go first; for a page still to render, components do. */
+const getRank = (bundle: BundleImport, frame: AdjustmentFrame) => {
+  const kind = bundle.$kind$;
+  const ownRank = kind
+    ? frame.$rendersPage$
+      ? HIGHEST_KIND - kind
+      : kind - 1
+    : frame.$importerRank$;
+  return frame.$isStaticImport$ ? Math.min(ownRank, frame.$importerRank$) : ownRank;
 };
 
 const processAdjustmentFrame = () => {
@@ -126,45 +145,36 @@ const processAdjustmentFrame = () => {
       return true;
     }
 
-    const probability = 1 - bundle.$inverseProbability$;
-    let newInverseProbability: number;
-    if (probability === 1 || probability >= 0.99) {
-      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
-      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
-    } else {
-      const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
-      /** We need to undo the previous adjustment */
-      const prevAdjust = dep.$factor$;
-      const factor = newInverseImportProbability / prevAdjust;
-      // limit organic probability to 98%
-      newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-      dep.$factor$ = newInverseImportProbability;
-    }
-
     adjustmentStack.push({
       $bundle$: depBundle,
-      $inverseProbability$: newInverseProbability,
-      $seen$: frame.$seen$,
+      // A highest priority bundle makes everything it reaches highest priority too
+      $inverseProbability$: isHighestPriority(bundle)
+        ? dep.$isStatic$
+          ? 0
+          : 0.01
+        : bundle.$inverseProbability$,
+      $importerRank$: bundle.$rank$,
+      $isStaticImport$: dep.$isStatic$,
+      $rendersPage$: frame.$rendersPage$,
     });
     return true;
   }
 
-  if (frame.$seen$?.has(bundle)) {
+  const previousInverseProbability = bundle.$inverseProbability$;
+  const rank = getRank(bundle, frame);
+  const isStronger = frame.$inverseProbability$ < previousInverseProbability;
+  const isBetterRanked =
+    frame.$inverseProbability$ === previousInverseProbability && rank < bundle.$rank$;
+  if (!frame.$isReplay$ && !isStronger && !isBetterRanked) {
     adjustmentStack.pop();
     return false;
   }
-
-  const wasHighestPriority = isHighestPriority(bundle);
-  const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Replay and highest priority transitions must reach dependencies.
-  if (
-    !frame.$isReplay$ &&
-    wasHighestPriority === isHighestPriority(bundle) &&
-    previousInverseProbability - bundle.$inverseProbability$ < 0.01
-  ) {
-    adjustmentStack.pop();
-    return false;
+  if (isStronger) {
+    bundle.$inverseProbability$ = frame.$inverseProbability$;
+  }
+  bundle.$rank$ = isStronger || frame.$isReplay$ ? rank : Math.min(rank, bundle.$rank$);
+  if (frame.$rendersPage$) {
+    bundle.$rendersPage$ = true;
   }
 
   if (
@@ -182,9 +192,6 @@ const processAdjustmentFrame = () => {
   }
 
   if (bundle.$deps$?.length) {
-    const seen = frame.$seen$ || new Set<BundleImport>();
-    seen.add(bundle);
-    frame.$seen$ = seen;
     frame.$deps$ = bundle.$deps$;
     frame.$index$ = 0;
     return false;
@@ -300,7 +307,7 @@ const retryFailedPreload = (bundle: BundleImport) => {
 
 /** Replay a buffered hint after its dependencies become available. */
 export const replayBundle = (bundle: BundleImport) => {
-  enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
+  enqueueAdjustment(bundle, bundle.$inverseProbability$, bundle.$rendersPage$, true);
   if (isBrowser) {
     scheduleAdjustments();
   } else {
@@ -308,24 +315,29 @@ export const replayBundle = (bundle: BundleImport) => {
   }
 };
 
-export const handleBundle = (name: string, inverseProbability: number) => {
+export const handleBundle = (name: string, inverseProbability: number, rendersPage?: boolean) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, inverseProbability);
+    enqueueAdjustment(bundle, inverseProbability, rendersPage);
   }
 };
 
-export const preload = (item: string | string[], probability?: number) => {
+/** `isPageToRender` is for a page the user may go to: its components are needed first. */
+export const preload = (
+  item: string | string[],
+  probability?: number,
+  isPageToRender?: boolean
+) => {
   if (!item?.length) {
     return;
   }
   const inverseProbability = probability ? 1 - probability : 0.4;
   if (Array.isArray(item)) {
     for (let i = 0; i < item.length; i++) {
-      handleBundle(item[i], inverseProbability);
+      handleBundle(item[i], inverseProbability, isPageToRender);
     }
   } else {
-    handleBundle(item, inverseProbability);
+    handleBundle(item, inverseProbability, isPageToRender);
   }
   if (isBrowser) {
     scheduleAdjustments();
@@ -344,12 +356,6 @@ export const getPreloadOrder = (item: string[], probability?: number) => {
     sortQueue();
     return queue.map((bundle) => bundle.$name$);
   } finally {
-    for (const bundle of bundles.values()) {
-      const deps = bundle.$deps$ || [];
-      for (let i = 0; i < deps.length; i++) {
-        deps[i].$factor$ = 1;
-      }
-    }
     bundles.clear();
     queue.length = 0;
     adjustmentStack.length = 0;

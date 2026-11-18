@@ -7,24 +7,26 @@ export const BundleImportState_Loaded = 4;
 export type BundleInfo = {
   $inverseProbability$: number;
   // TODO check if for performance we should use refs instead of ids
-  $deps$?: ImportProbability[];
+  $deps$?: BundleDep[];
 };
 
 export type BundleImport = BundleInfo & {
   $name$: string;
   $state$: number;
+  /** 0: no QRL, 1: handler, 2: other QRL, 3: component */
+  $kind$: number;
+  /** Order among the bundles of the same probability, lowest first */
+  $rank$: number;
+  $rendersPage$?: boolean;
   $failures$?: number;
 };
 
 export type BundleImports = Map<string, BundleImport>;
 
-export type ImportProbability = {
+export type BundleDep = {
   /** Bundle name */
   $name$: string;
-  /** Probability */
-  $importProbability$: number;
-  /** Probability adjust factor */
-  $factor$: number;
+  $isStatic$: boolean;
 };
 
-export type BundleGraph = Map<string, ImportProbability[]>;
+export type BundleGraph = Map<string, { $deps$: BundleDep[]; $kind$: number }>;

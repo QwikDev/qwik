@@ -454,6 +454,7 @@ export interface LoadedRoute {
   $menu$?: ContentMenu | undefined;
   /** The bundle names for this route */
   $routeBundleNames$?: string[] | undefined;
+  $layoutKeys$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
   /** The nearest _E (error.tsx) boundary's chain to render on a thrown ServerError (in its layouts). */

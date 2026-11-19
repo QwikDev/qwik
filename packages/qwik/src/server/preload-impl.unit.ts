@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const createContainer = (buildBase = '/') => {
+const createContainer = (buildBase = '/', bundleGraph: (string | number)[] | undefined = []) => {
   const elements: { tagName: string; attrs: Record<string, string> }[] = [];
   let scriptContent = '';
 
@@ -11,7 +11,7 @@ const createContainer = (buildBase = '/') => {
         preloader: 'preloader.js',
         core: 'core.js',
         bundleGraphAsset: 'assets/bundle-graph.json',
-        bundleGraph: [],
+        bundleGraph,
       },
     },
     serializationCtx: {
@@ -115,6 +115,8 @@ const expectDeferredUntilAfterPaint = (
   expect(importModule).toHaveBeenCalledOnce();
   expect(fetch).toHaveBeenCalledTimes(shouldFetch ? 1 : 0);
 };
+
+const GRAPH = ['root.js', -9, 3, 'handler.js', 'modal/', -6, 7, 'page.js', 'other.js'];
 
 describe('preloader', () => {
   afterEach(() => {
@@ -252,6 +254,91 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
+  });
+
+  it('sends the seeds instead of the chunks they reach', async () => {
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, undefined, ['handler.js', 'page.js'], undefined, [
+      'root.js',
+      'modal/',
+    ]);
+
+    expect(getScriptContent()).toContain('p(["root.js","modal/"])');
+  });
+
+  it('still sends a chunk the seeds do not reach', async () => {
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, undefined, ['handler.js', 'other.js'], undefined, ['root.js']);
+
+    expect(getScriptContent()).toContain('p(["root.js","other.js"])');
+  });
+
+  it('does not list core or the preloader next to the seeds', async () => {
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, undefined, ['core.js', 'preloader.js', 'handler.js'], undefined, [
+      'root.js',
+    ]);
+
+    expect(getScriptContent()).toContain('p(["root.js"])');
+  });
+
+  it('sends the chunk list when the bundle graph knows none of the seeds', async () => {
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, undefined, ['handler.js', 'page.js'], undefined, ['unknown/']);
+
+    expect(getScriptContent()).toContain('p(["handler.js","page.js"])');
+  });
+
+  it('sends the chunk list when the manifest has no bundle graph', async () => {
+    const { container, getScriptContent } = createContainer('/', undefined);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, undefined, ['handler.js', 'page.js'], undefined, ['root.js']);
+
+    expect(getScriptContent()).toContain('p(["handler.js","page.js"])');
+  });
+
+  it('still takes the ssrPreloads links from the chunk list when seeds replace it', async () => {
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, { ssrPreloads: 1 }, ['handler.js', 'page.js'], undefined, [
+      'root.js',
+      'modal/',
+    ]);
+
+    const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
+    expect(immediateScript).toContain('handler.js');
+    expect(immediateScript).not.toContain('page.js');
+    expect(getScriptContent()).toContain('p(["root.js","modal/"])');
+  });
+
+  it('seeds with the chunk of each root component and with the seeds from server data', async () => {
+    const { componentQrl, jsx, Fragment } = await import('@qwik.dev/core');
+    const { qrl } = await import('../core/shared/qrl/qrl');
+    const { container, getScriptContent } = createContainer('/', GRAPH);
+    container.serializationCtx.$eventQrls$.add(qrl('handler.js', 's_handler'));
+    container.serializationCtx.$eventQrls$.add(qrl('page.js', 's_page'));
+    const Root = componentQrl(qrl('root.js', 's_root') as any);
+    const Other = componentQrl(qrl('other.js', 's_other') as any);
+    const { preloaderPost } = await import('./preload-impl');
+
+    preloaderPost(
+      container,
+      { serverData: { preloadSeeds: ['modal/'] } } as any,
+      undefined,
+      jsx(Fragment, { children: [jsx(Root, { children: jsx(Other, {}) }), jsx('div', {})] })
+    );
+
+    expect(getScriptContent()).toContain('p(["root.js","other.js","modal/"])');
   });
 
   it('links what the client preloader would fetch first, not the first bundles in render order', async () => {

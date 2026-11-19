@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core';
 import { _requestPreload as preload } from '@qwik.dev/core/internal';
-import { ensureSlash } from '../../utils/pathname';
+import { toBundleGraphRouteName } from '../../utils/pathname';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
 
@@ -47,8 +47,6 @@ export const preloadRouteBundles = (
   newLayoutKeys: string[] = []
 ) => {
   if (isBrowser) {
-    routeName = ensureSlash(routeName);
-    routeName = routeName.length > 1 && routeName.startsWith('/') ? routeName.slice(1) : routeName;
-    preload([...newLayoutKeys, routeName], probability, true);
+    preload([...newLayoutKeys, toBundleGraphRouteName(routeName)], probability, true);
   }
 };

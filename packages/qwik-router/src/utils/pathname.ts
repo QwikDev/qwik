@@ -4,6 +4,11 @@ import type { PathParams } from '../runtime/src/types';
 export const ensureSlash = (pathname: string) =>
   pathname.endsWith('/') ? pathname : pathname + '/';
 
+export const toBundleGraphRouteName = (routeName: string) => {
+  routeName = ensureSlash(routeName);
+  return routeName.length > 1 && routeName.startsWith('/') ? routeName.slice(1) : routeName;
+};
+
 export function normalizePathname(pathname: string | undefined | null, basePathname: string) {
   if (typeof pathname === 'string') {
     pathname = pathname.trim();

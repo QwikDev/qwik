@@ -1965,6 +1965,22 @@ describe('shared-serialization', () => {
       releaseComputedModule();
     });
 
+    it('holds a later QRL until the module of a computed it shares with a restored task has loaded', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const objs = await serialize(
+        createTask(taskQrl('s_task', [computed])),
+        taskQrl('s_reader', [computed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const restored = deserialize(objs);
+      void restored[0];
+      await Promise.resolve();
+
+      expect(await isReady(restored[1] as QRLInternal)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(restored[1] as QRLInternal)).toBe(true);
+    });
+
     it('leaves the captures of the QRL that is running untouched', async () => {
       const runningCaptures = ['running'];
       const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));

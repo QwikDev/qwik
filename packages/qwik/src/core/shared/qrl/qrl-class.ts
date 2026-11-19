@@ -536,6 +536,9 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
+const earlyCaptureLoads = new WeakMap<object, Promise<void>>();
+let pendingEarlyLoads = 0;
+
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible
@@ -551,10 +554,17 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     const prevLoading = loadingHolder.p;
     const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
     setCaptures(captures);
-    if (loadingHolder.p !== prevLoading) {
-      // return the loading promise so callers can await it
-      return loadingHolder.p;
+    let loading = loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
+    if (pendingEarlyLoads) {
+      for (let i = 0; i < captures.length; i++) {
+        const earlyLoad = earlyCaptureLoads.get(captures[i] as object);
+        if (earlyLoad) {
+          loading = loading ? loading.then(() => earlyLoad) : earlyLoad;
+        }
+      }
     }
+    // return the loading promise so callers can await it
+    return loading;
   } else {
     setCaptures(serializedCaptures || null);
   }
@@ -569,6 +579,15 @@ export const restoreQrlCaptures = (qrl: QRLInternal) => {
   if (capturesLoading) {
     qrlState.$capturesLoading$ = capturesLoading;
     loadingHolder.p = loadingBefore;
+    const captures = qrlState.$captures$ as unknown[];
+    for (let i = 0; i < captures.length; i++) {
+      const capture = captures[i];
+      if (isObject(capture) || isFunction(capture)) {
+        earlyCaptureLoads.set(capture, capturesLoading);
+      }
+    }
+    pendingEarlyLoads++;
+    capturesLoading.finally(() => pendingEarlyLoads--);
   }
   setCaptures(runningCaptures);
 };

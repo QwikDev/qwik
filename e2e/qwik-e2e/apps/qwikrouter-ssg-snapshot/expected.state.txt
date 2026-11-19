@@ -165,7 +165,7 @@
 26 {string} "s_aRL6GvFyews"
 27 {string} "q-xxxxxxxx.js"
 28 {string} "s_TG0a9Yb7gLI"
-29 VNode "11A"
+29 VNode "10A"
 30 QRL "[omitted]"
 31 Map [
   Constant ':'
@@ -197,7 +197,7 @@
     Constant false
   ]
 ]
-38 VNode "1H"
+38 VNode "1G"
 39 QRL "[omitted]"
 40 Map [
   Constant ':'
@@ -215,7 +215,7 @@
 46 Array []
 47 {string} "q-xxxxxxxx.js"
 48 {string} "s_4s4ZDCYhDOA"
-49 VNode "11AAA"
+49 VNode "10AAA"
 50 Signal [
   {number} 2
   EffectSubscriptionNoData [
@@ -285,12 +285,12 @@
   RootRef [omitted]
   Constant ':'
 ]
-56 VNode "13A"
+56 VNode "12A"
 57 Map [
   Constant '.'
   RootRef [omitted]
 ]
-58 VNode "8"
+58 VNode "7"
 59 Map [
   {string} "href"
   RootRef [omitted]
@@ -316,7 +316,7 @@
   RootRef [omitted]
 ]
 68 {string} "q-xxxxxxxx.js"
-69 {string} "_rsc"
+69 {string} "s_zIzd52N038I"
 70 Object [
   {string} "total"
   {number} 18

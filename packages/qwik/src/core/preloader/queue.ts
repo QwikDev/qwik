@@ -112,7 +112,7 @@ const enqueueAdjustment = (
   });
 };
 
-const HIGHEST_KIND = 3;
+export const HIGHEST_KIND = 3;
 
 const getRank = (bundle: BundleImport, frame: AdjustmentFrame) => {
   const kind = bundle.$kind$;
@@ -168,11 +168,9 @@ const processAdjustmentFrame = () => {
   }
   if (isStronger) {
     bundle.$inverseProbability$ = frame.$inverseProbability$;
+    bundle.$rendersPage$ = frame.$rendersPage$;
   }
-  bundle.$rank$ = isStronger || frame.$isReplay$ ? rank : Math.min(rank, bundle.$rank$);
-  if (frame.$rendersPage$) {
-    bundle.$rendersPage$ = true;
-  }
+  bundle.$rank$ = isStronger ? rank : Math.min(rank, bundle.$rank$);
 
   if (
     // don't queue until we have initialized the preloader

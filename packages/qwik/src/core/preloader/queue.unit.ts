@@ -1180,3 +1180,52 @@ test('a hint for a page to render preloads components first', async () => {
     'card-events.js',
   ]);
 });
+
+const preloadBeforeGraph = async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  let deliver!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliver = resolve)));
+  const deliverGraph = async (serializedGraph: (string | number)[]) => {
+    deliver({ text: async () => JSON.stringify(serializedGraph) } as Response);
+    await vi.runAllTimersAsync();
+  };
+  return { document, preload, deliverGraph };
+};
+
+test('a chunk hinted before the bundle graph loaded still goes with the handler that imports it', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload(['card-events.js', 'card-tasks.js', 'card-render.js'], 0.6);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler', imports: ['card-render.js'] },
+      'card-tasks.js': { kind: 'qrl' },
+      'card-render.js': { kind: 'component' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-events.js', 'card-render.js', 'card-tasks.js']);
+});
+
+test('before the bundle graph loaded, a stronger hint replaces an earlier hint for a page to render', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload('card-render.js', 0.5, true);
+  preload(['card-render.js', 'card-tasks.js'], 0.8);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-render.js': { kind: 'component' },
+      'card-tasks.js': { kind: 'qrl' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-tasks.js', 'card-render.js']);
+});

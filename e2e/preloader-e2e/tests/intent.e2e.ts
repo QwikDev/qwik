@@ -4,7 +4,9 @@ import { CLICKABLE_ON_ALL_AT_ONCE, fixtureById, type Fixture } from '../utils/fi
 import {
   createGate,
   FILLER,
+  preloadHints,
   preloaderLinks,
+  recordPreloadHints,
   recordSpeculativePreloads,
   release,
   waitForQwikloader,
@@ -95,4 +97,46 @@ test.describe('intent', () => {
       THREE_BUTTONS.map((fixture) => fixture.id).reverse()
     );
   });
+});
+
+const FROM_VISIBLE = '/navigation/from/visible/';
+const TO_TREE_ROUTE = 'navigation/to-tree/';
+const TO_TREE_SOURCES = [
+  'src/routes/navigation/to-tree/',
+  'src/components/fixtures/navigation/nav-tree',
+];
+
+const linkToTree = (page: Page) =>
+  page.locator('[data-fixture="navigation/from-visible"] [data-testid=link-tree]');
+
+test.describe('intent on a Link', () => {
+  for (const [intent, show] of [
+    ['hover', (page: Page) => linkToTree(page).hover()],
+    ['keyboard focus', (page: Page) => linkToTree(page).focus()],
+  ] as const) {
+    test(`${intent} on a Link: its route's chunks are the next speculative preloads`, async ({
+      page,
+    }) => {
+      await recordPreloadHints(page);
+      const gate = await openWithSpeculativePreloadsHeld(page, FROM_VISIBLE);
+      const linksBefore = (await preloaderLinks(page)).length;
+
+      await show(page);
+      await expect
+        .poll(async () =>
+          (await preloadHints(page)).some(
+            ({ item, probability }) => probability === 0.9 && [item].flat().includes(TO_TREE_ROUTE)
+          )
+        )
+        .toBe(true);
+      await letThePreloaderApplyItsHints(page);
+      await letSpeculativePreloadsGo(gate);
+
+      await expect
+        .poll(async () => (await speculativeQrlChunksSince(page, linksBefore)).length)
+        .toBeGreaterThan(0);
+      const [next] = await speculativeQrlChunksSince(page, linksBefore);
+      expect(chunkComesFrom(next, TO_TREE_SOURCES)).toBe(true);
+    });
+  }
 });

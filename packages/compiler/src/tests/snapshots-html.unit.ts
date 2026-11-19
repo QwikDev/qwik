@@ -258,7 +258,7 @@ export default component$((props: { dangerouslySetInnerHTML: string }) => (
     const main = renderCode(output);
     if (mode === 'ssr') {
       // Non-void elements emit the props content even with no authored children.
-      expect(main.match(/\.innerHTML \?\? \[\]/g)).toHaveLength(3);
+      expect(main.match(/\.innerHTML(\?\.replace\([^)]+\))? \?\? \[\]/g)).toHaveLength(3);
     } else {
       expect(main.match(/createPropsEffect\(/g)).toHaveLength(4);
     }
@@ -468,6 +468,34 @@ export default component$((props: { heading: string }) => (
     // Raw text is never decoded, so it is set as content rather than escaped as text.
     expect(code).toContain('dangerouslySetInnerHTML');
     expect(code).not.toContain('escapeHTML');
+  });
+
+  test('should keep live script and style content from closing its element', async () => {
+    const output = await testInput(mode, 'raw-text-closer-guard', {
+      code: `export default (props: { data: object; css: string; html: string; rest: object }) => (
+  <div>
+    <script type="application/ld+json">{JSON.stringify(props.data)}</script>
+    <style>{props.css}</style>
+    <script dangerouslySetInnerHTML={props.html} />
+    <script dangerouslySetInnerHTML="a</b" />
+    <style {...props.rest} />
+    <div dangerouslySetInnerHTML={props.html} />
+  </div>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = renderCode(output);
+    if (mode === 'csr') {
+      // Inserted through innerHTML, a script never runs, so nothing is guarded.
+      expect(main).not.toContain('.replace(');
+      return;
+    }
+    // Live raw-text content guards `</` like literal children; authored markup and the div stay raw.
+    expect(main.match(/\.replace\(\/<\\\/\/g, "<\\\\\/"\)/g)).toHaveLength(4);
+    expect(main).toContain('<script>a</b</script>');
+    expect(main).toMatch(
+      /<div q:id=\\"", createSsrNodeId\(id\d\), "\\">", attr\d \?\? '', "<\/div>/
+    );
   });
 
   test('should keep a live value inside title and textarea escaped text', async () => {

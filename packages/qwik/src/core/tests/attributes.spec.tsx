@@ -1019,6 +1019,30 @@ describe(`${name}: inner HTML`, () => {
     expect(container.querySelector('#fixed h3')?.textContent).toBe('Test content');
   });
 
+  it('keeps a live script or style value from closing its element', async () => {
+    const payload = '</script><img src=x onerror=alert(1)>';
+    const css = 'a::after { content: "</style><img src=y>"; }';
+    const Child = component$((props: { data: { payload: string }; css: string }) => (
+      <section>
+        <script type="application/ld+json">{JSON.stringify(props.data)}</script>
+        <style>{props.css}</style>
+      </section>
+    ));
+    const App = component$(() => <Child data={{ payload }} css={css} />);
+    const { container, html, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    // Only the server writes the value into markup; the client sets it as text.
+    if (name === 'ssrRender') {
+      expect(html).not.toContain('</script><img');
+    }
+    expect(container.querySelectorAll('img')).toHaveLength(0);
+    const script = container.querySelector('script[type="application/ld+json"]')!;
+    expect(JSON.parse(script.textContent!)).toEqual({ payload });
+    expect(container.querySelector('style')!.textContent).toMatch(
+      /^a::after \{ content: ".*"; \}$/
+    );
+  });
+
   it('should ignore children spread into a dynamic tag', async () => {
     const App = component$(() => {
       const props = useSignal({ type: 'div' as const, children: ['Hello'] });

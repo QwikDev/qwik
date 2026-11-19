@@ -1,0 +1,151 @@
+==INPUT==
+
+export default (props: { data: object; css: string; html: string; rest: object }) => (
+  <div>
+    <script type="application/ld+json">{JSON.stringify(props.data)}</script>
+    <style>{props.css}</style>
+    <script dangerouslySetInnerHTML={props.html} />
+    <script dangerouslySetInnerHTML="a</b" />
+    <style {...props.rest} />
+    <div dangerouslySetInnerHTML={props.html} />
+  </div>
+);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.js (ENTRY POINT)==
+
+export const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (props) => {
+  return JSON.stringify(props.data);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "entry": null,
+  "displayName": "component_dangerouslySetInnerHTML_segment_0",
+  "hash": "x73niz9xuctt",
+  "canonicalFilename": "component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "dangerouslySetInnerHTML",
+  "captures": true,
+  "loc": [
+    135,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props.rest };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    306,
+    327
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  _first,
+  _next,
+  _last,
+  _prev,
+  createAttrExpressionEffect,
+  propSource,
+  createAttrEffect,
+  createPropsEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt } from './component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+const default_tmpl0 = _createElementTemplate(
+  '<div><script type="application/ld+json"></script><style></style><script></script><script>a</b</script><style></style><div></div></div>'
+);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createAttrExpressionEffect(
+    el1,
+    'dangerouslySetInnerHTML',
+    [props],
+    component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const el2 = _next(_first(el0));
+  const prop0 = propSource(props, 'css');
+  const effect1 = createAttrEffect(el2, 'dangerouslySetInnerHTML', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  const el3 = _next(_next(_first(el0)));
+  const prop1 = propSource(props, 'html');
+  const effect2 = createAttrEffect(el3, 'dangerouslySetInnerHTML', prop1, ctx.scheduler);
+  ctx.scheduler.notify(effect2);
+  const el4 = _prev(_last(el0));
+  const effect3 = createPropsEffect(
+    el4,
+    [props],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler
+  );
+  ctx.scheduler.run(effect3);
+  const el5 = _last(el0);
+  const effect4 = createAttrEffect(el5, 'dangerouslySetInnerHTML', prop1, ctx.scheduler);
+  ctx.scheduler.notify(effect4);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    0,
+    389
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

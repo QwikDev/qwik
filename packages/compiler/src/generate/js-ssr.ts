@@ -26,7 +26,12 @@ import {
   type Value,
 } from '../schema';
 import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
-import { escapeAttr, NEWLINE_EATING_ELEMENTS, serializeAttrValue } from '../html';
+import {
+  escapeAttr,
+  NEWLINE_EATING_ELEMENTS,
+  RAW_TEXT_ELEMENTS,
+  serializeAttrValue,
+} from '../html';
 import { UnsupportedError } from '../errors';
 import { generatePlanModules, type QwikModuleEmitter } from './assemble-module';
 import { noopQrlJs } from './noop-qrl';
@@ -754,13 +759,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // The props object may carry innerHTML, which replaces the authored children.
     const children: string[] = propsStep === null ? parts : [];
+    const isRawText = RAW_TEXT_ELEMENTS.has(op.tag);
     if (innerHtml !== null) {
       // innerHTML is the element's content; a literal folds, a live value is a serialized step.
       const literal = inlineStringValue(innerHtml.value);
       if (literal !== null) {
         pushMergedStatic(children, literal);
       } else {
-        children.push(`${this.attrStep(pass, innerHtml, idVariable!, null)} ?? ''`);
+        const content = `${this.attrStep(pass, innerHtml, idVariable!, null)} ?? ''`;
+        children.push(isRawText ? guardRawTextJs(`(${content})`) : content);
       }
     }
 
@@ -837,7 +844,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       }
     }
     if (propsStep !== null && !op.void) {
-      parts.push(`${propsStep}.innerHTML ?? [${children.join(', ')}]`);
+      const content = isRawText
+        ? guardRawTextJs(`${propsStep}.innerHTML?`)
+        : `${propsStep}.innerHTML`;
+      parts.push(`${content} ?? [${children.join(', ')}]`);
     }
     if (op.void) {
       return;
@@ -1518,6 +1528,11 @@ function boundLiftedLocals(module: LinkedModule, qrl: LinkedQrl): QrlUse[] {
       ? module.payloads[qrl.body.payload].qrls.filter(({ local }) => local !== undefined)
       : [];
   return [...(qrl.functions ?? []), ...declared].map(({ use }) => use);
+}
+
+/** Only `</` could end raw text early; the same guard literal children get at compile time. */
+function guardRawTextJs(expression: string): string {
+  return `${expression}.replace(/<\\//g, ${JSON.stringify('<\\/')})`;
 }
 
 function pushMergedStatic(parts: string[], text: string): void {

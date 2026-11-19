@@ -33,7 +33,7 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     '<style q:id="',
     createSsrNodeId(id0),
     '">',
-    attr0 ?? '',
+    (attr0 ?? '').replace(/<\//g, '<\\/'),
     '</style>',
   ]);
 }

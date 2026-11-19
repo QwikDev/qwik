@@ -14,9 +14,9 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth. Keep each budget above the actual size by at least 500 bytes for core and 100 bytes
 // for the preloader and qwikloader; brotli output varies between builds, so a tighter budget is flaky.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 33800;
+const CORE_BROTLI_BUDGET = 33700;
 // Core without the `binaryState` flag, which is what apps ship by default.
-const CORE_JSON_BROTLI_BUDGET = 32200;
+const CORE_JSON_BROTLI_BUDGET = 32300;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));

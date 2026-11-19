@@ -23,7 +23,10 @@ export function createDeclaredResultReader(modules: readonly LinkedModule[]) {
   };
 }
 
-function createReader(modules: readonly LinkedModule[]) {
+// Shared across links: TypeScript binds a SourceFile once and keeps checker state per Program.
+let library: ts.SourceFile | undefined;
+
+function parseLibrary(): ts.SourceFile {
   const libraryText =
     typeof standardLibrary === 'string'
       ? standardLibrary
@@ -31,6 +34,11 @@ function createReader(modules: readonly LinkedModule[]) {
   if (libraryText === undefined) {
     throw new Error('Missing TypeScript standard library.');
   }
+  return ts.createSourceFile(libraryPath, libraryText, ts.ScriptTarget.Latest, true);
+}
+
+function createReader(modules: readonly LinkedModule[]) {
+  library ??= parseLibrary();
   const files = modules.map((module, index) =>
     ts.createSourceFile(
       `/module-${index}.tsx`,
@@ -40,7 +48,6 @@ function createReader(modules: readonly LinkedModule[]) {
       ts.ScriptKind.TSX
     )
   );
-  const library = ts.createSourceFile(libraryPath, libraryText, ts.ScriptTarget.Latest, true);
   const sources = new Map([...files, library].map((file) => [file.fileName, file]));
   const owners = new Map(files.map((file, index) => [file.fileName, index]));
   const host: ts.CompilerHost = {

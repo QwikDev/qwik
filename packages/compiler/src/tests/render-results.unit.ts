@@ -297,6 +297,18 @@ describe('linked render results', () => {
     expect(holes(plan)).toEqual([Shape.Text, Shape.Unknown]);
   });
 
+  test('does not leak a global augmentation from one link into the next', async () => {
+    const read = 'const state: { value: number } = external(); return <p>{state.value.label}</p>;';
+    const plain = `export default () => { ${read} };`;
+    const augmented = `declare global { interface Number { label: string } }
+      export default () => { ${read} };`;
+    const first = await link(plain);
+    expect(holes(await link(augmented))).toEqual([Shape.Text]);
+    const again = await link(plain);
+    expect(holes(first)).toEqual([Shape.Unknown]);
+    expect(JSON.stringify(again)).toBe(JSON.stringify(first));
+  });
+
   test.each(['function', 'prop'])(
     'preserves declared library %s contracts through neutral plan serialization',
     async (contract) => {

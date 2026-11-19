@@ -257,7 +257,7 @@ export class QRLClass<TYPE> {
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
   $container$?: Container | null;
-  $capturesLoading$?: Promise<void>;
+  declare $capturesLoading$?: Promise<void>;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,

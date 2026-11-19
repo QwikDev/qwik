@@ -56,4 +56,6 @@ No application code needs to change. The flag also switches the payloads of `rou
   action response, such as a proxy or a middleware doing search and replace, breaks the state.
   Change the data before it is serialized instead.
 - **Deploy server and client together.** A client built with the flag only reads binary state, so
-  the HTML and the JavaScript must come from the same build.
+  the HTML and the JavaScript must come from the same build. A tab opened before the deploy that
+  turns the flag on or off keeps its old client, so its next loader, action or `server$` call
+  fails until the page is reloaded.

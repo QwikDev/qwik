@@ -421,6 +421,10 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   // SSR execution moved to separate SSR worker
   result.html = '';
   result.vnodeTreeModule = await (vnodeTreeModule ||= buildVNodeTreeModule());
+  if (!result.vnodeTreeModule) {
+    // The helper failed to build; try again on the next build.
+    vnodeTreeModule = null;
+  }
 
   return result;
 }

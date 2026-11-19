@@ -71,6 +71,7 @@ export const loadBundleGraph = (
     P?: number;
   }
 ) => {
+  const previousMaxIdlePreloads = config.$maxIdlePreloads$;
   if (opts) {
     if ('P' in opts) {
       config.$maxIdlePreloads$ = opts['P'] as number;
@@ -118,6 +119,8 @@ export const loadBundleGraph = (
         isWaitingForGraph = false;
         nextTriggerMacroTask();
       });
+  } else if (config.$maxIdlePreloads$ > previousMaxIdlePreloads) {
+    nextTriggerMacroTask();
   }
 };
 

@@ -56,13 +56,7 @@ export const preloaderPre = (
     initPreloader(bundleGraph);
 
     // Add the preloader script to the head
-    const opts: string[] = [];
-    if (options) {
-      if (options.maxIdlePreloads != null) {
-        opts.push(`P:${options.maxIdlePreloads}`);
-      }
-    }
-    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    const optsStr = `,{P:${options?.maxIdlePreloads ?? preLoaderOptionsDefault.maxIdlePreloads}}`;
 
     // Fetch early so the deferred start does not pay a request chain
     const preloaderLinkAttrs: Record<string, string> = {
@@ -84,12 +78,17 @@ export const preloaderPre = (
     );
     container.closeElement();
 
-    const script = afterPagePaint(
-      `{let b=fetch("${bundleGraphPath}");` +
-        `import("${preloaderBundle}").then(({l})=>` +
-        `l(${JSON.stringify(base)},b${optsStr})` +
-        `)}`
-    );
+    // Urgent hints start early; speculative preloads still wait for paint.
+    const script =
+      `let p;const s=()=>{if(!p){` +
+      `window.qPreloadStart=undefined;` +
+      `let b=fetch("${bundleGraphPath}");` +
+      `p=import("${preloaderBundle}").then(({l})=>{` +
+      `l(${JSON.stringify(base)},b,{P:0});return l` +
+      `})}return p};` +
+      `window.qPreloadStart=s;` +
+      `if(window.qPreloadQueue?.some(h=>h[1]===1)){s()}` +
+      afterPagePaint(`s().then(l=>l(${JSON.stringify(base)},undefined${optsStr}))`);
     const scriptAttrs: Record<string, string | boolean> = {
       type: 'module',
       async: true,

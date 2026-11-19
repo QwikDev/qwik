@@ -1097,3 +1097,23 @@ test('a limit of 0 starts no speculative preload, and still preloads at the high
   await vi.runAllTimersAsync();
   expect(linkNames(document)).toEqual(['highest-priority.js']);
 });
+
+test('starts queued speculative preloads when their limit is raised', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const graph = { text: async () => JSON.stringify(['speculative.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 0 });
+  preload('speculative.js', 0.8);
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual([]);
+
+  loadBundleGraph('/build/', undefined, { P: 1 });
+  await vi.runAllTimersAsync();
+  expect(linkNames(document)).toEqual(['speculative.js']);
+});

@@ -630,12 +630,14 @@ describe('qwikloader behavior', () => {
       'q-e:click': 'core.js#handler##handler.js,other.js',
     });
     win.qPreload = isPreloaderLoaded ? vi.fn() : undefined;
+    win.qPreloadStart = vi.fn();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     try {
       getSingleListener(doc, 'click').handler(createMockEvent(button));
 
       const hint = [['core.js', 'handler.js', 'other.js'], 1];
+      expect(win.qPreloadStart).toHaveBeenCalledOnce();
       if (isPreloaderLoaded) {
         expect(win.qPreload).toHaveBeenCalledWith(...hint);
       } else {
@@ -651,6 +653,7 @@ describe('qwikloader behavior', () => {
 
   test('leaves the preloader alone when a page lifecycle event imports a chunk', async () => {
     const { doc, win } = createLoaderEnvironment(['d:qinit']);
+    win.qPreloadStart = vi.fn();
     const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
     const element = createMockElement(container, { 'q-d:qinit': 'init.js#handler#' });
     doc.querySelectorAll.mockReturnValue([element]);
@@ -664,6 +667,7 @@ describe('qwikloader behavior', () => {
       });
 
       expect(win.qPreloadQueue).toBeUndefined();
+      expect(win.qPreloadStart).not.toHaveBeenCalled();
     } finally {
       consoleError.mockRestore();
     }

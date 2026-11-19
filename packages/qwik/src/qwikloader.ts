@@ -216,6 +216,7 @@ const resolveHandler = (
     preloaderGlobal.qPreload
       ? preloaderGlobal.qPreload(chunks, 1)
       : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+    preloaderGlobal.qPreloadStart?.();
   }
 
   const href = new URL(chunk, base).href;

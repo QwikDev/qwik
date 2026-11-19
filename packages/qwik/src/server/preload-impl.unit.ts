@@ -187,6 +187,65 @@ describe('preloader', () => {
     expect(getScriptContent()).toContain(`{P:${limit}}`);
   });
 
+  it.each([
+    { buffered: false, limit: undefined, expectedLimit: 25 },
+    { buffered: false, limit: 0, expectedLimit: 0 },
+    { buffered: true, limit: 1, expectedLimit: 1 },
+  ])(
+    'starts once for an early hint and restores the speculative limit after paint: $buffered, $expectedLimit',
+    async ({ buffered, limit, expectedLimit }) => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+      preloaderPre(container, { maxIdlePreloads: limit });
+
+      const response = Promise.resolve(new Response('[]'));
+      const fetch = vi.fn(() => response);
+      const loadBundleGraph = vi.fn();
+      const importModule = vi.fn(async () => ({ l: loadBundleGraph }));
+      let onLoad!: () => void;
+      const window = {
+        qPreloadStart: undefined as undefined | (() => void),
+        qPreloadQueue: [['speculative.js', 0.8]] as [string, number][],
+        addEventListener: (event: string, callback: () => void) => {
+          if (event === 'load') {
+            onLoad = callback;
+          }
+        },
+      };
+      if (buffered) {
+        window.qPreloadQueue.push(['handler.js', 1]);
+      }
+      // eslint-disable-next-line no-new-func
+      const runScript = new Function(
+        'window',
+        'fetch',
+        'importModule',
+        'requestAnimationFrame',
+        'requestIdleCallback',
+        getScriptContent().replaceAll('import(', 'importModule(')
+      );
+      const runCallback = (callback: () => void) => callback();
+      runScript(window, fetch, importModule, runCallback, runCallback);
+
+      if (!buffered) {
+        expect(fetch).not.toHaveBeenCalled();
+        expect(importModule).not.toHaveBeenCalled();
+        window.qPreloadQueue.push(['handler.js', 1]);
+        window.qPreloadStart?.();
+        window.qPreloadStart?.();
+      }
+      await vi.waitFor(() => expect(loadBundleGraph).toHaveBeenCalledOnce());
+      expect(loadBundleGraph).toHaveBeenLastCalledWith('/', response, { P: 0 });
+      expect(window.qPreloadStart).toBeUndefined();
+
+      onLoad();
+      await vi.waitFor(() => expect(loadBundleGraph).toHaveBeenCalledTimes(2));
+      expect(loadBundleGraph).toHaveBeenLastCalledWith('/', undefined, { P: expectedLimit });
+      expect(fetch).toHaveBeenCalledExactlyOnceWith('/assets/bundle-graph.json');
+      expect(importModule).toHaveBeenCalledExactlyOnceWith('/preloader.js');
+    }
+  );
+
   it('falls back to the next paint without a fixed delay', async () => {
     const { container, getScriptContent } = createContainer();
     const { preloaderPre } = await import('./preload-impl');

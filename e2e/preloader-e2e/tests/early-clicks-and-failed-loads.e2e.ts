@@ -12,6 +12,7 @@ import {
   NAVIGATION_SOURCES,
   SHARED_HELPER,
   STREAMING,
+  VISIBLE_ABOVE,
   type Fixture,
 } from '../utils/fixtures';
 import {
@@ -353,7 +354,7 @@ const loadASlowImage = (page: Page) =>
 const pageHasLoaded = (page: Page) => page.evaluate(() => document.readyState === 'complete');
 
 test.describe('click before the page has finished loading', () => {
-  test('a slow image holds back the load event: the click shows its result in 11 round trips, over the cap of 2', async ({
+  test('a slow image holds back the load event: the click shows its result in 2 round trips', async ({
     page,
   }) => {
     await loadASlowImage(page);
@@ -368,11 +369,30 @@ test.describe('click before the page has finished loading', () => {
     await releaseAll(gate, slowImage);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expect(hadLoaded).toBe(false);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 11,
-      reason:
-        'over the cap on main: the preloader only starts after the load event, so until then each chunk is only found once the one before it has loaded',
-    });
+    expectRoundTrips(roundTrips);
+  });
+
+  test('a slow image holds back the load event: a visible task starts only highest priority preloads', async ({
+    page,
+  }) => {
+    await loadASlowImage(page);
+    await recordSpeculativePreloads(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => url === SLOW_IMAGE;
+    await page.goto(VISIBLE_ABOVE.path, { waitUntil: 'commit' });
+    await expect.poll(() => gate.held.length).toBe(1);
+    await waitForNetworkIdle(page, () => expectResult(page, VISIBLE_ABOVE));
+
+    expect(await pageHasLoaded(page)).toBe(false);
+    const links = await preloaderLinks(page);
+    expect(links.some((link) => !link.speculative)).toBe(true);
+    expect(links.filter((link) => link.speculative)).toEqual([]);
+
+    await releaseAll(gate);
+    await page.waitForLoadState('load');
+    await expect
+      .poll(async () => (await preloaderLinks(page)).some((link) => link.speculative))
+      .toBe(true);
   });
 });
 

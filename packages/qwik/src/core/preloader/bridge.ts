@@ -2,6 +2,7 @@ type Preload = (item: string | string[], probability?: number) => void;
 
 export type PreloaderGlobal = typeof globalThis & {
   qPreload?: Preload;
+  qPreloadStart?: () => void;
   /** Hints sent before the preloader loaded; shared by core, qwikloader and the preloader. */
   qPreloadQueue?: Parameters<Preload>[];
 };
@@ -10,6 +11,9 @@ export type PreloaderGlobal = typeof globalThis & {
 export const requestPreload: Preload = (item, probability) => {
   const g = globalThis as PreloaderGlobal;
   g.qPreload ? g.qPreload(item, probability) : (g.qPreloadQueue ||= []).push([item, probability]);
+  if (probability === 1) {
+    g.qPreloadStart?.();
+  }
 };
 
 export const setPreloader = (preload: Preload | undefined) => {

@@ -563,10 +563,12 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
 /** @internal */
 export const restoreQrlCaptures = (qrl: QRLInternal) => {
   const runningCaptures = _capturesObj._;
+  const loadingBefore = loadingHolder.p;
   const qrlState = getInstance(qrl);
   const capturesLoading = ensureQrlCaptures(qrlState);
   if (capturesLoading) {
     qrlState.$capturesLoading$ = capturesLoading;
+    loadingHolder.p = loadingBefore;
   }
   setCaptures(runningCaptures);
 };

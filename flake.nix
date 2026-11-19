@@ -63,9 +63,10 @@
           };
         };
       # What CI builds and tests; see nix/ci.nix.
-      ci = b.mapAttrs (system: _: import ./nix/ci.nix {
+      # CI only runs x86_64-linux; the others are for building locally.
+      ci = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] (system: import ./nix/ci.nix {
         pkgs = import nixpkgs { inherit system; overlays = [ (import rust-overlay) ]; };
-      }) nixpkgs.legacyPackages;
+      });
     in
     {
       devShells = b.mapAttrs (devShell) nixpkgs.legacyPackages;

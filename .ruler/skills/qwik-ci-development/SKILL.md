@@ -16,8 +16,10 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
 
    ```bash
    nix build .#qwik-packages -L
-   nix build .#checks.x86_64-linux.unit -L
+   nix build .#ci.dev.checks.unit -L
    ```
+
+   CI only runs these on x86_64 Linux; other systems are untested.
 
 3. A job for Windows or macOS changes: edit `.github/workflows/ci.yml`. Those jobs have no Nix; they
    test the `artifact-dist` that the Linux build uploads.
@@ -31,9 +33,9 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
   inputs and calls the script.
 - Outputs mirror the repo layout (`packages/qwik/dist`, ...), so a consumer copies them over its
   checkout. Give a new output the path the build writes it to.
-- `node_modules`, the docs and insights builds, and the docs and CLI e2e reach the network
-  (`network = true`), which needs `sandbox = relaxed`. Keep everything else sandboxed, and never
-  read a secret in a derivation.
+- `node_modules`, the docs and insights builds, and the docs, CLI and Deno adapter e2e reach the
+  network (`network = true`), which needs `sandbox = relaxed`. Keep everything else sandboxed, and
+  never read a secret in a derivation.
 - A new check gets a job by itself: the plan job lists every entry of `checks`. Only add workflow
   code for a platform without Nix.
 - Releases build with `from-source`, so they never ship an output that a PR run put in the shared
@@ -42,8 +44,9 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
 ## Traps
 
 - Flakes only see files that git tracks: `git add` a new file before `nix build`, or it is missing.
-- An output that exists is never rebuilt. To rerun a passing check, change an input or delete its
-  output with `nix store delete`.
+- An output that exists is never rebuilt. To rerun a passing check, use `nix build --rebuild`.
+- A networked check runs outside the sandbox and shares the machine's ports. CI gives each check its
+  own runner; locally, build those one at a time.
 - The sandbox has no fonts, no outside network and no `GITHUB_ACTIONS`; `nix/ci.nix` provides what
   the browser tests need. A test that passes outside Nix and fails inside usually needs one of these.
 - A version stamp is an input: the `dev` and `latest` flavors under `.#ci.<flavor>` share nothing

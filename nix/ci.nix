@@ -345,7 +345,7 @@ let
           }
         );
 
-      # Both apps fetch their live bundling strategy from Qwik Insights while building.
+      # The docs and Insights apps fetch their live bundling strategy from Qwik Insights while building.
       docs = mkConsumer {
         name = "qwik-docs";
         network = true;
@@ -533,7 +533,8 @@ let
                 playwright test e2e/qwik-react-e2e/tests --project=chromium --config=e2e/qwik-react-e2e/playwright.config.ts --shard=${shard}
               ''
               + lib.optionalString withCli ''
-                pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts --shard=${shard}
+                # The scaffolded apps choose their own optimizer.
+                env -u QWIK_OPTIMIZER pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts --shard=${shard}
               '';
             }
           );
@@ -544,6 +545,7 @@ let
           bench
           lint
           dedupe
+          insights
           ;
         e2e-preloader = mkE2e {
           name = "qwik-e2e-preloader";
@@ -560,7 +562,6 @@ let
         inherit
           qwik
           docs
-          insights
           dist
           ;
         optimizer = optimizerBindings;

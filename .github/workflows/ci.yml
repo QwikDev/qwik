@@ -162,23 +162,27 @@ jobs:
               | if $before == null then "unknown" else $before != ($head[0] | getpath($path / ".")) end'
           }
           checks=$(missing .checks)
+          # node_modules is large and dist only repackages the others, so neither is fetched to find out.
+          builds=$(missing '.packages | del(.["node-modules"], .dist)')
+          # Nix does not know how the other platforms get tested, so their caches also depend on this.
+          platform=$(cat .github/workflows/ci.yml .github/actions/built-checkout/action.yml | sha256sum | cut -c 1-16)
 
           {
             echo "ci=.#ci.$flavor"
             echo "is-release=$([ $flavor = latest ] && echo true || echo false)"
-            # node_modules is large and dist only repackages the others, so neither is fetched to find out.
-            echo "builds=$(missing '.packages | del(.["node-modules"], .dist)')"
+            echo "builds=$builds"
             echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
             echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
             # The cache is shared between branches, so "was built here" does not mean "changed here".
-            echo "deploy-docs=$([ "$(changed packages.docs)" = false ] && echo false || echo true)"
+            # Docs that are unchanged but not built yet belong to a run that failed before deploying them.
+            echo "deploy-docs=$([ "$(changed packages.docs)" = false ] && jq -e 'index("docs") | not' <<< "$builds" > /dev/null && echo false || echo true)"
             # The other platforms key their caches on what the matching Linux output is made from.
             jq -r '{
               optimizer: .packages.optimizer,
               unit: .checks.unit,
               e2e: .checks["e2e-chromium-ts-1of2"],
               "cli-e2e": .checks["e2e-adapters-ts-node-1of2"]
-            } | to_entries[] | "key-\(.key)=\(.value | ltrimstr("/nix/store/"))"' paths.json
+            } | to_entries[] | "key-\(.key)=\(.value | ltrimstr("/nix/store/"))-\($platform)"' --arg platform "$platform" paths.json
           } | tee -a "$GITHUB_OUTPUT"
 
           # Not reproducible and cached by its inputs: builds after the merge reuse what this run installs.
@@ -294,17 +298,16 @@ jobs:
           path: packages/optimizer/bindings
           if-no-files-found: error
 
-  ############ BUILD DOCS AND INSIGHTS ############
+  ############ BUILD DOCS ############
   build-docs:
-    name: Build Docs and Insights
+    name: Build Docs
     needs:
       - plan
       - build
     if: |
       !cancelled() && needs.build.result == 'success' && (
         needs.plan.outputs.deploy-docs == 'true' ||
-        contains(fromJSON(needs.plan.outputs.builds), 'docs') ||
-        contains(fromJSON(needs.plan.outputs.builds), 'insights')
+        contains(fromJSON(needs.plan.outputs.builds), 'docs')
       )
     runs-on: ubuntu-latest
     permissions:
@@ -317,7 +320,7 @@ jobs:
 
       - uses: ./.github/actions/nix
         with:
-          build: ${{ needs.plan.outputs.ci }}.packages.docs ${{ needs.plan.outputs.ci }}.packages.insights
+          build: ${{ needs.plan.outputs.ci }}.packages.docs
 
       - name: Stage the docs
         if: needs.plan.outputs.deploy-docs == 'true'
@@ -344,7 +347,7 @@ jobs:
           if-no-files-found: error
 
   ############ LINUX TESTS ############
-  # Unit tests, benchmarks, lint and every e2e suite: one job per check that is not cached.
+  # Unit tests, benchmarks, lint, the Insights build and every e2e suite: one job per check that is not cached.
   check:
     timeout-minutes: 60
     name: ${{ matrix.check }}

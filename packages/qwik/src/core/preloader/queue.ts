@@ -162,7 +162,8 @@ const processAdjustmentFrame = () => {
   const isStronger = frame.$inverseProbability$ < previousInverseProbability;
   const isBetterRanked =
     frame.$inverseProbability$ === previousInverseProbability && rank < bundle.$rank$;
-  if (!frame.$isReplay$ && !isStronger && !isBetterRanked) {
+  const isWeaker = frame.$inverseProbability$ > previousInverseProbability;
+  if (isWeaker || (!frame.$isReplay$ && !isStronger && !isBetterRanked)) {
     adjustmentStack.pop();
     return false;
   }

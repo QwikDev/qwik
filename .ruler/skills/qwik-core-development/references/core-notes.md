@@ -193,13 +193,16 @@ When touching these areas:
 
 VNode data formats:
 
-- With `binaryState`, the root `qwik/vnode` script is a binary token stream (prefix `}`); segment
-  and `q:patch` vnode scripts stay text. Both become the same flat record before materializing, so
-  change the server's attribute resolution and the client's `setVNodeAttr` together, and test in
-  both modes (`QWIK_BINARY_STATE=1`).
+- With `binaryState`, every `qwik/vnode` script (root, segment and `q:patch`) is a binary token
+  stream (prefix `}`); without it they are text. Both become the same flat record before
+  materializing, so change the server's attribute resolution and the client's `setVNodeAttr`
+  together, and test in both modes (`QWIK_BINARY_STATE=1`). Tests that inspect vnode scripts read
+  them with `getVNodeAttrValues`, not a regex over the text.
 - Root ids in the token stream are distances from earlier ids, so it can only be decoded in order:
-  the startup walk decodes it into one table per container. Size and startup trade against each
-  other here; measure both (page brotli and the resume benchmark) before changing the layout.
+  the walk decodes each script into its own table. A segment writes its local root ids already
+  mapped to the container's; the text format maps them later, when the segment is written out.
+  Size and startup trade against each other here; measure both (page brotli and the resume
+  benchmark) before changing the layout.
 - Find an element's record through the document, not the element's container: projection can
   materialize an element while it is detached, and a failed lookup there fails silently.
 - Each build must drop the other format's reader: guard with inlined `__EXPERIMENTAL__` expressions

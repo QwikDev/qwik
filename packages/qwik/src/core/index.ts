@@ -2,6 +2,8 @@
 // Duplicate-Qwik version check and shared feature flags, once per copy of core
 //////////////////////////////////////////////////////////////////////////////////////////
 import './shared/duplicate-core';
+// Enter the QRL import cycle here, so core's bundle defines the QRL machinery before any QRL.
+import './shared/qrl/handler-qrls';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API

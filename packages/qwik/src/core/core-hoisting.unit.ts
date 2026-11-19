@@ -7,9 +7,9 @@ import { createOptimizer as createRustOptimizer } from '@qwik.dev/optimizer';
 import { createOptimizer as createTsOptimizer } from '../../../ts-optimizer/src/index';
 import { afterAll, describe, expect, it } from 'vitest';
 
-// Apps run their optimizer over the built core, which hoists every core QRL to the top of
-// core.qwik.mjs; that only works if core-qrl.mjs (imported first) holds everything those calls need.
-// The serializer and server share core's chunks, so entering through them must keep that order.
+// Apps run their optimizer over the built core, which declares each core QRL before the statement
+// creating it; that only works if core's bundle defines the QRL machinery before any such statement.
+// The serializer and server share core's chunk, so entering through them must keep that order.
 const dist = join(__dirname, '../../dist');
 // Forward slashes, as the Vite plugin passes them; the optimizer embeds srcDir in string literals.
 const srcDir = dist.replaceAll('\\', '/');
@@ -81,11 +81,7 @@ describe('core built as a Qwik library', () => {
       const dir = mkdtempSync(join(workDir, `${optimizerName}-${name}-${mode}-`));
       const parent = output.modules.find((module) => !module.segment)!;
       writeFileSync(join(dir, `core${variant}.qwik.mjs`), toLocalImports(parent.code, variant));
-      const files = new Set([
-        `core-qrl${variant}.mjs`,
-        `serializer${variant}.mjs`,
-        `${entry}${variant}.mjs`,
-      ]);
+      const files = new Set([`serializer${variant}.mjs`, `${entry}${variant}.mjs`]);
       for (const file of files) {
         writeFileSync(
           join(dir, file),

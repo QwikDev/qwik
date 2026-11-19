@@ -179,7 +179,8 @@ test.describe('Sandbox smoke tests', () => {
       });
 
       test('builds again after its loader fails to download once', async ({ page }) => {
-        await failFirstRequest(page, /\/@qwik\.dev\/optimizer@[^/]+\/bindings\/qwik\.wasm\.mjs$/);
+        // The bundled version loads the optimizer built with it; skip dev's module for its URL.
+        await failFirstRequest(page, /^(?!.*raw-source:).*[/-]qwik\.wasm\.mjs(\?import)?$/);
         await page.goto(`/playground/#rust=1&${appFiles}`);
         await expectRetryRenders(page);
       });

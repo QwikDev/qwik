@@ -1,3 +1,5 @@
+// Evaluate the QRL machinery before this module creates its QRLs.
+import './qrl';
 import { _run } from '../../client/run-qrl';
 import { _hmr } from '../../use/use-hmr';
 import { _rsc } from '../../use/use-resource';

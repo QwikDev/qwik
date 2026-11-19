@@ -7,17 +7,22 @@ import {
   type LinkedQrl,
   type QrlUse,
 } from '../schema';
-import { QwikGenWord, QwikWord } from '../words';
-import { allocateGeneratedName, createNameAllocator } from '../names';
+import { QwikWord } from '../words';
+import { authoredNames, createNameAllocator } from '../names';
 import type { FunctionEmission } from './emit-function';
 import { chunkImportSpecifier, type QrlResolver } from './qrl-chunks';
 import type { PresentationOptions } from './output';
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
 export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
-  const allocate = createNameAllocator(module);
+  // Built on first use: indexing every module binding per QRL is quadratic.
+  let allocate: ReturnType<typeof createNameAllocator> | null = null;
   return qrl.captures.map((capture) => {
     const name = module.bindings[capture.binding].name;
-    return capture.access === CaptureAccess.Arguments ? allocate(`${name}Values`) : name;
+    if (capture.access !== CaptureAccess.Arguments) {
+      return name;
+    }
+    allocate ??= createNameAllocator(authoredNames(module));
+    return allocate(`${name}Values`);
   });
 }
 
@@ -26,15 +31,15 @@ export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
  * also captures the outer props, and `capturePrelude` already declares THAT name — so the head must
  * print the component's own parameter, or the two collide on one name.
  */
-export function componentParamName(module: LinkedModule, qrl: LinkedQrl): string {
+export function componentParamName(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  /** The module's generated props name, which no capture can shadow. */
+  generatedProps: string
+): string {
   const binding = qrl.parameter?.surface.binding;
   // No parameter of its own: the slot still prints, under a name no capture can shadow.
-  return binding == null
-    ? allocateGeneratedName(
-        QwikGenWord.ComponentProps,
-        module.bindings.map((entry) => entry.name)
-      )
-    : module.bindings[binding].name;
+  return binding == null ? generatedProps : module.bindings[binding].name;
 }
 
 export function qrlPropsName(module: LinkedModule, qrl: LinkedQrl, fallback: string): string {
@@ -138,11 +143,16 @@ export function usedParamPrefix(module: LinkedModule, qrl: LinkedQrl): string[] 
   return params.slice(0, lastUsed + 1).map((binding) => module.bindings[binding].name);
 }
 
-export function eventParamNames(module: LinkedModule, qrl: LinkedQrl, params: string[]): string[] {
+export function eventParamNames(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  params: string[],
+  authored: ReadonlySet<string> = authoredNames(module)
+): string[] {
   if (qrl.params.event === undefined) {
     return params;
   }
-  const next = createNameAllocator(module);
+  const next = createNameAllocator(authored);
   while (params.length < 2) {
     params.push(next(params.length === 0 ? 'event' : 'element'));
   }

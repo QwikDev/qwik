@@ -87,6 +87,7 @@ import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp } from './fold-static';
 import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
+  allocateGeneratedNames,
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
@@ -97,7 +98,7 @@ import {
   slotNameJs,
   useOnRootOps,
 } from './emit-component';
-import { allocateGeneratedName, createNameAllocator } from '../names';
+import { allocateGeneratedName, authoredNames, createNameAllocator } from '../names';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 
 export function generateJsSsr(
@@ -179,9 +180,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Module bindings the mirrors read, for a chunk that hosts them to import. */
   private readonly mirroredBindings = new Set<LocalId>();
 
-  private readonly resolveQrlUse: QrlResolver;
-  private readonly abiParams: ReturnType<typeof abiParamNames>;
-
   constructor(
     private readonly module: LinkedModule,
     private readonly options: PresentationOptions,
@@ -196,11 +194,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               useOnRoots.has(program.body.ops[0]))
         )
         .map((program) => program.lifetime)
-    )
-  ) {
-    this.resolveQrlUse = createQrlResolver(module);
-    this.abiParams = abiParamNames(module);
-  }
+    ),
+    private readonly resolveQrlUse: QrlResolver = createQrlResolver(module),
+    private readonly abiParams = abiParamNames(module),
+    private readonly authored = authoredNames(module),
+    private readonly generatedNames = allocateGeneratedNames(module)
+  ) {}
 
   emitHook(hook: HookDecl, names: GeneratedNames): string {
     const source = emitHookBody(
@@ -285,7 +284,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       names,
       statements: [],
       asyncSteps: [],
-      next: createNameAllocator(this.module),
+      next: createNameAllocator(this.authored),
       usedCtx: false,
       rooted: new Set(),
       propSources: new Map(),
@@ -413,10 +412,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** One context-neutral producer per QRL — its `uses` are satisfied by the placement. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
-    const shared = sharedQrlFunction(this.module, qrl, this.resolveQrlUse, this.options, {
-      slotContent: QwikWord.RenderSsrSlotContent,
-      content: QwikWord.RenderSsrDynamicContent,
-    });
+    const shared = sharedQrlFunction(
+      this.module,
+      qrl,
+      this.resolveQrlUse,
+      this.options,
+      {
+        slotContent: QwikWord.RenderSsrSlotContent,
+        content: QwikWord.RenderSsrDynamicContent,
+      },
+      this.authored
+    );
     if (shared !== null) {
       return shared;
     }
@@ -516,9 +522,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       this.module,
       this.options,
       this.useOnRoots,
-      this.useOnRootLifetimes
+      this.useOnRootLifetimes,
+      this.resolveQrlUse,
+      this.abiParams,
+      this.authored,
+      this.generatedNames
     );
-    const names = programNames(this.module, qrl);
+    const names = programNames(this.module, qrl, this.generatedNames);
     const core = emitter.renderProgram(qrl, names, options);
     const captures = captureNames(this.module, qrl);
     const emission = emptyFunctionEmission();
@@ -783,12 +793,19 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
 
     let textRangeCount = 0;
+    // A run of static children is serialized once; merging piece by piece is quadratic.
+    let staticRun: string | null = null;
     for (const child of op.children) {
+      const staticText = staticChildText(child);
+      if (staticText !== null) {
+        staticRun = (staticRun ?? '') + staticText;
+        continue;
+      }
+      if (staticRun !== null) {
+        pushMergedStatic(children, staticRun);
+        staticRun = null;
+      }
       switch (child.op) {
-        case OpKind.Static: {
-          pushMergedStatic(children, foldStaticOp(child));
-          break;
-        }
         case OpKind.Hole: {
           const keepsNewline = NEWLINE_EATING_ELEMENTS.has(op.tag) && child === op.children[0];
           if (isInlineHole(child)) {
@@ -811,11 +828,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Element: {
-          if (documentSection(child.tag) === null && isFullyStaticSubtree(child)) {
-            pushMergedStatic(children, foldStaticOp(child));
-          } else {
-            this.element(pass, child, children);
-          }
+          this.element(pass, child, children);
           break;
         }
         case OpKind.Branch: {
@@ -847,12 +860,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         default: {
-          if (!isFullyStaticSubtree(child)) {
-            throw new UnsupportedError('a dynamic child inside an element record');
-          }
-          pushMergedStatic(children, foldStaticOp(child));
+          throw new UnsupportedError('a dynamic child inside an element record');
         }
       }
+    }
+    if (staticRun !== null) {
+      pushMergedStatic(children, staticRun);
     }
     if (propsStep !== null && !op.void) {
       const content = isRawText
@@ -1128,7 +1141,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Inline row: a function declared in the component; renderId links declaration and call. */
   private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
     // Rendered on THIS emitter: hole QRLs hoist to the module scope the function nests in.
-    const names = inlineRowNames(this.module);
+    const names = inlineRowNames(this.generatedNames);
     const core = this.renderProgramById(row.program, names);
     const { rangeId, rowId } = this.abiParams;
     pass.statements.push(
@@ -1555,6 +1568,14 @@ function pushMergedStatic(parts: string[], text: string): void {
   } else {
     parts.push(JSON.stringify(text));
   }
+}
+
+/** An element child that renders as plain HTML, or null when it needs its own parts. */
+function staticChildText(child: LinkedOp): string | null {
+  if (child.op === OpKind.Element && documentSection(child.tag) !== null) {
+    return null;
+  }
+  return isFullyStaticSubtree(child) ? foldStaticOp(child) : null;
 }
 
 function isInlineValue(value: Value): boolean {

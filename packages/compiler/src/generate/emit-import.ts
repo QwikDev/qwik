@@ -64,11 +64,28 @@ export interface FileScope {
   bodies: ReadonlySet<LinkedQrl | LinkedHook>;
 }
 
+type ModuleBinding = LinkedModule['bindings'][number];
+
+/** Module bindings by name, built once so per-file helper checks skip unrelated bindings. */
+export function bindingsByName(module: LinkedModule): Map<string, ModuleBinding[]> {
+  const byName = new Map<string, ModuleBinding[]>();
+  for (const binding of module.bindings) {
+    const named = byName.get(binding.name);
+    if (named === undefined) {
+      byName.set(binding.name, [binding]);
+    } else {
+      named.push(binding);
+    }
+  }
+  return byName;
+}
+
 /** The runtime import line; no name it binds may be declared beside it or shadowed in a body. */
 export function coreImportLine(
   module: LinkedModule,
   specifiers: ReadonlySet<string>,
-  file: FileScope
+  file: FileScope,
+  namedBindings: ReadonlyMap<string, readonly ModuleBinding[]> = bindingsByName(module)
 ): string {
   for (const specifier of specifiers) {
     const [imported, local = imported] = specifier.split(' as ');
@@ -76,8 +93,8 @@ export function coreImportLine(
       (binding) =>
         module.bindings[binding].name === local && !isCoreImportOf(module, binding, imported)
     );
-    const isShadowed = module.bindings.some(
-      (binding) => binding.name === local && isLocalInBodies(module, binding, file.bodies)
+    const isShadowed = (namedBindings.get(local) ?? []).some((binding) =>
+      isLocalInBodies(module, binding, file.bodies)
     );
     if (isDeclared || isShadowed) {
       // shortcut: refused, not aliased; aliasing needs every helper site to read an allocated name.
@@ -95,7 +112,7 @@ export function coreImportLine(
  */
 function isLocalInBodies(
   module: LinkedModule,
-  binding: LinkedModule['bindings'][number],
+  binding: ModuleBinding,
   bodies: ReadonlySet<LinkedQrl | LinkedHook>
 ): boolean {
   if (binding.scope === BindingScope.Import || binding.scope === BindingScope.Module) {
@@ -150,10 +167,9 @@ export function requestBindingImport(module: LinkedModule, binding: LocalId, imp
 }
 
 export function replacedCoreImports(module: LinkedModule) {
+  const importedEdges = new Set(module.imports.map((entry) => entry.source.edge));
   return module.edges.filter(
-    (_edge, index) =>
-      module.imports.some((entry) => entry.source.edge === index) &&
-      isReplacedCoreImport(module, index)
+    (_edge, index) => importedEdges.has(index) && isReplacedCoreImport(module, index)
   );
 }
 
@@ -168,21 +184,55 @@ function isReplacedCoreImport(module: LinkedModule, edge: number): boolean {
   );
 }
 
+/** Each binding's positions in `module.imports`, built once per module. */
+export function importPositionsByBinding(module: LinkedModule): Map<LocalId, number[]> {
+  const positions = new Map<LocalId, number[]>();
+  module.imports.forEach(({ source }, position) => {
+    const bindingPositions = positions.get(source.binding);
+    if (bindingPositions === undefined) {
+      positions.set(source.binding, [position]);
+    } else {
+      bindingPositions.push(position);
+    }
+  });
+  return positions;
+}
+
+/** The selected bindings' import entries by edge, edges and entries in module order. */
+function selectedImportsByEdge(
+  module: LinkedModule,
+  bindings: readonly LocalId[],
+  importPositions: ReadonlyMap<LocalId, readonly number[]>
+): Map<number, LinkedModule['imports']> {
+  const positions = [...new Set(bindings)]
+    .flatMap((binding) => importPositions.get(binding) ?? [])
+    .sort((left, right) => left - right);
+  const entriesByEdge = new Map<number, LinkedModule['imports']>();
+  for (const position of positions) {
+    const entry = module.imports[position];
+    if (entry.source.typeOnly) {
+      continue;
+    }
+    const edgeEntries = entriesByEdge.get(entry.source.edge);
+    if (edgeEntries === undefined) {
+      entriesByEdge.set(entry.source.edge, [entry]);
+    } else {
+      edgeEntries.push(entry);
+    }
+  }
+  return new Map([...entriesByEdge].sort(([left], [right]) => left - right));
+}
+
 export function emitBindingImports(
   module: LinkedModule,
   bindings: readonly LocalId[],
   coreImports: Set<string>,
-  moduleExports: ReadonlyMap<LocalId, string>
+  moduleExports: ReadonlyMap<LocalId, string>,
+  importPositions: ReadonlyMap<LocalId, readonly number[]>
 ): string[] {
-  const selected = new Set(bindings);
   const lines: string[] = [];
-  for (const [index, edge] of module.edges.entries()) {
-    const sources = module.imports.filter(
-      ({ source }) => source.edge === index && !source.typeOnly && selected.has(source.binding)
-    );
-    if (sources.length === 0) {
-      continue;
-    }
+  for (const [index, sources] of selectedImportsByEdge(module, bindings, importPositions)) {
+    const edge = module.edges[index];
     const parts: string[] = [];
     const named: string[] = [];
     for (const { source } of sources) {

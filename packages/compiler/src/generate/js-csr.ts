@@ -67,6 +67,7 @@ import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp } from './fold-static';
 import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
+  allocateGeneratedNames,
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
@@ -77,7 +78,7 @@ import {
   slotNameJs,
   useOnRootOps,
 } from './emit-component';
-import { createNameAllocator } from '../names';
+import { authoredNames, createNameAllocator } from '../names';
 import { type GenerateOutput, type PresentationOptions } from './output';
 
 const WORKER_CTX_NAME = 'worker$';
@@ -136,15 +137,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private readonly importedChunks = new Set<string>();
   private readonly lazyQrls = new Set<string>();
 
-  private readonly resolveQrlUse: QrlResolver;
-
   constructor(
     private readonly module: LinkedModule,
     private readonly options: PresentationOptions,
-    private readonly useOnRoots = useOnRootOps(module)
-  ) {
-    this.resolveQrlUse = createQrlResolver(module);
-  }
+    private readonly useOnRoots = useOnRootOps(module),
+    private readonly resolveQrlUse: QrlResolver = createQrlResolver(module),
+    private readonly authored = authoredNames(module),
+    private readonly generatedNames = allocateGeneratedNames(module)
+  ) {}
 
   emitPayload(payload: number, names: GeneratedNames): string {
     return extractPayloadJs(
@@ -212,7 +212,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         (program.effectSizes ?? []).map((remaining, id) => [id, { remaining, patches: [] }])
       ),
       names,
-      next: createNameAllocator(this.module),
+      next: createNameAllocator(this.authored),
       propSources: new Map(),
       revealGroups: new Map(),
     };
@@ -821,7 +821,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     row: { program: number; renderId: string },
     statements: string[]
   ): string {
-    const names = inlineRowNames(this.module);
+    const names = inlineRowNames(this.generatedNames);
     const emission = this.renderProgram(row.program, row.renderId, names);
     statements.push(inlineRowFunctionJs(this.module, row, names.ctx, emission));
     return row.renderId;
@@ -851,10 +851,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
-    const shared = sharedQrlFunction(this.module, qrl, this.resolveQrlUse, this.options, {
-      slotContent: QwikWord.RenderSlotContent,
-      content: QwikWord.CreateDynamicContent,
-    });
+    const shared = sharedQrlFunction(
+      this.module,
+      qrl,
+      this.resolveQrlUse,
+      this.options,
+      {
+        slotContent: QwikWord.RenderSlotContent,
+        content: QwikWord.CreateDynamicContent,
+      },
+      this.authored
+    );
     if (shared !== null) {
       return shared;
     }
@@ -865,9 +872,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('a render function without a program');
     }
     // A fresh emitter keeps the render's imports/hoists out of the main module.
-    const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
+    const emitter = new CsrModuleEmitter(
+      this.module,
+      this.options,
+      this.useOnRoots,
+      this.resolveQrlUse,
+      this.authored,
+      this.generatedNames
+    );
     const isComponent = programKind(qrl) === ProgramKind.Component;
-    const names = programNames(this.module, qrl);
+    const names = programNames(this.module, qrl, this.generatedNames);
     const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
     // Captures restore from `_capturesObj._` ahead of the render statements.
     const captures = captureNames(this.module, qrl);
@@ -905,8 +919,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const root = body.ops[0];
     const elementRoot = body.ops.length === 1 && root.op === OpKind.Element;
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
-    const emitter = new CsrModuleEmitter(this.module, this.options, this.useOnRoots);
-    const next = createNameAllocator(this.module);
+    const emitter = new CsrModuleEmitter(
+      this.module,
+      this.options,
+      this.useOnRoots,
+      this.resolveQrlUse,
+      this.authored,
+      this.generatedNames
+    );
+    const next = createNameAllocator(this.authored);
     const pass: RenderPass = {
       batches: new Map(
         (program.effectSizes ?? []).map((remaining, id) => [
@@ -940,7 +961,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
             },
           }
         : {}),
-      names: programNames(this.module, qrl),
+      names: programNames(this.module, qrl, this.generatedNames),
       next,
       propSources: new Map(),
       revealGroups: new Map(),
@@ -1562,20 +1583,24 @@ export function childPathExpression(
   const stepsFromBack = nodeCount - 1 - index;
   if (stepsFromBack < index) {
     imports.add(QwikWord.LastChild);
-    let path = `${QwikWord.LastChild}(${el})`;
-    for (let i = 0; i < stepsFromBack; i++) {
-      imports.add(QwikWord.PreviousSibling);
-      path = `${QwikWord.PreviousSibling}(${path})`;
-    }
-    return path;
+    return siblingWalk(
+      `${QwikWord.LastChild}(${el})`,
+      QwikWord.PreviousSibling,
+      stepsFromBack,
+      imports
+    );
   }
   imports.add(QwikWord.FirstChild);
-  let path = `${QwikWord.FirstChild}(${el})`;
-  for (let i = 0; i < index; i++) {
-    imports.add(QwikWord.NextSibling);
-    path = `${QwikWord.NextSibling}(${path})`;
+  return siblingWalk(`${QwikWord.FirstChild}(${el})`, QwikWord.NextSibling, index, imports);
+}
+
+/** Built with `repeat` so the long walk is a shallow string, not one nested concat per step. */
+function siblingWalk(start: string, step: QwikWord, steps: number, imports: Set<string>): string {
+  if (steps === 0) {
+    return start;
   }
-  return path;
+  imports.add(step);
+  return `${step}(`.repeat(steps) + start + ')'.repeat(steps);
 }
 
 function hasFixedRowLayout(op: LinkedOp): boolean {

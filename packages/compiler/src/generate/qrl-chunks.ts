@@ -19,8 +19,14 @@ import { createOriginalRangeMapper } from '../source-maps';
 import type { SourceMap } from 'oxc-transform';
 import { minifySync } from 'oxc-minify';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
-import { coreImportLine, emitBindingImports } from './emit-import';
+import {
+  bindingsByName,
+  coreImportLine,
+  emitBindingImports,
+  importPositionsByBinding,
+} from './emit-import';
 import { functionText } from './print-js';
+import { authoredNames } from '../names';
 import { captureNames, eventParamNames } from './captures';
 import type { FunctionEmission } from './emit-function';
 /**
@@ -35,6 +41,12 @@ export function emitQrlChunks(
   segments: ReadonlyMap<LocalId, LinkedQrl>
 ): GenerateOutput['modules'] {
   const mapRange = originalRangeMapper(module);
+  const authored = authoredNames(module);
+  const moduleIndex = {
+    bodiesByHost: fileBodiesByHost(module),
+    namedBindings: bindingsByName(module),
+    importPositions: importPositionsByBinding(module),
+  };
   const assembleChunk = createGeneratedModuleAssembler(
     module.source.code,
     module.source.originalPath,
@@ -49,7 +61,15 @@ export function emitQrlChunks(
       const path = `${module.path}_${chunkSymbolName(qrl)}.js`;
       const assembled = assembleChunk(
         path,
-        chunkModuleCode(module, qrl, qrlFunction(qrl), moduleExports, segments, options),
+        chunkModuleCode(
+          module,
+          qrl,
+          qrlFunction(qrl),
+          moduleExports,
+          segments,
+          options,
+          moduleIndex
+        ),
         qrl.origin.range
       );
       return {
@@ -58,7 +78,7 @@ export function emitQrlChunks(
         map: assembled.map,
         isEntry: true,
         origPath: module.path,
-        segment: getSegmentAnalysis(module, qrl, options, mapRange),
+        segment: getSegmentAnalysis(module, qrl, options, mapRange, authored),
       };
     });
 }
@@ -76,23 +96,30 @@ function hasOwnChunk(qrl: LinkedQrl): boolean {
   );
 }
 
-/** The QRL and hook bodies one file prints: a chunk's (`chunk`), or the main module's (`null`). */
-export function fileBodies(
-  module: LinkedModule,
-  chunk: LinkedQrl | null
-): Set<LinkedQrl | LinkedHook> {
-  const bodies = new Set<LinkedQrl | LinkedHook>(chunk === null ? module.hooks : []);
+/** The QRL and hook bodies each file prints, by its chunk (`null`: the main module). */
+export function fileBodiesByHost(
+  module: LinkedModule
+): Map<LinkedQrl | null, Set<LinkedQrl | LinkedHook>> {
+  const qrlsById = indexQrlsById(module);
+  const bodiesByHost = new Map<LinkedQrl | null, Set<LinkedQrl | LinkedHook>>([
+    [null, new Set(module.hooks)],
+  ]);
   for (const qrl of module.qrls) {
+    if (!isPrinted(qrl)) {
+      continue;
+    }
     let host: LinkedQrl | undefined = qrl;
     while (host !== undefined && !hasOwnChunk(host)) {
-      const parent: string | null = host.parent;
-      host = module.qrls.find((candidate) => candidate.id === parent);
+      host = host.parent === null ? undefined : qrlsById.get(host.parent);
     }
-    if (isPrinted(qrl) && (host ?? null) === chunk) {
+    const bodies = bodiesByHost.get(host ?? null);
+    if (bodies === undefined) {
+      bodiesByHost.set(host ?? null, new Set([qrl]));
+    } else {
       bodies.add(qrl);
     }
   }
-  return bodies;
+  return bodiesByHost;
 }
 
 /** Maps a normalized range to the authored source; built once per module, it scans the source. */
@@ -111,7 +138,8 @@ export function getSegmentAnalysis(
   module: LinkedModule,
   qrl: LinkedQrl,
   options: PresentationOptions = {},
-  mapRange = originalRangeMapper(module)
+  mapRange = originalRangeMapper(module),
+  authored: ReadonlySet<string> = authoredNames(module)
 ): NonNullable<GenerateOutput['modules'][number]['segment']> {
   const name = chunkSymbolName(qrl);
   const origin = segmentOrigin(module, options.srcDir);
@@ -147,7 +175,8 @@ export function getSegmentAnalysis(
     paramNames: eventParamNames(
       module,
       qrl,
-      qrl.origin.paramRanges.map(([start, end]) => module.source.code.slice(start, end))
+      qrl.origin.paramRanges.map(([start, end]) => module.source.code.slice(start, end)),
+      authored
     ),
     ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
   };
@@ -240,12 +269,23 @@ function chunkModuleCode(
   emission: FunctionEmission,
   moduleExports: ReadonlyMap<LocalId, string>,
   segments: ReadonlyMap<LocalId, LinkedQrl>,
-  options: PresentationOptions
+  options: PresentationOptions,
+  moduleIndex: {
+    bodiesByHost: ReturnType<typeof fileBodiesByHost>;
+    namedBindings: ReturnType<typeof bindingsByName>;
+    importPositions: ReturnType<typeof importPositionsByBinding>;
+  }
 ): string {
   const bindings = [
     ...new Set([...qrl.dependencies.bindings, ...(emission.mirroredBindings ?? [])]),
   ];
-  const bindingImports = emitBindingImports(module, bindings, emission.imports, moduleExports);
+  const bindingImports = emitBindingImports(
+    module,
+    bindings,
+    emission.imports,
+    moduleExports,
+    moduleIndex.importPositions
+  );
   // A sibling component comes from its own segment, so the chunk skips the parent module.
   const selfAliases: string[] = [];
   for (const binding of bindings) {
@@ -268,10 +308,15 @@ function chunkModuleCode(
     ...(emission.imports.size === 0
       ? []
       : [
-          coreImportLine(module, emission.imports, {
-            declared: [...bindings, ...qrl.captures.map((capture) => capture.binding)],
-            bodies: fileBodies(module, qrl),
-          }),
+          coreImportLine(
+            module,
+            emission.imports,
+            {
+              declared: [...bindings, ...qrl.captures.map((capture) => capture.binding)],
+              bodies: moduleIndex.bodiesByHost.get(qrl)!,
+            },
+            moduleIndex.namedBindings
+          ),
         ]),
     ...emission.chunkImports.filter((line) => line !== selfImport),
     ...bindingImports,
@@ -295,12 +340,7 @@ export type QrlResolver = ReturnType<typeof createQrlResolver>;
 
 /** Each module generation owns its index; use-site arguments remain uncached. */
 export function createQrlResolver(module: LinkedModule) {
-  const qrlsById = new Map<string, LinkedQrl>();
-  for (const qrl of module.qrls) {
-    if (!qrlsById.has(qrl.id)) {
-      qrlsById.set(qrl.id, qrl);
-    }
-  }
+  const qrlsById = indexQrlsById(module);
   return (use: QrlUse, propsName: string): { qrl: LinkedQrl; args: string[] } => {
     const qrl = qrlsById.get(use.qrl);
     if (qrl === undefined) {
@@ -325,6 +365,17 @@ export function createQrlResolver(module: LinkedModule) {
       }),
     };
   };
+}
+
+/** The first QRL declared under each id. */
+function indexQrlsById(module: LinkedModule): Map<string, LinkedQrl> {
+  const qrlsById = new Map<string, LinkedQrl>();
+  for (const qrl of module.qrls) {
+    if (!qrlsById.has(qrl.id)) {
+      qrlsById.set(qrl.id, qrl);
+    }
+  }
+  return qrlsById;
 }
 
 /** A nested `component$` value: printed where its call stood, so it is nobody's chunk. */

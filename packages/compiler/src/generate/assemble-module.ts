@@ -21,7 +21,7 @@ import {
   componentSegmentImport,
   componentSegmentsByBinding,
   emitQrlChunks,
-  fileBodies,
+  fileBodiesByHost,
   isComponentSegment,
 } from './qrl-chunks';
 import {
@@ -268,7 +268,7 @@ export function assembleQwikModule(
         : [
             coreImportLine(module, parts.imports, {
               declared: moduleScopeBindings(module),
-              bodies: fileBodies(module, null),
+              bodies: fileBodiesByHost(module).get(null)!,
             }),
           ]),
       ...parts.chunkImports,

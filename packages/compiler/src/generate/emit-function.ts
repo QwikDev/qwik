@@ -27,14 +27,15 @@ import { capturedQrlJs, extractPayloadJs, expressionJs, type EmitQrl } from './p
 import { type QrlResolver } from './qrl-chunks';
 import type { PresentationOptions } from './output';
 import { emitJsSetup, withMarkerEmitter } from './emit-setup';
-import { createNameAllocator } from '../names';
+import { authoredNames, createNameAllocator } from '../names';
 
 /** QRL functions share capture restoration across authored and lowered bodies. */
 export function sourceFunctionEmission(
   module: LinkedModule,
   qrl: LinkedQrl,
   resolveQrlUse: QrlResolver,
-  options: PresentationOptions
+  options: PresentationOptions,
+  authored: ReadonlySet<string> = authoredNames(module)
 ): FunctionEmission {
   const captures = captureNames(module, qrl);
   const emission = emptyFunctionEmission();
@@ -59,8 +60,8 @@ export function sourceFunctionEmission(
   const body = qrl.body;
   let awaitName: string = QwikWord.Await;
   if (body.b === QrlBodyKind.Js && module.payloads[body.payload].awaits.length > 0) {
-    if (module.bindings.some((binding) => binding.name === awaitName)) {
-      awaitName = createNameAllocator(module)(QwikWord.Await);
+    if (authored.has(awaitName)) {
+      awaitName = createNameAllocator(authored)(QwikWord.Await);
     }
     emission.imports.add(
       awaitName === QwikWord.Await ? awaitName : `${QwikWord.Await} as ${awaitName}`
@@ -82,7 +83,7 @@ export function sourceFunctionEmission(
   }
   // Native parameter scopes preserve defaults, closures, and mutable bindings.
   if (body.b === QrlBodyKind.Js && qrl.params.capturesBeforeParams) {
-    const args = createNameAllocator(module)('args');
+    const args = createNameAllocator(authored)('args');
     emission.params = [`...${args}`];
     emission.value = `(${readSource(module.payloads[body.payload].range)})(...${args})`;
     return emission;
@@ -104,7 +105,7 @@ export function sourceFunctionEmission(
   }
   emission.params =
     qrl.payloadKind === QrlPayloadKind.Value ? captures : qrl.origin.paramRanges.map(readSource);
-  emission.params = eventParamNames(module, qrl, emission.params);
+  emission.params = eventParamNames(module, qrl, emission.params, authored);
   emission.async = qrl.authoredAsync;
   if (qrl.origin.bodyKind === FnBodyKind.Block) {
     const [start, end] = qrl.origin.bodyRange;
@@ -173,17 +174,18 @@ export function contentFunctionEmission(
   qrl: LinkedQrl,
   resolveQrlUse: QrlResolver,
   helper: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent,
-  options: PresentationOptions
+  options: PresentationOptions,
+  authored: ReadonlySet<string>
 ): FunctionEmission {
-  const emission = sourceFunctionEmission(module, qrl, resolveQrlUse, options);
+  const emission = sourceFunctionEmission(module, qrl, resolveQrlUse, options, authored);
   const role = qrl.boundary.kind === BoundaryKind.Implicit ? qrl.boundary.role : null;
   if (role === BoundaryRole.Content) {
-    const ctx = createNameAllocator(module)('ctx');
+    const ctx = createNameAllocator(authored)('ctx');
     emission.params = [ctx];
     emission.imports.add(helper);
     emission.value = `${helper}(${emission.value}, ${ctx})`;
   } else if (role === BoundaryRole.CatchFallback) {
-    const allocateName = createNameAllocator(module);
+    const allocateName = createNameAllocator(authored);
     const ctx = allocateName('ctx');
     const error = allocateName('error');
     emission.params = [ctx, error];
@@ -213,7 +215,8 @@ export function sharedQrlFunction(
   helpers: {
     slotContent: QwikWord;
     content: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent;
-  }
+  },
+  authored: ReadonlySet<string>
 ): FunctionEmission | null {
   if (qrl.ctxName === SegmentContext.SlotContent) {
     return dynamicSlotEmission(helpers.slotContent);
@@ -223,12 +226,19 @@ export function sharedQrlFunction(
       return aliasEmission(module, qrl.body.binding);
     case QrlBodyKind.Js:
     case QrlBodyKind.Expr:
-      return contentFunctionEmission(module, qrl, resolveQrlUse, helpers.content, options);
+      return contentFunctionEmission(
+        module,
+        qrl,
+        resolveQrlUse,
+        helpers.content,
+        options,
+        authored
+      );
     case QrlBodyKind.Task:
       throw new UnsupportedError('a task QRL body');
     case QrlBodyKind.Program:
       return module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr
-        ? sourceFunctionEmission(module, qrl, resolveQrlUse, options)
+        ? sourceFunctionEmission(module, qrl, resolveQrlUse, options, authored)
         : null;
   }
 }

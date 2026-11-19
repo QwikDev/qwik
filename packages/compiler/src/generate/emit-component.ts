@@ -414,19 +414,23 @@ export function allocateGeneratedNames(module: LinkedModule): GeneratedNames {
 }
 
 /** A component reads its own parameter; other programs read the props they capture. */
-export function programNames(module: LinkedModule, qrl: LinkedQrl): GeneratedNames {
+export function programNames(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  generated: GeneratedNames
+): GeneratedNames {
   return {
     props:
       programKind(qrl) === ProgramKind.Component
-        ? componentParamName(module, qrl)
+        ? componentParamName(module, qrl, generated.props)
         : qrlPropsName(module, qrl, QwikGenWord.ComponentProps),
-    ctx: allocateGeneratedNames(module).ctx,
+    ctx: generated.ctx,
   };
 }
 
 /** An inline row reads the props of the component it nests in. */
-export function inlineRowNames(module: LinkedModule): GeneratedNames {
-  return { props: QwikGenWord.ComponentProps, ctx: allocateGeneratedNames(module).ctx };
+export function inlineRowNames(generated: GeneratedNames): GeneratedNames {
+  return { props: QwikGenWord.ComponentProps, ctx: generated.ctx };
 }
 
 /** An inline row is a function declared in its caller; the render id links declaration and call. */

@@ -13,18 +13,23 @@ export function allocateGeneratedName(base: string, bound: readonly string[]): s
   }
 }
 
+/** Every name an authored binding of the module takes; build it once per module. */
+export function authoredNames(module: LinkedModule): Set<string> {
+  return new Set(module.bindings.map((binding) => binding.name));
+}
+
 /** Allocates function locals without shadowing authored bindings. */
-export function createNameAllocator(module: LinkedModule) {
-  const usedNames = new Set(module.bindings.map((binding) => binding.name));
+export function createNameAllocator(authored: ReadonlySet<string>) {
+  const allocated = new Set<string>();
   const indexes = new Map<string, number>();
   return (prefix: string) => {
     let index = indexes.get(prefix) ?? 0;
     let name: string;
     do {
       name = `${prefix}${index++}`;
-    } while (usedNames.has(name));
+    } while (authored.has(name) || allocated.has(name));
     indexes.set(prefix, index);
-    usedNames.add(name);
+    allocated.add(name);
     return name;
   };
 }

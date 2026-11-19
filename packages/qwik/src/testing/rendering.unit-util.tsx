@@ -311,8 +311,14 @@ export function getVNodeAttrValues(script: string, code: string): string[] {
   const table = cursor.$table$;
   const values: string[] = [];
   for (let i = 0; i < table.length; i++) {
-    if (table[i] === code) {
-      values.push(String(table[++i]));
+    const entry = table[i];
+    if (typeof entry !== 'string' || entry === '{' || entry === '}') {
+      continue;
+    }
+    // An attribute code is followed by its value, which can look like a code.
+    const value = table[++i];
+    if (entry === code) {
+      values.push(String(value));
     }
   }
   return values;

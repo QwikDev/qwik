@@ -360,10 +360,8 @@ describe('SSR Backpatching', () => {
       </Component>
     );
 
-    const backpatchedArticle = document.querySelector('article');
-    expect(
-      (backpatchedArticle?.ownerDocument as any).qVNodeData?.get(backpatchedArticle)
-    ).not.toContain('aria');
+    // Both vnode formats write attribute names as plain text.
+    expect(document.querySelector('script[type="qwik/vnode"]')!.textContent).not.toContain('aria');
   });
 
   it('should serialize async style objects before backpatching', async () => {

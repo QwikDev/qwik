@@ -551,6 +551,15 @@ let
             }
           );
 
+      # The longest suite, so more shards than the others.
+      e2ePreloader = matrix "e2e-preloader" [ { } ] 3 (
+        _: shard: name:
+        mkE2e {
+          inherit name;
+          command = "pnpm test.e2e.preloader --shard=${shard}";
+        }
+      );
+
       checks = {
         inherit
           unit
@@ -560,14 +569,11 @@ let
           dedupe
           insights
           ;
-        e2e-preloader = mkE2e {
-          name = "qwik-e2e-preloader";
-          command = "pnpm test.e2e.preloader";
-        };
       }
       // e2e
       // e2eDocs
-      // e2eAdapters;
+      // e2eAdapters
+      // e2ePreloader;
     in
     {
       inherit checks;

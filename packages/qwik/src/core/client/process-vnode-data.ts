@@ -433,8 +433,7 @@ function* processVNodeDataImpl(
     vData: string,
     qVNodeRefs: Map<number, Element | VNode>,
     qContainerElement: ContainerElement | null,
-    segmentId?: string,
-    isContainerScript = false
+    segmentId?: string
   ): Generator<void, void, void> {
     const isSegment = __EXPERIMENTAL__.pendingBoundary && segmentId !== undefined;
     const vData_length = vData.length;
@@ -447,11 +446,10 @@ function* processVNodeDataImpl(
     let tableOffset = 0;
     if (__EXPERIMENTAL__.binaryState && binaryCursor) {
       const tables = (qDocument.qVNodeTables ||= []);
-      // Walking a container again replaces its table; segments and patches add their own.
-      const tableIndex = isContainerScript
-        ? (qContainerElement!.qVNodeTableIndex ??= tables.length)
-        : tables.length;
-      tables[tableIndex] = binaryCursor.$table$;
+      // A fresh slot: elements of an earlier walk keep reading their complete table.
+      const tableIndex = tables.length;
+      tables.push(binaryCursor.$table$);
+      (qContainerElement!.qVNodeTableSlots ||= []).push(tableIndex);
       tableOffset = tableIndex * VNODE_TABLE_INDEX_SCALE;
     }
     /// Stores the current element index as the TreeWalker traverses the DOM.
@@ -500,9 +498,7 @@ function* processVNodeDataImpl(
           nextNode,
           container.qVnodeData || '',
           container.qVNodeRefs!,
-          container,
-          undefined,
-          true
+          container
         );
         if (__EXPERIMENTAL__.binaryState) {
           // The decoded table holds what the elements need; a later walk reads the script again.

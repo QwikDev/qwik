@@ -1,5 +1,5 @@
 import { createSerializationContext } from '../../serializer';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator, getSegmentVNodeRefId } from '../shared/vnode-data-types';
@@ -25,6 +25,8 @@ import {
 import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 import { _serialize } from '../../serializer';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
+import { BINARY_VNODE_PREFIX, BinaryStateWriter } from '../../serializer';
+import { BinaryVNodeKind } from '../shared/vnode-data-types';
 
 /** For tests of the JSON state format, whichever format `_serialize` writes in this build. */
 const serializeJson = async (data: unknown): Promise<string> => {
@@ -1570,3 +1572,62 @@ function emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): str
   }
   return result;
 }
+
+describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
+  /** A container whose paragraph has a text node of 5 characters. */
+  const renderContainer = async () => {
+    // tokens are written last first: a text length of 5, then the start of element 3
+    let script = '';
+    const writer = new BinaryStateWriter(
+      { $stringEnds$: new Map(), $length$: 0 },
+      (text) => (script += text),
+      BINARY_VNODE_PREFIX
+    );
+    writer.$number$(5 * 4 + BinaryVNodeKind.TextLength);
+    writer.$number$(3 * 2 * 4 + BinaryVNodeKind.ElementStart);
+    writer.$endArray$(0, 2);
+    writer.$endArray$(0, 1);
+    writer.$finish$();
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <p :>Hello</p>
+            <script type="qwik/vnode">${script}</script>
+          </body>
+        </html>`,
+    });
+    processVNodeData(document);
+    await whenVNodeDataReady(document, () => undefined);
+    const element = document.documentElement as ContainerElement;
+    return { document: document as QDocument, element };
+  };
+  const walkAgain = async (document: QDocument, element: ContainerElement) => {
+    const slotCount = element.qVNodeTableSlots!.length;
+    processVNodeData(document);
+    await vi.waitFor(() => expect(element.qVNodeTableSlots).toHaveLength(slotCount + 1));
+  };
+
+  it('keeps the table elements read from while their container is walked again', async () => {
+    const { document, element } = await renderContainer();
+    const [slot] = element.qVNodeTableSlots!;
+    const table = document.qVNodeTables![slot];
+
+    await walkAgain(document, element);
+
+    expect(document.qVNodeTables![slot]).toBe(table);
+  });
+
+  it('frees every table of a container when it is destroyed', async () => {
+    const { document, element } = await renderContainer();
+    await walkAgain(document, element);
+    const tables = document.qVNodeTables!;
+    const slots = element.qVNodeTableSlots!;
+
+    (getDomContainer(element) as DomContainer).$destroy$();
+
+    expect(element.qVNodeTableSlots).toBeUndefined();
+    expect(slots.map((slot) => tables[slot])).toEqual([[], []]);
+  });
+});

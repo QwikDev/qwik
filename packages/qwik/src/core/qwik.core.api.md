@@ -324,7 +324,7 @@ export interface _ContainerElement extends HTMLElement {
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _VNode>;
-    qVNodeTableIndex?: number;
+    qVNodeTableSlots?: number[];
 }
 
 // @public

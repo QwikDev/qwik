@@ -281,9 +281,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
-    const tables = (el.ownerDocument as QDocument).qVNodeTables;
-    if (__EXPERIMENTAL__.binaryState && tables && el.qVNodeTableIndex !== undefined) {
-      tables[el.qVNodeTableIndex] = [];
+    if (__EXPERIMENTAL__.binaryState) {
+      const tables = (el.ownerDocument as QDocument).qVNodeTables;
+      const slots = el.qVNodeTableSlots;
+      for (let i = 0; tables && slots && i < slots.length; i++) {
+        tables[slots[i]] = [];
+      }
+      el.qVNodeTableSlots = undefined;
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;

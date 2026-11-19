@@ -1,9 +1,7 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
-  DiagnosticCategory,
   EntryKind,
   LINKED_PLAN_VERSION,
-  ModuleKind,
   LinkResultKind,
   PlanFormat,
   type LinkedPlan,
@@ -22,7 +20,12 @@ import { foldBranches } from './branches';
 import { reportJsHoles } from './js-holes';
 import { foldConstants } from './constants';
 import { applyStripping } from './strip';
-import { markReachable, resolveEntries } from './reachability';
+import {
+  analysisErrors,
+  markReachable,
+  reportReachableModules,
+  resolveEntries,
+} from './reachability';
 
 export const enum ResolutionKind {
   Resolved = 'resolved',
@@ -102,6 +105,9 @@ export function linkPlans(
     complete,
     diagnostics
   );
+  if (complete) {
+    reportReachableModules(plans, linkedEntries, resolution, diagnostics);
+  }
   linkedModules.forEach((module, index) =>
     linkHookTwins(module, importsByBinding[index], diagnostics)
   );
@@ -140,13 +146,7 @@ export function linkPlans(
  * consequences. Its own diagnostic rides along, or the failure names every module but the cause.
  */
 function failed(diagnostics: LinkDiagnostic[], plans: readonly ModulePlan[] = []): LinkResult {
-  const causes = plans.flatMap((plan): LinkDiagnostic[] =>
-    plan.kind === ModuleKind.Failed
-      ? plan.diagnostics
-          .filter((diagnostic) => diagnostic.category === DiagnosticCategory.Error)
-          .map(({ code, message }) => ({ module: plan.path, code, message }))
-      : []
-  );
+  const causes = plans.flatMap(analysisErrors);
   const unique = new Map<string, LinkDiagnostic>();
   for (const diagnostic of [...causes, ...diagnostics]) {
     unique.set(`${diagnostic.module}\0${diagnostic.code}\0${diagnostic.message}`, diagnostic);

@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
-import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
+import {
+  linkPlans,
+  ResolutionKind,
+  SideEffects,
+  type LinkEntry,
+  type ResolverSnapshot,
+} from '../link/link-plans';
 import {
   AssemblyKind,
   ComponentTargetKind,
@@ -13,6 +19,7 @@ import {
   ProjectionKind,
   ProgramBodyKind,
   UnknownWhy,
+  type ModulePlan,
 } from '../schema';
 import { deepFreeze, serverSpecialization } from './fixtures';
 
@@ -245,7 +252,7 @@ export default component$(() => {
         engine: PlanEngine.Native,
         strip: { exports: ['loader'], ctxName: [], regCtxName: [] },
       },
-      { edges: {} },
+      { edges: { 'src/app.tsx': { 0: { r: ResolutionKind.External } } } },
       true
     );
 
@@ -321,7 +328,12 @@ export const Child = $(() => useSignal(0));
       [app, child],
       [{ kind: EntryKind.Module, module: 'src/app.tsx', exposeExports: true }],
       serverSpecialization(),
-      { edges: { 'src/app.tsx': { '0': resolved('src/child.tsx') } } },
+      {
+        edges: {
+          'src/app.tsx': { '0': resolved('src/child.tsx') },
+          'src/child.tsx': { '0': { r: ResolutionKind.External } },
+        },
+      },
       true
     );
 
@@ -649,6 +661,111 @@ export * from './two';
       true
     );
     expect(external.kind).toBe(LinkResultKind.Linked);
+  });
+
+  describe('a complete link checks every module its roots reach', () => {
+    const app = (code: string) => analyse('src/app.ts', code);
+    const broken = () => analyse('src/broken.ts', 'export const = ;\n');
+    const link = (
+      plans: ModulePlan[],
+      edges: ResolverSnapshot['edges'],
+      complete: boolean,
+      entries: LinkEntry[] = [{ kind: EntryKind.Module, module: 'src/app.ts', exposeExports: true }]
+    ) => linkPlans(plans, entries, serverSpecialization(), { edges }, complete);
+    const toBroken = { 'src/app.ts': { 0: resolved('src/broken.ts') } };
+    const parseError = {
+      module: 'src/broken.ts',
+      code: 'parse-error',
+      message: expect.any(String),
+    };
+
+    test('fails on a failed module imported only by module-level code', async () => {
+      const plans = [
+        await app(`import { value } from './broken';\nconsole.log(value);\n`),
+        await broken(),
+      ];
+      expect(link(plans, toBroken, true)).toEqual({
+        kind: LinkResultKind.Failed,
+        diagnostics: [parseError],
+      });
+    });
+
+    test('fails on a failed module given as an entry', async () => {
+      expect(
+        link([await broken()], {}, true, [{ kind: EntryKind.Module, module: 'src/broken.ts' }])
+      ).toEqual({ kind: LinkResultKind.Failed, diagnostics: [parseError] });
+    });
+
+    test.each([
+      [ResolutionKind.Unresolved, 'unresolved-edge'],
+      [ResolutionKind.Failed, 'failed-edge'],
+    ] as const)('fails on a %s import a plain binding reads', async (resolution, code) => {
+      const plans = [
+        await app(`import { value } from './gone';\nexport const read = () => value;\n`),
+      ];
+      expect(link(plans, { 'src/app.ts': { 0: { r: resolution } } }, true)).toMatchObject({
+        kind: LinkResultKind.Failed,
+        diagnostics: [{ module: 'src/app.ts', code }],
+      });
+    });
+
+    test('fails on a dangling import of a module the link does not contain', async () => {
+      const plans = [await app(`import { value } from './gone';\nconsole.log(value);\n`)];
+      expect(link(plans, { 'src/app.ts': { 0: resolved('src/gone.ts') } }, true)).toMatchObject({
+        kind: LinkResultKind.Failed,
+        diagnostics: [{ module: 'src/app.ts', code: 'unresolved-edge' }],
+      });
+    });
+
+    test('accepts type-only imports and external packages it cannot see into', async () => {
+      const plans = [
+        await app(
+          `import type { Model } from './broken';\nimport { helper } from 'pkg';\nexport const read = (model: Model) => helper(model);\n`
+        ),
+        await broken(),
+      ];
+      const edges = {
+        'src/app.ts': { 0: resolved('src/broken.ts'), 1: { r: ResolutionKind.External } },
+      };
+      expect(link(plans, edges, true).kind).toBe(LinkResultKind.Linked);
+    });
+
+    // Analysis records no type exports, so a name missing from a module may be an interface.
+    test('accepts a named import of an interface', async () => {
+      const plans = [
+        await app(
+          `import { Model } from './types';\nexport const read = (model: Model) => model;\n`
+        ),
+        await analyse('src/types.ts', 'export interface Model { id: number }\n'),
+      ];
+      expect(link(plans, { 'src/app.ts': { 0: resolved('src/types.ts') } }, true).kind).toBe(
+        LinkResultKind.Linked
+      );
+    });
+
+    test('leaves an incomplete link degrading to typed unknowns', async () => {
+      const plans = [
+        await app(
+          `import { value } from './broken';\nimport { other } from './gone';\nconsole.log(value, other);\n`
+        ),
+        await broken(),
+      ];
+      const result = link(
+        plans,
+        { 'src/app.ts': { 0: resolved('src/broken.ts'), 1: { r: ResolutionKind.Unresolved } } },
+        false
+      );
+      expect(result.kind).toBe(LinkResultKind.Linked);
+      expect(
+        result.kind === LinkResultKind.Linked &&
+          result.plan.modules[0].imports.map(
+            (entry) => entry.kind !== ImportTargetKind.TypeOnly && entry.target
+          )
+      ).toEqual([
+        { ok: false, reason: { why: UnknownWhy.Opaque, code: 'missing-export' } },
+        { ok: false, reason: { why: UnknownWhy.Unresolved } },
+      ]);
+    });
   });
 
   test('does not reject an unresolved call outside the entry closure', async () => {

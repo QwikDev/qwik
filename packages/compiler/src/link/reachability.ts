@@ -1,10 +1,12 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
   DeclTable,
+  DiagnosticCategory,
   EntryKind,
   EsmEdgeKind,
   ExportKind,
   ImportTargetKind,
+  ModuleKind,
   UnknownWhy,
   type DeclRef,
   type LinkedImport,
@@ -233,6 +235,50 @@ export function markReachable(
   }
 
   return visited;
+}
+
+/** A complete link fails on a failed module or a dangling import anywhere its roots load. */
+export function reportReachableModules(
+  plans: readonly ModulePlan[],
+  linkedEntries: LinkedPlan['entries'],
+  resolution: Resolution,
+  diagnostics: LinkDiagnostic[]
+): void {
+  const { linkedEdges, linkedImports } = resolution;
+  const reached = new Set<number>();
+  const pending = linkedEntries.map((entry) => entry.module);
+  while (pending.length > 0) {
+    const module = pending.pop()!;
+    if (reached.has(module)) {
+      continue;
+    }
+    reached.add(module);
+    diagnostics.push(...analysisErrors(plans[module]));
+    for (const edge of linkedEdges[module]) {
+      if (!edge.typeOnly && edge.target.ok) {
+        pending.push(edge.target.value);
+      }
+    }
+    for (const imported of linkedImports[module]) {
+      if (imported.kind === ImportTargetKind.TypeOnly) {
+        continue;
+      }
+      const edge = linkedEdges[module][imported.source.edge];
+      if (!edge.target.ok && edge.target.reason.why !== UnknownWhy.External) {
+        diagnostics.push(importDiagnostic(plans[module].path, edge.specifier, edge.target.reason));
+      }
+    }
+  }
+}
+
+/** A failed module's own analysis errors, as link diagnostics. */
+export function analysisErrors(plan: ModulePlan): LinkDiagnostic[] {
+  if (plan.kind !== ModuleKind.Failed) {
+    return [];
+  }
+  return plan.diagnostics
+    .filter((diagnostic) => diagnostic.category === DiagnosticCategory.Error)
+    .map(({ code, message }) => ({ module: plan.path, code, message }));
 }
 
 function isAmbiguousStarName(plan: ModulePlan, name: string, target: Maybe<DeclRef>): boolean {

@@ -551,14 +551,25 @@ let
             }
           );
 
-      # The longest suite, so more shards than the others.
-      e2ePreloader = matrix "e2e-preloader" [ { } ] 3 (
-        _: shard: name:
-        mkE2e {
-          inherit name;
-          command = "pnpm test.e2e.preloader --shard=${shard}";
+      # Playwright shards by test count, which would leave the file with half of the run time whole.
+      e2ePreloader =
+        let
+          slowest = "early-clicks-and-failed-loads";
+        in
+        {
+          e2e-preloader-early-clicks = mkE2e {
+            name = "qwik-e2e-preloader-early-clicks";
+            command = "pnpm test.e2e.preloader ${slowest}";
+          };
         }
-      );
+        // matrix "e2e-preloader" [ { group = "others"; } ] 2 (
+          _: shard: name:
+          mkE2e {
+            inherit name;
+            # The file filter is a regex: every test file but the slowest.
+            command = "pnpm test.e2e.preloader '^(?!.*${slowest})' --shard=${shard}";
+          }
+        );
 
       checks = {
         inherit

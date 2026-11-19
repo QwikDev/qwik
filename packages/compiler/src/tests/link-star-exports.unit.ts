@@ -312,3 +312,39 @@ describe('exposed exports of a barrel', () => {
     });
   });
 });
+
+describe('named export resolution', () => {
+  test('a module entry looks each export name up once, not once per export', async () => {
+    const size = 200;
+    const [plan] = await analyseAll({
+      many: Array.from({ length: size }, (_, index) => `export const x${index} = ${index};\n`).join(
+        ''
+      ),
+    });
+    let nameReads = 0;
+    const counted: ModulePlan = {
+      ...plan,
+      exports: plan.exports.map(
+        (entry) =>
+          new Proxy(entry, {
+            get: (target, property, receiver) => {
+              if (property === 'exported') {
+                nameReads++;
+              }
+              return Reflect.get(target, property, receiver);
+            },
+          })
+      ),
+    };
+    linked(
+      linkPlans(
+        [counted],
+        [{ kind: EntryKind.Module, module: plan.path }],
+        serverSpecialization(),
+        resolveRelative([counted]),
+        false
+      )
+    );
+    expect(nameReads).toBeLessThan(10 * size);
+  });
+});

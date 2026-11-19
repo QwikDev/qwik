@@ -120,6 +120,7 @@ export function resolveModules(
   );
 
   const declarationsByBinding = plans.map(indexLocalDeclarations);
+  const explicitExportsByName = plans.map(indexExplicitExports);
   const exportCache = new Map<string, Maybe<DeclRef>>();
   const resolveLocalBinding = (
     module: number,
@@ -181,9 +182,7 @@ export function resolveModules(
     searchVisits.set(key, order);
     exportStack.add(key);
     const plan = plans[module];
-    const explicit = plan.exports.filter(
-      (entry) => entry.e !== ExportKind.Star && entry.exported === exported
-    );
+    const explicit = explicitExportsByName[module].get(exported) ?? [];
     let result: Maybe<DeclRef>;
     if (explicit.length > 1) {
       result = unknown(UnknownWhy.Opaque, 'ambiguous-export');
@@ -291,6 +290,24 @@ export function resolveModules(
     resolveLocalBinding,
     resolveExport,
   };
+}
+
+type ExplicitExport = Exclude<ModulePlan['exports'][number], { e: ExportKind.Star }>;
+
+function indexExplicitExports(plan: ModulePlan): Map<string, ExplicitExport[]> {
+  const byName = new Map<string, ExplicitExport[]>();
+  for (const entry of plan.exports) {
+    if (entry.e === ExportKind.Star) {
+      continue;
+    }
+    const named = byName.get(entry.exported);
+    if (named === undefined) {
+      byName.set(entry.exported, [entry]);
+    } else {
+      named.push(entry);
+    }
+  }
+  return byName;
 }
 
 function indexLocalDeclarations(plan: ModulePlan, module: number): Map<LocalId, Maybe<DeclRef>> {

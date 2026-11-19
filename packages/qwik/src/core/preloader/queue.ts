@@ -173,11 +173,13 @@ const processAdjustmentFrame = () => {
   const isBetterRanked =
     frame.$inverseProbability$ === previousInverseProbability && rank < bundle.$rank$;
   const isWeaker = frame.$inverseProbability$ > previousInverseProbability;
-  if (!isWeaker) {
+  const isNewer = !isWeaker && !isStronger && frame.$hintOrder$ > bundle.$hintOrder$;
+  if (isStronger || isNewer) {
     bundle.$hintOrder$ = frame.$hintOrder$;
     queueDirty = true;
   }
-  if (isWeaker || (!frame.$isReplay$ && !isStronger && !isBetterRanked)) {
+  const isUnchanged = !frame.$isReplay$ && !isStronger && !isBetterRanked;
+  if (isWeaker || (isUnchanged && !isNewer)) {
     adjustmentStack.pop();
     return false;
   }
@@ -192,7 +194,7 @@ const processAdjustmentFrame = () => {
     base != null &&
     bundle.$state$ < BundleImportState_Preload
   ) {
-    if (bundle.$state$ === BundleImportState_None) {
+    if (bundle.$state$ === BundleImportState_None && !isUnchanged) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
     }

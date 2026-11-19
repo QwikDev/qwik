@@ -1306,6 +1306,23 @@ test('a later hint brings what its bundle imports to the front with it', async (
   expect(linkNames(document)).toEqual(['b.js', 'b-import.js', 'a.js', 'a-import.js']);
 });
 
+test('hinting a queued bundle again brings what it imports to the front too', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['a.js', 2, 'a-import.js', 'b.js']);
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  preload('a.js', 0.9);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['a.js', 'a-import.js', 'b.js']);
+});
+
 test('a weaker hint does not move a bundle ahead of its equals', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
@@ -1492,6 +1509,26 @@ test('a weaker hint made before the bundle graph loaded does not reorder what a 
   );
 
   expect(linkNames(document)).toEqual(['card-events.js', 'card-tasks.js', 'card-render.js']);
+});
+
+test('an import shared by two chunks hinted before the bundle graph loaded keeps the later hint', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload('a.js', 0.9);
+  preload('b.js', 0.9);
+  preload('c.js', 0.9);
+  preload('a.js', 0.9);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'a.js': { imports: ['shared.js'] },
+      'b.js': { imports: ['shared.js'] },
+      'c.js': {},
+      'shared.js': {},
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['a.js', 'shared.js', 'c.js', 'b.js']);
 });
 
 const openPage = async (page: { elementsWithHandlers?: unknown[]; state?: string }) => {

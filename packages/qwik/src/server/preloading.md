@@ -91,6 +91,8 @@ For each bundle, the **bundle graph** lists what it imports. It is a flat list: 
 
 This is made at build time. Only qrl edges (a module or segment importing its own `$()` segments) are followed. A user or library `import()` is a cut point: nothing under it is preloaded until that code runs and creates its own qrls.
 
+Plugins can add entries to it. The Qwik Router adds every route with its layouts and page. Insights adds to each route the symbols that real visits used there, so a hint for the route preloads them too. Insights also decides which segments share a bundle. Neither changes the order: the bundles they add are sorted by layer and kind like the rest.
+
 ### Following a hint
 
 A hint names bundles, symbols or routes. The preloader gives each of them the hint's layer, then does the same for everything they import, static or through a QRL, however far. A bundle already in a layer at least as high is left alone, which also stops the walk on import cycles.
@@ -111,7 +113,7 @@ When a QRL is created on the client, we hint its bundle at 0.8. When it is calle
 
 ### Link preloading
 
-When a Link is in view and bundle prefetch is on, we hint its route at 0.5, as a page to render. The Qwik Router adds the routes and layouts to the bundle graph. A click hints the route at 1, and the page being left at 0.6 so that Back finds its components.
+When a Link is in view and bundle prefetch is on, we hint its route at 0.5, as a page to render. The Qwik Router and Insights plugins add the routes to the bundle graph. A click hints the route at 1, and the page being left at 0.6 so that Back finds its components.
 
 ### Actually preloading
 

@@ -27,14 +27,16 @@ expression: output
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_Destructured_component_tVojIGTbHGc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Destructured_component_tVojIGTbHGc"), "Destructured_component_tVojIGTbHGc");
 const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
 //
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+//
+const q_Destructured_component_tVojIGTbHGc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Destructured_component_tVojIGTbHGc"), "Destructured_component_tVojIGTbHGc");
+//
 export const Destructured = /*#__PURE__*/ componentQrl(q_Destructured_component_tVojIGTbHGc);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIE,6BAAe,2CAUZ;AAEH,OAAO,MAAM,6BAAe,mDAA2C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIE,6BAAe,2CAUZ;;;;AAEH,OAAO,MAAM,6BAAe,mDAA2C\"}")
 ============================= test.tsx_Destructured_component_tVojIGTbHGc.js (ENTRY POINT)==
 
 import { _jsxSplit } from "@qwik.dev/core";

@@ -92,7 +92,7 @@ export const Foo = component$((props) => {
     expect(sCallIdx).toBeLessThan(exportIdx);
   });
 
-  it('places all non-self-ref component bodies before multiple exports', () => {
+  it('places each component body right before its own export', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
 export const First = component$(() => <div>first</div>);
@@ -105,10 +105,14 @@ export const Second = component$(() => <div>second</div>);
       transpileJsx: true,
     });
     const code = findParent(result).code;
-    const lastSCall = code.lastIndexOf('.s(');
-    const firstExport = code.indexOf('export const');
+    const order = [
+      code.indexOf('"first"'),
+      code.indexOf('export const First'),
+      code.indexOf('"second"'),
+      code.indexOf('export const Second'),
+    ];
 
-    expect(lastSCall).toBeGreaterThan(-1);
-    expect(lastSCall).toBeLessThan(firstExport);
+    expect(order[0]).toBeGreaterThan(-1);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
   });
 });

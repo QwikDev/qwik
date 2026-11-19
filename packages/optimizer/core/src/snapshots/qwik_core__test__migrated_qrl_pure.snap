@@ -156,20 +156,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qw
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from '@qwik.dev/core';
 //
-/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useUnused_callback_AAA111aaa11"), "s_AAA111aaa11");
-//
 const q_s_BBB222bbb22 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_Unused_component_BBB222bbb22"), "s_BBB222bbb22");
 //
-/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useRead_read_CCC333ccc33"), "s_CCC333ccc33");
+export const Unused = /*#__PURE__*/ componentQrl(q_s_BBB222bbb22);
 //
 const q_s_DDD444ddd44 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_App_component_DDD444ddd44"), "s_DDD444ddd44");
 //
-export const Unused = /*#__PURE__*/ componentQrl(q_s_BBB222bbb22);
 export const App = /*#__PURE__*/ componentQrl(q_s_DDD444ddd44);
 console.log('KEEP_SIDE_EFFECT');
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useUnused_callback_AAA111aaa11"), "s_AAA111aaa11");
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useRead_read_CCC333ccc33"), "s_CCC333ccc33");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\";AAAA,SAAS,YAAY,QAAoB,iBAAiB;;;;;;;;;;AAM1D,OAAO,MAAM,SAAS,WAAW,GAAG,8BAKlC;AAOF,OAAO,MAAM,MAAM,WAAW,GAAG,8BAE/B;AAEF,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\";AAAA,SAAS,YAAY,QAAoB,iBAAiB;;;;AAM1D,OAAO,MAAM,SAAS,WAAW,GAAG,8BAKlC;;;;AAOF,OAAO,MAAM,MAAM,WAAW,GAAG,8BAE/B;AAEF,QAAQ,GAAG,CAAC\"}")
 == DIAGNOSTICS ==
 
 []

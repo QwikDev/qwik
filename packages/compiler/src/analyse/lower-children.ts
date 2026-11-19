@@ -14,7 +14,7 @@ import {
   type Range,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
-import { RAW_TEXT_ELEMENTS, RCDATA_ELEMENTS } from '../html';
+import { RAW_TEXT_CLOSER_GUARD, RAW_TEXT_ELEMENTS, RCDATA_ELEMENTS, rawTextCloser } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { lowerText } from './lower-text';
 import { lowerBranch, type BranchArm } from './lower-branch';
@@ -93,12 +93,17 @@ export function lowerContentChildren(
   }
   const text = folded as string[];
   if (isRawText) {
-    // Only `</` could end the element early; nothing else is decoded here.
+    // Only the element's own end tag could end it early; nothing else is decoded here.
     return {
       ops:
         text.length === 0
           ? []
-          : [{ op: OpKind.Static, html: text.join('').replace(/<\//g, '<\\/') }],
+          : [
+              {
+                op: OpKind.Static,
+                html: text.join('').replace(rawTextCloser(tag), RAW_TEXT_CLOSER_GUARD),
+              },
+            ],
     };
   }
   if (parts.length < 2) {

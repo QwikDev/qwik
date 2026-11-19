@@ -81,11 +81,11 @@ export function default_component_3rg6kq1so9aio(props, ctx) {
     '<div><script q:id="',
     createSsrNodeId(id0),
     '">',
-    (attr0 ?? '').replace(/<\//g, '<\\/'),
+    (attr0 ?? '').replace(/<\/(?=script[\t\n\f\r />])/gi, '<\\/'),
     '</script><style q:id="',
     createSsrNodeId(id1),
     '">',
-    (attr1 ?? '').replace(/<\//g, '<\\/'),
+    (attr1 ?? '').replace(/<\/(?=style[\t\n\f\r />])/gi, '<\\/'),
     '</style></div>',
   ]);
 }

@@ -21,6 +21,14 @@ export const VOID_ELEMENTS: ReadonlySet<string> = new Set([
 /** Elements whose content the parser never decodes: a literal, guarded against a premature closer. */
 export const RAW_TEXT_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
 
+/** The tokenizer ends raw text only at `</` + its own name + a separator; CR counts as LF. */
+export function rawTextCloser(tag: string): RegExp {
+  return new RegExp(`</(?=${tag}[\\t\\n\\f\\r />])`, 'gi');
+}
+
+/** `\/` reads as `/` in JS strings, regexes and JSON, and in CSS strings. */
+export const RAW_TEXT_CLOSER_GUARD = '<\\/';
+
 /** Elements whose first newline the parser drops right after the open tag. */
 export const NEWLINE_EATING_ELEMENTS: ReadonlySet<string> = new Set(['pre', 'textarea']);
 

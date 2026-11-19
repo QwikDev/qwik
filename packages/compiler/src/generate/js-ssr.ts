@@ -29,7 +29,9 @@ import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
 import {
   escapeAttr,
   NEWLINE_EATING_ELEMENTS,
+  RAW_TEXT_CLOSER_GUARD,
   RAW_TEXT_ELEMENTS,
+  rawTextCloser,
   serializeAttrValue,
 } from '../html';
 import { UnsupportedError } from '../errors';
@@ -776,7 +778,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pushMergedStatic(children, literal);
       } else {
         const content = `${this.attrStep(pass, innerHtml, idVariable!, null)} ?? ''`;
-        children.push(isRawText ? guardRawTextJs(`(${content})`) : content);
+        children.push(isRawText ? guardRawTextJs(op.tag, `(${content})`) : content);
       }
     }
 
@@ -854,7 +856,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     if (propsStep !== null && !op.void) {
       const content = isRawText
-        ? guardRawTextJs(`${propsStep}.innerHTML?`)
+        ? guardRawTextJs(op.tag, `${propsStep}.innerHTML?`)
         : `${propsStep}.innerHTML`;
       parts.push(`${content} ?? [${children.join(', ')}]`);
     }
@@ -1541,9 +1543,9 @@ function boundLiftedLocals(module: LinkedModule, qrl: LinkedQrl): QrlUse[] {
   return [...(qrl.functions ?? []), ...declared].map(({ use }) => use);
 }
 
-/** Only `</` could end raw text early; the same guard literal children get at compile time. */
-function guardRawTextJs(expression: string): string {
-  return `${expression}.replace(/<\\//g, ${JSON.stringify('<\\/')})`;
+/** The same guard literal children get at compile time, run on a runtime string. */
+function guardRawTextJs(tag: string, expression: string): string {
+  return `${expression}.replace(${rawTextCloser(tag)}, ${JSON.stringify(RAW_TEXT_CLOSER_GUARD)})`;
 }
 
 function pushMergedStatic(parts: string[], text: string): void {

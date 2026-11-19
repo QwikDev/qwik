@@ -258,7 +258,7 @@ export default component$((props: { dangerouslySetInnerHTML: string }) => (
     const main = renderCode(output);
     if (mode === 'ssr') {
       // Non-void elements emit the props content even with no authored children.
-      expect(main.match(/\.innerHTML(\?\.replace\([^)]+\))? \?\? \[\]/g)).toHaveLength(3);
+      expect(main.match(/\.innerHTML(\?\.replace\(.+?, "<\\\\\/"\))? \?\? \[\]/g)).toHaveLength(3);
     } else {
       expect(main.match(/createPropsEffect\(/g)).toHaveLength(4);
     }
@@ -490,8 +490,10 @@ export default component$((props: { heading: string }) => (
       expect(main).not.toContain('.replace(');
       return;
     }
-    // Live raw-text content guards `</` like literal children; authored markup and the div stay raw.
-    expect(main.match(/\.replace\(\/<\\\/\/g, "<\\\\\/"\)/g)).toHaveLength(4);
+    // Live raw-text content guards its own end tag like literal children; the div stays raw.
+    const guard = (tag: string) => `.replace(/<\\/(?=${tag}[\\t\\n\\f\\r />])/gi, "<\\\\/")`;
+    expect(main.split(guard('script'))).toHaveLength(3);
+    expect(main.split(guard('style'))).toHaveLength(3);
     expect(main).toContain('<script>a</b</script>');
     expect(main).toMatch(
       /<div q:id=\\"", createSsrNodeId\(id\d\), "\\">", attr\d \?\? '', "<\/div>/

@@ -562,7 +562,7 @@ export default () => <main><Child /></main>;
     expect(result.plan.modules[1].edges[0].runtime).toBe(true);
   });
 
-  test('reports cyclic export-star chains', async () => {
+  test('reports a name an export-star cycle never defines as missing', async () => {
     const app = await analyse(
       'src/app.tsx',
       `import { Child } from './a';
@@ -586,7 +586,7 @@ export default () => <main><Child /></main>;
     );
     expect(result).toMatchObject({
       kind: LinkResultKind.Failed,
-      diagnostics: [{ code: 'cyclic-export' }],
+      diagnostics: [{ code: 'missing-export' }],
     });
   });
 

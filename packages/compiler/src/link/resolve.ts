@@ -153,17 +153,24 @@ export function resolveModules(
       : { ok: true, value: { module, table: DeclTable.Bindings, index: binding } };
   };
 
-  const resolvingExports = new Set<string>();
+  const exportStack = new Map<string, number>();
+  // The shallowest stack frame the lookups since the last frame started depended on.
+  let shallowestHit = Infinity;
   const resolveExport = (module: number, exported: string): Maybe<DeclRef> => {
     const key = `${module}:${exported}`;
     const cached = exportCache.get(key);
     if (cached !== undefined) {
       return cached;
     }
-    if (resolvingExports.has(key)) {
+    const onStack = exportStack.get(key);
+    if (onStack !== undefined) {
+      shallowestHit = Math.min(shallowestHit, onStack);
       return unknown(UnknownWhy.Cycle);
     }
-    resolvingExports.add(key);
+    const depth = exportStack.size;
+    const outerHit = shallowestHit;
+    shallowestHit = Infinity;
+    exportStack.set(key, depth);
     const plan = plans[module];
     const explicit = plan.exports.filter(
       (entry) => entry.e !== ExportKind.Star && entry.exported === exported
@@ -191,6 +198,7 @@ export function resolveModules(
       }
     } else {
       const matches: DeclRef[] = [];
+      let isAmbiguous = false;
       let unresolved: Unknown | null = null;
       for (const star of exported === 'default' ? [] : plan.exports) {
         if (star.e !== ExportKind.Star) {
@@ -198,7 +206,10 @@ export function resolveModules(
         }
         const edgeTarget = linkedEdges[module][star.edge]?.target;
         if (edgeTarget === undefined || !edgeTarget.ok) {
-          unresolved ??= edgeTarget?.reason ?? { why: UnknownWhy.Unresolved };
+          unresolved = canonicalReason(
+            unresolved,
+            edgeTarget?.reason ?? { why: UnknownWhy.Unresolved }
+          );
           continue;
         }
         const candidate = resolveExport(edgeTarget.value, exported);
@@ -206,21 +217,32 @@ export function resolveModules(
           if (!matches.some((match) => sameDecl(match, candidate.value))) {
             matches.push(candidate.value);
           }
-        } else if (!isMissingExport(candidate.reason)) {
-          unresolved ??= candidate.reason;
+        } else if (isOpaque(candidate.reason, 'ambiguous-star-export')) {
+          isAmbiguous = true;
+        } else if (
+          // ECMAScript ResolveExport: a star leg that circles back is "not found here", not an error.
+          candidate.reason.why !== UnknownWhy.Cycle &&
+          !isOpaque(candidate.reason, 'missing-export')
+        ) {
+          unresolved = canonicalReason(unresolved, candidate.reason);
         }
       }
       result =
-        matches.length === 1
+        matches.length === 1 && !isAmbiguous
           ? { ok: true, value: matches[0] }
-          : matches.length > 1
+          : matches.length > 1 || isAmbiguous
             ? unknown(UnknownWhy.Opaque, 'ambiguous-star-export')
             : unresolved === null
               ? unknown(UnknownWhy.Opaque, 'missing-export')
               : { ok: false, reason: unresolved };
     }
-    resolvingExports.delete(key);
-    exportCache.set(key, result);
+    exportStack.delete(key);
+    // A result that read an outer in-progress frame holds only for this search, not as final.
+    if (shallowestHit >= depth) {
+      exportCache.set(key, result);
+      shallowestHit = Infinity;
+    }
+    shallowestHit = Math.min(outerHit, shallowestHit);
     return result;
   };
 
@@ -295,6 +317,15 @@ export function sameDecl(left: DeclRef, right: DeclRef): boolean {
   return left.module === right.module && left.table === right.table && left.index === right.index;
 }
 
-function isMissingExport(reason: Unknown): boolean {
-  return reason.why === UnknownWhy.Opaque && reason.code === 'missing-export';
+function isOpaque(reason: Unknown, code: string): boolean {
+  return reason.why === UnknownWhy.Opaque && reason.code === code;
+}
+
+/** Picks by content, not by visit order, which cached cycle legs would otherwise decide. */
+function canonicalReason(current: Unknown | null, next: Unknown): Unknown {
+  return current !== null && reasonKey(current) <= reasonKey(next) ? current : next;
+}
+
+function reasonKey(reason: Unknown): string {
+  return reason.why === UnknownWhy.Opaque ? `${reason.why}:${reason.code}` : reason.why;
 }

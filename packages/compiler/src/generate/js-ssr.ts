@@ -95,7 +95,7 @@ import {
   slotNameJs,
   useOnRootOps,
 } from './emit-component';
-import { createNameAllocator } from '../names';
+import { allocateGeneratedName, createNameAllocator } from '../names';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 
 export function generateJsSsr(
@@ -147,10 +147,15 @@ interface RenderPass {
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
-/** The runtime row ABI's positional parameter names. */
-const RangeIdParam = '__rangeId';
-const ProjectionRootParam = '__projectionRootId';
-const RowIdParam = '__rowId';
+/** The runtime row ABI's positional parameter names, clear of the module's bindings. */
+function abiParamNames(module: LinkedModule) {
+  const bound = module.bindings.map((binding) => binding.name);
+  return {
+    rangeId: allocateGeneratedName('__rangeId', bound),
+    projectionRoot: allocateGeneratedName('__projectionRootId', bound),
+    rowId: allocateGeneratedName('__rowId', bound),
+  };
+}
 
 interface SsrRenderOptions {
   /** Stamped into the root element's open tag (a row's `q:row`). */
@@ -173,6 +178,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   private readonly mirroredBindings = new Set<LocalId>();
 
   private readonly resolveQrlUse: QrlResolver;
+  private readonly abiParams: ReturnType<typeof abiParamNames>;
 
   constructor(
     private readonly module: LinkedModule,
@@ -191,6 +197,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     )
   ) {
     this.resolveQrlUse = createQrlResolver(module);
+    this.abiParams = abiParamNames(module);
   }
 
   emitHook(hook: HookDecl, names: GeneratedNames): string {
@@ -316,7 +323,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           ? { idParam: null, markerIndex: 0 }
           : options.fence === 'r'
             ? // Root holes in a fenced row target the row's own marker range.
-              { idParam: RowIdParam, markerIndex: 0 }
+              { idParam: this.abiParams.rowId, markerIndex: 0 }
             : null;
     const parts: string[] = [];
     // Descendants resumed later locate the provided scope through this marker pair.
@@ -337,11 +344,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     if (options.fence === 's') {
       this.imports.add(QwikWord.CreateSsrSlotMarker);
-      parts.push(`${QwikWord.CreateSsrSlotMarker}(${RangeIdParam}, ${ProjectionRootParam})`);
+      parts.push(
+        `${QwikWord.CreateSsrSlotMarker}(${this.abiParams.rangeId}, ${this.abiParams.projectionRoot})`
+      );
     } else if (options.fence === 'r') {
       this.imports.add(QwikWord.CreateSsrNodeId);
       pushMergedStatic(parts, '<!r=');
-      parts.push(`${QwikWord.CreateSsrNodeId}(${RowIdParam})`);
+      parts.push(`${QwikWord.CreateSsrNodeId}(${this.abiParams.rowId})`);
       pushMergedStatic(parts, '>');
     }
     // The runtime splices `useOn*` registrations into the first open-tag record after the render.
@@ -447,13 +456,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const { emission, core, names } = this.renderEmission(
       qrl,
       elementRoot
-        ? { rootMarker: { name: QwikAttr.Row, ...(keyed ? { value: RowIdParam } : {}) } }
+        ? { rootMarker: { name: QwikAttr.Row, ...(keyed ? { value: this.abiParams.rowId } : {}) } }
         : { fence: 'r' }
     );
     const loopParams = usedParamPrefix(this.module, qrl);
     if (!elementRoot || keyed || loopParams.length > 0) {
       // Positional ABI: trailing unused params drop, earlier ones stay under their names.
-      emission.params = [names.ctx, RangeIdParam, RowIdParam, ...loopParams];
+      emission.params = [names.ctx, this.abiParams.rangeId, this.abiParams.rowId, ...loopParams];
     } else if (core.needsContext) {
       emission.params = [names.ctx];
     }
@@ -463,7 +472,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Slot content chunks own their resume-time marker range. */
   private slotContentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, names } = this.renderEmission(qrl, { fence: 's' });
-    emission.params = [names.ctx, RangeIdParam, ProjectionRootParam];
+    emission.params = [names.ctx, this.abiParams.rangeId, this.abiParams.projectionRoot];
     return emission;
   }
 
@@ -1117,9 +1126,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Inline row: a function declared in the component; renderId links declaration and call. */
   private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
     // Rendered on THIS emitter: hole QRLs hoist to the module scope the function nests in.
-    const core = this.renderProgramById(row.program, inlineRowNames(this.module));
+    const names = inlineRowNames(this.module);
+    const core = this.renderProgramById(row.program, names);
+    const { rangeId, rowId } = this.abiParams;
     pass.statements.push(
-      inlineRowFunctionJs(this.module, row, `ctx, ${RangeIdParam}, ${RowIdParam}`, core)
+      inlineRowFunctionJs(this.module, row, `${names.ctx}, ${rangeId}, ${rowId}`, core)
     );
     return row.renderId;
   }

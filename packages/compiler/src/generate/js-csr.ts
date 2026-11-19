@@ -821,8 +821,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     row: { program: number; renderId: string },
     statements: string[]
   ): string {
-    const emission = this.renderProgram(row.program, row.renderId, inlineRowNames(this.module));
-    statements.push(inlineRowFunctionJs(this.module, row, 'ctx', emission));
+    const names = inlineRowNames(this.module);
+    const emission = this.renderProgram(row.program, row.renderId, names);
+    statements.push(inlineRowFunctionJs(this.module, row, names.ctx, emission));
     return row.renderId;
   }
 

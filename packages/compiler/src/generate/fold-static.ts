@@ -1,6 +1,6 @@
 import { OpKind, PropKind, type LinkedOp, type Op } from '../schema';
 import { escapeAttr, serializeAttrValue } from '../html';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, assertNever } from '../errors';
 import { inlineStringValue } from '../static-subtree';
 
 /** Folds a fully static op tree to markup; static text is already HTML, so both targets share it. */
@@ -44,7 +44,16 @@ export function foldStaticOp(op: Op | LinkedOp): string {
       }
       return `${html}</${op.tag}>`;
     }
-    default:
+    case OpKind.Hole:
+    case OpKind.Component:
+    case OpKind.Branch:
+    case OpKind.Each:
+    case OpKind.Slot:
+    case OpKind.Content:
+    case OpKind.Pending:
+    case OpKind.Catch:
       throw new UnsupportedError(`folding the op "${op.op}"`);
+    default:
+      return assertNever(op, 'op');
   }
 }

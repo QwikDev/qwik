@@ -37,6 +37,7 @@ import {
   type PresentationOptions,
 } from './output';
 import { generateForeignModule } from './foreign';
+import { assertNever } from '../errors';
 import {
   allocateGeneratedNames,
   emitComponentAlias,
@@ -258,6 +259,8 @@ export function assembleQwikModule(
         firstComponentEdit ??= edit;
         break;
       }
+      default:
+        assertNever(intent, 'assembly intent');
     }
   }
   let prefix = '';

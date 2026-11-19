@@ -17,3 +17,8 @@ export class InvalidModuleError extends Error {
     super(message);
   }
 }
+
+/** The default of a switch that handles every variant: reached only by a plan its types deny. */
+export function assertNever(value: never, what: string): never {
+  throw new UnsupportedError(`an unknown ${what}: ${JSON.stringify(value)}`);
+}

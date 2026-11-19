@@ -23,7 +23,7 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { QwikGenWord, QwikWord } from '../words';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, assertNever } from '../errors';
 import type { FunctionEmission } from './emit-function';
 import { liftedFunctionJs } from './captures';
 type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
@@ -173,8 +173,14 @@ export function valueIrJs(module: LinkedModule, ir: ExpressionIR): string {
       const prop = memberJs(module.bindings[ir.binding].name, ir.name);
       return `(${prop} === void 0 ? ${valueIrJs(module, ir.fallback)} : ${prop})`;
     }
-    default:
+    case ValueIrKind.StoreRead:
+    case ValueIrKind.Unary:
+    case ValueIrKind.Logic:
+    case ValueIrKind.Array:
+    case ValueIrKind.Object:
       throw new UnsupportedError(`printing the IR "${ir.kind}"`);
+    default:
+      return assertNever(ir, 'IR');
   }
 }
 

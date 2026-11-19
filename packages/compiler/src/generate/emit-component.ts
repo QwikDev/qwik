@@ -17,7 +17,7 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, assertNever } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { mayBe, readSource } from './emit-setup';
 import { componentParamName, qrlPropsName, rootArgs } from './captures';
@@ -306,8 +306,11 @@ function emitComponentProps(
         }
         break;
       }
-      default:
+      case PropKind.Ref:
+      case PropKind.InnerHtml:
         throw new UnsupportedError(`the component prop "${prop.k}"`);
+      default:
+        assertNever(prop, 'prop');
     }
   }
   flushEntries();
@@ -521,7 +524,9 @@ export function emitComponentFunction(
       const name = declaration.localName;
       return `export default ${asyncPrefix}function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}`;
     }
-    default:
+    case DeclarationKind.Function:
       return `${exportPrefix}${asyncPrefix}function ${declaration.name}(${params}) {\n${body}\n}`;
+    default:
+      return assertNever(declaration.declarationKind, 'declaration kind');
   }
 }

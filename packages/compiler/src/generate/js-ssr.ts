@@ -34,7 +34,7 @@ import {
   rawTextCloser,
   serializeAttrValue,
 } from '../html';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, assertNever } from '../errors';
 import { generatePlanModules, type QwikModuleEmitter } from './assemble-module';
 import { noopQrlJs } from './noop-qrl';
 import {
@@ -660,7 +660,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.each(pass, op, parts);
         return;
       default:
-        throw new Error(`pipeline.generateJsSsr: op "${(op as LinkedOp).op}" not implemented yet`);
+        assertNever(op, 'op');
     }
   }
 
@@ -859,8 +859,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.pending(pass, child, children);
           break;
         }
-        default: {
+        case OpKind.Static: {
           throw new UnsupportedError('a dynamic child inside an element record');
+        }
+        default: {
+          assertNever(child, 'op');
         }
       }
     }
@@ -962,8 +965,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         );
         break;
       }
-      default:
+      case ValueKind.Static:
+      case ValueKind.Qrl:
+      case ValueKind.Render:
         throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
+      default:
+        assertNever(prop.value, 'value');
     }
     return step;
   }
@@ -1135,6 +1142,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         parts.push(step);
         break;
       }
+      default:
+        assertNever(op.row, 'collection row');
     }
   }
 
@@ -1264,8 +1273,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         parts.push(this.escapedText(step, keepsNewline));
         break;
       }
-      default: {
+      case ValueKind.Static:
+      case ValueKind.Qrl:
+      case ValueKind.Render: {
         throw new UnsupportedError('a non-computed text hole');
+      }
+      default: {
+        assertNever(op.value, 'value');
       }
     }
 
@@ -1433,8 +1447,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         );
         return;
       }
-      default:
+      case PropKind.Spread:
+      case PropKind.InnerHtml:
         throw new UnsupportedError(`the prop "${prop.k}" in an SSR element record`);
+      default:
+        assertNever(prop, 'prop');
     }
   }
 

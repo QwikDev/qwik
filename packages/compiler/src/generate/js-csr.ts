@@ -21,7 +21,7 @@ import {
   type Value,
 } from '../schema';
 import { QwikDirective, QwikWord, QwikGenWord } from '../words';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, assertNever } from '../errors';
 import { generatePlanModules, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
@@ -350,7 +350,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Pending:
         return this.rangeRoot(op, statements, pass);
       default:
-        throw new Error(`pipeline.generateJsCsr: op "${(op as LinkedOp).op}" not implemented yet`);
+        return assertNever(op, 'op');
     }
   }
 
@@ -494,8 +494,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           }
           break;
         }
-        default: {
+        case PropKind.Spread: {
           throw new UnsupportedError(`the prop "${prop.k}" in a csr element`);
+        }
+        default: {
+          assertNever(prop, 'prop');
         }
       }
     }
@@ -570,8 +573,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           this.mountComponent(child, path, statements, pass);
           break;
         }
-        default: {
+        case OpKind.Static: {
           throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
+        }
+        default: {
+          assertNever(child, 'op');
         }
       }
     }
@@ -669,6 +675,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createCatchBlock(op, start, end, statements, pass);
       case OpKind.Pending:
         return this.createPendingBlock(op, start, end, statements, pass);
+      default:
+        return assertNever(op, 'range op');
     }
   }
 
@@ -801,6 +809,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         );
         break;
       }
+      default:
+        assertNever(op.row, 'collection row');
     }
   }
 
@@ -1153,8 +1163,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         );
         break;
       }
-      default:
+      case ValueKind.Static:
+      case ValueKind.Qrl:
+      case ValueKind.Render:
         throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
+      default:
+        assertNever(prop.value, 'value');
     }
     statements.push(`${pass.names.ctx}.scheduler.notify(${effect});`);
   }
@@ -1289,8 +1303,12 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
         statements.push(`${pass.names.ctx}.scheduler.notify(${effect});`);
         break;
       }
-      default:
+      case ValueKind.Static:
+      case ValueKind.Qrl:
+      case ValueKind.Render:
         throw new UnsupportedError('a non-computed text hole');
+      default:
+        assertNever(op.value, 'value');
     }
   }
 
@@ -1552,7 +1570,7 @@ function templateChildren(
       case OpKind.Component:
         return { op: OpKind.Static as const, html: '<!>' };
       default:
-        return child;
+        return assertNever(child, 'op');
     }
   });
 }
@@ -1565,8 +1583,14 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Catch:
     case OpKind.Pending:
       return 2;
-    default:
+    case OpKind.Static:
+    case OpKind.Element:
+    case OpKind.Hole:
+    case OpKind.Component:
+    case OpKind.Slot:
       return 1;
+    default:
+      return assertNever(op, 'op');
   }
 }
 

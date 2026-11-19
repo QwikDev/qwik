@@ -14,7 +14,7 @@ import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity
 import { resolveSegmentEntry } from './entry-strategy';
 import { QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
-import { assembleGeneratedModule } from './source-assembly';
+import { createGeneratedModuleAssembler } from './source-assembly';
 import { createOriginalRangeMapper } from '../source-maps';
 import type { SourceMap } from 'oxc-transform';
 import { minifySync } from 'oxc-minify';
@@ -35,20 +35,22 @@ export function emitQrlChunks(
   segments: ReadonlyMap<LocalId, LinkedQrl>
 ): GenerateOutput['modules'] {
   const mapRange = originalRangeMapper(module);
+  const assembleChunk = createGeneratedModuleAssembler(
+    module.source.code,
+    module.source.originalPath,
+    options.outputSourceMaps === true,
+    module.source.normalizationMap as SourceMap | null
+  );
   // A declaration without a symbol splices over its authored range; a nested component prints
   // inline where its `component$` call stood.
   return module.qrls
     .filter((qrl) => isPrinted(qrl) && hasOwnChunk(qrl))
     .map((qrl) => {
       const path = `${module.path}_${chunkSymbolName(qrl)}.js`;
-      const assembled = assembleGeneratedModule(
-        module.source.code,
-        module.source.originalPath,
+      const assembled = assembleChunk(
         path,
         chunkModuleCode(module, qrl, qrlFunction(qrl), moduleExports, segments, options),
-        qrl.origin.range,
-        options.outputSourceMaps === true,
-        module.source.normalizationMap as SourceMap | null
+        qrl.origin.range
       );
       return {
         path,

@@ -67,7 +67,7 @@ function mapOffset(
         (preserveGeneratedDelta ? generated.column - segment.generatedColumn : 0);
 }
 
-function lineStarts(source: string): number[] {
+export function lineStarts(source: string): number[] {
   const starts = [0];
   for (let index = 0; index < source.length; index++) {
     if (source.charCodeAt(index) === 10) {
@@ -77,7 +77,7 @@ function lineStarts(source: string): number[] {
   return starts;
 }
 
-function offsetToPosition(starts: readonly number[], offset: number) {
+export function offsetToPosition(starts: readonly number[], offset: number) {
   let low = 0;
   let high = starts.length;
   while (low + 1 < high) {

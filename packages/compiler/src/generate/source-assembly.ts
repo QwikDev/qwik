@@ -5,7 +5,12 @@ import MagicString, {
   type SourceMapSegment,
 } from 'magic-string';
 import type { SourceMap } from 'oxc-transform';
-import { createNodeSourceMap, sourceRelativeToMap } from '../source-maps';
+import {
+  createNodeSourceMap,
+  lineStarts,
+  offsetToPosition,
+  sourceRelativeToMap,
+} from '../source-maps';
 import type { Range } from '../schema';
 
 export interface RangeReplacement {
@@ -44,30 +49,50 @@ export function assembleModule(
   return finishAssembly(magic, sourcePath, outputPath, sourceMaps, normalizedMap);
 }
 
-/** Anchors a generated entry module to the source range that produced it. */
-export function assembleGeneratedModule(
+/**
+ * Prepares one module's source once; the returned call anchors each generated entry module to the
+ * source range that produced it, at a cost proportional to that module's code.
+ */
+export function createGeneratedModuleAssembler(
   source: string,
   sourcePath: string,
-  outputPath: string,
-  code: string,
-  anchor: Range,
   sourceMaps: boolean,
   normalizedMap: SourceMap | null
-): AssembledModule {
+): (outputPath: string, code: string, anchor: Range) => AssembledModule {
   // Without a map, everything around the anchor goes and the chunk is exactly its code.
   if (!sourceMaps) {
-    return { code, map: null };
+    return (_outputPath, code) => ({ code, map: null });
   }
-  const magic = new MagicString(source, { filename: sourcePath });
-  const [start, end] = anchor;
-  if (start > 0) {
-    magic.remove(0, start);
+  const sourceLines = lineStarts(source);
+  const composeMap = createMapComposer(normalizedMap);
+  const sourcesContentJson = JSON.stringify(
+    normalizedMap === null ? [source] : normalizedMap.sourcesContent
+  );
+  return (outputPath, code, [start]) => {
+    const anchor = offsetToPosition(sourceLines, start);
+    const emittedMap: DecodedSourceMap = {
+      file: outputPath,
+      sources: [sourcePath],
+      sourcesContent: [source],
+      names: [],
+      mappings: anchoredMappings(code, anchor.line - 1, anchor.column),
+    };
+    return {
+      code,
+      map: serializeMap(composeMap(emittedMap), outputPath, sourcePath, sourcesContentJson),
+    };
+  };
+}
+
+/** The mappings magic-string emits for `code` overwriting an anchor with the rest removed. */
+function anchoredMappings(code: string, line: number, column: number): SourceMapSegment[][] {
+  const lines = code.split('\n');
+  const mappings: SourceMapSegment[][] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const isTrailingEmptyLine = index === lines.length - 1 && lines[index] === '';
+    mappings.push(isTrailingEmptyLine ? [] : [[0, 0, line, column]]);
   }
-  magic.overwrite(start, end, code);
-  if (end < source.length) {
-    magic.remove(end, source.length);
-  }
-  return finishAssembly(magic, sourcePath, outputPath, sourceMaps, normalizedMap);
+  return mappings;
 }
 
 function finishAssembly(
@@ -88,37 +113,54 @@ function finishAssembly(
     includeContent: true,
     hires: true,
   });
-  const map =
-    normalizedMap === null
-      ? new MagicStringSourceMap(emittedMap)
-      : composeMaps(emittedMap, normalizedMap);
-  const json = JSON.parse(map.toString());
-  json.file = outputPath;
-  if (json.sources.length === 1) {
-    // Spec: `sources` entries resolve against the map's location, not srcDir.
-    json.sources[0] = sourceRelativeToMap(outputPath, sourcePath);
-  }
-  return { code, map: JSON.stringify(json) };
+  const map = createMapComposer(normalizedMap)(emittedMap);
+  return { code, map: serializeMap(map, outputPath, sourcePath) };
 }
 
-function composeMaps(emitted: DecodedSourceMap, normalized: SourceMap): MagicStringSourceMap {
-  const trace = createNodeSourceMap(normalized);
-  const mappings = emitted.mappings.map((line) =>
-    line.map((segment): SourceMapSegment => {
-      if (segment.length === 1) {
-        return segment;
-      }
-      const original = trace.findEntry(segment[2], segment[3]);
-      return 'originalLine' in original
-        ? [segment[0], 0, original.originalLine, original.originalColumn]
-        : [segment[0]];
-    })
+/** The bytes of `map.toString()`, taking `sourcesContent` pre-escaped so chunks share one copy. */
+function serializeMap(
+  map: MagicStringSourceMap,
+  outputPath: string,
+  sourcePath: string,
+  sourcesContentJson: string | undefined = JSON.stringify(map.sourcesContent)
+): string {
+  // Spec: `sources` entries resolve against the map's location, not srcDir.
+  const sources =
+    map.sources.length === 1 ? [sourceRelativeToMap(outputPath, sourcePath)] : map.sources;
+  const sourcesContent =
+    sourcesContentJson === undefined ? '' : `"sourcesContent":${sourcesContentJson},`;
+  return (
+    `{"version":3,"file":${JSON.stringify(outputPath)},"sources":${JSON.stringify(sources)},` +
+    `${sourcesContent}"names":${JSON.stringify(map.names)},"mappings":${JSON.stringify(map.mappings)}}`
   );
-  return new MagicStringSourceMap({
-    ...emitted,
-    mappings,
-    names: [],
-    sources: normalized.sources,
-    sourcesContent: normalized.sourcesContent,
-  });
+}
+
+/** Parses the normalization map once for every emitted map composed with it. */
+function createMapComposer(
+  normalized: SourceMap | null
+): (emitted: DecodedSourceMap) => MagicStringSourceMap {
+  if (normalized === null) {
+    return (emitted) => new MagicStringSourceMap(emitted);
+  }
+  const trace = createNodeSourceMap(normalized);
+  return (emitted) => {
+    const mappings = emitted.mappings.map((line) =>
+      line.map((segment): SourceMapSegment => {
+        if (segment.length === 1) {
+          return segment;
+        }
+        const original = trace.findEntry(segment[2], segment[3]);
+        return 'originalLine' in original
+          ? [segment[0], 0, original.originalLine, original.originalColumn]
+          : [segment[0]];
+      })
+    );
+    return new MagicStringSourceMap({
+      ...emitted,
+      mappings,
+      names: [],
+      sources: normalized.sources,
+      sourcesContent: normalized.sourcesContent,
+    });
+  };
 }

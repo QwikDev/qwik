@@ -9,7 +9,7 @@
 import { NativeTargetKind, type ModulePlan, type Range } from '../schema';
 import { InvalidModuleError } from '../errors';
 import { QwikMarker } from '../words';
-import { isNode, type WalkableNode } from './ast/ast-types';
+import { forEachChild, isNode } from './ast/ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './ast/utils';
 import type { LowerContext } from './lower-context';
 import { pushPayload } from './lower-context';
@@ -146,9 +146,7 @@ function findNativeCalls(nodes: readonly Node[], ctx: LowerContext): CallExpress
       found.push(current);
       return;
     }
-    Object.keys(current).forEach(
-      (key) => key !== 'parent' && visit((current as WalkableNode)[key])
-    );
+    forEachChild(current, visit);
   };
   visit(nodes);
   return found;

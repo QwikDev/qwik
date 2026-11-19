@@ -16,7 +16,7 @@ import type {
   VariableDeclarator,
 } from 'oxc-parser';
 import { BindingScope, type LocalId } from '../../schema';
-import { isNode, type WalkableNode } from './ast-types';
+import { forEachChild, isNode } from './ast-types';
 import type { BindingGraph } from './bindings';
 import { JsxValueKind, type JsxValue } from './jsx-analysis';
 import {
@@ -145,11 +145,7 @@ function collectBoundaries(program: Pick<Program, 'body'>, ctx: LiftScope) {
       visitRender(node.argument);
       return;
     }
-    for (const key of Object.keys(node)) {
-      if (key !== 'parent') {
-        visitJs((node as WalkableNode)[key], statements);
-      }
-    }
+    forEachChild(node, (child) => visitJs(child, statements));
   };
 
   /** `component$(fn)` and `$`-marker calls; false leaves an ordinary call to the caller. */

@@ -20,7 +20,7 @@ import {
   unwrapExpression,
 } from './utils';
 import { UnsupportedError } from '../../errors';
-import { isNode, type WalkableNode } from './ast-types';
+import { forEachChild, isNode } from './ast-types';
 import { isComponentDeclaration } from './returns-jsx';
 
 export interface JsxFactory {
@@ -323,11 +323,7 @@ function scopedRoots(nodes: readonly Node[], scope: RootScope): JsxExpressionRoo
       }
       return;
     }
-    for (const key of Object.keys(node)) {
-      if (key !== 'parent') {
-        visit((node as WalkableNode)[key]);
-      }
-    }
+    forEachChild(node, visit);
   };
   visit(nodes);
   return roots;

@@ -8,7 +8,7 @@ import type {
   Program,
 } from 'oxc-parser';
 import { BindingScope, ReadRole, VarKind, type LocalId, type ModulePlan } from '../../schema';
-import { isNode, type WalkableNode } from './ast-types';
+import { forEachChild, isNode } from './ast-types';
 import { identifierName } from './utils';
 
 type Binding = ModulePlan['bindings'][number];
@@ -270,7 +270,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     switch (value.type) {
       case 'CallExpression':
         calls.push(value);
-        collectChildren(value, (child) => collect(child, scope));
+        forEachChild(value, (child) => collect(child, scope));
         return;
       case 'ReturnStatement': {
         const owner = nearestFunctionScope(scope);
@@ -285,7 +285,7 @@ export function createBindingGraph(program: Program): BindingGraph {
       }
       case 'ImportExpression':
         dynamicImports.push(value);
-        collectChildren(value, (child) => collect(child, scope));
+        forEachChild(value, (child) => collect(child, scope));
         return;
       case 'AwaitExpression': {
         const owner = nearestFunctionScope(scope);
@@ -355,7 +355,7 @@ export function createBindingGraph(program: Program): BindingGraph {
       case 'SwitchStatement': {
         const blockScope = createScope(scope, false);
         scopes.set(value, blockScope);
-        collectChildren(value, (child) => collect(child, blockScope));
+        forEachChild(value, (child) => collect(child, blockScope));
         return;
       }
       case 'ClassDeclaration':
@@ -391,7 +391,7 @@ export function createBindingGraph(program: Program): BindingGraph {
         return;
       }
       default:
-        collectChildren(value, (child) => collect(child, scope));
+        forEachChild(value, (child) => collect(child, scope));
     }
   };
 
@@ -520,17 +520,15 @@ export function createBindingGraph(program: Program): BindingGraph {
     } else if (value.type === 'ParenthesizedExpression') {
       resolveReferences(value.expression, activeScope, parent, key, isWrite);
     } else {
-      for (const childKey of Object.keys(value)) {
-        if (!IGNORED_KEYS.has(childKey)) {
-          resolveReferences(
-            (value as WalkableNode)[childKey],
-            activeScope,
-            value,
-            childKey,
-            isAssignmentTarget(value, childKey, isWrite)
-          );
-        }
-      }
+      forEachChild(value, (child, childKey) =>
+        resolveReferences(
+          child,
+          activeScope,
+          value,
+          childKey,
+          isAssignmentTarget(value, childKey, isWrite)
+        )
+      );
     }
     if (start !== orderedReferences.length) {
       referenceSpans.set(value, [start, orderedReferences.length]);
@@ -802,14 +800,4 @@ function isReference(parent: Node | null, key: string): boolean {
     return false;
   }
   return parent.type !== 'MetaProperty';
-}
-
-const IGNORED_KEYS = new Set(['type', 'start', 'end', 'range', 'parent']);
-
-function collectChildren(node: Node, visit: (child: unknown) => void): void {
-  for (const key of Object.keys(node)) {
-    if (!IGNORED_KEYS.has(key)) {
-      visit((node as WalkableNode)[key]);
-    }
-  }
 }

@@ -40,7 +40,7 @@ import { pushComponentQrl } from './lower-component-body';
 import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind, type SetupLocals } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
-import { isNode, type WalkableNode } from './ast/ast-types';
+import { forEachChild, isNode } from './ast/ast-types';
 import { QRL_SUFFIX, QRL_TWIN_SUFFIX, QwikMarker } from '../words';
 import { isDollarMarker, resolveSetupCall } from './lower-setup-call';
 
@@ -413,11 +413,7 @@ export function recordPayloadQrls(
       return;
     }
     const inner = isFunctionLike(current) ? functionScope(scope, current) : scope;
-    for (const key of Object.keys(current)) {
-      if (key !== 'parent') {
-        visit((current as WalkableNode)[key], inner, null);
-      }
-    }
+    forEachChild(current, (child) => visit(child, inner, null));
   };
   visit(node, ctx, null);
 }
@@ -542,9 +538,7 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
         found = true;
         return;
       }
-      Object.keys(current).forEach(
-        (key) => key !== 'parent' && visit((current as WalkableNode)[key])
-      );
+      forEachChild(current, visit);
     };
     visit(node);
     return found;
@@ -567,7 +561,7 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
       }
       return;
     }
-    Object.keys(node).forEach((key) => key !== 'parent' && visit((node as WalkableNode)[key]));
+    forEachChild(node, visit);
   };
   visit(nodes);
   return roots;

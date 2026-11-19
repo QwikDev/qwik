@@ -36,7 +36,7 @@ import {
   tryLowerExprIr,
 } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { isNode, type WalkableNode } from './ast/ast-types';
+import { forEachChild, isNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
 import { lowerComponentBody } from './lower-component-body';
 import { lowerRenderExpression } from './lower-children';
@@ -754,9 +754,7 @@ function lowerJsStatement(
     if (node.type === 'CallExpression' && isSetupHookCall(resolveSetupCall(node, ctx))) {
       return true;
     }
-    return Object.keys(node).some(
-      (key) => key !== 'parent' && hasHeaderHook((node as WalkableNode)[key])
-    );
+    return forEachChild(node, hasHeaderHook) ?? false;
   };
   const visit = (
     node: unknown,
@@ -841,11 +839,7 @@ function lowerJsStatement(
       recordPayloadJsx(ctx, payload, node);
       return;
     }
-    for (const key of Object.keys(node)) {
-      if (key !== 'parent') {
-        visit((node as WalkableNode)[key], false, node, inLoopHeader);
-      }
-    }
+    forEachChild(node, (child) => visit(child, false, node, inLoopHeader));
   };
   // Recorded first, so the QRLs extracted below drop the reads they replace.
   recordPayloadReads(ctx, payload, collectCaptures(statement as Node, ctx, new Set()));

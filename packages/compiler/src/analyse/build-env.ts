@@ -5,7 +5,7 @@
  * payload that prints it.
  */
 import { BuildConstant, PredicateKind, ReadRole, type ModulePlan, type Predicate } from '../schema';
-import { isNode, type WalkableNode } from './ast/ast-types';
+import { forEachChild, isNode } from './ast/ast-types';
 import type { MemberExpression, Node } from 'oxc-parser';
 
 const ENV_CONSTANTS: Record<string, Predicate> = {
@@ -55,12 +55,9 @@ function findEnvReads(
       return found;
     }
   }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
-      continue;
-    }
-    findEnvReads((node as WalkableNode)[key], found);
-  }
+  forEachChild(node, (child) => {
+    findEnvReads(child, found);
+  });
   return found;
 }
 

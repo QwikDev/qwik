@@ -8,7 +8,7 @@ import type {
   Program,
   Statement,
 } from 'oxc-parser';
-import { isNode, type WalkableNode } from './ast-types';
+import { forEachChild, isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression, unwrapTypeExpression } from './utils';
 import { JsxValueKind, type JsxAnalysis, type JsxValue } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
@@ -241,16 +241,7 @@ export function findRuntimeJsx(node: unknown): JSXElement | JSXFragment | null {
   if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
     return node;
   }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
-      continue;
-    }
-    const found = findRuntimeJsx((node as WalkableNode)[key]);
-    if (found !== null) {
-      return found;
-    }
-  }
-  return null;
+  return forEachChild(node, findRuntimeJsx) ?? null;
 }
 
 /**
@@ -334,16 +325,7 @@ export function findRuntimeJsxCall(
       return node;
     }
   }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
-      continue;
-    }
-    const found = findRuntimeJsxCall((node as WalkableNode)[key], bindings, coreBindings);
-    if (found !== null) {
-      return found;
-    }
-  }
-  return null;
+  return forEachChild(node, (child) => findRuntimeJsxCall(child, bindings, coreBindings)) ?? null;
 }
 
 /** Returns of nested functions are not the outer function's returns. */
@@ -364,10 +346,5 @@ function visitReturns(node: unknown, visitor: (argument: unknown) => void, root 
     visitor(node.argument);
     return;
   }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
-      continue;
-    }
-    visitReturns((node as WalkableNode)[key], visitor, false);
-  }
+  forEachChild(node, (child) => visitReturns(child, visitor, false));
 }

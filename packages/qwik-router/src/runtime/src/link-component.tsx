@@ -1,4 +1,5 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import { _preloadStoreEffects } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
@@ -141,6 +142,9 @@ export const Link = component$<LinkProps>((props) => {
     : null;
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
+    if (clientNavPath) {
+      _preloadStoreEffects(loc, 'url');
+    }
     const routeName = elm.getAttribute('data-q-route');
     if (routeName) {
       preloadRouteBundles(routeName, 1);

@@ -966,6 +966,9 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXOutput;
 
+// @internal (undocumented)
+export const _preloadStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void;
+
 // @internal
 export function _preprocessState(data: unknown[], container: DeserializeContainer, segmentId?: string, startIndex?: number): void;
 

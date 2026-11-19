@@ -49,6 +49,7 @@ export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode
 export type { VNode as _VNode } from './shared/vnode/vnode';
 
 export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
+export { preloadStoreEffects as _preloadStoreEffects } from './preloader/store-effects';
 export {
   _hasStoreEffects,
   createStore as _createStore,

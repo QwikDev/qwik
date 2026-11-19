@@ -442,7 +442,7 @@ test.describe('Link kept on screen across a navigation', () => {
 });
 
 test.describe('layout that renders from the URL', () => {
-  test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
+  test('the new page shows in 2 round trips', async ({ page }) => {
     const { roundTrips } = await navigateFrom(
       page,
       BY_URL_A,
@@ -450,11 +450,29 @@ test.describe('layout that renders from the URL', () => {
       isShown(page, BY_URL_B)
     );
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 3,
-      reason:
-        'over the cap on main: a layout both pages share runs again when the URL changes, and its chunk is only requested then',
-    });
+    expectRoundTrips(roundTrips);
+    await expect(page.locator('[data-testid=url-banner]')).toHaveText('on page b');
+    const pageRoundTrip = roundTripOf(roundTrips, holdsPageChunk(BY_URL_B));
+    expect(
+      roundTripsOf(
+        roundTrips,
+        holdsLayoutSegments(['src/components/fixtures/navigation/url-banner.tsx'])
+      )
+    ).toEqual([pageRoundTrip]);
+  });
+
+  test('inline URL reads in JSX update in 2 round trips without layout chunks', async ({
+    page,
+  }) => {
+    const { roundTrips, fetched } = await navigateFrom(
+      page,
+      SHELL_HOME,
+      () => shellControl(page, 'link-docs-a').click(),
+      isShown(page, DOCS_A)
+    );
+    expectRoundTrips(roundTrips);
+    await expect(page.locator('[data-testid=inline-url]')).toHaveText(DOCS_A.path);
+    expect(fetched.filter(holdsLayoutSegments(SHELL_LAYOUT_SOURCES))).toEqual([]);
   });
 });
 

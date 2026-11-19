@@ -24,6 +24,11 @@ test.each([
   '<div>{props.ok && <li />}</div>',
   '<div>{props.ok ? <option /> : null}</div>',
   '<table>{props.ok ? <tbody /> : <tr />}</table>',
+  '<dl><dt><div><dd /></div></dt></dl>',
+  '<dl><dd><span><div><dt /></div></span></dd></dl>',
+  '<nobr><b><nobr /></b></nobr>',
+  '<select><option><select /></option></select>',
+  '<form><table><tbody><tr><td><form /></td></tr></tbody></table></form>',
 ])('diagnoses nesting the parser would restructure: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.kind).toBe(ModuleKind.Failed);
@@ -41,6 +46,14 @@ test.each([
   '<p><span>text</span></p>',
   '<select><option /><optgroup><option /></optgroup></select>',
   '<head><title>t</title><meta charset="utf-8" /></head>',
+  '<ul><li>a<ul><li>b</li></ul></li></ul>',
+  '<ol><li><ol><li /></ol></li></ol>',
+  '<ul><li><menu><li /></menu></li></ul>',
+  '<dl><dd><dl><dd /><dt /></dl></dd></dl>',
+  '<dl><dd><section><div><dt /></div></section></dd></dl>',
+  '<a><table><tbody><tr><td><a /></td></tr></tbody></table></a>',
+  '<button><table><tbody><tr><td><button /></td></tr></tbody></table></button>',
+  '<nobr><table><tbody><tr><th><nobr /></th></tr></tbody></table></nobr>',
 ])('accepts valid nesting: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.diagnostics).toEqual([]);

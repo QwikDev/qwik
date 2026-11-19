@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -30,12 +31,13 @@ import {
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
 import { SERIALIZABLE_STATE } from '../component.public';
+import { getPlatform } from '../platform/platform';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1676,6 +1678,52 @@ describe('shared-serialization', () => {
       const captures = qrl.getCaptured();
       expect(captures![0]).toBe(restoredCapture);
       expect(qrl.$captures$).toBe(captures);
+    });
+    it('waits for a captured computed on repeated QRL resolves', async () => {
+      const computeChunk = '/slow-computed.js';
+      const compute = createQRL<() => number>(computeChunk, 'slowComputed');
+      const computed = createComputedQrl(compute);
+      const objs = await serialize($(() => computed.value));
+
+      let finishLoad!: () => void;
+      const pendingLoad = new Promise<void>((resolve) => {
+        finishLoad = resolve;
+      });
+      const platform = getPlatform();
+      const { importSymbol } = platform;
+      const importMock = vi
+        .spyOn(platform, 'importSymbol')
+        .mockImplementation((...args) =>
+          args[1] === computeChunk ? pendingLoad.then(() => () => 42) : importSymbol(...args)
+        );
+
+      const firstReady = vi.fn();
+      const secondReady = vi.fn();
+      try {
+        const reader = deserialize(objs)[0] as QRLInternal<() => number>;
+        const first = reader.resolve().then(firstReady);
+        await delay(0);
+        expect(
+          firstReady,
+          'the first resolve must wait for the computed module'
+        ).not.toHaveBeenCalled();
+
+        const second = reader.resolve().then(secondReady);
+        await delay(0);
+        expect(
+          secondReady,
+          'the second resolve must wait for the computed module'
+        ).not.toHaveBeenCalled();
+
+        finishLoad();
+        await Promise.all([first, second]);
+        expect(firstReady).toHaveBeenCalledExactlyOnceWith(expect.any(Function));
+        expect(secondReady).toHaveBeenCalledExactlyOnceWith(expect.any(Function));
+        await expect(reader()).resolves.toBe(42);
+      } finally {
+        finishLoad();
+        importMock.mockRestore();
+      }
     });
     it(title(TypeIds.Task), async () => {
       const qrl = inlinedQrl(0, 's_zero') as any;

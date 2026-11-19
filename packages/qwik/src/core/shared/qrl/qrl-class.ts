@@ -254,6 +254,7 @@ const getInstance = <TYPE>(instance: any): QRLClass<TYPE> => {
  */
 export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
+  declare $pendingResolve$?: Promise<void>;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
   $container$?: Container | null;
@@ -588,6 +589,9 @@ const $resolve$ = <TYPE>(
   if (qrl.resolved) {
     return;
   }
+  if (qrl.$pendingResolve$) {
+    return qrl.$pendingResolve$;
+  }
 
   // Capture context while still sync
   const start = now();
@@ -596,11 +600,22 @@ const $resolve$ = <TYPE>(
   // Load raw value via LazyRef - may be sync (e.g. sync QRLs) or async
   const rawOrPromise = lazy.$load$();
 
-  const maybePromise = maybeThen(rawOrPromise, (raw) => {
+  const setResolved = (raw: TYPE) => {
     qrl.resolved = bindCaptures(qrl, raw);
-  });
+  };
+  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
+  let resolution: ValueOrPromise<void>;
+  if (capturedPromise) {
+    resolution = qrl.$pendingResolve$ = capturedPromise
+      .then(() => maybeThen(rawOrPromise, setResolved))
+      .finally(() => {
+        qrl.$pendingResolve$ = undefined;
+      });
+  } else {
+    resolution = maybeThen(rawOrPromise, setResolved);
+  }
 
-  if (maybePromise) {
+  if (isPromise(rawOrPromise)) {
     // We're importing; emit symbol usage event
     const symbol = lazy.$symbol$;
     emitUsedSymbol(
@@ -610,12 +625,7 @@ const $resolve$ = <TYPE>(
     );
   }
 
-  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
-
-  if (capturedPromise) {
-    return capturedPromise.then(() => maybePromise);
-  }
-  return maybePromise;
+  return resolution;
 };
 
 /**

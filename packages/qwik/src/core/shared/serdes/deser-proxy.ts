@@ -115,7 +115,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       return false;
     }
     const out = Reflect.set(target, property, value, receiver);
-    const i = typeof property === 'number' ? property : parseInt(property as string, 10);
+    const i = toRootIndex(property);
     if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
       return out;
     }

@@ -78,6 +78,13 @@ describe('shared-serialization', () => {
   const shared1 = { shared: 1 };
   const shared2 = { shared: 2 };
 
+  it('keeps a named property apart from the root its name starts with', async () => {
+    const state = _createDeserializeContainer(JSON.parse(await serializeJson('first')))
+      .$state$ as any;
+    state['0note'] = 'label';
+    expect(state[0]).toBe('first');
+  });
+
   it('reports missing streaming references with a Qwik error', async () => {
     const raw = JSON.parse(await serializeJson({ nested: { count: 0 } }));
     const container = _createDeserializeContainer(raw);

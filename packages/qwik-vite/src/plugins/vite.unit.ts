@@ -1304,7 +1304,22 @@ test('opts Qwik-compiled modules out of the vitest module cache', () => {
 
   assert.equal(generateCacheKey({ id: '/app/src/routes/index.tsx' }), false);
   assert.equal(generateCacheKey({ id: '/app/node_modules/lib/index.qwik.mjs' }), false);
-  assert.equal(generateCacheKey({ id: '/app/node_modules/lodash/index.js' }), undefined);
+  assert.notEqual(generateCacheKey({ id: '/app/node_modules/lodash/index.js' }), false);
+});
+
+test('keys cached modules by the experimental flags the transform bakes in', async () => {
+  const keyFor = async (experimental: string[]) => {
+    const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions(), experimental } as any);
+    await plugin.config.call(configHookPluginContext, {}, { command: 'serve', mode: 'test' });
+    let generateCacheKey: (ctx: { id: string }) => string | false | undefined = () => '';
+    plugin.configureVitest({
+      defineCacheKeyGenerator: (generator: typeof generateCacheKey) =>
+        (generateCacheKey = generator),
+    });
+    return generateCacheKey({ id: '/app/node_modules/@qwik.dev/core/dist/serializer.mjs' });
+  };
+
+  assert.notEqual(await keyFor(['binaryState']), await keyFor([]));
 });
 
 test('supports vitest 4 cache key generator name and older vitest without one', () => {

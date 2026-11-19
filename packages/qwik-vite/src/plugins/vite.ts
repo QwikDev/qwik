@@ -195,8 +195,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     configureVitest({ defineCacheKeyGenerator, experimental_defineCacheKeyGenerator }) {
       // vitest 5 renamed the 4.x experimental API; earlier versions have no fs module cache.
       const defineGenerator = defineCacheKeyGenerator ?? experimental_defineCacheKeyGenerator;
-      // Cache hits skip transform/load, which register QRL segments in memory.
-      defineGenerator?.(({ id }) => (qwikPlugin.isCompiledModule(id) ? false : undefined));
+      defineGenerator?.(({ id }) => {
+        // Cache hits skip transform/load, which register QRL segments in memory.
+        if (qwikPlugin.isCompiledModule(id)) {
+          return false;
+        }
+        // The transform turns `__EXPERIMENTAL__.x` reads into literals.
+        return JSON.stringify(qwikPlugin.getOptions().experimental ?? {});
+      });
     },
 
     async config(viteConfig, viteEnv) {

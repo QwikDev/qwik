@@ -1,6 +1,8 @@
 import { returnPath, elementPath, numericPath, type ResultPath } from './result-path';
 import { createDeclaredResultReader } from './type-queries';
 import { ValueIrKind as Ir } from '../schema/value-ir';
+import { assertNever } from '../errors';
+import { childOps, mapChildOps } from '../op-tree';
 import {
   ComponentPropsKind,
   ComponentTargetKind,
@@ -198,10 +200,10 @@ export function linkRenderResults(
     }
   };
   const visitOp = (module: number, op: LinkedOp): void => {
+    for (const child of childOps(op)) {
+      visitOp(module, child);
+    }
     switch (op.op) {
-      case OpKind.Element:
-        op.children.forEach((child) => visitOp(module, child));
-        break;
       case OpKind.Component: {
         if (op.target.t === ComponentTargetKind.Declaration && op.target.declaration.ok) {
           const target = op.target.declaration.value;
@@ -259,6 +261,12 @@ export function linkRenderResults(
           visitQrl(module, op.fallback.qrl);
         }
         break;
+      case OpKind.Static:
+      case OpKind.Element:
+      case OpKind.Hole:
+        break;
+      default:
+        assertNever(op, 'op');
     }
   };
   modules.forEach((module, moduleIndex) =>
@@ -905,8 +913,11 @@ export function linkRenderResults(
               : Kind.Unknown;
         }
         return evaluate(module, result.callee, [returnPath, ...path]);
-      default:
+      case ResultKind.SpreadArgument:
+      case Ir.StoreRead:
         return Kind.Unknown;
+      default:
+        return assertNever(result, 'result');
     }
   };
 
@@ -997,11 +1008,8 @@ export function linkRenderResults(
   }
 
   const classify = (module: number, op: LinkedOp): LinkedOp => {
-    if (op.op === OpKind.Element) {
-      return { ...op, children: op.children.map((child) => classify(module, child)) };
-    }
     if (op.op !== OpKind.Hole) {
-      return op;
+      return mapChildOps(op, (child) => classify(module, child));
     }
     const kinds = op.isAlwaysText
       ? Kind.Text
@@ -1105,11 +1113,13 @@ function propsResult(
           return { name: prop.name, value: valueResult(module, prop.value) };
         case PropKind.Spread:
           return { name: null, value: valueResult(module, prop.value) };
+        case PropKind.Event:
+          return { name: prop.name, value: unknown };
+        case PropKind.Ref:
+        case PropKind.InnerHtml:
+          return { name: '', value: unknown };
         default:
-          return {
-            name: prop.k === PropKind.Event ? prop.name : '',
-            value: unknown,
-          };
+          return assertNever(prop, 'prop');
       }
     }),
   };

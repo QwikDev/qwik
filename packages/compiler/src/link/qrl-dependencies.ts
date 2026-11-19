@@ -36,6 +36,8 @@ import {
   type Value,
 } from '../schema';
 import { ValueIrKind, collectIrBindingIds, type ValueIR } from '../schema/value-ir';
+import { assertNever } from '../errors';
+import { childOps } from '../op-tree';
 
 /** Dependencies follow executable edges, never enclosing authored source ranges. */
 function createDependencyCollector(module: ModulePlan | LinkedModule) {
@@ -92,6 +94,20 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
           }
         }
         break;
+      case ValueIrKind.Lit:
+      case ValueIrKind.Undef:
+      case ValueIrKind.SignalRead:
+      case ValueIrKind.StoreRead:
+      case ValueIrKind.BindingRead:
+      case ValueIrKind.Index:
+      case ValueIrKind.Unary:
+      case ValueIrKind.Bin:
+      case ValueIrKind.Logic:
+      case ValueIrKind.Array:
+      case ValueIrKind.Object:
+        break;
+      default:
+        assertNever(value, 'expression');
     }
   }
 
@@ -121,6 +137,10 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case ValueKind.Render:
         visitProgram(entry.program);
         break;
+      case ValueKind.Static:
+        break;
+      default:
+        assertNever(entry, 'value');
     }
   }
 
@@ -136,6 +156,10 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case ArgKind.Qrl:
         visitQrlUse(entry.use);
         break;
+      case ArgKind.QrlBinding:
+        break;
+      default:
+        assertNever(entry, 'argument');
     }
   }
 
@@ -193,6 +217,11 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
         }
         visitPattern(entry.result);
         break;
+      case SetupKind.PropRest:
+      case SetupKind.LocalFunction:
+        break;
+      default:
+        assertNever(entry, 'setup');
     }
   }
 
@@ -213,6 +242,10 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
           }
         });
         break;
+      case PropKind.Static:
+        break;
+      default:
+        assertNever(entry, 'prop');
     }
   }
 
@@ -221,7 +254,6 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case OpKind.Element:
         entry.props.forEach(visitProp);
         visitQrlUse(entry.propsEffect);
-        entry.children.forEach(visitOp);
         break;
       case OpKind.Hole:
         visitValue(entry.value);
@@ -288,7 +320,12 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
           visitValue(entry.delay);
         }
         break;
+      case OpKind.Static:
+        break;
+      default:
+        assertNever(entry, 'op');
     }
+    childOps(entry).forEach(visitOp);
   }
 
   function visitProgram(index: number) {
@@ -336,16 +373,28 @@ export function collectQrlDependencies(
     case QrlBodyKind.Alias:
       visitBinding(qrl.body.binding);
       break;
+    case QrlBodyKind.Task:
+      break;
+    default:
+      assertNever(qrl.body, 'QRL body');
   }
   qrl.params.sources.forEach(visitPayload);
   if (qrl.declaration !== undefined && qrl.parameter !== undefined) {
     visitPayload(qrl.parameter.pattern);
   }
   for (const part of qrl.propsParts) {
-    if (part.kind === PropsPartKind.Event) {
-      visitQrlUse(part.use);
-    } else if (part.kind === PropsPartKind.Expression || part.kind === PropsPartKind.Spread) {
-      visitPayload(part.value);
+    switch (part.kind) {
+      case PropsPartKind.Event:
+        visitQrlUse(part.use);
+        break;
+      case PropsPartKind.Expression:
+      case PropsPartKind.Spread:
+        visitPayload(part.value);
+        break;
+      case PropsPartKind.Static:
+        break;
+      default:
+        assertNever(part, 'props part');
     }
   }
   return dependencies();

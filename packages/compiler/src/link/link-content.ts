@@ -25,15 +25,14 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { createSegmentSourceIdentity, createSegmentSymbolName } from '../segment-identity';
+import { childOps, mapChildOps } from '../op-tree';
 import { collectQrlDependencies } from './qrl-dependencies';
 
 /** Final render strategy selection shares the existing content operation and ABI. */
 export function linkContent(module: LinkedModule, qrlIndex: ReadonlyMap<string, number>): void {
   let ordinal = 0;
   const scan = (op: LinkedOp): void => {
-    if (op.op === OpKind.Element) {
-      op.children.forEach(scan);
-    }
+    childOps(op).forEach(scan);
     if (op.op === OpKind.Content && op.id.kind === SeedKind.Content) {
       ordinal = Math.max(ordinal, op.id.ordinal + 1);
     }
@@ -45,11 +44,8 @@ export function linkContent(module: LinkedModule, qrlIndex: ReadonlyMap<string, 
   }
   module.lifetimes = [...module.lifetimes];
   const convert = (op: LinkedOp): LinkedOp => {
-    if (op.op === OpKind.Element) {
-      return { ...op, children: op.children.map(convert) };
-    }
     if (op.op !== OpKind.Hole || op.shape === Shape.Text) {
-      return op;
+      return mapChildOps(op, convert);
     }
     let render: QrlUse;
     const value = op.value;

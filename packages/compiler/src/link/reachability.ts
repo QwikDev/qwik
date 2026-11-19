@@ -17,6 +17,7 @@ import {
   type ModulePlan,
   type Unknown,
 } from '../schema';
+import { assertNever } from '../errors';
 import { sameDecl, type Resolution } from './resolve';
 import type { LinkDiagnostic, LinkEntry } from './link-plans';
 
@@ -305,8 +306,11 @@ function importDiagnostic(module: string, specifier: string, reason: Unknown): L
             ? `The target of "${specifier}" does not export the requested name.`
             : `Unable to link "${specifier}": ${reason.code}.`,
       };
-    default:
+    case UnknownWhy.Unresolved:
+    case UnknownWhy.External:
       return { module, code: 'unresolved-edge', message: `Unable to resolve "${specifier}".` };
+    default:
+      return assertNever(reason, 'link failure reason');
   }
 }
 

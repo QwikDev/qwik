@@ -19,6 +19,8 @@ import {
   ResultKind,
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
+import { assertNever } from '../errors';
+import { childOps } from '../op-tree';
 import { ResolutionKind, type LinkDiagnostic, type ResolverSnapshot } from './link-plans';
 
 /** What every module edge, import, binding and export finally names. */
@@ -45,10 +47,7 @@ export function resolveModules(
   );
   plans.forEach((plan, module) => {
     const visit = (op: Op): void => {
-      if (op.op === OpKind.Element) {
-        op.children.forEach(visit);
-        return;
-      }
+      childOps(op).forEach(visit);
       if (op.op === OpKind.Slot) {
         if (op.fallback !== null && !qrlIndexes[module].has(op.fallback.qrl)) {
           diagnostics.push({
@@ -111,9 +110,12 @@ export function resolveModules(
         case ResolutionKind.Failed:
           target = unknown(UnknownWhy.Failed);
           break;
-        default:
+        case ResolutionKind.Unresolved:
+        case undefined:
           target = unknown(UnknownWhy.Unresolved);
           break;
+        default:
+          return assertNever(resolution, 'edge resolution');
       }
       return { ...edge, target, runtime: false };
     })
@@ -202,7 +204,7 @@ export function resolveModules(
               ? unknown(UnknownWhy.Opaque, 'non-portable-export')
               : resolveExport(edgeTarget.value, entry.imported);
       } else {
-        result = unknown(UnknownWhy.Opaque, 'ambiguous-export');
+        result = assertNever(entry, 'explicit export');
       }
     } else {
       const matches: DeclRef[] = [];

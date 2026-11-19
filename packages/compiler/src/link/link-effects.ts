@@ -13,6 +13,8 @@ import {
   type Value,
 } from '../schema';
 import { ValueIrKind as Ir } from '../schema/value-ir';
+import { assertNever } from '../errors';
+import { childOps, mapChildOps } from '../op-tree';
 
 type ScalarOperation =
   | Extract<LinkedOp, { op: OpKind.Hole }>
@@ -34,7 +36,10 @@ export function linkEffects(module: LinkedModule): void {
     }
     return {
       ...program,
-      body: { kind: ProgramBodyKind.Ops, ops: withEffects(program.body.ops, effects) },
+      body: {
+        kind: ProgramBodyKind.Ops,
+        ops: program.body.ops.map((op) => withEffects(op, effects)),
+      },
       effectSizes,
     };
   });
@@ -65,25 +70,35 @@ function batchEffects(ops: LinkedOp[]): Map<ScalarOperation, number> {
       pending.push(operation);
     }
   };
-  const visit = (children: LinkedOp[]) => {
+  const visit = (children: readonly LinkedOp[]) => {
     for (const op of children) {
       if (op.op === OpKind.Element) {
         if (op.propsEffect !== null) {
           finish();
         }
         for (const prop of op.props) {
-          if (prop.k === PropKind.Dynamic) {
-            append(prop);
-          } else if (prop.k === PropKind.Spread || prop.k === PropKind.InnerHtml) {
-            finish();
+          switch (prop.k) {
+            case PropKind.Dynamic:
+              append(prop);
+              break;
+            case PropKind.Spread:
+            case PropKind.InnerHtml:
+              finish();
+              break;
+            case PropKind.Static:
+            case PropKind.Event:
+            case PropKind.Ref:
+              break;
+            default:
+              assertNever(prop, 'prop');
           }
         }
-        visit(op.children);
       } else if (op.op === OpKind.Hole && op.shape === Shape.Text) {
         append(op);
       } else if (op.op !== OpKind.Static) {
         finish();
       }
+      visit(childOps(op));
     }
   };
   visit(ops);
@@ -92,19 +107,17 @@ function batchEffects(ops: LinkedOp[]): Map<ScalarOperation, number> {
 }
 
 /** The plan's ops are shared with other links, so a batched operation is copied, not assigned. */
-function withEffects(ops: LinkedOp[], effects: ReadonlyMap<object, number>): LinkedOp[] {
-  return ops.map((op) => {
-    if (op.op === OpKind.Element) {
-      return {
-        ...op,
-        props: op.props.map((prop) =>
-          effects.has(prop) ? { ...prop, effect: effects.get(prop)! } : prop
-        ),
-        children: withEffects(op.children, effects),
-      };
-    }
-    return effects.has(op) ? { ...op, effect: effects.get(op)! } : op;
-  });
+function withEffects(op: LinkedOp, effects: ReadonlyMap<object, number>): LinkedOp {
+  if (op.op === OpKind.Hole && effects.has(op)) {
+    return { ...op, effect: effects.get(op)! };
+  }
+  const linked = mapChildOps(op, (child) => withEffects(child, effects));
+  if (linked.op === OpKind.Element) {
+    linked.props = linked.props.map((prop) =>
+      effects.has(prop) ? { ...prop, effect: effects.get(prop)! } : prop
+    );
+  }
+  return linked;
 }
 
 function dependencyKey(value: Value): string | null {

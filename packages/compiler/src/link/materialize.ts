@@ -17,6 +17,7 @@ import {
   type Op,
   QrlBodyKind,
 } from '../schema';
+import { mapChildOps } from '../op-tree';
 import { collectHookDependencies, collectQrlDependencies } from './qrl-dependencies';
 import { localComponentSetups } from './render-results';
 import { createSetupFacts, type SetupFacts } from './link-hooks';
@@ -32,11 +33,8 @@ export function materializeModules(
     (plan) => new Set(localComponentSetups(plan).map((setup) => setup.binding))
   );
   const linkOperation = (module: number, op: Op): LinkedOp => {
-    if (op.op === OpKind.Element) {
-      return { ...op, children: op.children.map((child) => linkOperation(module, child)) };
-    }
     if (op.op !== OpKind.Component) {
-      return op;
+      return mapChildOps(op, (child) => linkOperation(module, child));
     }
     const target = op.target;
     if (target.t === ComponentTargetKind.Dynamic) {

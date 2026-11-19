@@ -4,9 +4,11 @@ import {
   ExportTargetKind,
   type LinkedModule,
   type LocalId,
+  type Range,
 } from '../schema';
 import { QWIK_CORE_IMPORT } from '../words';
 import { allocateGeneratedName } from '../names';
+import { UnsupportedError } from '../errors';
 import { moduleBasename } from './output';
 
 /**
@@ -52,6 +54,56 @@ export function planModuleBindingExports(
     }
   }
   return { names, code: additions.length === 0 ? '' : `\nexport { ${additions.join(', ')} };\n` };
+}
+
+/** The runtime import line; every name it binds must be free of authored bindings. */
+export function coreImportLine(module: LinkedModule, specifiers: ReadonlySet<string>): string {
+  const bodies = [
+    ...module.qrls.map((qrl) => qrl.origin.range),
+    ...module.hooks.map((hook) => hook.range),
+  ];
+  for (const specifier of specifiers) {
+    const [imported, local = imported] = specifier.split(' as ');
+    const collision = module.bindings.find(
+      (binding) =>
+        binding.name === local &&
+        !isCoreImportOf(module, binding.id, imported) &&
+        reachesGeneratedCode(binding, bodies)
+    );
+    if (collision !== undefined) {
+      // shortcut: refused, not aliased; aliasing needs every helper site to read an allocated name.
+      throw new UnsupportedError(
+        `an authored binding named "${local}": it collides with a Qwik runtime helper; rename it`
+      );
+    }
+  }
+  return `import { ${[...specifiers].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`;
+}
+
+/** A module-scope name reaches every emitted line; a local only the QRL or hook body around it. */
+function reachesGeneratedCode(
+  binding: LinkedModule['bindings'][number],
+  bodies: readonly Range[]
+): boolean {
+  if (binding.scope === BindingScope.Import || binding.scope === BindingScope.Module) {
+    return true;
+  }
+  const declared = binding.declarationRange;
+  return (
+    declared === null || bodies.some(([start, end]) => start <= declared[0] && declared[1] <= end)
+  );
+}
+
+/** The authored import the request set merges into, or a type the build erases. */
+function isCoreImportOf(module: LinkedModule, binding: LocalId, imported: string): boolean {
+  const source = module.imports.find((entry) => entry.source.binding === binding)?.source;
+  if (source === undefined) {
+    return false;
+  }
+  return (
+    source.typeOnly ||
+    (source.imported === imported && module.edges[source.edge].specifier === QWIK_CORE_IMPORT)
+  );
 }
 
 export function namedSpecifier(imported: string, local: string): string {

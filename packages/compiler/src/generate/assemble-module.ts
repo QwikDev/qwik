@@ -11,7 +11,6 @@ import {
   StripValueForm,
 } from '../schema';
 import { EsmEdgeKind } from '../schema';
-import { QWIK_CORE_IMPORT } from '../words';
 import { assembleModule, type AssembledModule } from './source-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { type FunctionEmission } from './emit-function';
@@ -22,7 +21,12 @@ import {
   emitQrlChunks,
   isComponentSegment,
 } from './qrl-chunks';
-import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
+import {
+  coreImportLine,
+  planModuleBindingExports,
+  replacedCoreImports,
+  requestBindingImport,
+} from './emit-import';
 import {
   createFailedModule,
   makeOutput,
@@ -256,11 +260,7 @@ export function assembleQwikModule(
   let prefix = '';
   if (parts.imports.size > 0 || parts.chunkImports.length > 0 || parts.hoists.length > 0) {
     const importLines = [
-      ...(parts.imports.size === 0
-        ? []
-        : [
-            `import { ${[...parts.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`,
-          ]),
+      ...(parts.imports.size === 0 ? [] : [coreImportLine(module, parts.imports)]),
       ...parts.chunkImports,
     ];
     let header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;

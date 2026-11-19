@@ -11,14 +11,14 @@ import {
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { resolveSegmentEntry } from './entry-strategy';
-import { QWIK_CORE_IMPORT, QwikWord } from '../words';
+import { QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { assembleGeneratedModule } from './source-assembly';
 import { createOriginalRangeMapper } from '../source-maps';
 import type { SourceMap } from 'oxc-transform';
 import { minifySync } from 'oxc-minify';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
-import { emitBindingImports } from './emit-import';
+import { coreImportLine, emitBindingImports } from './emit-import';
 import { functionText } from './print-js';
 import { captureNames, eventParamNames } from './captures';
 import type { FunctionEmission } from './emit-function';
@@ -237,11 +237,7 @@ function chunkModuleCode(
   const selfImport = `import { ${name} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
   const selfRegistration = `q_${name}.s(${name});`;
   const importLines = [
-    ...(emission.imports.size === 0
-      ? []
-      : [
-          `import { ${[...emission.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`,
-        ]),
+    ...(emission.imports.size === 0 ? [] : [coreImportLine(module, emission.imports)]),
     ...emission.chunkImports.filter((line) => line !== selfImport),
     ...bindingImports,
   ];

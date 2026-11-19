@@ -1,6 +1,6 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { bundles, nextTriggerMacroTask, replayBundle } from './queue';
+import { bundles, HIGHEST_KIND, nextTriggerMacroTask, replayBundle } from './queue';
 import type { BundleDep, BundleGraph } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
@@ -92,6 +92,14 @@ export const loadBundleGraph = (
         graph = parseBundleGraph(JSON.parse(text));
         // Snapshot hints before dependency propagation adds new bundle records.
         const pendingBundles = Array.from(bundles.values());
+        for (let i = 0; i < pendingBundles.length; i++) {
+          const bundle = pendingBundles[i];
+          const entry = graph.get(bundle.$name$);
+          if (entry) {
+            bundle.$kind$ = entry.$kind$;
+            bundle.$rank$ = HIGHEST_KIND;
+          }
+        }
         let nextIndex = 0;
         const replayPendingBundles = () => {
           const deadline = performance.now() + yieldInterval;
@@ -100,7 +108,6 @@ export const loadBundleGraph = (
             const entry = graph.get(bundle.$name$);
             if (entry) {
               bundle.$deps$ = entry.$deps$;
-              bundle.$kind$ = entry.$kind$;
               if (bundle.$inverseProbability$ < 1) {
                 replayBundle(bundle);
               }

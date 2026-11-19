@@ -45,6 +45,8 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
   the last upload for that target, and builds it with the shared cache, on branch runs too.
 - Leave `fork-cache` off in every job but `fill-fork-cache`. It uploads to the GitHub cache that
   fork PRs read, which takes minutes, so no job that another job waits for may do it.
+- Take the Rust toolchain from `rustBin`, not from a nixpkgs overlay: with an overlay every job
+  fetches rust-overlay, also the ones that build no Rust.
 - The builds leave `*.unit.*` files out of their sources so a test edit does not rebuild them. The
   `typecheck` check type-checks the ones that the qwik, router and root `tsconfig.json` include.
 

@@ -1,6 +1,6 @@
 # Everything CI builds, as derivations. A derivation's hash covers exactly the files in its
 # `fileset` plus its dependencies, so "does this need to run?" is "is this output cached?".
-{ pkgs }:
+{ pkgs, rustBin }:
 let
   inherit (pkgs) lib;
   fs = lib.fileset;
@@ -228,7 +228,7 @@ let
     ]
   );
 
-  rustToolchain = (pkgs.rust-bin.fromRustupToolchainFile (root + "/rust-toolchain")).override {
+  rustToolchain = (rustBin.fromRustupToolchainFile (root + "/rust-toolchain")).override {
     targets = [ "wasm32-unknown-unknown" ];
   };
   cargoConfig = pkgs.writeText "cargo-config.toml" ''

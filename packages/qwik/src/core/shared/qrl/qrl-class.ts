@@ -257,7 +257,7 @@ export class QRLClass<TYPE> {
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
   $container$?: Container | null;
-  declare $capturesLoading$?: Promise<void>;
+  declare $capturesLoading$?: Promise<unknown>;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
@@ -536,9 +536,6 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
-const earlyCaptureLoads = new WeakMap<object, Promise<void>>();
-let pendingEarlyLoads = 0;
-
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible
@@ -554,13 +551,14 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     const prevLoading = loadingHolder.p;
     const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
     setCaptures(captures);
-    let loading = loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
-    if (pendingEarlyLoads) {
-      for (let i = 0; i < captures.length; i++) {
-        const earlyLoad = earlyCaptureLoads.get(captures[i] as object);
-        if (earlyLoad) {
-          loading = loading ? loading.then(() => earlyLoad) : earlyLoad;
-        }
+    let loading: Promise<unknown> | undefined =
+      loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
+    for (let i = 0; i < captures.length; i++) {
+      const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
+      const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
+      if (isPromise(computedModule)) {
+        const computedLoaded = computedModule.catch(() => {});
+        loading = loading ? loading.then(() => computedLoaded) : computedLoaded;
       }
     }
     // return the loading promise so callers can await it
@@ -579,15 +577,6 @@ export const restoreQrlCaptures = (qrl: QRLInternal) => {
   if (capturesLoading) {
     qrlState.$capturesLoading$ = capturesLoading;
     loadingHolder.p = loadingBefore;
-    const captures = qrlState.$captures$ as unknown[];
-    for (let i = 0; i < captures.length; i++) {
-      const capture = captures[i];
-      if (isObject(capture) || isFunction(capture)) {
-        earlyCaptureLoads.set(capture, capturesLoading);
-      }
-    }
-    pendingEarlyLoads++;
-    capturesLoading.finally(() => pendingEarlyLoads--);
   }
   setCaptures(runningCaptures);
 };

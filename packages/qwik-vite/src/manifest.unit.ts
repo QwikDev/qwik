@@ -39,7 +39,6 @@ describe('generateManifestFromBundles', () => {
       {
         'q-core.js': chunk('core', 'q-core.js', [
           '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
-          '/app/node_modules/@qwik.dev/core/dist/core-qrl.prod.mjs',
         ]),
         'q-loader.js': chunk('qwikloader', 'q-loader.js'),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),

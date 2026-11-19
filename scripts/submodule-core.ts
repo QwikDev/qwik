@@ -26,20 +26,6 @@ function fixPureAnnotations(code: string): string {
     .replace(/\/\*\s*[@#]__PURE__\s*\*\/(\s*)(?=[^\sA-Za-z_$(])/g, '$1');
 }
 
-/**
- * Core ships as a Qwik library (`core*.qwik.mjs`): the app's optimizer turns core's own QRL sites
- * (see `library-qrl.ts`) into segments and hoists their `qrl()` calls to the top of that file.
- * Those calls need the QRL machinery initialized, so it is emitted as `core-qrl*.mjs`, which the
- * core chunk imports and therefore evaluates first. Only list modules whose top level touches
- * nothing outside this list; `core-hoisting.unit.ts` checks that.
- */
-const QRL_MACHINERY =
-  /[/\\]core[/\\](shared[/\\](qrl[/\\](qrl|qrl-class|qrl-class-dev|qrl-utils)|singletons|utils[/\\](qdev|types|promises))|version|preloader[/\\]bridge)\.[jt]s$|[/\\]core-qrl(\.prod|\.min)?\.mjs$|^\0prod-build$|^@qwik\.dev\/core\/build$/;
-
-const coreCodeSplitting = {
-  groups: [{ name: 'core-qrl', test: QRL_MACHINERY, includeDependenciesRecursively: false }],
-};
-
 /** Core's QRL sites import `_inlinedQrl` from `@qwik.dev/core` so app optimizers extract them. */
 const libraryQrlSites: RolldownPlugin = {
   name: 'libraryQrlSites',
@@ -74,7 +60,6 @@ const coreFileNames = (variant: CoreVariant) => ({
   core: `core${variant}.qwik.mjs`,
   serializer: `serializer${variant}.mjs`,
   server: `server${variant}.mjs`,
-  qrl: `core-qrl${variant}.mjs`,
 });
 
 /**
@@ -271,22 +256,18 @@ async function bundleCore(
   const { output } = await bundle.generate({
     format: 'esm',
     entryFileNames: (chunk) => names[chunk.name as CoreEntry],
-    chunkFileNames: names.qrl,
     sourcemap: variant === '',
-    codeSplitting: coreCodeSplitting,
-    // Added while rendering, so the sourcemaps account for them.
-    banner: (chunk) => {
-      // Entering through core's QRL chunk would evaluate core before the QRL machinery.
-      const coreFirst = chunk.isEntry && chunk.name !== 'core' ? `import "./${names.core}";` : '';
-      return [banner, coreFirst].filter(Boolean).join('\n');
-    },
+    // Added while rendering, so the sourcemaps account for it.
+    banner,
   });
   await bundle.close();
   const chunks = output
     .filter((o) => o.type === 'chunk')
     .map((c) => ({ fileName: c.fileName, code: c.code, sourcemapFileName: c.sourcemapFileName }));
   const fileNames = chunks.map((c) => c.fileName).sort();
-  const expected = [...Object.keys(inputs).map((e) => names[e as CoreEntry]), names.qrl].sort();
+  const expected = Object.keys(inputs)
+    .map((e) => names[e as CoreEntry])
+    .sort();
   if (fileNames.join() !== expected.join()) {
     throw new Error(`core build must emit ${expected}, got ${fileNames}`);
   }
@@ -454,6 +435,9 @@ async function submoduleCoreProd(config: BuildConfig, server: ServerSourceOption
       nameCache: mangle ? nameCache : undefined,
       compress: {
         defaults: true,
+        // App optimizers declare a QRL before the statement creating it, so keep core's QRL
+        // sites out of the statements that define the QRL machinery.
+        join_vars: false,
         hoist_funs: true,
         keep_fargs: false,
         pure_getters: 'strict',

@@ -3,7 +3,6 @@ import type { PkgUrls } from '../types';
 
 import qBuild from '../../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
 import qCoreDts from '../../../node_modules/@qwik.dev/core/dist/core-internal.d.ts?raw-source';
-import qCoreQrlMjs from '../../../node_modules/@qwik.dev/core/dist/core-qrl.mjs?raw-source';
 import qCoreQwikMjs from '../../../node_modules/@qwik.dev/core/dist/core.qwik.mjs?raw-source';
 import qAsyncLocalStorageMjs from '../../../node_modules/@qwik.dev/core/dist/async-local-storage.mjs?raw-source';
 import qViteMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
@@ -67,7 +66,6 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/build/index.d.ts': qBuild,
   '/dist/core.d.ts': qCoreDts,
   '/dist/core.qwik.mjs': qCoreQwikMjs,
-  '/dist/core-qrl.mjs': qCoreQrlMjs,
   '/dist/async-local-storage.mjs': qAsyncLocalStorageMjs,
   '/dist/optimizer.mjs': qViteMjs,
   '/dist/server.mjs': qServerMjs,
@@ -81,10 +79,33 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/qwikloader.js': qQwikLoaderJs,
   '/dist/ts-optimizer.mjs': qTsOptimizerMjs,
 };
+// Bundled core needs the Rust optimizer built with it, which may not be published yet. Its wasm
+// bindings only exist after `pnpm build.rust`; without them the REPL uses the published ones.
+const optimizerFiles = [
+  '/dist/index.mjs',
+  '/bindings/qwik.wasm.mjs',
+  '/bindings/qwik_wasm_bg.wasm',
+];
+const localOptimizer = import.meta.glob<string>(
+  [
+    '../../../../optimizer/dist/index.mjs',
+    '../../../../optimizer/bindings/qwik.wasm.mjs',
+    '../../../../optimizer/bindings/qwik_wasm_bg.wasm',
+  ],
+  { query: '?raw-source', import: 'default', eager: true }
+);
+const localOptimizerUrls = optimizerFiles.map((p) => localOptimizer[`../../../../optimizer${p}`]);
+
 export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V1]: qwikUrls,
   [QWIK_PKG_NAME_V2]: qwikUrls,
 };
+if (localOptimizerUrls.every(Boolean)) {
+  bundled['@qwik.dev/optimizer'] = {
+    version: bundledOptimizerVersion,
+    ...Object.fromEntries(optimizerFiles.map((p, i) => [p, localOptimizerUrls[i]])),
+  };
+}
 
 const getPrefix = (qwikVersion: string) => {
   const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
@@ -119,7 +140,7 @@ export const getDeps = (qwikVersion: string, optimizerVersion: string) => {
       version: qwikVersion,
     };
     const coreFiles = shipsCoreAsQwikLibrary(qwikVersion)
-      ? ['/dist/core.qwik.mjs', '/dist/core-qrl.mjs']
+      ? ['/dist/core.qwik.mjs']
       : ['/dist/core.mjs', '/dist/core.min.mjs', '/handlers.mjs'];
     for (const p of [
       ...coreFiles,
@@ -149,6 +170,9 @@ export const getDeps = (qwikVersion: string, optimizerVersion: string) => {
       isV2 ? '/dist/core-internal.d.ts' : `${prefix}core.d.ts`
     );
     out[QWIK_PKG_NAME_V2] = out[QWIK_PKG_NAME_V1];
+  }
+  if (qwikVersion === 'bundled' && out['@qwik.dev/optimizer']) {
+    return out;
   }
   const optimizerPrefix = getPrefix(optimizerVersion);
   out['@qwik.dev/optimizer'] = { version: optimizerVersion };

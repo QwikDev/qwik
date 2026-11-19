@@ -168,9 +168,8 @@ When a core value gains serialized state:
 The serializer is its own entry so browser apps only load it inside the segments that call it
 (e.g. `server$`). It and `src/server/` are entries of core's library build
 (`scripts/submodule-core.ts`), so a core module they import, through `../` or
-`@qwik.dev/core/internal`, stays in core's chunks and keeps one identity. Each entry chunk imports
-`core*.qwik.mjs` first; entering through `core-qrl*.mjs` would evaluate core before its QRL
-machinery, and every variant has every entry, under the same package conditions as core: an entry
+`@qwik.dev/core/internal`, stays in core's chunk and keeps one identity. Every variant has every
+entry, under the same package conditions as core: an entry
 resolved to another variant would bundle a second core (the browser imports the server through
 the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
 keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
@@ -225,18 +224,23 @@ Out-of-order (OOOS) invariants:
   render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
-- Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform, plus
-  `dist/core-qrl*.mjs`, the QRL machinery that core imports and so evaluates first. The optimizer
-  hoists every core QRL to the top of `core.qwik.mjs`; only modules in `QRL_MACHINERY`
-  (`scripts/submodule-core.ts`) may be needed by those hoisted calls, and those modules' top level
-  may only touch each other. `core-hoisting.unit.ts` evaluates the transformed core on every
-  variant (dev, `.prod`, `.min`) with the TS optimizer, and with the Rust one only when its bindings
-  are built (`pnpm build.rust` or `pnpm build.platform.copy`; CI always has them). Run it after
-  `build.core` when touching QRL creation, that list or the core minifier, since a dev build makes
-  the variants plain copies.
-- Each core variant is a chunk pair that imports itself through `@qwik.dev/core`, so never point a
-  variant at another with an `export *` stub: the self-import cycles through the stub. Terser runs per
-  chunk, so its mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
+- Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform. They declare
+  each core QRL at module level, eagerly, right before the first top-level statement referencing
+  it (even when the `$()` sits in a lazy arrow), or at the very top when a function declaration
+  that core exports references it. So the bundle must define the QRL machinery (`createQRL`,
+  `inlinedQrl`) before any statement holding a QRL site: only put core `$()` sites in modules
+  bundled after `shared/qrl/qrl.ts`, never inside a function declaration reachable from core's
+  exports. Rolldown orders the `qrl-class` import cycle from where it is first entered, so
+  `core/index.ts` enters it through `handler-qrls.ts`, whose first import is `./qrl`; keep terser's
+  `join_vars` off so no QRL site shares a `const` list with that machinery. `core-hoisting.unit.ts`
+  evaluates the transformed core on every variant (dev, `.prod`, `.min`) with the TS optimizer, and
+  with the Rust one only when its bindings are built (`pnpm build.rust` or
+  `pnpm build.platform.copy`; CI always has them). Run it after `build.core` when touching QRL
+  creation, core's import order or the core minifier, since a dev build makes the variants plain
+  copies.
+- Each core variant imports itself through `@qwik.dev/core`, so never point a variant at another
+  with an `export *` stub: the self-import cycles through the stub. Terser runs per chunk, so its
+  mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
   `$props$` must avoid plain property names of every chunk, not just the one being minified.
 - Write core's own QRLs with `$()`, `component$()` and `useTask$()` imported from their relative
   modules. `scripts/core-library-qrls.ts` compiles them in library mode, for core's build and for
@@ -244,6 +248,7 @@ Out-of-order (OOOS) invariants:
   `foo$` marker needs `fooQrl` exported from the same module: the optimizer imports it from there.
   In the unit tests core's modules load unbundled, so a QRL created at the top level of a module
   that `qrl-class.ts` imports transitively runs before `createQRL` exists: create it on first use.
+  That only helps unbundled loads; the app optimizer still declares it eagerly in the bundle.
 - Functions that read their own captures (the qwikloader calls them with the captures as `this`)
   get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Write every other QRL,
   like the control-flow components', inline at its `$()` site, so its segment owns the code.

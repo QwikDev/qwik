@@ -41,7 +41,8 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
 - PR runs can write the shared cache, so every branch run builds its packages with `from-source`.
   Keep what a branch publishes to npm on the `artifact-dist` of its own run. PR previews
   (pkg.pr.new) download that artifact too, but on a PR run its packages can come from the shared
-  cache. The docs site deploys `artifact-docs`, which every run builds from the shared cache.
+  cache. The docs site deploys `artifact-docs`: a run uploads it only when its docs differ from
+  the last upload for that target, and builds it with the shared cache, on branch runs too.
 - The builds leave `*.unit.*` files out of their sources so a test edit does not rebuild them. The
   `typecheck` check type-checks the ones that the qwik, router and root `tsconfig.json` include.
 

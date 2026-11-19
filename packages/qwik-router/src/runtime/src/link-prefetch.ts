@@ -3,6 +3,8 @@ import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { isSameOrigin, shouldPreload, toPath } from './utils';
 
+const VISIBLE_LINK_PROBABILITY = 0.5;
+
 let prefetchedLinks = new WeakSet<HTMLAnchorElement>();
 let cleanupPrefetchObserver: (() => void) | undefined;
 
@@ -53,7 +55,7 @@ export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) 
     const routeName = anchor.getAttribute('data-q-route');
     if (mode.includes('b') && routeName) {
       const newLayoutKeys = anchor.getAttribute('data-q-layouts')?.split(' ');
-      preloadRouteBundles(routeName, 0.8, newLayoutKeys);
+      preloadRouteBundles(routeName, VISIBLE_LINK_PROBABILITY, newLayoutKeys);
     }
     if (mode.includes('d')) {
       prefetchRoute(url, true, 0.8, manifestHash, false);

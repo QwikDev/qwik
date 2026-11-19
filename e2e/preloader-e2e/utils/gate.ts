@@ -27,29 +27,35 @@ type PreloaderWindow = Window & {
   __maxSpeculativeInFlight?: number;
   __preloadHints?: PreloadHint[];
   /** Qwik's own hint queue (preloader/bridge.ts), not a test hook. */
-  qPreloadQueue?: [item: string | string[], probability?: number][];
+  qPreloadQueue?: [item: string | string[], probability?: number, isPageToRender?: boolean][];
 };
 
-export type PreloadHint = { item: string | string[]; probability?: number };
+export type PreloadHint = {
+  item: string | string[];
+  probability?: number;
+  isPageToRender?: boolean;
+};
 
 export const recordPreloadHints = (page: Page) =>
   page.addInitScript(() => {
     const win = window as PreloaderWindow;
     const hints: PreloadHint[] = (win.__preloadHints = []);
-    let preload: ((item: string | string[], probability?: number) => void) | undefined;
+    let preload:
+      | ((item: string | string[], probability?: number, isPageToRender?: boolean) => void)
+      | undefined;
     Object.defineProperty(win, 'qPreload', {
       configurable: true,
       get: () =>
         preload &&
-        ((item: string | string[], probability?: number) => {
-          hints.push({ item, probability });
-          preload!(item, probability);
+        ((item: string | string[], probability?: number, isPageToRender?: boolean) => {
+          hints.push({ item, probability, isPageToRender });
+          preload!(item, probability, isPageToRender);
         }),
       set: (value) => {
         // The preloader drains the hints queued before it loaded without calling the getter
         if (win.qPreloadQueue) {
-          for (const [item, probability] of win.qPreloadQueue) {
-            hints.push({ item, probability });
+          for (const [item, probability, isPageToRender] of win.qPreloadQueue) {
+            hints.push({ item, probability, isPageToRender });
           }
         }
         preload = value;

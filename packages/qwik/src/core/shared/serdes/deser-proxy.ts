@@ -50,12 +50,14 @@ export const wrapBinaryStateProxy = (
   ) as unknown[];
 };
 
-const toRootIndex = (property: PropertyKey): number =>
-  typeof property === 'number'
-    ? property
-    : typeof property === 'string'
-      ? parseInt(property as string, 10)
-      : NaN;
+const toRootIndex = (property: PropertyKey): number => {
+  if (typeof property === 'number') {
+    return property;
+  }
+  const index = typeof property === 'string' ? +property : NaN;
+  // Only a canonical index is a root: '0note' or '1.5' are named properties.
+  return String(index >>> 0) === property ? index : NaN;
+};
 
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(

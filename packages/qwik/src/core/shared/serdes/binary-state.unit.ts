@@ -174,6 +174,12 @@ describe('binary state', () => {
     await expect(promise).resolves.toEqual({ done: true });
   });
 
+  it('keeps a named property apart from the root its name starts with', async () => {
+    const state = (await roundTrip('first')) as any;
+    state['0note'] = 'label';
+    expect(state[0]).toBe('first');
+  });
+
   it('restores a root only when it is read', async () => {
     const state = await roundTrip({ small: 1 }, { other: 2 });
     state[0];

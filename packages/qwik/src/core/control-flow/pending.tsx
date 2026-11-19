@@ -55,12 +55,14 @@ const _hf0 = (
   p3: RevealRegistration | null
 ) => ({
   display:
-    p1.value === 'fallback' && p0.fallback$ != null && (p2.value || !p3!.reveal.collapsed)
+    (p1.value === 'fallback' || !p2.value) &&
+    p0.fallback$ != null &&
+    (p2.value || !p3!.reveal.collapsed)
       ? 'contents'
       : 'none',
 });
 const _hf0_str =
-  '{display:p1.value==="fallback"&&p0.fallback$!=null&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
+  '{display:(p1.value==="fallback"||!p2.value)&&p0.fallback$!=null&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
 const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
   display: p0.value === 'content' && p1.value ? 'contents' : 'none',
 });

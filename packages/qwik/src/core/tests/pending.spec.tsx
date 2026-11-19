@@ -471,6 +471,146 @@ describe('ssrRenderToDom: Reveal and Pending coordination', () => {
   });
 });
 
+describe('render: Pending and Reveal coordination', () => {
+  const getHost = (document: Document, id: string) => {
+    const element = document.querySelector(`#${id}`);
+    expect(element, `Expected #${id} to be present`).toBeTruthy();
+    return element!.parentElement as HTMLElement;
+  };
+
+  it('should keep fallback visible while a resolved Pending waits for sequential reveal', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const platform = getPlatform();
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <main>
+        <Reveal order="sequential">
+          <Pending fallback$={() => <p id="first-fallback">First loading</p>}>
+            <First />
+          </Pending>
+          <Pending fallback$={() => <p id="second-fallback">Second loading</p>}>
+            <Second />
+          </Pending>
+        </Reveal>
+      </main>
+    );
+
+    try {
+      await vi.waitFor(() => {
+        expect(document.querySelector('#first-fallback')).toBeTruthy();
+        expect(document.querySelector('#second-fallback')).toBeTruthy();
+      });
+      const firstFallbackHost = getHost(document, 'first-fallback');
+      const secondFallbackHost = getHost(document, 'second-fallback');
+      await vi.waitFor(() => {
+        expect(firstFallbackHost.style.display).toBe('contents');
+        expect(secondFallbackHost.style.display).toBe('contents');
+      });
+
+      resolveSecond(<p id="second-content">Second resolved</p>);
+      await vi.waitFor(() => expect(document.querySelector('#second-content')).toBeTruthy());
+      const secondContentHost = getHost(document, 'second-content');
+      await delay(10);
+
+      expect(secondFallbackHost.style.display).toBe('contents');
+      expect(secondContentHost.style.display).toBe('none');
+
+      resolveFirst(<p id="first-content">First resolved</p>);
+      await vi.waitFor(() => expect(document.querySelector('#first-content')).toBeTruthy());
+      const firstContentHost = getHost(document, 'first-content');
+      await renderPromise;
+
+      expect(firstFallbackHost.style.display).toBe('none');
+      expect(firstContentHost.style.display).toBe('contents');
+      expect(secondFallbackHost.style.display).toBe('none');
+      expect(secondContentHost.style.display).toBe('contents');
+    } finally {
+      resolveFirst(<p id="first-content">First resolved</p>);
+      resolveSecond(<p id="second-content">Second resolved</p>);
+      await renderPromise;
+      setPlatform(platform);
+    }
+  });
+
+  it('should hide blocked resolved Pending fallbacks when Reveal is collapsed', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$(() => <>{first}</>);
+    const Second = component$(() => <>{second}</>);
+    const platform = getPlatform();
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <main>
+        <Reveal order="sequential" collapsed>
+          <Pending fallback$={() => <p id="collapsed-first-fallback">First loading</p>}>
+            <First />
+          </Pending>
+          <Pending fallback$={() => <p id="collapsed-second-fallback">Second loading</p>}>
+            <Second />
+          </Pending>
+        </Reveal>
+      </main>
+    );
+
+    try {
+      await vi.waitFor(() => {
+        expect(document.querySelector('#collapsed-first-fallback')).toBeTruthy();
+        expect(document.querySelector('#collapsed-second-fallback')).toBeTruthy();
+      });
+      const firstFallbackHost = getHost(document, 'collapsed-first-fallback');
+      const secondFallbackHost = getHost(document, 'collapsed-second-fallback');
+      await vi.waitFor(() => expect(firstFallbackHost.style.display).toBe('contents'));
+      expect(secondFallbackHost.style.display).toBe('none');
+
+      resolveSecond(<p id="collapsed-second-content">Second resolved</p>);
+      await vi.waitFor(() =>
+        expect(document.querySelector('#collapsed-second-content')).toBeTruthy()
+      );
+      const secondContentHost = getHost(document, 'collapsed-second-content');
+      await delay(10);
+
+      expect(secondFallbackHost.style.display).toBe('none');
+      expect(secondContentHost.style.display).toBe('none');
+
+      resolveFirst(<p id="collapsed-first-content">First resolved</p>);
+      await vi.waitFor(() =>
+        expect(document.querySelector('#collapsed-first-content')).toBeTruthy()
+      );
+      const firstContentHost = getHost(document, 'collapsed-first-content');
+      await renderPromise;
+
+      expect(firstFallbackHost.style.display).toBe('none');
+      expect(firstContentHost.style.display).toBe('contents');
+      expect(secondFallbackHost.style.display).toBe('none');
+      expect(secondContentHost.style.display).toBe('contents');
+    } finally {
+      resolveFirst(<p id="collapsed-first-content">First resolved</p>);
+      resolveSecond(<p id="collapsed-second-content">Second resolved</p>);
+      await renderPromise;
+      setPlatform(platform);
+    }
+  });
+});
+
 describe('domRender: Pending client-side pause delay', () => {
   afterEach(() => {
     delete (globalThis as any).__slowContent;
@@ -2868,6 +3008,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(firstReadyHtml).toContain('qO.g(1,2,"r")');
     const firstReadyDocument = runOutOfOrderScripts(firstReadyHtml);
     expect(getParagraphHost(firstReadyDocument, 'First reverse done').style.display).toBe('none');
+    expect(getParagraphHost(firstReadyDocument, 'First reverse fallback').style.display).toBe(
+      'contents'
+    );
 
     resolveSecond(<p>Second reverse done</p>);
     const { document } = await renderPromise;
@@ -2915,6 +3058,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(firstReadyHtml).toContain('qO.g(1,2,"t")');
     const firstReadyDocument = runOutOfOrderScripts(firstReadyHtml);
     expect(getParagraphHost(firstReadyDocument, 'First together done').style.display).toBe('none');
+    expect(getParagraphHost(firstReadyDocument, 'First together fallback').style.display).toBe(
+      'contents'
+    );
 
     resolveSecond(<p>Second together done</p>);
     const { document } = await renderPromise;

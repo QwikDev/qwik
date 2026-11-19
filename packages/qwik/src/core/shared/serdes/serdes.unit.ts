@@ -1854,11 +1854,7 @@ describe('shared-serialization', () => {
       setPlatform({ ...getTestPlatform(), isServer });
       return deserialize(objs)[0] as Task;
     };
-    const restoreInBrowser = async (objs: unknown[]) => {
-      const restored = restore(objs, false);
-      await Promise.resolve();
-      return restored;
-    };
+    const restoreInBrowser = (objs: unknown[]) => restore(objs, false);
     const restoreOnServer = (objs: unknown[]) => restore(objs, true);
     const holdModuleOf = (heldSymbol: string) => {
       let release!: () => void;
@@ -1891,7 +1887,7 @@ describe('shared-serialization', () => {
     it("asks for the task's chunk at the highest priority", async () => {
       const objs = await serialize(createTask(taskQrl('s_task')));
 
-      await restoreInBrowser(objs);
+      restoreInBrowser(objs);
 
       expect(preloadHints()).toContainEqual(['s_task.js', 1]);
     });
@@ -1901,7 +1897,7 @@ describe('shared-serialization', () => {
       subscribeTaskTo(written, createTask(taskQrl('s_next')));
       const objs = await serialize(createTask(taskQrl('s_first', [written])));
 
-      const first = await restoreInBrowser(objs);
+      const first = restoreInBrowser(objs);
 
       expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
       expect(preloadHints()).toContainEqual(['s_next.js', 1]);
@@ -1919,7 +1915,7 @@ describe('shared-serialization', () => {
       }
       const objs = await serialize(tasks[0]);
 
-      await restoreInBrowser(objs);
+      restoreInBrowser(objs);
 
       const hintedChunks = preloadHints().map(([chunk]) => chunk);
       expect(new Set(hintedChunks)).toEqual(new Set(tasks.map((task) => task.$qrl$.$chunk$)));
@@ -1930,7 +1926,6 @@ describe('shared-serialization', () => {
       const objs = await serialize(createTask(taskQrl('s_task', [computed])));
       const releaseComputedModule = holdModuleOf('s_computed');
       const task = deserialize(objs)[0] as Task;
-      await Promise.resolve();
 
       expect(await isReady(task.$qrl$)).toBe(false);
       releaseComputedModule();
@@ -1959,7 +1954,6 @@ describe('shared-serialization', () => {
       const releaseComputedModule = holdModuleOf('s_computed');
       const restored = deserialize(objs);
       void restored[0];
-      await Promise.resolve();
 
       expect(await isReady(restored[1] as QRLInternal)).toBe(true);
       releaseComputedModule();
@@ -1974,7 +1968,6 @@ describe('shared-serialization', () => {
       const releaseComputedModule = holdModuleOf('s_computed');
       const restored = deserialize(objs);
       void restored[0];
-      await Promise.resolve();
 
       expect(await isReady(restored[1] as QRLInternal)).toBe(false);
       releaseComputedModule();
@@ -1991,7 +1984,6 @@ describe('shared-serialization', () => {
       const releaseComputedModule = holdModuleOf('s_computed');
       const restored = deserialize(objs);
       void restored[0];
-      await Promise.resolve();
 
       expect(await isReady(restored[1] as QRLInternal)).toBe(true);
       releaseComputedModule();
@@ -2002,9 +1994,18 @@ describe('shared-serialization', () => {
       const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
       setCaptures(runningCaptures);
 
-      await restoreInBrowser(objs);
+      restoreInBrowser(objs);
 
       expect(_capturesObj._).toBe(runningCaptures);
+    });
+
+    it("does not ask for the task's chunk when the whole state is restored at once", async () => {
+      const objs = await serialize(createTask(taskQrl('s_task')));
+      setPlatform({ ...getTestPlatform(), isServer: false });
+
+      eagerDeserialize(objs);
+
+      expect(preloadHints()).not.toContainEqual(['s_task.js', 1]);
     });
 
     it('does neither on the server', async () => {

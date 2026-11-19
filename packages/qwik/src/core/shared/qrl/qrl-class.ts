@@ -536,49 +536,49 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
+/** Deserializes the captures and returns a Promise for the modules that restore is waiting on */
+const restoreCaptures = (qrl: QRLClass<unknown>): Promise<unknown> | null => {
+  const container = qrl.$container$;
+  if (!container) {
+    throw qError(QError.qrlMissingContainer);
+  }
+  const outerLoading = loadingHolder.p;
+  loadingHolder.p = null;
+  const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(
+    container,
+    qrl.$captures$ as string
+  ));
+  let loading = loadingHolder.p as Promise<unknown> | null;
+  loadingHolder.p = outerLoading;
+  for (let i = 0; i < captures.length; i++) {
+    const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
+    const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
+    if (isPromise(computedModule)) {
+      const computedLoaded = computedModule.catch(() => {});
+      loading = loading ? loading.then(() => computedLoaded) : computedLoaded;
+    }
+  }
+  return loading;
+};
+
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible
  */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
-  // We read the captures once, synchronously, so no need to keep previous
-  const serializedCaptures = qrl.$captures$;
-  const container = qrl.$container$;
-  if (typeof serializedCaptures === 'string') {
-    if (!container) {
-      throw qError(QError.qrlMissingContainer);
-    }
-    const prevLoading = loadingHolder.p;
-    const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
-    setCaptures(captures);
-    let loading: Promise<unknown> | undefined =
-      loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
-    for (let i = 0; i < captures.length; i++) {
-      const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
-      const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
-      if (isPromise(computedModule)) {
-        const computedLoaded = computedModule.catch(() => {});
-        loading = loading ? loading.then(() => computedLoaded) : computedLoaded;
-      }
-    }
-    // return the loading promise so callers can await it
-    return loading;
-  } else {
-    setCaptures(serializedCaptures || null);
-  }
+  const loading = typeof qrl.$captures$ === 'string' ? restoreCaptures(qrl) : null;
+  setCaptures((qrl.$captures$ as Readonly<unknown[]> | undefined) || null);
+  return loading;
 };
 
-/** @internal */
 export const restoreQrlCaptures = (qrl: QRLInternal) => {
-  const runningCaptures = _capturesObj._;
-  const loadingBefore = loadingHolder.p;
   const qrlState = getInstance(qrl);
-  const capturesLoading = ensureQrlCaptures(qrlState);
-  if (capturesLoading) {
-    qrlState.$capturesLoading$ = capturesLoading;
-    loadingHolder.p = loadingBefore;
+  if (typeof qrlState.$captures$ === 'string') {
+    const capturesLoading = restoreCaptures(qrlState);
+    if (capturesLoading) {
+      qrlState.$capturesLoading$ = capturesLoading;
+    }
   }
-  setCaptures(runningCaptures);
 };
 
 // Wrap functions to provide their lexical scope

@@ -47,12 +47,12 @@ import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
-  p: Promise<void>;
+  p: Promise<unknown> | null;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
-    p: Promise.resolve(),
+    p: null,
   })
 );
 
@@ -82,12 +82,17 @@ export const inflate = (
   data: unknown
 ): void => {
   const ownsPendingStoreTargets = beginDeserialization(container);
+  lazyInflateDepth++;
   try {
     const iterator = inflateIterator(container, target, typeId, data);
     while (!iterator.next().done) {
       // Run synchronously for lazy deserialization paths.
     }
+    if (lazyInflateDepth === 1 && restoredTasks.length) {
+      preloadRestoredTasks();
+    }
   } finally {
+    lazyInflateDepth--;
     endDeserialization(container, ownsPendingStoreTargets);
   }
 };
@@ -255,8 +260,8 @@ function* inflateIterator(
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      if (qTest ? !isServerPlatform() : !isServer) {
-        preloadTaskChain(task);
+      if (lazyInflateDepth && (qTest ? !isServerPlatform() : !isServer)) {
+        restoredTasks.push(task);
       }
       break;
     }
@@ -352,7 +357,7 @@ function* inflateIterator(
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
-      loadingHolder.p = loadingHolder.p.finally(() => p);
+      loadingHolder.p = loadingHolder.p ? loadingHolder.p.finally(() => p) : p;
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }
@@ -554,27 +559,21 @@ function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }
 
-let tasksToPreload: Task[] | null = null;
+const restoredTasks: Task[] = [];
+let lazyInflateDepth = 0;
 
-const preloadTaskChain = (task: Task) => {
-  if (tasksToPreload) {
-    tasksToPreload.push(task);
-    return;
-  }
-  const tasks = (tasksToPreload = [task]);
-  queueMicrotask(() => {
-    try {
-      for (let i = 0; i < tasks.length; i++) {
-        const qrl = tasks[i].$qrl$;
-        restoreQrlCaptures(qrl);
-        if (qrl.$chunk$) {
-          requestPreload(qrl.$chunk$, 1);
-        }
+const preloadRestoredTasks = () => {
+  try {
+    for (let i = 0; i < restoredTasks.length; i++) {
+      const qrl = restoredTasks[i].$qrl$;
+      restoreQrlCaptures(qrl);
+      if (qrl.$chunk$) {
+        requestPreload(qrl.$chunk$, 1);
       }
-    } finally {
-      tasksToPreload = null;
     }
-  });
+  } finally {
+    restoredTasks.length = 0;
+  }
 };
 
 function restoreEffectBackRefForEffects(

@@ -11,6 +11,9 @@ inputs:
   results-name:
     description: Name of the artifact that holds the test results of a failed build.
     default: test-results
+  fork-cache:
+    description: Also copy every store path this job fetches or builds to the GitHub cache.
+    default: 'false'
 
 runs:
   using: composite
@@ -20,10 +23,11 @@ runs:
         # node_modules and the few builds that need the network run outside the sandbox.
         extra-conf: sandbox = relaxed
 
-    # Fork PRs cannot reach FlakeHub Cache; they use the GitHub cache, which branch pushes fill.
+    # Fork PRs cannot reach FlakeHub Cache; without a preference they fall back to the GitHub cache.
     - uses: DeterminateSystems/flakehub-cache-action@f00fba8dc0949d63cbbb7d33da7912417d588d75 # v3.24.2
       with:
-        use-gha-cache: ${{ github.event_name == 'pull_request' && 'no-preference' || 'enabled' }}
+        use-gha-cache: ${{ inputs.fork-cache == 'true' && 'enabled' || 'no-preference' }}
+        diff-store: ${{ inputs.fork-cache }}
 
     - name: Build
       if: inputs.build != ''

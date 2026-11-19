@@ -43,6 +43,8 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
   (pkg.pr.new) download that artifact too, but on a PR run its packages can come from the shared
   cache. The docs site deploys `artifact-docs`: a run uploads it only when its docs differ from
   the last upload for that target, and builds it with the shared cache, on branch runs too.
+- Leave `fork-cache` off in every job but `fill-fork-cache`. It uploads to the GitHub cache that
+  fork PRs read, which takes minutes, so no job that another job waits for may do it.
 - The builds leave `*.unit.*` files out of their sources so a test edit does not rebuild them. The
   `typecheck` check type-checks the ones that the qwik, router and root `tsconfig.json` include.
 

@@ -61,6 +61,7 @@ jobs:
       builds: ${{ steps.plan.outputs.builds }}
       checks: ${{ steps.plan.outputs.checks }}
       docs-checks: ${{ steps.plan.outputs.docs-checks }}
+      out-paths: ${{ steps.plan.outputs.out-paths }}
       key-docs: ${{ steps.plan.outputs.key-docs }}
       deploy-docs: ${{ !startsWith(steps.docs-uploaded.outputs.cache-matched-key, format('docs-uploaded-{0}-', steps.plan.outputs.key-docs)) }}
       key-optimizer: ${{ steps.plan.outputs.key-optimizer }}
@@ -122,6 +123,7 @@ jobs:
             echo "builds=$builds"
             echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
             echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
+            echo "out-paths=$(jq -c '[.[][]]' paths.json)"
             # Every branch deploys to its own site, and a PR previews against its base.
             jq -r '"key-docs=\($target)-\(.packages.docs | ltrimstr("/nix/store/"))"' --arg target "${GITHUB_BASE_REF:-$GITHUB_REF_NAME}" paths.json
             # The other platforms key their caches on what the matching Linux output is made from.
@@ -376,6 +378,46 @@ jobs:
         with:
           build: ${{ needs.plan.outputs.ci }}.checks.${{ matrix.check }}
           results-name: test-results-${{ matrix.check }}
+
+  ############ CACHE FOR FORK PRS ############
+  # Fork PRs cannot reach FlakeHub Cache. They read the GitHub cache, which only this job fills,
+  # so that no job that others wait for spends time on the upload.
+  fill-fork-cache:
+    name: Fill the cache for fork PRs
+    # A convenience for forks: it must not fail the run or hold up the next one.
+    continue-on-error: true
+    timeout-minutes: 15
+    needs:
+      - plan
+      - build
+      - build-docs
+      - check
+      - check-docs
+    # A fork's own runs write the GitHub cache in every job already.
+    if: ${{ !cancelled() && github.repository == 'QwikDev/qwik' && github.event_name != 'pull_request' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - uses: ./.github/actions/nix
+        with:
+          fork-cache: true
+
+      # shortcut: re-uploads every output each run, dedupe if the cache quota gets tight
+      - name: Fetch every output that is built
+        env:
+          OUT_PATHS: ${{ needs.plan.outputs.out-paths }}
+        run: |
+          # A check that did not pass has no output: it stays missing.
+          jq -r '.[]' <<< "$OUT_PATHS" | while read -r path; do
+            nix build --no-link --max-jobs 0 "$path" < /dev/null 2> /dev/null ||
+              echo "::warning::Not in the build cache, so not copied: $path"
+          done
 
   ############ UNIT TEST ############
   test-unit:

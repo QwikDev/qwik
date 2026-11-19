@@ -891,7 +891,7 @@ describe(`${name}: useTask`, () => {
         const isDisabled = useSignal(false);
 
         const OtpRoot = (props: any) => {
-          return <OtpBase {...props}>{props.children}</OtpBase>;
+          return <OtpBase {...props} />;
         };
         return (
           <>

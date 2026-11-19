@@ -38,11 +38,11 @@ import {
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
-import { recordSetupAwaits } from './lower-component-body';
+import { lowerComponentBody } from './lower-component-body';
 import { lowerRenderExpression } from './lower-children';
 import { findComponentCandidates } from './ast/returns-jsx';
 import { discoverComponents, type DiscoveredComponent } from './discover';
-import { lowerComponentParameter, pathReadIr } from './lower-parameter';
+import { pathReadIr } from './lower-parameter';
 import { readObjectParameter } from './ast/parameter-members';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
@@ -708,32 +708,16 @@ function lowerAuthoredComponent(
   const outerProps = ctx.propsBinding;
   const outerMembers = ctx.propsMembers;
   const outerScopes = ctx.styleScopes;
-  ctx.styleScopes = [];
   try {
-    const parameter = lowerComponentParameter(component, ctx);
-    const nestedLocals = new Map([...locals, ...parameter.locals]);
+    const scoped = new Map(locals);
     if (outerProps !== null) {
-      nestedLocals.set(outerProps, {
+      scoped.set(outerProps, {
         kind: LocalKind.Const,
         access: CaptureAccess.Direct,
         binding: outerProps,
       });
     }
-    const setup = lowerSetup(component.setupStatements, ctx, nestedLocals);
-    ctx.locals = setup.locals;
-    recordSetupAwaits(ctx, component.fn);
-    const ops =
-      component.renderExpression === null
-        ? []
-        : lowerRenderExpression(component.renderExpression, ctx);
-    const program =
-      ctx.plan.programs.push({
-        body: { kind: ProgramBodyKind.Ops, ops },
-        setup: [...parameter.setup, ...setup.setup],
-        params: [],
-        lifetime: 0,
-        async: component.fn.async === true,
-      }) - 1;
+    const { program, parameter } = lowerComponentBody(component, ctx, scoped);
     return {
       s: SetupKind.LocalComponent,
       binding:
@@ -742,10 +726,7 @@ function lowerAuthoredComponent(
       id: component.name,
       name: component.name,
       declarationKind: component.declarationKind,
-      parameter:
-        parameter.surface === null
-          ? null
-          : { pattern: pushPayload(ctx, component.param!.range), surface: parameter.surface },
+      parameter,
     };
   } finally {
     ctx.styleScopes = outerScopes;

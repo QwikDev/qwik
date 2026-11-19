@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
+import { analyseModule } from '../index';
+import { ModuleKind } from '../schema';
 import {
   loadChunkFunction,
   loadDefaultFunction,
@@ -195,6 +197,22 @@ test('an aliased children binding rendered as content is a diagnostic', async ()
     ],
   });
   expect(output.diagnostics).toMatchObject([{ code: 'children-read' }]);
+});
+
+test.each([
+  'const Inner = (props: any) => <div>{props.children}</div>;',
+  'const Inner = (props: any) => { return <div>{props.children}</div>; };',
+  'function Inner(props) { return <div>{props.children}</div>; }',
+])('a local component reading props.children is a diagnostic: %s', async (inner) => {
+  const plan = await analyseModule(
+    {
+      path: 'component.tsx',
+      code: `export function A() { ${inner} return <Inner><b /></Inner>; }`,
+    },
+    {}
+  );
+  expect(plan.kind).toBe(ModuleKind.Failed);
+  expect(plan.diagnostics).toMatchObject([{ code: 'children-read' }]);
 });
 
 test('keeps a computed key outside the module explicit', async () => {

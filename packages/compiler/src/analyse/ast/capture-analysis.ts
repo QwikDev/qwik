@@ -197,7 +197,7 @@ function unliftableFunction(binding: LocalId, ctx: LowerContext): string | null 
   if (values.some(({ type }) => type === 'ClassDeclaration' || type === 'ClassExpression')) {
     return `the local class "${name}"`;
   }
-  const isWritten = ctx.bindings.referencesOf(binding).some(({ isWrite }) => isWrite);
+  const isWritten = ctx.bindings.isWritten(binding);
   if (!isWritten && declarations.length === 1) {
     const target = values.length === 1 ? aliasedLiftable(values[0], ctx) : null;
     return target === null

@@ -41,6 +41,7 @@ export interface BindingGraph {
   declarationsOf(binding: LocalId): readonly Node[];
   assignedValuesOf(binding: LocalId): readonly Node[];
   referencesOf(binding: LocalId): readonly BindingReference[];
+  isWritten(binding: LocalId): boolean;
   parentOf(node: Node): Node | null;
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   /** Authored declarations in the enclosing function, including block scopes. */
@@ -396,6 +397,49 @@ export function createBindingGraph(program: Program): BindingGraph {
 
   collect(program, moduleScope);
 
+  // Authored declarations per enclosing function, by start, so `declaredWithin` stays local.
+  const declarationsByFunction = new Map<Scope, LocalId[]>();
+  for (let id = 0; id < declarationScopes.length; id++) {
+    const owner = nearestFunctionScope(declarationScopes[id]);
+    const declared = declarationsByFunction.get(owner);
+    if (declared === undefined) {
+      declarationsByFunction.set(owner, [id]);
+    } else {
+      declared.push(id);
+    }
+  }
+  const declarationStart = (id: LocalId) => bindings[id].declarationRange![0];
+  for (const declared of declarationsByFunction.values()) {
+    declared.sort((left, right) => declarationStart(left) - declarationStart(right));
+  }
+  const declaredWithin: BindingGraph['declaredWithin'] = (roots) => {
+    const found = new Set<LocalId>();
+    for (const root of roots) {
+      const declared =
+        declarationsByFunction.get(nearestFunctionScope(parentScopes.get(root)!)) ?? [];
+      let low = 0;
+      let high = declared.length;
+      while (low < high) {
+        const middle = (low + high) >> 1;
+        if (declarationStart(declared[middle]) < root.start) {
+          low = middle + 1;
+        } else {
+          high = middle;
+        }
+      }
+      for (let index = low; index < declared.length; index++) {
+        const range = bindings[declared[index]].declarationRange!;
+        if (range[0] > root.end) {
+          break;
+        }
+        if (range[1] <= root.end) {
+          found.add(declared[index]);
+        }
+      }
+    }
+    return [...found].sort((left, right) => left - right);
+  };
+
   const bindingNames = new Set(bindings.map((binding) => binding.name));
   const implicitNames = new Map<ImplicitBindingKind, string>();
   const addSynthetic: BindingGraph['addSynthetic'] = (name, scope, declarationRange) => {
@@ -509,11 +553,15 @@ export function createBindingGraph(program: Program): BindingGraph {
     }
   };
   resolveReferences(program, moduleScope, null, '');
+  const writtenBindings = new Set<LocalId>();
   for (const reference of orderedReferences) {
     if (reference.binding !== null) {
       const list = referencesByBinding.get(reference.binding) ?? [];
       list.push(reference as BindingReference);
       referencesByBinding.set(reference.binding, list);
+      if (reference.isWrite) {
+        writtenBindings.add(reference.binding);
+      }
     }
   }
 
@@ -547,6 +595,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     dynamicImports,
     calls,
     referencesOf: (binding) => referencesByBinding.get(binding) ?? [],
+    isWritten: (binding) => writtenBindings.has(binding),
     parentOf: (node) => parents.get(node) ?? null,
     returnsOf(fn) {
       const scope = scopes.get(fn.body ?? fn);
@@ -558,21 +607,7 @@ export function createBindingGraph(program: Program): BindingGraph {
       return scope === undefined ? [] : (awaitsByScope.get(scope) ?? []);
     },
     freeReferences,
-    declaredWithin: (roots) =>
-      bindings
-        .filter(
-          ({ id, declarationRange: range }) =>
-            declarationScopes[id] !== undefined &&
-            range !== null &&
-            roots.some(
-              (root) =>
-                range[0] >= root.start &&
-                range[1] <= root.end &&
-                nearestFunctionScope(declarationScopes[id]) ===
-                  nearestFunctionScope(parentScopes.get(root)!)
-            )
-        )
-        .map(({ id }) => id),
+    declaredWithin,
     hasShadowedReferences(node, destination) {
       const scope = scopes.get(destination);
       if (scope === undefined) {

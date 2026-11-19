@@ -27,6 +27,13 @@ export function recordEventOnlyQrls(plan: ModulePlan, bindings: BindingGraph): v
     return value;
   };
   const aliasInits = new Map<Node, LocalId>();
+  const qrlsByOrigin = new Map<string, ModulePlan['qrls'][number]>();
+  for (const qrl of plan.qrls) {
+    const origin = `${qrl.origin.range[0]}:${qrl.origin.range[1]}`;
+    if (!qrlsByOrigin.has(origin)) {
+      qrlsByOrigin.set(origin, qrl);
+    }
+  }
   for (let binding = 0; binding < bindings.bindings.length; binding++) {
     const [declaration] = bindings.declarationsOf(binding);
     if (!isConstDeclarator(declaration, bindings)) {
@@ -37,9 +44,7 @@ export function recordEventOnlyQrls(plan: ModulePlan, bindings: BindingGraph): v
       aliasInits.set(init, binding);
       continue;
     }
-    const qrl = plan.qrls.find(
-      (entry) => entry.origin.range[0] === init.start && entry.origin.range[1] === init.end
-    );
+    const qrl = qrlsByOrigin.get(`${init.start}:${init.end}`);
     if (qrl !== undefined) {
       candidates.set(binding, qrl);
     }

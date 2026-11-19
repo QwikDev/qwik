@@ -262,6 +262,40 @@ const Child = () => null;
     ).toEqual(['Child', 'source', 'Child']);
   });
 
+  test('lists declarations inside the given statements of one function, nested functions excluded', () => {
+    const { program } = parseModule(
+      'declared.ts',
+      `
+const outside = 0;
+function setup(param) {
+  const first = 1;
+  if (first) { let inner = 2; }
+  const nested = () => { const hidden = 3; };
+  later();
+  function later() {}
+  const last = 4;
+}
+`
+    );
+    const graph = createBindingGraph(program);
+    const setup = program.body[1];
+    if (setup.type !== 'FunctionDeclaration') {
+      throw new Error('expected a function declaration');
+    }
+    const statements = setup.body!.body;
+    const names = (ids: readonly number[]) => ids.map((id) => graph.bindings[id].name);
+    const ids = graph.declaredWithin(statements);
+    expect([...ids].sort((left, right) => left - right)).toEqual(ids);
+    expect(names(ids).sort()).toEqual(['first', 'inner', 'last', 'later', 'nested']);
+    expect(names(graph.declaredWithin([statements[4], statements[1]])).sort()).toEqual([
+      'inner',
+      'later',
+    ]);
+    expect(graph.declaredWithin([program.body[0]]).map((id) => graph.bindings[id].name)).toEqual([
+      'outside',
+    ]);
+  });
+
   test('selects transitive declarations in source order within the supplied boundary', () => {
     const { program } = parseModule(
       'bindings.ts',

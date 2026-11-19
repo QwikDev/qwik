@@ -24,6 +24,11 @@ import { _noopQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useSignal } from '@qwik.dev/core';
 //
+const defaults = {
+    showDelay: 100,
+    hideDelay: 200
+};
+//
 const q_Repro_component_6Jd2MfMqiso = /*#__PURE__*/ _noopQrl("Repro_component_6Jd2MfMqiso");
 const q_Repro_component_hide_ZiISwEulF8I = /*#__PURE__*/ _noopQrl("Repro_component_hide_ZiISwEulF8I");
 const q_Repro_component_show_vVBUlDqi4R8 = /*#__PURE__*/ _noopQrl("Repro_component_show_vVBUlDqi4R8");
@@ -36,10 +41,6 @@ q_Repro_component_hide_ZiISwEulF8I.s(()=>{
     let _defaultValue1 = _capturesObj._[0], _rawProps = _capturesObj._[1], open = _capturesObj._[2];
     return setTimeout(()=>open.value = false, _rawProps.hideDelay === void 0 ? _defaultValue1 : _rawProps.hideDelay);
 });
-const defaults = {
-    showDelay: 100,
-    hideDelay: 200
-};
 q_Repro_component_6Jd2MfMqiso.s((_rawProps)=>{
     const _defaultValue = untrack(()=>_rawProps.showDelay) === void 0 ? defaults.showDelay : void 0;
     const _defaultValue1 = untrack(()=>_rawProps.hideDelay) === void 0 ? defaults.hideDelay : void 0;
@@ -63,7 +64,7 @@ export const Repro = /*#__PURE__*/ componentQrl(q_Repro_component_6Jd2MfMqiso);
 export { defaults as _auto_defaults };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;;;;;;qCAIzC;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,gBAFnB,iDAAA;;qCAGlB;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,iBAHa,kDAAA;;AADnE,MAAM,WAAW;IAAE,WAAW;IAAK,WAAW;AAAI;gCAClB;gDAAG,wBAAY,SAAS,SAAS;iDAAE,wBAAY,SAAS,SAAS;IAChG,MAAM,OAAO,UAAU;IACvB,MAAM;;;;;IACN,MAAM;;;;;IACN,qBAAO,WAAC;QAAI,kBAAe;QAAO,kBAAe;;AAClD;AALA,OAAO,MAAM,sBAAQ,4CAKlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;;AAC1D,MAAM,WAAW;IAAE,WAAW;IAAK,WAAW;AAAI;;;;;;qCAGjC;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,gBAFnB,iDAAA;;qCAGlB;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,iBAHa,kDAAA;;gCAAnC;gDAAG,wBAAY,SAAS,SAAS;iDAAE,wBAAY,SAAS,SAAS;IAChG,MAAM,OAAO,UAAU;IACvB,MAAM;;;;;IACN,MAAM;;;;;IACN,qBAAO,WAAC;QAAI,kBAAe;QAAO,kBAAe;;AAClD;AALA,OAAO,MAAM,sBAAQ,4CAKlB\"}")
 == DIAGNOSTICS ==
 
 []

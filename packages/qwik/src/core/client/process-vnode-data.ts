@@ -433,23 +433,24 @@ function* processVNodeDataImpl(
     vData: string,
     qVNodeRefs: Map<number, Element | VNode>,
     qContainerElement: ContainerElement | null,
-    segmentId?: string
+    segmentId?: string,
+    isContainerScript = false
   ): Generator<void, void, void> {
     const isSegment = __EXPERIMENTAL__.pendingBoundary && segmentId !== undefined;
     const vData_length = vData.length;
-    // Only a container's own script can be binary; segments and patches stay text.
+    // Tests also hand the walk text vnode data.
     const binaryCursor =
-      __EXPERIMENTAL__.binaryState &&
-      vData &&
-      ((!qTest && !__EXPERIMENTAL__.pendingBoundary) || isBinaryVNodeData(vData))
+      __EXPERIMENTAL__.binaryState && vData && (!qTest || isBinaryVNodeData(vData))
         ? new BinaryVNodeCursor(vData)
         : null;
     /// An element's entry for binary vnode data is its record's start plus this.
     let tableOffset = 0;
     if (__EXPERIMENTAL__.binaryState && binaryCursor) {
-      // Walking a container again replaces its table.
       const tables = (qDocument.qVNodeTables ||= []);
-      const tableIndex = (qContainerElement!.qVNodeTableIndex ??= tables.length);
+      // Walking a container again replaces its table; segments and patches add their own.
+      const tableIndex = isContainerScript
+        ? (qContainerElement!.qVNodeTableIndex ??= tables.length)
+        : tables.length;
       tables[tableIndex] = binaryCursor.$table$;
       tableOffset = tableIndex * VNODE_TABLE_INDEX_SCALE;
     }
@@ -499,7 +500,9 @@ function* processVNodeDataImpl(
           nextNode,
           container.qVnodeData || '',
           container.qVNodeRefs!,
-          container
+          container,
+          undefined,
+          true
         );
         if (__EXPERIMENTAL__.binaryState) {
           // The decoded table holds what the elements need; a later walk reads the script again.
@@ -581,10 +584,7 @@ function* processVNodeDataImpl(
             } else {
               vNodeElementIndex = Number.MAX_SAFE_INTEGER;
             }
-          } else if (
-            (!__EXPERIMENTAL__.binaryState || qTest || __EXPERIMENTAL__.pendingBoundary) &&
-            vData_start < vData_length
-          ) {
+          } else if ((!__EXPERIMENTAL__.binaryState || qTest) && vData_start < vData_length) {
             vNodeElementIndex += howManyElementsToSkip();
             if (ch === VNodeDataSeparator.REFERENCE) {
               // if we need to store the ref handle it here.
@@ -622,8 +622,7 @@ function* processVNodeDataImpl(
                 : tableOffset + binaryCursor.$recordStart$
               : vData.substring(vData_start, vData_end);
           if (isSegment && node === containerNode) {
-            // Segments only have text vnode data.
-            (node as QElement)._qSegmentVNodeData = data as string;
+            (node as QElement)._qSegmentVNodeData = data;
           } else if (data !== '' && nodeType !== NodeType.ELEMENT_CONTAINER) {
             // A nested container's root data comes from its own container only.
             vNodeDataMap.set(node as Element, data);
@@ -739,7 +738,7 @@ export const findVDataSectionEnd = (vData: string, start: number, end: number): 
 };
 
 /** Decodes binary vnode data in document order into one flat table, one element at a time. */
-class BinaryVNodeCursor {
+export class BinaryVNodeCursor {
   /** The elements skipped before the current element times two, plus one when it is referenced. */
   $skip$ = 0;
   /** Where the current element's record starts in `$table$`, or -1 when it has none. */

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { parseStateScript } from '../testing/rendering.unit-util';
+import { getVNodeAttrValues, parseStateScript } from '../testing/rendering.unit-util';
 import {
   _binaryStateToJson,
   _createQRL,
@@ -677,7 +677,10 @@ describe('SSR Container', () => {
       ],
     ];
 
-    (container as any).emitBinaryVNodeDataScript((container as any).vNodeDatas.entries());
+    (container as any).emitBinaryVNodeDataScript(
+      undefined,
+      (container as any).vNodeDatas.entries()
+    );
 
     const output = writer.toString();
     expect(output.indexOf('</script>')).toBe(output.lastIndexOf('</script>'));
@@ -927,14 +930,14 @@ it.each(['empty props', 'structure-only child', 'retained child'])(
     expect(receivedRootCount).toBe(root.serializationCtx.$roots$.length);
     const vnodePatch = document.querySelector('script[type="qwik/vnode"]')!.textContent!;
     if (sequenceRootId !== undefined) {
-      expect(vnodePatch).toContain(
-        VNodeDataChar.SEQ_CHAR +
-          Reflect.get(first, 'getSegmentRootIdMap').call(first)[sequenceRootId]
-      );
+      // The segment's own root id, written as the container's.
+      expect(getVNodeAttrValues(vnodePatch, VNodeDataChar.SEQ_CHAR)).toEqual([
+        String(Reflect.get(first, 'getSegmentRootIdMap').call(first)[sequenceRootId]),
+      ]);
       expect(patches[0].textContent).toContain('loaded');
     } else {
-      expect(vnodePatch).not.toContain(VNodeDataChar.SEQ_CHAR);
-      expect(vnodePatch).not.toContain(VNodeDataChar.PROPS_CHAR);
+      expect(getVNodeAttrValues(vnodePatch, VNodeDataChar.SEQ_CHAR)).toEqual([]);
+      expect(getVNodeAttrValues(vnodePatch, VNodeDataChar.PROPS_CHAR)).toEqual([]);
     }
   }
 );

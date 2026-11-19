@@ -1279,11 +1279,35 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     if (!segmentId && !this.serializationCtx.$roots$.length && !this.hasVNodeRefsForSerialization) {
       return;
     }
-    if (__EXPERIMENTAL__.binaryState && !segmentId) {
-      this.emitBinaryVNodeDataScript(this.vNodeDatas.entries());
+    this.writeVNodeDataScript(segmentId, this.vNodeDatas.entries());
+  }
+
+  protected writeVNodeDataScript(
+    segmentId: string | undefined,
+    entries: Iterable<[number, VNodeData]>,
+    patch = false
+  ): void {
+    if (__EXPERIMENTAL__.binaryState) {
+      this.emitBinaryVNodeDataScript(segmentId, entries, patch);
     } else {
-      this.emitVNodeDataScript(segmentId, this.vNodeDatas.entries());
+      this.emitVNodeDataScript(segmentId, entries, patch);
     }
+    if (patch && !segmentId) {
+      this.emitInlineScript(
+        'document.qProcessVNodeDataPatch&&document.qProcessVNodeDataPatch(document.currentScript.previousElementSibling)'
+      );
+    }
+  }
+
+  private openVNodeDataScript(segmentId: string | undefined, patch: boolean): void {
+    const attrs: Props = { type: 'qwik/vnode' };
+    if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
+      attrs[QPendingResolved] = segmentId;
+    }
+    if (patch) {
+      attrs[QStatePatchAttr] = true;
+    }
+    this.openScript(attrs);
   }
 
   /**
@@ -1291,13 +1315,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
    * `BINARY_VNODE_CODES` describes. The tokens are written last first, so that the reader, which
    * reads backwards, gets them in document order.
    */
-  protected emitBinaryVNodeDataScript(entries: Iterable<[number, VNodeData]>): void {
+  protected emitBinaryVNodeDataScript(
+    segmentId: string | undefined,
+    entries: Iterable<[number, VNodeData]>,
+    patch = false
+  ): void {
     const tokens: (number | string)[] = [];
+    // A segment's root ids are its own; the text format maps them when the segment is written out.
+    const rootIdMap = this.vnodeSegment ? this.getSegmentRootIdMap() : null;
     let lastElementIdx = 0;
     let previousRootId = 0;
     const previousRootIdByCode: number[] = [];
     const pushAttrs = (attrs: Props) =>
-      this.forEachVNodeAttr(attrs, (key, value) => {
+      this.forEachVNodeAttr(attrs, (key, value, isRootRef) => {
         const codeIndex = BINARY_VNODE_CODE_INDEXES.get(key) ?? BINARY_VNODE_CODES.length;
         tokens.push((codeIndex + BinaryVNodeOther.FirstCode) * 4 + BinaryVNodeKind.Other);
         if (codeIndex === BINARY_VNODE_CODES.length) {
@@ -1306,6 +1336,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         if (typeof value === 'string') {
           tokens.push(value);
           return;
+        }
+        if (isRootRef && rootIdMap) {
+          value = rootIdMap[value] ?? value;
         }
         // Root ids come in interleaved runs; the closer base keeps the distances small.
         const sameCodeBase = previousRootIdByCode[codeIndex] ?? 0;
@@ -1334,7 +1367,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         this.pushBinaryVNodeTokens(vNodeData, tokens, pushAttrs);
       }
     }
-    this.openScript({ type: 'qwik/vnode' });
+    this.openVNodeDataScript(segmentId, patch);
     const writer = new BinaryStateWriter(
       { $stringEnds$: new Map(), $length$: 0 },
       (text) => this.write(text),
@@ -1403,14 +1436,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     entries: Iterable<[number, VNodeData]>,
     patch = false
   ) {
-    const attrs: Props = { type: 'qwik/vnode' };
-    if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
-      attrs[QPendingResolved] = segmentId;
-    }
-    if (patch) {
-      attrs[QStatePatchAttr] = true;
-    }
-    this.openScript(attrs);
+    this.openVNodeDataScript(segmentId, patch);
     const vNodeAttrsStack: Props[] = [];
     let lastSerializedIdx = 0;
 
@@ -1482,11 +1508,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       }
     }
     this.closeScript();
-    if (patch && !segmentId) {
-      this.emitInlineScript(
-        'document.qProcessVNodeDataPatch&&document.qProcessVNodeDataPatch(document.currentScript.previousElementSibling)'
-      );
-    }
   }
 
   $retainForResume$(node: ISsrNode | null | undefined): void {
@@ -2379,7 +2400,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         continue;
       }
       const sortedEntries = Array.from(entries).sort((a, b) => a[0] - b[0]);
-      this.emitVNodeDataScript(owner, sortedEntries, true);
+      this.writeVNodeDataScript(owner, sortedEntries, true);
     }
   }
 

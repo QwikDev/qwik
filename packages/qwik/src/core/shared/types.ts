@@ -67,7 +67,7 @@ export interface QElement extends Element {
   _qIdle?: boolean;
   _qInit?: boolean;
   _qSegment?: string;
-  _qSegmentVNodeData?: string;
+  _qSegmentVNodeData?: string | number;
   vNode?: VNode;
 }
 

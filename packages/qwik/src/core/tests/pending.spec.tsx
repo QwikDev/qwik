@@ -40,8 +40,10 @@ import { _DomContainer } from '@qwik.dev/core/internal';
 import {
   ErrorProvider,
   emulateExecutionOfBackpatch,
+  getVNodeAttrValues,
   parseStateScript,
 } from '../../testing/rendering.unit-util';
+import { VNodeDataChar } from '../shared/vnode-data-types';
 import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
@@ -2163,7 +2165,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const getVNodeIds = (selector: string) =>
       Array.from(document.querySelectorAll(selector)).flatMap((script) =>
-        Array.from(script.textContent!.matchAll(/=(\d+)/g), (m) => m[1])
+        getVNodeAttrValues(script.textContent!, VNodeDataChar.ID_CHAR)
       );
     const shellIds = getVNodeIds('script[type="qwik/vnode"]:not([q\\:patch]):not([q\\:r])');
     const patchIds = getVNodeIds('script[type="qwik/vnode"][q\\:patch]');

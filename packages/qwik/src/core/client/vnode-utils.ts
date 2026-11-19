@@ -1579,7 +1579,10 @@ export const vnode_materializeSegment = (host: ElementVNode, slot: VirtualVNode)
   if (slot.firstChild) {
     return;
   }
-  materializeFromVNodeData(slot, parseVNodeData(data), element, fastFirstChild(element), segmentId);
+  const record = toVNodeRecord(element, data);
+  if (record) {
+    materializeFromVNodeData(slot, record, element, fastFirstChild(element), segmentId);
+  }
 };
 
 export const splitVNodeData = (vNodeData: string) => {
@@ -1613,13 +1616,10 @@ const materialize = (
   const segmentData = (element as QElement)._qSegmentVNodeData;
   if (__EXPERIMENTAL__.pendingBoundary && segmentData !== undefined) {
     delete (element as QElement)._qSegmentVNodeData;
-    return materializeFromVNodeData(
-      vNode,
-      parseVNodeData(segmentData),
-      element,
-      firstChild,
-      segmentId
-    );
+    const segmentRecord = toVNodeRecord(element, segmentData);
+    return segmentRecord
+      ? materializeFromVNodeData(vNode, segmentRecord, element, firstChild, segmentId)
+      : vFirstChild;
   }
   return vFirstChild;
 };
@@ -2120,8 +2120,8 @@ const toVNodeRecord = (element: Element, vNodeData: string | number): VNodeRecor
     const start = vNodeData % VNODE_TABLE_INDEX_SCALE;
     return table.slice(start, table.indexOf(null, start));
   }
-  // Binary builds only have text vnode data in out-of-order segments.
-  if (__EXPERIMENTAL__.binaryState && !qTest && !__EXPERIMENTAL__.pendingBoundary) {
+  // Only tests hand binary builds text vnode data.
+  if (__EXPERIMENTAL__.binaryState && !qTest) {
     return 0;
   }
   return parseVNodeData(vNodeData as string);

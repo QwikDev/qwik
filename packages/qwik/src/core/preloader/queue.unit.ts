@@ -1229,3 +1229,20 @@ test('before the bundle graph loaded, a stronger hint replaces an earlier hint f
 
   expect(linkNames(document)).toEqual(['card-tasks.js', 'card-render.js']);
 });
+
+test('a weaker hint made before the bundle graph loaded does not reorder what a stronger one reaches', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload('card-events.js', 0.8);
+  preload('card-render.js', 0.5, true);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler', qrls: ['card-render.js', 'card-tasks.js'] },
+      'card-render.js': { kind: 'component' },
+      'card-tasks.js': { kind: 'qrl' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-events.js', 'card-tasks.js', 'card-render.js']);
+});

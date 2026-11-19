@@ -368,6 +368,10 @@ export class BinaryStateReader {
       rootEnds[i] = this.$pos$;
       this.$skip$();
     }
+    // Skipping trusts operand widths; roots must not reach before their script.
+    if (this.$pos$ < this.$chunkStart$ - 1) {
+      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
+    }
     const previousShared = this.$sharedValues$;
     const sharedValues = new Float64Array(previousShared.length + count);
     sharedValues.set(previousShared);

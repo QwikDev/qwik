@@ -456,7 +456,8 @@ describe('binary state', () => {
     // the stream starts with the two units of 1000 and its Int2 code; drop the units
     expect(script.length).toBeGreaterThan(3);
     const tampered = '~' + script.slice(3);
-    expect(() => restore(tampered)[0]).toThrow();
+    // indexing the roots skips the number, so it must already notice
+    expect(() => new BinaryStateReader(tampered)).toThrow();
   });
 
   it('rejects a string length larger than the units that hold the string', async () => {

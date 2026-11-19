@@ -2,6 +2,8 @@
 # for the project. It is a declarative way to define the dependencies.
 # It is used by the `nix develop` command to create a development environment
 # with all the dependencies needed for the project.
+#
+# It also defines everything CI builds (`packages`) and tests (`checks`), see nix/ci.nix.
 
 # To update the dependencies, run `nix flake update`.
 
@@ -60,8 +62,15 @@
             '';
           };
         };
+      # What CI builds and tests; see nix/ci.nix.
+      ci = b.mapAttrs (system: _: import ./nix/ci.nix {
+        pkgs = import nixpkgs { inherit system; overlays = [ (import rust-overlay) ]; };
+      }) nixpkgs.legacyPackages;
     in
     {
       devShells = b.mapAttrs (devShell) nixpkgs.legacyPackages;
+      packages = b.mapAttrs (_: outputs: outputs.packages) ci;
+      checks = b.mapAttrs (_: outputs: outputs.checks) ci;
+      legacyPackages = b.mapAttrs (_: outputs: outputs.legacyPackages) ci;
     };
 }

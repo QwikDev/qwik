@@ -1,0 +1,51 @@
+name: Nix
+description: Installs Nix with the shared build cache, and builds the given flake outputs.
+
+inputs:
+  build:
+    description: Flake outputs to build, space separated. Empty only installs Nix.
+    default: ''
+  from-source:
+    description: Build our own derivations here instead of substituting them from the shared cache.
+    default: 'false'
+  results-name:
+    description: Name of the artifact that holds the test results of a failed build.
+    default: test-results
+
+runs:
+  using: composite
+  steps:
+    - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
+      with:
+        # node_modules and the few builds that need the network run outside the sandbox.
+        extra-conf: sandbox = relaxed
+
+    # Fork PRs cannot reach FlakeHub Cache; they use the GitHub cache, which branch pushes fill.
+    - uses: DeterminateSystems/flakehub-cache-action@f00fba8dc0949d63cbbb7d33da7912417d588d75 # v3.24.2
+      with:
+        use-gha-cache: ${{ github.event_name == 'pull_request' && 'no-preference' || 'enabled' }}
+
+    - name: Build
+      if: inputs.build != ''
+      shell: bash
+      env:
+        TARGETS: ${{ inputs.build }}
+        # Only the nixpkgs cache, so a release never ships an output that a PR run could have cached.
+        SUBSTITUTERS: ${{ inputs.from-source == 'true' && '--option substituters https://cache.nixos.org/' || '' }}
+      run: nix build --print-build-logs --keep-failed $SUBSTITUTERS $TARGETS
+
+    - name: Collect test results
+      if: failure() && inputs.build != ''
+      shell: bash
+      run: |
+        mkdir failed-build
+        sudo find /nix/var/nix/builds -maxdepth 7 -type d -name test-results -exec cp -r --parents {} failed-build \; || true
+        sudo chown -R "$(id -u)" failed-build
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      if: failure() && inputs.build != ''
+      with:
+        name: ${{ inputs.results-name }}
+        path: failed-build
+        if-no-files-found: ignore
+        retention-days: 30

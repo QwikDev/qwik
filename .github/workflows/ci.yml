@@ -1,9 +1,10 @@
 # Build and test everything
 #
-# First it builds the packages and stores them in artifacts/cache.
-# Meanwhile it lints the code.
-# Then it runs the unit tests with the artifacts, as well as builds the docs and insights
-# Once it all works, it does a release
+# Everything that gets built or tested on Linux is a Nix derivation, see nix/ci.nix.
+# A derivation's hash covers exactly its inputs, so "does this need to run?" is "is its output
+# in the build cache?". The plan job asks that for every output and the jobs after it only run
+# what is missing. Windows and macOS have no Nix: their jobs test the packages the Linux build
+# uploads, and skip when a marker keyed by the same hashes says they passed before.
 #
 # NOTE: only use pnpm run scripts for build commands
 # This way we're sure that dev and CI environments are consistent
@@ -40,53 +41,43 @@ on:
 env:
   # Disable incremental build, speeds up CI
   CARGO_INCREMENTAL: 0
+  # Only the jobs without Nix use these; the Nix builds take Node from the flake.
   CI_NODE_VERSION: 24.15.0
   CI_NODE_VERSION_E2E: 22.22.2
-  # Absolute docs URLs (canonical, social images) must match the host deploy-docs.yml publishes to.
-  QWIK_DOCS_ORIGIN: ${{ github.event_name == 'pull_request' && format('https://pr-{0}.qwik-8nx.pages.dev', github.event.pull_request.number) || 'https://next.qwik.dev' }}
 
 permissions:
   contents: read
 
 jobs:
-  changes:
-    name: Setup
+  plan:
+    name: Plan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Lets Nix sign in to FlakeHub Cache.
+      id-token: write
     outputs:
-      hash-qwik: ${{ steps.cache-qwik.outputs.cache-primary-key }}
-      hash-rust: ${{ steps.cache-rust.outputs.cache-primary-key }}
-      hash-others: ${{ steps.cache-others.outputs.cache-primary-key }}
-      hash-docs: ${{ steps.cache-docs.outputs.cache-primary-key }}
-      hash-insights: ${{ steps.cache-insights.outputs.cache-primary-key }}
-      hash-unit: ${{ steps.cache-unit.outputs.cache-primary-key }}
-      hash-bench: ${{ steps.cache-bench.outputs.cache-primary-key }}
-      hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
-      hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
-      hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
-      hash-preloader-e2e: ${{ steps.cache-preloader-e2e.outputs.cache-primary-key }}
-      build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
-      build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
-      build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
-      build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
-      build-preloader-e2e: ${{ steps.cache-preloader-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
+      ci: ${{ steps.plan.outputs.ci }}
+      is-release: ${{ steps.plan.outputs.is-release }}
+      builds: ${{ steps.plan.outputs.builds }}
+      checks: ${{ steps.plan.outputs.checks }}
+      docs-checks: ${{ steps.plan.outputs.docs-checks }}
+      deploy-docs: ${{ steps.plan.outputs.deploy-docs }}
+      key-optimizer: ${{ steps.plan.outputs.key-optimizer }}
+      key-unit: ${{ steps.plan.outputs.key-unit }}
+      key-e2e: ${{ steps.plan.outputs.key-e2e }}
+      key-cli-e2e: ${{ steps.plan.outputs.key-cli-e2e }}
+      test-unit: ${{ steps.unit-passed.outputs.cache-hit != 'true' }}
+      test-e2e: ${{ steps.e2e-passed.outputs.cache-hit != 'true' }}
+      test-cli-e2e: ${{ steps.cli-e2e-passed.outputs.cache-hit != 'true' }}
 
     steps:
-      - name: Branch
-        run: echo "${{ github.ref }}"
-      - name: NPM Dist Tag from input
-        run: echo "${{ github.event.inputs.disttag }}"
-      - name: Github event
-        run: echo event_name=${{ github.event_name }}
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          # A PR is checked out merged; the commit before that is what it is compared to.
+          fetch-depth: 2
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -139,138 +130,148 @@ jobs:
 
           echo "disttag=${disttag}" >> $GITHUB_OUTPUT
 
-      - run: jq .scripts package.json > scripts.json
+      - uses: ./.github/actions/nix
 
-      - name: 'check cache: qwik'
-        id: cache-qwik
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: packages/qwik/dist
-          # Note that this includes the package.json of qwik
-          # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
-          # ts-optimizer is bundled into packages/qwik/dist/ts-optimizer.mjs by the same script, so it must too — otherwise every job that consumes this dist builds against a stale optimizer.
-          # CI-only helpers should not invalidate compiled package output caches.
-          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'packages/ts-optimizer/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
-      - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
-      - name: 'check cache: rust'
-        id: cache-rust
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: packages/optimizer/
-          # The cache also holds dist/*.d.ts built from the TS bridge, so its sources must invalidate it.
-          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/optimizer/src/**', 'packages/optimizer/package.json', 'packages/optimizer/tsconfig.json', 'packages/optimizer/vite.config.ts', 'scripts/submodule-optimizer.ts') }}
-      - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
-      - name: 'check cache: others'
-        id: cache-others
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: |
-            packages/qwik-router/lib
-            packages/qwik-react/lib
-            packages/qwik-utils/lib
-            packages/eslint-plugin-qwik/dist
-            packages/create-qwik/dist
-            packages/devtools/dist
-            packages/mcp/dist
-          # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'packages/mcp/**/*', 'packages/docs/scripts/generate-llms.ts', 'packages/docs/src/routes/**/*', 'packages/docs/src/components/glossary/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
-      - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
-      - name: 'check cache: docs'
-        id: cache-docs
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: docs-build-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'packages/docs/**/*') }}
-      - name: 'check cache: insights'
-        id: cache-insights
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: |
-            packages/insights/dist
-            packages/insights/server
-          key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
-      - name: 'check cache: unit tests'
-        id: cache-unit
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: unit-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'packages/**/*.unit.*', 'packages/**/*.spec.*') }}
-      - name: 'check cache: benchmarks'
-        id: cache-bench
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: bench-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'packages/**/*.bench.*', 'scripts/validate-bench*') }}
-      - name: 'check cache: e2e tests'
-        id: cache-e2e
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'starters/**/*', 'e2e/qwik-e2e/tests/**/*', 'e2e/qwik-e2e/dev-server.ts', 'e2e/qwik-e2e/playwright.config.ts') }}
-      - name: 'check cache: preloader e2e tests'
-        id: cache-preloader-e2e
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: preloader-e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'e2e/preloader-e2e/**/*', 'e2e/qwik-e2e/apps/preloader-test/**/*') }}
-      - name: 'check cache: cli e2e tests'
-        id: cache-cli-e2e
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: cli-e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'e2e/**/*') }}
-      - name: 'check cache: docs e2e tests'
-        id: cache-docs-e2e
-        uses: actions/cache/restore@v5
-        with:
-          lookup-only: true
-          path: docs-e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'e2e/docs-e2e/**/*', 'e2e/preloader-e2e/utils/**/*') }}
+      - name: Find what is not built yet
+        id: plan
+        env:
+          DISTTAG: ${{ steps.set_dist_tag.outputs.disttag }}
+          PUSHED_ONTO: ${{ github.event.before }}
+        run: |
+          # Release builds stamp the plain version, all others a -dev one.
+          case "$DISTTAG" in
+            next | latest) flavor=latest ;;
+            *) flavor=dev ;;
+          esac
+          outPaths='builtins.mapAttrs (_: builtins.mapAttrs (_: drv: drv.outPath))'
+          nix eval --json ".#ci.$flavor" --apply "$outPaths" > paths.json
+          # What this run changes is measured against the commit it builds on, when there is one.
+          base=$([ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse HEAD^1 || echo "$PUSHED_ONTO")
+          nix eval --json "github:$GITHUB_REPOSITORY/${base:-none}#ci.$flavor" --apply "$outPaths" > base-paths.json || echo '{}' > base-paths.json
 
+          # An output that substitutes without building is in the cache: nothing to run for it.
+          missing() {
+            jq -r "$1 | to_entries[] | \"\(.key) \(.value)\"" paths.json | while read -r name path; do
+              nix build --no-link --max-jobs 0 "$path" < /dev/null 2> /dev/null || echo "$name"
+            done | jq -Rnc '[inputs]'
+          }
+          # Compared to the base commit; "unknown" when that one has no such output.
+          changed() {
+            jq -rn --arg path "$1" --slurpfile head paths.json --slurpfile base base-paths.json \
+              '($base[0] | getpath($path / ".")) as $before
+              | if $before == null then "unknown" else $before != ($head[0] | getpath($path / ".")) end'
+          }
+          checks=$(missing .checks)
+
+          {
+            echo "ci=.#ci.$flavor"
+            echo "is-release=$([ $flavor = latest ] && echo true || echo false)"
+            # node_modules is large and dist only repackages the others, so neither is fetched to find out.
+            echo "builds=$(missing '.packages | del(.["node-modules"], .dist)')"
+            echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
+            echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
+            # The cache is shared between branches, so "was built here" does not mean "changed here".
+            echo "deploy-docs=$([ "$(changed packages.docs)" = false ] && echo false || echo true)"
+            # The other platforms key their caches on what the matching Linux output is made from.
+            jq -r '{
+              optimizer: .packages.optimizer,
+              unit: .checks.unit,
+              e2e: .checks["e2e-chromium-ts-1of2"],
+              "cli-e2e": .checks["e2e-adapters-ts-node-1of2"]
+            } | to_entries[] | "key-\(.key)=\(.value | ltrimstr("/nix/store/"))"' paths.json
+          } | tee -a "$GITHUB_OUTPUT"
+
+          # Not reproducible and cached by its inputs: builds after the merge reuse what this run installs.
+          if [ "$GITHUB_EVENT_NAME" = pull_request ] && [ "$(changed packages.node-modules)" = true ]; then
+            echo "::warning title=node_modules changes::This PR installs different dependencies. Review them: once merged, later builds reuse the node_modules that this PR's run installed."
+          fi
+
+      - name: 'check marker: unit tests passed on the other platforms'
+        id: unit-passed
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: tests-passed.txt
+          key: tests-passed-unit-${{ steps.plan.outputs.key-unit }}
+      - name: 'check marker: e2e tests passed on the other platforms'
+        id: e2e-passed
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: tests-passed.txt
+          key: tests-passed-e2e-${{ steps.plan.outputs.key-e2e }}
+      - name: 'check marker: cli e2e tests passed on the other platforms'
+        id: cli-e2e-passed
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: tests-passed.txt
+          key: tests-passed-cli-e2e-${{ steps.plan.outputs.key-cli-e2e }}
+
+  ############ BUILD PACKAGES ############
+  build:
+    name: Build Packages
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      # The optimizer with its Linux binding and wasm, qwik, and the other packages.
+      - uses: ./.github/actions/nix
+        with:
+          build: ${{ needs.plan.outputs.ci }}.packages.dist
+          from-source: ${{ needs.plan.outputs.is-release }}
+
+      - name: Stage the packages
+        run: mkdir artifact-dist && cp -r --no-preserve=mode,ownership result/. artifact-dist
+
+      - name: Upload packages artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact-dist
+          include-hidden-files: true
+          path: artifact-dist/
+          if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
   build-bindings:
-    if: needs.changes.outputs.build-rust == 'true'
+    name: Build optimizer ${{ matrix.settings.target }}
+    needs: plan
     strategy:
       matrix:
         settings:
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            checks: true
-            wasm: true
-
           - host: macos-latest
             target: aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
 
-    name: Build optimizer ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
-
-    needs: changes
 
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1
+      - name: Platform binding cache
+        id: cache
+        uses: actions/cache@v5
         with:
-          components: clippy,rustfmt
+          path: packages/optimizer/bindings
+          key: bindings-${{ matrix.settings.target }}-${{ needs.plan.outputs.key-optimizer }}
+
+      - name: Install Rust toolchain
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        if: steps.cache.outputs.cache-hit != 'true'
       - name: Setup Node
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -278,1400 +279,313 @@ jobs:
           cache-dependency-path: pnpm-*.yaml
           registry-url: https://registry.npmjs.org/
 
-      - run: pnpm install
-
-      - name: Install Wasm build tools
-        if: matrix.settings.wasm
-        run: |
-          rustup target add wasm32-unknown-unknown
-          cargo install wasm-pack --locked
-
-      - name: Lint check
-        if: matrix.settings.checks
-        run: pnpm lint.rust
-
-      - name: Unit tests
-        if: matrix.settings.checks
-        run: pnpm test.rust
-        
-      - name: TS bridge
-        if: matrix.settings.checks
-        run: pnpm build --optimizer
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: pnpm install
 
       - name: Build Platform Binding
+        if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm build --platform-binding
-
-      - name: Build Wasm Binding
-        if: matrix.settings.wasm
-        run: pnpm build --wasm
-
-      - name: Print Packages Dist Build
-        continue-on-error: true
-        run: ls -lR packages/optimizer/bindings/
 
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
           include-hidden-files: true
-          path: |
-            packages/optimizer/bindings
-            packages/optimizer/dist
+          path: packages/optimizer/bindings
           if-no-files-found: error
 
-  ############ BUILD PACKAGE ############
-  combined-optimizer:
-    name: Prepare Optimizer binaries
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    needs:
-      - build-bindings
-      - changes
-
-    steps:
-      - name: Verify builds
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            (
-              (
-                needs.changes.outputs.build-rust == 'true' &&
-                needs.build-bindings.result == 'success'
-              ) ||
-              (
-                needs.changes.outputs.build-rust != 'true' &&
-                needs.build-bindings.result == 'skipped'
-              )
-            )
-          )
-        run: exit 1
-
-      - name: Restore optimizer cache
-        if: needs.changes.outputs.build-rust != 'true'
-        uses: actions/cache/restore@v4
-        with:
-          fail-on-cache-miss: true
-          path: packages/optimizer/
-          key: ${{ needs.changes.outputs.hash-rust }}
-
-      - name: Restore artifacts
-        if: needs.changes.outputs.build-rust == 'true'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-bindings-*'
-          merge-multiple: false
-
-      - name: Move Rust Artifacts
-        if: needs.changes.outputs.build-rust == 'true'
-        run: |
-          mkdir -p packages/optimizer/bindings
-          mkdir -p packages/optimizer/dist
-          for dir in artifact-bindings-*; do
-            if [ -d "$dir" ]; then
-              mv "$dir"/bindings/* packages/optimizer/bindings/
-            fi
-            if [ -d "$dir/dist" ]; then
-              mv "$dir"/dist/* packages/optimizer/dist/
-            fi
-          done
-
-      - name: Save rust cache
-        if: needs.changes.outputs.build-rust == 'true'
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-rust }}
-          path: packages/optimizer/
-
-      - name: Upload optimizer artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-optimizer
-          include-hidden-files: true
-          path: |
-            packages/optimizer/bindings
-            packages/optimizer/dist
-          if-no-files-found: error
-
-  build-other-packages:
-    name: Build Packages
-    needs:
-      - changes
-      - combined-optimizer
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.combined-optimizer.result == 'success'
-          )
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-        if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
-      - name: Setup Node
-        if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Restore optimizer artifact
-        if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: artifact-optimizer
-          path: packages/optimizer/
-
-      - name: Install NPM Dependencies
-        if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
-        run: |
-          # Ensure that the optimizer binary gets made
-          mkdir -p packages/optimizer/bindings/
-          pnpm install --frozen-lockfile
-
-      - name: 'build: qwik and packages'
-        if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
-        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --mcp --set-dist-tag="${{ needs.changes.outputs.disttag }}"
-
-      - name: 'build: qwik'
-        if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others != 'true'
-        # Also build optimizer for now
-        run: pnpm build --qwik --optimizer --insights --set-dist-tag="${{ needs.changes.outputs.disttag }}"
-
-      - name: Restore qwik cache
-        if: needs.changes.outputs.build-qwik != 'true'
-        uses: actions/cache/restore@v5
-        with:
-          fail-on-cache-miss: true
-          path: packages/qwik/dist
-          key: ${{ needs.changes.outputs.hash-qwik }}
-
-      - name: Print Qwik Dist Build
-        continue-on-error: true
-        run: tree -a packages/qwik/dist/
-
-      - name: Save qwik cache
-        if: needs.changes.outputs.build-qwik == 'true'
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-qwik }}
-          path: packages/qwik/dist
-
-      - name: Upload Qwik artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-qwik
-          include-hidden-files: true
-          path: packages/qwik/dist/
-          if-no-files-found: error
-
-      - name: 'build: qwik-router & others'
-        if: needs.changes.outputs.build-others == 'true' && needs.changes.outputs.build-qwik != 'true'
-        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --mcp --set-dist-tag="${{ needs.changes.outputs.disttag }}"
-      - name: Save others cache
-        if: needs.changes.outputs.build-others == 'true'
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-others }}
-          path: |
-            packages/qwik-router/lib
-            packages/qwik-react/lib
-            packages/qwik-utils/lib
-            packages/eslint-plugin-qwik/dist
-            packages/create-qwik/dist
-            packages/devtools/dist
-            packages/mcp/dist
-
-      - name: 'restore: qwik-router & others'
-        if: needs.changes.outputs.build-others != 'true'
-        uses: actions/cache/restore@v5
-        with:
-          path: |
-            packages/qwik-router/lib
-            packages/qwik-react/lib
-            packages/qwik-utils/lib
-            packages/eslint-plugin-qwik/dist
-            packages/create-qwik/dist
-            packages/devtools/dist
-            packages/mcp/dist
-          key: ${{ needs.changes.outputs.hash-others }}
-
-      - name: Print QwikRouter Lib Build
-        run: tree -a packages/qwik-router/lib/
-
-      - name: Upload QwikRouter Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-qwikrouter
-          include-hidden-files: true
-          path: packages/qwik-router/lib/
-          if-no-files-found: error
-
-      - name: Print qwik-react Lib Build
-        run: tree -a packages/qwik-react/lib/
-
-      - name: Upload qwik-react Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-qwikreact
-          include-hidden-files: true
-          path: |
-            packages/qwik-react/lib/
-          if-no-files-found: error
-
-      - name: Print qwik-utils Lib Build
-        run: tree -a packages/qwik-utils/lib/
-
-      - name: Upload qwik-utils Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-qwikutils
-          include-hidden-files: true
-          path: |
-            packages/qwik-utils/lib/
-          if-no-files-found: error
-
-      - name: Print Create Qwik CLI Dist Build
-        run: tree -a packages/create-qwik/dist/
-
-      - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-create-qwik
-          include-hidden-files: true
-          path: packages/create-qwik/dist/
-          if-no-files-found: error
-
-      - name: Print Eslint rules Dist Build
-        run: tree -a packages/eslint-plugin-qwik/dist/
-
-      - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-eslint-plugin-qwik
-          include-hidden-files: true
-          path: packages/eslint-plugin-qwik/dist/
-          if-no-files-found: error
-
-      - name: Print devtools Dist Build
-        run: tree -a packages/devtools/dist/
-
-      - name: Upload devtools Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-devtools
-          include-hidden-files: true
-          path: packages/devtools/dist/
-          if-no-files-found: error
-
-      - name: Upload MCP Build Artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: artifact-mcp
-          path: packages/mcp/dist/
-          if-no-files-found: error
-
-  ############ BUILD INSIGHTS ############
-  build-insights:
-    if: ${{ !cancelled() && needs.changes.outputs.build-insights == 'true' }}
-    name: Build Insights
-    needs:
-      - changes
-      - build-other-packages
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success'
-          )
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
-      - name: Build Qwik Insights
-        run: pnpm run build.packages.insights
-
-      - name: Verify Cloudflare bundle
-        run: pnpm -C packages/insights run deploy.dry-run
-        env:
-          WRANGLER_SEND_METRICS: 'false'
-
-      - name: Save Insights Cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-insights }}
-          path: |
-            packages/insights/dist
-            packages/insights/server
-
-  ############ BUILD DOCS ############
+  ############ BUILD DOCS AND INSIGHTS ############
   build-docs:
-    if: ${{ !cancelled() && needs.changes.outputs.build-docs == 'true' }}
-    name: Build Docs
+    name: Build Docs and Insights
     needs:
-      - changes
-      - build-other-packages
+      - plan
+      - build
+    if: |
+      !cancelled() && needs.build.result == 'success' && (
+        needs.plan.outputs.deploy-docs == 'true' ||
+        contains(fromJSON(needs.plan.outputs.builds), 'docs') ||
+        contains(fromJSON(needs.plan.outputs.builds), 'insights')
+      )
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success'
-          )
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/nix
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
+          build: ${{ needs.plan.outputs.ci }}.packages.docs ${{ needs.plan.outputs.ci }}.packages.insights
 
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
+      - name: Stage the docs
+        if: needs.plan.outputs.deploy-docs == 'true'
+        env:
+          # The host deploy-docs.yml publishes a PR preview to.
+          PREVIEW_ORIGIN: ${{ github.event_name == 'pull_request' && format('https://pr-{0}.qwik-8nx.pages.dev', github.event.pull_request.number) || '' }}
+        run: |
+          cp -r --no-preserve=mode,ownership result/packages/docs artifact-docs
+          # PRs share one docs build, so a preview gets its absolute URLs (canonical, social images) here.
+          if [ -n "$PREVIEW_ORIGIN" ]; then
+            grep -rlZ 'https://next.qwik.dev' artifact-docs/dist | xargs -0 -r sed -i "s#https://next.qwik.dev#$PREVIEW_ORIGIN#g"
+          fi
 
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
-      - name: Build Qwik Docs
-        run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
-
+      # deploy-docs.yml deploys this
       - name: Save Docs Artifacts
+        if: needs.plan.outputs.deploy-docs == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact-docs
           include-hidden-files: true
           path: |
-            packages/docs/dist
-            packages/docs/server
+            artifact-docs/dist
+            artifact-docs/server
+          if-no-files-found: error
 
-      - name: Save Docs Cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-docs }}
-          path: docs-build-completed.txt
-
-  ############ PLAYWRIGHT BROWSER CACHE ############
-  prepare-playwright:
-    name: Prepare Playwright (${{ matrix.settings.host }}, ${{ matrix.settings.browser }})
-    if: |
-      !cancelled() && (
-        needs.changes.outputs.build-e2e == 'true' ||
-        needs.changes.outputs.build-cli-e2e == 'true' ||
-        needs.changes.outputs.build-docs-e2e == 'true' ||
-        needs.changes.outputs.build-preloader-e2e == 'true'
-      )
+  ############ LINUX TESTS ############
+  # Unit tests, benchmarks, lint and every e2e suite: one job per check that is not cached.
+  check:
+    timeout-minutes: 60
+    name: ${{ matrix.check }}
     needs:
-      - changes
-
+      - plan
+      - build
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.plan.outputs.checks != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        settings:
-          - host: ubuntu-latest
-            browser: chromium
-          - host: ubuntu-latest
-            browser: firefox
-          - host: windows-latest
-            browser: chromium
-          - host: macos-latest
-            browser: webkit
-
-    runs-on: ${{ matrix.settings.host }}
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+        check: ${{ fromJSON(needs.plan.outputs.checks) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Verify prerequisites
-        if: needs.changes.result != 'success'
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - name: Restore Playwright browser cache
-        id: playwright-cache
-        uses: actions/cache/restore@v5
+      - uses: ./.github/actions/nix
         with:
-          key: playwright-${{ runner.os }}-${{ matrix.settings.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
+          build: ${{ needs.plan.outputs.ci }}.checks.${{ matrix.check }}
+          results-name: test-results-${{ matrix.check }}
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-      - name: Setup Node
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION_E2E }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Install NPM Dependencies
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install ${{ matrix.settings.browser }}
-
-      - name: Save Playwright browser cache
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
-        continue-on-error: true
-        with:
-          key: playwright-${{ runner.os }}-${{ matrix.settings.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
-
-  ############ DOCS E2E TEST ############
-  test-e2e-docs:
-    timeout-minutes: 15
-    name: Docs E2E Tests (shard ${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }})
-    if: ${{ !cancelled() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true' }}
+  check-docs:
+    timeout-minutes: 30
+    name: ${{ matrix.check }}
     needs:
-      - changes
+      - plan
+      - build
       - build-docs
-      - build-other-packages
-      - prepare-playwright
+    # build-docs is skipped when the docs are already built.
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.build-docs.result != 'failure' && needs.plan.outputs.docs-checks != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        shard:
-          - shard: 1
-            shardTotal: 2
-          - shard: 2
-            shardTotal: 2
+        check: ${{ fromJSON(needs.plan.outputs.docs-checks) }}
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            needs.build-docs.result == 'success' &&
-            needs.prepare-playwright.result == 'success'
-          )
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/nix
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Download Docs Artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: artifact-docs
-          path: artifact-docs
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-          artifact-docs
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Restore Playwright browser cache
-        id: playwright-cache
-        uses: actions/cache/restore@v5
-        with:
-          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
-
-      - name: Install Playwright System Dependencies
-        if: runner.os == 'Linux'
-        timeout-minutes: 10
-        uses: ./.github/actions/install-playwright-deps
-        with:
-          browser: chromium
-
-      - name: Install Playwright Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium
-
-      - name: Docs E2E Tests
-        run: pnpm exec playwright test --config=e2e/docs-e2e/playwright.config.ts --project=chromium --shard=${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }}
-
-      - name: Upload Playwright Trace
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: failure()
-        with:
-          name: docs-playwright-report-${{ matrix.shard.shard }}-${{ matrix.shard.shardTotal }}
-          path: e2e/docs-e2e/test-results/
-          retention-days: 30
-
-  save-docs-e2e-tests-cache:
-    name: Save Docs E2E Tests Cache
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - test-e2e-docs
-    if: ${{ !cancelled() && needs.changes.outputs.build-docs-e2e == 'true' && needs.test-e2e-docs.result == 'success' }}
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-e2e-docs.result == 'success'
-          )
-        run: exit 1
-
-      - name: Mark docs e2e tests complete
-        run: echo ok > docs-e2e-tests-completed.txt
-
-      - name: Save docs e2e tests cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-docs-e2e }}
-          path: docs-e2e-tests-completed.txt
+          build: ${{ needs.plan.outputs.ci }}.checks.${{ matrix.check }}
+          results-name: test-results-${{ matrix.check }}
 
   ############ UNIT TEST ############
   test-unit:
-    name: Unit Tests
-    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' }}
-    strategy:
-      matrix:
-        settings:
-          - host: ubuntu-latest
-          - host: windows-latest
-
-    runs-on: ${{ matrix.settings.host }}
+    name: Unit Tests (windows-latest)
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.build-bindings.result == 'success' && needs.plan.outputs.test-unit == 'true' }}
+    runs-on: windows-latest
     needs:
-      - changes
-      - build-other-packages
+      - plan
+      - build
+      - build-bindings
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success'
-          )
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/built-checkout
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
 
       - name: Unit Tests
         run: pnpm run test.unit
-
-      - name: MCP browser and stdio tests
-        if: matrix.settings.host == 'ubuntu-latest'
-        run: |
-          pnpm exec playwright install --with-deps chromium
-          pnpm test.mcp
-
-  save-unit-tests-cache:
-    name: Save Unit Tests Cache
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - test-unit
-    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success' }}
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-unit.result == 'success'
-          )
-        run: exit 1
-
-      - name: Mark unit tests complete
-        run: echo ok > unit-tests-completed.txt
-
-      - name: Save unit tests cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-unit }}
-          path: unit-tests-completed.txt
-
-  ############ BENCHMARK TEST ############
-  test-bench:
-    name: Benchmark Tests
-    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' }}
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - build-other-packages
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success'
-          )
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Timing Benchmarks
-        run: pnpm run test.bench.timing
-
-      - name: Memory Benchmarks
-        run: pnpm run test.bench.memory
-
-  save-bench-cache:
-    name: Save Benchmark Cache
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - test-bench
-    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success' }}
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-bench.result == 'success'
-          )
-        run: exit 1
-
-      - name: Mark benchmarks complete
-        run: echo ok > bench-tests-completed.txt
-
-      - name: Save benchmarks cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-bench }}
-          path: bench-tests-completed.txt
 
   ############ E2E TEST ############
   test-e2e:
     # Sometimes the tests just hang
     timeout-minutes: 20
-    name: E2E Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' }}
+    name: E2E Tests (${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.build-bindings.result == 'success' && needs.plan.outputs.test-e2e == 'true' }}
 
     needs:
-      - build-other-packages
-      - changes
-      - prepare-playwright
+      - plan
+      - build
+      - build-bindings
 
     strategy:
       fail-fast: false
       matrix:
         settings:
-          - optimizer: ts
-            host: ubuntu-latest
+          - host: windows-latest
             browser: chromium
             shard: 1
             shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
+          - host: windows-latest
             browser: chromium
             shard: 2
             shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: firefox
-            shard: 1
-            shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: firefox
-            shard: 2
-            shardTotal: 2
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 1
-            shardTotal: 2
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 2
-            shardTotal: 2
-          - optimizer: ts
-            host: macos-latest
+          - host: macos-latest
             browser: webkit
             shard: 1
             shardTotal: 4
-          - optimizer: ts
-            host: macos-latest
+          - host: macos-latest
             browser: webkit
             shard: 2
             shardTotal: 4
-          - optimizer: ts
-            host: macos-latest
+          - host: macos-latest
             browser: webkit
             shard: 3
             shardTotal: 4
-          - optimizer: ts
-            host: macos-latest
+          - host: macos-latest
             browser: webkit
             shard: 4
             shardTotal: 4
-
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: chromium
-            shard: 1
-            shardTotal: 2
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: chromium
-            shard: 2
-            shardTotal: 2
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: firefox
-            shard: 1
-            shardTotal: 2
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: firefox
-            shard: 2
-            shardTotal: 2
     runs-on: ${{ matrix.settings.host }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            needs.prepare-playwright.result == 'success'
-          )
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/built-checkout
         with:
           node-version: ${{ env.CI_NODE_VERSION_E2E }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Restore Playwright browser cache
-        id: playwright-cache
-        uses: actions/cache/restore@v5
-        with:
-          key: playwright-${{ runner.os }}-${{ matrix.settings.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
-
-      - name: Install Playwright System Dependencies
-        if: runner.os == 'Linux'
-        timeout-minutes: 10
-        uses: ./.github/actions/install-playwright-deps
-        with:
           browser: ${{ matrix.settings.browser }}
 
-      - name: Install Playwright Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install ${{ matrix.settings.browser }}
-
       - name: Playwright E2E Tests
-        env:
-          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
         run: pnpm exec playwright test e2e/qwik-e2e/tests --browser=${{ matrix.settings.browser }} --config=e2e/qwik-e2e/playwright.config.ts --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
 
       - name: Upload Playwright Trace
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: failure() # only when tests fail
         with:
-          name: playwright-report-${{ matrix.settings.optimizer }}-${{ matrix.settings.host }}-${{ matrix.settings.browser }}-${{ matrix.settings.shard }}-${{ matrix.settings.shardTotal }}
-          path: test-results/ # or test-results/ depending on your config
-          retention-days: 30
- 
-      - name: Print E2E Builds
-        run: tree -a e2e/qwik-e2e/apps/e2e/dist e2e/qwik-e2e/apps/e2e/server e2e/qwik-e2e/apps/qwikrouter-test/dist e2e/qwik-e2e/apps/qwikrouter-test/server
-        if: failure()
-
-  test-e2e-preloader:
-    timeout-minutes: 45
-    name: E2E Preloader Tests (chromium)
-    if: ${{ !cancelled() && needs.changes.outputs.build-preloader-e2e == 'true' }}
-
-    needs:
-      - build-other-packages
-      - changes
-      - prepare-playwright
-
-    runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            needs.prepare-playwright.result == 'success'
-          )
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION_E2E }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Restore Playwright browser cache
-        id: playwright-cache
-        uses: actions/cache/restore@v5
-        with:
-          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
-
-      - name: Install Playwright System Dependencies
-        timeout-minutes: 10
-        uses: ./.github/actions/install-playwright-deps
-        with:
-          browser: chromium
-
-      - name: Install Playwright Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium
-
-      - name: Playwright Preloader E2E Tests
-        run: pnpm test.e2e.preloader
-
-      - name: Upload Playwright Traces
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: failure()
-        with:
-          name: playwright-report-preloader
-          path: test-results/preloader/
+          name: playwright-report-${{ matrix.settings.host }}-${{ matrix.settings.browser }}-${{ matrix.settings.shard }}-${{ matrix.settings.shardTotal }}
+          path: test-results/
           retention-days: 30
 
   test-cli-e2e:
     timeout-minutes: 30
-    name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' }}
+    name: E2E CLI Tests (${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.build-bindings.result == 'success' && needs.plan.outputs.test-cli-e2e == 'true' }}
 
     needs:
-      - build-other-packages
-      - changes
-      - prepare-playwright
+      - plan
+      - build
+      - build-bindings
 
     strategy:
       fail-fast: false
       matrix:
         settings:
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: true
-            run-qwik-react: true
-            shard: 1
-            shardTotal: 2
-            cliShard: 1
-            cliShardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: true
-            run-qwik-react: true
-            shard: 2
-            shardTotal: 2
-            cliShard: 2
-            cliShardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: bun
-            integration-config: e2e/adapters-e2e/playwright.bun.config.ts
-            run-cli: false
-            run-qwik-react: false
-            shard: 1
-            shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: bun
-            integration-config: e2e/adapters-e2e/playwright.bun.config.ts
-            run-cli: false
-            run-qwik-react: false
-            shard: 2
-            shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: deno
-            integration-config: e2e/adapters-e2e/playwright.deno.config.ts
-            run-cli: false
-            run-qwik-react: false
-            shard: 1
-            shardTotal: 2
-          - optimizer: ts
-            host: ubuntu-latest
-            browser: chromium
-            runtime: deno
-            integration-config: e2e/adapters-e2e/playwright.deno.config.ts
-            run-cli: false
-            run-qwik-react: false
-            shard: 2
-            shardTotal: 2
-          - optimizer: ts
-            host: macos-latest
+          - host: macos-latest
             browser: webkit
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
             run-cli: true
-            run-qwik-react: true
             shard: 1
             shardTotal: 1
             cliShard: 1
             cliShardTotal: 1
-          - optimizer: ts
-            host: windows-latest
+          - host: windows-latest
             browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
             run-cli: true
-            run-qwik-react: true
             shard: 1
             shardTotal: 4
             cliShard: 1
             cliShardTotal: 2
-          - optimizer: ts
-            host: windows-latest
+          - host: windows-latest
             browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
             run-cli: true
-            run-qwik-react: true
             shard: 2
             shardTotal: 4
             cliShard: 2
             cliShardTotal: 2
-          - optimizer: ts
-            host: windows-latest
+          - host: windows-latest
             browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
             run-cli: false
-            run-qwik-react: true
             shard: 3
             shardTotal: 4
-          - optimizer: ts
-            host: windows-latest
+          - host: windows-latest
             browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
             run-cli: false
-            run-qwik-react: true
             shard: 4
             shardTotal: 4
-
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: false
-            run-qwik-react: true
-            shard: 1
-            shardTotal: 2
-          - optimizer: rust
-            host: ubuntu-latest
-            browser: chromium
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: false
-            run-qwik-react: true
-            shard: 2
-            shardTotal: 2
     runs-on: ${{ matrix.settings.host }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.build-other-packages.result == 'success' &&
-            needs.prepare-playwright.result == 'success'
-          )
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/built-checkout
         with:
           node-version: ${{ env.CI_NODE_VERSION_E2E }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Setup Bun
-        if: matrix.settings.runtime == 'bun'
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: latest
-
-      - name: Setup Deno
-        if: matrix.settings.runtime == 'deno'
-        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
-        with:
-          deno-version: v2.x
-
-      - name: Restore Playwright browser cache
-        id: playwright-cache
-        uses: actions/cache/restore@v5
-        with:
-          key: playwright-${{ runner.os }}-${{ matrix.settings.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
-          path: .cache/ms-playwright
-
-      - name: Install Playwright System Dependencies
-        if: runner.os == 'Linux'
-        timeout-minutes: 10
-        uses: ./.github/actions/install-playwright-deps
-        with:
           browser: ${{ matrix.settings.browser }}
 
-      - name: Install Playwright Browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install ${{ matrix.settings.browser }}
-
       - name: Playwright E2E Integration Tests
-        env:
-          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
-        run: pnpm exec playwright test e2e/adapters-e2e/tests --project=${{ matrix.settings.browser }} --config=${{ matrix.settings.integration-config }} --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
+        run: pnpm exec playwright test e2e/adapters-e2e/tests --project=${{ matrix.settings.browser }} --config=e2e/adapters-e2e/playwright.config.ts --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
 
       - name: Playwright E2E Qwik React Tests
-        if: matrix.settings.run-qwik-react
-        env:
-          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
         run: pnpm exec playwright test e2e/qwik-react-e2e/tests --project=${{ matrix.settings.browser }} --config=e2e/qwik-react-e2e/playwright.config.ts --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
+
       - name: CLI E2E Tests
         if: matrix.settings.run-cli
         run: pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts --shard=${{ matrix.settings.cliShard }}/${{ matrix.settings.cliShardTotal }}
         env:
           PW_BROWSER: ${{ matrix.settings.browser }}
 
-  save-e2e-tests-cache:
-    name: Save E2E Tests Cache
+  # Linux results are cached by Nix. These markers do the same for the other platforms.
+  mark-tests-passed:
+    name: Save Passed Test Markers
     runs-on: ubuntu-latest
     needs:
-      - changes
+      - plan
+      - test-unit
       - test-e2e
-    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success' }}
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-e2e.result == 'success'
-          )
-        run: exit 1
-
-      - name: Mark e2e tests complete
-        run: echo ok > e2e-tests-completed.txt
-
-      - name: Save e2e tests cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-e2e }}
-          path: e2e-tests-completed.txt
-
-  save-preloader-e2e-tests-cache:
-    name: Save Preloader E2E Tests Cache
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - test-e2e-preloader
-    if: ${{ !cancelled() && needs.changes.outputs.build-preloader-e2e == 'true' && needs.test-e2e-preloader.result == 'success' }}
-
-    steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-e2e-preloader.result == 'success'
-          )
-        run: exit 1
-
-      - name: Mark preloader e2e tests complete
-        run: echo ok > preloader-e2e-tests-completed.txt
-
-      - name: Save preloader e2e tests cache
-        uses: actions/cache/save@v5
-        with:
-          key: ${{ needs.changes.outputs.hash-preloader-e2e }}
-          path: preloader-e2e-tests-completed.txt
-
-  save-cli-e2e-tests-cache:
-    name: Save CLI E2E Tests Cache
-    runs-on: ubuntu-latest
-    needs:
-      - changes
       - test-cli-e2e
-    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success' }}
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
 
     steps:
-      - name: Verify prerequisites
-        if: |
-          !(
-            needs.changes.result == 'success' &&
-            needs.test-cli-e2e.result == 'success'
-          )
-        run: exit 1
+      - run: echo ok > tests-passed.txt
 
-      - name: Mark cli e2e tests complete
-        run: echo ok > cli-e2e-tests-completed.txt
-
-      - name: Save cli-e2e tests cache
+      - name: Save unit tests marker
+        if: needs.test-unit.result == 'success'
         uses: actions/cache/save@v5
         with:
-          key: ${{ needs.changes.outputs.hash-cli-e2e }}
-          path: cli-e2e-tests-completed.txt
+          key: tests-passed-unit-${{ needs.plan.outputs.key-unit }}
+          path: tests-passed.txt
 
-  ########### LINT PACKAGES ############
-  lint-package:
-    name: Lint Package
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - name: Save e2e tests marker
+        if: needs.test-e2e.result == 'success'
+        uses: actions/cache/save@v5
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
+          key: tests-passed-e2e-${{ needs.plan.outputs.key-e2e }}
+          path: tests-passed.txt
 
-      - run: pnpm install --frozen-lockfile
-
-      - name: "Verify pnpm dedupe"
-        if: ${{ !cancelled() }}
-        run: NPM_CONFIG_USERCONFIG=/dev/null pnpm --config.platform=linux --config.arch=x64 dedupe --check
-
-      - name: SyncPack Check
-        if: ${{ !cancelled() }}
-        run: pnpm run lint.syncpack
-
-      - name: Prettier Check
-        if: ${{ !cancelled() }}
-        run: pnpm run lint.prettier
-
-      - name: Build ESLint
-        if: ${{ !cancelled() }}
-        run: pnpm build --eslint
-
-      - name: ESLint Check
-        if: ${{ !cancelled() }}
-        run: pnpm run lint.eslint
+      - name: Save cli e2e tests marker
+        if: needs.test-cli-e2e.result == 'success'
+        uses: actions/cache/save@v5
+        with:
+          key: tests-passed-cli-e2e-${{ needs.plan.outputs.key-cli-e2e }}
+          path: tests-passed.txt
 
   ############ RELEASE ############
   release:
@@ -1683,11 +597,14 @@ jobs:
       pull-requests: write
 
     needs:
-      - changes
+      - plan
+      - build
+      - build-bindings
+      - check
       - test-unit
       - test-e2e
       - test-cli-e2e
-    # test-unit runs when any packages changes, so we have to release
+    # the tests run when any package changes, so we have to release
     # on "upcoming", we always check if we have something to release
     # don't run on forks
     if: |
@@ -1695,15 +612,20 @@ jobs:
       github.event_name != 'pull_request' &&
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/main' ||
-        needs.test-unit.result == 'success' || 
-        needs.test-unit.result == 'skipped'
+        needs.check.result == 'success' || 
+        needs.check.result == 'skipped'
       )
 
     steps:
       - name: Verify prerequisites
         if: |
           !(
-            needs.changes.result == 'success' &&
+            needs.build.result == 'success' &&
+            needs.build-bindings.result == 'success' &&
+            (
+              needs.check.result == 'success' ||
+              needs.check.result == 'skipped'
+            ) &&
             (
               needs.test-unit.result == 'success' ||
               needs.test-unit.result == 'skipped'
@@ -1722,35 +644,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: ./.github/actions/built-checkout
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools,mcp}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-          artifact-devtools
-          artifact-mcp
-
-      - run: pnpm install --frozen-lockfile
 
       # Do this before other release steps to avoid
       # publishing temporary files
@@ -1783,51 +679,24 @@ jobs:
       pull-requests: write
 
     needs:
-      - changes
-      - combined-optimizer
-      - build-other-packages
+      - build
+      - build-bindings
 
     # Publish previews as soon as the build is ready, regardless of test status.
     if: |
       !cancelled() &&
       github.repository == 'QwikDev/qwik' &&
       github.event_name != 'workflow_dispatch' &&
-      (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&
-      needs.build-other-packages.result == 'success'
+      needs.build.result == 'success' &&
+      needs.build-bindings.result == 'success'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-      - name: Setup Node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: ./.github/actions/built-checkout
         with:
           node-version: 24.x
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-*.yaml
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download Package Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools,mcp}'
-          merge-multiple: false
-
-      - name: Move Distribution Artifacts
-        run: >
-          pnpm ci.restore-artifacts
-          artifact-optimizer
-          artifact-qwik
-          artifact-qwikrouter
-          artifact-qwikreact
-          artifact-qwikutils
-          artifact-create-qwik
-          artifact-eslint-plugin-qwik
-          artifact-devtools
-          artifact-mcp
-
-      - run: pnpm install --frozen-lockfile
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
@@ -1845,7 +714,6 @@ jobs:
     if: github.ref == 'refs/heads/upcoming'
 
     needs:
-      - changes
       - release
 
     steps:
@@ -1861,28 +729,18 @@ jobs:
     name: All requirements are met
     runs-on: ubuntu-latest
     needs:
-      - test-unit
-      - test-bench
-      - test-e2e
-      - test-e2e-preloader
-      - test-e2e-docs
-      - test-cli-e2e
-      - lint-package
+      - plan
+      - build
+      - build-bindings
       - build-docs
-      - build-insights
+      - check
+      - check-docs
+      - test-unit
+      - test-e2e
+      - test-cli-e2e
     if: always()
     steps:
+      # Skipped is fine: there was nothing to do.
       - name: check status
-        if: |
-          !(
-            (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
-            (needs.test-bench.result == 'success' || needs.test-bench.result == 'skipped') &&
-            (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
-            (needs.test-e2e-preloader.result == 'success' || needs.test-e2e-preloader.result == 'skipped') &&
-            (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&
-            (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
-            (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
-            (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
-            (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')
-          )
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1

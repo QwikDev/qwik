@@ -323,6 +323,15 @@ describe('binary state', () => {
       }
     });
 
+    it('accepts the next patch after a patch that fails to read', async () => {
+      const [shell, first] = await stream([1], [2]);
+      const { reader, state } = open(shell);
+      const broken = first.slice(0, -1) + String.fromCharCode(BinaryCode.Num0 + 1);
+      expect(() => reader.$addPatch$(broken)).toThrow();
+      expect(reader.$addPatch$(first)).not.toBeNull();
+      expect(Array.from(state)).toEqual([1, 2]);
+    });
+
     it('keeps the strings of the accepted state when a patch is rejected', async () => {
       const text = 'long '.repeat(800);
       const roots = Array.from({ length: 20 }, () => ({ text }));
@@ -428,6 +437,20 @@ describe('binary state', () => {
     const tampered =
       script.slice(0, -2) + String.fromCharCode(BinaryCode.Num0 + 17) + script.slice(-1);
     expect(() => new BinaryStateReader(tampered)).toThrow();
+  });
+
+  it('rejects a root list whose ArrayEnd is missing', async () => {
+    const script = await serialize(1);
+    const tampered = script.slice(0, -1) + String.fromCharCode(BinaryCode.Num0 + 1);
+    expect(() => new BinaryStateReader(tampered)).toThrow();
+  });
+
+  it('rejects a number whose units are missing', async () => {
+    const script = await serialize(1000);
+    // the stream starts with the two units of 1000 and its Int2 code; drop the units
+    expect(script.length).toBeGreaterThan(3);
+    const tampered = '~' + script.slice(3);
+    expect(() => restore(tampered)[0]).toThrow();
   });
 
   it('rejects a string length larger than the units that hold the string', async () => {

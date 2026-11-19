@@ -164,7 +164,7 @@ export class BinaryStateReader {
   constructor(text?: string) {
     if (text) {
       this.$appendScript$(text);
-      this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the root list
+      this.$seekArrayEnd$(this.$unitCount$ - 1);
       this.$appendRoots$();
     }
   }
@@ -180,26 +180,26 @@ export class BinaryStateReader {
     const previousUnitCount = this.$unitCount$;
     const previousUnitsRead = this.$unitsRead$;
     this.$appendScript$(text);
-    this.$seek$(this.$unitCount$ - 2); // before the ArrayEnd of the patch
-    this.$openArray$();
-    const extraRootId = this.$restore$(null!, -1, false) as number | undefined;
-    const forwardRefs = this.$restore$(null!, -1, false) as Array<number | string> | 0;
-    const rootListEnd = this.$pos$;
-    this.$skip$();
-    const rootStart = this.$restore$(null!, -1, false);
-    if (rootStart !== this.$rootEnds$.length) {
-      this.$chunks$.pop();
-      this.$chunkEnd$ = 0;
-      this.$unitCount$ = previousUnitCount;
-      this.$unitsRead$ = previousUnitsRead;
-      // What was remembered about these offsets belongs to the rejected script.
-      forgetFrom(this.$skippedArrayStarts$, previousUnitCount);
-      forgetFrom(this.$referencedStrings$, previousUnitCount);
-      return null;
-    }
-    this.$pos$ = rootListEnd - 1;
+    let extraRootId: number | undefined;
+    let forwardRefs: Array<number | string> | 0;
     const firstRoot = this.$rootEnds$.length;
-    this.$appendRoots$();
+    try {
+      this.$seekArrayEnd$(this.$unitCount$ - 1);
+      this.$openArray$();
+      extraRootId = this.$restore$(null!, -1, false) as number | undefined;
+      forwardRefs = this.$restore$(null!, -1, false) as Array<number | string> | 0;
+      const rootListEnd = this.$pos$;
+      this.$skip$();
+      if (this.$restore$(null!, -1, false) !== firstRoot) {
+        this.$dropScriptsFrom$(previousUnitCount, previousUnitsRead);
+        return null;
+      }
+      this.$pos$ = rootListEnd - 1;
+      this.$appendRoots$();
+    } catch (error) {
+      this.$dropScriptsFrom$(previousUnitCount, previousUnitsRead);
+      throw error;
+    }
     this.$onRootsAdded$();
     // A new root can be a value that was already restored inside its parent. Settle those now:
     // the offsets of restored values are forgotten once the stream is done.
@@ -218,11 +218,26 @@ export class BinaryStateReader {
    * `$readNext$`.
    */
   $openArrayRoot$(rootIndex: number): number {
-    this.$seek$(this.$rootEnds$[rootIndex]);
+    this.$seekArrayEnd$(this.$rootEnds$[rootIndex]);
+    return this.$openArray$();
+  }
+
+  /** Positions right before the ArrayEnd code at `end`, which must be there. */
+  private $seekArrayEnd$(end: number): void {
+    this.$seek$(end);
     if (this.$unit$(this.$pos$--) !== BinaryCode.ArrayEnd) {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
-    return this.$openArray$();
+  }
+
+  /** Forgets a rejected state patch: its units, its work and what was remembered about them. */
+  private $dropScriptsFrom$(unitCount: number, unitsRead: number): void {
+    this.$chunks$.pop();
+    this.$chunkEnd$ = 0;
+    this.$unitCount$ = unitCount;
+    this.$unitsRead$ = unitsRead;
+    forgetFrom(this.$skippedArrayStarts$, unitCount);
+    forgetFrom(this.$referencedStrings$, unitCount);
   }
 
   /** Restores the plain value at the current position and moves before it. */
@@ -334,6 +349,14 @@ export class BinaryStateReader {
   private $appendRoots$(): void {
     const skippedArrayStarts = this.$skippedArrayStarts$;
     this.$skippedArrayStarts$ = null;
+    try {
+      this.$indexRoots$();
+    } finally {
+      this.$skippedArrayStarts$ = skippedArrayStarts || new Map();
+    }
+  }
+
+  private $indexRoots$(): void {
     const firstRoot = this.$rootEnds$.length;
     const count = this.$openArray$();
     if (firstRoot + count >= MAX_ROOTS) {
@@ -370,7 +393,6 @@ export class BinaryStateReader {
     }
     this.$rootEnds$ = rootEnds;
     this.$sharedValues$ = sharedValues.slice(0, sharedCount).sort();
-    this.$skippedArrayStarts$ = skippedArrayStarts || new Map();
   }
 
   /** The root that owns the nested value ending at `end`, or -1. */
@@ -391,7 +413,15 @@ export class BinaryStateReader {
     return found < key + MAX_ROOTS ? found - key : -1;
   }
 
+  /** Rejects an operand that would start before the chunk that holds the current position. */
+  private $checkOperand$(unitCount: number): void {
+    if (this.$pos$ - unitCount + 1 < this.$chunkStart$) {
+      throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
+    }
+  }
+
   protected $uint$(unitCount: number): number {
+    this.$checkOperand$(unitCount);
     let value = 0;
     for (let i = 0; i < unitCount; i++) {
       value = value * 128 + this.$unit$(this.$pos$ - i);
@@ -475,6 +505,7 @@ export class BinaryStateReader {
   }
 
   protected $float$(): number {
+    this.$checkOperand$(10);
     let bits = 0;
     let bitCount = 0;
     let byteIndex = 0;

@@ -78,12 +78,8 @@ const _hf2 = (p0, p1)=>p1.stuff === void 0 ? p0 : p1.stuff;
 const _hf2_str = "p1.stuff===void 0?p0:p1.stuff";
 const _hf3 = (p0, p1)=>p1.other === void 0 ? p0 : p1.other;
 const _hf3_str = "p1.other===void 0?p0:p1.other";
+const getValue = ()=>0;
 //
-const q_DynamicDefaults_component_nZOHO1uiqf4 = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_nZOHO1uiqf4");
-const q_DynamicDefaults_component_useTask_Od2wjq7X07c = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_useTask_Od2wjq7X07c");
-const q_NoWorks2_component_JPD9t2HyEKg = /*#__PURE__*/ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
-const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /*#__PURE__*/ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
-const q_ReferencedDefault_component_xTfXU3xq5Ow = /*#__PURE__*/ _noopQrl("ReferencedDefault_component_xTfXU3xq5Ow");
 const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
 const q_Works_component_useTask_pjo5U5Ikll0 = /*#__PURE__*/ _noopQrl("Works_component_useTask_pjo5U5Ikll0");
 //
@@ -119,6 +115,11 @@ q_Works_component_t45qL4vNGv0.s((_rawProps)=>{
         override: true
     }, _wrapProp(_rawProps, "count"), 0, "u6_0");
 });
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+//
+const q_NoWorks2_component_JPD9t2HyEKg = /*#__PURE__*/ _noopQrl("NoWorks2_component_JPD9t2HyEKg");
+const q_NoWorks2_component_useTask_lXiqwbxxjq0 = /*#__PURE__*/ _noopQrl("NoWorks2_component_useTask_lXiqwbxxjq0");
+//
 q_NoWorks2_component_useTask_lXiqwbxxjq0.s(({ track })=>{
     let count = _capturesObj._[0];
     track(()=>count);
@@ -133,13 +134,17 @@ q_NoWorks2_component_JPD9t2HyEKg.s(({ count, stuff: { hey } })=>{
         class: count
     }, null, count, 1, "u6_1");
 });
+export const NoWorks2 = /*#__PURE__*/ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
+//
+const q_DynamicDefaults_component_nZOHO1uiqf4 = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_nZOHO1uiqf4");
+const q_DynamicDefaults_component_useTask_Od2wjq7X07c = /*#__PURE__*/ _noopQrl("DynamicDefaults_component_useTask_Od2wjq7X07c");
+//
 q_DynamicDefaults_component_useTask_Od2wjq7X07c.s(({ track })=>{
     let _defaultValue = _capturesObj._[0], _defaultValue1 = _capturesObj._[1], _rawProps = _capturesObj._[2];
     track(()=>_rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff);
     track(()=>_rawProps.other === void 0 ? _defaultValue1 : _rawProps.other);
     console.log(_rawProps.count, _rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff, _rawProps.other === void 0 ? _defaultValue1 : _rawProps.other);
 });
-const getValue = ()=>0;
 q_DynamicDefaults_component_nZOHO1uiqf4.s((_rawProps)=>{
     const _defaultValue = untrack(()=>_rawProps.stuff) === void 0 ? getValue() : void 0;
     const _defaultValue1 = untrack(()=>_rawProps.other) === void 0 ? getValue() : void 0;
@@ -159,18 +164,19 @@ q_DynamicDefaults_component_nZOHO1uiqf4.s((_rawProps)=>{
         _rawProps
     ], _hf3_str), 1, "u6_2");
 });
+export const DynamicDefaults = /*#__PURE__*/ componentQrl(q_DynamicDefaults_component_nZOHO1uiqf4);
+//
+const q_ReferencedDefault_component_xTfXU3xq5Ow = /*#__PURE__*/ _noopQrl("ReferencedDefault_component_xTfXU3xq5Ow");
+//
 q_ReferencedDefault_component_xTfXU3xq5Ow.s(({ first = getValue(second), second })=>/*#__PURE__*/ _jsxSorted("div", null, null, [
         first,
         second
     ], 1, "u6_3"));
-export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
-export const NoWorks2 = /*#__PURE__*/ componentQrl(q_NoWorks2_component_JPD9t2HyEKg);
-export const DynamicDefaults = /*#__PURE__*/ componentQrl(q_DynamicDefaults_component_nZOHO1uiqf4);
 export const ReferencedDefault = /*#__PURE__*/ componentQrl(q_ReferencedDefault_component_xTfXU3xq5Ow);
 export { getValue as _auto_getValue };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;sBAMC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;0BAeiB,2BAAA;;0BAAoB,2BAAA;;;;;;;;;;;wCApB7D,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;kDAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cAH2C,6CAAA;IAIjD,MAAM,cAJ+D,8CAAA;IAKrE,QAAQ,GAAG,WAL+B,iBAAO,6CAAA,iBAAoB,8CAAA;;AA7BvE,MAAM,WAAW,IAAM;0CA6BmB;gDAAS,oBAAQ;iDAAY,oBAAe;IACrF,QAAQ,GAAG,WADuC,6CAAA;IAElD;;;;;IAKA,qBACC,WAAC;QAAI,KAAK;;;;;;;;AAEZ;4CAE4C,CAAC,EAAC,QAAQ,SAAS,OAAO,EAAE,MAAM,EAAC,iBAC9E,WAAC;QAAK;QAAO;;AAzCd,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,gCAAkB,sDAU5B;AAEH,OAAO,MAAM,kCAAoB,wDAE9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;sBAMC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;0BAeiB,2BAAA;;0BAAoB,2BAAA;;AA7BvE,MAAM,WAAW,IAAM;;;;;wCASb,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;AAfA,OAAO,MAAM,sBAAQ,4CAelB;;;;;2CAIO,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;AATA,OAAO,MAAM,yBAAW,+CASrB;;;;;kDAIO,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cAH2C,6CAAA;IAIjD,MAAM,cAJ+D,8CAAA;IAKrE,QAAQ,GAAG,WAL+B,iBAAO,6CAAA,iBAAoB,8CAAA;;0CAA7B;gDAAS,oBAAQ;iDAAY,oBAAe;IACrF,QAAQ,GAAG,WADuC,6CAAA;IAElD;;;;;IAKA,qBACC,WAAC;QAAI,KAAK;;;;;;;;AAEZ;AAVA,OAAO,MAAM,gCAAkB,sDAU5B;;;;4CAEyC,CAAC,EAAC,QAAQ,SAAS,OAAO,EAAE,MAAM,EAAC,iBAC9E,WAAC;QAAK;QAAO;;AADd,OAAO,MAAM,kCAAoB,wDAE9B\"}")
 == DIAGNOSTICS ==
 
 []

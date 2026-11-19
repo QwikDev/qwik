@@ -25,13 +25,14 @@ import { formActionQrl } from "forms";
 import { qrl } from "@qwik.dev/core";
 import { translate } from 'i18n';
 //
+translate();
+//
 const q_action_formAction_dIQV5vh1He4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
 //
-translate();
 export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,SAAS,QAAQ,OAAO;;;;AAEvB;AACV,OAAO,MAAM,SAAS,+CAOnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,SAAS,QAAQ,OAAO;;AAEvB;;;;AACV,OAAO,MAAM,SAAS,+CAOnB\"}")
 ============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
 
 import { translate } from "i18n";

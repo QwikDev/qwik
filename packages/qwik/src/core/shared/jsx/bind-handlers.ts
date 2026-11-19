@@ -1,4 +1,6 @@
 import { _capturesObj, deserializeCaptureDeltas, setCaptures } from '../../shared/qrl/qrl-class';
+import { resQrl } from '../qrl/handler-qrls';
+import type { QRL } from '../qrl/qrl.public';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { getDomContainer, whenContainerDataReady } from '../../client/dom-container';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
@@ -68,3 +70,10 @@ export function _res(this: string | undefined, _: any, element: Element) {
     }
   });
 }
+
+/**
+ * The `q-d:qidle` handler that resumes the given state roots, created in core so it is a segment.
+ *
+ * @internal
+ */
+export const _resumeRootsQrl = (roots: unknown[]): QRL<typeof _res> => resQrl().w([...roots]);

@@ -239,6 +239,16 @@ describe('SSR Container', () => {
     }
   });
 
+  it("hands the core handlers a segment's events run through to the root container", () => {
+    const { root, first } = createVNodeIdContexts();
+    const handler = _createQRL(null, 's_segment_handler', () => 0);
+    first.serializationCtx.$coreHandlerQrls$.set(handler.$hash$, handler);
+
+    Reflect.get(first, '$mergeSegmentEventData$').call(first, root, first.serializationCtx);
+
+    expect([...root.serializationCtx.$coreHandlerQrls$.values()]).toEqual([handler]);
+  });
+
   it('includes only committed segments in the shell serialization scope', () => {
     const { container: root } = createTestContainer();
     expect(Object.hasOwn(root.serializationCtx, '$scope$')).toBe(false);

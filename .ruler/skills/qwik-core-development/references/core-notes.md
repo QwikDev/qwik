@@ -165,12 +165,15 @@ When a core value gains serialized state:
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
 4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
-The serializer is its own bundle so browser apps only load it inside the segments that call it
-(e.g. `server$`). Like `src/server/`, it takes runtime values from `@qwik.dev/core/internal` (as
-`_name` exports tagged `@internal`) so classes and flyweights keep one identity; only
-`serializer/qwik-copy.ts` (const enums, identity-free helpers) and `serializer/qwik-types.ts` may
-import core through `../`. `pnpm build.core` names any core module outside the server's copyable
-directories that ends up in the serializer bundle.
+The serializer is its own entry so browser apps only load it inside the segments that call it
+(e.g. `server$`). It and `src/server/` are entries of core's library build
+(`scripts/submodule-core.ts`), so a core module they import, through `../` or
+`@qwik.dev/core/internal`, stays in core's chunk and keeps one identity. Every variant has every
+entry, under the same package conditions as core: an entry
+resolved to another variant would bundle a second core (the browser imports the server through
+the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
+keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
+decide those (the qwik e2e server runs core.prod with `isDev` true); only core's chunks bake them in.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.
@@ -238,6 +241,47 @@ Out-of-order (OOOS) invariants:
   render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
+- Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform. They declare
+  each core QRL at module level, eagerly, right before the first top-level statement referencing
+  it (even when the `$()` sits in a lazy arrow), or at the very top when a function declaration
+  that core exports references it. So the bundle must define the QRL machinery (`createQRL`,
+  `inlinedQrl`) before any statement holding a QRL site: only put core `$()` sites in modules
+  bundled after `shared/qrl/qrl.ts`, never inside a function declaration reachable from core's
+  exports. Rolldown orders the `qrl-class` import cycle from where it is first entered, so
+  `core/index.ts` enters it through `handler-qrls.ts`, whose first import is `./qrl`; keep terser's
+  `join_vars` off so no QRL site shares a `const` list with that machinery. `core-hoisting.unit.ts`
+  evaluates the transformed core on every variant (dev, `.prod`, `.min`) with the TS optimizer, and
+  with the Rust one only when its bindings are built (`pnpm build.rust` or
+  `pnpm build.platform.copy`; CI always has them). Run it after `build.core` when touching QRL
+  creation, core's import order or the core minifier, since a dev build makes the variants plain
+  copies.
+- Each core variant imports itself through `@qwik.dev/core`, so never point a variant at another
+  with an `export *` stub: the self-import cycles through the stub. Terser runs per chunk, so its
+  mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
+  `$props$` must avoid plain property names of every chunk, not just the one being minified.
+- Write core's own QRLs with `$()`, `component$()` and `useTask$()` imported from their relative
+  modules. `scripts/core-library-qrls.ts` compiles them in library mode, for core's build and for
+  the unit tests (`vitest.config.ts`), so each app's optimizer extracts them like any library's. A
+  `foo$` marker needs `fooQrl` exported from the same module: the optimizer imports it from there.
+  In the unit tests core's modules load unbundled, so a QRL created at the top level of a module
+  that `qrl-class.ts` imports transitively runs before `createQRL` exists: create it on first use.
+  That only helps unbundled loads; the app optimizer still declares it eagerly in the bundle.
+- Functions that read their own captures (the qwikloader calls them with the captures as `this`)
+  get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Write every other QRL,
+  like the control-flow components', inline at its `$()` site, so its segment owns the code.
+- Core has no chunk group: its chunks are ordinary bundles in the graph. An event attribute's QRLs
+  go into `serializationCtx.$eventQrls$`, including `_run`, which the attribute lists next to the
+  handler, and `preloaderPost` hints their bundles to the preloader. Keep the two kinds of SSR links
+  apart. The bundle of each of core's handlers a page's events run through
+  (`$coreHandlerQrls$`), with its static imports, is linked as the page streams whatever
+  `ssrPreloads` is: every interaction needs core. `ssrPreloads` (0 by default) only adds the first
+  bundles the client queue would fetch, ranked on the server with `getPreloadOrder` (same
+  probabilities, shared preloader state reset per call). The preloader e2e suite counts the round
+  trips that depend on this.
+- What every app needs to be interactive belongs in core's chunk; what only some apps use is its
+  own segment. An `import()` inside core is a cut point the preloads don't follow, so don't split
+  code every interaction needs behind one: measured on the preloader app, re-render code in its own
+  chunk cost more bytes than it saved and didn't change first-click latency.
 
 ## Focused Verification
 

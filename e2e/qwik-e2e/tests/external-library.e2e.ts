@@ -20,6 +20,22 @@ test.describe('externalized qwik library', () => {
     await expect(page.locator('#lib-task-runs')).toHaveText('2');
   });
 
+  test("the external library's bind:value and bind:checked render and update their signals", async ({
+    page,
+  }) => {
+    assertNoBrowserErrors(page);
+    await page.goto('/external-library/');
+
+    await expect(page.locator('#lib-bind-value')).toHaveValue('from the library');
+    await expect(page.locator('#lib-bind-checked')).not.toBeChecked();
+
+    await page.locator('#lib-bind-value').fill('edited');
+    await page.locator('#lib-bind-checked').check();
+
+    await expect(page.locator('#lib-bound-text')).toHaveText('edited');
+    await expect(page.locator('#lib-bound-checked')).toHaveText('true');
+  });
+
   test('a router link from the external library navigates without a reload', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto('/external-library/');

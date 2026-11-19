@@ -4,6 +4,7 @@ import {
   chunkComesFrom,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
+  getCoreBundle,
   getManifest,
   ORIGIN,
 } from '../utils/app';
@@ -59,7 +60,7 @@ const DOCS_LAYOUT_SOURCES = [
   'src/components/fixtures/navigation/docs-sidebar.tsx',
 ];
 
-const coreUrl = () => `${ORIGIN}/build/${getManifest().core}`;
+const coreUrl = () => `${ORIGIN}/build/${getCoreBundle()}`;
 const preloaderUrl = () => `${ORIGIN}/build/${getManifest().preloader}`;
 const bundleGraphUrl = () => `${ORIGIN}/${getManifest().bundleGraphAsset}`;
 
@@ -463,6 +464,22 @@ test.describe('early click on a handler with static imports', () => {
     );
     expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
     expect(helperRoundTrip).toBe(handlerRoundTrip + 1);
+  });
+});
+
+test.describe('page still streaming', () => {
+  test('core is requested once the page has a handler, before the stream ends', async ({
+    page,
+  }) => {
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(request.url()));
+    await page.goto(STREAMING.path, { waitUntil: 'commit' });
+    try {
+      await expect.poll(() => requests).toContain(coreUrl());
+      await expect(page.locator('[data-testid=stream-end]')).toHaveCount(0);
+    } finally {
+      await page.request.get(`${ORIGIN}/streaming/release/`);
+    }
   });
 });
 

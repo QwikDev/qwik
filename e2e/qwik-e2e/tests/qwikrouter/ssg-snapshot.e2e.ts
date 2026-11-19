@@ -16,7 +16,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 33800;
 // Core without the `binaryState` flag, which is what apps ship by default.
-const CORE_JSON_BROTLI_BUDGET = 32500;
+const CORE_JSON_BROTLI_BUDGET = 32200;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -132,18 +132,12 @@ test.describe('router ssg snapshot', () => {
   });
 
   test('core chunk brotli size stays within budget', async () => {
-    const manifest = JSON.parse(await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8'));
-    const coreFile = manifest.core as string | undefined;
-    expect(coreFile, 'q-manifest.json should expose `core`').toBeTruthy();
-
-    await checkBrotliBudget('core', coreFile!, CORE_BROTLI_BUDGET);
+    await checkBrotliBudget('core', await findCoreFile(distDir), CORE_BROTLI_BUDGET);
   });
 
   test('core chunk brotli size of the default build stays within budget', async () => {
-    const manifest = JSON.parse(
-      await readFile(resolve(jsonStateDistDir, 'q-manifest.json'), 'utf-8')
-    );
-    await checkBrotliBudget('core_json', manifest.core, CORE_JSON_BROTLI_BUDGET, jsonStateDistDir);
+    const coreFile = await findCoreFile(jsonStateDistDir);
+    await checkBrotliBudget('core_json', coreFile, CORE_JSON_BROTLI_BUDGET, jsonStateDistDir);
   });
 
   test('qwikloader chunk brotli size stays within budget', async () => {
@@ -154,6 +148,16 @@ test.describe('router ssg snapshot', () => {
     await checkBrotliBudget('qwikloader', qwikLoaderFile!, QWIKLOADER_BROTLI_BUDGET);
   });
 });
+
+async function findCoreFile(outDir: string): Promise<string> {
+  const manifest = JSON.parse(await readFile(resolve(outDir, 'q-manifest.json'), 'utf-8'));
+  const bundles: Record<string, { origins?: string[] }> = manifest.bundles;
+  const coreFile = Object.keys(bundles).find((file) =>
+    bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
+  );
+  expect(coreFile, 'some bundle should contain core').toBeTruthy();
+  return coreFile!;
+}
 
 /**
  * Brotli size guardrail. The bundle's brotli size must stay at or below `budget`. If it grows past

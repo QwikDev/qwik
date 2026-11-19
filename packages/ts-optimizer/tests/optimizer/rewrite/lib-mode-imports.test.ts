@@ -38,6 +38,25 @@ const STYLES = '.class {}';
     expect(code).toMatch(/import \{ useTaskQrl \} from ["']@qwik\.dev\/core["']/);
   });
 
+  it('imports inlinedQrl once when a bind: handler already imports it', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$(() => {
+  const text = useSignal('');
+  return <input bind:value={text} />;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      mode: 'lib',
+      transpileTs: true,
+      transpileJsx: true,
+    });
+    const code = findParent(result).code;
+    expect(code.match(/import \{[^}]*\binlinedQrl\b[^}]*\}/g)).toHaveLength(1);
+  });
+
   it('strips bare `$` (no marker-function semantics) under lib mode', () => {
     const input = `
 import { $, component$ } from '@qwik.dev/core';

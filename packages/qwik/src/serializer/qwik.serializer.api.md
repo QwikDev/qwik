@@ -74,6 +74,7 @@ export interface SerializationContext {
     $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
     // (undocumented)
     $commitRoot$: (root: unknown, obj: unknown) => number;
+    $coreHandlerQrls$: Map<string, QRL>;
     // (undocumented)
     $eagerResume$: Set<unknown>;
     // (undocumented)

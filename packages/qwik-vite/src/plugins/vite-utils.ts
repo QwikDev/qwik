@@ -176,7 +176,7 @@ export const shortenChunkName = (name: string) => {
 };
 
 // A user chunk with these names would hijack the manifest.
-const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
+const RESERVED_CHUNK_NAMES = new Set(['qwikloader', 'qwik-preloader']);
 
 /** Segment name to chunk group name, avoiding reserved names. */
 export const sanitizeChunkGroupName = (name: string | null | undefined) => {

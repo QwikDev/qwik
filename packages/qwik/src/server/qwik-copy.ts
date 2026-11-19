@@ -1,15 +1,8 @@
 /**
  * @file
  *
- *   Importing directly from `qwik` is not allowed because the SSR package would end up with two
- *   copies of the code. Instead, the SSR package should import from `@qwik.dev/core`.
- *
- *   The exception to this rule is importing types, because those get elided by TypeScript. To make
- *   ensuring that this rule is followed, this file is the only place where relative `../` imports
- *   of types only are allowed.
- *
- *   Some code is OK to import and make a copy of because it will have no adverse affect. This file
- *   lists code which we are OK to have duplicated.
+ *   Core modules the server imports directly. Core's build bundles the server as an entry, so these
+ *   resolve to core's own modules, the same ones `@qwik.dev/core` exports.
  */
 
 export {

@@ -1356,6 +1356,7 @@ function rewriteParent(
     isLibMode: emit.isLibMode,
     keepRelativeSideEffects:
       emit.isInlineStrategy && !!(options.stripCtxName?.length || options.stripEventHandlers),
+    declareQrlsBeforeFirstUse: true,
   });
   const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
   const removedImportSources = collectRemovedImportSources(

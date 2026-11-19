@@ -45,8 +45,6 @@ export interface CatchStore {
 
 export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<CatchStore>('qk-error');
 
-export const CATCH_QRL_SYMBOL = '_caC';
-
 const safeRead = <T>(read: () => T, fallback: T): T => {
   try {
     return read();

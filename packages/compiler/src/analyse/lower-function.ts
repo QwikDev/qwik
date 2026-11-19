@@ -123,7 +123,8 @@ export function lowerFunctionQrl(
     throw new UnsupportedError('a bodyless QRL callback');
   }
   const { captures, functions, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
-  ctx = createCapturedContext(ctx, captures);
+  // Its JSX renders wherever the function is called, never under the tags around it.
+  ctx = { ...createCapturedContext(ctx, captures), elementStack: [] };
   if (refs.capturedWrite !== null) {
     throw new InvalidModuleError(
       'mutable-capture',

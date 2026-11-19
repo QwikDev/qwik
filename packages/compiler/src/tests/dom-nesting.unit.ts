@@ -29,6 +29,8 @@ test.each([
   '<nobr><b><nobr /></b></nobr>',
   '<select><option><select /></option></select>',
   '<form><table><tbody><tr><td><form /></td></tr></tbody></table></form>',
+  '<p>{props.ok ? <div /> : null}</p>',
+  '<p>{props.ok ?? <div />}</p>',
 ])('diagnoses nesting the parser would restructure: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.kind).toBe(ModuleKind.Failed);
@@ -56,6 +58,14 @@ test.each([
   '<nobr><table><tbody><tr><th><nobr /></th></tr></tbody></table></nobr>',
 ])('accepts valid nesting: %s', async (jsx) => {
   const plan = await compile(jsx);
+  expect(plan.diagnostics).toEqual([]);
+});
+
+test.each([
+  `export default () => <p><button onClick$={() => console.log(<div />)}>x</button></p>;`,
+  `export default () => { const row = () => <div />; return <p><button onClick$={() => console.log(row())}>x</button></p>; };`,
+])('checks JSX in a function where it renders, not where it is written: %s', async (code) => {
+  const plan = await analyseModule({ path: 'component.tsx', code }, {});
   expect(plan.diagnostics).toEqual([]);
 });
 

@@ -39,10 +39,11 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
 - A new check gets a job by itself: the plan job lists every entry of `checks`. Only add workflow
   code for a platform without Nix.
 - PR runs can write the shared cache, so every branch run builds its packages with `from-source`.
-  Keep what a branch publishes to npm on the `artifact-dist` of its own run. Do not rely on that
-  for the docs site or for PR previews (pkg.pr.new): those come from the shared cache.
+  Keep what a branch publishes to npm on the `artifact-dist` of its own run. PR previews
+  (pkg.pr.new) download that artifact too, but on a PR run its packages can come from the shared
+  cache. The docs site deploys `artifact-docs`, which every run builds from the shared cache.
 - The builds leave `*.unit.*` files out of their sources so a test edit does not rebuild them. The
-  `typecheck` check is what type-checks those files.
+  `typecheck` check type-checks the ones that the qwik, router and root `tsconfig.json` include.
 
 ## Traps
 

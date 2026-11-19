@@ -4,6 +4,7 @@ import {
   BoundaryKind,
   BoundaryRole,
   DeliveryKind,
+  type LinkedHook,
   type LinkedModule,
   type LinkedQrl,
   type QrlUse,
@@ -37,14 +38,7 @@ export function emitQrlChunks(
   // A declaration without a symbol splices over its authored range; a nested component prints
   // inline where its `component$` call stood.
   return module.qrls
-    .filter(
-      (qrl) =>
-        (qrl.declaration === undefined || isComponentSegment(qrl)) &&
-        qrl.boundary.kind !== BoundaryKind.Sync &&
-        !isInlineComponent(qrl) &&
-        qrl.delivery.d !== DeliveryKind.Stripped &&
-        qrl.delivery.d !== DeliveryKind.Omit
-    )
+    .filter((qrl) => isPrinted(qrl) && hasOwnChunk(qrl))
     .map((qrl) => {
       const path = `${module.path}_${chunkSymbolName(qrl)}.js`;
       const assembled = assembleGeneratedModule(
@@ -65,6 +59,38 @@ export function emitQrlChunks(
         segment: getSegmentAnalysis(module, qrl, options, mapRange),
       };
     });
+}
+
+function isPrinted(qrl: LinkedQrl): boolean {
+  return qrl.delivery.d !== DeliveryKind.Stripped && qrl.delivery.d !== DeliveryKind.Omit;
+}
+
+/** A QRL without its own chunk prints inside the file of its nearest chunked ancestor. */
+function hasOwnChunk(qrl: LinkedQrl): boolean {
+  return (
+    (qrl.declaration === undefined || isComponentSegment(qrl)) &&
+    qrl.boundary.kind !== BoundaryKind.Sync &&
+    !isInlineComponent(qrl)
+  );
+}
+
+/** The QRL and hook bodies one file prints: a chunk's (`chunk`), or the main module's (`null`). */
+export function fileBodies(
+  module: LinkedModule,
+  chunk: LinkedQrl | null
+): Set<LinkedQrl | LinkedHook> {
+  const bodies = new Set<LinkedQrl | LinkedHook>(chunk === null ? module.hooks : []);
+  for (const qrl of module.qrls) {
+    let host: LinkedQrl | undefined = qrl;
+    while (host !== undefined && !hasOwnChunk(host)) {
+      const parent: string | null = host.parent;
+      host = module.qrls.find((candidate) => candidate.id === parent);
+    }
+    if (isPrinted(qrl) && (host ?? null) === chunk) {
+      bodies.add(qrl);
+    }
+  }
+  return bodies;
 }
 
 /** Maps a normalized range to the authored source; built once per module, it scans the source. */
@@ -237,7 +263,14 @@ function chunkModuleCode(
   const selfImport = `import { ${name} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
   const selfRegistration = `q_${name}.s(${name});`;
   const importLines = [
-    ...(emission.imports.size === 0 ? [] : [coreImportLine(module, emission.imports)]),
+    ...(emission.imports.size === 0
+      ? []
+      : [
+          coreImportLine(module, emission.imports, {
+            declared: [...bindings, ...qrl.captures.map((capture) => capture.binding)],
+            bodies: fileBodies(module, qrl),
+          }),
+        ]),
     ...emission.chunkImports.filter((line) => line !== selfImport),
     ...bindingImports,
   ];

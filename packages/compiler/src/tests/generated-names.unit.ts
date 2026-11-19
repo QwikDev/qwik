@@ -2,13 +2,14 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 
-async function compile(isServer: boolean, code: string) {
+async function compile(isServer: boolean, code: string, entryStrategy = 'segment') {
   const output = await transformModules({
     srcDir: 'src',
     sourceMaps: false,
     transpileTs: true,
     transpileJsx: true,
     isServer,
+    entryStrategy: { type: entryStrategy as 'segment' },
     input: [{ path: 'src/app.tsx', code }],
   });
   return output.modules.map((module) => module.code).join('\n');
@@ -22,12 +23,13 @@ describe('runtime helper names', () => {
   ];
   const component = (
     moduleLine: string,
-    local = ''
+    local = '',
+    handler = 'count.value++'
   ) => `import { component$, useSignal } from '@qwik.dev/core';
 ${moduleLine}
 export const A = component$((props: { label: string }) => {
   const count = useSignal(0);${local}
-  return <button onClick$={() => count.value++}>{props.label}</button>;
+  return <button onClick$={() => ${handler}}>{props.label}</button>;
 });
 `;
 
@@ -35,7 +37,10 @@ export const A = component$((props: { label: string }) => {
     'refuses an import that collides with a runtime helper (server: $isServer)',
     async ({ isServer, helper }) => {
       await expect(
-        compile(isServer, component(`import { ${helper} } from './analytics';`))
+        compile(
+          isServer,
+          component(`import { ${helper} } from './analytics';`, `\n  console.log(${helper});`)
+        )
       ).rejects.toThrow(`named "${helper}": it collides with a Qwik runtime helper`);
     }
   );
@@ -57,6 +62,50 @@ export const A = component$((props: { label: string }) => {
         component(`export const twin = (${helper}: unknown) => ${helper};`)
       );
       expect(code).toContain(`twin = (${helper}) => ${helper}`);
+    }
+  );
+
+  test.each([
+    [false, 'segment'],
+    [false, 'inline'],
+    [false, 'hoist'],
+    [true, 'segment'],
+    [true, 'inline'],
+    [true, 'hoist'],
+  ])(
+    'keeps a handler local named like a helper only the render uses (server: %s, %s)',
+    async (isServer, entryStrategy) => {
+      const code = await compile(
+        isServer,
+        `import { component$ } from '@qwik.dev/core';
+export const A = component$(() => (
+  <button onClick$={() => { const setEvent = 'clicked'; console.log(setEvent); }}>x</button>
+));
+`,
+        entryStrategy
+      );
+      expect(code).toMatch(/const setEvent = ["']clicked["']/);
+    }
+  );
+
+  test.each([false, true])(
+    'refuses a handler local that would shadow a helper the handler uses (server: %s)',
+    async (isServer) => {
+      // The handler restores its captures through `_capturesObj`.
+      await expect(
+        compile(
+          isServer,
+          component('', '', `{ const _capturesObj = 1; count.value += _capturesObj; }`)
+        )
+      ).rejects.toThrow(`named "_capturesObj": it collides with a Qwik runtime helper`);
+    }
+  );
+
+  test.each([false, true])(
+    'keeps a Qrl twin whose parameter is named qrl (server: %s)',
+    async (isServer) => {
+      const code = await compile(isServer, component('export const useLocalQrl = (qrl) => qrl;'));
+      expect(code).toContain('useLocalQrl = (qrl) => qrl');
     }
   );
 

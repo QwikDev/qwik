@@ -1,5 +1,6 @@
 import {
   AssemblyKind,
+  BindingScope,
   DeclarationKind,
   DeliveryKind,
   type Environment,
@@ -8,6 +9,7 @@ import {
   type LinkedPlan,
   ModuleKind,
   type LinkedQrl,
+  type LocalId,
   StripValueForm,
 } from '../schema';
 import { EsmEdgeKind } from '../schema';
@@ -19,6 +21,7 @@ import {
   componentSegmentImport,
   componentSegmentsByBinding,
   emitQrlChunks,
+  fileBodies,
   isComponentSegment,
 } from './qrl-chunks';
 import {
@@ -260,7 +263,14 @@ export function assembleQwikModule(
   let prefix = '';
   if (parts.imports.size > 0 || parts.chunkImports.length > 0 || parts.hoists.length > 0) {
     const importLines = [
-      ...(parts.imports.size === 0 ? [] : [coreImportLine(module, parts.imports)]),
+      ...(parts.imports.size === 0
+        ? []
+        : [
+            coreImportLine(module, parts.imports, {
+              declared: moduleScopeBindings(module),
+              bodies: fileBodies(module, null),
+            }),
+          ]),
       ...parts.chunkImports,
     ];
     let header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
@@ -341,6 +351,14 @@ function componentSegmentReference(
         ? `export { ${name} };`
         : '',
   };
+}
+
+function moduleScopeBindings(module: LinkedModule): LocalId[] {
+  return module.bindings
+    .filter(
+      (binding) => binding.scope === BindingScope.Import || binding.scope === BindingScope.Module
+    )
+    .map((binding) => binding.id);
 }
 
 function componentPropsName(module: LinkedModule, qrl: LinkedQrl): string | null {

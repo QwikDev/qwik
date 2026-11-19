@@ -2,7 +2,9 @@ import {
   BindingScope,
   ExportKind,
   ExportTargetKind,
+  type LinkedHook,
   type LinkedModule,
+  type LinkedQrl,
   type LocalId,
   type Range,
 } from '../schema';
@@ -56,21 +58,28 @@ export function planModuleBindingExports(
   return { names, code: additions.length === 0 ? '' : `\nexport { ${additions.join(', ')} };\n` };
 }
 
-/** The runtime import line; every name it binds must be free of authored bindings. */
-export function coreImportLine(module: LinkedModule, specifiers: ReadonlySet<string>): string {
-  const bodies = [
-    ...module.qrls.map((qrl) => qrl.origin.range),
-    ...module.hooks.map((hook) => hook.range),
-  ];
+/** One generated file: the bindings it declares or imports, and the bodies it prints. */
+export interface FileScope {
+  declared: readonly LocalId[];
+  bodies: ReadonlySet<LinkedQrl | LinkedHook>;
+}
+
+/** The runtime import line; no name it binds may be declared beside it or shadowed in a body. */
+export function coreImportLine(
+  module: LinkedModule,
+  specifiers: ReadonlySet<string>,
+  file: FileScope
+): string {
   for (const specifier of specifiers) {
     const [imported, local = imported] = specifier.split(' as ');
-    const collision = module.bindings.find(
+    const isDeclared = file.declared.some(
       (binding) =>
-        binding.name === local &&
-        !isCoreImportOf(module, binding.id, imported) &&
-        reachesGeneratedCode(binding, bodies)
+        module.bindings[binding].name === local && !isCoreImportOf(module, binding, imported)
     );
-    if (collision !== undefined) {
+    const isShadowed = module.bindings.some(
+      (binding) => binding.name === local && isLocalInBodies(module, binding, file.bodies)
+    );
+    if (isDeclared || isShadowed) {
       // shortcut: refused, not aliased; aliasing needs every helper site to read an allocated name.
       throw new UnsupportedError(
         `an authored binding named "${local}": it collides with a Qwik runtime helper; rename it`
@@ -80,18 +89,37 @@ export function coreImportLine(module: LinkedModule, specifiers: ReadonlySet<str
   return `import { ${[...specifiers].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`;
 }
 
-/** A module-scope name reaches every emitted line; a local only the QRL or hook body around it. */
-function reachesGeneratedCode(
+/**
+ * A local belongs to the innermost QRL or hook body around it; a plain function nested in that body
+ * cannot be told apart from the body itself, so it counts too.
+ */
+function isLocalInBodies(
+  module: LinkedModule,
   binding: LinkedModule['bindings'][number],
-  bodies: readonly Range[]
+  bodies: ReadonlySet<LinkedQrl | LinkedHook>
 ): boolean {
   if (binding.scope === BindingScope.Import || binding.scope === BindingScope.Module) {
-    return true;
+    return false;
   }
   const declared = binding.declarationRange;
-  return (
-    declared === null || bodies.some(([start, end]) => start <= declared[0] && declared[1] <= end)
-  );
+  if (declared === null) {
+    return true;
+  }
+  let owner: LinkedQrl | LinkedHook | null = null;
+  let ownerSize = Infinity;
+  const enclose = (body: LinkedQrl | LinkedHook, [start, end]: Range) => {
+    if (start <= declared[0] && declared[1] <= end && end - start < ownerSize) {
+      owner = body;
+      ownerSize = end - start;
+    }
+  };
+  for (const qrl of module.qrls) {
+    enclose(qrl, qrl.origin.range);
+  }
+  for (const hook of module.hooks) {
+    enclose(hook, hook.range);
+  }
+  return owner !== null && bodies.has(owner);
 }
 
 /** The authored import the request set merges into, or a type the build erases. */

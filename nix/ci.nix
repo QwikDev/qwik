@@ -240,7 +240,7 @@ let
 
   # The Rust optimizer: linted, tested, then built as this platform's native binding and as wasm.
   # shortcut: recompiles every crate when a Rust file changes; adopt crane if that gets slow.
-  optimizerBindings = mkBuild {
+  optimizerBindings = (mkBuild {
     name = "qwik-optimizer";
     fileset = fs.union buildScripts (repoFiles [
       "Cargo.toml"
@@ -273,7 +273,15 @@ let
       patchelf --remove-rpath packages/optimizer/bindings/*.node
     '';
     outputs = [ "packages/optimizer/bindings" ];
-  };
+  }).overrideAttrs
+    (
+      # Panic messages name the vendored crate sources, which would make them runtime dependencies.
+      # Only on Linux: without its rpath the binding loads nothing from the store there.
+      lib.optionalAttrs pkgs.stdenv.isLinux {
+        __structuredAttrs = true;
+        unsafeDiscardReferences.out = true;
+      }
+    );
 
   # Whether pnpm would still resolve the lockfile the same way; asks the registry.
   dedupe = nodeModules.overrideAttrs {

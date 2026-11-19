@@ -61,6 +61,8 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
 - A version stamp is an input: the `dev` and `latest` flavors under `.#ci.<flavor>` share nothing
   past `node_modules` and the optimizer bindings.
 - `nix build --keep-failed` keeps the build directory of a failed check, with its `test-results`.
+- A store path that a build leaves in its output, even as text, becomes a runtime dependency that
+  every consumer fetches. Check a new output with `nix path-info -rS`.
 
 ## Stop Conditions
 

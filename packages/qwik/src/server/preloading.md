@@ -101,7 +101,9 @@ A hint names bundles, symbols or routes. The preloader gives each of them the hi
 
 We have early preloading, by adding `<link rel="bundlepreload">` tags to the SSR response. This should be used only for the bundles that are almost certain to be needed.
 
-Then, we inject a script tag that imports the preloader and passes the list of likely needed bundles to it. This list depends on the SSR result.
+The page does not list its bundles for the preloader. Once the bundle graph has loaded, the preloader reads the names the page already holds: the bundles of its handlers, in their `q-e:`, `q-d:` and `q-w:` attributes, and the bundles of its other QRLs, in its state. It hints them all as the page, at 0.6. A string in the state that is not a bundle of the graph is ignored.
+
+Without a bundle graph there is nothing to check the names against, so the server passes the list of bundles the render used to the preloader, as before.
 
 Note that the preloader is a small bundle in a separate bundle that is also imported by Qwik itself, so its state is available instantly. Qwik can then request preloading for QRL segments etc. We tell the bundler to make sure to keep the preloader in a separate bundle.
 

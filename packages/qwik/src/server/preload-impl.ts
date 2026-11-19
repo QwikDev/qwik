@@ -159,7 +159,8 @@ export const includePreloader = (
     : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
-  if (preloaderBundle) {
+  const preloaderReadsThePage = !!resolvedManifest?.manifest.bundleGraphAsset;
+  if (preloaderBundle && !preloaderReadsThePage) {
     script += afterPagePaint(
       `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}))`
     );

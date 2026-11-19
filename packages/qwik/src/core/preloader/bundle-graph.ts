@@ -4,6 +4,7 @@ import {
   bundles,
   HIGHEST_KIND,
   nextTriggerMacroTask,
+  preloadChunksNamedInPage,
   preloadHandlersInView,
   preloadHandlersOnIntent,
   replayBundle,
@@ -110,6 +111,7 @@ export const loadBundleGraph = (
             bundle.$rank$ = HIGHEST_KIND;
           }
         }
+        preloadChunksNamedInPage();
         let nextIndex = 0;
         const replayPendingBundles = () => {
           const deadline = performance.now() + yieldInterval;

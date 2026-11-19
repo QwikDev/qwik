@@ -93,6 +93,11 @@ export const chunkKind = (url: string): ChunkKind | undefined => {
     : 'qrl';
 };
 
+export const chunkIsImportedStatically = (url: string) => {
+  const file = bundleFile(url);
+  return Object.values(getManifest().bundles).some((bundle) => bundle.imports?.includes(file));
+};
+
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
     (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')

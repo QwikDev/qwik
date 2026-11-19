@@ -162,7 +162,8 @@ jobs:
             echo "builds=$builds"
             echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
             echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
-            jq -r '"key-docs=\(.packages.docs | ltrimstr("/nix/store/"))"' paths.json
+            # Every branch deploys to its own site, and a PR previews against its base.
+            jq -r '"key-docs=\($target)-\(.packages.docs | ltrimstr("/nix/store/"))"' --arg target "${GITHUB_BASE_REF:-$GITHUB_REF_NAME}" paths.json
             # The other platforms key their caches on what the matching Linux output is made from.
             jq -r '{
               optimizer: .packages.optimizer,
@@ -191,7 +192,7 @@ jobs:
           path: docs-uploaded.txt
           # Never an exact match: restore-keys finds the newest marker.
           key: docs-uploaded-${{ steps.plan.outputs.key-docs }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: docs-uploaded-
+          restore-keys: docs-uploaded-${{ github.base_ref || github.ref_name }}-
 
       - name: 'check marker: unit tests passed on the other platforms'
         id: unit-passed

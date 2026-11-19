@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { linkPlans, ResolutionKind, SideEffects, type ResolverSnapshot } from '../link/link-plans';
-import { LinkResultKind, UnknownWhy, type LinkResult, type ModulePlan } from '../schema';
+import { EntryKind, LinkResultKind, UnknownWhy, type LinkResult, type ModulePlan } from '../schema';
 import { serverSpecialization } from './fixtures';
 
 /** Each module's authored source; a specifier `./x` resolves to `src/x.ts`. */
@@ -164,5 +164,56 @@ describe('export * resolution', () => {
         usej: { why: UnknownWhy.Opaque, code: 'non-portable-export' },
       }
     );
+  });
+});
+
+describe('exposed exports of a barrel', () => {
+  const barrel = (own = '') =>
+    analyseAll({
+      barrel: `export * from './a';\nexport * from './b';\n${own}`,
+      a: `export const helper = 1;\nexport const onlyA = 2;\nexport default 3;\n`,
+      b: `export const helper = 4;\n`,
+    });
+  const expose = (plans: readonly ModulePlan[]) =>
+    linkPlans(
+      plans,
+      [{ kind: EntryKind.Module, module: 'src/barrel.ts', exposeExports: true }],
+      serverSpecialization(),
+      resolveRelative(plans),
+      true
+    );
+  const exposedNames = (plans: readonly ModulePlan[]) =>
+    linked(expose(plans)).entries.flatMap((entry) =>
+      entry.kind === EntryKind.Export ? [entry.export] : []
+    );
+
+  test('leaves out a name two stars export ambiguously', async () => {
+    expect(exposedNames(await barrel())).toEqual(['onlyA']);
+  });
+
+  test('lets an explicit export shadow the star exports of the same name', async () => {
+    const plans = await barrel('export const helper = 5;\n');
+    const plan = linked(expose(plans));
+    expect(exposedNames(plans).sort()).toEqual(['helper', 'onlyA']);
+    expect(
+      plan.entries.find((entry) => entry.kind === EntryKind.Export && entry.export === 'helper')
+    ).toMatchObject({ target: { ok: true, value: { module: 0 } } });
+  });
+
+  test('never star-exports a default export', async () => {
+    const plans = [
+      ...(await barrel()),
+      ...(await analyseAll({
+        app: `import value from './barrel';\nexport const read = () => value;\n`,
+      })),
+    ];
+    expect(exposedNames(plans)).not.toContain('default');
+    const plan = linked(
+      linkPlans(plans, [], serverSpecialization(), resolveRelative(plans), false)
+    );
+    expect(plan.modules[3].imports[0].target).toEqual({
+      ok: false,
+      reason: { why: UnknownWhy.Opaque, code: 'missing-export' },
+    });
   });
 });

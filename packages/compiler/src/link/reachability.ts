@@ -11,6 +11,7 @@ import {
   type LinkedModule,
   type LinkedPlan,
   type LocalId,
+  type Maybe,
   type ModulePlan,
   type Unknown,
 } from '../schema';
@@ -62,12 +63,12 @@ export function resolveEntries(
       linkedEntries.push({ kind: EntryKind.Module, module });
       if (entry.exposeExports) {
         for (const name of exportedNames(module)) {
-          linkedEntries.push({
-            kind: EntryKind.Export,
-            module,
-            export: name,
-            target: resolveExport(module, name),
-          });
+          const target = resolveExport(module, name);
+          // A name two stars export ambiguously is not exported; only importing it is an error.
+          if (isAmbiguousStarName(plans[module], name, target)) {
+            continue;
+          }
+          linkedEntries.push({ kind: EntryKind.Export, module, export: name, target });
         }
       }
     } else {
@@ -232,6 +233,15 @@ export function markReachable(
   }
 
   return visited;
+}
+
+function isAmbiguousStarName(plan: ModulePlan, name: string, target: Maybe<DeclRef>): boolean {
+  return (
+    !target.ok &&
+    target.reason.why === UnknownWhy.Opaque &&
+    target.reason.code === 'ambiguous-star-export' &&
+    !plan.exports.some((entry) => entry.e !== ExportKind.Star && entry.exported === name)
+  );
 }
 
 function importDiagnostic(module: string, specifier: string, reason: Unknown): LinkDiagnostic {

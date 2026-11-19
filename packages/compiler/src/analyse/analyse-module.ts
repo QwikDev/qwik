@@ -332,7 +332,12 @@ export async function analyseModule(
     }
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
-  finishLocals(lowerContext);
+  try {
+    finishLocals(lowerContext);
+  } catch (error) {
+    recordModuleError(plan, error);
+    return finish();
+  }
   recordBindingResults(lowerContext);
   recordEnvConstants(parsed.program, plan);
   recordRootContexts(plan, parsed.program, input.path);

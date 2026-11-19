@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
+import { analyseModule } from '../index';
+import { ModuleKind } from '../schema';
 import { loadDefaultFunction, readRenderedText, renderCode } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
@@ -119,6 +121,19 @@ export default component$(() => { let count = 0; const action = $(() => { ${muta
       expect.objectContaining({ category: 'error', code: 'mutable-capture' }),
     ]);
     expect(output.diagnostics[0].message).toContain('count');
+  });
+
+  test('rejects a captured binding write inside a local function as a diagnostic', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'body.tsx',
+        code: `import { $ } from '@qwik.dev/core';
+export function A() { let n = 0; const helper = () => $(() => { n++; }); helper(); return <div />; }`,
+      },
+      {}
+    );
+    expect(plan.kind).toBe(ModuleKind.Failed);
+    expect(plan.diagnostics).toMatchObject([{ code: 'mutable-capture' }]);
   });
 
   test('preserves native declarations without capture cells', async () => {

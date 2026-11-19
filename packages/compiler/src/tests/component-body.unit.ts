@@ -36,6 +36,11 @@ const bodies = [
     'OK',
   ],
   ['local component', `function Child() { return <p>ok</p>; } return <Child />;`, 'ok'],
+  [
+    'a destructured call result read after its source changes',
+    `const shared = { a: 1 }; const getShared = () => shared; const { a } = getShared(); shared.a = 2; return <p>{a}</p>;`,
+    '1',
+  ],
   ['local arrow component', `const Child = component$(() => <p>ok</p>); return <Child />;`, 'ok'],
   [
     'ordinary core calls',

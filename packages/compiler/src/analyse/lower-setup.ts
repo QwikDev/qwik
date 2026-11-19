@@ -496,7 +496,13 @@ function lowerAliasDeclaration(
     if (object === null || object.rest !== null) {
       return undefined;
     }
-    const bound = bindResultToTemp(declarator, init, ctx, locals);
+    const hookConst = hookResultConst(init, ctx);
+    const bound =
+      hookConst !== null
+        ? { source: directSource(hookConst), setup: null }
+        : isHookCall(init, ctx)
+          ? bindResultToTemp(declarator, init, ctx, locals)
+          : null;
     if (bound === null) {
       return undefined;
     }
@@ -543,9 +549,39 @@ function lowerAliasDeclaration(
   return { s: SetupKind.PropRest, result: rest, props: root, excluded };
 }
 
+function isHookCall(expression: Expression, ctx: LowerContext): boolean {
+  return expression.type === 'CallExpression' && isSetupHookCall(resolveSetupCall(expression, ctx));
+}
+
+/** The const local `expression` names when its own initializer is a hook call. */
+function hookResultConst(expression: Expression, ctx: LowerContext): LocalId | null {
+  const binding = expression.type === 'Identifier' ? ctx.bindings.reference(expression) : null;
+  if (binding === null || ctx.locals.get(binding)?.kind !== LocalKind.Const) {
+    return null;
+  }
+  const [declarator] = ctx.bindings.declarationsOf(binding);
+  if (declarator?.type !== 'VariableDeclarator' || declarator.init === null) {
+    return null;
+  }
+  const declaration = ctx.bindings.parentOf(declarator);
+  return declaration?.type === 'VariableDeclaration' &&
+    declaration.kind === 'const' &&
+    isHookCall(unwrapExpression(declarator.init), ctx)
+    ? binding
+    : null;
+}
+
+function directSource(binding: LocalId): AliasSource {
+  return {
+    read: { kind: ValueIrKind.BindingRead, binding },
+    root: binding,
+    access: CaptureAccess.Direct,
+  };
+}
+
 /**
- * `const { a, b } = useX()` binds the result to a generated local so the members alias it: a member
- * read stays a live read of the result (a store from a hook, most often), not a snapshot.
+ * `const { a, b } = useX()` binds the hook result to a generated local so the members alias it: a
+ * member read stays a live read of the result, not a snapshot. Only for hook calls.
  */
 function bindResultToTemp(
   declarator: VariableDeclarator,
@@ -577,8 +613,7 @@ function bindResultToTemp(
     access: CaptureAccess.Direct,
     binding: temp,
   });
-  const read: ValueIR = { kind: ValueIrKind.BindingRead, binding: temp };
-  return { setup, source: { read, root: temp, access: CaptureAccess.Direct } };
+  return { setup, source: directSource(temp) };
 }
 
 /** A lifted local prints only where its own scope reads it; false when it does not lift. */

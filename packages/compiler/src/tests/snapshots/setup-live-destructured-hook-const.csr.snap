@@ -1,0 +1,202 @@
+==INPUT==
+
+import { useLocation } from './location';
+export default () => {
+  const location = useLocation();
+  const { url, params } = location;
+  return (
+    <h1 onClick$={() => console.log(params.id)}>
+      {params.category} at {url.pathname}
+    </h1>
+  );
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+import { useLocation } from './location';
+export { default_component_3rg6kq1so9aio as default };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [location] = _capturesObj._;
+  return console.log(location.params.id);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    154,
+    193
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "location"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [location] = _capturesObj._;
+  return createDynamicContent(location.params.category, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    202,
+    217
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "location"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
+  const [location] = _capturesObj._;
+  return createDynamicContent(location.url.pathname, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    223,
+    235
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "location"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  setEvent,
+  qrl,
+  _first,
+  _last,
+  _prev,
+  _next,
+  createContentBlock,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { useLocation } from './location';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+  'component_text_segment_1_1fh10tcowimfv'
+);
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ qrl(
+  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+  'component_text_segment_2_1fh117dstcoge'
+);
+const default_tmpl0 = _createElementTemplate('<h1><!><!> at <!><!></h1>');
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const location = useLocation();
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([location]));
+      const start0 = _first(el0);
+      const end0 = _next(start0);
+      const content0 = createContentBlock(
+        ctx,
+        start0,
+        end0,
+        [],
+        q_component_text_segment_1_1fh10tcowimfv.w([location]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content0);
+      const start1 = _prev(_last(el0));
+      const end1 = _next(start1);
+      const content1 = createContentBlock(
+        ctx,
+        start1,
+        end1,
+        [],
+        q_component_text_segment_2_1fh117dstcoge.w([location]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content1);
+      return el0;
+    })
+  );
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    42,
+    239
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

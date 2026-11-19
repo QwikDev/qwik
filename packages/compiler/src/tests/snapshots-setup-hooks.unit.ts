@@ -249,6 +249,58 @@ export default () => {
     expect(code).toContain('_location.params.id');
   });
 
+  test('should keep a destructured const holding a hook result live through that const', async () => {
+    const output = await testInput(mode, 'setup-live-destructured-hook-const', {
+      code: `import { useLocation } from './location';
+export default () => {
+  const location = useLocation();
+  const { url, params } = location;
+  return (
+    <h1 onClick$={() => console.log(params.id)}>
+      {params.category} at {url.pathname}
+    </h1>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('_destructured');
+    expect(code).not.toContain('const { url, params }');
+    expect(code).toContain('location.params.category');
+    expect(code).toContain('location.url.pathname');
+    expect(code).toContain('location.params.id');
+  });
+
+  test('should snapshot a destructured plain call result or local', async () => {
+    const output = await testInput(mode, 'setup-snapshot-destructured-call', {
+      code: `const shared = { a: 1 };
+function getShared() { return shared; }
+function makeThing() { return { a: 1, big: () => 2 }; }
+export default () => {
+  const { a } = getShared();
+  shared.a = 2;
+  const { a: picked, big } = makeThing();
+  const obj = { b: 1 };
+  const { b } = obj;
+  return (
+    <div onClick$={() => console.log(picked)}>
+      {a} {b} {big()}
+    </div>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('_destructured');
+    expect(code).toContain('const { a } = getShared();');
+    expect(code).toContain('const { a: picked, big } = makeThing();');
+    expect(code).toContain('const { b } = obj;');
+    const handler = qrlChunks(output).find((module) => module.segment!.ctxName === 'onClick$')!;
+    expect(handler.segment!.captureNames).toEqual(['picked']);
+  });
+
   test('should keep setup aliases of props, stores and signals live', async () => {
     const output = await testInput(mode, 'setup-live-aliases', {
       code: `import { useSignal, useStore } from '@qwik.dev/core';

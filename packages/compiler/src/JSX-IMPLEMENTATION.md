@@ -244,8 +244,12 @@ Simple props, aliases, rest and some defaults are already implemented. Complete:
       the framework contract. A `const` whose initializer is a prop read, a `useStore` result, a
       member chain rooted in one of them, or a signal `.value` read is a live alias: it registers
       prop-member locals (identifier or object pattern with literal defaults) and emits no
-      constant, so every read, in render or a handler, goes to the source. A `let` alias, a call
-      result or any other expression stays an ordinary snapshot.
+      constant, so every read, in render or a handler, goes to the source. Destructuring a hook
+      result (`const { a } = useX()`, a known contract or a `use*` name) or a `const` holding one
+      (`const loc = useX(); const { a } = loc;`) stays live too: members read the result at use
+      time. A `let` alias, a plain call result, an object literal or any other expression stays
+      an ordinary snapshot: evaluated once, each name its own const, a QRL captures only what it
+      reads.
 - [x] Destructured store aliases after source replacement. `const { item } = store` reads
       `store.item` live, so replacing the slot updates the text; `store.spec.tsx` passes in CSR
       and resume.

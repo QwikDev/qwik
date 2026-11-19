@@ -1,0 +1,257 @@
+==INPUT==
+
+const shared = { a: 1 };
+function getShared() { return shared; }
+function makeThing() { return { a: 1, big: () => 2 }; }
+export default () => {
+  const { a } = getShared();
+  shared.a = 2;
+  const { a: picked, big } = makeThing();
+  const obj = { b: 1 };
+  const { b } = obj;
+  return (
+    <div onClick$={() => console.log(picked)}>
+      {a} {b} {big()}
+    </div>
+  );
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const shared = { a: 1 };
+function getShared() {
+  return shared;
+}
+function makeThing() {
+  return {
+    a: 1,
+    big: () => 2,
+  };
+}
+import { default_component_3rg6kq1so9aio } from './component.tsx_default_component_3rg6kq1so9aio';
+
+export { default_component_3rg6kq1so9aio as default };
+
+export { getShared as __qwik_getShared, shared as __qwik_shared, makeThing as __qwik_makeThing };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [picked] = _capturesObj._;
+  return console.log(picked);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    296,
+    332
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "picked"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [a] = _capturesObj._;
+  return renderSsrDynamicContent(a, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    341,
+    342
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "a"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (b) => {
+  return b;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    345,
+    346
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "b"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
+
+export const component_text_segment_3_1fh11lewq6qgx = (big) => {
+  return big();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_3_1fh11lewq6qgx",
+  "entry": null,
+  "displayName": "component_text_segment_3",
+  "hash": "1fh11lewq6qgx",
+  "canonicalFilename": "component.tsx_component_text_segment_3_1fh11lewq6qgx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    349,
+    354
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "big"
+  ]
+}
+*/
+============================= src/component.tsx_default_component_3rg6kq1so9aio.js (ENTRY POINT)==
+
+import {
+  createSsrNodeId,
+  _capturesObj,
+  renderSsrContent,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  promiseAll,
+  _noopQrl,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import {
+  __qwik_getShared as getShared,
+  __qwik_shared as shared,
+  __qwik_makeThing as makeThing,
+} from './component.tsx';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [a] = _capturesObj._;
+  return renderSsrDynamicContent(a, ctx0);
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const component_text_segment_2_1fh117dstcoge = (b) => {
+  return b;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const component_text_segment_3_1fh11lewq6qgx = (big) => {
+  return big();
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const q_default_component_3rg6kq1so9aio = /*#__PURE__*/ _noopQrl('default_component_3rg6kq1so9aio');
+_markComponent(default_component_3rg6kq1so9aio, q_default_component_3rg6kq1so9aio);
+
+export function default_component_3rg6kq1so9aio(props, ctx) {
+  const { a } = getShared();
+  shared.a = 2;
+  const { a: picked, big } = makeThing();
+  const obj = { b: 1 };
+  const { b } = obj;
+  const id0 = ctx.nextId();
+  const id1 = ctx.nextId();
+  ctx.addRoot(a);
+  const content0 = ctx.observeError(
+    renderSsrContent(ctx, id1, [], q_component_text_segment_1_1fh10tcowimfv.w([a]), false, true)
+  );
+  ctx.addRoot(b);
+  const text0 = renderSsrTextExpression(id0, 0, [b], q_component_text_segment_2_1fh117dstcoge);
+  ctx.addRoot(big);
+  const text1 = renderSsrTextExpression(id0, 1, [big], q_component_text_segment_3_1fh11lewq6qgx);
+  return maybeThen(promiseAll([text0, text1]), ([text0, text1]) => [
+    '<div q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([picked])),
+    '><!d=',
+    createSsrNodeId(id1),
+    '>',
+    content0,
+    '<!/d> <!t>',
+    escapeHTML(text0),
+    '<!/t> <!t>',
+    escapeHTML(text1),
+    '<!/t></div>',
+  ]);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "default_component_3rg6kq1so9aio",
+  "entry": null,
+  "displayName": "default_component",
+  "hash": "3rg6kq1so9aio",
+  "canonicalFilename": "component.tsx_default_component_3rg6kq1so9aio",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    121,
+    358
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

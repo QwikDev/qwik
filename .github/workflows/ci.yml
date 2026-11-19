@@ -59,11 +59,11 @@ jobs:
     outputs:
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
       ci: ${{ steps.plan.outputs.ci }}
-      is-release: ${{ steps.plan.outputs.is-release }}
       builds: ${{ steps.plan.outputs.builds }}
       checks: ${{ steps.plan.outputs.checks }}
       docs-checks: ${{ steps.plan.outputs.docs-checks }}
-      deploy-docs: ${{ steps.plan.outputs.deploy-docs }}
+      key-docs: ${{ steps.plan.outputs.key-docs }}
+      deploy-docs: ${{ steps.docs-uploaded.outputs.cache-hit != 'true' }}
       key-optimizer: ${{ steps.plan.outputs.key-optimizer }}
       key-unit: ${{ steps.plan.outputs.key-unit }}
       key-e2e: ${{ steps.plan.outputs.key-e2e }}
@@ -136,7 +136,6 @@ jobs:
         id: plan
         env:
           DISTTAG: ${{ steps.set_dist_tag.outputs.disttag }}
-          PUSHED_ONTO: ${{ github.event.before }}
         run: |
           # Release builds stamp the plain version, all others a -dev one.
           case "$DISTTAG" in
@@ -145,21 +144,12 @@ jobs:
           esac
           outPaths='builtins.mapAttrs (_: builtins.mapAttrs (_: drv: drv.outPath))'
           nix eval --json ".#ci.$flavor" --apply "$outPaths" > paths.json
-          # What this run changes is measured against the commit it builds on, when there is one.
-          base=$([ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse HEAD^1 || echo "$PUSHED_ONTO")
-          nix eval --json "github:$GITHUB_REPOSITORY/${base:-none}#ci.$flavor" --apply "$outPaths" > base-paths.json || echo '{}' > base-paths.json
 
           # An output that substitutes without building is in the cache: nothing to run for it.
           missing() {
             jq -r "$1 | to_entries[] | \"\(.key) \(.value)\"" paths.json | while read -r name path; do
               nix build --no-link --max-jobs 0 "$path" < /dev/null 2> /dev/null || echo "$name"
             done | jq -Rnc '[inputs]'
-          }
-          # Compared to the base commit; "unknown" when that one has no such output.
-          changed() {
-            jq -rn --arg path "$1" --slurpfile head paths.json --slurpfile base base-paths.json \
-              '($base[0] | getpath($path / ".")) as $before
-              | if $before == null then "unknown" else $before != ($head[0] | getpath($path / ".")) end'
           }
           checks=$(missing .checks)
           # node_modules is large and dist only repackages the others, so neither is fetched to find out.
@@ -169,16 +159,13 @@ jobs:
 
           {
             echo "ci=.#ci.$flavor"
-            echo "is-release=$([ $flavor = latest ] && echo true || echo false)"
             echo "builds=$builds"
             echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
             echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
-            # The cache is shared between branches, so "was built here" does not mean "changed here".
-            # Docs that are unchanged but not built yet belong to a run that failed before deploying them.
-            echo "deploy-docs=$([ "$(changed packages.docs)" = false ] && jq -e 'index("docs") | not' <<< "$builds" > /dev/null && echo false || echo true)"
             # The other platforms key their caches on what the matching Linux output is made from.
             jq -r '{
               optimizer: .packages.optimizer,
+              docs: .packages.docs,
               unit: .checks.unit,
               e2e: .checks["e2e-chromium-ts-1of2"],
               "cli-e2e": .checks["e2e-adapters-ts-node-1of2"]
@@ -186,9 +173,22 @@ jobs:
           } | tee -a "$GITHUB_OUTPUT"
 
           # Not reproducible and cached by its inputs: builds after the merge reuse what this run installs.
-          if [ "$GITHUB_EVENT_NAME" = pull_request ] && [ "$(changed packages.node-modules)" = true ]; then
-            echo "::warning title=node_modules changes::This PR installs different dependencies. Review them: once merged, later builds reuse the node_modules that this PR's run installed."
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            base=$(nix eval --raw "github:$GITHUB_REPOSITORY/$(git rev-parse HEAD^1)#ci.$flavor.packages.node-modules.outPath" || true)
+            if [ -n "$base" ] && [ "$base" != "$(jq -r '.packages["node-modules"]' paths.json)" ]; then
+              echo "::warning title=node_modules changes::This PR installs different dependencies. Review them: once merged, later builds reuse the node_modules that this PR's run installed."
+            fi
           fi
+
+      # The Nix cache is shared between branches, so "built" does not mean "deployed from here".
+      # This marker is only visible to the branch that uploaded these docs, and to PRs onto it.
+      - name: 'check marker: docs uploaded for deployment'
+        id: docs-uploaded
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: docs-uploaded.txt
+          key: docs-uploaded-${{ steps.plan.outputs.key-docs }}
 
       - name: 'check marker: unit tests passed on the other platforms'
         id: unit-passed
@@ -229,7 +229,8 @@ jobs:
       - uses: ./.github/actions/nix
         with:
           build: ${{ needs.plan.outputs.ci }}.packages.dist
-          from-source: ${{ needs.plan.outputs.is-release }}
+          # PR runs can write the shared cache. What a branch publishes is built here instead.
+          from-source: ${{ github.event_name != 'pull_request' }}
 
       - name: Stage the packages
         run: mkdir artifact-dist && cp -r --no-preserve=mode,ownership result/. artifact-dist
@@ -345,6 +346,16 @@ jobs:
             artifact-docs/dist
             artifact-docs/server
           if-no-files-found: error
+
+      - name: Mark the docs as uploaded
+        if: needs.plan.outputs.deploy-docs == 'true'
+        run: echo ok > docs-uploaded.txt
+      - name: Save docs marker
+        if: needs.plan.outputs.deploy-docs == 'true'
+        uses: actions/cache/save@v5
+        with:
+          key: docs-uploaded-${{ needs.plan.outputs.key-docs }}
+          path: docs-uploaded.txt
 
   ############ LINUX TESTS ############
   # Unit tests, benchmarks, lint, the Insights build and every e2e suite: one job per check that is not cached.

@@ -30,9 +30,14 @@ runs:
       shell: bash
       env:
         TARGETS: ${{ inputs.build }}
-        # Only the nixpkgs cache, so a release never ships an output that a PR run could have cached.
-        SUBSTITUTERS: ${{ inputs.from-source == 'true' && '--option substituters https://cache.nixos.org/' || '' }}
-      run: nix build --print-build-logs --keep-failed $SUBSTITUTERS $TARGETS
+        FROM_SOURCE: ${{ inputs.from-source }}
+      run: |
+        read -ra args <<< "$TARGETS"
+        # Only the nixpkgs cache, so nothing a PR run could have cached gets published.
+        if [ "$FROM_SOURCE" = true ]; then
+          args+=(--option substituters https://cache.nixos.org/)
+        fi
+        nix build --print-build-logs --keep-failed "${args[@]}"
 
     - name: Collect test results
       if: failure() && inputs.build != ''

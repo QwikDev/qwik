@@ -259,13 +259,18 @@ let
       pkgs.wasm-pack
       # Must be the wasm-bindgen version in Cargo.lock.
       pkgs.wasm-bindgen-cli_0_2_100
-    ];
+    ]
+    ++ lib.optional pkgs.stdenv.isLinux pkgs.patchelf;
     command = ''
       export CARGO_HOME=$TMPDIR/cargo
       install -D ${cargoConfig} $CARGO_HOME/config.toml
       pnpm lint.rust
       pnpm test.rust
       pnpm build --platform-binding --wasm
+    ''
+    # The binding gets published: it must not point into the Nix store.
+    + lib.optionalString pkgs.stdenv.isLinux ''
+      patchelf --remove-rpath packages/optimizer/bindings/*.node
     '';
     outputs = [ "packages/optimizer/bindings" ];
   };
@@ -389,6 +394,13 @@ let
         deps = [ optimizerBindings ];
         env = playwright "chromium";
         command = "pnpm test.unit && pnpm test.mcp";
+      };
+
+      # The builds leave unit tests out of their sources, so their types get checked here.
+      typecheck = mkConsumer {
+        name = "qwik-typecheck";
+        fileset = repoFiles [ "packages" ];
+        command = "pnpm build --tsc --set-dist-tag=${distTag}";
       };
 
       bench = mkConsumer {
@@ -542,6 +554,7 @@ let
       checks = {
         inherit
           unit
+          typecheck
           bench
           lint
           dedupe

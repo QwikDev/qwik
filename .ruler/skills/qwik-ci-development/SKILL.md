@@ -33,13 +33,15 @@ which outputs are missing from the build cache and builds those. Keep the repo-w
   inputs and calls the script.
 - Outputs mirror the repo layout (`packages/qwik/dist`, ...), so a consumer copies them over its
   checkout. Give a new output the path the build writes it to.
-- `node_modules`, the docs and insights builds, and the docs, CLI and Deno adapter e2e reach the
-  network (`network = true`), which needs `sandbox = relaxed`. Keep everything else sandboxed, and
+- `node_modules`, the dedupe check, the docs and insights builds, and the docs, CLI and Deno adapter
+  e2e reach the network (`network = true`), which needs `sandbox = relaxed`. Keep everything else sandboxed, and
   never read a secret in a derivation.
 - A new check gets a job by itself: the plan job lists every entry of `checks`. Only add workflow
   code for a platform without Nix.
-- Releases build with `from-source`, so they never ship an output that a PR run put in the shared
-  cache. Keep the release path on `artifact-dist` of its own run.
+- PR runs can write the shared cache, so every branch run builds its packages with `from-source`.
+  Keep whatever gets published (npm, pkg.pr.new, docs) on the artifacts of its own run.
+- The builds leave `*.unit.*` files out of their sources so a test edit does not rebuild them. The
+  `typecheck` check is what type-checks those files.
 
 ## Traps
 

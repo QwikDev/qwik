@@ -21,12 +21,14 @@ test.describe('Sandbox smoke tests', () => {
   test('going back after choosing an example shows the previous example', async ({ page }) => {
     await page.goto('/playground/');
     const editor = page.locator('.monaco-editor .view-lines').first();
+    await expect(editor).toContainText('bind:value');
     await page.getByLabel('Choose an example').selectOption('counter');
-    await expect(editor).toContainText('useSignal');
+    await expect(editor).toContainText('count.value');
     await page.goBack();
     await expect(page).toHaveURL(/\/playground\/$/);
     await expect(page.getByLabel('Choose an example')).toHaveValue('hello-world');
-    await expect(editor).not.toContainText('useSignal');
+    await expect(editor).toContainText('bind:value');
+    await expect(editor).not.toContainText('count.value');
   });
 
   test('going back to an edited example restores the edits', async ({ page }) => {

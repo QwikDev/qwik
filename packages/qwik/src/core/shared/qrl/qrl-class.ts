@@ -257,6 +257,7 @@ export class QRLClass<TYPE> {
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
   $container$?: Container | null;
+  $capturesLoading$?: Promise<void>;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
@@ -562,7 +563,11 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
 /** @internal */
 export const restoreQrlCaptures = (qrl: QRLInternal) => {
   const runningCaptures = _capturesObj._;
-  qrl.getCaptured();
+  const qrlState = getInstance(qrl);
+  const capturesLoading = ensureQrlCaptures(qrlState);
+  if (capturesLoading) {
+    qrlState.$capturesLoading$ = capturesLoading;
+  }
   setCaptures(runningCaptures);
 };
 
@@ -617,7 +622,8 @@ const $resolve$ = <TYPE>(
     );
   }
 
-  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
+  const capturedPromise =
+    (shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl)) || qrl.$capturesLoading$;
 
   if (capturedPromise) {
     return capturedPromise.then(() => maybePromise);

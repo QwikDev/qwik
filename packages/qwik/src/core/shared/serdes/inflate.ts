@@ -561,18 +561,20 @@ const preloadTaskChain = (task: Task) => {
     tasksToPreload.push(task);
     return;
   }
-  tasksToPreload = [task];
-  try {
-    for (let i = 0; i < tasksToPreload.length; i++) {
-      const qrl = tasksToPreload[i].$qrl$;
-      restoreQrlCaptures(qrl);
-      if (qrl.$chunk$) {
-        requestPreload(qrl.$chunk$, 1);
+  const tasks = (tasksToPreload = [task]);
+  queueMicrotask(() => {
+    try {
+      for (let i = 0; i < tasks.length; i++) {
+        const qrl = tasks[i].$qrl$;
+        restoreQrlCaptures(qrl);
+        if (qrl.$chunk$) {
+          requestPreload(qrl.$chunk$, 1);
+        }
       }
+    } finally {
+      tasksToPreload = null;
     }
-  } finally {
-    tasksToPreload = null;
-  }
+  });
 };
 
 function restoreEffectBackRefForEffects(

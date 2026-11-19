@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -38,7 +39,7 @@ import { _capturesObj, createQRL, setCaptures, type QRLInternal } from '../qrl/q
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1853,8 +1854,28 @@ describe('shared-serialization', () => {
       setPlatform({ ...getTestPlatform(), isServer });
       return deserialize(objs)[0] as Task;
     };
-    const restoreInBrowser = (objs: unknown[]) => restore(objs, false);
+    const restoreInBrowser = async (objs: unknown[]) => {
+      const restored = restore(objs, false);
+      await Promise.resolve();
+      return restored;
+    };
     const restoreOnServer = (objs: unknown[]) => restore(objs, true);
+    const holdModuleOf = (heldSymbol: string) => {
+      let release!: () => void;
+      const heldModule = new Promise<() => void>((resolve) => (release = () => resolve(() => {})));
+      setPlatform({
+        ...getTestPlatform(),
+        isServer: false,
+        importSymbol: (_, __, symbol) => (symbol === heldSymbol ? heldModule : () => {}),
+      });
+      return release;
+    };
+    const isReady = async (qrl: QRLInternal) => {
+      let hasResolved = false;
+      void qrl.resolve().then(() => (hasResolved = true));
+      await delay(0);
+      return hasResolved;
+    };
 
     beforeEach(() => {
       platformBeforeTest = getPlatform();
@@ -1870,7 +1891,7 @@ describe('shared-serialization', () => {
     it("asks for the task's chunk at the highest priority", async () => {
       const objs = await serialize(createTask(taskQrl('s_task')));
 
-      restoreInBrowser(objs);
+      await restoreInBrowser(objs);
 
       expect(preloadHints()).toContainEqual(['s_task.js', 1]);
     });
@@ -1880,7 +1901,7 @@ describe('shared-serialization', () => {
       subscribeTaskTo(written, createTask(taskQrl('s_next')));
       const objs = await serialize(createTask(taskQrl('s_first', [written])));
 
-      const first = restoreInBrowser(objs);
+      const first = await restoreInBrowser(objs);
 
       expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
       expect(preloadHints()).toContainEqual(['s_next.js', 1]);
@@ -1898,10 +1919,34 @@ describe('shared-serialization', () => {
       }
       const objs = await serialize(tasks[0]);
 
-      restoreInBrowser(objs);
+      await restoreInBrowser(objs);
 
       const hintedChunks = preloadHints().map(([chunk]) => chunk);
       expect(new Set(hintedChunks)).toEqual(new Set(tasks.map((task) => task.$qrl$.$chunk$)));
+    });
+
+    it('holds the task until the module of a computed it captures has loaded', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const objs = await serialize(createTask(taskQrl('s_task', [computed])));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const task = deserialize(objs)[0] as Task;
+      await Promise.resolve();
+
+      expect(await isReady(task.$qrl$)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(task.$qrl$)).toBe(true);
+    });
+
+    it('does not hold a QRL for a computed that only a task subscribed to its signal captures', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const signal = createSignal(0) as SignalImpl;
+      subscribeTaskTo(signal, createTask(taskQrl('s_task', [computed])));
+      const objs = await serialize(taskQrl('s_reader', [signal]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      expect(await isReady(reader)).toBe(true);
+      releaseComputedModule();
     });
 
     it('leaves the captures of the QRL that is running untouched', async () => {
@@ -1909,7 +1954,7 @@ describe('shared-serialization', () => {
       const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
       setCaptures(runningCaptures);
 
-      restoreInBrowser(objs);
+      await restoreInBrowser(objs);
 
       expect(_capturesObj._).toBe(runningCaptures);
     });

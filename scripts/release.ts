@@ -27,19 +27,19 @@ export async function getVersion(distTag?: string) {
         const gitSha = process.env.GITHUB_SHA;
         const gitCommit = gitSha || (await execa('git', ['rev-parse', 'HEAD'])).stdout;
         v += `+${gitCommit.slice(0, 7)}`;
+        const gitStatus = await execa('git', ['status', '--porcelain']);
+        if (gitStatus.stdout !== '') {
+          const d = new Date();
+          v += '-';
+          v += String(d.getUTCFullYear());
+          v += String(d.getUTCMonth() + 1).padStart(2, '0');
+          v += String(d.getUTCDate()).padStart(2, '0');
+          v += String(d.getUTCHours()).padStart(2, '0');
+          v += String(d.getUTCMinutes()).padStart(2, '0');
+          v += String(d.getUTCSeconds()).padStart(2, '0');
+        }
       } catch (e) {
-        // git not found
-      }
-      const gitStatus = await execa('git', ['status', '--porcelain']);
-      if (gitStatus.stdout !== '') {
-        const d = new Date();
-        v += '-';
-        v += String(d.getUTCFullYear());
-        v += String(d.getUTCMonth() + 1).padStart(2, '0');
-        v += String(d.getUTCDate()).padStart(2, '0');
-        v += String(d.getUTCHours()).padStart(2, '0');
-        v += String(d.getUTCMinutes()).padStart(2, '0');
-        v += String(d.getUTCSeconds()).padStart(2, '0');
+        // no git or not a checkout, as in the nix build: the version stays `-dev`
       }
     }
     version = v;

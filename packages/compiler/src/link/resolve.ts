@@ -153,24 +153,33 @@ export function resolveModules(
       : { ok: true, value: { module, table: DeclTable.Bindings, index: binding } };
   };
 
-  const exportStack = new Map<string, number>();
-  // The shallowest stack frame the lookups since the last frame started depended on.
-  let shallowestHit = Infinity;
+  // ECMAScript ResolveExport's resolve set: one per top-level search, each pair by visit order.
+  const searchVisits = new Map<string, number>();
+  const exportStack = new Set<string>();
+  // The earliest visit the lookups since the last frame started arrived at again.
+  let earliestHit = Infinity;
   const resolveExport = (module: number, exported: string): Maybe<DeclRef> => {
     const key = `${module}:${exported}`;
     const cached = exportCache.get(key);
     if (cached !== undefined) {
       return cached;
     }
-    const onStack = exportStack.get(key);
-    if (onStack !== undefined) {
-      shallowestHit = Math.min(shallowestHit, onStack);
-      return unknown(UnknownWhy.Cycle);
+    if (exportStack.size === 0) {
+      searchVisits.clear();
     }
-    const depth = exportStack.size;
-    const outerHit = shallowestHit;
-    shallowestHit = Infinity;
-    exportStack.set(key, depth);
+    const visit = searchVisits.get(key);
+    if (visit !== undefined) {
+      earliestHit = Math.min(earliestHit, visit);
+      // An open pair is a circular definition; a finished one already counted where it was first met.
+      return exportStack.has(key)
+        ? unknown(UnknownWhy.Cycle)
+        : unknown(UnknownWhy.Opaque, 'missing-export');
+    }
+    const order = searchVisits.size;
+    const outerHit = earliestHit;
+    earliestHit = Infinity;
+    searchVisits.set(key, order);
+    exportStack.add(key);
     const plan = plans[module];
     const explicit = plan.exports.filter(
       (entry) => entry.e !== ExportKind.Star && entry.exported === exported
@@ -237,12 +246,12 @@ export function resolveModules(
               : { ok: false, reason: unresolved };
     }
     exportStack.delete(key);
-    // A result that read an outer in-progress frame holds only for this search, not as final.
-    if (shallowestHit >= depth) {
+    // A result that met a pair visited before this frame holds only for this search.
+    if (earliestHit >= order) {
       exportCache.set(key, result);
-      shallowestHit = Infinity;
+      earliestHit = Infinity;
     }
-    shallowestHit = Math.min(outerHit, shallowestHit);
+    earliestHit = Math.min(outerHit, earliestHit);
     return result;
   };
 

@@ -29,7 +29,7 @@ on:
   workflow_dispatch:
     inputs:
       disttag:
-        description: 'Publish "@qwik.dev/core" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
+        description: 'On main, "latest" and "next" stamp the build with the version number committed in package.json; "dev" adds -dev to it unless npm lacks that version.'
         required: true
         type: choice
         default: 'dev'
@@ -57,7 +57,6 @@ jobs:
       # Lets Nix sign in to FlakeHub Cache.
       id-token: write
     outputs:
-      disttag: ${{ steps.set_dist_tag.outputs.disttag }}
       ci: ${{ steps.plan.outputs.ci }}
       builds: ${{ steps.plan.outputs.builds }}
       checks: ${{ steps.plan.outputs.checks }}
@@ -79,69 +78,30 @@ jobs:
           # A PR is checked out merged; the commit before that is what it is compared to.
           fetch-depth: 2
 
-      - name: Set Dist Tag
-        id: set_dist_tag
-        if: |
-          github.ref == 'refs/heads/main' && (
-            github.event_name == 'push' ||
-            github.event_name == 'workflow_dispatch'
-          )
-        run: |
-          if [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-            disttag="${{ github.event.inputs.disttag }}"
-            echo "Overriding disttag with input: $disttag"
-            echo "disttag=${disttag}" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          is_release=false
-          commit_id=${{ github.sha }}
-          owner=${{ github.repository_owner }}
-          repo=${{ github.event.repository.name }}
-
-          removed_files=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/$owner/$repo/commits/$commit_id" | jq -r '.files[] | select(.status == "removed") | .filename')
-
-          echo "Removed files: $removed_files"
-
-          md_file_removed=false
-          for file in $removed_files; do
-            if [[ $file == .changeset/*.md ]]; then
-              md_file_removed=true
-              break
-            fi
-          done
-
-          if [ $md_file_removed = true ]; then
-            if ! ls .changeset/*.md > /dev/null 2>&1; then
-              is_release=true
-            fi
-          fi
-
-          echo "is_release: $is_release"
-
-          if [ "$is_release" = true ]; then
-            disttag='latest'
-          else 
-            disttag="${{github.event.inputs.disttag}}"
-          fi
-
-          echo "disttag: $disttag"
-
-          echo "disttag=${disttag}" >> $GITHUB_OUTPUT
-
       - uses: ./.github/actions/nix
 
       - name: Find what is not built yet
         id: plan
         env:
-          DISTTAG: ${{ steps.set_dist_tag.outputs.disttag }}
+          DISPATCHED_TAG: ${{ github.event.inputs.disttag }}
         run: |
-          # Release builds stamp the plain version, all others a -dev one.
-          case "$DISTTAG" in
-            next | latest) flavor=latest ;;
-            *) flavor=dev ;;
-          esac
+          # Release builds stamp the plain version, all others a -dev one. A main run releases
+          # when asked to, or when it holds a version that npm lacks: changesets then publishes it.
+          flavor=dev
+          if [ "$GITHUB_REF" = refs/heads/main ] && [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            case "$DISPATCHED_TAG" in next | latest) flavor=latest ;; esac
+            for package in packages/qwik packages/optimizer packages/create-qwik; do
+              published=$(jq -r '"https://registry.npmjs.org/\(.name)/\(.version)"' "$package/package.json")
+              case "$(curl -s --retry 3 --max-time 30 -o /dev/null -w '%{http_code}' "$published")" in
+                200) ;;
+                404) flavor=latest ;;
+                *)
+                  echo "::error::Could not ask npm whether $published exists"
+                  exit 1
+                  ;;
+              esac
+            done
+          fi
           outPaths='builtins.mapAttrs (_: builtins.mapAttrs (_: drv: drv.outPath))'
           nix eval --json ".#ci.$flavor" --apply "$outPaths" > paths.json
 

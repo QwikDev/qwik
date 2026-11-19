@@ -63,7 +63,7 @@ jobs:
       checks: ${{ steps.plan.outputs.checks }}
       docs-checks: ${{ steps.plan.outputs.docs-checks }}
       key-docs: ${{ steps.plan.outputs.key-docs }}
-      deploy-docs: ${{ steps.docs-uploaded.outputs.cache-hit != 'true' }}
+      deploy-docs: ${{ !startsWith(steps.docs-uploaded.outputs.cache-matched-key, format('docs-uploaded-{0}-', steps.plan.outputs.key-docs)) }}
       key-optimizer: ${{ steps.plan.outputs.key-optimizer }}
       key-unit: ${{ steps.plan.outputs.key-unit }}
       key-e2e: ${{ steps.plan.outputs.key-e2e }}
@@ -162,10 +162,10 @@ jobs:
             echo "builds=$builds"
             echo "checks=$(jq -c 'map(select(startswith("e2e-docs-") | not))' <<< "$checks")"
             echo "docs-checks=$(jq -c 'map(select(startswith("e2e-docs-")))' <<< "$checks")"
+            jq -r '"key-docs=\(.packages.docs | ltrimstr("/nix/store/"))"' paths.json
             # The other platforms key their caches on what the matching Linux output is made from.
             jq -r '{
               optimizer: .packages.optimizer,
-              docs: .packages.docs,
               unit: .checks.unit,
               e2e: .checks["e2e-chromium-ts-1of2"],
               "cli-e2e": .checks["e2e-adapters-ts-node-1of2"]
@@ -181,14 +181,17 @@ jobs:
           fi
 
       # The Nix cache is shared between branches, so "built" does not mean "deployed from here".
-      # This marker is only visible to the branch that uploaded these docs, and to PRs onto it.
+      # Branch runs save a marker per upload, which PR runs cannot write. The docs deploy unless
+      # the newest marker is for these docs, so going back to earlier docs deploys them again.
       - name: 'check marker: docs uploaded for deployment'
         id: docs-uploaded
         uses: actions/cache/restore@v5
         with:
           lookup-only: true
           path: docs-uploaded.txt
-          key: docs-uploaded-${{ steps.plan.outputs.key-docs }}
+          # Never an exact match: restore-keys finds the newest marker.
+          key: docs-uploaded-${{ steps.plan.outputs.key-docs }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: docs-uploaded-
 
       - name: 'check marker: unit tests passed on the other platforms'
         id: unit-passed
@@ -347,14 +350,16 @@ jobs:
             artifact-docs/server
           if-no-files-found: error
 
+      # Not on PRs: docs that differ from the base's get a preview on every push, so a run that
+      # is cancelled before it deploys does not leave the preview behind.
       - name: Mark the docs as uploaded
-        if: needs.plan.outputs.deploy-docs == 'true'
+        if: needs.plan.outputs.deploy-docs == 'true' && github.event_name != 'pull_request'
         run: echo ok > docs-uploaded.txt
       - name: Save docs marker
-        if: needs.plan.outputs.deploy-docs == 'true'
+        if: needs.plan.outputs.deploy-docs == 'true' && github.event_name != 'pull_request'
         uses: actions/cache/save@v5
         with:
-          key: docs-uploaded-${{ needs.plan.outputs.key-docs }}
+          key: docs-uploaded-${{ needs.plan.outputs.key-docs }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: docs-uploaded.txt
 
   ############ LINUX TESTS ############

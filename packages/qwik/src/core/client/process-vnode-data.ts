@@ -190,6 +190,8 @@ function scheduleProcessVNodeData(qDocument: QDocument, state: ProcessVNodeDataS
     (error) => {
       state.$active$ = null;
       logError(error);
+      // Let a container added later start a walk of its own.
+      qDocument.qVNodeDataStarted = false;
       markVNodeDataReady(qDocument);
     }
   );

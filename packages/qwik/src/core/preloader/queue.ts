@@ -24,6 +24,7 @@ type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
   $importerRank$: number;
+  $hintOrder$: number;
   $isStaticImport$?: boolean;
   $rendersPage$?: boolean;
   $isReplay$?: boolean;
@@ -32,6 +33,7 @@ type AdjustmentFrame = {
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
+let hintCount = 0;
 
 const isHighestPriority = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
 
@@ -47,7 +49,12 @@ const isHighestPriorityInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$ || a.$rank$ - b.$rank$);
+    queue.sort(
+      (a, b) =>
+        a.$inverseProbability$ - b.$inverseProbability$ ||
+        a.$rank$ - b.$rank$ ||
+        b.$hintOrder$ - a.$hintOrder$
+    );
     queueDirty = false;
   }
 };
@@ -99,6 +106,7 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
+  hintOrder: number,
   rendersPage?: boolean,
   isReplay?: boolean
 ) => {
@@ -106,6 +114,7 @@ const enqueueAdjustment = (
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
+    $hintOrder$: hintOrder,
     $importerRank$: 0,
     $rendersPage$: rendersPage,
     $isReplay$: isReplay,
@@ -150,6 +159,7 @@ const processAdjustmentFrame = () => {
           ? 0
           : 0.01
         : bundle.$inverseProbability$,
+      $hintOrder$: frame.$hintOrder$,
       $importerRank$: bundle.$rank$,
       $isStaticImport$: dep.$isStatic$,
       $rendersPage$: frame.$rendersPage$,
@@ -163,6 +173,10 @@ const processAdjustmentFrame = () => {
   const isBetterRanked =
     frame.$inverseProbability$ === previousInverseProbability && rank < bundle.$rank$;
   const isWeaker = frame.$inverseProbability$ > previousInverseProbability;
+  if (!isWeaker) {
+    bundle.$hintOrder$ = frame.$hintOrder$;
+    queueDirty = true;
+  }
   if (isWeaker || (!frame.$isReplay$ && !isStronger && !isBetterRanked)) {
     adjustmentStack.pop();
     return false;
@@ -303,7 +317,13 @@ const retryFailedPreload = (bundle: BundleImport) => {
 
 /** Replay a buffered hint after its dependencies become available. */
 export const replayBundle = (bundle: BundleImport) => {
-  enqueueAdjustment(bundle, bundle.$inverseProbability$, bundle.$rendersPage$, true);
+  enqueueAdjustment(
+    bundle,
+    bundle.$inverseProbability$,
+    bundle.$hintOrder$,
+    bundle.$rendersPage$,
+    true
+  );
   if (isBrowser) {
     scheduleAdjustments();
   } else {
@@ -314,7 +334,7 @@ export const replayBundle = (bundle: BundleImport) => {
 export const handleBundle = (name: string, inverseProbability: number, rendersPage?: boolean) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, inverseProbability, rendersPage);
+    enqueueAdjustment(bundle, inverseProbability, hintCount, rendersPage);
   }
 };
 
@@ -327,6 +347,7 @@ export const preload = (
     return;
   }
   const inverseProbability = probability ? 1 - probability : 0.4;
+  hintCount++;
   if (Array.isArray(item)) {
     for (let i = 0; i < item.length; i++) {
       handleBundle(item[i], inverseProbability, isPageToRender);
@@ -356,4 +377,67 @@ export const getPreloadOrder = (item: string[], probability?: number) => {
     adjustmentStack.length = 0;
     isProcessingAdjustments = false;
   }
+};
+
+const INTENT_PROBABILITY = 0.9;
+const IN_VIEW_PROBABILITY = 0.8;
+const ELEMENT_HANDLER_ATTRIBUTE_PREFIX = 'q-e';
+const ORDERED_NODE_SNAPSHOT_TYPE = 7;
+
+const addHandlerChunksOf = (element: Element, chunks: string[]) => {
+  const attributes = element.attributes;
+  for (let i = 0; attributes && i < attributes.length; i++) {
+    const { name, value } = attributes[i];
+    if (!name.startsWith(ELEMENT_HANDLER_ATTRIBUTE_PREFIX)) {
+      continue;
+    }
+    const qrls = value.split('|');
+    for (let j = 0; j < qrls.length; j++) {
+      const [chunk, , , otherChunks] = qrls[j].split('#');
+      if (chunk) {
+        chunks.push(chunk, ...(otherChunks ? otherChunks.split(',') : []));
+      }
+    }
+  }
+};
+
+export const preloadHandlersInView = () => {
+  const observer = new IntersectionObserver((entries) => {
+    const chunksInView: string[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const { target, isIntersecting } = entries[i];
+      if (isIntersecting) {
+        observer.unobserve(target);
+        addHandlerChunksOf(target, chunksInView);
+      }
+    }
+    preload(chunksInView, IN_VIEW_PROBABILITY);
+  });
+  const elementsWithHandlers = doc.evaluate(
+    `//*[@*[starts-with(name(),'${ELEMENT_HANDLER_ATTRIBUTE_PREFIX}')]]`,
+    doc,
+    null,
+    ORDERED_NODE_SNAPSHOT_TYPE
+  );
+  for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
+    observer.observe(elementsWithHandlers.snapshotItem(i) as Element);
+  }
+};
+
+export const preloadHandlersOnIntent = () => {
+  let lastHint: string;
+  const preloadHandlersUnder = (event: Event) => {
+    const chunks: string[] = [];
+    const path = event.composedPath() as Element[];
+    for (let i = 0; i < path.length; i++) {
+      addHandlerChunksOf(path[i], chunks);
+    }
+    const hint = chunks.join();
+    if (hint !== lastHint) {
+      lastHint = hint;
+      preload(chunks, INTENT_PROBABILITY);
+    }
+  };
+  doc.addEventListener('pointerover', preloadHandlersUnder, true);
+  doc.addEventListener('focusin', preloadHandlersUnder, true);
 };

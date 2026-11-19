@@ -33,11 +33,13 @@ test('runs independently of core and replays buffered hints', async () => {
   try {
     vi.useFakeTimers();
     const document = createDocument();
+    Object.assign(document, { evaluate: () => ({ snapshotLength: 0 }) });
     const module = { exports: {} as typeof import('./index') };
     const context = {
       module,
       __qwik__: undefined,
       document,
+      IntersectionObserver: class {},
       URL,
       setTimeout,
       performance: { now: () => 0 },

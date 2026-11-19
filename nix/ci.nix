@@ -7,6 +7,12 @@ let
   root = ../.;
   nodejs_24 = pkgs.nodejs_24;
 
+  # stdenv leaves a build without certificates; the ones that reach the network need them.
+  certificates = lib.genAttrs [
+    "NIX_SSL_CERT_FILE"
+    "SSL_CERT_FILE"
+  ] (_: "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt");
+
   readManifest = dir: lib.importJSON (root + "/${dir}/package.json");
 
   # The exact pnpm that `packageManager` pins, verified by the hash in that same field.
@@ -99,6 +105,7 @@ let
       nodejs_24
       pnpm
     ];
+    env = certificates;
     dontFixup = true;
     buildPhase = ''
       export HOME=$TMPDIR/home
@@ -144,6 +151,7 @@ let
       env = {
         CI = "true";
       }
+      // lib.optionalAttrs network certificates
       // env;
       dontFixup = true;
       configurePhase = ''

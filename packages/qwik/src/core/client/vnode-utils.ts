@@ -1433,6 +1433,9 @@ export const vnode_remove = (
   } else {
     vParent.lastChild = vPrevious;
   }
+  if (vToRemove.slotParent) {
+    vToRemove.parent = null;
+  }
   vToRemove.previousSibling = null;
   vToRemove.nextSibling = null;
 };

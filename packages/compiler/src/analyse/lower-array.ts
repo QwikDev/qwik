@@ -42,7 +42,7 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../schema/value-ir';
-import { InvalidModuleError, UnsupportedError } from '../errors';
+import { assertNever, InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue, type RowCallback } from './ast/jsx-analysis';
@@ -460,9 +460,17 @@ function deriveRowShape(program: number, ctx: LowerContext): Shape {
     case OpKind.Static:
     case OpKind.Hole:
       return Shape.Text;
-    default:
-      // A component or range row yields whatever its output is; the runtime normalizes it.
+    // A component or range row yields whatever its output is; the runtime normalizes it.
+    case OpKind.Component:
+    case OpKind.Branch:
+    case OpKind.Each:
+    case OpKind.Slot:
+    case OpKind.Content:
+    case OpKind.Pending:
+    case OpKind.Catch:
       return Shape.Unknown;
+    default:
+      return assertNever(body.ops[0], 'row op');
   }
 }
 

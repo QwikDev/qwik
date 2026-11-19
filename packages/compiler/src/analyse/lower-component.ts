@@ -29,7 +29,7 @@ import {
   type Qrl,
   type QrlUse,
 } from '../schema';
-import { InvalidModuleError, UnsupportedError } from '../errors';
+import { assertNever, InvalidModuleError, UnsupportedError } from '../errors';
 import { eventScopeName } from './events';
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
@@ -455,7 +455,14 @@ function tryLowerBindingPassValue(expression: Expression, ctx: LowerContext) {
         ctx,
         collectCaptures(expression, ctx, new Set())
       );
-    default:
+    case LocalKind.LoopValue:
+    case LocalKind.RowIndex:
+    case LocalKind.PropMember:
+    case LocalKind.PropRest:
+    case LocalKind.Function:
+    case undefined:
       return null;
+    default:
+      return assertNever(kind, 'local kind');
   }
 }

@@ -29,7 +29,7 @@ import {
   type CollectedCaptures,
   type LoweredCaptures,
 } from './ast/capture-analysis';
-import { UnsupportedError } from '../errors';
+import { assertNever, UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr, memberReadIr } from './locals';
 import type { Expression, Node, ObjectExpression } from 'oxc-parser';
@@ -427,8 +427,11 @@ export function trySignalReadValue(
             : expressionResult(expression, ctx),
         expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: local.binding } },
       };
-    default:
+    case LocalKind.RowIndex:
+    case LocalKind.Function:
       throw new UnsupportedError(`reading the "${local.kind}" local "${name}"`);
+    default:
+      return assertNever(local, 'local');
   }
 }
 

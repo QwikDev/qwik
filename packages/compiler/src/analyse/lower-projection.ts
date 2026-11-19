@@ -15,7 +15,7 @@ import {
   type QrlUse,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
-import { UnsupportedError } from '../errors';
+import { assertNever, UnsupportedError } from '../errors';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { jsxAttributeName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
@@ -250,6 +250,11 @@ function collectProjectionNames(value: JsxValue): ProjectionName[] {
       if (value.node.operator === '&&') {
         return collectProjectionNames(value.right);
       }
+      break;
+    case JsxValueKind.Value:
+      break;
+    default:
+      return assertNever(value, 'JSX value');
   }
   return [''];
 }

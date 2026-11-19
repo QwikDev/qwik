@@ -15,7 +15,7 @@ import {
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { RAW_TEXT_CLOSER_GUARD, RAW_TEXT_ELEMENTS, RCDATA_ELEMENTS, rawTextCloser } from '../html';
-import { InvalidModuleError, UnsupportedError } from '../errors';
+import { assertNever, InvalidModuleError, UnsupportedError } from '../errors';
 import { lowerText } from './lower-text';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
@@ -232,8 +232,11 @@ function rootTags(value: JsxValue): string[] | null {
         : union([value.left, value.right]);
     case JsxValueKind.Collection:
       return value.row === null ? null : rootTags(value.row);
-    default:
+    case JsxValueKind.Text:
+    case JsxValueKind.Value:
       return null;
+    default:
+      return assertNever(value, 'JSX value');
   }
 }
 
@@ -260,6 +263,13 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
       return lowerJsxChildren(value.node.children, ctx);
     case JsxValueKind.Collection:
       return [lowerArray(value.node, ctx)];
+    case JsxValueKind.Conditional:
+    case JsxValueKind.Logical:
+    case JsxValueKind.Text:
+    case JsxValueKind.Value:
+      break;
+    default:
+      assertNever(value, 'JSX value');
   }
   if (isFragmentArray(expression)) {
     return expression.elements.flatMap((element) =>

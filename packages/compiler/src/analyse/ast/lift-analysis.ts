@@ -16,6 +16,7 @@ import type {
   VariableDeclarator,
 } from 'oxc-parser';
 import { BindingScope, type LocalId } from '../../schema';
+import { assertNever } from '../../errors';
 import { forEachChild, isNode } from './ast-types';
 import type { BindingGraph } from './bindings';
 import { JsxValueKind, type JsxValue } from './jsx-analysis';
@@ -252,6 +253,13 @@ function collectBoundaries(program: Pick<Program, 'body'>, ctx: LiftScope) {
       case JsxValueKind.Collection:
         visitCollection(value);
         return;
+      case JsxValueKind.Conditional:
+      case JsxValueKind.Logical:
+      case JsxValueKind.Text:
+      case JsxValueKind.Value:
+        break;
+      default:
+        assertNever(value, 'JSX value');
     }
     if (isFragmentArray(node)) {
       node.elements.forEach(visitRender);

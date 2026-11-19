@@ -14,7 +14,7 @@ import { JsxValueKind, type JsxAnalysis, type JsxValue } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
 import { BindingScope, VarKind, type LocalId } from '../../schema';
 import { QwikMarker } from '../../words';
-import { UnsupportedError } from '../../errors';
+import { assertNever, UnsupportedError } from '../../errors';
 
 function hasComponentName(name: string | null): boolean {
   return name === null || /^[A-Z]/.test(name);
@@ -278,8 +278,14 @@ function rendersJsx(value: JsxValue): boolean {
       return rendersJsx(value.then) || rendersJsx(value.else);
     case JsxValueKind.Logical:
       return rendersJsx(value.left) || rendersJsx(value.right);
-    default:
+    case JsxValueKind.Element:
+    case JsxValueKind.Fragment:
+    case JsxValueKind.Text:
+    case JsxValueKind.Empty:
+    case JsxValueKind.Value:
       return value.hasJsxValue;
+    default:
+      return assertNever(value, 'JSX value');
   }
 }
 

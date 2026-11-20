@@ -14,6 +14,7 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
+import { isBinaryState } from './binary-state';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
@@ -82,7 +83,13 @@ describe('shared-serialization', () => {
     const state = _createDeserializeContainer(JSON.parse(await serializeJson('first')))
       .$state$ as any;
     state['0note'] = 'label';
+    state['00'] = 'other';
+    expect(state['00']).toBe('other');
     expect(state[0]).toBe('first');
+  });
+
+  it('serializes in the format the build selects', async () => {
+    expect(isBinaryState(await _serialize(1))).toBe(!!__EXPERIMENTAL__.binaryState);
   });
 
   it('reports missing streaming references with a Qwik error', async () => {

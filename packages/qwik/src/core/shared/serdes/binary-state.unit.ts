@@ -7,7 +7,7 @@ import {
 } from '../../../serializer';
 import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
-import { BinaryCode, BinaryStateReader, isBinaryState } from './binary-state';
+import { BinaryCode, BinaryStateReader, isBinaryState, unitToCharCode } from './binary-state';
 import { binaryStateRootsToJson } from './binary-state-dump';
 import { Constants, TypeIds } from './constants';
 import { SERIALIZER_PROXY_UNWRAP, wrapBinaryStateProxy } from './deser-proxy';
@@ -183,6 +183,8 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary state', () => {
   it('keeps a named property apart from the root its name starts with', async () => {
     const state = (await roundTrip('first')) as any;
     state['0note'] = 'label';
+    state['00'] = 'other';
+    expect(state['00']).toBe('other');
     expect(state[0]).toBe('first');
   });
 
@@ -444,12 +446,28 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary state', () => {
     expect(Array.from(restore(script))).toEqual([numbers, 'a string after the numbers']);
   });
 
-  it('rejects an item count larger than the units that hold the items', async () => {
-    const script = await serialize(Array.from({ length: 20 }, (_, i) => i));
-    // the root list is [..., Items0, count 1, ArrayEnd]; claim 17 roots instead
+  it('rejects an item count larger than the units that hold the items', () => {
+    // nine one-unit items, so the array stores its length; it is the only root
+    let script = '';
+    const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+      script += text;
+    });
+    for (let i = 0; i < 9; i++) {
+      writer.$number$(i);
+    }
+    writer.$endArray$(0, 9);
+    writer.$endArray$(0, 1);
+    writer.$finish$();
+    expect(Array.from(restore(script)[0] as number[])).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+
+    // the stream ends [...items, length 9, Items1, count 9, ArrayEnd, root list of three units]
+    const lengthAt = script.length - 7;
+    expect(script.charCodeAt(lengthAt)).toBe(unitToCharCode(9));
     const tampered =
-      script.slice(0, -2) + String.fromCharCode(BinaryCode.Num0 + 17) + script.slice(-1);
-    expect(() => new BinaryStateReader(tampered)).toThrow();
+      script.slice(0, lengthAt) +
+      String.fromCharCode(unitToCharCode(8)) +
+      script.slice(lengthAt + 1);
+    expect(() => restore(tampered)[0]).toThrow();
   });
 
   it('rejects a root list whose ArrayEnd is missing', async () => {

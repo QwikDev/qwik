@@ -1578,7 +1578,8 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
   const binaryVNodeScript = (records: [number, number][], attributes = '') => {
     const tokens: number[] = [];
     let previousIndex = 0;
-    for (const [elementIndex, textLength] of records) {
+    for (let i = 0; i < records.length; i++) {
+      const [elementIndex, textLength] = records[i];
       tokens.push((elementIndex - previousIndex) * 2 * 4 + BinaryVNodeKind.ElementStart);
       tokens.push(textLength * 4 + BinaryVNodeKind.TextLength);
       previousIndex = elementIndex;

@@ -1680,7 +1680,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
               ],
               ' q:r="1"'
             )}
-            ${binaryVNodeScript([[2, 2]], ' q:r="1" q:patch')}
+            ${binaryVNodeScript([[2, 3]], ' q:r="1" q:patch')}
           </body>
         </html>`,
     }) as QDocument;
@@ -1688,16 +1688,18 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     await whenVNodeDataReady(document, () => undefined);
     const element = document.documentElement as ContainerElement;
     const patchScript = document.querySelector('[q\\:patch]')!;
-    const tableOf = (selector: string) => {
-      const entry = document.qVNodeData.get(document.querySelector(selector)!) as number;
-      return Math.floor(entry / VNODE_TABLE_INDEX_SCALE);
-    };
+    const entryOf = (selector: string) =>
+      document.qVNodeData.get(document.querySelector(selector)!) as number;
+    const tableOf = (selector: string) => Math.floor(entryOf(selector) / VNODE_TABLE_INDEX_SCALE);
+    /** The first item of the element's record: its text length. */
+    const textLengthOf = (selector: string) =>
+      document.qVNodeTables![tableOf(selector)][entryOf(selector) % VNODE_TABLE_INDEX_SCALE];
     const expectSegmentTables = () => {
-      // the patched element reads the patch's table, the other one the segment's
+      // the patched element reads the patch's record, the other one the segment's
       expect(tableOf('section')).toBe(element.qVNodeSourceSlots!.get('1'));
       expect(tableOf('b')).toBe(element.qVNodeSourceSlots!.get(patchScript));
-      expect(document.qVNodeTables![tableOf('section')]).not.toEqual([]);
-      expect(document.qVNodeTables![tableOf('b')]).not.toEqual([]);
+      expect(textLengthOf('section')).toBe(2);
+      expect(textLengthOf('b')).toBe(3);
     };
     expectSegmentTables();
 

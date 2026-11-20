@@ -69,6 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _Item } from "./item";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useRow } from "./row";
 //
@@ -82,13 +83,13 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
     ]);
     return /*#__PURE__*/ _jsxSorted("div", null, {
         "q-e:click": renderRow
-    }, /*#__PURE__*/ _jsxSorted(_Item, null, {
+    }, /*#__PURE__*/ _jsxSplit(_Item, null, {
         onClick$: q_Cmp_component_div_Item_onClick_urxjTAgY4vM
     }, null, 3, "u6_1"), 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B;IAC7B,MAAM,OAAO;IACb,MAAM;;;IACN,qBACC,WAAC;QAAI,aAAU;qBACd,WAAC;QAAM,QAAQ;;AAGlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B;IAC7B,MAAM,OAAO;IACb,MAAM;;;IACN,qBACC,WAAC;QAAI,aAAU;qBACd,UAAC;QAAM,QAAQ;;AAGlB\"}")
 /*
 {
   "origin": "test.tsx",

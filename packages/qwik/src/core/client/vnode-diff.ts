@@ -823,6 +823,8 @@ function expectSlot(diffContext: DiffContext) {
     return false;
   } else if (vProjectedNode === diffContext.$vCurrent$) {
     // All is good.
+  } else if (diffContext.$vSideBuffer$?.has(vProjectedNode)) {
+    diffContext.$vCurrent$ = vProjectedNode;
   } else {
     // move from q:template to the target node
     const oldParent = vProjectedNode.parent;
@@ -1657,7 +1659,13 @@ function expectComponent(diffContext: DiffContext, component: Function) {
         componentHost = componentHost.parent || vnode_getProjectionParentComponent(componentHost);
       }
 
-      setInlineComponentData(host, component, componentHost, jsxNode.props as Props | null);
+      setInlineComponentData(
+        host,
+        component,
+        componentHost,
+        jsxNode.props as Props | null,
+        diffContext.$scopedStyleIdPrefix$
+      );
       markVNodeDirty(
         diffContext.$container$,
         host,

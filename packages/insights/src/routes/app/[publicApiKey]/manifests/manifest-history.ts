@@ -1,8 +1,20 @@
 import { BUCKETS, vectorAvg, vectorPercentile, vectorSum } from '~/stats/vector';
+import { paginateResults } from '~/stats/pagination';
 import { getManifestPerformance } from '../performance';
 
 interface ManifestLatency {
   latency: number[];
+}
+
+export function getManifestHistoryPage<T extends ManifestLatency>(
+  rows: T[],
+  requestedPage: string | null
+) {
+  const manifests = rows.map((row, index) => ({ ...row, status: getManifestStatus(rows, index) }));
+  return {
+    ...paginateResults(manifests, requestedPage),
+    overview: getManifestHistoryOverview(rows),
+  };
 }
 
 export function getManifestHistoryOverview(rows: ManifestLatency[]): {

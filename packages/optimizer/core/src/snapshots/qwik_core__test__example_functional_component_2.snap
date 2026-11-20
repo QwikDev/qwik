@@ -40,18 +40,19 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
-//
 export const useCounter = ()=>{
     return useStore({
         count: 0
     });
 };
 export const STEP = 1;
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;;;;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,0CAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;;;;AAEtB,OAAO,MAAM,oBAAM,0CAoBjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { useCounter } from "./test";

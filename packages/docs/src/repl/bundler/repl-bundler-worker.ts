@@ -9,13 +9,7 @@ import * as magicRegexp from 'magic-regexp';
 import * as magicString from 'magic-string';
 import * as pathe from 'pathe';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import {
-  definesPlugin,
-  replCss,
-  replMinify,
-  replResolver,
-  replWorkerQrlChunks,
-} from './rolldown-plugins';
+import { replCss, replMinify, replResolver, replWorkerQrlChunks } from './rolldown-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -26,6 +20,7 @@ interface MessageBase {
 export interface InitMessage extends MessageBase {
   type: 'init';
   version: string;
+  rustOptimizer: boolean;
   deps: PkgUrls;
 }
 
@@ -50,6 +45,8 @@ export interface ErrorMessage extends MessageBase {
   buildId: number;
   error: string;
   stack?: string;
+  /** The optimizer failed to load, so this worker can't build anymore. */
+  isFatal?: boolean;
 }
 
 type IncomingMessage = InitMessage | BundleMessage;
@@ -67,11 +64,18 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   switch (type) {
     case 'init':
       deps = e.data.deps;
-      loaded = loadOptimizer();
+      loaded = loadOptimizer(e.data.rustOptimizer);
+      // A failure is reported by the next build.
+      loaded.catch(() => {});
       break;
 
     case 'bundle':
-      await loaded;
+      try {
+        await loaded;
+      } catch (error) {
+        postError(e.data.buildId, error, true);
+        break;
+      }
       try {
         const result = await performBundle(e.data);
         const message: ResultMessage = {
@@ -81,14 +85,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
         };
         self.postMessage(message);
       } catch (error) {
-        console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
-        const message: ErrorMessage = {
-          type: 'error',
-          buildId: e.data.buildId,
-          error: (error as Error)?.message || String(error),
-          stack: (error as Error)?.stack,
-        };
-        self.postMessage(message);
+        postError(e.data.buildId, error);
       }
       break;
 
@@ -96,6 +93,18 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
       console.warn('Unknown message type:', type);
   }
 };
+
+function postError(buildId: number, error: unknown, isFatal = false) {
+  console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
+  const message: ErrorMessage = {
+    type: 'error',
+    buildId,
+    error: (error as Error)?.message || String(error),
+    stack: (error as Error)?.stack,
+    isFatal,
+  };
+  self.postMessage(message);
+}
 
 let version: number[];
 
@@ -158,13 +167,13 @@ async function loadTsOptimizer(url: string) {
   }
 }
 
-async function loadOptimizer() {
+async function loadOptimizer(rustOptimizer: boolean) {
   const qwikDeps = deps[QWIK_PKG_NAME_V1];
   version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
 
   const tsOptimizerUrl = qwikDeps['/dist/ts-optimizer.mjs'];
   let tsOptimizerLoaded = false;
-  if (tsOptimizerUrl) {
+  if (tsOptimizerUrl && !rustOptimizer) {
     // This core version ships the TS optimizer — no Rust wasm needed.
     // Versions predating it 404 here and fall back to the Rust wasm.
     try {
@@ -232,7 +241,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const baseUrl = `/repl/client/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
-    'import.meta.env': '({})',
+    // Also covers `import.meta.env?.BASE_URL`, which the preloader reads.
+    'import.meta.env': `({BASE_URL:${JSON.stringify(baseUrl)}})`,
   };
 
   const onwarn = (warning: any) => {
@@ -272,8 +282,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
     // 'exports-only' is invalid with the qwik plugin's codeSplitting.
     preserveEntrySignatures: 'allow-extension',
+    transform: { define: defines },
     plugins: [
-      definesPlugin(defines),
       replCss({ srcInputs }),
       qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
@@ -319,8 +329,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const ssrBuild = await rolldown({
     cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('entry.server.tsx'))?.path,
+    transform: { define: defines },
     plugins: [
-      definesPlugin(defines),
       replCss({ srcInputs }),
       qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },

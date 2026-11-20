@@ -38,30 +38,34 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 
 ## Run the Migration CLI
 
+Qwik v2 builds with Vite 8, which needs Node.js `^20.19.0` or `>=22.12.0`. Upgrade Node first if you are on an older version.
+
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm qwik migrate-v2
+pnpm dlx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npx qwik migrate-v2
+npx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn qwik migrate-v2
+yarn dlx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bunx qwik migrate-v2
+bunx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 </PackageManagerTabs>
 
-The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
+Yarn 1 has no `dlx`, so on Yarn 1 update `@builder.io/qwik` to the latest 1.x release first, then run `yarn qwik migrate-v2`.
+
+Run it in the root of your v1 project. The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
 
 <LongNote title="What the CLI renames">
 

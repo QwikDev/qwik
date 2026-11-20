@@ -36,14 +36,16 @@ export const Groups = component$((props) => (
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_Groups_component_hJ0Zdme0QaI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_hJ0Zdme0QaI"), "Groups_component_hJ0Zdme0QaI");
 const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
 //
 export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+//
+const q_Groups_component_hJ0Zdme0QaI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_hJ0Zdme0QaI"), "Groups_component_hJ0Zdme0QaI");
+//
 export const Groups = /*#__PURE__*/ componentQrl(q_Groups_component_hJ0Zdme0QaI);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,qBAAO,2CAUjB;AAEH,OAAO,MAAM,uBAAS,6CAUnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,2CAUjB;;;;AAEH,OAAO,MAAM,uBAAS,6CAUnB\"}")
 ============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

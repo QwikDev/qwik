@@ -40,7 +40,7 @@ packages/docs/src/routes/api
 packages/docs/**/*.mdx
 
 packages/insights/drizzle
-packages/insights/.netlify
+packages/insights/.wrangler
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
 

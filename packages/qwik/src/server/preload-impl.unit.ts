@@ -178,6 +178,15 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), true);
   });
 
+  it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
+    const { container, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, { maxIdlePreloads: limit });
+
+    expect(getScriptContent()).toContain(`{P:${limit}}`);
+  });
+
   it('falls back to the next paint without a fixed delay', async () => {
     const { container, getScriptContent } = createContainer();
     const { preloaderPre } = await import('./preload-impl');
@@ -243,5 +252,61 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
+  });
+
+  it('links what the client preloader would fetch first, not the first bundles in render order', async () => {
+    const { initPreloader } = await import('../core/preloader/bundle-graph');
+    const { includePreloader } = await import('./preload-impl');
+    // Both bundles statically import shared.js, so the client rates it above either of them.
+    initPreloader(['a.js', 2, 'shared.js', 'b.js', 2]);
+    const { container, getScriptContent } = createContainer();
+
+    includePreloader(container, { ssrPreloads: 1 }, ['a.js', 'b.js']);
+
+    const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
+    expect(linksScript).toContain('["shared.js"].map(');
+    expect(afterLoad).toContain('p(["a.js","b.js"])');
+  });
+
+  it('keeps equally likely bundles in render order', async () => {
+    const { initPreloader } = await import('../core/preloader/bundle-graph');
+    const { getPreloadOrder } = await import('../core/preloader/queue');
+    // a.js, b.js and c.js each import core.js and their own dep.
+    initPreloader([
+      'core.js',
+      'a.js',
+      0,
+      10,
+      'b.js',
+      0,
+      11,
+      'c.js',
+      0,
+      12,
+      'a-dep.js',
+      'b-dep.js',
+      'c-dep.js',
+    ]);
+
+    expect(getPreloadOrder(['a.js', 'b.js', 'c.js'])).toEqual([
+      'core.js',
+      'a.js',
+      'a-dep.js',
+      'b.js',
+      'b-dep.js',
+      'c.js',
+      'c-dep.js',
+    ]);
+  });
+
+  it("ranks each render's hint afresh, since SSR shares the preloader's state", async () => {
+    const { initPreloader } = await import('../core/preloader/bundle-graph');
+    const { getPreloadOrder } = await import('../core/preloader/queue');
+    initPreloader(['a.js', 4, 'b.js', 4, 'shared.js']);
+
+    expect(new Set(getPreloadOrder(['a.js']))).toEqual(new Set(['a.js', 'shared.js']));
+    expect(new Set(getPreloadOrder(['b.js']))).toEqual(new Set(['b.js', 'shared.js']));
+    // The same page again: its import edges must not remember the first render's probabilities.
+    expect(new Set(getPreloadOrder(['a.js']))).toEqual(new Set(['a.js', 'shared.js']));
   });
 });

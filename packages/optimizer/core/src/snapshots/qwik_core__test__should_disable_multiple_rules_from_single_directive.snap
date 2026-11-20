@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4877
 expression: output
 ---
 ==INPUT==
@@ -24,16 +23,18 @@ import { useTaskQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
 const q_useMemo_useTask_505mjFKN4to = /*#__PURE__*/ qrl(()=>import("./test.tsx_useMemo_useTask_505mjFKN4to"), "useMemo_useTask_505mjFKN4to");
 //
 export const useMemo$ = (qrl)=>{
     useTaskQrl(q_useMemo_useTask_505mjFKN4to);
 };
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+//
 export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGE,OAAO,MAAM,WAAW,CAAC;IACxB;AACD,EAAE;AAEF,OAAO,MAAM,oBAAM,0CAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGE,OAAO,MAAM,WAAW,CAAC;IACxB;AACD,EAAE;;;;AAEF,OAAO,MAAM,oBAAM,0CAIhB\"}")
 ============================= test.tsx_App_component_useMemo_button_q_ep_click_vCuIdygdt3k.js (ENTRY POINT)==
 
 export const App_component_useMemo_button_q_ep_click_vCuIdygdt3k = ()=>{};
@@ -99,12 +100,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_useMemo_useTask_505mjFKN4to.js (ENTRY POINT)==
 
-import { qrl } from "@qwik.dev/core";
-//
-export const useMemo_useTask_505mjFKN4to = qrl;
+export { qrl as useMemo_useTask_505mjFKN4to } from "@qwik.dev/core";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAIY\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AAIY,oEAAG\"}")
 /*
 {
   "origin": "test.tsx",

@@ -4,7 +4,7 @@
 .vscode/settings.json
 .history
 .yarn
-.netlify
+.wrangler
 bazel-*
 bazel-bin
 bazel-out
@@ -32,7 +32,6 @@ tsconfig.tsbuildinfo
 vite.config.ts
 *.spec.tsx
 *.spec.ts
-.netlify
 pnpm-lock.yaml
 package-lock.json
 yarn.lock

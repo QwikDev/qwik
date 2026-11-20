@@ -107,6 +107,20 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('only a slow-to-download import graph shifts the preload probability', () => {
+    const probabilityOf = (depTotal: number) =>
+      convertManifestToBundleGraph({
+        bundles: {
+          'page.js': { size, total, dynamicImports: ['dep.js'], qrlImports: ['dep.js'] },
+          'dep.js': { size, total: depTotal, interactivity: 3 },
+        } as Record<string, QwikBundle>,
+        mapping: {},
+      } as QwikManifest)[1];
+
+    expect(probabilityOf(5_000)).toBe(-7);
+    expect(probabilityOf(50_000)).toBe(-8);
+  });
+
   test('import cycle through the reduced bundle keeps reachable deps', () => {
     const manifest = {
       bundles: {
@@ -220,12 +234,55 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  describe('added layout entry', () => {
+    const entryOf = (graph: (string | number)[], name: string) => {
+      const start = graph.indexOf(name);
+      const end = graph.findIndex((item, index) => index > start && typeof item === 'string');
+      return graph.slice(start + 1, end === -1 ? undefined : end);
+    };
+    const withLayoutAndRoute = () =>
+      convertManifestToBundleGraph(
+        fakeManifest,
+        new Set([
+          () => ({
+            'docs/': { dynamicImports: ['transitive-dep.js'] },
+            DocsLayout: { dynamicImports: ['transitive-dep.js'] },
+          }),
+        ])
+      );
+
+    test('keeps an added entry that no bundle imports', () => {
+      expect(withLayoutAndRoute()).toContain('DocsLayout');
+    });
+
+    test("follows an added layout entry's bundles like a route's", () => {
+      const graph = withLayoutAndRoute();
+
+      expect(entryOf(graph, 'DocsLayout').length).toBeGreaterThan(0);
+      expect(entryOf(graph, 'DocsLayout')).toEqual(entryOf(graph, 'docs/'));
+    });
+  });
+
   test(`works`, () => {
+    // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
+    // calls; write them over the tail so the sizes stay the same.
+    const bundles = Object.fromEntries(
+      Object.entries(outputBundles.bundles).map(([name, bundle]: [string, any]) => {
+        const imports = (bundle.dynamicImports ?? [])
+          .map((file: string) => `import("./${file.slice(file.lastIndexOf('/') + 1)}");`)
+          .join('');
+        const code: string = bundle.code ?? '';
+        return [
+          name,
+          { ...bundle, code: code.slice(0, Math.max(0, code.length - imports.length)) + imports },
+        ];
+      })
+    );
     const manifest = generateManifestFromBundles(
       path as any,
       outputBundles.segments as any,
       [],
-      outputBundles.bundles as any,
+      bundles as any,
       { rootDir: '/', outDir: '/' } as any,
       console.error,
       (p) => path.relative('build', p),
@@ -306,31 +363,28 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "qwik-router.js",
         -10,
-        4,
         9,
-        17,
+        4,
         -9,
-        3,
         5,
         12,
-        7,
+        -8,
         16,
         11,
-        14,
         "root.js",
         -9,
-        43,
+        40,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
         -9,
-        47,
+        44,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        49,
+        46,
         "src-vendor-lib-libB.ts.js",
-        49,
+        46,
         "BjxcCeNQ9ak",
         -9,
         21,
@@ -341,7 +395,7 @@ describe('convertManifestToBundleGraph', () => {
         -9,
         21,
         "LopIayqLfMo",
-        -8,
+        -7,
         9,
         "VjDx6RO4Kis",
         -9,
@@ -354,9 +408,9 @@ describe('convertManifestToBundleGraph', () => {
         3,
         "9PcKHFjikV0",
         -7,
-        43,
+        40,
         "9fcUDoGM9Wo",
-        -8,
+        -7,
         9,
         "SHtFir1Ia94",
         -7,
@@ -366,7 +420,7 @@ describe('convertManifestToBundleGraph', () => {
         7,
         "dAo05yeFq1I",
         -7,
-        47,
+        44,
         "ds9jIPT1g9s",
         -7,
         19,
@@ -389,7 +443,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         19,
         "BMutFDNOKhc",
-        -8,
+        -7,
         9,
         "Iyy38y0K3Hw",
         -9,
@@ -404,7 +458,7 @@ describe('convertManifestToBundleGraph', () => {
         -6,
         16,
         "5DbAsQLGGo4",
-        -8,
+        -7,
         4,
         "Nhj4Mq4ilm8",
         -6,
@@ -422,7 +476,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         27,
         "BdwdOv10pp0",
-        -8,
+        -7,
         9,
         "YCi2vDzuhns",
         -7,
@@ -437,7 +491,7 @@ describe('convertManifestToBundleGraph', () => {
         -7,
         5,
         "s3XioIi2Huw",
-        -8,
+        -7,
         9,
       ]
     `);

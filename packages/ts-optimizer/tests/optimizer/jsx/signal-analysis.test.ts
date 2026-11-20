@@ -1,3 +1,4 @@
+import { runInNewContext } from 'node:vm';
 import { describe, it, expect } from 'vitest';
 import {
   analyzeSignalExpression,
@@ -119,6 +120,95 @@ describe('signal-analysis', () => {
       }
     });
 
+    it('keeps a property name out of the deps behind a non-null assertion: !o.shorten!.value', () => {
+      const { node, source } = parseExpr('!o.shorten!.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+        expect(result.hoistedFn).toBe('(p0)=>!p0.shorten.value');
+      }
+    });
+
+    it('keeps a property name out of the deps behind a cast: (o.shorten as Sig).value', () => {
+      const { node, source } = parseExpr('(o.shorten as Sig).value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+      }
+    });
+
+    it('keeps property names out of the deps behind a fallback: (o.a || o.b).shorten.value', () => {
+      const { node, source } = parseExpr('(o.a || o.b).shorten.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o']);
+      }
+    });
+
+    it('keeps a type name out of the deps: (x as Sig) ? o.value : false', () => {
+      const { node, source } = parseExpr('(x as Sig) ? o.value : false');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o', 'x']);
+      }
+    });
+
+    it('carries a variable used as a computed object key: { [name]: signal.value }', () => {
+      const { node, source } = parseExpr('{ [name]: signal.value }');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['name', 'signal']);
+        expect(result.hoistedStr).toBe('"{[p0]:p1.value}"');
+      }
+    });
+
+    it('carries the object read in a computed object key: { [o.name]: signal.value }', () => {
+      const { node, source } = parseExpr('{ [o.name]: signal.value }');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['o', 'signal']);
+        expect(result.hoistedStr).toBe('"{[p0.name]:p1.value}"');
+      }
+    });
+
+    it('carries a computed object key behind a fallback: (o.a || { [name]: flag }).shorten.value', () => {
+      const { node, source } = parseExpr('(o.a || { [name]: flag }).shorten.value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['flag', 'name', 'o']);
+        expect(result.hoistedStr).toBe('"(p2.a||{[p1]:p0}).shorten.value"');
+      }
+    });
+
+    it('leaves a module-scope computed object key free: { [MODULE_KEY]: signal.value }', () => {
+      const { node, source } = parseExpr('{ [MODULE_KEY]: signal.value }');
+      const localNames = new Set(['signal']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['signal']);
+        expect(result.hoistedStr).toBe('"{[MODULE_KEY]:p0.value}"');
+      }
+    });
+
+    it('keeps an object key named like a variable out of the deps: { name: signal.value }', () => {
+      const { node, source } = parseExpr('{ name: signal.value }');
+      const localNames = new Set(['name', 'signal']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type).toBe('fnSignal');
+      if (result.type === 'fnSignal') {
+        expect(result.deps).toEqual(['signal']);
+        expect(result.hoistedStr).toBe('"{name:p0.value}"');
+      }
+    });
+
     it('does NOT hoist a non-reactive unary: !plainVar', () => {
       const { node, source } = parseExpr('!plainVar');
       const result = analyzeSignalExpression(node, source, importedNames);
@@ -135,6 +225,14 @@ describe('signal-analysis', () => {
         expect(result.hoistedStr).toBe('"p0.address.city.name"');
       }
     });
+
+    it.each(['store[dep()].name', '(store[dep()] as Item).name'])(
+      'does not hoist a deep store chain that calls an import: %s',
+      (expr) => {
+        const { node, source } = parseExpr(expr);
+        expect(analyzeSignalExpression(node, source, importedNames).type).toBe('none');
+      }
+    );
 
     it('generates fnSignal for ternary on deep store: store.address.city.name ? "true" : "false"', () => {
       const { node, source } = parseExpr("store.address.city.name ? 'true' : 'false'");
@@ -216,6 +314,34 @@ describe('signal-analysis', () => {
         expect(result.deps).toEqual(['key', 'obj']);
         expect(result.hoistedFn).toBe('(p0,p1)=>p1[p0]');
       }
+    });
+
+    it.each([
+      ['store[({ idx: idx }).idx].name', '(p0,p1)=>p1[({ idx: p0 }).idx].name'],
+      ['store[({ idx }).idx].name', '(p0,p1)=>p1[({ idx: p0 }).idx].name'],
+      ['store[({ idx }).idx]', '(p0,p1)=>p1[({ idx: p0 }).idx]'],
+    ])('keeps object keys in a computed key when hoisting %s', (expr, hoistedFn) => {
+      const { node, source } = parseExpr(expr);
+      const localNames = new Set(['store', 'idx']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      expect(result.type === 'fnSignal' && result.hoistedFn).toBe(hoistedFn);
+    });
+
+    it('keeps a __proto__ shorthand key an own property when hoisting', () => {
+      const expr = 'store[({ __proto__ }).__proto__].name';
+      const { node, source } = parseExpr(expr);
+      const localNames = new Set(['store', '__proto__']);
+      const result = analyzeSignalExpression(node, source, importedNames, localNames);
+      if (result.type !== 'fnSignal') {
+        throw new Error(`expected fnSignal, got ${result.type}`);
+      }
+      const store = { chosen: { name: 'correct' }, '[object Object]': { name: 'wrong' } };
+      const original = runInNewContext(`(store, __proto__) => ${expr}`)(store, 'chosen');
+      const hoisted = runInNewContext(result.hoistedFn);
+      const serialized = runInNewContext(`(p0, p1) => ${runInNewContext(result.hoistedStr)}`);
+      expect(original).toBe('correct');
+      expect(hoisted('chosen', store)).toBe(original);
+      expect(serialized('chosen', store)).toBe(original);
     });
 
     it('hoists obj[42] (computed numeric literal)', () => {

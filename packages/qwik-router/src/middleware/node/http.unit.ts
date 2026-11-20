@@ -11,6 +11,7 @@ import { connect } from 'node:net';
 import { performance } from 'node:perf_hooks';
 import { Readable } from 'node:stream';
 import { assert, describe, expect, test, vi } from 'vitest';
+import { createRequestEvent } from '../request-handler/request-event-core';
 import { fromNodeHttp, normalizeUrl } from './http';
 
 [
@@ -472,6 +473,66 @@ describe('fromNodeHttp()', () => {
 
     expect(res.write).toHaveBeenCalledTimes(1);
     expect(res.end).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { source: 'response error event', timing: 'during write', abortsRequest: true },
+    { source: 'write callback', timing: 'during write', abortsRequest: false },
+    { source: 'response error event', timing: 'before drain', abortsRequest: true },
+    { source: 'write callback', timing: 'before drain', abortsRequest: false },
+  ])('logs unexpected errors from the $source $timing', async ({ timing, abortsRequest }) => {
+    const error = new Error('unexpected write failure');
+    const req = createBodyRequest([]);
+    const res = createResponse();
+    const waitsForDrain = timing === 'before drain';
+    let drainListenersAtFailure: number | undefined;
+    res.setHeader = vi.fn();
+    res.write = vi.fn(
+      (
+        _chunk: Uint8Array,
+        encoding?: BufferEncoding | ((error?: Error | null) => void),
+        callback?: (error?: Error | null) => void
+      ) => {
+        const onWrite = typeof encoding === 'function' ? encoding : callback;
+        const fail = () => {
+          drainListenersAtFailure = res.listenerCount('drain');
+          if (abortsRequest) {
+            res.emit('error', error);
+          } else {
+            onWrite?.(error);
+          }
+        };
+        if (waitsForDrain) {
+          queueMicrotask(fail);
+        } else {
+          fail();
+        }
+        return false;
+      }
+    );
+    const serverRequestEv = await fromNodeHttp(new URL('http://localhost/'), req, res, 'server');
+    const requestEv = createRequestEvent(
+      serverRequestEv,
+      { $routeName$: '/', $params$: {}, $mods$: [] },
+      [],
+      '/',
+      vi.fn()
+    );
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      requestEv.send(200, 'hello');
+
+      await vi.waitFor(() =>
+        expect(consoleError).toHaveBeenCalledWith('Response stream failed:', error)
+      );
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(requestEv.signal.aborted).toBe(abortsRequest);
+      expect(drainListenersAtFailure).toBe(waitsForDrain ? 1 : 0);
+      expect(res.listenerCount('drain')).toBe(0);
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   // Verifies the Node adapter starts making response-write progress before a large SSR render fully completes.

@@ -895,10 +895,64 @@ export function generateSegmentCode(
   const paramNames = createFunctionTransformSession(bodyText, { tolerateErrors: true })
     ?.fn.params.map(formatBindingPattern)
     .filter((name) => name !== undefined);
-  parts.push(`export const ${extraction.symbolName} = ${bodyText};`);
+  parts.push(
+    takeImportAsReExport(parts, bodyText.trim(), extraction.symbolName) ??
+      `export const ${extraction.symbolName} = ${bodyText};`
+  );
   return {
     code: parts.join('\n'),
     keyCounterValue: segmentKeyCounterValue,
     paramNames: paramNames?.length ? paramNames : undefined,
   };
+}
+
+const IDENTIFIER = String.raw`[\p{ID_Start}$_][\p{ID_Continue}$\u200C\u200D]*`;
+// The source keeps any import attributes, e.g. `"./x.json" with { type: 'json' }`.
+const SOURCE = String.raw`(["'][^"']+["'](?:\s+with\s*\{[^}]*\})?)`;
+const DEFAULT_IMPORT = new RegExp(String.raw`^import (${IDENTIFIER}) from ${SOURCE};$`, 'u');
+const NAMED_IMPORT = new RegExp(
+  String.raw`^import \{ (${IDENTIFIER})(?: as (${IDENTIFIER}))? \} from ${SOURCE};$`,
+  'u'
+);
+
+/**
+ * A re-export keeps a live binding, so loading the segment never reads an import that a chunk cycle
+ * has not initialized yet.
+ */
+function takeImportAsReExport(parts: string[], body: string, symbolName: string): string | null {
+  const importIndex = parts.findIndex((part) => parseSingleImport(part)?.local === body);
+  if (importIndex < 0) {
+    return null;
+  }
+  const { imported, source } = parseSingleImport(parts[importIndex])!;
+  const reference = new RegExp(
+    String.raw`(?<![\p{ID_Continue}$])${body.replace(/\$/g, '\\$')}(?![\p{ID_Continue}$])`,
+    'u'
+  );
+  const isUsedElsewhere = parts.some(
+    (part, index) => index !== importIndex && !part.startsWith('import ') && reference.test(part)
+  );
+  if (!isUsedElsewhere) {
+    parts.splice(importIndex, 1);
+    if (parts.every((part) => part === '//')) {
+      parts.length = 0;
+    }
+  }
+  return `export { ${imported} as ${symbolName} } from ${source};`;
+}
+
+function parseSingleImport(part: string) {
+  const defaultImport = DEFAULT_IMPORT.exec(part);
+  if (defaultImport) {
+    return { imported: 'default', local: defaultImport[1], source: defaultImport[2] };
+  }
+  const namedImport = NAMED_IMPORT.exec(part);
+  if (namedImport) {
+    return {
+      imported: namedImport[1],
+      local: namedImport[2] ?? namedImport[1],
+      source: namedImport[3],
+    };
+  }
+  return null;
 }

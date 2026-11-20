@@ -20,7 +20,13 @@ import {
   executeTasks,
 } from './chore-execution';
 import { addCursor, isCursor, type Cursor } from './cursor';
-import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
+import {
+  setCursorPosition,
+  getCursorData,
+  blockEarlyCommit,
+  canCommitEarly,
+  type CursorData,
+} from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import {
   getHighestPriorityCursor,
@@ -73,8 +79,7 @@ function scheduleYield(): void {
  */
 export function processCursorQueue(): void {
   cursorTick.isScheduled = false;
-  const startTime = performance.now();
-  const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
+  const yieldTime = performance.now() + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
@@ -113,8 +118,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
   const cursorData = getCursorData(cursor)!;
 
   // Check if cursor is blocked by a promise
-  const blockingPromise = cursorData.promise;
-  if (blockingPromise) {
+  if (cursorData.promise) {
     return;
   }
 
@@ -138,10 +142,6 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     if (DEBUG && count++ > 1000) {
       throw new Error('Infinite loop detected in cursor walker');
     }
-    if (cursorData.promise) {
-      return;
-    }
-
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
@@ -157,9 +157,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
         executeCleanup(currentVNode, container);
       }
       if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
-        if (next !== null) {
-          currentVNode = next;
+        if (tryDescendDirtyChildren(container, cursorData, currentVNode, cursor)) {
           continue;
         }
       }
@@ -169,6 +167,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       continue;
     }
 
+    const journalSizeBefore = journal.length;
     let result: ValueOrPromise<void> | undefined;
     try {
       // Execute chores in order
@@ -187,9 +186,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
-        const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
-        if (next !== null) {
-          currentVNode = next;
+        if (tryDescendDirtyChildren(container, cursorData, currentVNode, cursor)) {
           continue;
         }
       } else if (currentVNode.dirty & ChoreBits.ERROR_WRAP) {
@@ -202,9 +199,18 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       container.handleError(error, currentVNode);
     }
 
+    const hasJournaled = journal.length > journalSizeBefore;
+
     // Handle blocking promise
     if (result && isPromise(result)) {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
+      let journalSizeAtWait = journalSizeBefore;
+      if (!isRunningOnServer && !hasJournaled && canCommitEarly(cursorData, currentVNode)) {
+        // Show finished updates now instead of holding them behind this wait.
+        executeFlushPhase(cursor, container);
+        cursorData.$commitBlockers$ = null;
+        journalSizeAtWait = 0;
+      }
       addCursorBoundary(cursorData, currentVNode);
       // Store promise on cursor and pause
       const blockingPromise = result;
@@ -223,10 +229,17 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
             return;
           }
           cursorData.promise = null;
+          if (journal.length > journalSizeAtWait && host.dirty & ChoreBits.DIRTY_MASK) {
+            blockEarlyCommit(cursorData, host);
+          }
           resumeCursor(cursor, container);
           triggerCursors();
         });
       return;
+    }
+    if (hasJournaled && currentVNode.dirty & ChoreBits.DIRTY_MASK) {
+      // Its subtree is still rendering, so its journal entries are not yet a whole update.
+      blockEarlyCommit(cursorData, currentVNode);
     }
 
     // Check time budget (only for DOM, not SSR)
@@ -253,6 +266,9 @@ function finishWalk(
     DEBUG && console.warn('walkCursor: cursor done', cursor.toString());
     if (!isServer) {
       executeFlushPhase(cursor, container);
+      // Cursor data outlives the walk; it must not keep vNodes alive.
+      cursorData.journal = null;
+      cursorData.$commitBlockers$ = null;
     }
 
     resolveCursorBoundaries(cursorData);
@@ -320,10 +336,7 @@ export function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): v
 /** @returns Next vNode to process, or null if traversal is complete */
 export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container): VNode | null {
   if (vNode === cursor) {
-    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
-      return cursor;
-    }
-    return null;
+    return cursor.dirty & ChoreBits.DIRTY_MASK ? cursor : null;
   }
   // Prefer slotParent (logical owner) for Projections, fall back to parent
   let parent: VNode | null = null;
@@ -334,10 +347,7 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
   }
 
   if (!parent) {
-    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
-      return cursor;
-    }
-    return null;
+    return cursor.dirty & ChoreBits.DIRTY_MASK ? cursor : null;
   }
   const dirtyChildren = parent.dirtyChildren!;
   let index = parent.nextDirtyChildIndex;

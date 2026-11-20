@@ -89,6 +89,266 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 }
 
 #[test]
+fn qrl_declared_before_the_statement_creating_it() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+export const before = 1;
+export const first = $(() => before);
+export const between = 2;
+export const second = $(() => $(() => between));
+"#;
+	for entry_strategy in [
+		EntryStrategy::Segment,
+		EntryStrategy::Inline,
+		EntryStrategy::Hoist,
+	] {
+		let output = test_input_fn(TestInput {
+			code: code.to_string(),
+			entry_strategy,
+			snapshot: false,
+			..TestInput::default()
+		})
+		.unwrap();
+		let parent = &output
+			.modules
+			.iter()
+			.find(|module| module.segment.is_none())
+			.unwrap()
+			.code;
+		let at = |needle: &str| {
+			parent
+				.find(needle)
+				.unwrap_or_else(|| panic!("{entry_strategy:?}: no `{needle}` in\n{parent}"))
+		};
+		let order = [
+			at("before = 1"),
+			at("const q_first"),
+			at("const first ="),
+			at("between = 2"),
+			at("const q_second"),
+			at("const second ="),
+		];
+		assert!(order.is_sorted(), "{entry_strategy:?}:\n{parent}");
+		for module in &output.modules {
+			for line in module.code.lines() {
+				assert!(
+					!line.starts_with("/*#__PURE__*/ qrl("),
+					"{entry_strategy:?}:\n{}",
+					module.code
+				);
+			}
+		}
+		let declarations = output
+			.modules
+			.iter()
+			.map(|module| module.code.matches("const q_second_1_").count())
+			.sum::<usize>();
+		assert_eq!(
+			declarations, 1,
+			"{entry_strategy:?}: the nested qrl is declared once"
+		);
+	}
+}
+
+fn parent_code(code: &str, entry_strategy: EntryStrategy) -> String {
+	let output = test_input_fn(TestInput {
+		code: code.to_string(),
+		entry_strategy,
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	output
+		.modules
+		.into_iter()
+		.find(|module| module.segment.is_none())
+		.unwrap()
+		.code
+}
+
+#[test]
+fn qrl_used_through_a_function_comes_before_code_calling_it() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+export const handler = make();
+function make() { return $(() => 1); }
+"#;
+	for entry_strategy in [
+		EntryStrategy::Segment,
+		EntryStrategy::Inline,
+		EntryStrategy::Hoist,
+	] {
+		let parent = parent_code(code, entry_strategy);
+		let declaration = parent.find("const q_").unwrap();
+		assert!(
+			declaration < parent.find("handler = make()").unwrap(),
+			"{entry_strategy:?}:\n{parent}"
+		);
+	}
+}
+
+#[test]
+fn unused_qrl_is_created_after_the_rest_of_the_module() {
+	let parent = parent_code(
+		r#"
+import { $, component$ } from '@qwik.dev/core';
+const greet = $(() => console.log('hi'));
+export const Greeter = component$(() => {
+	greet();
+	return <p>hi</p>;
+});
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.rfind("qrl(").unwrap() > parent.find("export const Greeter").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn user_variables_named_like_qrls_keep_their_order() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+const q_log = console.log('first');
+console.log('second');
+export const x = q_log;
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("'first'").unwrap() < parent.find("'second'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_of_an_exported_function_stays_before_code_that_may_call_it() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { run } from './b';
+run();
+export function make() { return $(() => 1); }
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("const q_").unwrap() < parent.find("run();").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_of_an_anonymous_default_function_stays_before_code_that_may_call_it() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { run } from './b';
+run();
+export default function () { return $(() => 1); }
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("const q_").unwrap() < parent.find("run();").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn invoked_qrl_statement_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+qrl(() => import('./a'), 'a').resolve();
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find(".resolve()").unwrap() < parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_statement_with_side_effects_in_its_arguments_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+import { load } from './load';
+qrl(load(), 'a');
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("load()").unwrap() < parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn unused_qrl_statement_with_pure_arguments_moves_to_the_end() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+(qrl)(() => import('./unused'), 'unused', { file: 'a.tsx', lo: 1, list: [1, 'x'] });
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("./unused").unwrap() > parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_declaration_that_runs_code_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+import { load } from './load';
+const a = qrl(load(), 'a');
+const b = qrl(() => import('./b'), 'b').resolve();
+console.log('after');
+export const x = [a, b];
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	let after = parent.find("'after'").unwrap();
+	assert!(parent.find("load()").unwrap() < after, "{parent}");
+	assert!(parent.find(".resolve()").unwrap() < after, "{parent}");
+}
+
+#[test]
+fn user_qrl_function_from_another_module_keeps_its_order() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { qrl } from './mine';
+const q_a = qrl(console.log('first'));
+console.log('second');
+export const x = q_a;
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("'first'").unwrap() < parent.find("'second'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
 fn migrated_qrl_pure() {
 	let code = include_str!("fixtures/migrated-qrl-pure.js").to_string();
 	for minify in [MinifyMode::None, MinifyMode::Simplify] {
@@ -179,14 +439,6 @@ fn smart_lifted_event_captures() {
 		})
 		.unwrap();
 	assert!(!lifted.captures);
-	assert!(lifted.entry.is_none());
-	assert_eq!(
-		handlers
-			.iter()
-			.filter(|segment| segment.entry.is_none())
-			.count(),
-		2
-	);
 	let callback = output
 		.modules
 		.iter()
@@ -199,140 +451,61 @@ fn smart_lifted_event_captures() {
 		.filter_map(|module| module.segment.as_ref())
 		.find(|segment| segment.ctx_name == "component$")
 		.unwrap();
-	assert!(render.entry.is_some());
-	assert_eq!(callback.entry, render.entry);
+	assert_eq!(callback.entry.as_deref(), Some("test.tsx_entry_App"));
+	assert_eq!(render.entry.as_deref(), Some("test.tsx_render_App"));
+	assert!(handlers
+		.iter()
+		.all(|segment| segment.entry == callback.entry));
 	let event = output
 		.modules
 		.iter()
 		.filter_map(|module| module.segment.as_ref())
 		.find(|segment| segment.ctx_name == "event$")
 		.unwrap();
-	assert!(event.entry.is_none());
+	assert_eq!(event.entry, callback.entry);
 	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]
-fn smart_event_qrl_alias_consumers() {
-	for (event, render, separated) in [
-		("alias", "", true),
-		("(alias)", "", true),
-		("[alias]", "", true),
-		("enabled ? alias : alias", "", true),
-		("() => alias()", "", true),
-		("alias", "alias();", false),
-		("alias", "unknown(alias);", false),
-		(
-			"alias",
-			"const View = alias; const rendered = <View />; consume(rendered);",
-			false,
-		),
-	] {
-		let output = test_input_fn(TestInput {
-			code: format!(
-				r#"
-import {{ $ as defer, component$, useSignal }} from '@qwik.dev/core';
-export const App = component$(() => {{
+fn smart_render_alone() {
+	let output = test_input_fn(TestInput {
+		code: r#"
+import { component$, useComputed$, useSignal, useStylesScoped$, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  useStylesScoped$('.app { color: red }');
   const count = useSignal(0);
-  const click = defer(() => count.value++);
-  const alias = click;
-  {render}
-  return <button onClick$={{{event}}} />;
-}});"#
-			),
-			entry_strategy: EntryStrategy::Smart,
-			transpile_ts: true,
-			transpile_jsx: true,
-			mode: EmitMode::Prod,
-			..TestInput::default()
-		})
-		.unwrap();
-		let callback = output
-			.modules
-			.iter()
-			.filter_map(|module| module.segment.as_ref())
-			.find(|segment| segment.display_name == "test.tsx_App_component_click")
-			.unwrap();
-		assert_eq!(
-			callback.entry.as_ref() == Some(&callback.canonical_filename),
-			separated,
-			"{event} {render}"
-		);
-	}
-}
-
-#[test]
-fn smart_event_qrl_render_consumers() {
-	let code = include_str!("fixtures/smart-event-qrl-render-consumers.tsx").to_string();
-	let result = test_input_fn(TestInput {
-		code: code.clone(),
+  const double = useComputed$(() => count.value * 2);
+  useTask$(({ track }) => console.log(track(count)));
+  return <button onClick$={() => count.value++}>{double.value}</button>;
+});"#
+			.to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		transpile_ts: true,
 		transpile_jsx: true,
 		mode: EmitMode::Prod,
 		..TestInput::default()
-	});
-	let output = result.as_ref().unwrap();
+	})
+	.unwrap();
 	let segments: Vec<_> = output
 		.modules
 		.iter()
 		.filter_map(|module| module.segment.as_ref())
 		.collect();
-	let parent = segments
-		.iter()
-		.find(|segment| segment.ctx_name == "component$")
-		.unwrap();
-	for name in ["View", "getter"] {
-		let segment = segments
-			.iter()
-			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
-			.unwrap();
-		assert_eq!(segment.entry, parent.entry, "{name}");
-	}
-	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
-}
-
-#[test]
-fn smart_event_qrl_references() {
-	let code = include_str!("fixtures/smart-event-qrl-references.tsx").to_string();
-	let result = test_input_fn(TestInput {
-		code: code.clone(),
-		entry_strategy: EntryStrategy::Smart,
-		transpile_ts: true,
-		transpile_jsx: true,
-		mode: EmitMode::Prod,
-		..TestInput::default()
-	});
-	let output = result.as_ref().unwrap();
-	for (name, is_event_only) in [
-		("click", true),
-		("wrapped", true),
-		("render", false),
-		("hookRead", false),
-		("mixed", false),
-		("custom", false),
-	] {
-		let segment = output
-			.modules
-			.iter()
-			.filter_map(|module| module.segment.as_ref())
-			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
-			.unwrap();
-		if is_event_only {
-			assert_eq!(
-				segment.entry.as_ref(),
-				Some(&segment.canonical_filename),
-				"{name}"
-			);
+	assert_eq!(segments.len(), 5);
+	for segment in segments {
+		let is_render = matches!(segment.ctx_name.as_ref(), "component$" | "useStylesScoped$");
+		let entry = if is_render {
+			"test.tsx_render_App"
 		} else {
-			assert_eq!(
-				segment.entry.as_deref(),
-				Some("test.tsx_entry_App"),
-				"{name}"
-			);
-		}
-		assert_eq!(segment.ctx_kind, SegmentKind::Function);
+			"test.tsx_entry_App"
+		};
+		assert_eq!(
+			segment.entry.as_deref(),
+			Some(entry),
+			"{}",
+			segment.ctx_name
+		);
 	}
-	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]
@@ -1994,6 +2167,24 @@ import css3 from './style.css';
 export const App = component$(() => {
 	useStyles$(`${css1}${css2}`);
 	useStyles$(css3);
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_reexport_imported_styles() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStyles$ } from '@qwik.dev/core';
+import data from './styles.json' with { type: 'json' };
+
+export const App = component$(() => {
+	useStyles$(data);
 })
 "#
 		.to_string(),
@@ -4419,6 +4610,14 @@ export const Local = component$(() => {
 	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
+fn removed_entry_strategies_are_rejected() {
+	for name in ["component", "hook"] {
+		let parsed = serde_json::from_str::<EntryStrategy>(&format!("\"{name}\""));
+		assert!(parsed.is_err(), "{name}");
+	}
+}
+
+#[test]
 fn consistent_hashes() {
 	let code = r#"
 import { component$, $ } from '@qwik.dev/core';
@@ -4442,27 +4641,21 @@ export const Greeter = component$(() => {
 	let options = vec![
 		(EmitMode::Test, EntryStrategy::Segment, true),
 		(EmitMode::Test, EntryStrategy::Single, true),
-		(EmitMode::Test, EntryStrategy::Component, true),
 		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
-		(EmitMode::Prod, EntryStrategy::Component, true),
 		// (EmitMode::Prod, EntryStrategy::Inline, true),
 		(EmitMode::Dev, EntryStrategy::Segment, true),
 		(EmitMode::Dev, EntryStrategy::Single, true),
-		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
 		(EmitMode::Test, EntryStrategy::Segment, false),
 		(EmitMode::Test, EntryStrategy::Single, false),
-		(EmitMode::Test, EntryStrategy::Component, false),
 		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
-		(EmitMode::Prod, EntryStrategy::Component, false),
 		// (EmitMode::Prod, EntryStrategy::Inline, false),
 		(EmitMode::Dev, EntryStrategy::Segment, false),
 		(EmitMode::Dev, EntryStrategy::Single, false),
-		(EmitMode::Dev, EntryStrategy::Component, false),
 		// (EmitMode::Dev, EntryStrategy::Inline, false),
 	];
 
@@ -6846,6 +7039,201 @@ export default component$(() => {
 }
 
 #[test]
+fn should_make_dynamic_tag_jsx_split_with_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <Cmp onClick$={() => console.log('clicked')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_dynamic_tag_jsx_split_with_shorthand_event_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const onClick$ = $(() => console.log('clicked'));
+  return jsx(Cmp, { onClick$ });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_dynamic_tag_jsx_split_with_lowercase_event_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <Cmp onclick$={() => console.log('clicked')} />
+      <Cmp window:onresize$={() => console.log('resized')} />
+      <Cmp document:onscroll$={() => console.log('scrolled')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_dynamic_tag_jsx_split_with_computed_event_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+import { Child } from './child';
+
+export default component$((props: { eventName: string }) => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { [props.eventName]: handler }),
+      jsx(Cmp, { ['onClick$']: handler }),
+      jsx(Cmp, { ['title']: 'static' }),
+      jsx(Child, { [props.eventName]: handler }),
+    ],
+  });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_treat_computed_string_event_key_like_plain_key_on_dynamic_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+import { Child } from './child';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { onClick$: handler }),
+      jsx(Cmp, { ['onClick$']: handler }),
+      jsx(Cmp, { ['onInput$']: () => console.log('input') }),
+      jsx(Cmp, { ['window:onScroll$']: () => console.log('scrolled') }),
+      jsx(Child, { ['onClick$']: handler }),
+    ],
+  });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_treat_computed_string_event_key_with_comment_like_plain_key() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { ['onClick$' /* ] */]: handler }),
+      jsx(Cmp, { [/* [ */ 'onBlur$']: () => console.log('blur') }),
+    ],
+  });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_passive_directive_on_dynamic_tag_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'div' : 'section'
+  return (
+    <div>
+      <Cmp passive:wheel onWheel$={() => console.log('wheel')} />
+      <Cmp passive:touchstart preventdefault:touchstart onTouchStart$={() => console.log('touch')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_dynamic_tag_jsx_split_with_strip_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <button onClick$={() => console.log('stripped')} />
+      <Cmp onClick$={() => console.log('clicked')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		strip_event_handlers: true,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_block_scoped_variables_in_loop() {
 	test_input!(TestInput {
 		code: r#"
@@ -7458,11 +7846,152 @@ export const Other = component$(() => {
 	});
 }
 
+#[test]
+fn should_move_inline_component_with_event_handler() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Row = (props: { n: number }) => (
+	<tr onClick$={() => console.log('row')}>
+		<td>{props.n}</td>
+	</tr>
+);
+
+export const Table = component$(() => (
+	<table>
+		<Row n={1} />
+	</table>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_hook_with_task() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+const useLogger = () => {
+	const count = useSignal(0);
+	useTask$(() => console.log(count.value));
+	return count;
+};
+
+export const Counter = component$(() => {
+	const count = useLogger();
+	return <p>{count.value}</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_inline_component_function_declaration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+function Row(props: { n: number }) {
+	return (
+		<tr onClick$={() => console.log('row')}>
+			<td>{props.n}</td>
+		</tr>
+	);
+}
+
+export const Table = component$(() => (
+	<table>
+		<Row n={1} />
+	</table>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_hook_function_declaration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+function useLogger() {
+	const count = useSignal(0);
+	useTask$(() => console.log(count.value));
+	return count;
+}
+
+export const Counter = component$(() => {
+	const count = useLogger();
+	return <p>{count.value}</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_component_qrl_into_its_only_consumer() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Inner = component$(() => <p onClick$={() => console.log('inner')}>inner</p>);
+
+export const Outer = component$(() => (
+	<div>
+		<Inner />
+	</div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 /// Regression test: when a root variable is pulled in as a transitive dependency
 /// for migration to segment A, but is also directly used by segment B, it must NOT
 /// be migrated. Otherwise segment B loses access to it (the export is removed).
 /// This reproduces the qwik-router bug where `currentScrollState` and `saveScrollHistory`
 /// were migrated to the useTask segment but also needed by the goto segment.
+#[test]
+fn should_move_qrl_into_its_only_consumer() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+const greet = $(() => console.log('hi'));
+
+export const Greeter = component$(() => {
+	greet();
+	return <p>hi</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 #[test]
 fn variable_migration_transitive_dep_used_by_other_segment() {
 	let res = test_input!(TestInput {
@@ -10462,6 +10991,16 @@ export const List = component$((props) => {
 }
 
 #[test]
+fn should_track_signal_read_through_non_null_assertion() {
+	test_input!(TestInput { code: r#"
+import { component$, type Signal } from '@qwik.dev/core';
+export const List = component$((props: { rows: { open?: Signal<boolean>; error: unknown }[] }) => {
+  return <div>{props.rows.map((row) => <p aria-expanded={!row.open!.value}>{row.open!.value ? 'open' : 'closed'}{(row.error as Error).message}</p>)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
 fn should_transform_loop_logical_property_capture() {
 	test_input!(TestInput { code: r#"
 import { component$ } from '@qwik.dev/core';
@@ -10604,4 +11143,63 @@ export const List = component$((props) => {
   function rows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
 });
 "#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn fn_signal_deps_hold_only_variables() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, type Signal } from '@qwik.dev/core';
+
+type Flag = Signal<boolean>;
+type Output = { shorten?: Flag; a?: any; b?: any };
+
+export const List = component$((props: { outputs: Output[] }) => {
+  return (
+    <div>
+      {props.outputs.map((o) => (
+        <button
+          aria-expanded={!o.shorten!.value}
+          aria-pressed={(o.shorten as Flag).value}
+          aria-busy={(o.a || o.b).shorten.value}
+          aria-hidden={(o.a as Flag) ? o.b.value : false}
+        />
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn fn_signal_deps_carry_computed_keys() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$((props: { outputs: any[] }) => {
+  const sig = useSignal(false);
+  return (
+    <div>
+      {props.outputs.map((o) => (
+        <button
+          class={{ [o.name]: sig.value }}
+          data-flags={{ [o]: sig.value }}
+          aria-busy={(o.a || { [o.name]: sig }).shorten.value}
+        />
+      ))}
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
 }

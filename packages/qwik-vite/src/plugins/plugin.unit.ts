@@ -4,7 +4,12 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
+import {
+  ExperimentalFeatures,
+  QWIK_PRELOADER_ID,
+  createQwikPlugin,
+  mightContainDecorators,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -130,10 +135,22 @@ test('csr', async () => {
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({
-    entryStrategy: { type: 'component' },
+    entryStrategy: { type: 'single' },
     buildMode: 'production',
   });
-  assert.deepEqual(opts.entryStrategy.type, 'component');
+  assert.deepEqual(opts.entryStrategy.type, 'single');
+});
+
+test.each([
+  { removed: 'component', replacement: 'smart' },
+  { removed: 'hook', replacement: 'segment' },
+])('rejects the removed $removed entry strategy and names $replacement', async (strategy) => {
+  const plugin = await mockPlugin();
+  await expect(
+    plugin.normalizeOptions({ entryStrategy: { type: strategy.removed } as any })
+  ).rejects.toThrow(
+    `The "${strategy.removed}" entry strategy was removed. Use "${strategy.replacement}" instead.`
+  );
 });
 
 test('entryStrategy, smart', async () => {
@@ -217,12 +234,13 @@ test.each([
       client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
     ).toBe(task.segment.entry);
     expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
-    expect(callback.segment.entry).toBe(
-      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    expect(callback.segment.entry).toBe('example.tsx_entry_App');
+    expect(client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry).toBe(
+      'example.tsx_render_App'
     );
-    expect(
-      client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
-    ).toBeNull();
+    expect(client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry).toBe(
+      callback.segment.entry
+    );
     expect(server.code).toContain('shared-task');
     expect(server.code).toContain('shared-callback');
     if (compiled) {
@@ -819,6 +837,15 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+test('bundler annotations are not mistaken for decorators', () => {
+  expect(mightContainDecorators('@Entity()\nclass User {}')).toBe(true);
+  expect(mightContainDecorators('const a = (@Inject() b) => b;')).toBe(true);
+  expect(mightContainDecorators('export const Each = /* @__PURE__ */ componentQrl(q);')).toBe(
+    false
+  );
+  expect(mightContainDecorators('const f = /* @__NO_SIDE_EFFECTS__ */ () => 1;')).toBe(false);
+});
+
 describe('decorators follow tsconfig', () => {
   const decoratedComponent = `import { component$ } from '@qwik.dev/core';
 const Entity = (): ClassDecorator => (target) => target;
@@ -859,6 +886,40 @@ export default component$(() => {
   test('keeps standard decorators without experimentalDecorators', async () => {
     const code = await loadDecoratedSegment({});
     expect(code).toContain('@Entity()');
+  });
+
+  test('resolves vite even when the optimizer sys cannot import it', async () => {
+    // Strict layouts (pnpm without hoisting, Yarn PnP, Nix) do not install vite
+    // next to @qwik.dev/optimizer, so resolving vite through the optimizer's sys
+    // fails there. The plugin must resolve vite from its own location instead.
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: {} }));
+    const plugin = createQwikPlugin({
+      tsOptimizer: true,
+      sys: {
+        cwd: () => process.cwd(),
+        env: 'node',
+        os: process.platform,
+        dynamicImport: async (specifier: string) => {
+          if (specifier === 'vite') {
+            throw new Error(`Cannot find package 'vite'`);
+          }
+          return import(specifier);
+        },
+        strictDynamicImport: async (specifier: string) => import(specifier),
+        path: path as any,
+      },
+    });
+    await plugin.init();
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const segmentId = result!.meta!.qwikdeps.find((dep: string) => dep.includes('_component_'));
+    const loaded = await plugin.load({} as any, segmentId!);
+    expect((loaded as { code: string }).code).toContain('@Entity()');
   });
 });
 
@@ -1015,6 +1076,60 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
     expect(result).toBeTruthy();
     expect(result!.code).not.toContain('globalThis.__QWIK_MANIFEST__');
     expect(result!.code).toContain('"manifestHash":"abc123"');
+  });
+
+  test("embeds the client build's bundle graph in the server bundle", async () => {
+    const client = await mockPlugin();
+    await client.normalizeOptions({ target: 'client', buildMode: 'production' });
+    const assets = new Map<string, string>();
+    const ctx = {
+      resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+      emitFile: (file: { id?: string; name?: string; fileName?: string; source: string }) => {
+        const fileName = file.fileName || `build/${file.name || file.id}`;
+        assets.set(fileName, file.source);
+        return fileName;
+      },
+      getFileName: (ref: string) => ref,
+      getModuleInfo: () => null,
+      meta: { rollupVersion: '' },
+    };
+    const chunk = (name: string, imports: string[]) => ({
+      type: 'chunk',
+      fileName: `build/${name}.js`,
+      name,
+      code: '',
+      exports: [],
+      imports,
+      dynamicImports: [],
+      moduleIds: [],
+      modules: {},
+      isEntry: false,
+      isDynamicEntry: false,
+    });
+    const bundle = {
+      'build/app.js': chunk('app', ['build/dep.js']),
+      'build/dep.js': chunk('dep', []),
+    };
+    await client.buildStart(ctx as any);
+    await client.generateManifest(ctx as any, bundle as any);
+    const clientManifest = JSON.parse(assets.get('q-manifest.json')!) as QwikManifest;
+    const bundleGraph = JSON.parse(assets.get(clientManifest.bundleGraphAsset!)!);
+
+    const server = await mockPlugin();
+    await server.normalizeOptions({
+      target: 'ssr',
+      buildMode: 'production',
+      manifestInput: clientManifest,
+    });
+    const result = await server.transform(
+      {} as any,
+      `export default globalThis.__QWIK_MANIFEST__;`,
+      '/root/src/server.js'
+    );
+    const serverManifest = JSON.parse(result!.code.replace(/^export default |;\s*$/g, ''));
+
+    expect(bundleGraph).not.toEqual([]);
+    expect(serverManifest.bundleGraph).toEqual(bundleGraph);
   });
 
   test('generates a fresh sourcemap after manifest replacement', async () => {

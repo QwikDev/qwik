@@ -134,7 +134,6 @@ export type ObjToProxyMap = WeakMap<any, any>;
 
 export interface QContainerElement extends Element {
   qFuncs?: Function[];
-  _qwikjson_?: any;
 }
 
 /**

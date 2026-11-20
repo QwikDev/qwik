@@ -50,6 +50,7 @@ export const RequestEvCaughtError = '@caughtError';
 export const RequestEvSentServerError = '@sentServerError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
+/** Builds shared request state and controls route handler execution. */
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute,
@@ -125,14 +126,18 @@ export function createRequestEvent(
     }
   };
 
+  /** Exits the route synchronously while handling stream failures asynchronously. */
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
+    let responseWrite: Promise<unknown>;
     if (typeof statusOrResponse === 'number') {
       status = statusOrResponse;
       const writableStream = requestEv.getWritableStream();
       const writer = writableStream.getWriter();
-      writer.write(typeof body === 'string' ? encoder.encode(body) : body);
-      writer.close();
+      responseWrite = Promise.all([
+        writer.write(typeof body === 'string' ? encoder.encode(body) : body),
+        writer.close(),
+      ]);
     } else {
       status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
@@ -152,11 +157,21 @@ export function createRequestEvent(
       });
       if (statusOrResponse.body) {
         const writableStream = requestEv.getWritableStream();
-        statusOrResponse.body.pipeTo(writableStream);
+        responseWrite = statusOrResponse.body.pipeTo(writableStream);
       } else {
-        requestEv.getWritableStream().getWriter().close();
+        responseWrite = requestEv.getWritableStream().getWriter().close();
       }
     }
+    void responseWrite.catch((error) => {
+      const signal = request.signal;
+      if (
+        signal.aborted &&
+        ((error instanceof Error && error.name === 'AbortError') || error === signal.reason)
+      ) {
+        return;
+      }
+      console.error('Response stream failed:', error);
+    });
     return exit();
   };
 

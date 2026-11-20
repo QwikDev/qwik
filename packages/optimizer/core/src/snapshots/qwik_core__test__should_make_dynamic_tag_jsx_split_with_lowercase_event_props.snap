@@ -1,0 +1,159 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <Cmp onclick$={() => console.log('clicked')} />
+      <Cmp window:onresize$={() => console.log('resized')} />
+      <Cmp document:onscroll$={() => console.log('scrolled')} />
+    </div>
+  );
+});
+
+============================= test.tsx_test_component_div_Cmp_document_onscroll_LiVqTaGdRAg.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_document_onscroll_LiVqTaGdRAg = ()=>console.log('scrolled');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oEAS+B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_document_onscroll_LiVqTaGdRAg",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_document_onscroll",
+  "hash": "LiVqTaGdRAg",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_document_onscroll_LiVqTaGdRAg",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "document:onscroll$",
+  "captures": false,
+  "loc": [
+    302,
+    331
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CASZ\"}")
+============================= test.tsx_test_component_div_Cmp_onclick_h6KH7SnoJyQ.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_onclick_h6KH7SnoJyQ = ()=>console.log('clicked');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAOqB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_onclick_h6KH7SnoJyQ",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_onclick",
+  "hash": "h6KH7SnoJyQ",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_onclick_h6KH7SnoJyQ",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "onclick$",
+  "captures": false,
+  "loc": [
+    176,
+    204
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_div_Cmp_document_onscroll_LiVqTaGdRAg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_document_onscroll_LiVqTaGdRAg"), "test_component_div_Cmp_document_onscroll_LiVqTaGdRAg");
+const q_test_component_div_Cmp_onclick_h6KH7SnoJyQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_onclick_h6KH7SnoJyQ"), "test_component_div_Cmp_onclick_h6KH7SnoJyQ");
+const q_test_component_div_Cmp_window_onresize_Uw8geMuJVcU = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_window_onresize_Uw8geMuJVcU"), "test_component_div_Cmp_window_onresize_Uw8geMuJVcU");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
+            onclick$: q_test_component_div_Cmp_onclick_h6KH7SnoJyQ
+        }, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
+            "window:onresize$": q_test_component_div_Cmp_window_onresize_Uw8geMuJVcU
+        }, null, 3, "u6_1"),
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
+            "document:onscroll$": q_test_component_div_Cmp_document_onscroll_LiVqTaGdRAg
+        }, null, 3, "u6_2")
+    ], 1, "u6_3");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAG0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,qBACE,WAAC;sBACC,UAAC;YAAI,QAAQ;;sBACb,UAAC;YAAD,kBAAuD;;sBACvD,UAAC;YAAD,oBAA0D;;;AAGhE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    353
+  ]
+}
+*/
+============================= test.tsx_test_component_div_Cmp_window_onresize_Uw8geMuJVcU.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_window_onresize_Uw8geMuJVcU = ()=>console.log('resized');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAQ6B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_window_onresize_Uw8geMuJVcU",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_window_onresize",
+  "hash": "Uw8geMuJVcU",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_window_onresize_Uw8geMuJVcU",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "window:onresize$",
+  "captures": false,
+  "loc": [
+    238,
+    266
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

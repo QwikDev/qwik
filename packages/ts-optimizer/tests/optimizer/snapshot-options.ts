@@ -68,6 +68,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_stable_property_helper: { transpileTs: true, transpileJsx: true },
   should_transform_loop_nullable_capture: { transpileTs: true, transpileJsx: true },
+  should_track_signal_read_through_non_null_assertion: { transpileTs: true, transpileJsx: true },
 
   should_transform_loop_named_factory: { transpileTs: true, transpileJsx: true },
   should_transform_loop_function_argument: { transpileTs: true, transpileJsx: true },
@@ -209,18 +210,6 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_loop_handler_in_destructuring_default: { transpileTs: true, transpileJsx: true },
   should_transform_loop_handler_between_declarators: { transpileTs: true, transpileJsx: true },
-  smart_event_qrl_render_consumers: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
-  smart_event_qrl_references: {
-    entryStrategy: { type: 'smart' },
-    transpileTs: true,
-    transpileJsx: true,
-    mode: 'prod',
-  },
   smart_visible_task_heavy_library: {
     entryStrategy: { type: 'smart' },
     transpileTs: true,
@@ -312,6 +301,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_invalid_segment_expr1: { transpileTs: true, transpileJsx: true },
   example_capture_imports: { transpileTs: true, transpileJsx: true },
   example_capturing_fn_class: { transpileTs: true, transpileJsx: true },
+  example_reexport_imported_styles: { transpileTs: true, transpileJsx: true },
   example_renamed_exports: { transpileTs: true, transpileJsx: true },
   example_jsx: { transpileTs: true, transpileJsx: true },
   example_jsx_listeners: { transpileTs: true, transpileJsx: true },
@@ -674,6 +664,8 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   destructure_args_inline_cmp_block_stmt2: { transpileTs: true, transpileJsx: true },
   destructure_args_inline_cmp_expr_stmt: { transpileTs: true, transpileJsx: true },
   example_component_with_event_listeners_inside_loop: { transpileTs: true, transpileJsx: true },
+  fn_signal_deps_carry_computed_keys: { transpileTs: true, transpileJsx: true },
+  fn_signal_deps_hold_only_variables: { transpileTs: true, transpileJsx: true },
   hmr: { transpileTs: true, transpileJsx: true, mode: 'hmr' },
   hoisted_fn_signal_in_loop: { transpileTs: true, transpileJsx: true },
   issue_7216_add_test: { transpileTs: true, transpileJsx: true },
@@ -721,7 +713,37 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_keep_root_var_used_by_export_decl_and_qrl: { transpileTs: true, transpileJsx: true },
   should_keep_root_var_used_by_exported_function_and_qrl: { transpileTs: true, transpileJsx: true },
+  should_keep_passive_directive_on_dynamic_tag_jsx_split: { transpileTs: true, transpileJsx: true },
+  should_make_dynamic_tag_jsx_split_with_strip_event_handlers: {
+    transpileTs: true,
+    transpileJsx: true,
+    stripEventHandlers: true,
+  },
   should_make_component_jsx_split_with_bind: { transpileTs: true, transpileJsx: true },
+  should_make_dynamic_tag_jsx_split_with_event_handlers: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_computed_event_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_treat_computed_string_event_key_like_plain_key_on_dynamic_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_treat_computed_string_event_key_with_comment_like_plain_key: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_lowercase_event_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_shorthand_event_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_mark_props_as_var_props_for_inner_cmp: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props_before_and_after: {
@@ -844,6 +866,12 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
 
   component_level_self_referential_qrl: {},
   example_segment_variable_migration: {},
+  should_move_inline_component_with_event_handler: { transpileTs: true, transpileJsx: true },
+  should_move_hook_with_task: { transpileTs: true, transpileJsx: true },
+  should_move_inline_component_function_declaration: { transpileTs: true, transpileJsx: true },
+  should_move_hook_function_declaration: { transpileTs: true, transpileJsx: true },
+  should_move_component_qrl_into_its_only_consumer: { transpileTs: true, transpileJsx: true },
+  should_move_qrl_into_its_only_consumer: { transpileTs: true, transpileJsx: true },
   rename_builder_io: { transpileJsx: true },
   root_level_self_referential_qrl: {},
   should_not_transform_events_on_non_elements: {},

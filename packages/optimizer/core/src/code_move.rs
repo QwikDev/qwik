@@ -447,7 +447,13 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	}
 	module.body = final_body;
 
-	module.body.push(create_named_export(expr, ctx.name));
+	let re_export = match &*expr {
+		ast::Expr::Ident(ident) => take_import_as_re_export(&mut module.body, ident, ctx.name),
+		_ => None,
+	};
+	module
+		.body
+		.push(re_export.unwrap_or_else(|| create_named_export(expr, ctx.name)));
 	let comments = copy_module_comments(&module, &ctx.leading_comments, &ctx.trailing_comments);
 	Ok((module, comments))
 }
@@ -1180,6 +1186,112 @@ impl Visit for AnyIdentCollector {
 		member.visit_children_with(self);
 		self.expr_ctxt.pop();
 	}
+}
+
+/// A re-export keeps a live binding, so loading the segment never reads an
+/// import that a chunk cycle has not initialized yet.
+fn take_import_as_re_export(
+	body: &mut Vec<ast::ModuleItem>,
+	ident: &ast::Ident,
+	name: &str,
+) -> Option<ast::ModuleItem> {
+	let (import_index, specifier_index, orig) =
+		body.iter().enumerate().find_map(|(import_index, item)| {
+			let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import)) = item else {
+				return None;
+			};
+			if import.type_only {
+				return None;
+			}
+			import
+				.specifiers
+				.iter()
+				.enumerate()
+				.find_map(|(specifier_index, specifier)| {
+					let orig = match specifier {
+						ast::ImportSpecifier::Default(default)
+							if default.local.sym == ident.sym =>
+						{
+							ast::ModuleExportName::Ident(ast::Ident::new(
+								"default".into(),
+								DUMMY_SP,
+								Default::default(),
+							))
+						}
+						ast::ImportSpecifier::Named(named)
+							if named.local.sym == ident.sym && !named.is_type_only =>
+						{
+							named.imported.clone().unwrap_or_else(|| {
+								ast::ModuleExportName::Ident(named.local.clone())
+							})
+						}
+						_ => return None,
+					};
+					Some((import_index, specifier_index, orig))
+				})
+		})?;
+	let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import)) = &mut body[import_index]
+	else {
+		return None;
+	};
+	let src = import.src.clone();
+	let attributes = import.with.clone();
+	let is_used_elsewhere = body
+		.iter()
+		.filter(|item| {
+			!matches!(
+				item,
+				ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(_))
+			)
+		})
+		.any(|item| references_ident(item, ident));
+	if !is_used_elsewhere {
+		let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import)) = &mut body[import_index]
+		else {
+			return None;
+		};
+		import.specifiers.remove(specifier_index);
+		if import.specifiers.is_empty() {
+			body.remove(import_index);
+		}
+	}
+	Some(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
+		ast::NamedExport {
+			span: ident.span,
+			type_only: false,
+			with: attributes,
+			src: Some(src),
+			specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+				span: DUMMY_SP,
+				is_type_only: false,
+				orig,
+				exported: Some(ast::ModuleExportName::Ident(ast::Ident::new(
+					Atom::from(name),
+					DUMMY_SP,
+					Default::default(),
+				))),
+			})],
+		},
+	)))
+}
+
+fn references_ident(item: &ast::ModuleItem, ident: &ast::Ident) -> bool {
+	struct IdentFinder<'a> {
+		sym: &'a Atom,
+		found: bool,
+	}
+	impl Visit for IdentFinder<'_> {
+		noop_visit_type!();
+		fn visit_ident(&mut self, node: &ast::Ident) {
+			self.found |= &node.sym == self.sym;
+		}
+	}
+	let mut finder = IdentFinder {
+		sym: &ident.sym,
+		found: false,
+	};
+	item.visit_with(&mut finder);
+	finder.found
 }
 
 fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {

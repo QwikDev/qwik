@@ -1,6 +1,7 @@
 import type { FunctionComponent } from '@qwik.dev/core';
 import { component$ } from '@qwik.dev/core';
 import { Async } from './components/async/async';
+import { IndependentRenderCommits } from './components/independent-render-commits/independent-render-commits';
 import { Attributes } from './components/attributes/attributes';
 import { BroadcastEvents } from './components/broadcast-events/broadcast-event';
 import { BuildVariables } from './components/build-variables/build';
@@ -15,6 +16,7 @@ import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
 import { Factory } from './components/factory/factory';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { MountRoot } from './components/mount/mount';
+import { MovedHelpers } from './components/moved-helpers/moved-helpers';
 import { NoResume } from './components/no-resume/no-resume';
 import { RefRoot } from './components/ref/ref';
 import { Render } from './components/render/render';
@@ -56,6 +58,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/render': () => <Render />,
   '/e2e/events': () => <Events />,
   '/e2e/async': () => <Async />,
+  '/e2e/independent-render-commits': () => <IndependentRenderCommits />,
   '/e2e/container': () => <Containers />,
   '/e2e/factory': () => <Factory />,
   '/e2e/watch': () => <Watch />,
@@ -95,6 +98,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/pending': () => <PendingRoot />,
   '/e2e/pending-ooos': () => <OutOfOrderPendingRoot />,
   '/e2e/worker': () => <WorkerRoot />,
+  '/e2e/moved-helpers': () => <MovedHelpers />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

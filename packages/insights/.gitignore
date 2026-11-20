@@ -40,9 +40,9 @@ lerna-debug.log*
 .yarn/*
 !.yarn/releases
 
-# Netlify
-.netlify
-.env.local
+# Cloudflare
+.dev.vars*
+.wrangler
 
 # Panda CSS
 src/styled-system

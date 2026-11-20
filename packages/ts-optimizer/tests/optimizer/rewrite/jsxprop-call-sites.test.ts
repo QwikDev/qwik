@@ -32,7 +32,7 @@ export const App = component$(() => {
         throw new Error('App component-body segment missing');
       }
       expect(body.code).toMatch(
-        /_jsxSorted\(\s*Card\s*,\s*null\s*,\s*\{\s*onProp\$:\s*q_[A-Za-z_0-9]+\s*\}/
+        /_jsxSplit\(\s*Card\s*,\s*null\s*,\s*\{\s*onProp\$:\s*q_[A-Za-z_0-9]+\s*\}/
       );
       expect(body.code).not.toMatch(/<Card\s+q_[A-Za-z_0-9]+_onProp_/);
     });

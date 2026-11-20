@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 93
+assertion_line: 143
 expression: output
 ---
 ==INPUT==
@@ -84,7 +84,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "s_ckEPmXZlub0",
-  "entry": "test.tsx_entry_App",
+  "entry": "test.tsx_render_App",
   "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",

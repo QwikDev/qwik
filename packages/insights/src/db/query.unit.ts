@@ -3,6 +3,59 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { assert, test } from 'vitest';
 import type { AppDatabase } from '.';
 
+test('returns every delay and latency bucket for the selected application and manifests', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getEdges, getSymbolGraphEdges } = await import('./query');
+  const { vectorSum2 } = await import('../stats/vector');
+  const client = createClient({ url: 'file::memory:' });
+  const counts = Array.from({ length: 50 }, (_, index) => index + 1);
+  const columns = ['delay', 'latency'].flatMap((kind) =>
+    counts.map((_, index) => `${kind}_count_${String(index).padStart(2, '0')}`)
+  );
+
+  try {
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT NOT NULL, manifest_hash TEXT NOT NULL, "from" TEXT, "to" TEXT NOT NULL, ${columns.map((column) => `${column} INTEGER NOT NULL`).join(',')})`
+    );
+    await client.batch(
+      [
+        ['app', 'current', null, 'child', ...counts, ...counts.map((count) => count * 10)],
+        ['app', 'previous', null, 'child', ...counts, ...counts.map((count) => count * 20)],
+        ['app', 'excluded', null, 'child', ...counts, ...counts],
+        ['other-app', 'current', null, 'child', ...counts, ...counts],
+        ['app', 'current', 'parent', 'child', ...counts.map(() => 0), ...counts.map(() => 0)],
+      ].map((args) => ({
+        sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", ${columns.join(',')}) VALUES (${args.map(() => '?').join(',')})`,
+        args,
+      }))
+    );
+    const db = drizzle(client) as AppDatabase;
+    const options = { manifestHashes: ['current', 'previous'] };
+    assert.deepEqual(await getEdges(db, 'app', options), [
+      {
+        from: null,
+        to: 'child',
+        delay: counts.map((count) => count * 2),
+        latency: counts.map((count) => count * 30),
+      },
+      { from: 'parent', to: 'child', delay: counts.map(() => 0), latency: counts.map(() => 0) },
+    ]);
+    const histogramEdges = await getEdges(db, 'app', options);
+    assert.deepEqual(
+      await getSymbolGraphEdges(db, 'app', options),
+      histogramEdges.map(({ from, to, delay }) => {
+        const [relatedCount, unrelatedCount] = vectorSum2(delay, 250);
+        return { from, to, relatedCount, unrelatedCount };
+      })
+    );
+    assert.lengthOf(await getEdges(db, 'app', { ...options, limit: 1 }), 1);
+    assert.deepEqual(await getEdges(db, 'missing-app', options), []);
+    assert.deepEqual(await getEdges(db, 'app', { manifestHashes: ['missing-manifest'] }), []);
+  } finally {
+    client.close();
+  }
+});
+
 test('returns aggregated symbol graph counts', async () => {
   (globalThis as any).__EXPERIMENTAL__ = {};
   const { getSlowEdges, getSymbolGraphEdges } = await import('./query');
@@ -84,6 +137,77 @@ test('returns symbol details by hash across manifests', async () => {
       },
     ]);
     assert.deepEqual(await getSymbolDetailsByHashes(db, 'app', []), []);
+  } finally {
+    client.close();
+  }
+});
+
+test('keeps high-tail candidates beyond the first 400 mean-latency results', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getSlowEdges } = await import('./query');
+  const { getManifestPerformance } = await import('../routes/app/[publicApiKey]/performance');
+  const client = createClient({ url: 'file::memory:' });
+  const columns = Array.from(
+    { length: 50 },
+    (_, i) => `latency_count_${String(i).padStart(2, '0')} INTEGER NOT NULL DEFAULT 0`
+  );
+  try {
+    await client.execute(
+      `CREATE TABLE edges (public_api_key TEXT, manifest_hash TEXT, "to" TEXT, ${columns.join(',')})`
+    );
+    await client.batch(
+      Array.from({ length: 400 }, (_, i) => ({
+        sql: 'INSERT INTO edges (public_api_key, manifest_hash, "to", latency_count_34) VALUES (?, ?, ?, 100)',
+        args: ['app', 'build', `steady-${i}`],
+      }))
+    );
+    await client.execute(
+      "INSERT INTO edges (public_api_key, manifest_hash, \"to\", latency_count_00, latency_count_49) VALUES ('app', 'build', 'tail', 94, 6)"
+    );
+    const candidates = await getSlowEdges(drizzle(client) as AppDatabase, 'app', ['build']);
+    assert.isDefined(candidates.find((edge) => edge.to === 'tail'));
+    assert.lengthOf(candidates, 401);
+    const ranked = candidates
+      .map((edge) => ({ ...edge, ...getManifestPerformance(edge.latency) }))
+      .sort((a, b) => (b.p95 ?? -1) - (a.p95 ?? -1));
+    assert.equal(ranked[0].to, 'tail');
+    assert.deepEqual(await getSlowEdges(drizzle(client) as AppDatabase, 'other', ['build']), []);
+  } finally {
+    client.close();
+  }
+});
+
+test('returns metadata beyond 1000 symbols only from the selected application and build', async () => {
+  (globalThis as any).__EXPERIMENTAL__ = {};
+  const { getSymbolDetails } = await import('./query');
+  const client = createClient({ url: 'file::memory:' });
+  try {
+    await client.execute(
+      'CREATE TABLE symbolDetail (hash TEXT, public_api_key TEXT, manifest_hash TEXT, full_name TEXT, origin TEXT, lo INTEGER, hi INTEGER)'
+    );
+    await client.batch([
+      ...Array.from({ length: 1001 }, (_, i) => ({
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: [`hash-${i}`, 'app', 'selected', `Symbol ${i}`, 'source.tsx'],
+      })),
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['foreign', 'other', 'selected', 'Foreign', 'private.tsx'],
+      },
+      {
+        sql: 'INSERT INTO symbolDetail VALUES (?, ?, ?, ?, ?, 1, 2)',
+        args: ['old', 'app', 'old', 'Old', 'old.tsx'],
+      },
+    ]);
+    const metadata = await getSymbolDetails(drizzle(client) as AppDatabase, 'app', {
+      manifestHashes: ['selected'],
+    });
+    assert.lengthOf(metadata, 1001);
+    assert.equal(metadata.find((symbol) => symbol.hash === 'hash-1000')?.fullName, 'Symbol 1000');
+    assert.deepEqual(
+      await getSymbolDetails(drizzle(client) as AppDatabase, 'app', { manifestHashes: [] }),
+      []
+    );
   } finally {
     client.close();
   }

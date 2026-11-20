@@ -96,6 +96,19 @@ export function processVNodeData(document: Document, containerElement?: Containe
   enqueueProcessVNodeDataJob(qDocument, processRootVNodeData(document));
 }
 
+/**
+ * Records that `script` is decoded into `container`'s tables. False when it already was: decoding
+ * it again would keep another copy of its table.
+ */
+const markVNodeScriptDecoded = (container: ContainerElement, script: Element): boolean => {
+  const decoded = (container.qDecodedVNodeScripts ||= new WeakSet());
+  if (decoded.has(script)) {
+    return false;
+  }
+  decoded.add(script);
+  return true;
+};
+
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
   segmentId: string,
@@ -114,6 +127,12 @@ export function processOutOfOrderSegmentVNodeData(
   const patches = qContainerElement.querySelectorAll(
     `script[type="qwik/vnode"][q\\:r="${segmentId}"][q\\:patch]`
   );
+  const isDecoded =
+    __EXPERIMENTAL__.binaryState && script && !markVNodeScriptDecoded(qContainerElement, script);
+  if (__EXPERIMENTAL__.binaryState) {
+    // The content is in place now, so later document walks need not decode the segment again.
+    qContainerElement.qSegmentVnodeData?.delete(segmentId);
+  }
   enqueueProcessVNodeDataJob(
     document as QDocument,
     processOutOfOrderSegmentVNodeDataIterator(
@@ -121,7 +140,7 @@ export function processOutOfOrderSegmentVNodeData(
       segmentId,
       qContainerElement,
       contentNode,
-      script?.textContent || undefined,
+      isDecoded ? '' : script?.textContent || undefined,
       patches
     )
   );
@@ -259,6 +278,13 @@ function* processVNodeDataPatch(
   script: Element | null
 ): Generator<void, void, void> {
   const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
+  if (
+    __EXPERIMENTAL__.binaryState &&
+    qContainerElement &&
+    !markVNodeScriptDecoded(qContainerElement, script!)
+  ) {
+    return;
+  }
   const patchSegment = script?.getAttribute(Q_PENDING_RESOLVED);
   const contentNode =
     qContainerElement &&
@@ -343,8 +369,11 @@ function* processVNodeDataImpl(
       const scriptContent = script.textContent!;
       const segment = __EXPERIMENTAL__.pendingBoundary && script.getAttribute(Q_PENDING_RESOLVED);
       if (segment) {
-        (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
-      } else {
+        // A segment's script counts as decoded once its content is swapped in and walked.
+        if (!(__EXPERIMENTAL__.binaryState && qContainer.qDecodedVNodeScripts?.has(script))) {
+          (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
+        }
+      } else if (!__EXPERIMENTAL__.binaryState || markVNodeScriptDecoded(qContainer, script)) {
         qContainer.qVnodeData = scriptContent;
       }
       yield;
@@ -493,19 +522,16 @@ function* processVNodeDataImpl(
         // If we are in a container, we need to skip the children.
         const container = node as ContainerElement;
         nextNode = nextNodeAfterSubtree(node);
-        // Decoding a container again would keep another copy of its table; walk it for nested ones.
-        const isDecoded = __EXPERIMENTAL__.binaryState && container.qVNodeDecoded;
         yield* walkContainer(
           walker,
           container,
           node,
           nextNode,
-          isDecoded ? '' : container.qVnodeData || '',
+          container.qVnodeData || '',
           container.qVNodeRefs!,
           container
         );
         if (__EXPERIMENTAL__.binaryState) {
-          container.qVNodeDecoded ||= !!container.qVnodeData;
           // The decoded table holds what the elements need.
           container.qVnodeData = undefined;
         }

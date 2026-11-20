@@ -1575,7 +1575,7 @@ function emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): str
 
 describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
   /** A vnode script giving element `elementIndex` a text node of `textLength` characters. */
-  const binaryVNodeScript = (elementIndex: number, textLength: number) => {
+  const binaryVNodeScript = (elementIndex: number, textLength: number, attributes = '') => {
     // tokens are written last first: the text length, then the start of the element
     let script = '';
     const writer = new BinaryStateWriter(
@@ -1588,7 +1588,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     writer.$endArray$(0, 2);
     writer.$endArray$(0, 1);
     writer.$finish$();
-    return `<script type="qwik/vnode">${script}</script>`;
+    return `<script type="qwik/vnode"${attributes}>${script}</script>`;
   };
   const renderContainer = async () => {
     const document = createDocument({
@@ -1598,6 +1598,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
           <body :>
             <p :>Hello</p>
             ${binaryVNodeScript(3, 5)}
+            ${binaryVNodeScript(3, 5, ' q:patch')}
           </body>
         </html>`,
     });
@@ -1607,8 +1608,10 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     return { document: document as QDocument, element };
   };
 
-  it('decodes a container once when a container inside it starts later', async () => {
+  it('decodes the vnode scripts of a container once when a container inside it starts later', async () => {
     const { document, element } = await renderContainer();
+    // the root script and the patch
+    expect(element.qVNodeTableSlots).toHaveLength(2);
     const [slot] = element.qVNodeTableSlots!;
     const table = document.qVNodeTables![slot];
     document.body.insertAdjacentHTML(
@@ -1620,7 +1623,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     processVNodeData(document);
     await vi.waitFor(() => expect(later.qVNodeTableSlots).toHaveLength(1));
 
-    expect(element.qVNodeTableSlots).toEqual([slot]);
+    expect(element.qVNodeTableSlots).toHaveLength(2);
     expect(document.qVNodeTables![slot]).toBe(table);
   });
 
@@ -1632,6 +1635,6 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     (getDomContainer(element) as DomContainer).$destroy$();
 
     expect(element.qVNodeTableSlots).toBeUndefined();
-    expect(slots.map((slot) => tables[slot])).toEqual([[]]);
+    expect(slots.map((slot) => tables[slot])).toEqual([[], []]);
   });
 });

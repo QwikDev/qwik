@@ -493,17 +493,20 @@ function* processVNodeDataImpl(
         // If we are in a container, we need to skip the children.
         const container = node as ContainerElement;
         nextNode = nextNodeAfterSubtree(node);
+        // Decoding a container again would keep another copy of its table; walk it for nested ones.
+        const isDecoded = __EXPERIMENTAL__.binaryState && container.qVNodeDecoded;
         yield* walkContainer(
           walker,
           container,
           node,
           nextNode,
-          container.qVnodeData || '',
+          isDecoded ? '' : container.qVnodeData || '',
           container.qVNodeRefs!,
           container
         );
         if (__EXPERIMENTAL__.binaryState) {
-          // The decoded table holds what the elements need; a later walk reads the script again.
+          container.qVNodeDecoded ||= !!container.qVnodeData;
+          // The decoded table holds what the elements need.
           container.qVnodeData = undefined;
         }
       } else if (nodeType === NodeType.COMMENT_IGNORE_START) {

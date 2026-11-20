@@ -45,6 +45,8 @@ export interface ContainerElement extends HTMLElement {
   qVnodeData?: string;
   /** The slots of `qVNodeTables` that hold this container's decoded binary vnode data. */
   qVNodeTableSlots?: number[];
+  /** Its root vnode script is decoded into `qVNodeTables`. */
+  qVNodeDecoded?: boolean;
   qDestroy?: () => void;
 
   /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */

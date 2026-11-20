@@ -9,13 +9,7 @@ import * as magicRegexp from 'magic-regexp';
 import * as magicString from 'magic-string';
 import * as pathe from 'pathe';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import {
-  definesPlugin,
-  replCss,
-  replMinify,
-  replResolver,
-  replWorkerQrlChunks,
-} from './rolldown-plugins';
+import { replCss, replMinify, replResolver, replWorkerQrlChunks } from './rolldown-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -297,7 +291,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const baseUrl = `/repl/client/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
-    'import.meta.env': '({})',
+    // Also covers `import.meta.env?.BASE_URL`, which the preloader reads.
+    'import.meta.env': `({BASE_URL:${JSON.stringify(baseUrl)}})`,
   };
 
   const onwarn = (warning: any) => {
@@ -337,8 +332,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
     // 'exports-only' is invalid with the qwik plugin's codeSplitting.
     preserveEntrySignatures: 'allow-extension',
+    transform: { define: defines },
     plugins: [
-      definesPlugin(defines),
       replCss({ srcInputs }),
       qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
@@ -384,8 +379,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const ssrBuild = await rolldown({
     cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('entry.server.tsx'))?.path,
+    transform: { define: defines },
     plugins: [
-      definesPlugin(defines),
       replCss({ srcInputs }),
       qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },

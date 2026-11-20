@@ -57,6 +57,23 @@ export const C = component$(() => {
     expect(code.match(/import \{[^}]*\binlinedQrl\b[^}]*\}/g)).toHaveLength(1);
   });
 
+  it('imports inlinedQrl when only a string in the module mentions that import', () => {
+    const input = `
+import { $ } from '@qwik.dev/core';
+export const example = "import { inlinedQrl } from '@qwik.dev/core'";
+export const run = $(() => 1);
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      mode: 'lib',
+      transpileTs: true,
+      transpileJsx: true,
+    });
+    const code = findParent(result).code;
+    expect(code).toMatch(/^import \{[^}]*\binlinedQrl\b[^}]*\} from "@qwik\.dev\/core";$/m);
+  });
+
   it('strips bare `$` (no marker-function semantics) under lib mode', () => {
     const input = `
 import { $, component$ } from '@qwik.dev/core';

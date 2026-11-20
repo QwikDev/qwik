@@ -125,13 +125,12 @@ describe("core's build entries", () => {
     '%s resolves to the same core variant as @qwik.dev/core under every condition',
     (subpath) => {
       const { exports } = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf8'));
+      // Entries, not an object: Node picks the first matching condition, so order matters.
       const variantsByCondition = (conditions: Record<string, string>) =>
-        Object.fromEntries(
-          Object.entries(conditions).map(([condition, file]) => [
-            condition,
-            /(\.prod|\.min)?(\.qwik)?\.mjs$/.exec(file)![1] ?? '',
-          ])
-        );
+        Object.entries(conditions).map(([condition, file]) => [
+          condition,
+          /(\.prod|\.min)?(\.qwik)?\.mjs$/.exec(file)![1] ?? '',
+        ]);
       const { types: _types, ...conditions } = exports[subpath].import ?? exports[subpath];
       expect(variantsByCondition(conditions)).toEqual(variantsByCondition(exports['.'].import));
     }

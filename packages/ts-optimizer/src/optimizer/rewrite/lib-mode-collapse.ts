@@ -160,7 +160,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     edits.remove(r.start, r.end);
   }
 
-  rewriteImports(edits, source, usedHelpers);
+  rewriteImports(edits, source, usedHelpers, coreImportNames(program));
 
   return edits.toString();
 }
@@ -481,7 +481,12 @@ function collectQVarReferenceRanges(
   return out;
 }
 
-function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<string>): void {
+function rewriteImports(
+  edits: MagicString,
+  source: string,
+  usedHelpers: Set<string>,
+  coreImports: Set<string>
+): void {
   const noopImportRe =
     /import\s*\{\s*_noopQrl(?:DEV)?\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
   const match = noopImportRe.exec(source);
@@ -490,7 +495,7 @@ function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<str
   }
   // `bind:` handlers may already import `inlinedQrl`; a second import fails to parse.
   const helpers = [...usedHelpers]
-    .filter((helper) => !isImportedFromCore(source, helper))
+    .filter((helper) => !coreImports.has(helper))
     .sort()
     .join(', ');
   edits.overwrite(
@@ -500,10 +505,17 @@ function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<str
   );
 }
 
-function isImportedFromCore(source: string, name: string): boolean {
-  return new RegExp(`import\\s*\\{\\s*${name}\\s*\\}\\s*from\\s*(["'])@qwik\\.dev/core\\1`).test(
-    source
-  );
+/** Local names the module already imports from `@qwik.dev/core`. */
+function coreImportNames(program: AstProgram): Set<string> {
+  const names = new Set<string>();
+  for (const stmt of program.body ?? []) {
+    if (stmt.type === 'ImportDeclaration' && stmt.source.value === '@qwik.dev/core') {
+      for (const specifier of stmt.specifiers ?? []) {
+        names.add(specifier.local.name);
+      }
+    }
+  }
+  return names;
 }
 
 function includeTrailingNewline(source: string, end: number): number {

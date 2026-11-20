@@ -14,18 +14,24 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
         isLoading={versions.length === 0}
       />
 
-      <StoreOption label="Mode" inputProp="buildMode" options={BUILD_MODE_OPTIONS} input={input} />
+      <StoreChoice
+        label="Mode"
+        inputProp="buildMode"
+        options={BUILD_MODE_OPTIONS}
+        labels={{ development: 'Development', production: 'Production' }}
+        input={input}
+      />
 
-      <StoreOption
+      <StoreChoice
         label="Entry Strategy"
         inputProp="entryStrategy"
         options={ENTRY_STRATEGY_OPTIONS}
         input={input}
       />
 
-      <StoreBoolean label="Out of Order Streaming" inputProp="outOfOrderStreaming" input={input} />
+      <StoreBoolean label="Out-of-order streaming" inputProp="outOfOrderStreaming" input={input} />
 
-      <StoreBoolean label="Rust Optimizer" inputProp="rustOptimizer" input={input} />
+      <StoreBoolean label="Rust optimizer" inputProp="rustOptimizer" input={input} />
 
       <StoreBoolean label="Debug" inputProp="debug" input={input} />
     </div>
@@ -36,30 +42,55 @@ const StoreBoolean = (props: StoreBooleanProps) => {
   return (
     <label class="repl-toggle-field">
       <span class="repl-select-label">{props.label}</span>
-      <span class="repl-toggle-control">
-        <input
-          type="checkbox"
-          checked={!!props.input[props.inputProp]}
-          onChange$={(ev?: any) => {
-            const input: HTMLInputElement = ev.target;
-            (props.input as any)[props.inputProp] = input.checked;
-          }}
-        />
-      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        class="repl-switch"
+        checked={!!props.input[props.inputProp]}
+        onChange$={(_, checkbox) => {
+          props.input[props.inputProp] = checkbox.checked;
+        }}
+      />
     </label>
   );
 };
 
-const StoreOption = (props: StoreOptionProps) => {
+/** Few options fit side by side, so they need one click instead of a dropdown. */
+const StoreChoice = <K extends OptionKey>(props: StoreOptionProps<K>) => {
+  return (
+    <div class="repl-select-field">
+      <span class="repl-select-label">{props.label}</span>
+      <div class="repl-choice" role="radiogroup" aria-label={props.label}>
+        {props.options.map((value) => (
+          <label key={value} class="repl-choice-option">
+            <input
+              type="radio"
+              name={props.inputProp}
+              checked={value === props.input[props.inputProp]}
+              onChange$={() => {
+                props.input[props.inputProp] = value;
+              }}
+            />
+            {props.labels?.[value] || value}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const StoreOption = <K extends OptionKey>(props: StoreOptionProps<K>) => {
   return (
     <label class="repl-select-field">
       <span class="repl-select-label">{props.label}</span>
       <div class="repl-select-wrapper">
         <select
           class="repl-select"
-          onChange$={(ev?: any) => {
-            const select: HTMLSelectElement = ev.target;
-            (props.input as any)[props.inputProp] = select.value as any;
+          onChange$={(_, select) => {
+            const value = props.options.find((option) => option === select.value);
+            if (value !== undefined) {
+              props.input[props.inputProp] = value;
+            }
           }}
           disabled={!!props.isLoading}
         >
@@ -82,19 +113,26 @@ const StoreOption = (props: StoreOptionProps) => {
   );
 };
 
-interface StoreOptionProps {
+/** Keys of `ReplAppInput` whose value has type `T`. */
+type InputKeysOf<T> = {
+  [K in keyof ReplAppInput]-?: NonNullable<ReplAppInput[K]> extends T ? K : never;
+}[keyof ReplAppInput];
+
+type OptionKey = InputKeysOf<string>;
+
+interface StoreOptionProps<K extends OptionKey> {
   label: string;
-  options: string[];
-  labels?: { [value: string]: string };
+  options: ReplAppInput[K][];
+  labels?: Partial<Record<string, string>>;
   input: ReplAppInput;
-  inputProp: keyof ReplAppInput;
+  inputProp: K;
   isLoading?: boolean;
 }
 
 interface StoreBooleanProps {
   label: string;
   input: ReplAppInput;
-  inputProp: keyof ReplAppInput;
+  inputProp: InputKeysOf<boolean>;
 }
 
 interface ReplOptionsProps {

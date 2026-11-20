@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import {
   _BIGINT_PAYLOAD_REGEXP as BIGINT_PAYLOAD_REGEXP,
   _canSerialize as canSerialize,
@@ -54,6 +54,7 @@ import {
   _PROPS_HANDLER,
   QBackRefs,
   qError,
+  qErrorWithoutStop,
   QError,
   QUOTE,
   SerializationSignalFlags,
@@ -76,6 +77,7 @@ import {
   type SeenRef,
   type SerializationContext,
 } from './serialization-context';
+import { getAutoSerializationMode } from './auto';
 
 /**
  * Format:
@@ -95,6 +97,7 @@ export class Serializer {
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $streamedRootLimit$ = 0;
+  private $isPatch$ = false;
   /** Virtual nodes share their element's vnode data, so scan it once per pass. */
   private $discoveredVNodeData$ = new WeakSet<VNodeData>();
   $writer$: SSRInternalStreamWriter;
@@ -128,6 +131,8 @@ export class Serializer {
     streamedRootLimit = rootStart
   ): Promise<void> {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
+    const wasPatch = this.$isPatch$;
+    this.$isPatch$ = true;
     this.$streamedRootLimit$ = streamedRootLimit;
     this.$discoveredVNodeData$ = new WeakSet();
     this.$writer$.write(BRACKET_OPEN);
@@ -180,6 +185,7 @@ export class Serializer {
       }
     } finally {
       this.$streamedRootLimit$ = previousStreamedRootLimit;
+      this.$isPatch$ = wasPatch;
     }
     this.$writer$.write(BRACKET_CLOSE);
   }
@@ -579,7 +585,11 @@ export class Serializer {
             this.output(TypeIds.Component, [qrl]);
             this.$parent$ = oldParent;
           } else {
-            throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
+            const args = [value.toString()];
+            // on the server, the async rethrow would crash the dev server
+            throw isServer
+              ? qErrorWithoutStop(QError.serializeErrorCannotSerializeFunction, args)
+              : qError(QError.serializeErrorCannotSerializeFunction, args);
           }
           break;
         case 'object':
@@ -729,10 +739,7 @@ export class Serializer {
         ]);
       } else if (value instanceof ComputedSignalImpl) {
         let v = value.$untrackedValue$;
-        const shouldAlwaysSerialize =
-          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
-        const shouldNeverSerialize =
-          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+        const strategy = value.$flags$ & SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES;
         const isInvalid = value.$flags$ & (ComputedSignalFlags.INVALID | ComputedSignalFlags.CHECK);
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
@@ -752,9 +759,16 @@ export class Serializer {
 
         if (isInvalid || isSkippable || isErrored) {
           v = NEEDS_COMPUTATION;
-        } else if (shouldAlwaysSerialize) {
-          v = value.$untrackedValue$;
-        } else if (shouldNeverSerialize) {
+        } else if (strategy === SerializationSignalFlags.SERIALIZATION_STRATEGY_AUTO) {
+          const mode = getAutoSerializationMode(v);
+          if (mode !== 'retain') {
+            // Weak references never make a large result part of the payload.
+            v =
+              mode === 'omit' || this.$isPatch$ || this.$serializationContext$.$scope$
+                ? NEEDS_COMPUTATION
+                : _serializationWeakRef(v);
+          }
+        } else if (strategy === SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER) {
           v = NEEDS_COMPUTATION;
         }
 

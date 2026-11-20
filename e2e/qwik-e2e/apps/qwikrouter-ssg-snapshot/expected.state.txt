@@ -278,6 +278,30 @@
   Constant undefined
   Constant undefined
   {number} 516
+  Object [
+    {string} "heading"
+    {string} "SSG Snapshot Fixture"
+    {string} "stats"
+    Array [
+      {number} 2
+      {number} 3
+      {number} 5
+      {number} 8
+    ]
+    {string} "tags"
+    Array [
+      {string} "routeLoader$"
+      {string} "useResource$"
+      {string} "useSignal"
+    ]
+    {string} "profile"
+    Object [
+      {string} "name"
+      {string} "router-state"
+      {string} "status"
+      {string} "stable"
+    ]
+  ]
 ]
 53 {string} "q-xxxxxxxx.js"
 54 {string} "s_cgSl2l0RC14"
@@ -311,13 +335,9 @@
   RootRef [omitted]
 ]
 66 QRL "[omitted]"
-67 Object [
-  {string} "r"
-  RootRef [omitted]
-]
-68 {string} "q-xxxxxxxx.js"
-69 {string} "s_zIzd52N038I"
-70 Object [
+67 {string} "q-xxxxxxxx.js"
+68 {string} "s_zIzd52N038I"
+69 Object [
   {string} "total"
   {number} 18
   {string} "selectedCount"
@@ -325,23 +345,23 @@
   {string} "clicks"
   {number} 2
 ]
-71 Array [
+70 Array [
   {string} "alpha"
   {string} "beta"
 ]
-72 Array [
+71 Array [
   {number} 2
   {number} 6
   {number} 15
   {number} 32
 ]
-73 {string} "q-xxxxxxxx.js"
-74 {string} "s_9CrWYOoCpgY"
-75 EffectSubscriptionNoData [
+72 {string} "q-xxxxxxxx.js"
+73 {string} "s_9CrWYOoCpgY"
+74 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant ':'
 ]
-76 AsyncSignal [
+75 AsyncSignal [
   QRL "[omitted]"
   Set [
     RootRef [omitted]
@@ -356,24 +376,28 @@
   ]
   {number} 0
 ]
-77 EffectSubscriptionNoData [
+76 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant '.'
 ]
-78 Array [
+77 Array [
   {string} "alpha"
   {string} "beta"
 ]
-79 EffectSubscriptionNoData [
+78 EffectSubscriptionNoData [
   RootRef [omitted]
   Constant '.'
 ]
-80 EffectSubscription [
+79 EffectSubscription [
   RootRef [omitted]
   {string} "href"
   SubscriptionDataConstTrue 0
 ]
-81 {string} "s_lKDAUb7ao7U"
+80 {string} "s_lKDAUb7ao7U"
+81 Promise [
+  Constant true
+  RootRef [omitted]
+]
 82 Store [
   Object [
     {string} "headline"
@@ -463,10 +487,6 @@
     ]
   ]
 ]
-83 Promise [
-  Constant true
-  RootRef [omitted]
-]
-84 ForwardRefs [
-  83
+83 ForwardRefs [
+  81
 ]

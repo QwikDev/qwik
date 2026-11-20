@@ -191,10 +191,14 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.watch) {
+      // Each rebuild writes all of core's entries, so run them one at a time.
+      let coreBuild: Promise<unknown> = Promise.resolve();
+      const rebuildCore = () =>
+        (coreBuild = coreBuild.catch(() => {}).then(() => submoduleCore({ ...config, dev: true })));
       await watchDirectories({
-        [join(config.srcQwikDir, 'core')]: () => submoduleCore({ ...config, dev: true }),
-        [join(config.srcQwikDir, 'server')]: () => submoduleCore({ ...config, dev: true }),
-        [join(config.srcQwikDir, 'serializer')]: () => submoduleCore({ ...config, dev: true }),
+        [join(config.srcQwikDir, 'core')]: rebuildCore,
+        [join(config.srcQwikDir, 'server')]: rebuildCore,
+        [join(config.srcQwikDir, 'serializer')]: rebuildCore,
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'web-worker')]: () => submoduleWorker(config),
         [config.optimizerDir]: () => submoduleOptimizer(config),

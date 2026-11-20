@@ -1,4 +1,4 @@
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
+import { ENTRY_STRATEGY_OPTIONS, isBuildMode } from './repl-option-values';
 // We use deflate because it has no metadata, just raw compression
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 
@@ -19,8 +19,8 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       data.version =
         typeof version === 'string' && version.split('.').length > 2 ? version : 'bundled';
 
-      const buildMode = params.get('buildMode')!;
-      if (BUILD_MODE_OPTIONS.includes(buildMode)) {
+      const buildMode = params.get('buildMode');
+      if (isBuildMode(buildMode)) {
         data.buildMode = buildMode;
       }
 

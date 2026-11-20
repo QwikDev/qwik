@@ -9,27 +9,6 @@ import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
-export const definesPlugin = (defines: Record<string, string>): Plugin => {
-  return {
-    name: 'repl-defines',
-    transform(code) {
-      const regex = new RegExp(Object.keys(defines).join('|'), 'g');
-      if (!regex.test(code)) {
-        return null;
-      }
-      let didReplace = false;
-      const result = code.replace(regex, (matched) => {
-        if (defines[matched]) {
-          didReplace = true;
-          return defines[matched];
-        }
-        return matched;
-      });
-      return didReplace ? { code: result, map: null } : null;
-    },
-  };
-};
-
 export const replResolver = (
   deps: PkgUrls,
   options: Pick<ReplInputOptions, 'srcInputs' | 'buildMode' | 'replId'>,

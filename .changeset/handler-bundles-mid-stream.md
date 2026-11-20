@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-perf: a streaming page starts loading core as soon as an event handler or visible task needs it
+perf: with the preloader on, a streaming page loads core as soon as a handler needs it

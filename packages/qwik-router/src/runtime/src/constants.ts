@@ -15,5 +15,5 @@ export const Q_ROUTE = 'q:route';
 // Hoisted function, not a const: a bundle may evaluate the app's route modules
 // (which call `routeLoaderQrl` at their own eval) before this module's consts.
 export function DEFAULT_LOADERS_SERIALIZATION_STRATEGY(): SerializationStrategy {
-  return globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__ || 'never';
+  return globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__ || 'auto';
 }

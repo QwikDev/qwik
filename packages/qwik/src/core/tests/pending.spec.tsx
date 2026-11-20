@@ -49,7 +49,11 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
-import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
+import {
+  processOutOfOrderSegmentVNodeData,
+  processVNodeData,
+  whenVNodeDataReady,
+} from '../client/process-vnode-data';
 import { whenContainerDataReady } from '../client/dom-container';
 import * as logUtils from '../shared/utils/log';
 import type { StreamWriter, StreamingOptions } from '../../server/types';
@@ -2549,6 +2553,76 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     } finally {
       delete (globalThis as any).__ooosUnitCrossSignalSecondValue;
     }
+  });
+
+  it('should update a patched segment after another container starts on the page', async () => {
+    let resolveFirst!: (value: JSXOutput) => void;
+    let resolveSecond!: (value: JSXOutput) => void;
+    const first = new Promise<JSXOutput>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = new Promise<JSXOutput>((resolve) => {
+      resolveSecond = resolve;
+    });
+    const First = component$((props: { count: { value: number } }) => {
+      const clicks = useSignal(0);
+      return (
+        <>
+          {first}
+          <span id="later-container-first-count">{props.count.value}</span>
+          <button id="later-container-first-button" onClick$={() => clicks.value++}>
+            {clicks.value}
+          </button>
+        </>
+      );
+    });
+    const Second = component$((props: { count: { value: number } }) => (
+      <button id="later-container-second-button" onClick$={() => (props.count.value += 1)}>
+        {second}
+      </button>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <main>
+          <Pending fallback$={() => <p>Waiting first</p>}>
+            <First count={count} />
+          </Pending>
+          <Pending fallback$={() => <p>Waiting second</p>}>
+            <Second count={count} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second'));
+    resolveFirst(<span>First ready</span>);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('First ready'));
+    resolveSecond('Second ready');
+    const { document, container } = await renderPromise;
+    // the second segment subscribes the first one's count, so the first segment gets a patch
+    expect(
+      document.querySelector('script[type="qwik/vnode"][q\\:patch][q\\:r="1"]')
+    ).not.toBeNull();
+
+    // another container makes the document walk visit the first one's segments and patches again
+    document.body.insertAdjacentHTML('beforeend', '<div q:container="paused"></div>');
+    processVNodeData(document);
+    await whenVNodeDataReady(document, () => undefined);
+
+    // the first segment's own elements come from its script, the count from the patch
+    await trigger(container.element, '#later-container-first-button', 'click');
+    await waitForDrain(container);
+    await vi.waitFor(() =>
+      expect(document.querySelector('#later-container-first-button')?.textContent).toBe('1')
+    );
+    await trigger(container.element, '#later-container-second-button', 'click');
+    await waitForDrain(container);
+    await vi.waitFor(() =>
+      expect(document.querySelector('#later-container-first-count')?.textContent).toBe('1')
+    );
   });
 
   it.each(['child', 'inline'])(

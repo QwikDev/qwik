@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import {
   _BIGINT_PAYLOAD_REGEXP as BIGINT_PAYLOAD_REGEXP,
   _canSerialize as canSerialize,
@@ -53,6 +53,7 @@ import {
   _PROPS_HANDLER,
   QBackRefs,
   qError,
+  qErrorWithoutStop,
   QError,
   QUOTE,
   SerializationSignalFlags,
@@ -543,7 +544,11 @@ export class Serializer {
             this.output(TypeIds.Component, [qrl]);
             this.$parent$ = oldParent;
           } else {
-            throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
+            const args = [value.toString()];
+            // on the server, the async rethrow would crash the dev server
+            throw isServer
+              ? qErrorWithoutStop(QError.serializeErrorCannotSerializeFunction, args)
+              : qError(QError.serializeErrorCannotSerializeFunction, args);
           }
           break;
         case 'object':

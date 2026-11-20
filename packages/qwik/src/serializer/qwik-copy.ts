@@ -12,7 +12,7 @@ export {
   EffectProperty,
   SerializationSignalFlags,
 } from '../core/reactive-primitives/types';
-export { qError, QError } from '../core/shared/error/error';
+export { qError, qErrorWithoutStop, QError } from '../core/shared/error/error';
 export { isQrl } from '../core/shared/qrl/qrl-utils';
 export { Constants, TypeIds } from '../core/shared/serdes/constants';
 export {

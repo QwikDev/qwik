@@ -275,7 +275,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$binaryStateReader$ = null;
     }
     this.$rawStateData$.length = 0;
-    this.$stateData$.length = 0;
+    // The binary state proxy holds the reader and its script text.
+    this.$stateData$ = [];
     this.$getObjectById$ = () => undefined;
     const el = this.element;
     el.qContainer = undefined;

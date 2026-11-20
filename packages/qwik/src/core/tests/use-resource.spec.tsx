@@ -20,6 +20,16 @@ export function mutable(value: any) {
   return value;
 }
 
+const caseA = () => ({ name: 'Case A', featured: true });
+export const resourceCache = { a: caseA(), b: { name: 'Case B' } };
+
+const ResourceCase = component$((props: { entry: { name: string; featured?: boolean } }) => (
+  <output>
+    {props.entry.name}
+    {props.entry.featured ? ' (featured)' : ''}
+  </output>
+));
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -472,6 +482,71 @@ describe.each([
     );
   });
 
+  it('replaces the resolved object without mutating the cache', async () => {
+    resourceCache.a = caseA();
+    const Cmp = component$((props: { initial: 'a' | null }) => {
+      const key = useSignal<'a' | 'b' | null>(props.initial);
+      const resource = useResource$(({ track }) => {
+        const selected = track(key);
+        return selected && resourceCache[selected];
+      });
+      return (
+        <>
+          <button id="a" onClick$={() => (key.value = 'a')}>
+            A
+          </button>
+          <button id="b" onClick$={() => (key.value = 'b')}>
+            B
+          </button>
+          <Resource
+            value={resource}
+            onResolved={(entry) => entry && <ResourceCase entry={entry} />}
+          />
+        </>
+      );
+    });
+
+    const initialKey = render === ssrRenderToDom ? 'a' : null;
+    const { container, document } = await render(<Cmp initial={initialKey} />);
+    const output = () => document.querySelector('output')?.textContent;
+    const select = async (key: 'a' | 'b') => {
+      await trigger(container.element, '#' + key, 'click');
+      await waitForDrain(container);
+      await waitForDrain(container);
+    };
+    if (!initialKey) {
+      await select('a');
+    }
+
+    expect(output()).toBe('Case A (featured)');
+    await select('b');
+    expect.soft(output()).toBe('Case B');
+    expect.soft(resourceCache.a).toEqual(caseA());
+    await select('a');
+    expect(output()).toBe('Case A (featured)');
+  });
+
+  it('drops trailing items when the resolved array gets shorter', async () => {
+    const Cmp = component$(() => {
+      const shorter = useSignal(false);
+      const resource = useResource$(({ track }) => (track(shorter) ? ['new'] : ['old', 'extra']));
+      return (
+        <>
+          <button onClick$={() => (shorter.value = true)}>Shorten</button>
+          <Resource value={resource} onResolved={(items) => <output>{items.join(',')}</output>} />
+        </>
+      );
+    });
+
+    const { container, document } = await render(<Cmp />);
+    await waitForDrain(container);
+    expect(document.querySelector('output')?.textContent).toBe('old,extra');
+    await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
+    expect(document.querySelector('output')?.textContent).toBe('new');
+  });
+
   it('should render array from resource', async () => {
     const Cmp = component$(() => {
       const resource = useResource$(() => {
@@ -535,4 +610,41 @@ describe.each([
       </Component>
     );
   });
+});
+
+export const resourceResolvers = new Map<number, (result: { name: string }) => void>();
+export const deferResourceResult = (id: number) =>
+  new Promise<{ name: string }>((resolve) => resourceResolvers.set(id, resolve));
+
+it('keeps the newer object when an older resource run resolves later', async () => {
+  const Cmp = component$(() => {
+    const id = useSignal(0);
+    const resource = useResource$(({ track }) => {
+      const current = track(id);
+      return current ? deferResourceResult(current) : { name: 'initial' };
+    });
+    return (
+      <>
+        <button onClick$={() => id.value++}>Next</button>
+        <Resource value={resource} onResolved={(result) => <output>{result.name}</output>} />
+      </>
+    );
+  });
+
+  const { container, document } = await domRender(<Cmp />);
+  await waitForDrain(container);
+  const output = () => document.querySelector('output')?.textContent;
+  expect(output()).toBe('initial');
+  await trigger(container.element, 'button', 'click');
+  await trigger(container.element, 'button', 'click');
+
+  resourceResolvers.get(2)!({ name: 'new' });
+  await waitForDrain(container);
+  await waitForDrain(container);
+  expect(output()).toBe('new');
+
+  resourceResolvers.get(1)!({ name: 'old' });
+  await waitForDrain(container);
+  await waitForDrain(container);
+  expect(output()).toBe('new');
 });

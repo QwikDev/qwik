@@ -3,7 +3,6 @@ import { Button, Link } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';
-import HeroDarkStars from '~/media/home/hero-dark-stars.svg?jsx';
 
 const copyText = 'npm create qwik@beta';
 
@@ -24,14 +23,6 @@ const CopyButton = component$(() => {
       {copied.value ? <lucide.clipboardcheck /> : <lucide.clipboard />}
     </Button>
   );
-});
-
-export const Clouds = component$(() => {
-  return [
-    <Cloud class="absolute sm:-top-3/4 -top-[60px] left-0" />,
-    <Cloud class="absolute -left-1/3 2xl:-left-1/4 top-1/2 hidden sm:block" />,
-    <Cloud class="absolute -right-1/3 2xl:-right-1/8 -top-1/8 hidden sm:block" />,
-  ];
 });
 
 export const Hero = component$(() => {
@@ -61,11 +52,6 @@ export const Hero = component$(() => {
           </span>
           {shimmerMarkup}
         </h1>
-        <Clouds />
-        <HeroDarkStars
-          aria-hidden="true"
-          class="pointer-events-none absolute left-1/2 top-1/2 hidden h-auto w-[min(1281px,100vw)] max-w-none -translate-x-1/2 -translate-y-1/2 [html.dark_&]:block"
-        />
       </div>
 
       <p class="text-body-sm 2xl:text-body-md max-w-[50ch] text-center">

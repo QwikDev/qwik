@@ -70,23 +70,17 @@ export interface ResourceOptions {
  *
  * @internal
  */
-export const _rsc = async <T>(arg: ResourceCtx<T>) => {
-  const [fn, ref] = _capturesObj._ as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
+export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
+  const [fn] = _capturesObj._ as [QRLInternal<ResourceFn<T>>];
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
-  if (result && typeof result === 'object') {
-    if (ref.r) {
-      Object.assign(ref.r, result);
-    } else {
-      // We need lazy creation because we don't know if it will be an array or an object, and we want to preserve the original reference for reactivity to work
-      ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
-      DEBUG && log('store created', ref.r);
-    }
-  } else {
-    ref.r = result as any;
-  }
-  return { r: ref.r };
+  return {
+    r:
+      result && typeof result === 'object'
+        ? createStore(fn.$container$, result, StoreFlags.RECURSIVE)
+        : result,
+  };
 };
 
 /** @internal */
@@ -101,9 +95,7 @@ export const useResourceQrl = <T>(
     return val as ResourceReturn<T>;
   }
 
-  const ref = {} as { r: T };
-  // Wrap the function so we can maintain a stable reference to the store
-  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl, ref], iCtx.$container$);
+  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl], iCtx.$container$);
   const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
     timeout: opts?.timeout,
     container: iCtx.$container$,

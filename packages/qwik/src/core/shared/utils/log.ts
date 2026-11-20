@@ -1,4 +1,3 @@
-import { isServer } from '@qwik.dev/core/build';
 import { qDev, qTest } from './qdev';
 
 const STYLE = qDev
@@ -21,8 +20,7 @@ export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): neve
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
-  // On the server, an uncaught async rethrow kills the dev server.
-  const err = createAndLogError(qDev && !isServer, message, ...optionalParams);
+  const err = createAndLogError(qDev, message, ...optionalParams);
   // eslint-disable-next-line no-debugger
   debugger;
   return err;

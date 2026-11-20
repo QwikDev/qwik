@@ -770,6 +770,10 @@ export function __qwik_install_vnode_runtime__(
       }
       const tree: DevtoolsVNodeTreeNode[] = [];
       for (const element of elements) {
+        const marker = element.getAttribute('q:container');
+        if (marker === 'html' || marker === 'text') {
+          continue;
+        }
         const container = internals._getDomContainer(element);
         if (!container?.rootVNode) {
           return null;

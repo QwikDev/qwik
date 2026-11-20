@@ -1333,7 +1333,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
 export const _SERIALIZABLE_STATE: unique symbol;
 
 // @public
-export type SerializationStrategy = 'never' | 'always';
+export type SerializationStrategy = 'never' | 'always' | 'auto';
 
 // Warning: (ae-incompatible-release-tags) The symbol "SerializerSignalImpl" is marked as @public, but its signature references "_ComputedSignalImpl" which is marked as @internal
 //

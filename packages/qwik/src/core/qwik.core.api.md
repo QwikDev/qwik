@@ -316,10 +316,10 @@ export interface _ContainerElement extends HTMLElement {
     qDecodedVNodeScripts?: WeakSet<Element>;
     // (undocumented)
     qDestroy?: () => void;
-    qSegmentTableSlots?: Map<string, number>;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _VNode>;
+    qVNodeSourceSlots?: Map<string | Element, number>;
     qVNodeTableSlots?: number[];
 }
 
@@ -985,6 +985,7 @@ export interface _QDocument extends Document {
     qVNodeDataReady?: boolean;
     qVNodeDataStarted?: boolean;
     qVNodeDataState?: unknown;
+    qVNodeFreeSlots?: number[];
     qVNodeTables?: unknown[][];
 }
 

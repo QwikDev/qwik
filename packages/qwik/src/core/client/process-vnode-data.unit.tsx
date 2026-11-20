@@ -26,7 +26,7 @@ import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 import { _serialize } from '../../serializer';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 import { BINARY_VNODE_PREFIX, BinaryStateWriter } from '../../serializer';
-import { BinaryVNodeKind } from '../shared/vnode-data-types';
+import { BinaryVNodeKind, VNODE_TABLE_INDEX_SCALE } from '../shared/vnode-data-types';
 
 /** For tests of the JSON state format, whichever format `_serialize` writes in this build. */
 const serializeJson = async (data: unknown): Promise<string> => {
@@ -1574,21 +1574,39 @@ function emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): str
 }
 
 describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
-  /** A vnode script giving element `elementIndex` a text node of `textLength` characters. */
-  const binaryVNodeScript = (elementIndex: number, textLength: number, attributes = '') => {
-    // tokens are written last first: the text length, then the start of the element
+  /** A vnode script giving each `[elementIndex, textLength]` element a text node of that length. */
+  const binaryVNodeScript = (records: [number, number][], attributes = '') => {
+    const tokens: number[] = [];
+    let previousIndex = 0;
+    for (const [elementIndex, textLength] of records) {
+      tokens.push((elementIndex - previousIndex) * 2 * 4 + BinaryVNodeKind.ElementStart);
+      tokens.push(textLength * 4 + BinaryVNodeKind.TextLength);
+      previousIndex = elementIndex;
+    }
     let script = '';
     const writer = new BinaryStateWriter(
       { $stringEnds$: new Map(), $length$: 0 },
       (text) => (script += text),
       BINARY_VNODE_PREFIX
     );
-    writer.$number$(textLength * 4 + BinaryVNodeKind.TextLength);
-    writer.$number$(elementIndex * 2 * 4 + BinaryVNodeKind.ElementStart);
-    writer.$endArray$(0, 2);
+    // tokens are written last first
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      writer.$number$(tokens[i]);
+    }
+    writer.$endArray$(0, tokens.length);
     writer.$endArray$(0, 1);
     writer.$finish$();
     return `<script type="qwik/vnode"${attributes}>${script}</script>`;
+  };
+  /** Starts a container inside the page's root container and waits until its data is decoded. */
+  const startLaterContainer = async (document: QDocument, id: string) => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      `<div id="${id}" q:container="paused" :><p :>Bye</p>${binaryVNodeScript([[1, 3]])}</div>`
+    );
+    const later = document.getElementById(id) as ContainerElement;
+    processVNodeData(document);
+    await vi.waitFor(() => expect(later.qVNodeTableSlots).toHaveLength(1));
   };
   const renderContainer = async () => {
     const document = createDocument({
@@ -1597,8 +1615,8 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
           <head :></head>
           <body :>
             <p :>Hello</p>
-            ${binaryVNodeScript(3, 5)}
-            ${binaryVNodeScript(3, 5, ' q:patch')}
+            ${binaryVNodeScript([[3, 5]])}
+            ${binaryVNodeScript([[3, 5]], ' q:patch')}
           </body>
         </html>`,
     });
@@ -1614,14 +1632,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     expect(element.qVNodeTableSlots).toHaveLength(2);
     const [slot] = element.qVNodeTableSlots!;
     const table = document.qVNodeTables![slot];
-    document.body.insertAdjacentHTML(
-      'beforeend',
-      `<div id="later" q:container="paused" :><p :>Bye</p>${binaryVNodeScript(1, 3)}</div>`
-    );
-    const later = document.getElementById('later') as ContainerElement;
-
-    processVNodeData(document);
-    await vi.waitFor(() => expect(later.qVNodeTableSlots).toHaveLength(1));
+    await startLaterContainer(document, 'later');
 
     expect(element.qVNodeTableSlots).toHaveLength(2);
     expect(document.qVNodeTables![slot]).toBe(table);
@@ -1636,8 +1647,8 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
           <body :>
             <p :>Hello</p>
             <div : q:rp="1" style="display:contents"><section :>Hi</section></div>
-            ${binaryVNodeScript(3, 5)}
-            ${binaryVNodeScript(1, 2, ' q:r="1"')}
+            ${binaryVNodeScript([[3, 5]])}
+            ${binaryVNodeScript([[1, 2]], ' q:r="1"')}
           </body>
         </html>`,
     }) as QDocument;
@@ -1648,16 +1659,56 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
       element.qVNodeTableSlots!.filter((slot) => document.qVNodeTables![slot].length).length;
     // the root script and the segment
     expect(liveTableCount()).toBe(2);
-    document.body.insertAdjacentHTML(
-      'beforeend',
-      `<div id="later" q:container="paused" :><p :>Bye</p>${binaryVNodeScript(1, 3)}</div>`
-    );
-    const later = document.getElementById('later') as ContainerElement;
-
-    processVNodeData(document);
-    await vi.waitFor(() => expect(later.qVNodeTableSlots).toHaveLength(1));
+    await startLaterContainer(document, 'later');
 
     expect(liveTableCount()).toBe(2);
+  });
+
+  it('keeps the records of a segment patch when the segment is walked again', async () => {
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <p :>Hello</p>
+            <div : q:rp="1" style="display:contents"><section :>Hi</section><b :>Yo</b></div>
+            ${binaryVNodeScript([[3, 5]])}
+            ${binaryVNodeScript(
+              [
+                [1, 2],
+                [2, 2],
+              ],
+              ' q:r="1"'
+            )}
+            ${binaryVNodeScript([[2, 2]], ' q:r="1" q:patch')}
+          </body>
+        </html>`,
+    }) as QDocument;
+    processVNodeData(document);
+    await whenVNodeDataReady(document, () => undefined);
+    const element = document.documentElement as ContainerElement;
+    const patchScript = document.querySelector('[q\\:patch]')!;
+    const tableOf = (selector: string) => {
+      const entry = document.qVNodeData.get(document.querySelector(selector)!) as number;
+      return Math.floor(entry / VNODE_TABLE_INDEX_SCALE);
+    };
+    const expectSegmentTables = () => {
+      // the patched element reads the patch's table, the other one the segment's
+      expect(tableOf('section')).toBe(element.qVNodeSourceSlots!.get('1'));
+      expect(tableOf('b')).toBe(element.qVNodeSourceSlots!.get(patchScript));
+      expect(document.qVNodeTables![tableOf('section')]).not.toEqual([]);
+      expect(document.qVNodeTables![tableOf('b')]).not.toEqual([]);
+    };
+    expectSegmentTables();
+
+    await startLaterContainer(document, 'later');
+    expectSegmentTables();
+    const tableCount = document.qVNodeTables!.length;
+
+    await startLaterContainer(document, 'even-later');
+    expectSegmentTables();
+    // freed slots are reused: only the new container's table is added
+    expect(document.qVNodeTables!.length).toBe(tableCount + 1);
   });
 
   it('frees the tables of a container when it is destroyed', async () => {

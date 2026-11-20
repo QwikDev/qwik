@@ -110,25 +110,29 @@ const markVNodeScriptDecoded = (container: ContainerElement, script: Element): b
 };
 
 /**
- * A segment is walked again once its content is swapped in, and by later document walks. Keep only
- * the table of its latest walk, at `container`'s slot `slotCount` if that walk decoded one.
+ * The table a vnode data source (a segment's own script, by its id, or a patch script) decoded last
+ * replaces the one it decoded before: the latest walk gave each of its elements an entry in it.
+ * `slotCount` is `container`'s slot count before that walk.
  */
-const replaceSegmentTable = (
+const replaceSourceTable = (
   container: ContainerElement,
-  segmentId: string,
+  source: string | Element,
   slotCount: number
 ): void => {
-  const slot = container.qVNodeTableSlots?.[slotCount];
+  const slots = container.qVNodeTableSlots;
+  const slot = slots?.[slotCount];
   if (slot === undefined) {
     return;
   }
-  const segmentSlots = (container.qSegmentTableSlots ||= new Map());
-  const previous = segmentSlots.get(segmentId);
+  const sourceSlots = (container.qVNodeSourceSlots ||= new Map());
+  const previous = sourceSlots.get(source);
+  sourceSlots.set(source, slot);
   if (previous !== undefined) {
-    // The latest walk gave each of the segment's elements an entry in the new table.
-    (container.ownerDocument as QDocument).qVNodeTables![previous] = [];
+    const qDocument = container.ownerDocument as QDocument;
+    qDocument.qVNodeTables![previous] = [];
+    slots!.splice(slots!.indexOf(previous), 1);
+    (qDocument.qVNodeFreeSlots ||= []).push(previous);
   }
-  segmentSlots.set(segmentId, slot);
 };
 
 export function processOutOfOrderSegmentVNodeData(
@@ -294,13 +298,6 @@ function* processVNodeDataPatch(
   script: Element | null
 ): Generator<void, void, void> {
   const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
-  if (
-    __EXPERIMENTAL__.binaryState &&
-    qContainerElement &&
-    !markVNodeScriptDecoded(qContainerElement, script!)
-  ) {
-    return;
-  }
   const patchSegment = script?.getAttribute(Q_PENDING_RESOLVED);
   const contentNode =
     qContainerElement &&
@@ -313,17 +310,20 @@ function* processVNodeDataPatch(
       patchSegment || undefined,
       qContainerElement,
       contentNode,
-      script!.textContent!
+      script!.textContent!,
+      script!
     );
   }
 }
 
+/** @param source - Where `segmentVNodeData` comes from, when it is not the segment's own script. */
 function* processVNodeDataImpl(
   document: Document,
   segmentId?: string,
   segmentContainer?: ContainerElement | null,
   segmentContent?: Element | null,
-  segmentVNodeData?: string
+  segmentVNodeData?: string,
+  source?: Element
 ): Generator<void, void, void> {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
@@ -490,9 +490,9 @@ function* processVNodeDataImpl(
     let tableOffset = 0;
     if (__EXPERIMENTAL__.binaryState && binaryCursor) {
       const tables = (qDocument.qVNodeTables ||= []);
-      // A fresh slot: elements of an earlier walk keep reading their complete table.
-      const tableIndex = tables.length;
-      tables.push(binaryCursor.$table$);
+      // Not the slot of a table in use: elements of an earlier walk keep reading theirs.
+      const tableIndex = qDocument.qVNodeFreeSlots?.pop() ?? tables.length;
+      tables[tableIndex] = binaryCursor.$table$;
       (qContainerElement!.qVNodeTableSlots ||= []).push(tableIndex);
       tableOffset = tableIndex * VNODE_TABLE_INDEX_SCALE;
     }
@@ -689,7 +689,8 @@ function* processVNodeDataImpl(
     qContainerElement: ContainerElement,
     contentNode: Element,
     vData: string,
-    scopeSegmentId?: string
+    scopeSegmentId?: string,
+    source?: string | Element
   ): Generator<void, void, void> {
     qContainerElement.qVNodeRefs ||= new Map<number, Element | VNode>();
     const scopeWalker = document.createTreeWalker(
@@ -708,8 +709,8 @@ function* processVNodeDataImpl(
       qContainerElement,
       scopeSegmentId
     );
-    if (__EXPERIMENTAL__.binaryState && scopeSegmentId !== undefined) {
-      replaceSegmentTable(qContainerElement, scopeSegmentId, slotCount);
+    if (__EXPERIMENTAL__.binaryState && source !== undefined) {
+      replaceSourceTable(qContainerElement, source, slotCount);
     }
   };
 
@@ -717,11 +718,12 @@ function* processVNodeDataImpl(
     qContainerElement: ContainerElement | null,
     contentNode: Element,
     boundaryId: string,
-    vData?: string
+    vData?: string,
+    source: string | Element = boundaryId
   ): Generator<void, void, void> {
     vData ||= qContainerElement?.qSegmentVnodeData?.get(boundaryId);
     if (qContainerElement && vData) {
-      yield* processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId);
+      yield* processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId, source);
     }
   };
 
@@ -732,10 +734,17 @@ function* processVNodeDataImpl(
         segmentContainer,
         segmentContent,
         segmentId,
-        segmentVNodeData
+        segmentVNodeData,
+        source
       );
     } else {
-      yield* processVNodeDataScope(segmentContainer, segmentContent, segmentVNodeData);
+      yield* processVNodeDataScope(
+        segmentContainer,
+        segmentContent,
+        segmentVNodeData,
+        undefined,
+        source
+      );
     }
     return;
   }

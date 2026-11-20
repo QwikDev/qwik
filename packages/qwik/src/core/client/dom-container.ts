@@ -283,14 +283,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
     if (__EXPERIMENTAL__.binaryState) {
-      const tables = (el.ownerDocument as QDocument).qVNodeTables;
+      const qDocument = el.ownerDocument as QDocument;
+      const tables = qDocument.qVNodeTables;
       const slots = el.qVNodeTableSlots;
       for (let i = 0; tables && slots && i < slots.length; i++) {
         tables[slots[i]] = [];
+        (qDocument.qVNodeFreeSlots ||= []).push(slots[i]);
       }
       el.qVNodeTableSlots = undefined;
       el.qDecodedVNodeScripts = undefined;
-      el.qSegmentTableSlots = undefined;
+      el.qVNodeSourceSlots = undefined;
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;
@@ -304,6 +306,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       document.qVNodeData = undefined!;
       if (__EXPERIMENTAL__.binaryState) {
         document.qVNodeTables = undefined;
+        document.qVNodeFreeSlots = undefined;
       }
       document.qVNodeDataStarted = undefined;
       document.qVNodeDataReady = undefined;

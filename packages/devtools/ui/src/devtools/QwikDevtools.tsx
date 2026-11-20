@@ -81,7 +81,7 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
         {state.isOpen && (
           <DevtoolsPanel state={state}>
             <DevtoolsSidebar state={state} />
-            <div class="relative min-h-0 flex-1">
+            <div class="relative min-h-0 min-w-0 flex-1">
               <div class="custom-scrollbar h-full overflow-y-auto p-4">
                 <DevtoolsContent state={state} />
               </div>

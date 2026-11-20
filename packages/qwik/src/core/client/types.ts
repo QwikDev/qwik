@@ -47,6 +47,8 @@ export interface ContainerElement extends HTMLElement {
   qVNodeTableSlots?: number[];
   /** Its vnode scripts that are decoded into `qVNodeTables`. */
   qDecodedVNodeScripts?: WeakSet<Element>;
+  /** The slot in `qVNodeTables` of each out-of-order segment's latest table. */
+  qSegmentTableSlots?: Map<string, number>;
   qDestroy?: () => void;
 
   /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */

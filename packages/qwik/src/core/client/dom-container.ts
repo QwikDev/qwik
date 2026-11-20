@@ -290,6 +290,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
       el.qVNodeTableSlots = undefined;
       el.qDecodedVNodeScripts = undefined;
+      el.qSegmentTableSlots = undefined;
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;

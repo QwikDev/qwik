@@ -1627,6 +1627,39 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     expect(document.qVNodeTables![slot]).toBe(table);
   });
 
+  it('keeps one table per segment however often the segment is walked', async () => {
+    // the segment is swapped in before the container resumes
+    const document = createDocument({
+      html: `
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
+            <p :>Hello</p>
+            <div : q:rp="1" style="display:contents"><section :>Hi</section></div>
+            ${binaryVNodeScript(3, 5)}
+            ${binaryVNodeScript(1, 2, ' q:r="1"')}
+          </body>
+        </html>`,
+    }) as QDocument;
+    processVNodeData(document);
+    await whenVNodeDataReady(document, () => undefined);
+    const element = document.documentElement as ContainerElement;
+    const liveTableCount = () =>
+      element.qVNodeTableSlots!.filter((slot) => document.qVNodeTables![slot].length).length;
+    // the root script and the segment
+    expect(liveTableCount()).toBe(2);
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      `<div id="later" q:container="paused" :><p :>Bye</p>${binaryVNodeScript(1, 3)}</div>`
+    );
+    const later = document.getElementById('later') as ContainerElement;
+
+    processVNodeData(document);
+    await vi.waitFor(() => expect(later.qVNodeTableSlots).toHaveLength(1));
+
+    expect(liveTableCount()).toBe(2);
+  });
+
   it('frees the tables of a container when it is destroyed', async () => {
     const { document, element } = await renderContainer();
     const tables = document.qVNodeTables!;

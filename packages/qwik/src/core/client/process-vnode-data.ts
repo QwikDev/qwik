@@ -109,6 +109,28 @@ const markVNodeScriptDecoded = (container: ContainerElement, script: Element): b
   return true;
 };
 
+/**
+ * A segment is walked again once its content is swapped in, and by later document walks. Keep only
+ * the table of its latest walk, at `container`'s slot `slotCount` if that walk decoded one.
+ */
+const replaceSegmentTable = (
+  container: ContainerElement,
+  segmentId: string,
+  slotCount: number
+): void => {
+  const slot = container.qVNodeTableSlots?.[slotCount];
+  if (slot === undefined) {
+    return;
+  }
+  const segmentSlots = (container.qSegmentTableSlots ||= new Map());
+  const previous = segmentSlots.get(segmentId);
+  if (previous !== undefined) {
+    // The latest walk gave each of the segment's elements an entry in the new table.
+    (container.ownerDocument as QDocument).qVNodeTables![previous] = [];
+  }
+  segmentSlots.set(segmentId, slot);
+};
+
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
   segmentId: string,
@@ -127,12 +149,6 @@ export function processOutOfOrderSegmentVNodeData(
   const patches = qContainerElement.querySelectorAll(
     `script[type="qwik/vnode"][q\\:r="${segmentId}"][q\\:patch]`
   );
-  const isDecoded =
-    __EXPERIMENTAL__.binaryState && script && !markVNodeScriptDecoded(qContainerElement, script);
-  if (__EXPERIMENTAL__.binaryState) {
-    // The content is in place now, so later document walks need not decode the segment again.
-    qContainerElement.qSegmentVnodeData?.delete(segmentId);
-  }
   enqueueProcessVNodeDataJob(
     document as QDocument,
     processOutOfOrderSegmentVNodeDataIterator(
@@ -140,7 +156,7 @@ export function processOutOfOrderSegmentVNodeData(
       segmentId,
       qContainerElement,
       contentNode,
-      isDecoded ? '' : script?.textContent || undefined,
+      script?.textContent || undefined,
       patches
     )
   );
@@ -369,10 +385,7 @@ function* processVNodeDataImpl(
       const scriptContent = script.textContent!;
       const segment = __EXPERIMENTAL__.pendingBoundary && script.getAttribute(Q_PENDING_RESOLVED);
       if (segment) {
-        // A segment's script counts as decoded once its content is swapped in and walked.
-        if (!(__EXPERIMENTAL__.binaryState && qContainer.qDecodedVNodeScripts?.has(script))) {
-          (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
-        }
+        (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
       } else if (!__EXPERIMENTAL__.binaryState || markVNodeScriptDecoded(qContainer, script)) {
         qContainer.qVnodeData = scriptContent;
       }
@@ -684,6 +697,7 @@ function* processVNodeDataImpl(
       0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
     );
     scopeWalker.currentNode = contentNode;
+    const slotCount = qContainerElement.qVNodeTableSlots?.length ?? 0;
     yield* walkContainer(
       scopeWalker,
       contentNode,
@@ -694,6 +708,9 @@ function* processVNodeDataImpl(
       qContainerElement,
       scopeSegmentId
     );
+    if (__EXPERIMENTAL__.binaryState && scopeSegmentId !== undefined) {
+      replaceSegmentTable(qContainerElement, scopeSegmentId, slotCount);
+    }
   };
 
   const processPendingContentSegment = function* (

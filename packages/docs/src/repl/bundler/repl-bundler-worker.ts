@@ -420,11 +420,18 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   // SSR execution moved to separate SSR worker
   result.html = '';
-  result.vnodeTreeModule = await (vnodeTreeModule ||= buildVNodeTreeModule());
-  if (!result.vnodeTreeModule) {
+  vnodeTreeModule ||= buildVNodeTreeModule().then((module) => {
     // The helper failed to build; try again on the next build.
-    vnodeTreeModule = null;
-  }
+    if (!module) {
+      vnodeTreeModule = null;
+    }
+    return module;
+  });
+  // The helper is optional, so a stalled download must not hold back the preview.
+  result.vnodeTreeModule = await Promise.race([
+    vnodeTreeModule,
+    new Promise<string>((resolve) => setTimeout(resolve, 10_000, '')),
+  ]);
 
   return result;
 }

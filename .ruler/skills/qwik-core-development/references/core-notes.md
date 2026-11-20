@@ -175,6 +175,11 @@ the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
 keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
 decide those (the qwik e2e server runs core.prod with `isDev` true); only core's chunks bake them in.
 
+Code that only one experimental flag needs, such as the binary state writer, lives in module
+functions reached through `__EXPERIMENTAL__.flag && …` checks, not in class methods: bundlers drop
+unused functions but keep every method of a class. To check, build the SSG snapshot app and search
+its default-build serializer chunk for a string unique to that code.
+
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.
 

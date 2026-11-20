@@ -1266,6 +1266,49 @@ describe('shared-serialization', () => {
     return { state, yields };
   };
 
+  it.each([false, true])('restores a deeply nested legacy computed chain (eager=%s)', (eager) => {
+    const length = 500;
+    let next: [TypeIds, unknown[]] = [TypeIds.ComputedSignal, [TypeIds.RootRef, 1]];
+    for (let i = length - 1; i > 0; i--) {
+      next = [
+        TypeIds.ComputedSignal,
+        [
+          TypeIds.RootRef,
+          1,
+          TypeIds.Set,
+          [TypeIds.EffectSubscriptionNoData, [...next, TypeIds.Plain, EffectProperty.VNODE]],
+        ],
+      ];
+    }
+    const raw = [
+      TypeIds.Signal,
+      [
+        TypeIds.Plain,
+        1,
+        TypeIds.EffectSubscriptionNoData,
+        [...next, TypeIds.Plain, EffectProperty.VNODE],
+      ],
+      TypeIds.QRL,
+      0,
+      TypeIds.RootRef,
+      '0 1 0',
+    ];
+    const state = eager ? eagerDeserialize(raw).state : deserialize(raw);
+    let signal = state[0] as SignalImpl;
+    for (let i = 0; i < length; i++) {
+      const [effect] = signal.$effects$!;
+      const consumer = effect.consumer as ComputedSignalImpl<number>;
+      expect(effect.backRef?.has(signal)).toBe(true);
+      expect(consumer[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)).toBe(effect);
+      expect(consumer.$computeQrl$).toBe(state[1]);
+      if (i === 0) {
+        expect(consumer).toBe(state[2]);
+      }
+      signal = consumer;
+    }
+    expect(signal.$effects$).toBeUndefined();
+  });
+
   describe('chunked eager deserialize', () => {
     const makeEffect = () =>
       new EffectSubscription(

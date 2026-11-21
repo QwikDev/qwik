@@ -280,7 +280,7 @@ describe('preloader', () => {
     ]);
   });
 
-  it("links core first for an event, since _run's and the handler's bundles both import it", async () => {
+  it("links core first for an event, since the handler's bundle imports it", async () => {
     const { getPlatform, setPlatform } = await import('@qwik.dev/core');
     const { setEvent } = await import('../core/ssr/ssr-events');
     const { createQRL } = await import('../core/shared/qrl/qrl-class');
@@ -293,8 +293,7 @@ describe('preloader', () => {
       ...platform,
       chunkForSymbol: (symbol, chunk) => [symbol, symbol === runSymbol ? 'run.js' : chunk!],
     });
-    // Both bundles statically import core.js, so the client rates it above either of them.
-    initPreloader(['run.js', 2, 'core.js', 'handler.js', 2]);
+    initPreloader(['run.js', -3, 3, 'core.js', 'handler.js', -2, 3]);
     try {
       const { container, getScriptContent } = createContainer();
       Object.assign(container.serializationCtx, {
@@ -323,17 +322,21 @@ describe('preloader', () => {
     // run.js and task.js statically import glue.js, which imports core.js; run.js loads lazy.js.
     const bundleGraph = [
       'run.js',
-      8,
-      -9,
+      -3,
       11,
+      -1,
+      14,
       'task.js',
-      8,
+      -3,
+      11,
       'handler.js',
-      10,
+      -2,
+      13,
       'glue.js',
-      10,
+      13,
       'core.js',
       'lazy.js',
+      -3,
     ];
 
     const withCoreHandlerBundles = async (
@@ -398,7 +401,15 @@ describe('preloader', () => {
         const { preloadHandlerBundles } = await import('./preload-impl');
         const { container, getScriptContent } = createContainerUsing(run);
         // run.js and a.js import each other; a.js imports core.js.
-        container.resolvedManifest.manifest.bundleGraph = ['run.js', 2, 'a.js', 0, 5, 'core.js'];
+        container.resolvedManifest.manifest.bundleGraph = [
+          'run.js',
+          -3,
+          3,
+          'a.js',
+          0,
+          6,
+          'core.js',
+        ];
 
         preloadHandlerBundles(container, undefined);
 

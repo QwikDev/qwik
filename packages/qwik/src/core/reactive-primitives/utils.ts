@@ -79,6 +79,11 @@ export const getEffectSerializationContainer = (
 
 export type DerivedSignal = ComputedSignalImpl<any, any> | WrappedSignalImpl<any>;
 type EffectConsumer = Exclude<Consumer, SignalImpl>;
+const inertVNodes = new WeakSet<VNode>();
+
+export const markVNodeInert = (vnode: VNode): void => {
+  inertVNodes.add(vnode);
+};
 
 /**
  * Derived signals (computed, wrapped) are the only signals that subscribe to other signals, so a
@@ -108,6 +113,9 @@ export const scheduleEffects = (
   let toDispatch: EffectSubscription[] | undefined;
   for (const effectSubscription of effects) {
     const consumer = effectSubscription.consumer;
+    if (isInertConsumer(consumer)) {
+      continue;
+    }
     if (isDerivedConsumer(consumer)) {
       toPull = markDirty(consumer, toPull);
     } else {
@@ -124,6 +132,11 @@ export const scheduleEffects = (
   if (toPull) {
     pullAll(toPull);
   }
+};
+
+const isInertConsumer = (consumer: Consumer): boolean => {
+  const vnode = isTask(consumer) ? consumer.$el$ : consumer;
+  return inertVNodes.has(vnode as VNode);
 };
 
 const dispatchEffect = (

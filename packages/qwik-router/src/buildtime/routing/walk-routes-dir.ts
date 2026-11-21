@@ -3,6 +3,7 @@ import { basename, join } from 'node:path';
 import type { BuildTrieNode } from '../types';
 import { normalizePath } from '../../utils/fs';
 import { getSourceFile } from './source-file';
+import { getWildcardTrieKey } from '../../utils/route-trie-key';
 
 /**
  * Parse a directory name into a trie key + optional param metadata.
@@ -90,7 +91,10 @@ async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
 function getOrCreateChildNode(node: BuildTrieNode, dirName: string): BuildTrieNode {
   const parsed = parseDirName(dirName);
   // A group directory keeps its `(name)` key so its layout scopes to the group.
-  const key = parsed.key ?? dirName;
+  const key =
+    parsed.key === '_W'
+      ? getWildcardTrieKey({ _0: parsed.prefix, _9: parsed.suffix })
+      : (parsed.key ?? dirName);
   const existing = node.children.get(key);
   if (existing) {
     return existing;

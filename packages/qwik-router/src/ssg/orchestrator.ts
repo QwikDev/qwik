@@ -3,7 +3,11 @@ import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
 import { msToString } from '../utils/format';
 import { ensureSlash, getPathnameForDynamicRoute } from '../utils/pathname';
-import { isStaticTrieKey, unescapeStaticTrieKey } from '../utils/route-trie-key';
+import {
+  getWildcardChildren,
+  isStaticTrieKey,
+  unescapeStaticTrieKey,
+} from '../utils/route-trie-key';
 import { createRouteTester } from './routes';
 import type { SsgGenerateOptions, SsgResult, SsgRoute, System } from './types';
 
@@ -251,8 +255,10 @@ export async function mainThread(sys: System) {
         node: RouteData,
         pathParts: string[],
         basePathname: string,
-        ancestorLoaders: (() => Promise<any>)[]
+        ancestorLoaders: (() => Promise<any>)[],
+        ancestorParamNames: string[] = []
       ) => {
+        const paramNames = node._P ? [...ancestorParamNames, node._P] : ancestorParamNames;
         // Accumulate this node's layout loader
         const currentLoaders = node._L
           ? [...ancestorLoaders, node._L as () => Promise<any>]
@@ -268,9 +274,6 @@ export async function mainThread(sys: System) {
           // Reconstruct the original pathname from path parts
           const joinedParts = pathParts.join('/');
           const originalPathname = basePathname + (joinedParts ? ensureSlash(joinedParts) : '');
-          const paramNames = pathParts
-            .filter((p) => p.startsWith('[') && p.endsWith(']'))
-            .map((p) => (p.startsWith('[...') ? p.slice(4, -1) : p.slice(1, -1)));
 
           if (paramNames.length === 0) {
             addToQueue(originalPathname, undefined);
@@ -312,7 +315,7 @@ export async function mainThread(sys: System) {
         // Force-prerender <dir>/404.html for each static-dir boundary so static hosts can serve it
         // on a miss (opt out via `exclude`); dynamic dirs have no concrete path, so they're skipped.
         if (node._4 || node._E) {
-          const isStaticDir = !pathParts.some((p) => p.startsWith('['));
+          const isStaticDir = paramNames.length === 0;
           if (isStaticDir) {
             const joinedParts = pathParts.join('/');
             const dirPathname = basePathname + (joinedParts ? ensureSlash(joinedParts) : '');
@@ -323,20 +326,20 @@ export async function mainThread(sys: System) {
         // Recurse into group nodes (_M array)
         if (node._M) {
           for (const group of node._M as RouteData[]) {
-            await traverseRouteTree(group, pathParts, basePathname, currentLoaders);
+            await traverseRouteTree(group, pathParts, basePathname, currentLoaders, paramNames);
           }
         }
 
         // Recurse into _W (wildcard) and _A (rest) child nodes
-        if (node._W && typeof node._W === 'object') {
-          const childNode = node._W as RouteData;
+        for (const childNode of getWildcardChildren(node)) {
           const paramName = childNode._P as string | undefined;
-          const pathPart = paramName ? `[${paramName}]` : '[param]';
+          const pathPart = `${childNode._0 ?? ''}[${paramName ?? 'param'}]${childNode._9 ?? ''}`;
           await traverseRouteTree(
             childNode,
             [...pathParts, pathPart],
             basePathname,
-            currentLoaders
+            currentLoaders,
+            paramNames
           );
         }
         if (node._A && typeof node._A === 'object') {
@@ -347,7 +350,8 @@ export async function mainThread(sys: System) {
             childNode,
             [...pathParts, pathPart],
             basePathname,
-            currentLoaders
+            currentLoaders,
+            paramNames
           );
         }
 
@@ -361,7 +365,8 @@ export async function mainThread(sys: System) {
             childNode,
             [...pathParts, unescapeStaticTrieKey(key)],
             basePathname,
-            currentLoaders
+            currentLoaders,
+            paramNames
           );
         }
       };

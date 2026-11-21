@@ -291,9 +291,11 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * Keys starting with a single `_` are metadata; all other keys are child route segments. A static
  * segment that starts with `_` is stored with an extra `_` (`_drafts` → `__drafts`).
  *
- * - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param.
+ * - Use `_W` for a parameter child or array of children.
+ * - Each parameter child's `_P` names its captured value.
  * - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param.
- * - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix).
+ * - Parameter children use `_0` (prefix) and `_9` (suffix).
+ * - Longer prefixes and suffixes take precedence over bare parameters.
  * - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
  *
  * Exact segments match case-insensitively. When several routes match, the most specific wins,

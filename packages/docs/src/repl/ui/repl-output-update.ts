@@ -34,6 +34,7 @@ export const updateReplOutput = async (
   deepUpdate(store.transformedModules, result.transformedModules);
   deepUpdate(store.clientBundles, result.clientBundles);
   deepUpdate(store.ssrModules, result.ssrModules);
+  store.vnodeTreeModule = result.vnodeTreeModule;
 
   if (!result.diagnostics.some((d) => d.category === 'error' || d.category === 'sourceError')) {
     if (result.html && store.html !== result.html) {

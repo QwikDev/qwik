@@ -1,5 +1,14 @@
 import { component$, useSignal, useComputed$, useStyles$ } from '@qwik.dev/core';
-import { _dumpState, _preprocessState } from '@qwik.dev/core/internal';
+import {
+  _binaryStateToJson,
+  _dumpState,
+  _isBinaryState,
+  _preprocessState,
+} from '@qwik.dev/core/internal';
+
+/** The typeId/value pairs of a pasted state script, JSON or binary. */
+const parseState = (text: string): unknown[] =>
+  _isBinaryState(text) ? _binaryStateToJson(text) : JSON.parse(text);
 import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
@@ -38,7 +47,7 @@ export default component$(() => {
 
     try {
       // Try to parse the input as Qwik state
-      const stateData = JSON.parse(inputState.value);
+      const stateData = parseState(inputState.value);
 
       // Create a simple container for state processing
       const container = {
@@ -70,7 +79,7 @@ export default component$(() => {
           .trim();
 
         if (cleanInput) {
-          const stateData = JSON.parse(cleanInput);
+          const stateData = parseState(cleanInput);
           const container = {
             $getObjectById$: (id: number | string) => id,
             element: null,

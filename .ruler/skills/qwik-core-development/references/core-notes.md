@@ -175,6 +175,11 @@ the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
 keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
 decide those (the qwik e2e server runs core.prod with `isDev` true); only core's chunks bake them in.
 
+Code that only one experimental flag needs, such as the binary state writer, lives in module
+functions reached through `__EXPERIMENTAL__.flag && …` checks, not in class methods: bundlers drop
+unused functions but keep every method of a class. To check, build the SSG snapshot app and search
+its default-build serializer chunk for a string unique to that code.
+
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.
 
@@ -193,6 +198,23 @@ When touching these areas:
 - keep numeric/string encodings deterministic;
 - test root and nested/container cases when a feature can appear in both;
 - include streaming or out-of-order cases when state can arrive after initial event listeners.
+
+VNode data formats:
+
+- With `binaryState`, every `qwik/vnode` script (root, segment and `q:patch`) is a binary token
+  stream (prefix `}`); without it they are text. Both become the same flat record before
+  materializing, so change the server's attribute resolution and the client's `setVNodeAttr`
+  together, and test in both modes (`QWIK_BINARY_STATE=1`). Tests that inspect vnode scripts read
+  them with `getVNodeAttrValues`, not a regex over the text.
+- Root ids in the token stream are distances from earlier ids, so it can only be decoded in order:
+  the walk decodes each script into its own table. A segment writes its local root ids already
+  mapped to the container's; the text format maps them later, when the segment is written out.
+  Size and startup trade against each other here; measure both (page brotli and the resume
+  benchmark) before changing the layout.
+- Find an element's record through the document, not the element's container: projection can
+  materialize an element while it is detached, and a failed lookup there fails silently.
+- Each build must drop the other format's reader: guard with inlined `__EXPERIMENTAL__` expressions
+  and compare both core sizes the SSG snapshot test prints.
 
 Out-of-order (OOOS) invariants:
 

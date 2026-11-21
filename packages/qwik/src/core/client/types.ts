@@ -43,6 +43,12 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
+  /** The slots of `qVNodeTables` that hold this container's decoded binary vnode data. */
+  qVNodeTableSlots?: number[];
+  /** Its vnode scripts that are decoded into `qVNodeTables`. */
+  qDecodedVNodeScripts?: WeakSet<Element>;
+  /** The slot of the latest table of each segment, by id, and of each patch script. */
+  qVNodeSourceSlots?: Map<string | Element, number>;
   qDestroy?: () => void;
 
   /** Segment-local strings from `<script type="qwik/vnode" q:r="...">` tags. */
@@ -55,8 +61,14 @@ export interface QDocument extends Document {
    * Map of Element to VNodeData.
    *
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
+   * A number is the element's record in the decoded binary vnode data.
    */
-  qVNodeData: WeakMap<Element, string>;
+  qVNodeData: WeakMap<Element, string | number>;
+
+  /** The decoded binary vnode data of the containers, see `VNODE_TABLE_INDEX_SCALE`. */
+  qVNodeTables?: unknown[][];
+  /** Slots of `qVNodeTables` whose tables nothing reads any more. */
+  qVNodeFreeSlots?: number[];
 
   /** True once root document VNode data has been scheduled at least once. */
   qVNodeDataStarted?: boolean;

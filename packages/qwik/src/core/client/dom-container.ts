@@ -15,10 +15,11 @@ import {
 } from '../shared/error/error-handling';
 import type { CatchInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { wrapBinaryStateProxy, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
+import { BinaryStateReader, isBinaryState } from '../shared/serdes/binary-state';
 import { _SharedContainer } from '../shared/shared-container';
 import {
   QContainerValue,
@@ -165,6 +166,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   // Preserve unrooted references across shell mutations until streaming finishes.
   declare $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
 
+  /** The reader of binary state, kept while state patches can still arrive. */
+  private $binaryStateReader$: BinaryStateReader | null = null;
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
   private $rootForwardRefs$: Array<number | string> | null = null;
@@ -221,15 +224,34 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         this.$streamingObjectRefs$ = new WeakMap();
         this.document.qProcessOOOS ||= getOutOfOrderStreamingScript;
       }
-      this.$rawStateData$ = JSON.parse(rootState.textContent!);
-      yield* preprocessStateIterator(this.$rawStateData$, this);
-      this.$rootForwardRefs$ = this.$forwardRefs$;
-      const rootCount = this.$rawStateData$.length / 2;
+      const stateText = rootState.textContent!;
       const statePrewarm = element.getAttribute(QStatePrewarmAttr);
-      if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
-        this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+      // With the feature on, state is binary; only tests also hand the reader JSON state.
+      if (__EXPERIMENTAL__.binaryState && (!qTest || isBinaryState(stateText))) {
+        const reader = new BinaryStateReader(stateText);
+        if (__EXPERIMENTAL__.pendingBoundary && this.$streamingObjectRefs$) {
+          this.$binaryStateReader$ = reader;
+          reader.$restoredByOffset$ = new Map();
+        }
+        this.$rootForwardRefs$ = this.$forwardRefs$ = reader.$forwardRefs$;
+        this.$stateData$ = wrapBinaryStateProxy(this, reader);
+        const rootCount = this.$stateData$.length;
+        if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+          for (let i = 0; i < rootCount; i++) {
+            this.$stateData$[i];
+            yield;
+          }
+        }
       } else {
-        this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+        this.$rawStateData$ = JSON.parse(stateText);
+        yield* preprocessStateIterator(this.$rawStateData$, this);
+        this.$rootForwardRefs$ = this.$forwardRefs$;
+        const rootCount = this.$rawStateData$.length / 2;
+        if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
+          this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
+        } else {
+          this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+        }
       }
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
@@ -248,13 +270,30 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$streamingObjectRefs$ = undefined;
     }
     this.vNodeLocate = () => null as any;
+    if (__EXPERIMENTAL__.binaryState && this.$binaryStateReader$) {
+      this.$binaryStateReader$.$restoredByOffset$ = null;
+      this.$binaryStateReader$ = null;
+    }
     this.$rawStateData$.length = 0;
-    this.$stateData$.length = 0;
+    // The binary state proxy holds the reader and its script text.
+    this.$stateData$ = [];
     this.$getObjectById$ = () => undefined;
     const el = this.element;
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
+    if (__EXPERIMENTAL__.binaryState) {
+      const qDocument = el.ownerDocument as QDocument;
+      const tables = qDocument.qVNodeTables;
+      const slots = el.qVNodeTableSlots;
+      for (let i = 0; tables && slots && i < slots.length; i++) {
+        tables[slots[i]] = [];
+        (qDocument.qVNodeFreeSlots ||= []).push(slots[i]);
+      }
+      el.qVNodeTableSlots = undefined;
+      el.qDecodedVNodeScripts = undefined;
+      el.qVNodeSourceSlots = undefined;
+    }
     if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;
     }
@@ -265,6 +304,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     const hasContainers = document.querySelector(QContainerSelector) !== null;
     if (!hasContainers) {
       document.qVNodeData = undefined!;
+      if (__EXPERIMENTAL__.binaryState) {
+        document.qVNodeTables = undefined;
+        document.qVNodeFreeSlots = undefined;
+      }
       document.qVNodeDataStarted = undefined;
       document.qVNodeDataReady = undefined;
       document.qVNodeDataState = undefined;

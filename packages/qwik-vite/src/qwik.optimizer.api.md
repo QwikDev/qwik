@@ -50,6 +50,7 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @public
 export enum ExperimentalFeatures {
+    binaryState = "binaryState",
     blockSSR = "blockSSR",
     catchBoundary = "catchBoundary",
     each = "each",

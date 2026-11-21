@@ -37,6 +37,9 @@ export type AsyncSignalOptions<T> = ComputedOptions<T>;
 // @internal (undocumented)
 export const _BIGINT_PAYLOAD_REGEXP: RegExp;
 
+// @internal
+export const _binaryStateToJson: (rootScript: string | null | undefined, patchScripts?: string[]) => unknown[];
+
 // @internal (undocumented)
 export const _canSerialize: (value: unknown, seen?: WeakSet<any>) => boolean;
 
@@ -310,11 +313,14 @@ export interface _Container {
 export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
+    qDecodedVNodeScripts?: WeakSet<Element>;
     // (undocumented)
     qDestroy?: () => void;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _VNode>;
+    qVNodeSourceSlots?: Map<string | Element, number>;
+    qVNodeTableSlots?: number[];
 }
 
 // @public
@@ -701,6 +707,9 @@ export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDe
 // @internal
 export function _invoke<FN extends (...args: any[]) => any>(this: unknown, context: InvokeContext | undefined, fn: FN, ...args: Parameters<FN>): ReturnType<FN>;
 
+// @internal
+export const _isBinaryState: (text: string) => boolean;
+
 export { isBrowser }
 
 export { isDev }
@@ -970,12 +979,14 @@ export interface _QDocument extends Document {
     qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
-    qVNodeData: WeakMap<Element, string>;
+    qVNodeData: WeakMap<Element, string | number>;
     qVNodeDataCallbacks?: Array<() => void>;
     qVNodeDataProcessed?: boolean;
     qVNodeDataReady?: boolean;
     qVNodeDataStarted?: boolean;
     qVNodeDataState?: unknown;
+    qVNodeFreeSlots?: number[];
+    qVNodeTables?: unknown[][];
 }
 
 // Warning: (ae-forgotten-export) The symbol "BivariantQrlFn" needs to be exported by the entry point index.d.ts

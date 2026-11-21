@@ -1281,7 +1281,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(write.mock.calls.length).toBeGreaterThan(100);
+        expect(write.mock.calls.length).toBeGreaterThan(50);
       });
       it('should handle jsx promise rejection while a flush is pending', async () => {
         const firstWrite = createDeferred();

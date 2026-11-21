@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { replaceSerializedString } from '../e2e-helpers';
 
 const base = '/qwikrouter-test/returned-control-flow';
 const actionRedirectTarget = `${base}/target/`;
@@ -10,7 +11,10 @@ async function replaceActionRedirect(page: Page, target: string) {
       const response = await route.fetch();
       const body = await response.text();
       expect(body).toContain(actionRedirectTarget);
-      await route.fulfill({ response, body: body.replace(actionRedirectTarget, target) });
+      await route.fulfill({
+        response,
+        body: await replaceSerializedString(body, actionRedirectTarget, target),
+      });
     }
   );
 }
@@ -118,7 +122,11 @@ test.describe('returned control-flow signals', () => {
       }
       await route.fulfill({
         response,
-        body: body.replace(target, 'javascript:window.__unsafeRedirectExecuted=true'),
+        body: await replaceSerializedString(
+          body,
+          target,
+          'javascript:window.__unsafeRedirectExecuted=true'
+        ),
       });
     });
 

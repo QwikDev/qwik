@@ -30,6 +30,7 @@ import * as logUtils from '../shared/utils/log';
 import { qrl } from '../shared/qrl/qrl';
 import {
   emulateExecutionOfStreamingOutOfOrderScripts,
+  parseStateScript,
   rerenderComponent,
 } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
@@ -327,7 +328,7 @@ describe('Catch + fallback$', () => {
         expect(contentHost.style.display).toBe('none');
         expect(contentHost.contains(el.querySelector('#fb-inner'))).toBe(true);
         const state = el.querySelector('script[type="qwik/state"]')!;
-        const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
+        const rootCount = (parseStateScript(state) as unknown[]).length / 2;
         for (let i = 0; i < rootCount; i++) {
           container.$getObjectById$(i);
         }
@@ -1407,7 +1408,7 @@ describe('Catch + fallback$', () => {
         );
         const el = container.element;
         const state = el.querySelector('script[type="qwik/state"]')!;
-        const rootCount = (JSON.parse(state.textContent!) as unknown[]).length / 2;
+        const rootCount = (parseStateScript(state) as unknown[]).length / 2;
         let store: Record<string, unknown> | undefined;
         for (let i = 0; i < rootCount; i++) {
           const root = container.$getObjectById$(i);

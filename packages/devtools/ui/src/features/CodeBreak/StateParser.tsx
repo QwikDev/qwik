@@ -1,5 +1,14 @@
 import { $, component$, useSignal, useVisibleTask$, useStyles$ } from '@qwik.dev/core';
-import { _dumpState, _preprocessState } from '@qwik.dev/core/internal';
+import {
+  _binaryStateToJson,
+  _dumpState,
+  _isBinaryState,
+  _preprocessState,
+} from '@qwik.dev/core/internal';
+
+/** The typeId/value pairs of a pasted state script, JSON or binary. */
+const parseState = (text: string): unknown[] =>
+  _isBinaryState(text) ? _binaryStateToJson(text) : JSON.parse(text);
 import { getHighlighter } from '../../utils/shiki';
 
 export const StateParser = component$(() => {
@@ -21,7 +30,7 @@ export const StateParser = component$(() => {
     const startTime = performance.now();
 
     try {
-      const stateData = JSON.parse(inputState.value);
+      const stateData = parseState(inputState.value);
       const container = {
         $getObjectById$: (id: number | string) => id,
         element: null,
@@ -43,7 +52,7 @@ export const StateParser = component$(() => {
           .replace(/<\/script>/gi, '')
           .trim();
         if (cleanInput) {
-          const stateData = JSON.parse(cleanInput);
+          const stateData = parseState(cleanInput);
           const container = {
             $getObjectById$: (id: number | string) => id,
             element: null,

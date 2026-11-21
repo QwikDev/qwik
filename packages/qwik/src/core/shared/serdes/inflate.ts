@@ -174,23 +174,69 @@ function* inflateIterator(
     // Already processed
     return;
   }
-  if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
-    throw new Error('Invalid Object payload');
-  }
   const serializedPayload =
     __EXPERIMENTAL__.pendingBoundary && container.$streamingObjectRefs$ ? data : undefined;
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
   }
+  yield* inflateRestoredIterator(container, target, typeId, data);
+  if (
+    __EXPERIMENTAL__.pendingBoundary &&
+    container.$streamingObjectRefs$ &&
+    Array.isArray(serializedPayload)
+  ) {
+    // Late references need original positions after application mutations.
+    const payload = (typeId === TypeIds.Array ? target : data) as unknown[];
+    let references: object[] | undefined;
+    for (let i = 0; i < payload.length; i++) {
+      if (serializedPayload[i * 2] === TypeIds.RootRef) {
+        continue;
+      }
+      const value = payload[i];
+      if (isObject(value) || typeof value === 'function') {
+        (references ||= [])[i] = value;
+      }
+    }
+    if (references) {
+      container.$streamingObjectRefs$.set(target as object, references);
+    }
+  }
+}
+
+/** Fills `target` from its payload, whose items are already restored. */
+export const inflateRestored = (
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): void => {
+  const iterator = inflateRestoredIterator(container, target, typeId, data);
+  while (!iterator.next().done) {
+    // Run synchronously.
+  }
+};
+
+function* inflateRestoredIterator(
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): Generator<void, void, void> {
   switch (typeId) {
     case TypeIds.Array:
-      // Arrays are special, we need to fill the array in place
-      yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
+      // Only JSON state has arrays left to fill here; binary-only builds drop this.
+      if (!(__EXPERIMENTAL__.binaryState && !qTest)) {
+        // Arrays are special, we need to fill the array in place
+        yield* eagerDeserializeArrayIterator(container, data as unknown[], target as unknown[]);
+      }
       break;
     case TypeIds.Object:
       if (data === EMPTY_OBJECT_PAYLOAD) {
         break;
+      }
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid Object payload');
       }
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as unknown[])[i];
@@ -367,8 +413,14 @@ function* inflateIterator(
     case TypeIds.FormData: {
       const formData = target as FormData;
       const d = data as any[];
-      for (let i = 0; i < d.length; i++) {
-        formData.append(d[i++], d[i]);
+      for (let i = 0; i < d.length; i += 2) {
+        const name = d[i];
+        const value = d[i + 1];
+        // Anything else is turned into a string by append, at a cost the input does not show.
+        if (typeof name !== 'string' || typeof value !== 'string') {
+          throw new Error('Invalid FormData payload');
+        }
+        formData.append(name, value);
         yield;
       }
       break;
@@ -466,7 +518,9 @@ function* inflateIterator(
     }
     case TypeIds.Store: {
       const store = unwrapStore(target) as object;
-      const storeTarget = container.$pendingStoreTargets$!.get(store);
+      // Only JSON state leaves a store's target pending; binary-only builds drop this.
+      const storeTarget =
+        !(__EXPERIMENTAL__.binaryState && !qTest) && container.$pendingStoreTargets$!.get(store);
       if (storeTarget) {
         container.$pendingStoreTargets$!.delete(store);
         yield* inflateIterator(container, store, storeTarget.t, storeTarget.v);
@@ -480,27 +534,6 @@ function* inflateIterator(
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
-  }
-  if (
-    __EXPERIMENTAL__.pendingBoundary &&
-    container.$streamingObjectRefs$ &&
-    Array.isArray(serializedPayload)
-  ) {
-    // Late references need original positions after application mutations.
-    const payload = (typeId === TypeIds.Array ? target : data) as unknown[];
-    let references: object[] | undefined;
-    for (let i = 0; i < payload.length; i++) {
-      if (serializedPayload[i * 2] === TypeIds.RootRef) {
-        continue;
-      }
-      const value = payload[i];
-      if (isObject(value) || typeof value === 'function') {
-        (references ||= [])[i] = value;
-      }
-    }
-    if (references) {
-      container.$streamingObjectRefs$.set(target as object, references);
-    }
   }
 }
 

@@ -4,9 +4,15 @@ import {
   VNodeDataChar,
   VNodeDataSeparator,
   getSegmentVNodeRefId,
+  BINARY_VNODE_CODES,
+  BinaryVNodeKind,
+  BinaryVNodeOther,
+  VNODE_TABLE_INDEX_SCALE,
 } from '../shared/vnode-data-types';
 import type { VNode } from '../shared/vnode/vnode';
 import { logError } from '../shared/utils/log';
+import { qTest } from '../shared/utils/qdev';
+import { BinaryStateReader, isBinaryVNodeData } from '../shared/serdes/binary-state';
 import type { ContainerElement, QDocument } from './types';
 import {
   createYieldingIteratorState,
@@ -86,9 +92,48 @@ export function processVNodeData(document: Document, containerElement?: Containe
     return;
   }
   qDocument.qVNodeDataStarted = true;
-  qDocument.qVNodeData ||= new WeakMap<Element, string>();
+  qDocument.qVNodeData ||= new WeakMap<Element, string | number>();
   enqueueProcessVNodeDataJob(qDocument, processRootVNodeData(document));
 }
+
+/**
+ * Records that `script` is decoded into `container`'s tables. False when it already was: decoding
+ * it again would keep another copy of its table.
+ */
+const markVNodeScriptDecoded = (container: ContainerElement, script: Element): boolean => {
+  const decoded = (container.qDecodedVNodeScripts ||= new WeakSet());
+  if (decoded.has(script)) {
+    return false;
+  }
+  decoded.add(script);
+  return true;
+};
+
+/**
+ * The table a vnode data source (a segment's own script, by its id, or a patch script) decoded last
+ * replaces the one it decoded before: the latest walk gave each of its elements an entry in it.
+ * `slotCount` is `container`'s slot count before that walk.
+ */
+const replaceSourceTable = (
+  container: ContainerElement,
+  source: string | Element,
+  slotCount: number
+): void => {
+  const slots = container.qVNodeTableSlots;
+  const slot = slots?.[slotCount];
+  if (slot === undefined) {
+    return;
+  }
+  const sourceSlots = (container.qVNodeSourceSlots ||= new Map());
+  const previous = sourceSlots.get(source);
+  sourceSlots.set(source, slot);
+  if (previous !== undefined) {
+    const qDocument = container.ownerDocument as QDocument;
+    qDocument.qVNodeTables![previous] = [];
+    slots!.splice(slots!.indexOf(previous), 1);
+    (qDocument.qVNodeFreeSlots ||= []).push(previous);
+  }
+};
 
 export function processOutOfOrderSegmentVNodeData(
   document: Document,
@@ -184,6 +229,8 @@ function scheduleProcessVNodeData(qDocument: QDocument, state: ProcessVNodeDataS
     (error) => {
       state.$active$ = null;
       logError(error);
+      // Let a container added later start a walk of its own.
+      qDocument.qVNodeDataStarted = false;
       markVNodeDataReady(qDocument);
     }
   );
@@ -263,17 +310,20 @@ function* processVNodeDataPatch(
       patchSegment || undefined,
       qContainerElement,
       contentNode,
-      script!.textContent!
+      script!.textContent!,
+      script!
     );
   }
 }
 
+/** @param source - Where `segmentVNodeData` comes from, when it is not the segment's own script. */
 function* processVNodeDataImpl(
   document: Document,
   segmentId?: string,
   segmentContainer?: ContainerElement | null,
   segmentContent?: Element | null,
-  segmentVNodeData?: string
+  segmentVNodeData?: string,
+  source?: Element
 ): Generator<void, void, void> {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
@@ -301,7 +351,7 @@ function* processVNodeDataImpl(
   }
 
   const qDocument = document as QDocument;
-  const vNodeDataMap = (qDocument.qVNodeData ||= new WeakMap<Element, string>());
+  const vNodeDataMap = (qDocument.qVNodeData ||= new WeakMap<Element, string | number>());
   const prototype: any = document.body;
   const getter = (prototype: any, name: string) => {
     let getter: any;
@@ -336,7 +386,7 @@ function* processVNodeDataImpl(
       const segment = __EXPERIMENTAL__.pendingBoundary && script.getAttribute(Q_PENDING_RESOLVED);
       if (segment) {
         (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
-      } else {
+      } else if (!__EXPERIMENTAL__.binaryState || markVNodeScriptDecoded(qContainer, script)) {
         qContainer.qVnodeData = scriptContent;
       }
       yield;
@@ -431,6 +481,21 @@ function* processVNodeDataImpl(
   ): Generator<void, void, void> {
     const isSegment = __EXPERIMENTAL__.pendingBoundary && segmentId !== undefined;
     const vData_length = vData.length;
+    // Tests also hand the walk text vnode data.
+    const binaryCursor =
+      __EXPERIMENTAL__.binaryState && vData && (!qTest || isBinaryVNodeData(vData))
+        ? new BinaryVNodeCursor(vData)
+        : null;
+    /// An element's entry for binary vnode data is its record's start plus this.
+    let tableOffset = 0;
+    if (__EXPERIMENTAL__.binaryState && binaryCursor) {
+      const tables = (qDocument.qVNodeTables ||= []);
+      // Not the slot of a table in use: elements of an earlier walk keep reading theirs.
+      const tableIndex = qDocument.qVNodeFreeSlots?.pop() ?? tables.length;
+      tables[tableIndex] = binaryCursor.$table$;
+      (qContainerElement!.qVNodeTableSlots ||= []).push(tableIndex);
+      tableOffset = tableIndex * VNODE_TABLE_INDEX_SCALE;
+    }
     /// Stores the current element index as the TreeWalker traverses the DOM.
     let elementIdx = 0;
     /// Stores the current VNode index as derived from the VNodeData script tag.
@@ -479,6 +544,10 @@ function* processVNodeDataImpl(
           container.qVNodeRefs!,
           container
         );
+        if (__EXPERIMENTAL__.binaryState) {
+          // The decoded table holds what the elements need.
+          container.qVnodeData = undefined;
+        }
       } else if (nodeType === NodeType.COMMENT_IGNORE_START) {
         let islandNode: Node | null = node;
         do {
@@ -546,7 +615,16 @@ function* processVNodeDataImpl(
             vNodeElementIndex = 0;
           }
           vData_start = vData_end;
-          if (vData_start < vData_length) {
+          if (__EXPERIMENTAL__.binaryState && binaryCursor) {
+            if (binaryCursor.$next$()) {
+              vNodeElementIndex += binaryCursor.$skip$ >> 1;
+              if (binaryCursor.$skip$ & 1) {
+                needsToStoreRef = vNodeElementIndex;
+              }
+            } else {
+              vNodeElementIndex = Number.MAX_SAFE_INTEGER;
+            }
+          } else if ((!__EXPERIMENTAL__.binaryState || qTest) && vData_start < vData_length) {
             vNodeElementIndex += howManyElementsToSkip();
             if (ch === VNodeDataSeparator.REFERENCE) {
               // if we need to store the ref handle it here.
@@ -577,10 +655,15 @@ function* processVNodeDataImpl(
               node as Element
             );
           }
-          const data = vData.substring(vData_start, vData_end);
+          const data =
+            __EXPERIMENTAL__.binaryState && binaryCursor
+              ? binaryCursor.$recordStart$ < 0
+                ? ''
+                : tableOffset + binaryCursor.$recordStart$
+              : vData.substring(vData_start, vData_end);
           if (isSegment && node === containerNode) {
             (node as QElement)._qSegmentVNodeData = data;
-          } else if (nodeType !== NodeType.ELEMENT_CONTAINER) {
+          } else if (data !== '' && nodeType !== NodeType.ELEMENT_CONTAINER) {
             // A nested container's root data comes from its own container only.
             vNodeDataMap.set(node as Element, data);
           }
@@ -606,7 +689,8 @@ function* processVNodeDataImpl(
     qContainerElement: ContainerElement,
     contentNode: Element,
     vData: string,
-    scopeSegmentId?: string
+    scopeSegmentId?: string,
+    source?: string | Element
   ): Generator<void, void, void> {
     qContainerElement.qVNodeRefs ||= new Map<number, Element | VNode>();
     const scopeWalker = document.createTreeWalker(
@@ -614,6 +698,7 @@ function* processVNodeDataImpl(
       0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
     );
     scopeWalker.currentNode = contentNode;
+    const slotCount = qContainerElement.qVNodeTableSlots?.length ?? 0;
     yield* walkContainer(
       scopeWalker,
       contentNode,
@@ -624,17 +709,21 @@ function* processVNodeDataImpl(
       qContainerElement,
       scopeSegmentId
     );
+    if (__EXPERIMENTAL__.binaryState && source !== undefined) {
+      replaceSourceTable(qContainerElement, source, slotCount);
+    }
   };
 
   const processPendingContentSegment = function* (
     qContainerElement: ContainerElement | null,
     contentNode: Element,
     boundaryId: string,
-    vData?: string
+    vData?: string,
+    source: string | Element = boundaryId
   ): Generator<void, void, void> {
     vData ||= qContainerElement?.qSegmentVnodeData?.get(boundaryId);
     if (qContainerElement && vData) {
-      yield* processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId);
+      yield* processVNodeDataScope(qContainerElement, contentNode, vData, boundaryId, source);
     }
   };
 
@@ -645,10 +734,17 @@ function* processVNodeDataImpl(
         segmentContainer,
         segmentContent,
         segmentId,
-        segmentVNodeData
+        segmentVNodeData,
+        source
       );
     } else {
-      yield* processVNodeDataScope(segmentContainer, segmentContent, segmentVNodeData);
+      yield* processVNodeDataScope(
+        segmentContainer,
+        segmentContent,
+        segmentVNodeData,
+        undefined,
+        source
+      );
     }
     return;
   }
@@ -693,3 +789,96 @@ export const findVDataSectionEnd = (vData: string, start: number, end: number): 
   }
   return start;
 };
+
+/** Decodes binary vnode data in document order into one flat table, one element at a time. */
+export class BinaryVNodeCursor {
+  /** The elements skipped before the current element times two, plus one when it is referenced. */
+  $skip$ = 0;
+  /** Where the current element's record starts in `$table$`, or -1 when it has none. */
+  $recordStart$ = -1;
+  /** Starts with a terminator, so that no entry is 0, which reads as no vnode data. */
+  $table$: unknown[] = [null];
+  private $reader$: BinaryStateReader;
+  private $tokensLeft$: number;
+  /** The token that starts the next element, or -1. */
+  private $nextStart$: number;
+  private $previousRootId$ = 0;
+  private $previousRootIdByCode$: number[] = [];
+
+  constructor(text: string) {
+    const reader = (this.$reader$ = new BinaryStateReader(text));
+    this.$tokensLeft$ = reader.$rootEnds$.length ? reader.$openArrayRoot$(0) : 0;
+    this.$nextStart$ = this.$tokensLeft$ ? (this.$read$() as number) : -1;
+  }
+
+  /** Moves to the next element with vnode data; false when there is none. */
+  $next$(): boolean {
+    const start = this.$nextStart$;
+    if (start < 0) {
+      return false;
+    }
+    this.$nextStart$ = -1;
+    this.$skip$ = start >> 2;
+    const table = this.$table$;
+    const recordStart = table.length;
+    while (this.$tokensLeft$ > 0) {
+      const token = this.$read$() as number;
+      const kind = token & 3;
+      const payload = token >> 2;
+      if (kind === BinaryVNodeKind.ElementStart) {
+        this.$nextStart$ = token;
+        break;
+      } else if (kind === BinaryVNodeKind.ElementCount) {
+        table.push(-payload);
+      } else if (kind === BinaryVNodeKind.TextLength) {
+        table.push(payload);
+      } else if (payload === BinaryVNodeOther.OpenVirtual) {
+        table.push(VNodeDataChar.OPEN_CHAR);
+      } else if (payload === BinaryVNodeOther.CloseVirtual) {
+        table.push(VNodeDataChar.CLOSE_CHAR);
+      } else {
+        let codeIndex = payload - BinaryVNodeOther.FirstCode;
+        let code: string;
+        if (codeIndex < BINARY_VNODE_CODES.length) {
+          code = BINARY_VNODE_CODES[codeIndex];
+        } else {
+          codeIndex = BINARY_VNODE_CODES.length;
+          code = VNodeDataChar.SEPARATOR_CHAR + this.$read$();
+        }
+        const value = this.$read$();
+        table.push(
+          code,
+          typeof value === 'number'
+            ? this.$rootId$(codeIndex, value)
+            : // V8 keeps longer slices as views that hold the whole script text.
+              (value as string).length > 12
+              ? (' ' + value).slice(1)
+              : value
+        );
+      }
+    }
+    if (table.length === recordStart) {
+      this.$recordStart$ = -1;
+    } else {
+      this.$recordStart$ = recordStart;
+      table.push(null);
+    }
+    return true;
+  }
+
+  private $read$(): unknown {
+    this.$tokensLeft$--;
+    return this.$reader$.$readNext$();
+  }
+
+  /** A root id is the zigzag distance from the previous id, or from the previous id of its code. */
+  private $rootId$(codeIndex: number, token: number): number {
+    const isSameCodeBase = token & 1;
+    const zigzag = token >> 1;
+    const distance = zigzag & 1 ? -((zigzag + 1) >> 1) : zigzag >> 1;
+    const base = isSameCodeBase
+      ? (this.$previousRootIdByCode$[codeIndex] ?? 0)
+      : this.$previousRootId$;
+    return (this.$previousRootId$ = this.$previousRootIdByCode$[codeIndex] = base + distance);
+  }
+}

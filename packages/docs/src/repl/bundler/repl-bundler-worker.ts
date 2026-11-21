@@ -211,6 +211,56 @@ async function loadOptimizer(rustOptimizer: boolean) {
   );
 }
 
+const REPL_EXPERIMENTAL = [
+  'each',
+  'show',
+  'pendingBoundary',
+  'catchBoundary',
+  'binaryState',
+] as const satisfies readonly string[];
+
+const VNODE_TREE_ENTRY = '/repl-vnode-tree.ts';
+const VNODE_TREE_SOURCE = `import * as internal from '@qwik.dev/core/internal';
+export const getVNodeTree = (doc) => {
+  const container = internal._getDomContainer(doc.documentElement);
+  const print = () =>
+    internal._vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true, false, false);
+  // The container reads its state in the background; older versions read it at once.
+  return internal._whenContainerDataReady ? internal._whenContainerDataReady(container, print) : print();
+};
+`;
+let vnodeTreeModule: Promise<string> | null = null;
+
+/**
+ * The docs site's own core cannot read the state of every selectable version, so the VNode tree is
+ * printed by the version that rendered it. Empty for versions without these internals.
+ */
+async function buildVNodeTreeModule(): Promise<string> {
+  const srcInputs = [{ path: VNODE_TREE_ENTRY, code: VNODE_TREE_SOURCE }];
+  try {
+    // The qwik plugin would split the client build into chunks; one module is all we need.
+    const build = await rolldown({
+      cwd: '/',
+      input: VNODE_TREE_ENTRY,
+      plugins: [replResolver(deps, { srcInputs, buildMode: 'development', replId: '' }, 'client')],
+      onwarn: () => {},
+    });
+    const flags = REPL_EXPERIMENTAL.map((flag) => `${flag}: true`).join(', ');
+    const bundle = await build.generate({
+      format: 'es',
+      inlineDynamicImports: true,
+      // What the qwik plugin would have replaced, for this module only.
+      banner: `const __EXPERIMENTAL__ = { ${flags} };`,
+    });
+    return bundle.output.length === 1 && bundle.output[0].type === 'chunk'
+      ? bundle.output[0].code
+      : '';
+  } catch (e) {
+    console.warn(`No VNode tree for ${deps[QWIK_PKG_NAME_V1].version}`, e);
+    return '';
+  }
+}
+
 const getOutput = (o: OutputChunk | OutputAsset) => {
   const f: ReplModuleOutput = {
     path: o.fileName,
@@ -292,7 +342,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+        experimental: [...REPL_EXPERIMENTAL],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -339,7 +389,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+        experimental: [...REPL_EXPERIMENTAL],
       }),
       replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),
@@ -365,6 +415,18 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   // SSR execution moved to separate SSR worker
   result.html = '';
+  vnodeTreeModule ||= buildVNodeTreeModule().then((module) => {
+    // The helper failed to build; try again on the next build.
+    if (!module) {
+      vnodeTreeModule = null;
+    }
+    return module;
+  });
+  // The helper is optional, so a stalled download must not hold back the preview.
+  result.vnodeTreeModule = await Promise.race([
+    vnodeTreeModule,
+    new Promise<string>((resolve) => setTimeout(resolve, 10_000, '')),
+  ]);
 
   return result;
 }

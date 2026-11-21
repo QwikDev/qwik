@@ -152,7 +152,11 @@ for (const mode of ['csr', 'ssr']) {
     const plugins = [
       qwikMcp(),
       ...(mode === 'ssr' ? [qwikRouter()] : []),
-      qwikVite({ tsOptimizer: true, ...(mode === 'csr' ? { csr: true } : {}) }),
+      qwikVite({
+        tsOptimizer: true,
+        experimental: ['binaryState'],
+        ...(mode === 'csr' ? { csr: true } : {}),
+      }),
     ];
     const server = await createServer({
       configFile: false,

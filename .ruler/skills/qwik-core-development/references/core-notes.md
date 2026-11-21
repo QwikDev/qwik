@@ -218,8 +218,11 @@ Translated pages (Google Translate swaps each text node for a `<font>` wrapper, 
   replace the stand-in.
 - Never write to or re-insert a text node the translator replaced; it restores its own saved text
   into that node. Give the vnode a new node.
-- A component serialized with only a render hash (`QComponentHash`) can never render on the client.
-  Do not schedule it, or an ancestor on its behalf, to recover content.
+- Only render a component whose host has a render function (`OnRenderProp`). The server writes hook
+  state for a component that can render again and for its direct child components; one level
+  further a host has only a hash (`QComponentHash`) so the diff can skip it, and deeper static
+  components have no host at all (see "Sparse components" in `packages/qwik/src/core/GLOSSARY.md`).
+  Rendering a component without serialized hook state restarts its hooks.
 - The preloader records the text each wrapper replaced, because core loads too late to see a
   translation right after page load. Core and the preloader are separate bundles that share this
   state through `globalThis.qTranslated`: keep its property names plain (a `$name$` is mangled per

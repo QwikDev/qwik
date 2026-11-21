@@ -10,6 +10,23 @@ Component refers to `component$()` or just inline-component. Usually unless spec
 
 A host refers to a vNode of the `component$()`. Typically host is used in the context of signals. For example if a signal changes, which component should be re-rendered.
 
+## Sparse components
+
+The server only writes what the client needs to render a component again. A component that nothing can change leaves no trace on the client.
+
+Take a component that can render again, because a handler can change state that it reads while rendering, with three static components nested below it:
+
+| Component                                              | What the client has                                                |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| Can render again                                       | host with render function, props and hook state                    |
+| Its direct child component                             | host with render function, plus props and hook state if it has any |
+| One level further down                                 | host with only a hash, so the diff recognizes it and skips it      |
+| Deeper, or with nothing above it that can render again | no host: its output belongs to the nearest host above              |
+
+When a parent renders again, the QRL and props of a child come from the parent's JSX, so those never have to be serialized. Hook state (`useSignal`, `useStore`, tasks) only comes from serialization. A host without it must not render again: its hooks would start over. And where there is no host, the diff mounts a new instance and replaces the DOM.
+
+Dev mode serializes more than production does, so check this behavior in a production build.
+
 ## Logical vs Render Tree
 
 - Logical Tree: The tree of components.

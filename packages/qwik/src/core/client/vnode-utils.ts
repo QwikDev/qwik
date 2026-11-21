@@ -121,7 +121,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
-import { QError, qError } from '../shared/error/error';
+import { QError, qError, qErrorWithoutStop } from '../shared/error/error';
 import {
   type Container,
   DEBUG_TYPE,
@@ -183,7 +183,17 @@ import { VNode } from '../shared/vnode/vnode';
 import { ElementVNode } from '../shared/vnode/element-vnode';
 import { TextVNode } from '../shared/vnode/text-vnode';
 import { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
+import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
+import { EffectProperty } from '../reactive-primitives/types';
+import {
+  createTranslatedTextNode,
+  getOriginalText,
+  getTranslatedStandIn,
+  getTranslatedTextNode,
+  isTranslatedText,
+} from './translated-text';
 import {
   createDeleteOperation,
   createInsertOrMoveOperation,
@@ -204,6 +214,7 @@ import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { createFastGetter, fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { emitEvent } from '../shared/qrl/qrl-class';
 import { runQrl } from '../shared/qrl/handler-qrls';
 import { parseQRL } from '../shared/serdes/index';
 import { runEventHandlerQRL } from './run-qrl';
@@ -259,7 +270,7 @@ export const vnode_newUnMaterializedElement = (element: Element): ElementVNode =
 export const vnode_newSharedText = (
   previousTextNode: TextVNode | null,
   sharedTextNode: Text | null,
-  textContent: string
+  textContent: string | undefined
 ): TextVNode => {
   isDev &&
     sharedTextNode &&
@@ -754,6 +765,19 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
     const node = vnode_getDomSibling(vnode, true, true);
+    const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
+    const isShared = vCursor?.node === sharedTextNode || node?.node === sharedTextNode;
+    const isTextUnknown = !!translation && getOriginalText(translation) === undefined;
+    // Without its original text a translation can't be split, so its vnodes have to render again.
+    const container = isTextUnknown && isShared ? getDomContainer(parentNode!) : null;
+    // Text that can't render again only exists in the translation, which then has to stay.
+    let isTextLost = false;
+    const getInflatedText = (vText: TextVNode): string => {
+      if (container && !vnode_rerenderText(container, vText)) {
+        isTextLost = true;
+      }
+      return isTextUnknown ? '' : vText.text!;
+    };
     const insertBeforeNode: Element | Text | null =
       sharedTextNode ||
       (((node && vnode_isElementVNode(node) ? node.node : node?.node) || null) as
@@ -767,7 +791,7 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     let lastPreviousTextNode = insertBeforeNode;
     while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
-        const textNode = doc.createTextNode(vCursor.text!);
+        const textNode = doc.createTextNode((vCursor.text = getInflatedText(vCursor)));
         addVNodeOperation(
           journal,
           createInsertOrMoveOperation(textNode, parentNode!, lastPreviousTextNode)
@@ -784,10 +808,18 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
       const next = vnode_getDomSibling(vCursor, true, true);
       const isLastNode = !next || !vnode_isTextVNode(next) || next.node !== sharedTextNode;
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
-        if (isLastNode && sharedTextNode) {
-          addVNodeOperation(journal, createSetTextOperation(sharedTextNode, vCursor.text!));
+        const text = getInflatedText(vCursor);
+        if (isLastNode && sharedTextNode && !isTextLost) {
+          if (!translation) {
+            addVNodeOperation(journal, createSetTextOperation(sharedTextNode, text));
+          } else if (isShared && !isTextUnknown) {
+            // The translation also covers the other vnodes, so a new node takes its place.
+            vCursor.node = createTranslatedTextNode(translation);
+            addVNodeOperation(journal, createSetTextOperation(vCursor.node, text));
+          }
+          // Otherwise the translation stays in place until its vnode gets a new text.
         } else {
-          const textNode = doc.createTextNode(vCursor.text!);
+          const textNode = doc.createTextNode((vCursor.text = text));
           addVNodeOperation(
             journal,
             createInsertOrMoveOperation(textNode, parentNode!, insertBeforeNode)
@@ -798,7 +830,54 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
       }
       vCursor = next;
     }
+    if (isTextLost) {
+      // Nothing here can restore the text, so the app gets to decide, e.g. to reload the page.
+      emitEvent('qerror', { error: qErrorWithoutStop(QError.translatedTextLost) });
+    }
   }
+};
+
+/**
+ * Schedules whatever rendered the text to render again, because a translation replaced it.
+ *
+ * @returns `false` when nothing on the client can render the text again.
+ */
+const vnode_rerenderText = (container: ClientContainer, textVNode: TextVNode): boolean => {
+  // Projected content is rendered by the owner of the component it is projected into.
+  let projectionDepth = 0;
+  let vHost: VNode | null = textVNode;
+  while (vHost) {
+    const vSlotParent: VNode | null | undefined = vnode_isVirtualVNode(vHost)
+      ? vHost.slotParent
+      : null;
+    if (vSlotParent) {
+      projectionDepth++;
+    }
+    vHost = vSlotParent || vHost.parent;
+    if (!vHost || !vnode_isVirtualVNode(vHost)) {
+      continue;
+    }
+    const canRender = vnode_getProp(vHost, OnRenderProp, null) !== null;
+    if (canRender || vnode_getProp(vHost, QComponentHash, null) !== null) {
+      if (projectionDepth > 0) {
+        projectionDepth--;
+        continue;
+      }
+      // The server only serializes the render function of a component that can render again.
+      if (canRender) {
+        markVNodeDirty(container, vHost, ChoreBits.COMPONENT);
+      }
+      return canRender;
+    }
+    const signals = vHost[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef;
+    if (projectionDepth === 0 && signals?.size) {
+      // A component render skips a signal it already tracks, so the signal has to diff again.
+      vnode_setProp(vHost, NODE_DIFF_DATA_KEY, signals.values().next().value);
+      markVNodeDirty(container, vHost, ChoreBits.NODE_DIFF);
+      return true;
+    }
+  }
+  return false;
 };
 
 export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNode => {
@@ -1525,6 +1604,11 @@ export const vnode_getText = (textVNode: TextVNode): string => {
 export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text: string) => {
   vnode_ensureTextInflated(journal, textVNode);
   textVNode.text = text;
+  const translation = getTranslatedStandIn(textVNode.node!);
+  if (translation) {
+    // The translator restores its own text into the node it replaced, so write to a new node.
+    textVNode.node = createTranslatedTextNode(translation);
+  }
   addVNodeOperation(journal, createSetTextOperation(textVNode.node!, text));
 };
 
@@ -1806,7 +1890,7 @@ const materializeFromDOM = (
   let idx = 0;
 
   const skipElements = () => {
-    while (isElement(child) && shouldSkipElement(child)) {
+    while (isElement(child) && shouldSkipElementBeforeText(child)) {
       child = fastNextSibling(child);
     }
   };
@@ -1819,6 +1903,8 @@ const materializeFromDOM = (
     let vNextChild: VNode | null = null;
     if (nodeType === /* Node.TEXT_NODE */ 3) {
       vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
+    } else if (isTranslatedText(child)) {
+      vNextChild = vnode_newText(getTranslatedTextNode(child), getOriginalText(child));
     } else if (nodeType === /* Node.ELEMENT_NODE */ 1) {
       vNextChild = vnode_newUnMaterializedElement(child as Element);
       vnode_ensureElementKeyInflated(vNextChild as ElementVNode);
@@ -2135,6 +2221,11 @@ function shouldSkipElement(element: Element) {
   );
 }
 
+/** A translated text stands in for a text node, so a search for text must stop at it. */
+function shouldSkipElementBeforeText(element: Element) {
+  return shouldSkipElement(element) && !isTranslatedText(element);
+}
+
 function hasOnlyPendingPlaceholder(element: Element) {
   const segmentId = element.getAttribute(QPendingResultParent);
   if (segmentId === null) {
@@ -2209,7 +2300,7 @@ function materializeFromVNodeData(
         while (
           // skip only elements, not text nodes
           isElement(child) &&
-          shouldSkipElement(child)
+          (value > 0 ? shouldSkipElement(child) : shouldSkipElementBeforeText(child))
         ) {
           child = fastNextSibling(child);
           if (!child && value > 0) {
@@ -2293,14 +2384,19 @@ function materializeFromVNodeData(
       vnode_setProp(vParent, QSlot, consumeEncodedValue());
     } else {
       // skip over style or non-qwik elements in front of text nodes, where text node is the first child (except the style node)
-      while (isElement(child) && shouldSkipElement(child)) {
+      while (isElement(child) && shouldSkipElementBeforeText(child)) {
         child = fastNextSibling(child);
       }
-      const textNode =
-        child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
+      const isTranslated = isTranslatedText(child);
+      const textNode = isTranslated
+        ? getTranslatedTextNode(child as Element)
+        : child && fastNodeType(child) === /* Node.TEXT_NODE */ 3
+          ? (child as Text)
+          : null;
+      const originalText = isTranslated ? getOriginalText(child as Element) : undefined;
       // must be alphanumeric
       if (combinedText === null) {
-        combinedText = textNode ? textNode.nodeValue : null;
+        combinedText = originalText ?? (textNode ? textNode.nodeValue : null);
         textIdx = 0;
       }
       let length = 0;
@@ -2309,7 +2405,13 @@ function materializeFromVNodeData(
         length *= 26;
       }
       length += consume() - 65; /* `A` */
-      const text = combinedText === null ? '' : combinedText.substring(textIdx, textIdx + length);
+      // Without the original text, a vnode reads its text lazily as the whole translation.
+      const text =
+        isTranslated && originalText === undefined
+          ? undefined
+          : combinedText === null
+            ? ''
+            : combinedText.substring(textIdx, textIdx + length);
 
       addVNode(
         (previousTextNode = vnode_newSharedText(previousTextNode, textNode as Text | null, text))

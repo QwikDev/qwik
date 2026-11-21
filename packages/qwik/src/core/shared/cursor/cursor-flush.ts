@@ -1,4 +1,5 @@
 import type { ClientContainer } from '../../client/types';
+import { getDomNode, unlinkTranslatedText } from '../../client/translated-text';
 import {
   registerQwikLoaderEvent,
   vnode_journalToString,
@@ -54,7 +55,11 @@ const fastInsertBefore = (
   if (!_insertBefore) {
     _insertBefore = insertBeforeParent.insertBefore;
   }
-  _insertBefore.call(insertBeforeParent, target, insertBefore);
+  _insertBefore.call(
+    insertBeforeParent,
+    getDomNode(target),
+    insertBefore && getDomNode(insertBefore)
+  );
 };
 
 export function _flushJournal(journal: VNodeJournal): void {
@@ -72,7 +77,7 @@ export function _flushJournal(journal: VNodeJournal): void {
         const doc = batchParent!.ownerDocument || (batchParent as Document);
         const fragment = doc.createDocumentFragment();
         for (let i = 0; i < batchNodes.length; i++) {
-          fragment.appendChild(batchNodes[i]);
+          fragment.appendChild(getDomNode(batchNodes[i]));
         }
         fastInsertBefore(batchParent!, fragment, batchBefore);
       }
@@ -143,7 +148,7 @@ export function _flushJournal(journal: VNodeJournal): void {
       ) {
         flush();
       }
-      operation.target.remove();
+      (unlinkTranslatedText(operation.target) || operation.target).remove();
       continue;
     }
 
@@ -162,7 +167,14 @@ export function _flushJournal(journal: VNodeJournal): void {
     }
 
     if (operation instanceof SetTextOperation) {
-      operation.target.nodeValue = operation.text;
+      const target = operation.target;
+      target.nodeValue = operation.text;
+      const translation = unlinkTranslatedText(target);
+      if (translation?.parentNode) {
+        // Pending inserts may be positioned relative to the translation.
+        flush();
+        translation.parentNode.replaceChild(target, translation);
+      }
     } else if (operation instanceof SetAttributeOperation) {
       const element = operation.target;
       const attrName = operation.attrName;

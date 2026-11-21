@@ -33,6 +33,7 @@ import { StreamingFlush } from './components/streaming/streaming-flush';
 import { Styles } from './components/styles/styles';
 import { SyncQRL } from './components/sync-qrl/sync-qrl';
 import { Toggle } from './components/toggle/toggle';
+import { Translated } from './components/translated/translated';
 import { TreeshakingApp } from './components/treeshaking/treeshaking';
 import { TwoListeners } from './components/two-listeners/twolisteners';
 import { UseId } from './components/useid/useid';
@@ -65,6 +66,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/effect-client': () => <EffectClient />,
   '/e2e/context': () => <ContextRoot />,
   '/e2e/toggle': () => <Toggle />,
+  '/e2e/translated': () => <Translated />,
   '/e2e/styles': () => <Styles />,
   '/e2e/broadcast-events': () => <BroadcastEvents />,
   '/e2e/weather': () => <Weather />,

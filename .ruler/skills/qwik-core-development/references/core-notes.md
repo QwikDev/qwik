@@ -211,6 +211,28 @@ Out-of-order (OOOS) invariants:
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 
+Translated pages (Google Translate swaps each text node for a `<font>` wrapper, see #9572):
+
+- A text vnode's DOM node may be detached. Resolve it through `client/translated-text.ts` when the
+  journal is flushed, not when the operation is created: a later operation in the same journal can
+  replace the stand-in.
+- Never write to or re-insert a text node the translator replaced; it restores its own saved text
+  into that node. Give the vnode a new node.
+- Only render a component whose host has a render function (`OnRenderProp`). The server writes hook
+  state for a component that can render again and for its direct child components; one level
+  further a host has only a hash (`QComponentHash`) so the diff can skip it, and deeper static
+  components have no host at all (see "Sparse components" in `packages/qwik/src/core/GLOSSARY.md`).
+  Rendering a component without serialized hook state restarts its hooks.
+- The preloader records the text each wrapper replaced, because core loads too late to see a
+  translation right after page load. Core and the preloader are separate bundles that share this
+  state through `globalThis.qTranslated`: keep its property names plain (a `$name$` is mangled per
+  bundle), and keep the singleton registry out of the preloader.
+- A text node removed after a wrapper is only what that wrapper replaced if the wrapper is new;
+  Qwik itself removes text nodes that follow a known wrapper.
+- Dev-mode SSR serializes every component and loads no preloader. Assert "can't render again" and
+  preloader behavior in a spec test or a `.prod` fixture; a regular e2e fixture passes for the
+  wrong reason.
+
 ## QRL And Optimizer-Facing Runtime
 
 - Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;

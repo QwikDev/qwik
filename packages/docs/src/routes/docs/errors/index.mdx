@@ -256,3 +256,9 @@ A late streamed state patch references an object whose original references are u
 **Invalid serialized BigInt payload**
 
 A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larger BigInt values cannot be serialized; store them in another form, such as a string.
+
+## Q42
+
+**A page translation replaced text that can not be rendered again**
+
+A page translator (such as Google Translate) replaced a sentence before Qwik could record its original text, and the component that rendered it never renders on the client. Qwik keeps the translation and shows updated values next to it. The error is reported through the `qerror` event on `document`, so the app can react, for example by offering to reload the page.

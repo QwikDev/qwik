@@ -13,8 +13,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth. Keep each budget above the actual size by at least 500 bytes for core and 100 bytes
 // for the preloader and qwikloader; brotli output varies between builds, so a tighter budget is flaky.
-const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 32200;
+// We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
+// Recording the text that a page translator replaces adds ~250 bytes brotli.
+const PRELOADER_BROTLI_BUDGET = 1950;
+// Keeping text vnodes in sync with a page translator adds ~800 bytes brotli.
+const CORE_BROTLI_BUDGET = 32900;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));

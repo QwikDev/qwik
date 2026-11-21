@@ -1,0 +1,42 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+  const x = Math.random();
+  const read = $((a = x) => a);
+  return read;
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_read_hAtqXQFCN20 = /*#__PURE__*/ _noopQrl("Cmp_component_read_hAtqXQFCN20");
+//
+q_Cmp_component_read_hAtqXQFCN20.s((...args)=>{
+    let x = _capturesObj._[0];
+    return ((a = x)=>a)(...args);
+});
+q_Cmp_component_4ryKJTOKjWE.s(()=>{
+    const x = Math.random();
+    const read = q_Cmp_component_read_hAtqXQFCN20.w([
+        x
+    ]);
+    return read;
+});
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;YAKiB,CAAC,IAAI,CAAC,GAAK;;8BAFE;IAC5B,MAAM,IAAI,KAAK,MAAM;IACrB,MAAM;;;IACN,OAAO;AACT;AAJA,OAAO,MAAM,oBAAM,0CAIhB\"}")
+== DIAGNOSTICS ==
+
+[]

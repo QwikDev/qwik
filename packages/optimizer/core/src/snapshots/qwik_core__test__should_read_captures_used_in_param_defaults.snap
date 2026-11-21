@@ -1,0 +1,146 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+export const make = (x, y) => $((a = x, { b } = { b: y }) => a + b);
+
+export const makeFn = (x) => $(function (a = x) { return this.base + a; });
+
+export const makeLazy = (x) => $((get = () => x) => get);
+
+============================= test.tsx_makeLazy_sFnm93Oi71w.tsx (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const makeLazy_sFnm93Oi71w = (...args)=>{
+    let x = _capturesObj._[0];
+    return ((get = ()=>x)=>get)(...args);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;YAOiC,CAAC,MAAM,IAAM,CAAC,GAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "makeLazy_sFnm93Oi71w",
+  "entry": null,
+  "displayName": "test.tsx_makeLazy",
+  "hash": "sFnm93Oi71w",
+  "canonicalFilename": "test.tsx_makeLazy_sFnm93Oi71w",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    219,
+    241
+  ],
+  "captureNames": [
+    "x"
+  ]
+}
+*/
+============================= test.tsx_makeFn_oF9IYajD3XI.tsx (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const makeFn_oF9IYajD3XI = function(...args) {
+    let x = _capturesObj._[0];
+    return (function(a = x) {
+        return this.base + a;
+    }).apply(this, args);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;YAK+B,SAAU,IAAI,CAAC;QAAI,OAAO,IAAI,CAAC,IAAI,GAAG;IAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "makeFn_oF9IYajD3XI",
+  "entry": null,
+  "displayName": "test.tsx_makeFn",
+  "hash": "oF9IYajD3XI",
+  "canonicalFilename": "test.tsx_makeFn_oF9IYajD3XI",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    140,
+    182
+  ],
+  "captureNames": [
+    "x"
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_makeFn_oF9IYajD3XI = /*#__PURE__*/ qrl(()=>import("./test.tsx_makeFn_oF9IYajD3XI"), "makeFn_oF9IYajD3XI");
+const q_makeLazy_sFnm93Oi71w = /*#__PURE__*/ qrl(()=>import("./test.tsx_makeLazy_sFnm93Oi71w"), "makeLazy_sFnm93Oi71w");
+const q_make_0UXI11s6V9M = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_0UXI11s6V9M"), "make_0UXI11s6V9M");
+//
+export const make = (x, y)=>q_make_0UXI11s6V9M.w([
+        x,
+        y
+    ]);
+export const makeFn = (x)=>q_makeFn_oF9IYajD3XI.w([
+        x
+    ]);
+export const makeLazy = (x)=>q_makeLazy_sFnm93Oi71w.w([
+        x
+    ]);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,OAAO,CAAC,GAAG;;;OAA4C;AAEpE,OAAO,MAAM,SAAS,CAAC;;OAAoD;AAE3E,OAAO,MAAM,WAAW,CAAC;;OAAgC\"}")
+============================= test.tsx_make_0UXI11s6V9M.tsx (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const make_0UXI11s6V9M = (...args)=>{
+    let x = _capturesObj._[0], y = _capturesObj._[1];
+    return ((a = x, { b } = {
+        b: y
+    })=>a + b)(...args);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;YAGgC,CAAC,IAAI,CAAC,EAAE,EAAE,CAAC,EAAE,GAAG;QAAE,GAAG;IAAE,CAAC,GAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_0UXI11s6V9M",
+  "entry": null,
+  "displayName": "test.tsx_make",
+  "hash": "0UXI11s6V9M",
+  "canonicalFilename": "test.tsx_make_0UXI11s6V9M",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    71,
+    105
+  ],
+  "captureNames": [
+    "x",
+    "y"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

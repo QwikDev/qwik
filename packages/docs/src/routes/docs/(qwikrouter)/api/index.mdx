@@ -541,7 +541,12 @@ import { Form, routeAction$ } from '@qwik.dev/router';
 // this action will be called when the form is submitted
 export const useLoginAction = routeAction$((data, { cookies, redirect }) => {
   if (validate(data.username, data.password)) {
-    cookies.set('auth', getAuthToken(data.username));
+    cookies.set('auth', getAuthToken(data.username), {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: import.meta.env.PROD,
+    });
     throw redirect(302, '/dashboard');
   }
 });

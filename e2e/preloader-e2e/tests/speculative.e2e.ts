@@ -1,11 +1,19 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, chunkKind, labelRequest, ORIGIN, type ChunkKind } from '../utils/app';
+import {
+  chunkComesFrom,
+  chunkIsImportedStatically,
+  chunkKind,
+  chunkUrlsFrom,
+  labelRequest,
+  type ChunkKind,
+} from '../utils/app';
 import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
   createGate,
   FILLER,
   maxSpeculativeInFlight,
+  openWarm,
   preloaderLinks,
   recordSpeculativePreloads,
   release,
@@ -20,6 +28,7 @@ import { expectResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CONDITIONAL_ALL = fixtureById('conditional/all');
+const TREE_OF_TASKS = fixtureById('tree/task-chain');
 const IN_VIEW_AFTER_OFF_SCREEN = '/speculative/in-view/';
 const MAX_IDLE_PRELOADS = 25;
 const WITH_25_IDLE_PRELOADS: Fixture = {
@@ -138,24 +147,30 @@ test.describe('speculative order', () => {
     page,
   }) => {
     await recordSpeculativePreloads(page);
-    let html = '';
-    await waitForNetworkIdle(
-      page,
-      async () => {
-        html = await (await page.goto(ALL_AT_ONCE))!.text();
-        await waitForQwikloader(page);
-      },
-      1500
-    );
-    const [, chunkList] = html.match(/\.then\(\(\{p\}\)=>p\((\[[^\]]*\])\)\)/)!;
-    const namedByThePage = new Set(
-      (JSON.parse(chunkList) as string[]).map((name) => `${ORIGIN}/build/${name}`)
-    );
+    await openWarm(page, await createGate(page), ALL_AT_ONCE);
     const kinds = (await preloaderLinks(page))
-      .filter((link) => link.speculative && namedByThePage.has(link.href))
+      .filter((link) => link.speculative && !chunkIsImportedStatically(link.href))
       .map((link) => chunkKind(link.href))
       .filter((kind) => kind !== undefined);
     expect(new Set(kinds)).toEqual(new Set(KIND_ORDER));
     expect(kinds).toEqual([...kinds].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b)));
+  });
+});
+
+test.describe('chunks the page names', () => {
+  test('the HTML lists no chunk for the preloader', async ({ page }) => {
+    const response = await page.goto(CONDITIONAL_ALL.path);
+    expect(await response!.text()).not.toContain('({p})=>p(');
+  });
+
+  test('a chunk that only holds tasks or computeds is preloaded', async ({ page }) => {
+    await recordSpeculativePreloads(page);
+    await openWarm(page, await createGate(page), TREE_OF_TASKS.path);
+    const preloaded = new Set((await preloaderLinks(page)).map((link) => link.href));
+    const withTasksOnly = TREE_OF_TASKS.sources
+      .flatMap(chunkUrlsFrom)
+      .filter((url) => chunkKind(url) === 'qrl');
+    expect(withTasksOnly.length).toBeGreaterThan(0);
+    expect(withTasksOnly.filter((url) => !preloaded.has(url))).toEqual([]);
   });
 });

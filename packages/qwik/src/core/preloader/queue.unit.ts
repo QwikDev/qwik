@@ -1135,8 +1135,9 @@ test('leaves the handlers of an element out of view at their place, and keeps wa
   vi.spyOn(performance, 'now').mockReturnValue(0);
   vi.resetModules();
   await installTestPlatform();
+  const earlierInThePage = elementWith({ 'q-e:click': 'first.js#s_click' });
   const button = elementWith({ 'q-e:click': 'third.js#s_click' });
-  const view = installViewObserver(document, [button]);
+  const view = installViewObserver(document, [earlierInThePage, button]);
 
   await loadGraphOfThreeHandlers();
   view.report([{ target: button, isIntersecting: false }]);
@@ -1528,4 +1529,100 @@ test('an import shared by two chunks hinted before the bundle graph loaded keeps
   );
 
   expect(linkNames(document)).toEqual(['a.js', 'shared.js', 'c.js', 'b.js']);
+});
+
+const openPage = async (page: { elementsWithHandlers?: unknown[]; state?: string }) => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const view = installViewObserver(document, page.elementsWithHandlers);
+  if (page.state) {
+    const stateScript = document.createElement('script');
+    stateScript.setAttribute('type', 'qwik/state');
+    stateScript.textContent = page.state;
+    document.body.appendChild(stateScript);
+  }
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const requestGraph = (serializedGraph: (string | number)[], maxIdlePreloads = 25) =>
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({ text: async () => JSON.stringify(serializedGraph) } as Response),
+      { P: maxIdlePreloads }
+    );
+  return { document, view, requestGraph };
+};
+
+test("preloads the chunks named in the page's state once the bundle graph has loaded", async () => {
+  const { document, requestGraph } = await openPage({
+    state: '[0,"card-render.js",0,"s_render",0,"card-tasks.js",0,"s_task"]',
+  });
+
+  requestGraph(
+    graphOf({
+      'card-render.js': { kind: 'component' },
+      'card-tasks.js': { kind: 'qrl' },
+      'other-page.js': { kind: 'qrl' },
+    })
+  );
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['card-tasks.js', 'card-render.js']);
+});
+
+test('preloads the chunks of every handler in the page, in view or not', async () => {
+  const { document, requestGraph } = await openPage({
+    elementsWithHandlers: [
+      elementWith({ 'q-e:click': 'card-events.js#s_click' }),
+      elementWith({
+        'q-dp:scroll': 'on-scroll.js#s_scroll',
+        'q-w:resize': 'on-resize.js#s_resize',
+      }),
+    ],
+  });
+
+  requestGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler' },
+      'on-scroll.js': { kind: 'handler' },
+      'on-resize.js': { kind: 'handler' },
+    })
+  );
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['card-events.js', 'on-scroll.js', 'on-resize.js']);
+});
+
+test('requests nothing for a string in the state that is no chunk of the app', async () => {
+  const { document, requestGraph } = await openPage({
+    state: '[0,"notes.js",0,"card-tasks.js"]',
+  });
+
+  requestGraph(graphOf({ 'card-tasks.js': { kind: 'qrl' } }));
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['card-tasks.js']);
+});
+
+test('a handler in view goes before the other chunks the page names', async () => {
+  const offScreen = elementWith({ 'q-e:click': 'card-events.js#s_click' });
+  const inView = elementWith({ 'q-e:click': 'menu-events.js#s_click' });
+  const { document, view, requestGraph } = await openPage({
+    elementsWithHandlers: [offScreen, inView],
+    state: '[0,"card-tasks.js"]',
+  });
+
+  requestGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler' },
+      'menu-events.js': { kind: 'handler' },
+      'card-tasks.js': { kind: 'qrl' },
+    }),
+    1
+  );
+  view.report([{ target: inView, isIntersecting: true }]);
+  await vi.runAllTimersAsync();
+
+  expect(linkNames(document)).toEqual(['menu-events.js']);
 });

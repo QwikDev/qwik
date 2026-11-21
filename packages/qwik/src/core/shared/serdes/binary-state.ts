@@ -93,6 +93,22 @@ export const BINARY_VNODE_PREFIX = '}';
 export const isBinaryVNodeData = (text: string): boolean => text.charCodeAt(0) === 125;
 
 const MAX_ROOTS = BinaryCode.MaxRoots;
+
+const isVNodeRef = (typeId: TypeIds) => typeId === TypeIds.VNode || typeId === TypeIds.RefVNode;
+
+/** A vnode ref may be written as `[elementIdx, ...childIdx]`; `vnode_locate` walks it. */
+const isVNodeRefPath = (typeId: TypeIds, payload: unknown): payload is number[] => {
+  if (!isVNodeRef(typeId) || !Array.isArray(payload)) {
+    return false;
+  }
+  for (let i = 0; i < payload.length; i++) {
+    if (!Number.isInteger(payload[i])) {
+      return false;
+    }
+  }
+  return payload.length > 1;
+};
+
 const float64 = /*#__PURE__*/ new DataView(new ArrayBuffer(8));
 
 /** Removes what was remembered about the offsets from `firstOffset` on. */
@@ -625,7 +641,7 @@ export class BinaryStateReader {
     typeId: TypeIds,
     rootIndex: number
   ): unknown {
-    if (this.$unit$(this.$pos$) !== BinaryCode.ArrayEnd) {
+    if (this.$unit$(this.$pos$) !== BinaryCode.ArrayEnd || isVNodeRef(typeId)) {
       const payload = this.$restore$(container, -1, false);
       const resume = this.$pos$;
       if (typeof payload === 'string') {
@@ -633,7 +649,7 @@ export class BinaryStateReader {
           // A referenced string is read once, but every value made from it parses it again.
           this.$charge$(payload.length);
         }
-      } else if (typeof payload !== 'number') {
+      } else if (typeof payload !== 'number' && !isVNodeRefPath(typeId, payload)) {
         // Anything else would go through the inflate of JSON state, which is not counted.
         throw qError(QError.serializeErrorNotImplemented, [typeId]);
       }

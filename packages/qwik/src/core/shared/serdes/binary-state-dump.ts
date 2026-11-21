@@ -61,6 +61,8 @@ const createDumperClass = () =>
         value = out[at + 1];
         if (typeId === TypeIds.ForwardRefs) {
           value = (value as unknown[]).filter((_, i) => i & 1);
+        } else if (typeId === TypeIds.VNode || typeId === TypeIds.RefVNode) {
+          value = vnodeRefIdToText(value);
         }
       } else if (code === BinaryCode.ArrayEnd) {
         const pairs: unknown[] = Array(this.$openArray$() * 2);
@@ -96,6 +98,27 @@ const createDumperClass = () =>
       out[at + 1] = value;
     }
   };
+
+/** Binary state writes `12AB` as `12` or `[12, 0, 1]`; the JSON state has the text form. */
+const vnodeRefIdToText = (value: unknown): unknown => {
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (!Array.isArray(value)) {
+    return value;
+  }
+  let text = String(value[1]);
+  for (let i = 3; i < value.length; i += 2) {
+    let childIdx = value[i] as number;
+    // the last letter of each child index is uppercase
+    let letters = String.fromCharCode(65 + (childIdx % 26));
+    while ((childIdx = Math.floor(childIdx / 26))) {
+      letters = String.fromCharCode(97 + (childIdx % 26)) + letters;
+    }
+    text += letters;
+  }
+  return text;
+};
 
 let Dumper: ReturnType<typeof createDumperClass> | undefined;
 const newDumper = (rootScript?: string) => new (Dumper ||= createDumperClass())(rootScript);

@@ -4,6 +4,7 @@ import {
   vnode_getNode,
   vnode_isVNode,
   vnode_locate,
+  type VNodeRefId,
 } from '../../client/vnode-utils';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -264,9 +265,10 @@ export function retrieveVNodeOrDocument(
   container: DeserializeContainer,
   value: unknown | null
 ): VNode | Document | undefined {
-  return value
+  // Binary state writes element 0 as the number 0.
+  return value != null && value !== ''
     ? (container as any).rootVNode
-      ? vnode_locate((container as any).rootVNode, value as string)
+      ? vnode_locate((container as any).rootVNode, value as VNodeRefId)
       : undefined
     : container.element?.ownerDocument;
 }

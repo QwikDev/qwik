@@ -806,7 +806,13 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
   }
 };
 
-export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNode => {
+/**
+ * Where a vnode is in the document: the index of its element, then the index of each child on the
+ * way down. Text state writes it as `12AB`, binary state as `12` or `[12, 0, 1]`.
+ */
+export type VNodeRefId = string | number | number[];
+
+export const vnode_locate = (rootVNode: ElementVNode, id: VNodeRefId | Element): VNode => {
   ensureElementVNode(rootVNode);
   let vNode: VNode = rootVNode;
   const containerElement = rootVNode.node as ContainerElement;
@@ -814,9 +820,10 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   let elementOffset: number = -1;
   let refElement: Element | VNode;
   const localId = typeof id === 'string' ? id : '';
-  if (typeof id === 'string') {
+  const isRefId = typeof id !== 'object' || Array.isArray(id);
+  if (isRefId) {
     isDev && assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
-    elementOffset = parseInt(localId);
+    elementOffset = typeof id === 'number' ? id : Array.isArray(id) ? id[0] : parseInt(localId);
     refElement = qVNodeRefs!.get(elementOffset)!;
   } else {
     refElement = id;
@@ -827,11 +834,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       return cachedVNode;
     }
   }
-  isDev &&
-    assertDefined(
-      refElement,
-      'Missing refElement ' + (typeof id === 'string' ? `for id ${id}` : '')
-    );
+  isDev && assertDefined(refElement, 'Missing refElement ' + (isRefId ? `for id ${id}` : ''));
   if (!vnode_isVNode(refElement)) {
     isDev &&
       assertTrue(
@@ -866,7 +869,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
         qVNodeRefs!.set(elementOffset, vNode);
       }
     }
-    if (typeof id === 'string') {
+    if (isRefId) {
       const root = qVNodeRefs!.get(elementOffset);
       if (vnode_isVNode(root)) {
         vNode = root;
@@ -875,7 +878,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   } else {
     vNode = refElement;
   }
-  if (typeof id === 'string') {
+  if (__EXPERIMENTAL__.binaryState && Array.isArray(id)) {
+    for (let i = 1; i < id.length; i++) {
+      vNode = vnode_getChildWithIdx(vNode, id[i]);
+    }
+  } else if (typeof id === 'string') {
     // process virtual node search.
     const idLength = localId.length;
     let idx = indexOfAlphanumeric(localId, idLength);

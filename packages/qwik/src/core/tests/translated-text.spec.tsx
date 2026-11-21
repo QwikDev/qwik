@@ -21,7 +21,8 @@ const translate = (document: Document): TextSwap[] => {
         element.insertBefore(wrapper, child);
         element.removeChild(child);
         swaps.push({ removedNodes: [child] as any, previousSibling: wrapper });
-      } else if (child.nodeType === 1 && child.nodeName !== 'SCRIPT') {
+      } else if (child.nodeType === 1 && !['SCRIPT', 'FONT'].includes(child.nodeName)) {
+        // The translator does not translate its own wrappers again.
         walk(child as Element);
       }
     }
@@ -263,6 +264,23 @@ describe('translated text', () => {
       trackTranslatedText(translate(document));
       await trigger(container.element, '#count', 'click');
       expect(document.querySelector('p')!.textContent).toBe('[You clicked ]7[ times.]');
+    });
+
+    it('does not write into a text node that the translator took again', async () => {
+      const { container, document } = await ssrRenderToDom(<Sentence />);
+      await trigger(container.element, '#count', 'click');
+      trackTranslatedText(translate(document));
+      await trigger(container.element, '#count', 'click');
+      // The translator translates the updated text too, and keeps that node to restore it later.
+      const swaps = translate(document);
+      trackTranslatedText(swaps);
+      const heldByTranslator = swaps.map((swap) => swap.removedNodes[0]);
+      expect(heldByTranslator.map((node) => node.nodeValue)).toContain('7');
+
+      await trigger(container.element, '#count', 'click');
+
+      expect(document.querySelector('p')!.textContent).toBe('[You clicked ]8[ times.]');
+      expect(heldByTranslator.filter((node) => node.parentNode)).toEqual([]);
     });
 
     it('updates text that the translator restored', async () => {

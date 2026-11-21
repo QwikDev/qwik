@@ -120,6 +120,8 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
       !translated.textNodes?.has(previous) &&
       captureOriginalText(removed, previous)
     ) {
+      // The translator now holds the removed node, even if Qwik created it.
+      translated.ownTextNodes?.delete(removed);
       linkTranslatedText(translated.textNodes?.get(removed) || (removed as Text), previous);
       continue;
     }

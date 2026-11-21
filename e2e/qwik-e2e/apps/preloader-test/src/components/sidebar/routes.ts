@@ -247,6 +247,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/tasks/shared-store/',
+    label: 'tasks on a shared store',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

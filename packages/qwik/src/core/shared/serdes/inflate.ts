@@ -8,6 +8,7 @@ import {
   vnode_isVNode,
 } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
+import { requestPreload } from '../../preloader/bridge';
 import type { BackRef } from '../../reactive-primitives/backref';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -34,7 +35,7 @@ import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
 import { isServerPlatform } from '../platform/platform';
-import type { QRLInternal } from '../qrl/qrl-class';
+import { restoreQrlCaptures, type QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isObject, isString } from '../utils/types';
@@ -46,12 +47,12 @@ import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
-  p: Promise<void>;
+  p: Promise<unknown> | null;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
-    p: Promise.resolve(),
+    p: null,
   })
 );
 
@@ -81,12 +82,17 @@ export const inflate = (
   data: unknown
 ): void => {
   const ownsPendingStoreTargets = beginDeserialization(container);
+  lazyInflateDepth++;
   try {
     const iterator = inflateIterator(container, target, typeId, data);
     while (!iterator.next().done) {
       // Run synchronously for lazy deserialization paths.
     }
+    if (lazyInflateDepth === 1 && restoredTasks.length) {
+      preloadRestoredTasks();
+    }
   } finally {
+    lazyInflateDepth--;
     endDeserialization(container, ownsPendingStoreTargets);
   }
 };
@@ -254,6 +260,9 @@ function* inflateIterator(
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
+      if (lazyInflateDepth && (qTest ? !isServerPlatform() : !isServer)) {
+        restoredTasks.push(task);
+      }
       break;
     }
     case TypeIds.Component:
@@ -348,7 +357,7 @@ function* inflateIterator(
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
-      loadingHolder.p = loadingHolder.p.finally(() => p);
+      loadingHolder.p = loadingHolder.p ? loadingHolder.p.finally(() => p) : p;
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }
@@ -549,6 +558,23 @@ function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }
+
+const restoredTasks: Task[] = [];
+let lazyInflateDepth = 0;
+
+const preloadRestoredTasks = () => {
+  try {
+    for (let i = 0; i < restoredTasks.length; i++) {
+      const qrl = restoredTasks[i].$qrl$;
+      restoreQrlCaptures(qrl);
+      if (qrl.$chunk$) {
+        requestPreload(qrl.$chunk$, 1);
+      }
+    }
+  } finally {
+    restoredTasks.length = 0;
+  }
+};
 
 function restoreEffectBackRefForEffects(
   effects: Set<EffectSubscription> | null | undefined,

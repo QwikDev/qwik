@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -11,7 +12,7 @@ import {
   SerializerSymbol,
   type AsyncSignal,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -29,13 +30,16 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { getTestPlatform } from '../../../testing/platform';
+import type { PreloaderGlobal } from '../../preloader/bridge';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { _capturesObj, createQRL, setCaptures, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1830,6 +1834,187 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: false, $scopedStyleIdPrefix$: null });
+    });
+  });
+
+  describe('restoring a task', () => {
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+    const preloaderGlobal = globalThis as PreloaderGlobal;
+    const preloadHints = () => preloaderGlobal.qPreloadQueue ?? [];
+    const taskQrl = (symbol: string, captures: unknown[] | null = null) =>
+      createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
+    const createTask = (qrl: QRLInternal) =>
+      new Task(TaskFlags.TASK, 0, shared1 as any, qrl as any, null);
+    const subscribeTaskTo = (signal: SignalImpl, task: Task) => {
+      signal.$effects$ = new Set([
+        new EffectSubscription(task, EffectProperty.COMPONENT, null, null),
+      ]);
+    };
+    const restore = (objs: unknown[], isServer: boolean) => {
+      setPlatform({ ...getTestPlatform(), isServer });
+      return deserialize(objs)[0] as Task;
+    };
+    const restoreInBrowser = (objs: unknown[]) => restore(objs, false);
+    const restoreOnServer = (objs: unknown[]) => restore(objs, true);
+    const holdModuleOf = (heldSymbol: string) => {
+      let release!: () => void;
+      const heldModule = new Promise<() => void>((resolve) => (release = () => resolve(() => {})));
+      setPlatform({
+        ...getTestPlatform(),
+        isServer: false,
+        importSymbol: (_, __, symbol) => (symbol === heldSymbol ? heldModule : () => {}),
+      });
+      return release;
+    };
+    const isReady = async (qrl: QRLInternal) => {
+      let hasResolved = false;
+      void qrl.resolve().then(() => (hasResolved = true));
+      await delay(0);
+      return hasResolved;
+    };
+
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    afterEach(() => {
+      setPlatform(platformBeforeTest);
+      setCaptures(null);
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    it("asks for the task's chunk at the highest priority", async () => {
+      const objs = await serialize(createTask(taskQrl('s_task')));
+
+      restoreInBrowser(objs);
+
+      expect(preloadHints()).toContainEqual(['s_task.js', 1]);
+    });
+
+    it('restores the signals the task captures, and the tasks subscribed to them', async () => {
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(taskQrl('s_next')));
+      const objs = await serialize(createTask(taskQrl('s_first', [written])));
+
+      const first = restoreInBrowser(objs);
+
+      expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
+      expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it("restores a chain of 400 tasks and asks for every task's chunk", async () => {
+      const tasks: Task[] = [];
+      let input = createSignal(0) as SignalImpl;
+      for (let i = 0; i < 400; i++) {
+        const output = createSignal(0) as SignalImpl;
+        const task = createTask(taskQrl(`s_task${i}`, [input, output]));
+        subscribeTaskTo(input, task);
+        tasks.push(task);
+        input = output;
+      }
+      const objs = await serialize(tasks[0]);
+
+      restoreInBrowser(objs);
+
+      const hintedChunks = preloadHints().map(([chunk]) => chunk);
+      expect(new Set(hintedChunks)).toEqual(new Set(tasks.map((task) => task.$qrl$.$chunk$)));
+    });
+
+    it('holds the task until the module of a computed it captures has loaded', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const objs = await serialize(createTask(taskQrl('s_task', [computed])));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const task = deserialize(objs)[0] as Task;
+
+      expect(await isReady(task.$qrl$)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(task.$qrl$)).toBe(true);
+    });
+
+    it('does not hold a QRL for a computed that only a task subscribed to its signal captures', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const signal = createSignal(0) as SignalImpl;
+      subscribeTaskTo(signal, createTask(taskQrl('s_task', [computed])));
+      const objs = await serialize(taskQrl('s_reader', [signal]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      expect(await isReady(reader)).toBe(true);
+      releaseComputedModule();
+    });
+
+    it('does not hold a later QRL for a computed that only a restored task captures', async () => {
+      const taskComputed = createComputedQrl(taskQrl('s_computed') as any);
+      const readerComputed = createComputedQrl(taskQrl('s_other') as any);
+      const objs = await serialize(
+        createTask(taskQrl('s_task', [taskComputed])),
+        taskQrl('s_reader', [readerComputed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const restored = deserialize(objs);
+      void restored[0];
+
+      expect(await isReady(restored[1] as QRLInternal)).toBe(true);
+      releaseComputedModule();
+    });
+
+    it('holds a later QRL until the module of a computed it shares with a restored task has loaded', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const objs = await serialize(
+        createTask(taskQrl('s_task', [computed])),
+        taskQrl('s_reader', [computed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const restored = deserialize(objs);
+      void restored[0];
+
+      expect(await isReady(restored[1] as QRLInternal)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(restored[1] as QRLInternal)).toBe(true);
+    });
+
+    it('does not hold a later QRL that only shares a signal with a restored task', async () => {
+      const computed = createComputedQrl(taskQrl('s_computed') as any);
+      const signal = createSignal(0);
+      const objs = await serialize(
+        createTask(taskQrl('s_task', [signal, computed])),
+        taskQrl('s_reader', [signal])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const restored = deserialize(objs);
+      void restored[0];
+
+      expect(await isReady(restored[1] as QRLInternal)).toBe(true);
+      releaseComputedModule();
+    });
+
+    it('leaves the captures of the QRL that is running untouched', async () => {
+      const runningCaptures = ['running'];
+      const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
+      setCaptures(runningCaptures);
+
+      restoreInBrowser(objs);
+
+      expect(_capturesObj._).toBe(runningCaptures);
+    });
+
+    it("does not ask for the task's chunk when the whole state is restored at once", async () => {
+      const objs = await serialize(createTask(taskQrl('s_task')));
+      setPlatform({ ...getTestPlatform(), isServer: false });
+
+      eagerDeserialize(objs);
+
+      expect(preloadHints()).not.toContainEqual(['s_task.js', 1]);
+    });
+
+    it('does neither on the server', async () => {
+      const objs = await serialize(createTask(taskQrl('s_task', [createSignal(0)])));
+
+      const task = restoreOnServer(objs);
+
+      expect(task.$qrl$.$captures$).toBeTypeOf('string');
+      expect(preloadHints()).toEqual([]);
     });
   });
 

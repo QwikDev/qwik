@@ -4,7 +4,7 @@ import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
 import { registerSingleton, qwikSymbol } from '../singletons';
 import { allocate, beginDeserialization, endDeserialization } from './allocate';
-import { inflate } from './inflate';
+import { drainSubscriberInflations, inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>
@@ -78,6 +78,9 @@ class DeserializationHandler implements ProxyHandler<object> {
       /** We stored the reference, so now we can inflate, allowing cycles */
       if (needsInflation(typeId)) {
         inflate(container, propValue, typeId, value);
+      }
+      if (ownsPendingStoreTargets) {
+        drainSubscriberInflations(container);
       }
 
       return propValue;

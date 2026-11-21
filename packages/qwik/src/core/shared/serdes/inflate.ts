@@ -81,23 +81,74 @@ export const inflate = (
   data: unknown
 ): void => {
   const ownsPendingStoreTargets = beginDeserialization(container);
+  const deferSubscriber = container.$deferSubscriberInflation$;
+  container.$deferSubscriberInflation$ = false;
   try {
-    const iterator = inflateIterator(container, target, typeId, data);
-    while (!iterator.next().done) {
-      // Run synchronously for lazy deserialization paths.
+    if (!deferSubscriber || !queueSubscriberInflation(container, target, typeId, data)) {
+      const iterator = inflateIterator(container, target, typeId, data);
+      while (!iterator.next().done) {
+        // Run synchronously for lazy deserialization paths.
+      }
+    }
+    if (ownsPendingStoreTargets) {
+      drainSubscriberInflations(container);
     }
   } finally {
+    container.$deferSubscriberInflation$ = deferSubscriber;
     endDeserialization(container, ownsPendingStoreTargets);
   }
 };
 
+function queueSubscriberInflation(
+  container: DeserializeContainer,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): boolean {
+  if (
+    typeId !== TypeIds.ComputedSignal &&
+    typeId !== TypeIds.AsyncSignal &&
+    typeId !== TypeIds.SerializerSignal &&
+    typeId !== TypeIds.WrappedSignal
+  ) {
+    return false;
+  }
+  (container.$subscriberInflations$ ||= []).push(inflateIterator(container, target, typeId, data));
+  return true;
+}
+
+function* restoreSubscribers(container: DeserializeContainer): Generator<void, void, void> {
+  const queue = container.$subscriberInflations$;
+  if (queue) {
+    for (let i = 0; i < queue.length; i++) {
+      yield* queue[i];
+    }
+    queue.length = 0;
+  }
+}
+
+export function drainSubscriberInflations(container: DeserializeContainer): void {
+  if (container.$subscriberInflations$?.length) {
+    const iterator = restoreSubscribers(container);
+    while (!iterator.next().done) {
+      // Finish restoring subscribers before returning to application code.
+    }
+  }
+}
+
 function* eagerDeserializeArrayIterator(
   container: DeserializeContainer,
   data: unknown[],
-  output: unknown[] = Array(data.length / 2)
+  output: unknown[] = Array(data.length / 2),
+  hasSubscriber = false
 ): Generator<void, unknown[], void> {
   for (let i = 0; i < data.length; i += 2) {
-    output[i / 2] = yield* deserializeDataIterator(container, data[i] as TypeIds, data[i + 1]);
+    output[i / 2] = yield* deserializeDataIterator(
+      container,
+      data[i] as TypeIds,
+      data[i + 1],
+      hasSubscriber && i === 0
+    );
     yield;
   }
   return output;
@@ -140,6 +191,9 @@ export function* eagerDeserializeStateIterator(
       if (needsInflation(typeId)) {
         yield* inflateIterator(container, propValue, typeId, value);
       }
+      if (container.$subscriberInflations$?.length) {
+        yield* restoreSubscribers(container);
+      }
       yield;
     }
   } finally {
@@ -152,13 +206,29 @@ export function* eagerDeserializeStateIterator(
 function* deserializeDataIterator(
   container: DeserializeContainer,
   typeId: number,
-  value: unknown
+  value: unknown,
+  isSubscriber: boolean
 ): Generator<void, unknown, void> {
   if (typeId === TypeIds.Plain) {
     return value;
   }
-  const propValue = allocate(container, typeId, value);
-  if (needsInflation(typeId)) {
+  let propValue;
+  if (isSubscriber && (typeId === TypeIds.RootRef || typeId === TypeIds.ForwardRef)) {
+    // The lazy state proxy allocates the subscriber and queues its inflation.
+    const deferSubscriber = container.$deferSubscriberInflation$;
+    container.$deferSubscriberInflation$ = true;
+    try {
+      propValue = allocate(container, typeId, value);
+    } finally {
+      container.$deferSubscriberInflation$ = deferSubscriber;
+    }
+  } else {
+    propValue = allocate(container, typeId, value);
+  }
+  if (
+    needsInflation(typeId) &&
+    (!isSubscriber || !queueSubscriberInflation(container, propValue, typeId, value))
+  ) {
     yield* inflateIterator(container, propValue, typeId, value);
   }
   return propValue;
@@ -181,7 +251,12 @@ function* inflateIterator(
     __EXPERIMENTAL__.pendingBoundary && container.$streamingObjectRefs$ ? data : undefined;
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
-    data = yield* eagerDeserializeArrayIterator(container, data);
+    data = yield* eagerDeserializeArrayIterator(
+      container,
+      data,
+      undefined,
+      typeId === TypeIds.EffectSubscription || typeId === TypeIds.EffectSubscriptionNoData
+    );
   }
   switch (typeId) {
     case TypeIds.Array:

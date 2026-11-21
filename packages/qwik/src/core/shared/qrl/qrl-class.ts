@@ -550,10 +550,18 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     const prevLoading = loadingHolder.p;
     const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
     setCaptures(captures);
-    if (loadingHolder.p !== prevLoading) {
-      // return the loading promise so callers can await it
-      return loadingHolder.p;
+    let loading: Promise<unknown> | undefined =
+      loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
+    for (let i = 0; i < captures.length; i++) {
+      const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
+      const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
+      if (isPromise(computedModule)) {
+        const computedLoaded = computedModule.catch(() => {});
+        loading = loading ? loading.then(() => computedLoaded) : computedLoaded;
+      }
     }
+    // return the loading promise so callers can await it
+    return loading;
   } else {
     setCaptures(serializedCaptures || null);
   }

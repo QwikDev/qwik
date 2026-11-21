@@ -211,6 +211,18 @@ Out-of-order (OOOS) invariants:
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 
+Translated pages (Google Translate swaps each text node for a `<font>` wrapper, see #9572):
+
+- A text vnode's DOM node may be detached. Resolve it through `client/translated-text.ts` when the
+  journal is flushed, not when the operation is created: a later operation in the same journal can
+  replace the stand-in.
+- Never write to or re-insert a text node the translator replaced; it restores its own saved text
+  into that node. Give the vnode a new node.
+- A component serialized with only a render hash (`QComponentHash`) can never render on the client.
+  Do not schedule it, or an ancestor on its behalf, to recover content.
+- Dev-mode SSR serializes every component. Assert "can't render again" behavior in a spec test or
+  a `.prod` fixture; a regular e2e fixture passes for the wrong reason.
+
 ## QRL And Optimizer-Facing Runtime
 
 - Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;

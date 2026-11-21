@@ -1,15 +1,10 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type AppDatabase } from '.';
 import {
-  createEdgeRow,
-  createRouteRow,
-  delayBucketField,
   delayColumns,
   delayColumnSums,
   edgeTableDelayCount,
-  latencyBucketField,
   latencyColumnSums,
-  timelineBucketField,
   toVector,
 } from './query-helpers';
 import {
@@ -237,81 +232,4 @@ export async function getSymbolEdgeCount(db: AppDatabase, publicApiKey: string):
     .from(symbolTable)
     .where(eq(symbolTable.publicApiKey, publicApiKey))
     .get())!.count;
-}
-
-export async function updateEdge(
-  db: AppDatabase,
-  edge: {
-    publicApiKey: string;
-    manifestHash: string;
-    from?: string | null;
-    to: string;
-    interaction: boolean;
-    delayBucket: number;
-    latencyBucket: number;
-  }
-): Promise<void> {
-  // This may look like a good idea to run in a transaction, but it causes a lot of contention
-  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
-  // since we are a statistical model, it should not make much of a difference.
-  const latencyField = latencyBucketField(edge.latencyBucket);
-  const delayField = delayBucketField(edge.delayBucket);
-  const result = await db
-    .update(edgeTable)
-    .set({
-      [latencyField]: sql`${edgeTable[latencyField]} + 1`,
-      [delayField]: sql`${edgeTable[delayField]} + 1`,
-    })
-    .where(
-      and(
-        eq(edgeTable.manifestHash, edge.manifestHash),
-        eq(edgeTable.publicApiKey, edge.publicApiKey),
-        edge.from == null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
-        eq(edgeTable.to, edge.to)
-      )
-    )
-    .run();
-  if (result.rowsAffected === 0) {
-    // No row was updated, so insert a new one
-    const edgeRow = createEdgeRow(edge);
-    edgeRow[latencyBucketField(edge.latencyBucket)]++;
-    edgeRow[delayBucketField(edge.latencyBucket)]++;
-    await db.insert(edgeTable).values(edgeRow).run();
-  }
-}
-
-export async function updateRoutes(
-  db: AppDatabase,
-  row: {
-    publicApiKey: string;
-    manifestHash: string;
-    route: string;
-    symbol: string;
-    timelineBucket: number;
-  }
-): Promise<void> {
-  // This may look like a good idea to run in a transaction, but it causes a lot of contention
-  // and than other queries timeout. Yes not running in TX there is a risk of missed update, but
-  // since we are a statistical model, it should not make much of a difference.
-  const timelineField = timelineBucketField(row.timelineBucket);
-  const result = await db
-    .update(routesTable)
-    .set({
-      [timelineField]: sql`${routesTable[timelineField]} + 1`,
-    })
-    .where(
-      and(
-        eq(routesTable.publicApiKey, row.publicApiKey),
-        eq(routesTable.manifestHash, row.manifestHash),
-        eq(routesTable.route, row.route),
-        eq(routesTable.symbol, row.symbol)
-      )
-    )
-    .run();
-  if (result.rowsAffected === 0) {
-    // No row was updated, so insert a new one
-    const routeRow = createRouteRow(row);
-    routeRow[timelineBucketField(row.timelineBucket)]++;
-    await db.insert(routesTable).values(routeRow).run();
-  }
 }

@@ -1,8 +1,7 @@
 import { type RequestHandler } from '@qwik.dev/router';
-import { getDB } from '~/db';
-import { saveSymbolMetadata } from '~/db/symbol-metadata';
+import { recordInsightsSymbols } from '@qwik.dev/core/insights/collector';
+import { getDB, getInsightsDb } from '~/db';
 import { isRegisteredApp } from '~/db/query';
-import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { QManifest } from '~/types/q-manifest';
 import { readBoundedJson } from '../read-bounded-json';
 
@@ -24,20 +23,12 @@ export const onPost: RequestHandler = async ({ error, exit, json, request, param
     throw error(413, 'Too Many Symbols');
   }
   try {
-    const manifestHash = qManifest.manifestHash;
     exit();
-    await dbGetManifestInfo(db, publicApiKey, manifestHash);
-    await saveSymbolMetadata(
-      db,
+    await recordInsightsSymbols(
+      getInsightsDb(),
       publicApiKey,
-      manifestHash,
-      Object.values(qManifest.symbols).map((symbol) => ({
-        hash: symbol.hash,
-        fullName: symbol.displayName,
-        origin: symbol.origin,
-        lo: symbol.loc[0],
-        hi: symbol.loc[1],
-      }))
+      qManifest.manifestHash,
+      Object.values(qManifest.symbols)
     );
     json(200, { code: 200, message: 'OK' });
   } catch (e) {

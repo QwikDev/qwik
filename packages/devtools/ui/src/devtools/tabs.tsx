@@ -10,6 +10,7 @@ import {
   IconFolderTree,
   IconMegaphoneMini,
   IconPhotoOutline,
+  IconTarget,
 } from '../components/Icons/Icons';
 import type { DevtoolsTabId } from './state';
 
@@ -75,6 +76,12 @@ export const devtoolsTabs: DevtoolsTabConfig[] = [
     id: 'buildAnalysis',
     title: 'Build Analysis',
     renderIcon: () => <IconChartBarOutline class="h-6 w-6" />,
+    viteOnly: true,
+  },
+  {
+    id: 'insights',
+    title: 'Insights',
+    renderIcon: () => <IconTarget class="h-6 w-6" />,
     viteOnly: true,
   },
 ];

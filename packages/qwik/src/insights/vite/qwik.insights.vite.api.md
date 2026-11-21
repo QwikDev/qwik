@@ -22,6 +22,9 @@ export function qwikInsights(qwikInsightsOpts: {
     publicApiKey: string;
     baseUrl?: string;
     outDir?: string;
+    sampleRate?: number;
+    postUrl?: string;
+    db?: string;
 }): Promise<PluginOption>;
 
 // (No @packageDocumentation comment for this package)

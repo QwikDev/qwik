@@ -10,7 +10,7 @@ import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
 import type { QRLInternal } from '../server/qwik-types';
 
-type Task = () => void | Promise<void>;
+type Task = Promise<unknown> | (() => void | Promise<void>);
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -168,14 +168,27 @@ const isElementNode = (node: Node | null): node is Element => !!node && node.nod
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
 let queuedTasks: Promise<void> | undefined;
+let unfinishedTaskLists = 0;
 const runTasks = async (tasks: Task[]) => {
-  for (let i = 0; i < tasks.length; i++) {
-    await tasks[i]();
+  try {
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      await (isPromise(task) ? task : task());
+    }
+  } finally {
+    unfinishedTaskLists--;
   }
 };
 const queueTasks = (tasks: Task[]) => {
+  const isBehindUnfinishedTasks = unfinishedTaskLists > 0;
+  const hasStartedEveryHandler = tasks.every(isPromise);
+  unfinishedTaskLists++;
   const run = () => runTasks(tasks);
   queuedTasks = queuedTasks ? queuedTasks.then(run, run) : run();
+  if (isBehindUnfinishedTasks && hasStartedEveryHandler) {
+    queuedTasks.catch(() => {});
+    return Promise.all(tasks);
+  }
   return queuedTasks;
 };
 
@@ -274,7 +287,7 @@ const dispatchOnElement = (
             const result = run();
             if (isPromise(result)) {
               defer = true;
-              tasks.push(() => result);
+              tasks.push(result);
             }
           }
         } else if (handlers.length) {
@@ -293,7 +306,7 @@ const dispatchOnElement = (
                 const result = run();
                 if (isPromise(result)) {
                   defer = true;
-                  tasks.push(() => result);
+                  tasks.push(result);
                 }
               }
             }
@@ -338,7 +351,7 @@ const dispatchOnElement = (
             const result = run();
             if (isPromise(result)) {
               defer = true;
-              tasks.push(() => result);
+              tasks.push(result);
             }
           }
         }

@@ -14,7 +14,9 @@ import {
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr, QStatePrewarmAttr, QStyle } from '../shared/utils/markers';
-import { vnode_getFirstChild } from './vnode-utils';
+import { vnode_getFirstChild, vnode_getText, vnode_getVNodeForChildNode } from './vnode-utils';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { TextVNode } from '../shared/vnode/text-vnode';
 import { Fragment } from '@qwik.dev/core';
 import { TypeIds } from '../shared/serdes/constants';
 import {
@@ -1672,7 +1674,7 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
           <head :></head>
           <body :>
             <p :>Hello</p>
-            <div : q:rp="1" style="display:contents"><section :>Hi</section><b :>Yo</b></div>
+            <div : q:rp="1" style="display:contents"><section :>Hi!</section><b :>Yo!!</b></div>
             ${binaryVNodeScript([[3, 5]])}
             ${binaryVNodeScript(
               [
@@ -1712,6 +1714,15 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary vnode tables', () => {
     expectSegmentTables();
     // freed slots are reused: only the new container's table is added
     expect(document.qVNodeTables!.length).toBe(tableCount + 1);
+
+    // no vnode was built before these walks; each text length splits its element's text
+    const rootVNode = getDomContainer(element).rootVNode;
+    const vnodeOf = (node: Element): ElementVNode =>
+      node === element ? rootVNode : vnode_getVNodeForChildNode(vnodeOf(node.parentElement!), node);
+    const firstTextOf = (selector: string) =>
+      vnode_getText(vnode_getFirstChild(vnodeOf(document.querySelector(selector)!)) as TextVNode);
+    expect(firstTextOf('section')).toBe('Hi');
+    expect(firstTextOf('b')).toBe('Yo!');
   });
 
   it('frees the tables of a container when it is destroyed', async () => {

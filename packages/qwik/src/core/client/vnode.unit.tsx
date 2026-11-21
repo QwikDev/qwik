@@ -2752,6 +2752,32 @@ describe('vnode', () => {
       });
     });
     describe('vnode_remove', () => {
+      it('updates removed projected content without inserting into its former DOM parent', () => {
+        const owner = vnode_newVirtual();
+        const projection = vnode_newVirtual();
+        vnode_setProp(projection, QSlot, '');
+        projection.slotParent = owner;
+        const errorHost = vnode_newElement(document.createElement('errored-host'), 'errored-host');
+        vnode_insertBefore(journal, vParent, owner, null);
+        vnode_insertBefore(journal, owner, projection, null);
+        vnode_insertBefore(journal, projection, errorHost, null);
+        vnode_applyJournal(journal);
+        journal.length = 0;
+
+        vnode_remove(journal, owner, projection, true);
+        vnode_applyJournal(journal);
+        journal.length = 0;
+        expect(parent.innerHTML).toBe('');
+
+        const content = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, projection, content, errorHost);
+        expect(journal).toHaveLength(0);
+        vnode_remove(journal, projection, errorHost, true);
+        vnode_insertBefore(journal, owner, projection, null);
+        vnode_applyJournal(journal);
+        expect(parent.innerHTML).toBe('<p></p>');
+      });
+
       it('should remove', () => {
         parent.innerHTML = '<b :>1</b><b :>2</b><b :>3</b>';
         const b1 = vnode_getFirstChild(vParent) as ElementVNode;

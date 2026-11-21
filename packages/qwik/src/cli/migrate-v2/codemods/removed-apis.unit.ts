@@ -25,6 +25,20 @@ describe('warnRemovedApis', () => {
     ]);
   });
 
+  test('warns about removed server and optimizer types', () => {
+    run(
+      [
+        `import { renderToStream, type PrefetchStrategy } from '@builder.io/qwik/server';`,
+        `import { qwikVite, symbolMapper, type TranspileOption } from '@builder.io/qwik/optimizer';`,
+      ].join('\n')
+    );
+    expect(takeWarnings().map((w) => w.split(' ')[1])).toEqual([
+      '`PrefetchStrategy`',
+      '`symbolMapper`',
+      '`TranspileOption`',
+    ]);
+  });
+
   test('ignores other modules', () => {
     run(`import { ErrorBoundary } from './error-boundary';`);
     expect(takeWarnings()).toEqual([]);

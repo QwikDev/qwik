@@ -33,12 +33,14 @@ describe('report', () => {
       'src/entry.dev.tsx': `export default () => {};`,
       'src/routes/plugin@000-v1-errors.ts': `export const onRequest = () => {};`,
       'src/entry.ssr.tsx': `export default createRenderer(() => ({}));`,
+      'src/routes/index.tsx': `const weather = useResource$<Weather>(() => fetchWeather());`,
     });
     const steps = nextSteps();
-    expect(steps).toHaveLength(4);
+    expect(steps).toHaveLength(5);
     expect(steps[0]).toContain('`strictLoaders: false`');
     expect(steps[1]).toContain('plugin@000-v1-errors.ts');
     expect(steps[2]).toContain('Delete `src/entry.dev.tsx`');
-    expect(steps[3]).toContain('type check');
+    expect(steps[3]).toContain('`useResource$`');
+    expect(steps[4]).toContain('type check');
   });
 });

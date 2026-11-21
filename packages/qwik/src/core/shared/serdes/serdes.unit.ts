@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -11,7 +12,7 @@ import {
   SerializerSymbol,
   type AsyncSignal,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -29,13 +30,15 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { getTestPlatform } from '../../../testing/platform';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1934,6 +1937,86 @@ describe('shared-serialization', () => {
 
       expect((restoredConsumer as any)[_EFFECT_BACK_REF].get('data-value')).toBe(restoredEffect);
       expect(restoredEffect.property).toBe('data-value');
+    });
+  });
+
+  describe('a QRL that captures a computed', () => {
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+    const lazyQrl = (symbol: string, captures: unknown[] | null = null) =>
+      createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
+    const holdModuleOf = (heldSymbol: string, failingSymbol?: string) => {
+      let release!: () => void;
+      const heldModule = new Promise<() => void>((resolve) => (release = () => resolve(() => {})));
+      setPlatform({
+        ...getTestPlatform(),
+        isServer: false,
+        importSymbol: (_, __, symbol) => {
+          if (symbol === failingSymbol) {
+            return Promise.reject(new Error('failed to load'));
+          }
+          return symbol === heldSymbol ? heldModule : () => {};
+        },
+      });
+      return release;
+    };
+    const isReady = async (qrl: QRLInternal) => {
+      let hasResolved = false;
+      void qrl.resolve().then(() => (hasResolved = true));
+      await delay(0);
+      return hasResolved;
+    };
+
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+    });
+
+    afterEach(() => {
+      setPlatform(platformBeforeTest);
+    });
+
+    it("waits for the computed's module when another QRL started loading it", async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(lazyQrl('s_first', [computed]), lazyQrl('s_second', [computed]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const [first, second] = deserialize(objs) as QRLInternal[];
+
+      expect(await isReady(first)).toBe(false);
+      expect(await isReady(second)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(second)).toBe(true);
+    });
+
+    it('does not take a captured plain object for a computed', async () => {
+      const objs = await serialize(lazyQrl('s_reader', [{ $computeQrl$: 1 }]));
+      setPlatform({ ...getTestPlatform(), isServer: false, importSymbol: () => () => {} });
+      const [reader] = deserialize(objs) as QRLInternal[];
+
+      await expect(reader.resolve()).resolves.toBeTypeOf('function');
+    });
+
+    it('does not leave its own failed load unhandled while it waits for the computed', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(
+        lazyQrl('s_first', [computed]),
+        lazyQrl('s_failing', [computed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed', 's_failing');
+      const [first, failing] = deserialize(objs) as QRLInternal[];
+      const onUnhandledRejection = vi.fn();
+      process.on('unhandledRejection', onUnhandledRejection);
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      void first.resolve();
+      const failed = failing.resolve().then(
+        () => false,
+        () => true
+      );
+      await delay(0);
+      process.off('unhandledRejection', onUnhandledRejection);
+      releaseComputedModule();
+
+      expect(onUnhandledRejection).not.toHaveBeenCalled();
+      expect(await failed).toBe(true);
     });
   });
 

@@ -13,7 +13,6 @@ type TranslatedGlobal = typeof globalThis & {
     textNodes?: WeakMap<Node, Text>;
     /** Wrapper -> the text it replaced, when the swap was seen. */
     originalTexts?: WeakMap<Node, string>;
-    observedDocuments?: WeakSet<Document>;
     /** What the observer runs: the preloader's capture, until core replaces it. */
     track?: (records: MutationRecord[]) => void;
   };
@@ -67,18 +66,18 @@ export const getTranslatedTextNode = (wrapper: Element): Text =>
 type TextSwapRecord = Pick<MutationRecord, 'removedNodes' | 'previousSibling'>;
 
 /**
- * Remembers the text that a new wrapper replaced: the translator inserts the wrapper in front of
- * the text node and then removes that node.
+ * Remembers the text node that a new `<font>` replaced: the translator inserts its wrapper in front
+ * of the text node and then removes that node. Kept loose because this is all the preloader
+ * carries; core checks that the `<font>` is a wrapper before it uses the text.
  *
- * @returns Whether the record is such a swap.
+ * @returns Whether the text was not known yet.
  */
-const captureOriginalText = (removed: Node, wrapper: Node | null): wrapper is Element => {
+const captureOriginalText = (removed: Node | undefined, wrapper: Node | null): boolean => {
   if (
-    removed.nodeType !== 3 ||
-    !isTranslatedText(wrapper) ||
+    removed?.nodeType !== 3 ||
+    wrapper?.nodeName !== 'FONT' ||
     // A text node that is removed after a known wrapper is not what the wrapper replaced.
-    translated.originalTexts?.has(wrapper) ||
-    translated.textNodes?.has(wrapper)
+    translated.originalTexts?.has(wrapper)
   ) {
     return false;
   }
@@ -86,13 +85,9 @@ const captureOriginalText = (removed: Node, wrapper: Node | null): wrapper is El
   return true;
 };
 
-/** All the preloader does: without the original text a translated sentence can't be split. */
 const captureOriginalTexts = (records: TextSwapRecord[]): void => {
   for (let i = 0; i < records.length; i++) {
-    const removed = records[i].removedNodes[0];
-    if (removed) {
-      captureOriginalText(removed, records[i].previousSibling);
-    }
+    captureOriginalText(records[i].removedNodes[0], records[i].previousSibling);
   }
 };
 
@@ -104,7 +99,11 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
     if (!removed) {
       continue;
     }
-    if (captureOriginalText(removed, previous)) {
+    if (
+      isTranslatedText(previous) &&
+      !translated.textNodes?.has(previous) &&
+      captureOriginalText(removed, previous)
+    ) {
       linkTranslatedText(translated.textNodes?.get(removed) || (removed as Text), previous);
       continue;
     }
@@ -125,22 +124,22 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
  * @param track - Core passes its own tracking, which replaces the capture of the preloader.
  */
 export const observeTranslatedText = (document: Document, track?: typeof trackTranslatedText) => {
+  const isObserved = !!translated.track;
   translated.track = track || translated.track || captureOriginalTexts;
-  if (typeof MutationObserver === 'undefined' || translated.observedDocuments?.has(document)) {
+  if (isObserved || typeof MutationObserver === 'undefined') {
     return;
   }
-  (translated.observedDocuments ||= new WeakSet()).add(document);
   const html = document.documentElement;
-  const markObserver = new MutationObserver(() => observeWhenTranslated());
-  const observeWhenTranslated = () => {
+  let isTracking = false;
+  const startTracking = () => {
     if (html.className.includes('translated-')) {
-      markObserver.disconnect();
-      new MutationObserver((records) => translated.track!(records)).observe(document, {
-        childList: true,
-        subtree: true,
-      });
+      isTracking = true;
+      observer.observe(document, { childList: true, subtree: true });
     }
   };
-  markObserver.observe(html, { attributeFilter: ['class'] });
-  observeWhenTranslated();
+  const observer = new MutationObserver((records) =>
+    isTracking ? translated.track!(records) : startTracking()
+  );
+  observer.observe(html, { attributeFilter: ['class'] });
+  startTracking();
 };

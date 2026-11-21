@@ -13,24 +13,16 @@ describe('observeTranslatedText', () => {
   });
 
   it('starts tracking text swaps once the translator marks the page', () => {
-    const observers: {
-      callback: MutationCallback;
-      target?: Node;
-      options?: MutationObserverInit;
-    }[] = [];
+    const observed: { target: Node; options: MutationObserverInit }[] = [];
+    let notify: MutationCallback = () => {};
     vi.stubGlobal(
       'MutationObserver',
       class {
-        observer: (typeof observers)[number];
         constructor(callback: MutationCallback) {
-          observers.push((this.observer = { callback }));
+          notify = callback;
         }
         observe(target: Node, options: MutationObserverInit) {
-          this.observer.target = target;
-          this.observer.options = options;
-        }
-        disconnect() {
-          this.observer.target = undefined;
+          observed.push({ target, options });
         }
       }
     );
@@ -39,21 +31,16 @@ describe('observeTranslatedText', () => {
 
     observeTranslatedText(document);
     observeTranslatedText(document);
-    expect(observers).toHaveLength(1);
-    expect(observers[0]).toMatchObject({ target: html, options: { attributeFilter: ['class'] } });
+    expect(observed).toEqual([{ target: html, options: { attributeFilter: ['class'] } }]);
 
     html.className = 'translated-ltr';
-    observers[0].callback([], null!);
-    expect(observers[0].target).toBeUndefined();
-    expect(observers[1]).toMatchObject({
-      target: document,
-      options: { childList: true, subtree: true },
-    });
+    notify([], null!);
+    expect(observed[1]).toEqual({ target: document, options: { childList: true, subtree: true } });
 
     const text = document.querySelector('p')!.firstChild!;
     const wrapper = document.createElement('font');
     wrapper.setAttribute('style', 'vertical-align: inherit;');
-    observers[1].callback(
+    notify(
       [{ removedNodes: [text], previousSibling: wrapper }] as unknown as MutationRecord[],
       null!
     );

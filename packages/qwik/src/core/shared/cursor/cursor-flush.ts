@@ -1,5 +1,9 @@
 import type { ClientContainer } from '../../client/types';
-import { getDomNode, unlinkTranslatedText } from '../../client/translated-text';
+import {
+  getDomNode,
+  getTranslatedStandIn,
+  unlinkTranslatedText,
+} from '../../client/translated-text';
 import {
   registerQwikLoaderEvent,
   vnode_journalToString,
@@ -169,11 +173,11 @@ export function _flushJournal(journal: VNodeJournal): void {
     if (operation instanceof SetTextOperation) {
       const target = operation.target;
       target.nodeValue = operation.text;
-      const translation = unlinkTranslatedText(target);
-      if (translation?.parentNode) {
-        // Pending inserts may be positioned relative to the translation.
+      if (getTranslatedStandIn(target)) {
+        // Pending inserts may be positioned relative to the translation, while it is still linked.
         flush();
-        translation.parentNode.replaceChild(target, translation);
+        const translation = unlinkTranslatedText(target)!;
+        translation.parentNode?.replaceChild(target, translation);
       }
     } else if (operation instanceof SetAttributeOperation) {
       const element = operation.target;

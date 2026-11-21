@@ -13,6 +13,11 @@ type TranslatedGlobal = typeof globalThis & {
     textNodes?: WeakMap<Node, Text>;
     /** Wrapper -> the text it replaced, when the swap was seen. */
     originalTexts?: WeakMap<Node, string>;
+    /**
+     * Text nodes Qwik created for a stand-in; the translator never held them, so they are safe to
+     * write.
+     */
+    ownTextNodes?: WeakSet<Node>;
     /** What the observer runs: the preloader's capture, until core replaces it. */
     track?: (records: MutationRecord[]) => void;
   };
@@ -56,8 +61,18 @@ const linkTranslatedText = (textNode: Text, standIn: Element | Text): Text => {
 };
 
 /** A new text node for a vnode to use in place of the stand-in, holding the stand-in's text. */
-export const createTranslatedTextNode = (standIn: Element | Text): Text =>
-  linkTranslatedText(standIn.ownerDocument.createTextNode(standIn.textContent!), standIn);
+export const createTranslatedTextNode = (standIn: Element | Text): Text => {
+  const textNode = standIn.ownerDocument.createTextNode(standIn.textContent!);
+  (translated.ownTextNodes ||= new WeakSet()).add(textNode);
+  return linkTranslatedText(textNode, standIn);
+};
+
+/**
+ * Whether the translator holds the text node. It restores its own saved text into such a node, so a
+ * new text has to go into a new node.
+ */
+export const isTranslatorTextNode = (textNode: Node): boolean =>
+  !!translated.standIns?.has(textNode) && !translated.ownTextNodes?.has(textNode);
 
 /** The text node that vnodes use for a translated wrapper found in the DOM. */
 export const getTranslatedTextNode = (wrapper: Element): Text =>
@@ -85,7 +100,8 @@ const captureOriginalText = (removed: Node | undefined, wrapper: Node | null): b
   return true;
 };
 
-const captureOriginalTexts = (records: TextSwapRecord[]): void => {
+/** All the preloader runs: without the original text a translated sentence can't be split. */
+export const captureOriginalTexts = (records: TextSwapRecord[]): void => {
   for (let i = 0; i < records.length; i++) {
     captureOriginalText(records[i].removedNodes[0], records[i].previousSibling);
   }
@@ -113,6 +129,11 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
       unlinkTranslatedText(textNode);
       if (previous && previous !== textNode && previous.nodeType === 3) {
         linkTranslatedText(textNode, previous as Text);
+        // The vnodes still hold the exact texts if the wrapper's original was recorded.
+        const originalText = translated.originalTexts?.get(removed);
+        if (originalText !== undefined) {
+          translated.originalTexts!.set(previous, originalText);
+        }
       }
     }
   }

@@ -1,7 +1,7 @@
 import { component$, useSignal } from '@qwik.dev/core';
 import { ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { trackTranslatedText } from '../client/translated-text';
+import { captureOriginalTexts, trackTranslatedText } from '../client/translated-text';
 
 type TextSwap = Pick<MutationRecord, 'removedNodes' | 'previousSibling'>;
 
@@ -195,15 +195,64 @@ describe('translated text', () => {
   });
 
   describe('translated before resume, seen by the preloader', () => {
-    /** The preloader tracks the page before core resumes it. */
-    const translateAndTrack = (document: Document) => trackTranslatedText(translate(document));
+    /** The preloader only records the text that each wrapper replaced. */
+    const translateAndRecord = (document: Document) => {
+      const swaps = translate(document);
+      captureOriginalTexts(swaps);
+      return swaps;
+    };
 
     it('rewrites a sentence whose component can not render again', async () => {
       const { container, document } = await ssrRenderToDom(<Sentence />, {
-        onBeforeResume: translateAndTrack,
+        onBeforeResume: translateAndRecord,
       });
       await trigger(container.element, '#count', 'click');
       expect(document.querySelector('p')!.innerHTML).toBe('You clicked 6 times.');
+    });
+
+    it('updates a signal at the end of a translated sentence', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(5);
+        return (
+          <div>
+            <button onClick$={() => count.value++}></button>
+            <p>Count {count.value}</p>
+          </div>
+        );
+      });
+      const { container, document } = await ssrRenderToDom(<Cmp />, {
+        onBeforeResume: translateAndRecord,
+      });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.innerHTML).toBe('Count 6');
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.innerHTML).toBe('Count 7');
+    });
+
+    it('rewrites a sentence that the translator restored', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(5);
+        const other = useSignal(1);
+        return (
+          <div>
+            <button id="count" onClick$={() => count.value++}></button>
+            <button id="other" onClick$={() => other.value++}></button>
+            <p>
+              {other.value}
+              <b></b>
+              Count {count.value} left
+            </p>
+          </div>
+        );
+      });
+      let swaps: TextSwap[] = [];
+      const { container, document } = await ssrRenderToDom(<Cmp />, {
+        onBeforeResume: (document) => (swaps = translateAndRecord(document)),
+      });
+      await trigger(container.element, '#other', 'click');
+      trackTranslatedText(showOriginal(swaps.filter((swap) => swap.previousSibling!.parentNode)));
+      await trigger(container.element, '#count', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('2Count 6 left');
     });
   });
 

@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: google translate no longer breaks or duplicates text updates
+fix: text updates broke on pages translated by Google Translate

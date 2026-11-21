@@ -193,6 +193,7 @@ import {
   getTranslatedStandIn,
   getTranslatedTextNode,
   isTranslatedText,
+  isTranslatorTextNode,
 } from './translated-text';
 import {
   createDeleteOperation,
@@ -1604,10 +1605,8 @@ export const vnode_getText = (textVNode: TextVNode): string => {
 export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text: string) => {
   vnode_ensureTextInflated(journal, textVNode);
   textVNode.text = text;
-  const translation = getTranslatedStandIn(textVNode.node!);
-  if (translation) {
-    // The translator restores its own text into the node it replaced, so write to a new node.
-    textVNode.node = createTranslatedTextNode(translation);
+  if (isTranslatorTextNode(textVNode.node!)) {
+    textVNode.node = createTranslatedTextNode(getTranslatedStandIn(textVNode.node!)!);
   }
   addVNodeOperation(journal, createSetTextOperation(textVNode.node!, text));
 };

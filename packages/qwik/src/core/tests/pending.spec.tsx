@@ -784,6 +784,127 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     Array.from(document.querySelectorAll('p')).find((node) => node.textContent === text)!
       .parentElement as HTMLElement;
 
+  it.each(['resolves', 'fails'])(
+    'emits shared events and styles in the shell when a buffered segment %s',
+    async (outcome) => {
+      const segment = { isBuffered: false };
+      let resolveSlow!: (value: JSXOutput) => void;
+      let rejectSlow!: (error: Error) => void;
+      const slow = new Promise<JSXOutput>((resolve, reject) => {
+        resolveSlow = resolve;
+        rejectSlow = reject;
+      });
+      let resolveShell!: (value: JSXOutput) => void;
+      const shell = new Promise<JSXOutput>((resolve) => {
+        resolveShell = resolve;
+      });
+      const SharedButton = component$((props: { id: string }) => {
+        useStylesScoped$(OOOS_SCOPED_STYLE);
+        const count = useSignal(0);
+        return (
+          <button id={props.id} class="ooos-scoped" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const Slow = component$(() => {
+        segment.isBuffered = true;
+        return <>{slow}</>;
+      });
+      const chunks: string[] = [];
+      const renderPromise = ssrRenderPendingStream(
+        <main>
+          <Pending fallback$={() => <p>Waiting</p>}>
+            <SharedButton id="segment-button" />
+            <SharedButton id="segment-button-again" />
+            <Slow />
+          </Pending>
+          {shell}
+        </main>,
+        chunks
+      );
+      const renderError = renderPromise.then(
+        () => undefined,
+        (error: unknown) => error
+      );
+      const shellContent = (
+        <>
+          <SharedButton id="shell-button" />
+          <SharedButton id="shell-button-again" />
+          <footer>Shell ready</footer>
+        </>
+      );
+
+      try {
+        await vi.waitFor(() => expect(segment.isBuffered).toBe(true));
+        resolveShell(shellContent);
+        await vi.waitFor(() => expect(chunks.join('')).toContain('Shell ready'));
+        const shellHtml = chunks.join('');
+        expect(shellHtml).not.toContain('id="segment-button"');
+        expect(shellHtml).toContain('id="shell-button"');
+        expect.soft(shellHtml.match(/\.push\("e:click"/g) ?? []).toHaveLength(1);
+        expect.soft(shellHtml.match(/<style q:style=/g) ?? []).toHaveLength(1);
+
+        if (outcome === 'fails') {
+          const error = new Error('segment failed');
+          rejectSlow(error);
+          expect(await renderError).toBe(error);
+          const html = chunks.join('');
+          expect(html).not.toContain('id="segment-button"');
+          expect.soft(html.match(/\.push\("e:click"/g) ?? []).toHaveLength(1);
+          expect.soft(html.match(/<style q:style=/g) ?? []).toHaveLength(1);
+          return;
+        }
+
+        resolveSlow(<p>Done</p>);
+        const { document, container } = await renderPromise;
+        const segmentHtml = chunks.join('').slice(shellHtml.length);
+        expect(segmentHtml).toContain('id="segment-button"');
+        expect(segmentHtml.match(/\.push\("e:click"/g) ?? []).toHaveLength(1);
+        expect(segmentHtml.match(/<style q:style=/g) ?? []).toHaveLength(1);
+        const styles = document.querySelectorAll('style[q\\:style]');
+        expect(styles).toHaveLength(2);
+        expect(styles[0].outerHTML).toBe(styles[1].outerHTML);
+        await trigger(container.element, '#shell-button', 'click');
+        expect(document.querySelector('#shell-button')?.textContent).toBe('1');
+        await trigger(container.element, '#segment-button', 'click');
+        expect(document.querySelector('#segment-button')?.textContent).toBe('1');
+      } finally {
+        resolveShell(shellContent);
+        resolveSlow(<p>Done</p>);
+        await renderError;
+      }
+    }
+  );
+
+  it('emits shared events and styles once when rendering in order', async () => {
+    const SharedButton = component$(() => {
+      useStylesScoped$(OOOS_SCOPED_STYLE);
+      return (
+        <button class="ooos-scoped" onClick$={() => undefined}>
+          Shared button
+        </button>
+      );
+    });
+    const chunks: string[] = [];
+    await ssrRenderPendingStream(
+      <main>
+        <Pending fallback$={() => <p>Waiting</p>}>
+          <SharedButton />
+          <SharedButton />
+        </Pending>
+        <SharedButton />
+        <SharedButton />
+      </main>,
+      chunks,
+      { outOfOrder: false }
+    );
+
+    const html = chunks.join('');
+    expect(html.match(/\.push\("e:click"/g) ?? []).toHaveLength(1);
+    expect(html.match(/<style q:style=/g) ?? []).toHaveLength(1);
+  });
+
   it('should not use out-of-order streaming when outOfOrder is false', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

@@ -644,8 +644,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     segmentContainer.vnodeSegment = segmentId;
     segmentContainer.serializationCtx.$scope$ = segmentContainer;
     rootContainer.serializationCtx.$scope$ ||= rootContainer;
-    segmentContainer.styleIds = this.styleIds;
-    segmentContainer.emittedQwikEventNames = this.emittedQwikEventNames;
+    segmentContainer.styleIds = new Set(this.styleIds);
+    segmentContainer.emittedQwikEventNames = new Set(this.emittedQwikEventNames);
     segmentContainer.qlInclude = QwikLoaderInclude.Done;
     segmentContainer.$instanceHash$ = this.$instanceHash$;
     innerSegmentContainer._didAddQwikLoader = true;

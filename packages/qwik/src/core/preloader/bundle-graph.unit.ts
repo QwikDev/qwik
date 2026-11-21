@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
+const originalIntersectionObserver = globalThis.IntersectionObserver;
 
 const createLinearGraph = (length: number) => {
   const serialized: (string | number)[] = [];
@@ -19,7 +20,12 @@ const createLinearGraph = (length: number) => {
 
 const importBundleGraph = async () => {
   const document = createDocument();
-  Object.assign(globalThis, { window: { document }, document });
+  Object.assign(document, { evaluate: () => ({ snapshotLength: 0 }) });
+  Object.assign(globalThis, {
+    window: { document },
+    document,
+    IntersectionObserver: class {},
+  });
   vi.resetModules();
   const { setPlatform } = await import('../shared/platform/platform');
   const { getTestPlatform } = await import('../../testing/platform');
@@ -29,7 +35,11 @@ const importBundleGraph = async () => {
 
 afterEach(() => {
   vi.resetModules();
-  Object.assign(globalThis, { window: originalWindow, document: originalDocument });
+  Object.assign(globalThis, {
+    window: originalWindow,
+    document: originalDocument,
+    IntersectionObserver: originalIntersectionObserver,
+  });
 });
 
 describe('300k-entry bundle graph', () => {

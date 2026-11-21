@@ -20,6 +20,7 @@ import { expectResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CONDITIONAL_ALL = fixtureById('conditional/all');
+const IN_VIEW_AFTER_OFF_SCREEN = '/speculative/in-view/';
 const MAX_IDLE_PRELOADS = 25;
 const WITH_25_IDLE_PRELOADS: Fixture = {
   ...CONDITIONAL_ALL,
@@ -108,6 +109,25 @@ test.describe('queue', () => {
     expect(lastInView).toBeGreaterThanOrEqual(0);
     expect(firstOffScreen).toBeGreaterThanOrEqual(0);
     expect(lastInView).toBeLessThan(firstOffScreen);
+  });
+
+  test("an in-view button's click handler is preloaded before an off-screen one that comes first in the HTML", async ({
+    page,
+  }) => {
+    await recordSpeculativePreloads(page);
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        await page.goto(IN_VIEW_AFTER_OFF_SCREEN);
+        await waitForQwikloader(page);
+      },
+      1500
+    );
+    const clickHandlers = (await preloaderLinks(page))
+      .filter((link) => link.speculative)
+      .map((link) => labelRequest(link.href).match(/in-view\/(.+)-button\.tsx_.*_q_e_click/)?.[1])
+      .filter((button) => button !== undefined);
+    expect(clickHandlers).toEqual(['in-view', 'off-screen']);
   });
 });
 

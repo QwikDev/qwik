@@ -83,6 +83,8 @@ export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'compone
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
+export const chunkHasClickHandler = (url: string) => chunkHasSymbolOf(url, 'onClick$');
+
 export type ChunkKind = 'handler' | 'qrl' | 'component';
 
 export const chunkKind = (url: string): ChunkKind | undefined => {

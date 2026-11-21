@@ -6,6 +6,8 @@ import { getLayoutKeys, getNewLayoutKeys, matchRouteTree } from './routing';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
+const INTENT_PROBABILITY = 0.9;
+
 /** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
@@ -84,7 +86,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchRoute(url, false, 0.8);
+          prefetchRoute(url, false, INTENT_PROBABILITY);
         }
       })
     : null;
@@ -173,12 +175,12 @@ export const Link = component$<LinkProps>((props) => {
       onPointerEnter$={[
         linkProps.onPointerEnter$,
         prefetchDataProp === 'intent' ? prefetchData : null,
-        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+        prefetchBundlesProp === 'commit' ? null : handleBundlePrefetch,
       ]}
       onFocus$={[
         linkProps.onFocus$,
         prefetchDataProp === 'intent' ? prefetchData : null,
-        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+        prefetchBundlesProp === 'commit' ? null : handleBundlePrefetch,
       ]}
       onPointerDown$={[
         linkProps.onPointerDown$,
@@ -216,7 +218,8 @@ export interface LinkProps extends AnchorAttributes {
    * Controls when Qwik should prefetch the javascript bundles required to render this **`Link`**
    * target during client-side navigation.
    *
-   * Defaults to **`"visible"`**.
+   * Defaults to **`"visible"`**. A link that prefetches when visible is hinted again, ahead of the
+   * others, when the user hovers or focuses it.
    *
    * Prefetching will not occur if the user has the **data saver** setting enabled.
    */

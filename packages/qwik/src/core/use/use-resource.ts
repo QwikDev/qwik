@@ -1,6 +1,5 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
-import { _capturesObj } from '../internal';
 import { createStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
@@ -10,7 +9,8 @@ import {
 import type { ComputeCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { createQRL } from '../shared/qrl/qrl-class';
+import { rscQrl } from '../shared/qrl/handler-qrls';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
@@ -70,7 +70,7 @@ export interface ResourceOptions {
  *
  * @internal
  */
-export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
+export async function _rsc<T>(arg: ResourceCtx<T>): Promise<{ r: T }> {
   const [fn] = _capturesObj._ as [QRLInternal<ResourceFn<T>>];
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
@@ -81,7 +81,7 @@ export const _rsc = async <T>(arg: ResourceCtx<T>): Promise<{ r: T }> => {
         ? createStore(fn.$container$, result, StoreFlags.RECURSIVE)
         : result,
   };
-};
+}
 
 /** @internal */
 export const useResourceQrl = <T>(
@@ -95,7 +95,7 @@ export const useResourceQrl = <T>(
     return val as ResourceReturn<T>;
   }
 
-  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl], iCtx.$container$);
+  const wrapped = rscQrl().w([qrl]);
   const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
     timeout: opts?.timeout,
     container: iCtx.$container$,

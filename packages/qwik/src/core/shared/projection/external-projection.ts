@@ -6,7 +6,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from '../../client/vnode-utils';
-import { cleanup } from '../../client/vnode-diff';
+import { cleanup } from '../../client/vnode-cleanup';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../vnode/vnode-dirty';

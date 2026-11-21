@@ -38,9 +38,6 @@ export type AsyncSignalOptions<T> = ComputedOptions<T>;
 export const _BIGINT_PAYLOAD_REGEXP: RegExp;
 
 // @internal (undocumented)
-export const _caC: (props: CatchProps) => JSXOutput;
-
-// @internal (undocumented)
 export const _canSerialize: (value: unknown, seen?: WeakSet<any>) => boolean;
 
 // @internal @deprecated
@@ -50,9 +47,6 @@ export let _captures: Readonly<unknown[]> | null;
 export const _capturesObj: {
     _: Readonly<unknown[]> | null;
 };
-
-// @internal (undocumented)
-export const _caR: () => void;
 
 // @public
 export const Catch: Component<CatchProps>;
@@ -501,18 +495,10 @@ export { DomContainer as _DomContainer }
 // @internal (undocumented)
 export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
 
-// Warning: (ae-forgotten-export) The symbol "EachProps" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export const _eaC: (props: EachProps<any>) => JSXNode<unknown>;
-
 // Warning: (ae-forgotten-export) The symbol "EachComponent" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export const Each: EachComponent;
-
-// @internal (undocumented)
-export const _eaT: (input: TaskCtx) => Promise<void>;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -677,10 +663,10 @@ export function _hasSlotProps(props: Props | null | undefined): boolean;
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal
-export const _hmr: (this: string | undefined, event: CustomEvent<{
+export function _hmr(this: string | undefined, event: CustomEvent<{
     files: string[];
     t: number;
-}>, element: Element) => void | Promise<void>;
+}>, element: Element): void | Promise<void>;
 
 // @internal (undocumented)
 export type _HostElement = _VNode | ISsrNode;
@@ -933,9 +919,6 @@ export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
 
-// @internal (undocumented)
-export const _peC: (props: PendingProps) => JSXNodeInternal<string>[];
-
 // @public (undocumented)
 export const Pending: Component<PendingProps>;
 
@@ -944,9 +927,6 @@ export type PendingProps = {
     fallback$?: QRL<() => JSXOutput>;
     delay?: number;
 };
-
-// @internal (undocumented)
-export const _peT: (input: TaskCtx) => void;
 
 // @alpha @deprecated (undocumented)
 export const PrefetchGraph: (_opts?: {
@@ -1175,15 +1155,6 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 // @public @deprecated (undocumented)
 export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
-// Warning: (ae-forgotten-export) The symbol "InternalServerComponent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
-name?: string;
-children?: JSXChildren;
-}>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
-
 // @internal (undocumented)
 export const _redactToGeneric: (err: unknown) => Error & {
     digest: string;
@@ -1245,9 +1216,6 @@ export interface RenderSSROptions {
 // @internal (undocumented)
 export const _requestPreload: Preload;
 
-// @internal (undocumented)
-export const _reR: () => boolean;
-
 // @internal
 export function _res(this: string | undefined, _: any, element: Element): void | Promise<void>;
 
@@ -1301,16 +1269,14 @@ export type ResourceReturn<T> = {
 // @internal (undocumented)
 export const _restProps: (props: unknown, omit?: string[], target?: Props) => Props;
 
-// @internal (undocumented)
-export const _reT: (input: TaskCtx) => void;
+// @internal
+export const _resumeRootsQrl: (roots: unknown[]) => QRL<typeof _res>;
 
 // @internal
 export function _retryOnPromise<T>(fn: () => ValueOrPromise<T>, onError?: (e: any) => ValueOrPromise<T>): ValueOrPromise<T>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "Reveal" is marked as @public, but its signature references "_reC" which is marked as @internal
-//
 // @public (undocumented)
-export const Reveal: typeof _reC;
+export const Reveal: Component<RevealProps>;
 
 // @public (undocumented)
 export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
@@ -1322,7 +1288,7 @@ export type RevealProps = {
 };
 
 // @internal
-export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
+export function _rsc<T>(arg: ResourceCtx<T>): Promise<{
     r: T;
 }>;
 
@@ -1416,9 +1382,6 @@ export abstract class _SharedContainer implements _Container {
     trackSignalValue<T>(signal: Signal, subscriber: _HostElement, property: string, data: _SubscriptionData): T;
 }
 
-// @internal (undocumented)
-export const _shC: (props: ShowProps<any>) => JSXNode<unknown>;
-
 // @public (undocumented)
 export const Show: ShowComponent;
 
@@ -1434,9 +1397,6 @@ export interface ShowProps<WHEN = unknown, THEN extends JSXOutput = JSXOutput, E
     // (undocumented)
     when$: QRL<() => WHEN>;
 }
-
-// @internal (undocumented)
-export const _shT: (input: TaskCtx) => ValueOrPromise<void | undefined>;
 
 // @public
 export interface Signal<T = any> {

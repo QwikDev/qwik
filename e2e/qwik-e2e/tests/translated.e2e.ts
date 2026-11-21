@@ -40,15 +40,19 @@ const showOriginal = (page: Page) =>
     }
   });
 
+const failOnPageErrors = (page: Page) => {
+  page.on('pageerror', (err) => expect(err).toEqual(undefined));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      expect(msg.text()).toEqual(undefined);
+    }
+  });
+};
+
 test.describe('translated page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/translated');
-    page.on('pageerror', (err) => expect(err).toEqual(undefined));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        expect(msg.text()).toEqual(undefined);
-      }
-    });
+    failOnPageErrors(page);
   });
 
   test.describe('translated before the first interaction', () => {
@@ -107,5 +111,27 @@ test.describe('translated page', () => {
         'You have clicked the button 7 times so far.'
       );
     });
+  });
+});
+
+test.describe('translated page whose sentence never renders again', () => {
+  const sentence = (page: Page) => page.locator('#sentence');
+
+  test('rewrites the sentence when the preloader saw the translation', async ({ page }) => {
+    await page.goto('/translated.prod/');
+    failOnPageErrors(page);
+    await page.waitForFunction(() => !!(window as any).qPreload);
+    await translate(page);
+    await page.locator('#count').click();
+    await expect(sentence(page)).toHaveText('You have clicked the button 6 times so far.');
+  });
+
+  test('keeps the translation when nothing saw it happen', async ({ page }) => {
+    await page.addInitScript(() => delete (window as any).MutationObserver);
+    await page.goto('/translated.prod/');
+    failOnPageErrors(page);
+    await translate(page);
+    await page.locator('#count').click();
+    await expect(sentence(page)).toHaveText('6[You have clicked the button 5 times so far.]');
   });
 });

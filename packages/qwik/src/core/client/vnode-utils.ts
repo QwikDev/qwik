@@ -189,6 +189,7 @@ import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
 import { EffectProperty } from '../reactive-primitives/types';
 import {
   createTranslatedTextNode,
+  getOriginalText,
   getTranslatedStandIn,
   getTranslatedTextNode,
   isTranslatedText,
@@ -763,19 +764,18 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
     const node = vnode_getDomSibling(vnode, true, true);
-    const isTranslated = !!sharedTextNode && !!getTranslatedStandIn(sharedTextNode);
-    // A translation can't be split between its vnodes, so each of them has to render again.
-    const container =
-      isTranslated && (vCursor?.node === sharedTextNode || node?.node === sharedTextNode)
-        ? getDomContainer(parentNode!)
-        : null;
+    const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
+    const isShared = vCursor?.node === sharedTextNode || node?.node === sharedTextNode;
+    const isTextUnknown = !!translation && getOriginalText(translation) === undefined;
+    // Without its original text a translation can't be split, so its vnodes have to render again.
+    const container = isTextUnknown && isShared ? getDomContainer(parentNode!) : null;
     // Text that can't render again only exists in the translation, which then has to stay.
     let isTextLost = false;
     const getInflatedText = (vText: TextVNode): string => {
       if (container && !vnode_rerenderText(container, vText)) {
         isTextLost = true;
       }
-      return isTranslated ? '' : vText.text!;
+      return isTextUnknown ? '' : vText.text!;
     };
     const insertBeforeNode: Element | Text | null =
       sharedTextNode ||
@@ -809,10 +809,14 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         const text = getInflatedText(vCursor);
         if (isLastNode && sharedTextNode && !isTextLost) {
-          // A translation stays in place until its vnode gets a new text.
-          if (!isTranslated) {
+          if (!translation) {
             addVNodeOperation(journal, createSetTextOperation(sharedTextNode, text));
+          } else if (isShared && !isTextUnknown) {
+            // The translation also covers the other vnodes, so a new node takes its place.
+            vCursor.node = createTranslatedTextNode(translation);
+            addVNodeOperation(journal, createSetTextOperation(vCursor.node, text));
           }
+          // Otherwise the translation stays in place until its vnode gets a new text.
         } else {
           const textNode = doc.createTextNode((vCursor.text = text));
           addVNodeOperation(
@@ -1895,7 +1899,7 @@ const materializeFromDOM = (
     if (nodeType === /* Node.TEXT_NODE */ 3) {
       vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
     } else if (isTranslatedText(child)) {
-      vNextChild = vnode_newText(getTranslatedTextNode(child), undefined);
+      vNextChild = vnode_newText(getTranslatedTextNode(child), getOriginalText(child));
     } else if (nodeType === /* Node.ELEMENT_NODE */ 1) {
       vNextChild = vnode_newUnMaterializedElement(child as Element);
       vnode_ensureElementKeyInflated(vNextChild as ElementVNode);
@@ -2384,9 +2388,10 @@ function materializeFromVNodeData(
         : child && fastNodeType(child) === /* Node.TEXT_NODE */ 3
           ? (child as Text)
           : null;
+      const originalText = isTranslated ? getOriginalText(child as Element) : undefined;
       // must be alphanumeric
       if (combinedText === null) {
-        combinedText = textNode ? textNode.nodeValue : null;
+        combinedText = originalText ?? (textNode ? textNode.nodeValue : null);
         textIdx = 0;
       }
       let length = 0;
@@ -2395,12 +2400,13 @@ function materializeFromVNodeData(
         length *= 26;
       }
       length += consume() - 65; /* `A` */
-      // The original text of a translation is unknown: read it lazily as the whole translation.
-      const text = isTranslated
-        ? undefined
-        : combinedText === null
-          ? ''
-          : combinedText.substring(textIdx, textIdx + length);
+      // Without the original text, a vnode reads its text lazily as the whole translation.
+      const text =
+        isTranslated && originalText === undefined
+          ? undefined
+          : combinedText === null
+            ? ''
+            : combinedText.substring(textIdx, textIdx + length);
 
       addVNode(
         (previousTextNode = vnode_newSharedText(previousTextNode, textNode as Text | null, text))

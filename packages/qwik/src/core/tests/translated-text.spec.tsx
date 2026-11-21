@@ -194,6 +194,19 @@ describe('translated text', () => {
     });
   });
 
+  describe('translated before resume, seen by the preloader', () => {
+    /** The preloader tracks the page before core resumes it. */
+    const translateAndTrack = (document: Document) => trackTranslatedText(translate(document));
+
+    it('rewrites a sentence whose component can not render again', async () => {
+      const { container, document } = await ssrRenderToDom(<Sentence />, {
+        onBeforeResume: translateAndTrack,
+      });
+      await trigger(container.element, '#count', 'click');
+      expect(document.querySelector('p')!.innerHTML).toBe('You clicked 6 times.');
+    });
+  });
+
   describe('translated after render', () => {
     it('updates a signal inside a translated sentence', async () => {
       const { container, document } = await ssrRenderToDom(<Sentence />);

@@ -126,12 +126,19 @@ test.describe('translated page whose sentence never renders again', () => {
     await expect(sentence(page)).toHaveText('You have clicked the button 6 times so far.');
   });
 
-  test('keeps the translation when nothing saw it happen', async ({ page }) => {
-    await page.addInitScript(() => delete (window as any).MutationObserver);
+  test('keeps the translation and reports it when nothing saw it happen', async ({ page }) => {
+    await page.addInitScript(() => {
+      delete (window as any).MutationObserver;
+      document.addEventListener('qerror', (event) => {
+        ((window as any).qErrors ||= []).push(String((event as CustomEvent).detail.error));
+      });
+    });
     await page.goto('/translated.prod/');
-    failOnPageErrors(page);
     await translate(page);
     await page.locator('#count').click();
     await expect(sentence(page)).toHaveText('6[You have clicked the button 5 times so far.]');
+    expect(await page.evaluate(() => (window as any).qErrors)).toEqual([
+      expect.stringContaining('Code(Q42)'),
+    ]);
   });
 });

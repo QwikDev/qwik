@@ -121,7 +121,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
-import { QError, qError } from '../shared/error/error';
+import { QError, qError, qErrorWithoutStop } from '../shared/error/error';
 import {
   type Container,
   DEBUG_TYPE,
@@ -214,6 +214,7 @@ import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { createFastGetter, fastGetter } from './prototype-utils';
 import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { emitEvent } from '../shared/qrl/qrl-class';
 import { runQrl } from '../shared/qrl/handler-qrls';
 import { parseQRL } from '../shared/serdes/index';
 import { runEventHandlerQRL } from './run-qrl';
@@ -828,6 +829,10 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
         vCursor.flags |= VNodeFlags.Inflated;
       }
       vCursor = next;
+    }
+    if (isTextLost) {
+      // Nothing here can restore the text, so the app gets to decide, e.g. to reload the page.
+      emitEvent('qerror', { error: qErrorWithoutStop(QError.translatedTextLost) });
     }
   }
 };

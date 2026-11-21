@@ -49,6 +49,6 @@ export const preloadRouteBundles = (
   if (isBrowser) {
     routeName = ensureSlash(routeName);
     routeName = routeName.length > 1 && routeName.startsWith('/') ? routeName.slice(1) : routeName;
-    preload([...newLayoutKeys, routeName], probability);
+    preload([...newLayoutKeys, routeName], probability, true);
   }
 };

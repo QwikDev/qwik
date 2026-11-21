@@ -102,8 +102,6 @@ export interface QwikBundle {
   size: number;
   /** Total size of this bundle's static import graph */
   total: number;
-  /** Interactivity score of the bundle */
-  interactivity?: number;
   /** Symbols in the bundle */
   symbols?: string[];
   /** Direct imports */

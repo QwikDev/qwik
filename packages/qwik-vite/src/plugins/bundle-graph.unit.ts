@@ -51,33 +51,84 @@ describe('convertManifestToBundleGraph', () => {
     version: '1.0.0',
   } as QwikManifest;
 
+  describe('chunk kinds', () => {
+    const HANDLER = -2;
+    const QRL = -3;
+    const COMPONENT = -4;
+    const symbols = {
+      click_CLICK: { ctxKind: 'eventHandler', ctxName: 'onClick$' },
+      prop_PROP: { ctxKind: 'jSXProp', ctxName: 'ActionButton' },
+      task_TASK: { ctxKind: 'function', ctxName: 'useTask$' },
+      computed_COMPUTED: { ctxKind: 'function', ctxName: 'useComputed$' },
+      inline_INLINE: { ctxKind: 'function', ctxName: '$' },
+      card_CARD: { ctxKind: 'function', ctxName: 'component$' },
+      styles_STYLES: { ctxKind: 'function', ctxName: 'useStylesScoped$' },
+    };
+    const kindOfChunkWith = (chunkSymbols: string[]) => {
+      const graph = convertManifestToBundleGraph({
+        bundles: {
+          'page.js': { size, total, dynamicImports: ['chunk.js'], qrlImports: ['chunk.js'] },
+          'chunk.js': { size, total, symbols: chunkSymbols },
+        },
+        mapping: {},
+        symbols,
+      } as unknown as QwikManifest);
+      return graph[graph.indexOf('chunk.js') + 1];
+    };
+
+    test('marks a chunk that holds a handler as a handler chunk', () => {
+      expect(kindOfChunkWith(['click_CLICK'])).toBe(HANDLER);
+    });
+
+    test('a QRL passed to a component as a prop counts as a handler', () => {
+      expect(kindOfChunkWith(['prop_PROP'])).toBe(HANDLER);
+    });
+
+    test('marks a chunk that holds only tasks, computeds or inline QRLs as a QRL chunk', () => {
+      expect(kindOfChunkWith(['task_TASK', 'computed_COMPUTED', 'inline_INLINE'])).toBe(QRL);
+    });
+
+    test('marks a chunk that holds only a render function or styles as a component chunk', () => {
+      expect(kindOfChunkWith(['card_CARD', 'styles_STYLES'])).toBe(COMPONENT);
+    });
+
+    test('a chunk that holds a handler and a task counts as a handler chunk', () => {
+      expect(kindOfChunkWith(['task_TASK', 'click_CLICK'])).toBe(HANDLER);
+      expect(kindOfChunkWith(['card_CARD', 'task_TASK'])).toBe(QRL);
+    });
+
+    test('leaves a chunk with no QRL unmarked', () => {
+      expect(kindOfChunkWith([])).toBeUndefined();
+    });
+  });
+
   test('trivial example', () => {
     expect(convertManifestToBundleGraph(fakeManifest)).toEqual([
       'app.js', // 0
       2,
       'static-dep.js', // 2
-      -7,
+      -1,
       5,
       // doesn't list 13 because it's also statically imported by dynamic-dep.js
       'dynamic-dep.js', // 5
       2,
       10,
-      -9,
+      -1,
       11,
       // boring-dep.js is not listed: a user import() is not a qrl edge
       'transitive-dep.js', // 10
       'has-a-symbol.js', // 11
-      -5,
+      -1,
       14,
       'large-file.js', // 14
       'sym1', // 15
-      -7,
+      -1,
       5,
       'sym2', // 18
-      -7,
+      -1,
       11,
       'sym3', // 21
-      -5,
+      -1,
       14,
     ]);
   });
@@ -98,27 +149,13 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toEqual([
       'a.js', // 0
       4,
-      -7,
+      -1,
       7,
       'b.js', // 4
-      -7,
+      -1,
       7,
       'c.js', // 7
     ]);
-  });
-
-  test('only a slow-to-download import graph shifts the preload probability', () => {
-    const probabilityOf = (depTotal: number) =>
-      convertManifestToBundleGraph({
-        bundles: {
-          'page.js': { size, total, dynamicImports: ['dep.js'], qrlImports: ['dep.js'] },
-          'dep.js': { size, total: depTotal, interactivity: 3 },
-        } as Record<string, QwikBundle>,
-        mapping: {},
-      } as QwikManifest)[1];
-
-    expect(probabilityOf(5_000)).toBe(-7);
-    expect(probabilityOf(50_000)).toBe(-8);
   });
 
   test('core is preloaded like any bundle its segments import', () => {
@@ -129,7 +166,7 @@ describe('convertManifestToBundleGraph', () => {
       } as Record<string, QwikBundle>,
       mapping: { s_run: 'run.js' },
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['core.js', 'run.js', 0, 'run', -7, 1]);
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['core.js', 'run.js', 0, 'run', -1, 1]);
   });
 
   test('import cycle through the reduced bundle keeps reachable deps', () => {
@@ -170,7 +207,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toEqual([
       'x.js', // 0
       4,
-      -7,
+      -1,
       7,
       'a.js', // 4
       0,
@@ -190,7 +227,7 @@ describe('convertManifestToBundleGraph', () => {
       symbols: {},
     } as unknown as QwikManifest;
     // widget.js stays reachable only through its symbol
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -7, 0]);
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -1, 0]);
   });
 
   test('adder', () => {
@@ -219,28 +256,28 @@ describe('convertManifestToBundleGraph', () => {
       'app.js', // 0
       2,
       'static-dep.js', // 2
-      -7,
+      -1,
       5,
       'dynamic-dep.js', // 5
       2,
       8,
       'transitive-dep.js', // 8
       'has-a-symbol.js', // 9
-      -5,
+      -1,
       12,
       'large-file.js', // 12
       'sym1', // 13
-      -7,
+      -1,
       5,
       'sym2', // 16
-      -7,
+      -1,
       9,
       'sym3', // 19
-      -5,
+      -1,
       12,
       'dashboard/', // 22
       2,
-      -7,
+      -1,
       8,
     ]);
   });
@@ -305,216 +342,193 @@ describe('convertManifestToBundleGraph', () => {
       }
     );
 
-    // Interactivity scores
-    expect(
-      Object.fromEntries(
-        Object.entries(manifest.bundles).map(([k, v]) => [
-          k,
-          `${v.interactivity} (${v.size}/${v.total})`,
-        ])
-      )
-    ).toMatchInlineSnapshot(`
-      {
-        "handlers.js": "0 (5000/5000)",
-        "index.js": "0 (772/5772)",
-        "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js": "2 (2140/7140)",
-        "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js": "1 (697/5697)",
-        "index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js": "2 (5000/14886)",
-        "index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js": "2 (5000/14886)",
-        "index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js": "3 (5000/14886)",
-        "index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js": "2 (2017/11903)",
-        "index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js": "1 (1983/6983)",
-        "index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js": "1 (5000/14886)",
-        "index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js": "1 (5000/5000)",
-        "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js": "3 (727/5727)",
-        "index.tsx_about_component_useStyles_WOcPLNnm2is.js": "2 (3928/8928)",
-        "index.tsx_form_component_useStyles_0pasaG6nmEA.js": "2 (4658/14544)",
-        "index.tsx_routes_component_vG0UuU4cNCg.js": "5 (4886/9886)",
-        "layout.js": "0 (4886/9886)",
-        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "2 (4772/14658)",
-        "preloader.js": "0 (5000/5000)",
-        "qwik-router.js": "2 (4886/9886)",
-        "root.js": "0 (4886/9886)",
-        "root.tsx_root_component_9PcKHFjikV0.js": "2 (4886/14772)",
-        "router-head.tsx_RouterHead_component_dAo05yeFq1I.js": "2 (4886/14772)",
-        "src-vendor-lib-helper.ts.js": "0 (4886/4886)",
-        "src-vendor-lib-libA.ts.js": "0 (465/5351)",
-        "src-vendor-lib-libB.ts.js": "0 (4886/9772)",
-      }
-    `);
-
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
         "handlers.js",
         "index.js",
         0,
-        -9,
-        24,
+        -1,
+        34,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
+        -3,
         0,
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
+        -3,
         0,
         "index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js",
-        36,
+        -3,
+        50,
         "index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js",
-        36,
+        -3,
+        50,
         "index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js",
-        36,
+        -3,
+        50,
         "index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js",
+        -3,
         0,
         "index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js",
-        36,
+        -4,
+        50,
         "index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js",
-        36,
+        -3,
+        50,
         "index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js",
+        -3,
         "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js",
+        -3,
         0,
         "index.tsx_about_component_useStyles_WOcPLNnm2is.js",
+        -4,
         0,
         "index.tsx_form_component_useStyles_0pasaG6nmEA.js",
-        36,
+        -4,
+        50,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
+        -2,
         0,
         "layout.js",
         0,
-        -9,
-        34,
+        -1,
+        47,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
-        36,
+        -2,
+        50,
         "qwik-router.js",
+        -3,
         0,
-        -10,
-        13,
-        -9,
-        9,
+        -1,
+        8,
+        11,
+        29,
         17,
-        -8,
-        7,
-        21,
-        15,
+        23,
+        20,
         "root.js",
         0,
-        -9,
-        51,
+        -1,
+        64,
         "root.tsx_root_component_9PcKHFjikV0.js",
-        36,
-        -9,
-        55,
+        -4,
+        50,
+        -1,
+        69,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
-        36,
+        -4,
+        50,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        57,
+        72,
         "src-vendor-lib-libB.ts.js",
-        57,
+        72,
         "BjxcCeNQ9ak",
-        -9,
-        28,
+        -1,
+        40,
         "eevMxFvmCM8",
-        -7,
-        34,
+        -1,
+        47,
         "99K9SAWjPFQ",
-        -9,
-        28,
+        -1,
+        40,
         "LopIayqLfMo",
-        -7,
-        13,
+        -1,
+        17,
         "VjDx6RO4Kis",
-        -7,
-        22,
+        -1,
+        31,
         "HEFxKy9cwuk",
-        -9,
-        28,
+        -1,
+        40,
         "6VMZkqoH00Q",
-        -7,
+        -1,
         5,
         "9PcKHFjikV0",
-        -7,
-        51,
+        -1,
+        64,
         "9fcUDoGM9Wo",
-        -7,
-        13,
-        "SHtFir1Ia94",
-        -7,
-        34,
-        "cH9twROgaEg",
-        -7,
-        11,
-        "dAo05yeFq1I",
-        -7,
-        55,
-        "ds9jIPT1g9s",
-        -7,
-        26,
-        "lTNqDDf58lI",
-        -7,
-        9,
-        "m7u9ARcfDGU",
-        -7,
-        24,
-        "q56DrQcc9VE",
-        -7,
+        -1,
         17,
-        "vG0UuU4cNCg",
-        -9,
-        28,
-        "vXTAPbOW0Ig",
-        -7,
-        36,
-        "0pasaG6nmEA",
-        -7,
-        26,
-        "BMutFDNOKhc",
-        -7,
-        13,
-        "Iyy38y0K3Hw",
-        -9,
-        28,
-        "MOLFIZOhXmE",
-        -7,
+        "SHtFir1Ia94",
+        -1,
+        47,
+        "cH9twROgaEg",
+        -1,
+        14,
+        "dAo05yeFq1I",
+        -1,
+        69,
+        "ds9jIPT1g9s",
+        -1,
+        37,
+        "lTNqDDf58lI",
+        -1,
+        11,
+        "m7u9ARcfDGU",
+        -1,
         34,
+        "q56DrQcc9VE",
+        -1,
+        23,
+        "vG0UuU4cNCg",
+        -1,
+        40,
+        "vXTAPbOW0Ig",
+        -1,
+        50,
+        "0pasaG6nmEA",
+        -1,
+        37,
+        "BMutFDNOKhc",
+        -1,
+        17,
+        "Iyy38y0K3Hw",
+        -1,
+        40,
+        "MOLFIZOhXmE",
+        -1,
+        47,
         "WOcPLNnm2is",
-        -7,
-        24,
+        -1,
+        34,
         "3mjmVvTlJqo",
-        -6,
-        21,
+        -1,
+        29,
         "5DbAsQLGGo4",
-        -6,
-        7,
+        -1,
+        8,
         "Nhj4Mq4ilm8",
-        -6,
-        19,
+        -1,
+        26,
         "rufUrhffR5k",
-        -6,
-        15,
+        -1,
+        20,
         "0xCNPioszTk",
-        -7,
-        9,
+        -1,
+        11,
         "1F0Ft5Y9bOI",
-        -7,
+        -1,
         5,
         "ANY7TPAnAd8",
-        -7,
-        36,
+        -1,
+        50,
         "BdwdOv10pp0",
-        -7,
-        13,
+        -1,
+        17,
         "YCi2vDzuhns",
-        -7,
-        36,
+        -1,
+        50,
         "dNtHVLGwESE",
-        -7,
-        11,
+        -1,
+        14,
         "ep3t0fF0SDA",
-        -9,
-        28,
+        -1,
+        40,
         "lWJp5Z4VtFs",
-        -7,
-        9,
+        -1,
+        11,
         "s3XioIi2Huw",
-        -7,
-        13,
+        -1,
+        17,
       ]
     `);
   });

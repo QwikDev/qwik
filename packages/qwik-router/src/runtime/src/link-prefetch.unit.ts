@@ -113,7 +113,7 @@ describe('link prefetch observer', () => {
     observer.trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.8, undefined);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.5, undefined);
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
@@ -128,7 +128,7 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances[0].trigger(unmatched);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]', 0.8, undefined);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]', 0.5, undefined);
     cleanup();
   });
 
@@ -141,11 +141,11 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances[0].trigger(underNewLayouts);
     MockIntersectionObserver.instances[0].trigger(underTheSameLayouts);
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro', 0.8, [
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro', 0.5, [
       'DocsLayout',
       'GuideLayout',
     ]);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.8, undefined);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.5, undefined);
     cleanup();
   });
 

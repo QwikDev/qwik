@@ -1944,13 +1944,18 @@ describe('shared-serialization', () => {
     let platformBeforeTest: ReturnType<typeof getPlatform>;
     const lazyQrl = (symbol: string, captures: unknown[] | null = null) =>
       createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
-    const holdModuleOf = (heldSymbol: string) => {
+    const holdModuleOf = (heldSymbol: string, failingSymbol?: string) => {
       let release!: () => void;
       const heldModule = new Promise<() => void>((resolve) => (release = () => resolve(() => {})));
       setPlatform({
         ...getTestPlatform(),
         isServer: false,
-        importSymbol: (_, __, symbol) => (symbol === heldSymbol ? heldModule : () => {}),
+        importSymbol: (_, __, symbol) => {
+          if (symbol === failingSymbol) {
+            return Promise.reject(new Error('failed to load'));
+          }
+          return symbol === heldSymbol ? heldModule : () => {};
+        },
       });
       return release;
     };
@@ -1979,6 +1984,39 @@ describe('shared-serialization', () => {
       expect(await isReady(second)).toBe(false);
       releaseComputedModule();
       expect(await isReady(second)).toBe(true);
+    });
+
+    it('does not take a captured plain object for a computed', async () => {
+      const objs = await serialize(lazyQrl('s_reader', [{ $computeQrl$: 1 }]));
+      setPlatform({ ...getTestPlatform(), isServer: false, importSymbol: () => () => {} });
+      const [reader] = deserialize(objs) as QRLInternal[];
+
+      await expect(reader.resolve()).resolves.toBeTypeOf('function');
+    });
+
+    it('does not leave its own failed load unhandled while it waits for the computed', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(
+        lazyQrl('s_first', [computed]),
+        lazyQrl('s_failing', [computed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed', 's_failing');
+      const [first, failing] = deserialize(objs) as QRLInternal[];
+      const onUnhandledRejection = vi.fn();
+      process.on('unhandledRejection', onUnhandledRejection);
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      void first.resolve();
+      const failed = failing.resolve().then(
+        () => false,
+        () => true
+      );
+      await delay(0);
+      process.off('unhandledRejection', onUnhandledRejection);
+      releaseComputedModule();
+
+      expect(onUnhandledRejection).not.toHaveBeenCalled();
+      expect(await failed).toBe(true);
     });
 
     it('does not wait for a module that only another QRL needs', async () => {

@@ -8,6 +8,7 @@ import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
+import { Brand, hasBrand } from '../utils/brand';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, isObject, type ValueOrPromise } from '../utils/types';
@@ -554,7 +555,10 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     let loading = loadingHolder.p as Promise<unknown> | null;
     loadingHolder.p = outerLoading;
     for (let i = 0; i < captures.length; i++) {
-      const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
+      const capture = captures[i];
+      const computeQrl =
+        hasBrand(capture, Brand.ComputedSignal) &&
+        (capture as { $computeQrl$?: QRLInternal }).$computeQrl$;
       const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
       if (isPromise(computedModule)) {
         const computedLoaded = computedModule.catch(() => {});
@@ -622,6 +626,9 @@ const $resolve$ = <TYPE>(
   const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
 
   if (capturedPromise) {
+    if (isPromise(maybePromise)) {
+      maybePromise.catch(() => {});
+    }
     return capturedPromise.then(() => maybePromise);
   }
   return maybePromise;

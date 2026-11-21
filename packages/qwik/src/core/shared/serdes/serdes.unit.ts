@@ -2018,6 +2018,21 @@ describe('shared-serialization', () => {
       expect(onUnhandledRejection).not.toHaveBeenCalled();
       expect(await failed).toBe(true);
     });
+
+    it('does not wait for a module that only another QRL needs', async () => {
+      const heldComputed = createComputedQrl(lazyQrl('s_computed') as any);
+      const ownComputed = createComputedQrl(lazyQrl('s_other') as any);
+      const objs = await serialize(
+        lazyQrl('s_first', [heldComputed]),
+        lazyQrl('s_second', [ownComputed])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const [first, second] = deserialize(objs) as QRLInternal[];
+
+      expect(await isReady(first)).toBe(false);
+      expect(await isReady(second)).toBe(true);
+      releaseComputedModule();
+    });
   });
 
   describe('reactive primitives: effect backRef after deserialize', () => {

@@ -185,6 +185,7 @@ Load the relevant skill before non-trivial work in that area:
 | `qwik-router-development` | Editing/reviewing router runtime, buildtime, middleware, adapters, or SSG |
 | `qwik-optimizer-development` | Editing/reviewing Rust optimizer, WASM, NAPI, or optimizer-facing behavior |
 | `qwik-e2e-verification` | Creating, debugging, or running Playwright e2e suites |
+| `qwik-ci-development` | Editing/debugging the CI workflow, its actions, `flake.nix`, or `nix/ci.nix` |
 | `qwik-docs-development` | Writing/editing docs content, docs site routes, or docs LLM outputs |
 | `qwik-guidance-maintenance` | Editing `.ruler/**`, generated-output guidance, or stale skill/reference content |
 
@@ -450,6 +451,7 @@ Current source skills:
 - `qwik-router-development`
 - `qwik-optimizer-development`
 - `qwik-e2e-verification`
+- `qwik-ci-development`
 - `qwik-docs-development`
 - `qwik-guidance-maintenance`
 

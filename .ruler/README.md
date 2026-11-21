@@ -32,6 +32,7 @@ Current source skills:
 - `qwik-router-development`
 - `qwik-optimizer-development`
 - `qwik-e2e-verification`
+- `qwik-ci-development`
 - `qwik-docs-development`
 - `qwik-guidance-maintenance`
 

@@ -1,0 +1,49 @@
+name: Built checkout
+description: Adds Node, pnpm, the packages that the Nix build produced, and optionally a Playwright browser to a checkout.
+
+inputs:
+  node-version:
+    description: Node version to install
+    required: true
+  browser:
+    description: Playwright browser to install. Needs PLAYWRIGHT_BROWSERS_PATH set to .cache/ms-playwright.
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-*.yaml
+        registry-url: https://registry.npmjs.org/
+
+    # Both artifacts mirror the repo layout. They come before the install so pnpm links their bins.
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      with:
+        name: artifact-dist
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      with:
+        pattern: 'artifact-bindings-*'
+        path: packages/optimizer/bindings
+        merge-multiple: true
+
+    - shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Playwright browser cache
+      id: playwright-cache
+      if: inputs.browser != ''
+      uses: actions/cache@v5
+      with:
+        key: playwright-${{ runner.os }}-${{ inputs.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
+        path: .cache/ms-playwright
+
+    - name: Install Playwright browser
+      if: inputs.browser != '' && steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
+      run: pnpm exec playwright install "$BROWSER"

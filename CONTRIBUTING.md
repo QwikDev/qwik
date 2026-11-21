@@ -77,6 +77,7 @@ You need to have these tools up and running in your local machine:
 
 - Install it on your machine and enable flakes. The [DetSys installer](https://github.com/DeterminateSystems/nix-installer) makes that easy.
 - run `nix develop` in the project root to open a shell with all the tools, or use `direnv` to have them automatically added into your current shell.
+- CI builds and tests the same flake on x86_64 Linux, so there you can run any of its jobs: `nix build .#qwik-packages` or `nix build .#ci.dev.checks.unit`. Installing `node_modules` needs the network, so add `sandbox = relaxed` to your `nix.conf` first.
 
 ##### Nix + Direnv (optional)
 

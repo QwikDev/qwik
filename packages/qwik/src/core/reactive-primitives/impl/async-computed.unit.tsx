@@ -131,6 +131,83 @@ describe('async computed', () => {
     });
   });
 
+  it('recomputes async computeds in a chain with explicitly tracked dependencies', async () => {
+    await withContainer(async () => {
+      const input = createSignal(0);
+      const a = createComputed$(() => input.value + 1);
+      const b = createComputed$(async ({ track }) => track(a) + 1);
+      const out = createComputed$(async ({ track }) => track(b) + 1);
+      const nextA = createComputed$(() => out.value + 1);
+      const nextB = createComputed$(async ({ track }) => track(nextA) + 1);
+      const nextOut = createComputed$(async ({ track }) => track(nextB) + 1);
+
+      await retryOnPromise(() => {
+        effect$(() => log.push(nextOut.value));
+      });
+      expect(log).toEqual([6]);
+
+      input.value = 1;
+      await delay(20);
+      await container.$renderPromise$;
+      expect(log).toEqual([6, 7]);
+    });
+  });
+
+  it('loads async computed code together without recomputing unchanged dependencies', async () => {
+    await withContainer(async () => {
+      const input = createSignal(0);
+      const calls = { a: 0, b: 0, out: 0 };
+      const a = createComputed$(async ({ track }) => {
+        calls.a++;
+        return track(input) % 2;
+      }) as ComputedSignalImpl<number>;
+      const b = createComputed$(async ({ track }) => {
+        calls.b++;
+        return track(a) + 1;
+      }) as ComputedSignalImpl<number>;
+      const out = createComputed$(async ({ track }) => {
+        calls.out++;
+        return track(b) + 1;
+      }) as ComputedSignalImpl<number>;
+
+      await a.promise();
+      await b.promise();
+      await retryOnPromise(() => {
+        effect$(() => log.push(out.value));
+      });
+      expect(log).toEqual([2]);
+      expect(calls).toEqual({ a: 1, b: 1, out: 1 });
+
+      let releaseCode!: () => void;
+      const codeReady = new Promise<void>((resolve) => (releaseCode = resolve));
+      const imports = [a, b, out].map((signal) => {
+        const qrl = signal.$computeQrl$;
+        const compute = qrl.resolved!;
+        qrl.resolved = undefined;
+        return vi.spyOn(qrl, 'resolve').mockImplementation(async () => {
+          await codeReady;
+          qrl.resolved = compute;
+          return compute;
+        });
+      });
+
+      try {
+        input.value = 2;
+        await Promise.resolve();
+        for (let i = 0; i < imports.length; i++) {
+          expect(imports[i]).toHaveBeenCalled();
+        }
+        expect(calls).toEqual({ a: 1, b: 1, out: 1 });
+      } finally {
+        releaseCode();
+        await a.promise();
+      }
+      await container.$renderPromise$;
+      expect(calls).toEqual({ a: 2, b: 1, out: 1 });
+      expect(log).toEqual([2]);
+    });
+  });
+
   it('keeps a sync computed consistent across an async source in a diamond', async () => {
     await withContainer(async () => {
       const a = createSignal(1);

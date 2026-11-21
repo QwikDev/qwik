@@ -213,13 +213,16 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     invalidateDerived(this);
   }
 
-  /** Recompute now; a thrown QRL promise retries. Async signals only resolve CHECK here. */
+  /** Pull sources and load QRLs, deferring async jobs to microtasks. */
   $pull$(): void {
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
     const compute =
       this.$flags$ & AsyncSignalFlags.ASYNC_MODE
-        ? () => pullSourcesIfCheck(this)
+        ? () => {
+            pullSourcesIfCheck(this);
+            throwIfQRLNotResolved(this.$computeQrl$);
+          }
         : this.$computeIfNeeded$;
     // @ts-expect-error it's confused about args any[] vs []
     const running = retryOnPromise(invokeApply.bind(this, ctx, compute));

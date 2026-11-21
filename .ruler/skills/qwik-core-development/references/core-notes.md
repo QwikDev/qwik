@@ -48,12 +48,13 @@ in `$flags$`: clean, `CHECK` (a transitive source changed) and `INVALID` (a dire
 - Pull only the derived signals that have task/vnode (or pending/error) subscribers; everything
   else stays lazy until read. A node's non-derived effects run only when its value changed, so a
   `CHECK` node must never dispatch them during marking.
-- A `CHECK` node resolves itself by pulling its own sources from its `backRef` and recomputes only
-  when one of them promoted it to `INVALID`. Async-mode sources are skipped: they compute in a
-  microtask and push when they settle. An async node with effects is still pulled, but its pull
-  only resolves `CHECK`; the promotion goes through `$setInvalid$`, which schedules the job in a
-  microtask, so a write never starts an async job synchronously and one tick starts one job. A
-  test for this must not read the node (`promise()` or `.value` resolves `CHECK` by itself).
+- A `CHECK` node resolves itself by pulling its own sources from both `VNODE` (automatic reads) and
+  `COMPONENT` (explicit `track()`) back references and recomputes only when one of them promoted it
+  to `INVALID`. Async-mode sources are pulled to resolve their own `CHECK` and load their QRLs,
+  keeping code discovery independent of when upstream jobs settle. These pulls must not start jobs
+  synchronously; promotion goes through `$setInvalid$`, which schedules the job in a microtask, so
+  one tick starts one job. A test for this must not read the node (`promise()` or `.value` resolves
+  `CHECK` by itself).
 - A derived signal must push from the place it writes its value (`super.value =` for computeds,
   `$computeIfNeeded$` for wrapped signals), since the CHECK walk calls `$computeIfNeeded$`
   directly. A wrapped signal computed from `NEEDS_COMPUTATION` notifies only when
@@ -63,8 +64,9 @@ in `$flags$`: clean, `CHECK` (a transitive source changed) and `INVALID` (a dire
   of them per store write is measurable in the perf app), so it cannot rely on a source's push.
 - A wrapped signal is cached only while it is subscribed to its sources: `clearEffectSubscription`
   must set `INVALID` on a wrapped consumer, or a re-tracked attribute silently stops updating.
-- Never serialize `CHECK` or `SOURCE_CHANGED`: a `CHECK` node serializes as needing computation
-  and a resumed node has no own `backRef`, so its CHECK walk degrades to a recompute.
+- Never serialize `CHECK` or `SOURCE_CHANGED`: a `CHECK` node serializes as needing computation.
+  When source back references are unavailable, promote `CHECK` to `INVALID`; async promotion must
+  also schedule the job through `$setInvalid$`.
 
 Regression coverage: `impl/signal.unit.tsx` (`diamond`), `impl/async-computed.unit.tsx`,
 `cleanup.unit.tsx`, `shared/serdes/serdes.unit.ts`, and `tests/render-regression.spec.tsx`.

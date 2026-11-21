@@ -254,25 +254,44 @@ export const pullAll = (toPull: DerivedSignal[]) => {
   }
 };
 
-/**
- * Resolve the CHECK state: pull the derived sources and recompute only if one of them changed (it
- * promotes this signal to INVALID through its own effects). Async sources are skipped: they push
- * when they settle.
- */
+/** Resolve CHECK through automatic and explicit dependencies before deciding to recompute. */
 export const pullSourcesIfCheck = (signal: DerivedSignal) => {
   if (!(signal.$flags$ & ComputedSignalFlags.CHECK)) {
     return;
   }
-  const sources = signal[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef;
-  if (!sources) {
-    // A resumed signal has no source list, so the only safe answer is to recompute
-    signal.$flags$ |= ComputedSignalFlags.INVALID;
+  const backRefs = signal[_EFFECT_BACK_REF];
+  const sources = [
+    backRefs?.get(EffectProperty.VNODE)?.backRef,
+    backRefs?.get(EffectProperty.COMPONENT)?.backRef,
+  ];
+  if (!sources[0] && !sources[1]) {
+    // Missing source lists require conservative recomputation.
+    if (signal instanceof ComputedSignalImpl && signal.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
+      signal.$setInvalid$(true);
+    } else {
+      signal.$flags$ |= ComputedSignalFlags.INVALID;
+    }
   } else {
-    const sourcesSnapshot = Array.from(sources);
-    for (let i = 0; i < sourcesSnapshot.length; i++) {
-      const source = sourcesSnapshot[i];
-      if (isDerivedSource(source) && !(source.$flags$ & AsyncSignalFlags.ASYNC_MODE)) {
-        source.$computeIfNeeded$();
+    for (let i = 0; i < sources.length; i++) {
+      const sourceSet = sources[i];
+      if (!sourceSet) {
+        continue;
+      }
+      const sourcesSnapshot = Array.from(sourceSet);
+      for (let j = 0; j < sourcesSnapshot.length; j++) {
+        const source = sourcesSnapshot[j];
+        if (isDerivedSource(source)) {
+          if (source.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
+            if (source.$flags$ & ComputedSignalFlags.CHECK) {
+              source.$pull$();
+            }
+          } else {
+            source.$computeIfNeeded$();
+          }
+        }
+        if (signal.$flags$ & ComputedSignalFlags.INVALID) {
+          break;
+        }
       }
       if (signal.$flags$ & ComputedSignalFlags.INVALID) {
         break;

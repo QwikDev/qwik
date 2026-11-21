@@ -1,4 +1,4 @@
-import { Slot, useSignal, SSRStreamWriter } from '@qwik.dev/core';
+import { Slot, useSignal, SSRStreamWriter, type JSXOutput } from '@qwik.dev/core';
 import { ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
@@ -28,6 +28,12 @@ describe('v2 ssr render', () => {
       <span>
         Hello <b>World</b>!
       </span>
+    );
+  });
+  it('should throw when a function is passed as a child', async () => {
+    const functionChild = (() => <div>child</div>) as unknown as JSXOutput;
+    await expect(ssrRenderToDom(<main>{functionChild}</main>, { debug })).rejects.toThrow(
+      'Function children are not supported'
     );
   });
   it('should render void element correctly', async () => {

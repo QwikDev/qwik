@@ -13,16 +13,35 @@ import {
   render,
 } from '@qwik.dev/core';
 import '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { vnode_getFirstChild } from '../client/vnode-utils';
 import { createDocument } from '@qwik.dev/dom';
 import { getTestPlatform, trigger } from '@qwik.dev/core/testing';
 import type { _ContainerElement } from '@qwik.dev/core/internal';
+import * as logUtils from '../shared/utils/log';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {
     const { vNode } = await clientRender(<span>Hello World!</span>);
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(<span>Hello World!</span>);
+  });
+  it('should report an error when a function is passed as a child', async () => {
+    const functionChild = (() => <div>child</div>) as unknown as JSXOutput;
+    const children = [functionChild];
+    const root = <main>{children}</main>;
+    const throwAsyncSpy = vi
+      .spyOn(logUtils, 'logErrorAndThrowAsync')
+      .mockImplementation((message?: any) => message as Error);
+    try {
+      await clientRender(root);
+      expect(throwAsyncSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Function children are not supported'),
+        })
+      );
+    } finally {
+      throwAsyncSpy.mockRestore();
+    }
   });
   it('should insert dangerouslySetInnerHTML from an async computed', async () => {
     const Cmp = component$(() => {

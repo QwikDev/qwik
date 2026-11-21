@@ -24,6 +24,9 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
 // The Vite dev server has no built manifest, so it never preloads bundles from here.
 const getBase = (container: SSRContainer) => container.$buildBase$!;
 
+/** A JS literal for an inline script: `</script>` in a value would end the script element. */
+const toScriptLiteral = (value: unknown) => JSON.stringify(value).replaceAll('<', '\\u003C');
+
 const afterPagePaint = (task: string) =>
   `window.addEventListener('load',f=>{` +
   `f=_=>${task};` +
@@ -85,9 +88,9 @@ export const preloaderPre = (
     container.closeElement();
 
     const script = afterPagePaint(
-      `{let b=fetch("${bundleGraphPath}");` +
-        `import("${preloaderBundle}").then(({l})=>` +
-        `l(${JSON.stringify(base)},b${optsStr})` +
+      `{let b=fetch(${toScriptLiteral(bundleGraphPath)});` +
+        `import(${toScriptLiteral(preloaderBundle)}).then(({l})=>` +
+        `l(${toScriptLiteral(base)},b${optsStr})` +
         `)}`
     );
     const scriptAttrs: Record<string, string | boolean> = {
@@ -100,16 +103,97 @@ export const preloaderPre = (
     }
     container.writeScript(scriptAttrs, script);
   }
+};
 
-  const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
-  if (corePath) {
-    const linkAttrs: Record<string, string> = { rel: 'modulepreload', href: corePath };
-    if (nonce) {
-      linkAttrs['nonce'] = nonce;
+const DYNAMIC_IMPORTS_MARKER = -1;
+
+/** We only use modulepreload links because they behave best. */
+const createLinksScript = (base: string, links: string[]) =>
+  `${toScriptLiteral(links)}.map((l,e)=>{` +
+  `e=document.createElement('link');` +
+  `e.rel='modulepreload';` +
+  `e.href=${toScriptLiteral(base)}+l;` +
+  `document.head.appendChild(e)` +
+  `});`;
+
+/**
+ * A bundle and everything it imports statically, imports first. After a bundle's name and its kind
+ * marker, the graph lists its direct static imports up to the dynamic-import marker, without those
+ * reachable through another.
+ */
+const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: string) => {
+  const closure: string[] = [];
+  // Marked before visiting imports, since the graph keeps static import cycles
+  const seen = new Set<string>();
+  const visit = (name: string) => {
+    if (seen.has(name)) {
+      return;
     }
-    container.openElement('link', null, linkAttrs, null, null, null);
-    container.closeElement();
+    seen.add(name);
+    const nameIdx = bundleGraph?.indexOf(name) ?? -1;
+    const hasKindMarker =
+      nameIdx >= 0 && (bundleGraph![nameIdx + 1] as number) < DYNAMIC_IMPORTS_MARKER;
+    for (
+      let i = nameIdx + (hasKindMarker ? 2 : 1);
+      nameIdx >= 0 && typeof bundleGraph![i] === 'number';
+      i++
+    ) {
+      const depIdx = bundleGraph![i] as number;
+      if (depIdx < 0) {
+        break;
+      }
+      visit(bundleGraph![depIdx] as string);
+    }
+    closure.push(name);
+  };
+  visit(bundle);
+  return closure;
+};
+
+const handlerBundlesLinked = new WeakMap<SSRContainer, string[]>();
+
+/**
+ * Links core and the bundles of core's handlers (`_run`, `_task`, …) that the page's events run
+ * through, with their static imports, as each handler first appears instead of when the page has
+ * finished streaming. Every interaction needs them, so `ssrPreloads` doesn't limit these links.
+ */
+export const preloadHandlerBundles = (
+  container: SSRContainer,
+  options: RenderToStreamOptions['preloader'],
+  nonce?: string
+): void => {
+  if (options === false || (import.meta.env?.DEV && !qTest)) {
+    return;
   }
+  const manifest = container.resolvedManifest?.manifest;
+  const handlerBundles = getBundles(
+    Array.from(container.serializationCtx.$coreHandlerQrls$.values()) as QRLInternal[]
+  );
+  const linked = handlerBundlesLinked.get(container) ?? [];
+  const links: string[] = [];
+  for (let i = 0; i < handlerBundles.length; i++) {
+    // Like the links at the end, skip names the bundle graph doesn't know: they may not be files
+    if (!manifest?.bundleGraph?.includes(handlerBundles[i])) {
+      continue;
+    }
+    const closure = getStaticClosure(manifest.bundleGraph, handlerBundles[i]);
+    for (let j = 0; j < closure.length; j++) {
+      const bundle = closure[j];
+      if (bundle !== manifest.preloader && !linked.includes(bundle) && !links.includes(bundle)) {
+        links.push(bundle);
+      }
+    }
+  }
+  if (!links.length) {
+    return;
+  }
+  handlerBundlesLinked.set(container, [...linked, ...links]);
+  const attrs: Record<string, string> = nonce ? { nonce } : {};
+  // Inside the app's elements, so it must not stay in their DOM.
+  container.writeScript(
+    attrs,
+    createLinksScript(getBase(container), links) + 'document.currentScript.remove()'
+  );
 };
 
 export const includePreloader = (
@@ -128,41 +212,30 @@ export const includePreloader = (
   const base = getBase(container);
 
   const links: string[] = [];
+  const linkedEarly = handlerBundlesLinked.get(container) ?? [];
 
   const { resolvedManifest } = container;
   if (ssrPreloads) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
-    const coreBundle = resolvedManifest?.manifest.core;
     // With the bundle graph, link what the client preloader would fetch first for this hint.
     const ranked = getPreloadOrder(referencedBundles);
     const candidates = ranked.length ? ranked : referencedBundles;
     for (let i = 0; i < candidates.length && links.length < ssrPreloads; i++) {
-      // we already preload the preloader and core bundles
-      if (candidates[i] !== preloaderBundle && candidates[i] !== coreBundle) {
+      // we already preload the preloader bundle and the handler bundles linked mid-stream
+      if (candidates[i] !== preloaderBundle && !linkedEarly.includes(candidates[i])) {
         links.push(candidates[i]);
       }
     }
   }
   const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
-  const insertLinks = links.length
-    ? /**
-       * We only use modulepreload links because they behave best. Older browsers can rely on the
-       * preloader which does feature detection and which will be available soon after inserting these
-       * links.
-       */
-      `${JSON.stringify(links)}.map((l,e)=>{` +
-      `e=document.createElement('link');` +
-      `e.rel='modulepreload';` +
-      `e.href=${JSON.stringify(base)}+l;` +
-      `document.head.appendChild(e)` +
-      `});`
-    : '';
+  // Older browsers can rely on the preloader, which does feature detection.
+  const insertLinks = links.length ? createLinksScript(base, links) : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
   const preloaderReadsThePage = !!resolvedManifest?.manifest.bundleGraphAsset;
   if (preloaderBundle && !preloaderReadsThePage) {
     script += afterPagePaint(
-      `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}))`
+      `import(${toScriptLiteral(preloaderBundle)}).then(({p})=>p(${toScriptLiteral(referencedBundles)}))`
     );
   }
   if (script) {
@@ -186,6 +259,7 @@ export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, n
     return;
   }
   if (opts.preloader !== false) {
+    preloadHandlerBundles(ssrContainer, opts.preloader, nonce);
     const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
     const preloadBundles = getBundles(qrls);
     includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);

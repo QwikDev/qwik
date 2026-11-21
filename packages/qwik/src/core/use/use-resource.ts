@@ -1,6 +1,5 @@
 import type { QRLInternal, ValueOrPromise } from '../../server/qwik-types';
 import { qwikDebugToString } from '../debug';
-import { _capturesObj } from '../internal';
 import { createStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
@@ -10,7 +9,8 @@ import {
 import type { ComputeCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { createQRL } from '../shared/qrl/qrl-class';
+import { rscQrl } from '../shared/qrl/handler-qrls';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
@@ -70,24 +70,18 @@ export interface ResourceOptions {
  *
  * @internal
  */
-export const _rsc = async <T>(arg: ResourceCtx<T>) => {
-  const [fn, ref] = _capturesObj._ as [QRLInternal<ResourceFn<T>>, { r: T; i: number }];
+export async function _rsc<T>(arg: ResourceCtx<T>): Promise<{ r: T }> {
+  const [fn] = _capturesObj._ as [QRLInternal<ResourceFn<T>>];
   DEBUG && log('invoke resource function');
   const result = await fn(arg);
   DEBUG && log('resource function resolved', result);
-  if (result && typeof result === 'object') {
-    if (ref.r) {
-      Object.assign(ref.r, result);
-    } else {
-      // We need lazy creation because we don't know if it will be an array or an object, and we want to preserve the original reference for reactivity to work
-      ref.r = createStore(fn.$container$, result, StoreFlags.RECURSIVE);
-      DEBUG && log('store created', ref.r);
-    }
-  } else {
-    ref.r = result as any;
-  }
-  return { r: ref.r };
-};
+  return {
+    r:
+      result && typeof result === 'object'
+        ? createStore(fn.$container$, result, StoreFlags.RECURSIVE)
+        : result,
+  };
+}
 
 /** @internal */
 export const useResourceQrl = <T>(
@@ -101,9 +95,7 @@ export const useResourceQrl = <T>(
     return val as ResourceReturn<T>;
   }
 
-  const ref = {} as { r: T };
-  // Wrap the function so we can maintain a stable reference to the store
-  const wrapped = createQRL(null, '_rsc', _rsc, null, [qrl, ref], iCtx.$container$);
+  const wrapped = rscQrl().w([qrl]);
   const asyncSignal = createAsyncQrl<{ r: T }>(wrapped as any, {
     timeout: opts?.timeout,
     container: iCtx.$container$,

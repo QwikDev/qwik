@@ -22,9 +22,6 @@ import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer } from '../ssr/ssr-types';
 
 /** @internal */
-export const PENDING_QRL_SYMBOL = '_peC';
-
-/** @internal */
 export type OutOfOrderRevealBoundary = {
   attrs: string;
   showFallback: boolean;

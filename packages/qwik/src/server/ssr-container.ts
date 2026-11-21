@@ -5,12 +5,11 @@ import {
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
-  _res,
+  _resumeRootsQrl,
   _setEvent,
   _walkJSX,
   _handleSSRError,
   _isTask as isTask,
-  _createQRL as createQRL,
   _getVarProps,
   isSignal,
   type Signal,
@@ -119,7 +118,7 @@ import {
   recordExternalRootEffect,
   type SubscriptionPatchRecord,
 } from './ooos-utils';
-import { preloaderPost, preloaderPre } from './preload-impl';
+import { preloaderPost, preloaderPre, preloadHandlerBundles } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
@@ -762,6 +761,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   $noScriptHere$: number = 0;
+  private coreHandlersLinked = 0;
+
+  linkCoreHandlerBundles(): void {
+    if (
+      this.coreHandlersLinked === this.serializationCtx.$coreHandlerQrls$.size ||
+      isDev ||
+      // Segments stream inside <template>, where scripts don't run; their root links them
+      this instanceof SSRSegmentContainer
+    ) {
+      return;
+    }
+    this.coreHandlersLinked = this.serializationCtx.$coreHandlerQrls$.size;
+    preloadHandlerBundles(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
+  }
   $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
@@ -791,6 +804,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
+      this.linkCoreHandlerBundles();
       if (this.emittedQwikEventNames.size !== this.serializationCtx.$eventNames$.size) {
         // Lets qwikloader catch interactions while the rest of the page streams in
         this.emitNewQwikEvents(false, true);
@@ -1528,7 +1542,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     const attrs: Props = { type: 'qwik/state', [QInstanceAttr]: this.$instanceHash$ };
     const eagerResume = this.serializationCtx.$eagerResume$;
     if (eagerResume.size > 0) {
-      attrs['q-d:qidle'] = createQRL(null, '_res', _res, null, [...eagerResume]);
+      attrs['q-d:qidle'] = _resumeRootsQrl([...eagerResume]);
     }
     return attrs;
   }
@@ -2358,6 +2372,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
     for (const qrl of segmentSerializationCtx.$eventQrls$) {
       rootContainer.serializationCtx.$eventQrls$.add(qrl);
+    }
+    for (const [hash, qrl] of segmentSerializationCtx.$coreHandlerQrls$) {
+      rootContainer.serializationCtx.$coreHandlerQrls$.set(hash, qrl);
     }
   }
 

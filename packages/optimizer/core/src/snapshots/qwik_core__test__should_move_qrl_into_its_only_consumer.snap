@@ -47,11 +47,11 @@ import { componentQrl } from "@qwik.dev/core";
 //
 const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
 //
-/*#__PURE__*/ qrl(()=>import("./test.tsx_greet_gFbcnqexLxg"), "greet_gFbcnqexLxg");
 export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+/*#__PURE__*/ qrl(()=>import("./test.tsx_greet_gFbcnqexLxg"), "greet_gFbcnqexLxg");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,wBAAU,8CAGpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,OAAO,MAAM,wBAAU,8CAGpB\"}")
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

@@ -1,168 +1,50 @@
-import { build, type BuildOptions, type Plugin } from 'esbuild';
+import { build } from 'esbuild';
 import { join } from 'node:path';
-import { minify } from 'terser';
+import type { Plugin as RolldownPlugin } from 'rolldown';
 import { readPackageJson } from './package-json.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
 import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
-import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
-import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } from './util.ts';
-
-/** Core files other bundles may copy; everything else must come from `@qwik.dev/core/internal`. */
-export const isCopyableCorePath = (path: string) =>
-  path.includes('util') ||
-  path.includes('shared') ||
-  path.includes('ssr') ||
-  path.includes('version') ||
-  // we allow building preloader into server builds
-  path.includes('preloader');
+import { type BuildConfig, target } from './util.ts';
 
 /**
- * Builds @qwik.dev/core/server
- *
- * This is submodule for helping to generate server-side rendered pages, along with providing
- * utilities for prerendering and unit testing.
- *
- * @param nameCache - Terser nameCache from the core build. When provided (prod builds), server.mjs
- *   gets a property-mangling pass using the same $...$ mappings so that cross-bundle calls between
- *   core and server keep property names in sync.
+ * What `@qwik.dev/core/server` needs on top of core's library build, which bundles it as an entry
+ * so it shares core's modules: the bundled DOM and the inlined loader and backpatch scripts. Needs
+ * the qwikloader and backpatch builds first.
  */
-export async function submoduleServer(config: BuildConfig, nameCache?: object) {
-  const submodule = 'server';
-  console.log('🐰 start', submodule);
-
-  const qwikDomPlugin = await bundleQwikDom(config);
-  const qwikDomVersion = await getQwikDomVersion(config);
-
-  const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
-    entryNames: 'server',
-    outdir: config.distQwikPkgDir,
-    sourcemap: config.dev,
-    bundle: true,
-    platform: 'node',
-    target,
-    external: [
-      '@qwik.dev/dom',
-      '@qwik.dev/core',
-      '@qwik.dev/core/build',
-      '@qwik.dev/core/preloader',
-    ],
-  };
-
-  const esm = build({
-    ...opts,
-    format: 'esm',
-    banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
-    outExtension: { '.js': '.mjs' },
-    plugins: [
-      // uncomment this if you want to find what imports what
-      // so you can make sure client isn't being imported
-      // {
-      //   name: 'spy-resolve',
-      //   setup(build) {
-      //     build.onResolve({ filter: /./ }, (args) => {
-      //       console.log('spy-resolve', args);
-      //       return undefined;
-      //     });
-      //   },
-      // },
-      {
-        // throws an error if files from src/core are loaded, except for some allowed imports
-        name: 'forbid-core',
-        setup(build) {
-          build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
-            if (isCopyableCorePath(args.path)) {
-              return null;
-            }
-            console.error('forbid-core', args);
-            throw new Error('Import of core files is not allowed in server builds.');
-          });
-        },
-      },
-      importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'),
-      qwikDomPlugin,
-    ],
-    define: {
-      ...(await inlineQwikScriptsEsBuild(config)),
-      ...(await inlineBackpatchScriptsEsBuild(config)),
-      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+export async function serverSourceOptions(config: BuildConfig) {
+  const qwikDom = await bundleQwikDom(config);
+  const qwikDomPlugin: RolldownPlugin = {
+    name: 'qwikDom',
+    resolveId(id) {
+      if (id === '@qwik.dev/dom') {
+        return qwikDom;
+      }
     },
-  });
-
-  await Promise.all([esm]);
-
-  if (!config.dev) {
-    const serverMjs = join(config.distQwikPkgDir, 'server.mjs');
-    const code = await readFile(serverMjs, 'utf-8');
-    const noMangle = config.mangle === false;
-    if (nameCache && !noMangle) {
-      // Apply property-only mangling with the same nameCache used for core so that $...$
-      // property accesses in server.prod.mjs resolve to the same mangled names as in core.prod.mjs.
-      const result = await minify(code, {
-        nameCache,
-        compress: false,
-        mangle: {
-          properties: {
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
-        format: {
-          beautify: true,
-          braces: true,
-          comments: 'all',
-          preserve_annotations: true,
-          ecma: 2020,
-        },
-      });
-      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), result.code!);
-    } else {
-      // noMangle or no nameCache: write server.prod.mjs without mangling (copy of server.mjs)
-      await writeFile(join(config.distQwikPkgDir, 'server.prod.mjs'), code);
-    }
-  } else if (config.dev) {
-    // In dev builds, server.prod.mjs is a proxy to the unmangled server.mjs
-    await writeFile(
-      join(config.distQwikPkgDir, 'server.prod.mjs'),
-      `export * from './server.mjs';\n`
-    );
-  }
-
-  console.log('🐰', submodule);
+  };
+  // Inlined into the output: rolldown's `define` misses the sources' `(globalThis as any).NAME`.
+  const globals: Record<string, string> = {
+    ...(await inlineQwikScriptsEsBuild(config)),
+    ...(await inlineBackpatchScriptsEsBuild(config)),
+    'globalThis.QWIK_DOM_VERSION': JSON.stringify(await getQwikDomVersion(config)),
+  };
+  return { plugins: [qwikDomPlugin], globals };
 }
 
 async function bundleQwikDom(config: BuildConfig) {
-  const input = join(config.packagesDir, 'qwik-dom', 'lib', 'index.js');
   const outfile = join(config.tmpDir, 'qwikdom.mjs');
-
-  const opts: BuildOptions = {
-    entryPoints: [input],
+  await build({
+    entryPoints: [join(config.packagesDir, 'qwik-dom', 'lib', 'index.js')],
     sourcemap: false,
     minify: !config.dev,
     bundle: true,
     target,
     outfile,
     format: 'esm',
-  };
-
-  await build(opts);
-
-  const qwikDomPlugin: Plugin = {
-    name: 'qwikDomPlugin',
-    setup(build) {
-      build.onResolve({ filter: /@qwik.dev\/dom/ }, () => {
-        return {
-          path: outfile,
-        };
-      });
-    },
-  };
-
-  return qwikDomPlugin;
+  });
+  return outfile;
 }
 
 async function getQwikDomVersion(config: BuildConfig) {
-  const pkgJsonPath = join(config.packagesDir, 'qwik-dom');
-  const pkgJson = await readPackageJson(pkgJsonPath);
+  const pkgJson = await readPackageJson(join(config.packagesDir, 'qwik-dom'));
   return pkgJson.version;
 }

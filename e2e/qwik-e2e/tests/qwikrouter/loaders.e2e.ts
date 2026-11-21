@@ -507,15 +507,15 @@ test.describe('loaders', () => {
       await expect(page.locator('#non-blocking-fail')).toHaveText('background-fail');
     });
 
-    test('should not serialize loaders by default and serialize with serializationStrategy: always', async ({
+    test('should serialize small loaders by default and preserve serializationStrategy: always', async ({
       page,
       javaScriptEnabled,
     }) => {
       await page.goto('/qwikrouter-test/loaders-serialization/');
       const stateData = page.locator('script[type="qwik/state"]');
 
-      expect(await stateData.textContent()).not.toContain('some test value');
-      expect(await stateData.textContent()).not.toContain('should not serialize this');
+      expect(await stateData.textContent()).toContain('some test value');
+      expect(await stateData.textContent()).toContain('should not serialize this');
       expect(await stateData.textContent()).toContain('some eager test value');
       expect(await stateData.textContent()).toContain('should serialize this');
 

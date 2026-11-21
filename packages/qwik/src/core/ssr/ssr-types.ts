@@ -184,6 +184,8 @@ export interface SSRContainer extends Container {
   ): Promise<SSROutOfOrderSegment>;
   queueOutOfOrderSegment(segment: Promise<void>): void;
   emitOutOfOrderExecutorIfNeeded(): void;
+  /** Links the bundles of core's handlers first seen since the last call; needs a script-safe spot. */
+  linkCoreHandlerBundles(): void;
   emitErrorSwapExecutorIfNeeded(): void;
   $registerErrorSwap$(boundaryId: number): void;
   /** Keeps the node re-renderable after resume. */

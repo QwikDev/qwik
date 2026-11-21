@@ -9,27 +9,6 @@ import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
-export const definesPlugin = (defines: Record<string, string>): Plugin => {
-  return {
-    name: 'repl-defines',
-    transform(code) {
-      const regex = new RegExp(Object.keys(defines).join('|'), 'g');
-      if (!regex.test(code)) {
-        return null;
-      }
-      let didReplace = false;
-      const result = code.replace(regex, (matched) => {
-        if (defines[matched]) {
-          didReplace = true;
-          return defines[matched];
-        }
-        return matched;
-      });
-      return didReplace ? { code: result, map: null } : null;
-    },
-  };
-};
-
 export const replResolver = (
   deps: PkgUrls,
   options: Pick<ReplInputOptions, 'srcInputs' | 'buildMode' | 'replId'>,
@@ -98,7 +77,10 @@ export const replResolver = (
           pkgName === '/jsx-dev-runtime' ||
           pkgName === '/internal'
         ) {
-          return resolveQwik('/dist/core.mjs');
+          // Published versions before core shipped as a Qwik library enter through core.mjs.
+          return resolveQwik(
+            deps[QWIK_PKG_NAME_V1]['/dist/core.qwik.mjs'] ? '/dist/core.qwik.mjs' : '/dist/core.mjs'
+          );
         }
         if (pkgName === '/server') {
           return resolveQwik('/dist/server.mjs');

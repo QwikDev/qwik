@@ -79,13 +79,15 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
-const q_Table_component_ZCe07ck1dgI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_ZCe07ck1dgI"), "Table_component_ZCe07ck1dgI");
 //
 export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+//
+const q_Table_component_ZCe07ck1dgI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_ZCe07ck1dgI"), "Table_component_ZCe07ck1dgI");
+//
 export const Table = /*#__PURE__*/ componentQrl(q_Table_component_ZCe07ck1dgI);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,qBAAO,2CAQjB;AAEH,OAAO,MAAM,sBAAQ,4CAQlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,qBAAO,2CAQjB;;;;AAEH,OAAO,MAAM,sBAAQ,4CAQlB\"}")
 ============================= test.tsx_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g.js (ENTRY POINT)==
 
 import { _capturesObj } from "@qwik.dev/core";

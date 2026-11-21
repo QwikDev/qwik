@@ -75,6 +75,7 @@ type SsrRenderPendingStreamOptions = {
   debug?: boolean;
   raw?: boolean;
   resume?: boolean;
+  onBeforeResume?: (document: Document) => void;
 };
 
 const ssrRenderPendingStream = (
@@ -93,6 +94,7 @@ const ssrRenderPendingStream = (
     stream,
     streaming,
     resume: opts.resume,
+    onBeforeResume: opts.onBeforeResume,
   });
 };
 
@@ -2555,7 +2557,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
-  it('should update a patched segment after another container starts on the page', async () => {
+  it('should resume a patched segment whose vnode data is walked again before resume', async () => {
     let resolveFirst!: (value: JSXOutput) => void;
     let resolveSecond!: (value: JSXOutput) => void;
     const first = new Promise<JSXOutput>((resolve) => {
@@ -2596,20 +2598,25 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    // Before resume, so no vnode is built until the walk below is done.
+    const startLaterContainer = (document: Document) => {
+      // the second segment subscribes the first one's count, so the first segment gets a patch
+      expect(
+        document.querySelector('script[type="qwik/vnode"][q\\:patch][q\\:r="1"]')
+      ).not.toBeNull();
+      // another container makes the document walk visit the first one's segments and patches again
+      document.body.insertAdjacentHTML('beforeend', '<div q:container="paused"></div>');
+      processVNodeData(document);
+    };
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks, {
+      onBeforeResume: startLaterContainer,
+    });
     await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second'));
     resolveFirst(<span>First ready</span>);
     await vi.waitFor(() => expect(chunks.join('')).toContain('First ready'));
     resolveSecond('Second ready');
     const { document, container } = await renderPromise;
-    // the second segment subscribes the first one's count, so the first segment gets a patch
-    expect(
-      document.querySelector('script[type="qwik/vnode"][q\\:patch][q\\:r="1"]')
-    ).not.toBeNull();
-
-    // another container makes the document walk visit the first one's segments and patches again
-    document.body.insertAdjacentHTML('beforeend', '<div q:container="paused"></div>');
-    processVNodeData(document);
     await whenVNodeDataReady(document, () => undefined);
 
     // the first segment's own elements come from its script, the count from the patch

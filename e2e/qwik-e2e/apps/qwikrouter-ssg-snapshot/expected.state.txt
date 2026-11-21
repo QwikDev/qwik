@@ -71,7 +71,7 @@
 11 Signal [
   Constant undefined
   EffectSubscriptionNoData [
-    VNode "11A"
+    VNode "10A"
     Constant ':'
   ]
 ]
@@ -104,7 +104,7 @@
     Constant STORE_ALL_PROPS
     Set [
       EffectSubscriptionNoData [
-        VNode "1H"
+        VNode "1G"
         Constant ':'
       ]
     ]
@@ -119,7 +119,7 @@
     QRL "[omitted]"
     Set [
       EffectSubscriptionNoData [
-        VNode "11AAA"
+        VNode "10AAA"
         Constant ':'
       ]
       EffectSubscriptionNoData [
@@ -146,7 +146,7 @@
             RootRef [omitted]
           ]
           {number} 0
-          VNode "13A"
+          VNode "12A"
           EffectSubscriptionNoData [
             RootRef [omitted]
             Constant '.'
@@ -159,6 +159,30 @@
     Constant undefined
     Constant undefined
     {number} 516
+    Object [
+      {string} "heading"
+      {string} "SSG Snapshot Fixture"
+      {string} "stats"
+      Array [
+        {number} 2
+        {number} 3
+        {number} 5
+        {number} 8
+      ]
+      {string} "tags"
+      Array [
+        {string} "routeLoader$"
+        {string} "useResource$"
+        {string} "useSignal"
+      ]
+      {string} "profile"
+      Object [
+        RootRef [omitted]
+        {string} "router-state"
+        {string} "status"
+        {string} "stable"
+      ]
+    ]
   ]
 ]
 15 Constant ''
@@ -191,7 +215,7 @@
             RootRef [omitted]
           ]
           {number} 0
-          VNode "8"
+          VNode "7"
           EffectSubscription [
             RootRef [omitted]
             {string} "href"
@@ -434,23 +458,20 @@
 ]
 58 RootRef [omitted]
 59 RootRef [omitted]
-60 Map [
+60 RootRef [omitted]
+61 Map [
   RootRef [omitted]
   RootRef [omitted]
 ]
-61 {string} "q-xxxxxxxx.js"
-62 {string} "s_QwONcWD5gIg"
-63 RootRef [omitted]
-64 {string} "q-xxxxxxxx.js"
-65 {string} "s_LqnNyU1Iy8c"
-66 RootRef [omitted]
-67 QRL "[omitted]"
-68 Object [
-  {string} "r"
-  RootRef [omitted]
-]
+62 {string} "q-xxxxxxxx.js"
+63 {string} "s_QwONcWD5gIg"
+64 RootRef [omitted]
+65 {string} "q-xxxxxxxx.js"
+66 {string} "s_LqnNyU1Iy8c"
+67 RootRef [omitted]
+68 QRL "[omitted]"
 69 {string} "q-xxxxxxxx.js"
-70 {string} "_rsc"
+70 {string} "s_zIzd52N038I"
 71 RootRef [omitted]
 72 RootRef [omitted]
 73 RootRef [omitted]
@@ -474,11 +495,11 @@
 91 RootRef [omitted]
 92 RootRef [omitted]
 93 {string} "s_lKDAUb7ao7U"
-94 RootRef [omitted]
-95 Promise [
+94 Promise [
   Constant true
   RootRef [omitted]
 ]
+95 RootRef [omitted]
 96 ForwardRefs [
-  95
+  94
 ]

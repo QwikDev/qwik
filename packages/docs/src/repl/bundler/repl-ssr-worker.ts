@@ -16,6 +16,7 @@ export interface InitSSRMessage extends MessageBase {
   entry: string;
   baseUrl: string;
   manifest: QwikManifest | undefined;
+  buildMode: 'development' | 'production';
   outOfOrderStreaming?: boolean;
   streamHtml?: boolean;
 }
@@ -127,7 +128,8 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   const renderOptions: any = {
     base: baseUrl,
     manifest,
-    preloader: false,
+    // Like the Vite dev server, development renders don't preload.
+    preloader: message.buildMode === 'production' ? undefined : false,
     stream: {
       write(chunk: string) {
         chunks.push(chunk);

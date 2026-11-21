@@ -22,6 +22,8 @@ test.each(['browser', 'edge-light', 'node'])('selects ALS for the %s bundle', as
     format: 'cjs',
     target: 'es2020',
     write: false,
+    // The repo tsconfig maps @qwik.dev/core to src, which would duplicate core's self-import.
+    tsconfigRaw: '{}',
     define: { __EXPERIMENTAL__: '{}', 'import.meta.hot': 'false', 'import.meta.env': '{}' },
   });
   const module = { exports: {} as typeof import('@qwik.dev/core/internal') };

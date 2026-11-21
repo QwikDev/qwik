@@ -294,10 +294,9 @@ export const getComputedSignalFlags = (
 ): SerializationSignalFlags | ComputedSignalFlags => {
   let flags = ComputedSignalFlags.INVALID;
   switch (serializationStrategy) {
-    // TODO: implement this in the future
-    // case 'auto':
-    //   flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_AUTO;
-    //   break;
+    case 'auto':
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_AUTO;
+      break;
     case 'never':
       flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
       break;

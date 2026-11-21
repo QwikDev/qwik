@@ -48,13 +48,15 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const q_Image_component_CS20HgBlRYI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Image_component_CS20HgBlRYI"), "Image_component_CS20HgBlRYI");
-const q_ModelImg_component_iJe6ICWVnyA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA");
 //
 export const Image = /*#__PURE__*/ componentQrl(q_Image_component_CS20HgBlRYI);
+//
+const q_ModelImg_component_iJe6ICWVnyA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA");
+//
 export const ModelImg = /*#__PURE__*/ componentQrl(q_ModelImg_component_iJe6ICWVnyA);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAKA,OAAO,MAAM,sBAAQ,4CAMlB;AAEH,OAAO,MAAM,yBAAW,+CAsBrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,OAAO,MAAM,sBAAQ,4CAMlB;;;;AAEH,OAAO,MAAM,yBAAW,+CAsBrB\"}")
 ============================= test.tsx_ModelImg_component_iJe6ICWVnyA.js (ENTRY POINT)==
 
 import { Image } from "./test";

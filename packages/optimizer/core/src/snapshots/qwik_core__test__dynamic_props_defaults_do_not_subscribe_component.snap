@@ -22,10 +22,10 @@ import { _noopQrl } from "@qwik.dev/core";
 //
 const _hf0 = (p0, p1)=>p1.value === void 0 ? p0 : p1.value;
 const _hf0_str = "p1.value===void 0?p0:p1.value";
+const getValue = ()=>0;
 //
 const q_DynamicDefault_component_x6KgpCjp03E = /*#__PURE__*/ _noopQrl("DynamicDefault_component_x6KgpCjp03E");
 //
-const getValue = ()=>0;
 q_DynamicDefault_component_x6KgpCjp03E.s((_rawProps)=>{
     const _defaultValue = untrack(()=>_rawProps.value) === void 0 ? getValue() : void 0;
     console.log(_rawProps.value === void 0 ? _defaultValue : _rawProps.value);
@@ -38,7 +38,7 @@ export const DynamicDefault = /*#__PURE__*/ componentQrl(q_DynamicDefault_compon
 export { getValue as _auto_getValue };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0BAG4C,2BAAA;;;;;AAD5C,MAAM,WAAW,IAAM;yCACkB;gDAAG,oBAAQ;IACnD,QAAQ,GAAG,WADgC,6CAAA;IAE3C,qBAAO,WAAC;;;;AACT;AAHA,OAAO,MAAM,+BAAiB,qDAG3B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0BAG4C,2BAAA;;AAD5C,MAAM,WAAW,IAAM;;;;yCACkB;gDAAG,oBAAQ;IACnD,QAAQ,GAAG,WADgC,6CAAA;IAE3C,qBAAO,WAAC;;;;AACT;AAHA,OAAO,MAAM,+BAAiB,qDAG3B\"}")
 == DIAGNOSTICS ==
 
 []

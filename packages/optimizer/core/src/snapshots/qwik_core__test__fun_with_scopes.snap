@@ -86,9 +86,6 @@ const _hf0_str = '["container",`count-${p0.count}`]';
 const q_Field_Lifecycle_children_1_Bk3lkC2Z00U = /*#__PURE__*/ _noopQrl("Field_Lifecycle_children_1_Bk3lkC2Z00U");
 const q_Field_Lifecycle_children_4aZ3omfUAIs = /*#__PURE__*/ _noopQrl("Field_Lifecycle_children_4aZ3omfUAIs");
 const q_Lifecycle_component_r7jPBpjrWLc = /*#__PURE__*/ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
-const q_it_StyledComponent_component_F9AGTDZHx8I = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_F9AGTDZHx8I");
-const q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_button_q_e_click_CEp5mVjiu08").m();
-const q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs");
 //
 export default (()=>{
     const serverFnHash = globalThis.foo();
@@ -131,8 +128,12 @@ export function Field({ children, name: name1, type: type1, ...props }) {
     }), 0, name1);
 }
 const STYLE_RED = `.container {background-color: red;}`;
-q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs.s(STYLE_RED);
 const it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = (_, _1, store)=>store.count++;
+//
+const q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_button_q_e_click_CEp5mVjiu08").m();
+const q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs");
+//
+q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs.s(STYLE_RED);
 q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08.s(it_StyledComponent_component_button_q_e_click_CEp5mVjiu08);
 const it_StyledComponent_component_F9AGTDZHx8I = ()=>{
     useStylesScopedQrl(q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs);
@@ -148,6 +149,9 @@ const it_StyledComponent_component_F9AGTDZHx8I = ()=>{
         "q-e:click": q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08
     }, "Hello world", 7, "u6_1");
 };
+//
+const q_it_StyledComponent_component_F9AGTDZHx8I = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_F9AGTDZHx8I");
+//
 q_it_StyledComponent_component_F9AGTDZHx8I.s(it_StyledComponent_component_F9AGTDZHx8I);
 describe.each([])('$render.name: useStylesScoped', ({ render })=>{
     it('should render object style', async ()=>{
@@ -160,7 +164,7 @@ describe.each([])('$render.name: useStylesScoped', ({ render })=>{
 export { STYLE_RED as _auto_STYLE_RED };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AACE,SAAS,UAAU,QAA0C,iBAAiB;;mBA+C1D;QAAC;QAAa,CAAC,MAAM,EAAE,GAAM,KAAK,EAAE;KAAC;;;;;;;;;;AA9CxD,eAAe,CAAA;IACd,MAAM,eAAe,WAAW,GAAG;IACnC,MAAM,OAAO,WAAW,GAAG;IAC3B,MAAM,MAAM,WAAW,MAAM,cAAc,KAAK,KAAK,CAAC;IACtD,QAAQ,GAAG,CAAC;AACb,CAAA,EAAC;wCAGkB;IACjB,OAAO,aAAa,GAAG,WAAI;AAC5B;;AAHD,SAAS,UAAU,KAAK,EAAE,GAAG,EAAE,KAAK;IACnC,qBAAO,gDAEJ,OAAO,KAAK;AAChB;AACA,OAAO,MAAM,QAAQ,CAAC,OAAO;IAC1B,iBAAiB,MAAM,OAAO,MAAM,OAAO,SAAS;QACnD;QACA;KACA,EAAE,gBAAgB,SAAS,OAAO;AACpC,EAAC;2CAaY;6CAHL,CAAC;;IACP,OAAM,QAAQ,CAAC,QAAQ,CAAC,IAAI,CAAC;;;AAVjC,OAAO,SAAS,MAAM,EAAE,QAAQ,EAAE,MAAA,KAAI,EAAE,MAAA,KAAI,EAAE,GAAG,OAAO;IACvD,MAAM,EAAE,IAAI,KAAI,EAAE,GAAG;IACrB,MAAM,SAAQ,cAAc,OAAM;IAClC,OAAO,aAAa,GAAG,UAAI;QAC1B,OAAO;wBACJ;sBAAA,QACO,SAAS,QAAO;QACzB,MAAA;QACA,WAAW,YAAY,CAAC,CAAC,OAAM,KAAK;QACpC,GAAG;;;QAGH,QAAQ;IACT,OACE;AACJ;AAEA,MAAM,YAAY,CAAC,mCAAmC,CAAC;8EAKV;kEAMuB,gBAAM,MAAM,KAAK;;iDAPhD;IACT;IACzB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBACC,WAAC;;;QAAO,KAAK;;;QAAyC,WAAQ;OAAuB;AAIvF;;AAdF,SAAS,IAAI,CAAC,EAAE,EAAE,iCAAiC,CAAC,EAAE,MAAM,EAAE;IAE7D,GAAG,8BAA8B;QAChC,MAAM,gCAAkB;QAaxB,MAAM,EAAE,KAAK,EAAE,SAAS,EAAE,QAAQ,EAAE,GAAG,MAAM,qBAAO,WAAC,+CAAoB;YAAE;QAAM;IAClF;AACD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AACE,SAAS,UAAU,QAA0C,iBAAiB;;mBA+C1D;QAAC;QAAa,CAAC,MAAM,EAAE,GAAM,KAAK,EAAE;KAAC;;;;;;;AA9CxD,eAAe,CAAA;IACd,MAAM,eAAe,WAAW,GAAG;IACnC,MAAM,OAAO,WAAW,GAAG;IAC3B,MAAM,MAAM,WAAW,MAAM,cAAc,KAAK,KAAK,CAAC;IACtD,QAAQ,GAAG,CAAC;AACb,CAAA,EAAC;wCAGkB;IACjB,OAAO,aAAa,GAAG,WAAI;AAC5B;;AAHD,SAAS,UAAU,KAAK,EAAE,GAAG,EAAE,KAAK;IACnC,qBAAO,gDAEJ,OAAO,KAAK;AAChB;AACA,OAAO,MAAM,QAAQ,CAAC,OAAO;IAC1B,iBAAiB,MAAM,OAAO,MAAM,OAAO,SAAS;QACnD;QACA;KACA,EAAE,gBAAgB,SAAS,OAAO;AACpC,EAAC;2CAaY;6CAHL,CAAC;;IACP,OAAM,QAAQ,CAAC,QAAQ,CAAC,IAAI,CAAC;;;AAVjC,OAAO,SAAS,MAAM,EAAE,QAAQ,EAAE,MAAA,KAAI,EAAE,MAAA,KAAI,EAAE,GAAG,OAAO;IACvD,MAAM,EAAE,IAAI,KAAI,EAAE,GAAG;IACrB,MAAM,SAAQ,cAAc,OAAM;IAClC,OAAO,aAAa,GAAG,UAAI;QAC1B,OAAO;wBACJ;sBAAA,QACO,SAAS,QAAO;QACzB,MAAA;QACA,WAAW,YAAY,CAAC,CAAC,OAAM,KAAK;QACpC,GAAG;;;QAGH,QAAQ;IACT,OACE;AACJ;AAEA,MAAM,YAAY,CAAC,mCAAmC,CAAC;kEAWa,gBAAM,MAAM,KAAK;;;;;8EANxC;;iDADR;IACT;IACzB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBACC,WAAC;;;QAAO,KAAK;;;QAAyC,WAAQ;OAAuB;AAIvF;;;;;AAdF,SAAS,IAAI,CAAC,EAAE,EAAE,iCAAiC,CAAC,EAAE,MAAM,EAAE;IAE7D,GAAG,8BAA8B;QAChC,MAAM,gCAAkB;QAaxB,MAAM,EAAE,KAAK,EAAE,SAAS,EAAE,QAAQ,EAAE,GAAG,MAAM,qBAAO,WAAC,+CAAoB;YAAE;QAAM;IAClF;AACD\"}")
 == DIAGNOSTICS ==
 
 []

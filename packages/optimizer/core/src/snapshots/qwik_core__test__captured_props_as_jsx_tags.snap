@@ -35,14 +35,16 @@ export const Cmp2 = component$(
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_Cmp2_component_FnOz26iMYaM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp2_component_FnOz26iMYaM"), "Cmp2_component_FnOz26iMYaM");
 const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
 //
 export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+//
+const q_Cmp2_component_FnOz26iMYaM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp2_component_FnOz26iMYaM"), "Cmp2_component_FnOz26iMYaM");
+//
 export const Cmp2 = /*#__PURE__*/ componentQrl(q_Cmp2_component_FnOz26iMYaM);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIA,OAAO,MAAM,oBAAM,0CAEhB;AAEH,OAAO,MAAM,qBAAO,2CAgBlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAEhB;;;;AAEH,OAAO,MAAM,qBAAO,2CAgBlB\"}")
 ============================= test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ.js (ENTRY POINT)==
 
 import { Fallback } from "./x";

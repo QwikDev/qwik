@@ -17,6 +17,7 @@ import { replaceResolvedConstIdentifiers } from '../rewrite/const-replacement.js
 import { isRelativePathInsideBase } from '../../paths.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
 import { applyStatementDCE, extractBinaryOperandIdentifiers } from './statement-dce.js';
+import { declareQrlsBeforeFirstUse } from './qrl-placement.js';
 import {
   formatImportParts,
   formatImportStatement,
@@ -681,6 +682,8 @@ export interface DcePipelineOptions {
   keepRelativeSideEffects?: boolean;
   /** Imports retained because a directly nested extraction owns their evaluation. */
   preserveImportNames?: ReadonlySet<string>;
+  /** Parent modules: declare each QRL right before its first use. */
+  declareQrlsBeforeFirstUse?: boolean;
 }
 
 /**
@@ -748,6 +751,13 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
         opts.preserveImportNames
       )
     );
+  }
+
+  if (opts.declareQrlsBeforeFirstUse && /qrl/i.test(result)) {
+    const program = lazyParse();
+    if (program) {
+      runStage(() => declareQrlsBeforeFirstUse(result, program));
+    }
   }
 
   return result;

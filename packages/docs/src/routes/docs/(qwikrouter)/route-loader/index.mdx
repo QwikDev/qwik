@@ -241,13 +241,17 @@ export const useSubscription = routeLoader$(
 
 ### `serializationStrategy`
 
-By default the HTML response does **not** embed loader data. When the client resumes, the loader signal is empty until the browser fetches the JSON endpoint — meaning fast first paint, but a brief pending state for code that reads `.value` immediately.
+By default, `'auto'` embeds eligible small loader results in the HTML and reuses supported results already included elsewhere in the serialized state. Other results are omitted and may be fetched when the client first reads the loader after resuming.
 
-| Value      | Behavior                                                                |
-| ---------- | ----------------------------------------------------------------------- |
-| `'never'`  | Default. Data is discarded after SSR; the client refetches lazily.      |
-| `'always'` | Embed data in the HTML. Available immediately, no refetch, bigger HTML. |
-| `'auto'`   | Embed when small, lazy-load when large.                                 |
+Even shared results may be omitted when they contain unsupported structures or exceed the traversal limits.
+
+The full retained result appears in the HTML, including fields the view does not render. Return only data that the client may receive. If a page contains user-specific loader results, keep its HTML response private; the loader's `cacheControl` option only controls its JSON responses. To retain the previous serialization behavior while auditing your loaders, set `qwikRouter({ defaultLoadersSerializationStrategy: 'never' })`.
+
+| Value      | Behavior                                                                      |
+| ---------- | ----------------------------------------------------------------------------- |
+| `'never'`  | Data is discarded after SSR; the client refetches lazily.                      |
+| `'always'` | Embed data in the HTML. Available immediately, no refetch, bigger HTML.        |
+| `'auto'`   | Default. Embed eligible small or already-shared results; otherwise fetch lazily. |
 
 ```tsx title="src/routes/product/[productId]/index.tsx"
 export const useProductDetails = routeLoader$(
@@ -373,7 +377,7 @@ export default component$(() => {
 | Option                  | Default      | Effect                                                                                                |
 | ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
 | `cacheControl`          | `no-cache`   | `Cache-Control` for the JSON responses; the browser cache decides freshness. `'immutable'` enables SSG loader files. |
-| `serializationStrategy` | `'never'`    | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
+| `serializationStrategy` | `'auto'`     | `'never'` / `'always'` / `'auto'` — embed loader data in the SSR HTML?                                |
 | `blockSSR`              | `true`       | Await the loader before SSR (can redirect/error the response). `false` runs it in the background (experimental). |
 | `eTag`                  | —            | `true` (auto-hash), string, or `(ev) => string \| null`. Returns 304 on match.                       |
 | `search`                | `[]` *       | Allowlist of search params the loader depends on. *(default `[]` when `strictLoaders` is enabled)*    |

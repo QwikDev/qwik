@@ -431,6 +431,7 @@ export class ReplInstance {
         entry: entryModule.path,
         baseUrl: `/repl/client/${this.replId}/build/`,
         manifest: result.manifest,
+        buildMode: this.input.buildMode,
         outOfOrderStreaming: this.input.outOfOrderStreaming,
         streamHtml: !!onChunk,
       };

@@ -27,19 +27,19 @@ import { _capturesObj } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 //
-const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
-const q_test_component_useComputed_PYU291PvidQ = /*#__PURE__*/ _noopQrl("test_component_useComputed_PYU291PvidQ");
-const q_test_component_useTask_jewzFYh3XmQ = /*#__PURE__*/ _noopQrl("test_component_useTask_jewzFYh3XmQ");
-//
 const test_component_useComputed_PYU291PvidQ = ()=>{
     let _rawProps = _capturesObj._[0];
     return _rawProps.color;
 };
-q_test_component_useComputed_PYU291PvidQ.s(test_component_useComputed_PYU291PvidQ);
 const test_component_useTask_jewzFYh3XmQ = ()=>{
     let props = _capturesObj._[0];
     props.checked;
 };
+//
+const q_test_component_useComputed_PYU291PvidQ = /*#__PURE__*/ _noopQrl("test_component_useComputed_PYU291PvidQ");
+const q_test_component_useTask_jewzFYh3XmQ = /*#__PURE__*/ _noopQrl("test_component_useTask_jewzFYh3XmQ");
+//
+q_test_component_useComputed_PYU291PvidQ.s(test_component_useComputed_PYU291PvidQ);
 q_test_component_useTask_jewzFYh3XmQ.s(test_component_useTask_jewzFYh3XmQ);
 const test_component_LUXeXe0DQrg = (_rawProps)=>{
     const props = _restProps(_rawProps, [
@@ -53,11 +53,14 @@ const test_component_LUXeXe0DQrg = (_rawProps)=>{
     ]));
     return 'hi';
 };
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
+//
 q_test_component_LUXeXe0DQrg.s(test_component_LUXeXe0DQrg);
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;+CAIe;;qBADgB;;;2CAGpB;;IACR,MAAM,OAAO;;;mCAJY;;;;IAC1B;;;IAEA;;;IAIA,OAAO;AACP;;AARA,6BAAe,2CAQb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;+CAIe;;qBADgB;;2CAGpB;;IACR,MAAM,OAAO;;;;;;;;mCAJY;;;;IAC1B;;;IAEA;;;IAIA,OAAO;AACP;;;;;AARA,6BAAe,2CAQb\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,9 +1,8 @@
 /**
  * @file
  *
- *   The serializer imports runtime values from `@qwik.dev/core/internal` so it shares core's classes
- *   and flyweights. This file lists the core code that is OK to copy into the serializer bundle
- *   instead: const enums and helpers without identity.
+ *   Core modules the serializer imports directly. Core's build bundles the serializer as an entry, so
+ *   these resolve to core's own modules, the same ones `@qwik.dev/core/internal` exports.
  */
 
 export {
@@ -12,7 +11,7 @@ export {
   EffectProperty,
   SerializationSignalFlags,
 } from '../core/reactive-primitives/types';
-export { qError, QError } from '../core/shared/error/error';
+export { qError, qErrorWithoutStop, QError } from '../core/shared/error/error';
 export { isQrl } from '../core/shared/qrl/qrl-utils';
 export { Constants, TypeIds } from '../core/shared/serdes/constants';
 export {

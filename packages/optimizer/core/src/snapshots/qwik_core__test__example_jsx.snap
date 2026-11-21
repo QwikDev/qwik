@@ -56,8 +56,6 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 //
-const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
-//
 export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
@@ -66,12 +64,15 @@ export const Lightweight = (props)=>{
         }, _getConstProps(props), null, 0, null)
     ], 1, "u6_0"), 1, "u6_1");
 };
+//
+const q_Foo_component_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE");
+//
 export const Foo = /*#__PURE__*/ componentQrl(q_Foo_component_HTDRsvUbLiE, {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;4BAAW;0BAAA;;AAIhB,EAAE;AAEF,OAAO,MAAM,oBAAM,0CAuBhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;4BAAW;0BAAA;;AAIhB,EAAE;;;;AAEF,OAAO,MAAM,oBAAM,0CAuBhB;IACF,SAAS;AACV,GAAG\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";

@@ -129,14 +129,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_component_wGkRHWXaqjs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs");
 const q_Header_component_UVBJuFYfvDo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo");
 //
 export const Header = /*#__PURE__*/ componentQrl(q_Header_component_UVBJuFYfvDo);
+//
+const q_App_component_wGkRHWXaqjs = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs");
+//
 export const App = /*#__PURE__*/ componentQrl(q_App_component_wGkRHWXaqjs);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAMA,OAAO,MAAM,uBAAS,6CAMnB;AAEH,OAAO,MAAM,oBAAM,0CAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,OAAO,MAAM,uBAAS,6CAMnB;;;;AAEH,OAAO,MAAM,oBAAM,0CAIhB\"}")
 == DIAGNOSTICS ==
 
 []

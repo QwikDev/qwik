@@ -220,8 +220,15 @@ Translated pages (Google Translate swaps each text node for a `<font>` wrapper, 
   into that node. Give the vnode a new node.
 - A component serialized with only a render hash (`QComponentHash`) can never render on the client.
   Do not schedule it, or an ancestor on its behalf, to recover content.
-- Dev-mode SSR serializes every component. Assert "can't render again" behavior in a spec test or
-  a `.prod` fixture; a regular e2e fixture passes for the wrong reason.
+- The preloader records the text each wrapper replaced, because core loads too late to see a
+  translation right after page load. Core and the preloader are separate bundles that share this
+  state through `globalThis.qTranslated`: keep its property names plain (a `$name$` is mangled per
+  bundle), and keep the singleton registry out of the preloader.
+- A text node removed after a wrapper is only what that wrapper replaced if the wrapper is new;
+  Qwik itself removes text nodes that follow a known wrapper.
+- Dev-mode SSR serializes every component and loads no preloader. Assert "can't render again" and
+  preloader behavior in a spec test or a `.prod` fixture; a regular e2e fixture passes for the
+  wrong reason.
 
 ## QRL And Optimizer-Facing Runtime
 

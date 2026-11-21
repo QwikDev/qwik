@@ -1,5 +1,21 @@
 # @qwik.dev/optimizer
 
+## 3.0.0-rc.12
+
+### Major Changes
+
+- ✨ remove the `component` and `hook` entry strategies; use `smart` and `segment` instead (by [@maiieul](https://github.com/maiieul) in [#9480](https://github.com/QwikDev/qwik/pull/9480))
+
+### Patch Changes
+
+- 🐞🩹 the optimizer created a module's qrls before the statements above them had run (by [@wmertens](https://github.com/wmertens) in [#9549](https://github.com/QwikDev/qwik/pull/9549))
+
+- 🐞🩹 the optimizer now emits `_jsxSplit` for dynamic JSX tags with `on*$` props (including shorthand `{ onClick$ }`, lowercase `onclick$` and computed keys), so event listeners are registered when the tag is a string at runtime. `passive:*` directives on such tags are kept too. A computed string event key like `['onClick$']` in `jsx()` props is now handled like `onClick$`. (by [@fixfon](https://github.com/fixfon) in [#9356](https://github.com/QwikDev/qwik/pull/9356))
+
+- 🐞🩹 running a task or computed no longer loads its component's render code (by [@maiieul](https://github.com/maiieul) in [#9477](https://github.com/QwikDev/qwik/pull/9477))
+
+- 🐞🩹 useStyles$ styles could come out empty in production builds (by [@wmertens](https://github.com/wmertens) in [#9523](https://github.com/QwikDev/qwik/pull/9523))
+
 ## 2.1.0-rc.11
 
 ### Patch Changes

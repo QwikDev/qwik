@@ -16,7 +16,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 // Recording the text that a page translator replaces adds ~250 bytes brotli.
 const PRELOADER_BROTLI_BUDGET = 1950;
-const CORE_BROTLI_BUDGET = 32200;
+// Keeping text vnodes in sync with a page translator adds ~800 bytes brotli.
+const CORE_BROTLI_BUDGET = 32900;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));

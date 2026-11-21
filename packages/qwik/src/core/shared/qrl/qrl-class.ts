@@ -547,11 +547,12 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     if (!container) {
       throw qError(QError.qrlMissingContainer);
     }
-    const prevLoading = loadingHolder.p;
+    const outerLoading = loadingHolder.p;
+    loadingHolder.p = null;
     const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
     setCaptures(captures);
-    let loading: Promise<unknown> | undefined =
-      loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
+    let loading = loadingHolder.p as Promise<unknown> | null;
+    loadingHolder.p = outerLoading;
     for (let i = 0; i < captures.length; i++) {
       const computeQrl = (captures[i] as { $computeQrl$?: QRLInternal } | null)?.$computeQrl$;
       const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;

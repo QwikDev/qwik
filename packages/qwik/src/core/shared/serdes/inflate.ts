@@ -46,12 +46,12 @@ import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
-  p: Promise<void>;
+  p: Promise<unknown> | null;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
-    p: Promise.resolve(),
+    p: null,
   })
 );
 
@@ -348,7 +348,7 @@ function* inflateIterator(
       const p = computed.$computeQrl$.resolve(container as any).catch(() => {
         // ignore preload errors
       });
-      loadingHolder.p = loadingHolder.p.finally(() => p);
+      loadingHolder.p = loadingHolder.p ? loadingHolder.p.finally(() => p) : p;
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }

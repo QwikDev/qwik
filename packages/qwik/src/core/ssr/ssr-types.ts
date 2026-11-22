@@ -135,6 +135,7 @@ export interface SSRContainer extends Container {
    * which case the caller must not inject it into the component's JSX.
    */
   $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
+  $enableHmr$(host: ISsrNode): void;
 
   write(text: string): void;
 

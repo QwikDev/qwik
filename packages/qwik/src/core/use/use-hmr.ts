@@ -1,65 +1,88 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
-import { _capturesObj, deserializeCaptureDeltas, setCaptures } from '../shared/qrl/qrl-class';
-import { hmrQrl } from '../shared/qrl/handler-qrls';
+import { type ClientContainer, VNodeFlags } from '../client/types';
+import {
+  registerQwikLoaderEvent,
+  vnode_getDOMContainer,
+  vnode_isVNode,
+  vnode_walkVNode,
+} from '../client/vnode-utils';
+import { deserializeCaptureDeltas } from '../shared/qrl/qrl-class';
+import { registerSingleton } from '../shared/singletons';
+import type { QElement } from '../shared/types';
+import { QHmrAttr, QHmrEvent, QHmrPath } from '../shared/utils/markers';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { VNodeFlags } from '../client/types';
+import type { SSRContainer } from '../ssr/ssr-types';
 import { tryGetInvokeContext } from './use-core';
-import { useOnDocument } from './use-on';
-import type { QRL } from '../shared/qrl/qrl.public';
 
-/**
- * HMR event handler. The host VNode is captured at registration time via QRL captures.
- *
- * When called by the qwikloader or the test dispatch, `this` is the serialized captures string
- * which we deserialize to get the host VNode. When called through `_qDispatch` (client-rendered),
- * `_capturesObj._` is already set by `ensureQrlCaptures` in the QRL call chain.
- *
- * @internal
- */
+/** @internal */
 export function _hmr(
   this: string | undefined,
   event: CustomEvent<{ files: string[]; t: number }>,
   element: Element
 ) {
-  // Deserialize captures from `this` when called via qwikloader/attribute dispatch
   const container = getDomContainer(element);
   return whenContainerDataReady(container, () => {
+    const updateHost = (host: VNode | undefined, path: string | null) => {
+      if (
+        host &&
+        !(host.flags & VNodeFlags.Deleted) &&
+        path &&
+        event.detail.files.some((file) => path.startsWith(file)) &&
+        vnode_getDOMContainer(host) === container
+      ) {
+        markVNodeDirty(container, host, ChoreBits.COMPONENT);
+        const doc = container.document as any;
+        doc.__hmrDone = event.detail.t;
+      }
+    };
     if (typeof this === 'string') {
-      setCaptures(deserializeCaptureDeltas(container, this));
-    }
-    const devPath = _capturesObj._?.[1] as string | undefined;
-    const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
-    if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
+      const [host, path] = deserializeCaptureDeltas(container, this);
+      updateHost(
+        host as VNode | undefined,
+        (path as string) ?? element.getAttribute('data-qwik-inspector')
+      );
       return;
     }
-    const host = _capturesObj._?.[0] as VNode | undefined;
-    if (!host || host.flags & VNodeFlags.Deleted) {
+    const lastHmrEvents = registerSingleton(
+      'lastHmrEvents',
+      () => new WeakMap<ClientContainer, Event>()
+    );
+    if (lastHmrEvents.get(container) === event) {
       return;
     }
-    markVNodeDirty(container, host, ChoreBits.COMPONENT);
-    // Mark HMR as handled
-    const doc: any = element.ownerDocument;
-    doc.__hmrDone = doc.__hmrT;
+    lastHmrEvents.set(container, event);
+    vnode_walkVNode(container.rootVNode, (host) => {
+      if (host.flags & VNodeFlags.Virtual) {
+        updateHost(host, container.getHostProp<string>(host, QHmrPath));
+      }
+    });
   });
 }
 
 /**
- * Injected by the optimizer into component$ bodies in HMR mode. Registers a document event listener
- * that triggers component re-render on HMR updates.
+ * Injected by the optimizer into component$ bodies in HMR mode.
  *
  * @internal
  */
 export function _useHmr(devPath: string): void {
   const iCtx = tryGetInvokeContext();
-  if (!iCtx) {
+  if (!iCtx?.$container$ || !iCtx.$hostElement$) {
     return;
   }
-  const hostElement = iCtx.$hostElement$;
-  // We must capture the vnode to be able to re-render
-  const qrl = hmrQrl().w([hostElement, devPath]) as QRL<
-    (event: CustomEvent, element: Element) => void
-  >;
-  useOnDocument('qHmr', qrl);
+  const { $container$: container, $hostElement$: host } = iCtx;
+  container.setHostProp(host, QHmrPath, devPath);
+  if (!vnode_isVNode(host)) {
+    (container as SSRContainer).$enableHmr$(host);
+    return;
+  }
+  const client = container as ClientContainer;
+  const element: QElement = client.element;
+  const handlers = (element._qDispatch ||= {});
+  if (!handlers[QHmrEvent]) {
+    handlers[QHmrEvent] = _hmr;
+    element.setAttribute(QHmrAttr, '');
+    registerQwikLoaderEvent(client, QHmrEvent);
+  }
 }

@@ -44,6 +44,8 @@ import {
   QContainerValue,
   QCtxAttr,
   QError,
+  QHmrAttr,
+  QHmrEvent,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -72,6 +74,7 @@ import {
   encodeVNodeDataString,
   escapeHTML,
   getSegmentVNodeRefId,
+  hmrQrl,
   isHtmlAttributeAnEventName,
   isObjectEmpty,
   isPreventDefault,
@@ -304,6 +307,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
+  protected hmrEnabled = false;
 
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
@@ -1166,6 +1170,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return false;
   }
 
+  $enableHmr$(host: ISsrNode): void {
+    this.hmrEnabled = true;
+    this.$retainForResume$(host);
+  }
+
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {
@@ -1275,6 +1284,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     patch = false
   ) {
     const attrs: Props = { type: 'qwik/vnode' };
+    if (this.hmrEnabled && !patch) {
+      attrs[QHmrAttr] = hmrQrl();
+    }
     if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
       attrs[QPendingResolved] = segmentId;
     }
@@ -2367,6 +2379,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): void {
+    if (this.hmrEnabled) {
+      rootContainer.serializationCtx.$eventNames$.add(QHmrEvent);
+    }
     for (const eventName of segmentSerializationCtx.$eventNames$) {
       rootContainer.serializationCtx.$eventNames$.add(eventName);
     }

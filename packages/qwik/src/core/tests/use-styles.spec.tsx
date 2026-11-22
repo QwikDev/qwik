@@ -225,7 +225,7 @@ describe.each([
     // Trigger HMR re-render (component body re-executes with new resolved value)
     const t = Date.now();
     (container.document as any).__hmrT = t; // Simulate Vite's HMR timestamp update
-    await trigger(container.element, null, 'd:q-hmr', {
+    await trigger(container.document.documentElement, null, 'd:q-hmr', {
       detail: { files: ['hmr-styles.tsx'], t },
     });
     await new Promise((r) => setTimeout(r, 0));

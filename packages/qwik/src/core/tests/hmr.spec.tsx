@@ -13,22 +13,44 @@ import { VNodeFlags } from '../client/types';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-/**
- * Helper to fire the qHmr document event that triggers HMR re-renders.
- *
- * Uses the kebab-cased `d:q-hmr` form so `trigger` finds elements with the `q-d:q-hmr` attribute
- * set by `useOnDocument('qHmr', …)`.
- */
 async function triggerHmr(container: any, files: string[]) {
   const t = Date.now();
   container.document.__hmrT = t;
-  await trigger(container.element, null, 'd:q-hmr', {
+  await trigger(container.document.documentElement, null, 'd:q-hmr', {
     detail: { files, t },
   });
   // markVNodeDirty schedules cursor work as a microtask. Ensure it runs.
   await true;
   await waitForDrain(container);
 }
+
+it('updates list rows without adding HMR script siblings', async () => {
+  const state = { label: 'before' };
+  const Row = component$(({ text }: { text: string }) => <li>{text}</li>);
+  const Item = component$(() => {
+    _useHmr('item.tsx');
+    return <Row text={state.label} />;
+  });
+  const renderList = () => (
+    <ul>
+      <Item />
+      <Item />
+    </ul>
+  );
+
+  const ssr = await ssrRenderToDom(renderList());
+  const client = await domRender(renderList());
+  const documents = [ssr.document, client.document];
+  for (let i = 0; i < documents.length; i++) {
+    const children = documents[i].querySelector('ul')!.children;
+    expect.soft(Array.from(children, (child) => child.localName)).toEqual(['li', 'li']);
+  }
+
+  state.label = 'after';
+  await triggerHmr(client.container, ['item.tsx']);
+  const rows = client.document.querySelectorAll('ul > li');
+  expect(Array.from(rows, (row) => row.textContent)).toEqual(['after', 'after']);
+});
 
 // ── domRender tests ─────────────────────────────────────────────────────
 // These cover the full end-to-end HMR flow: handler dispatch → markVNodeDirty
@@ -225,7 +247,6 @@ describe('domRender: HMR', () => {
 
     expect(log[log.length - 1]).toBe('removed');
     expect(container.element.querySelector('[data-testid="hmr-initial"]')).toBeFalsy();
-    container.element.querySelector('[q-d\\:q-hmr]')?.removeAttribute('data-qwik-inspector');
 
     state.phase = 'restored';
     const rendersBeforeRestore = log.length;
@@ -283,7 +304,7 @@ describe('domRender: HMR', () => {
 describe('ssrRenderToDom: HMR', () => {
   const render = ssrRenderToDom;
 
-  it('should register q-d:q-hmr attribute on the component host element', async () => {
+  it('dispatches SSR HMR from the container VNode script', async () => {
     const Counter = component$(() => {
       const count = useSignal(0);
       _useHmr('my-comp.tsx');
@@ -294,12 +315,9 @@ describe('ssrRenderToDom: HMR', () => {
       );
     });
 
-    const { document } = await render(<Counter />, { debug });
-
-    // The `useOnDocument('qHmr', …)` call should produce a `q-d:q-hmr` attribute
-    const hmrElements = document.querySelectorAll('[q-d\\:q-hmr]');
-    expect(hmrElements.length).toBe(1);
-    expect(hmrElements[0].getAttribute('data-qwik-inspector')).toBe('my-comp.tsx:1:1');
+    const { container } = await render(<Counter />, { debug });
+    await triggerHmr(container, ['my-comp.tsx']);
+    expect((container.document as any).__hmrDone).toBe((container.document as any).__hmrT);
   });
 
   it('should call _hmr handler with correct element for matching files', async () => {

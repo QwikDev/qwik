@@ -48,8 +48,13 @@ export function unregisterHmrHost(container: ClientContainer, host: VNode): void
 }
 
 /**
- * HMR event handler. Resolves indexed host references for the changed files and schedules
- * re-renders. Older SSR listeners pass their serialized host and file captures as `this`.
+ * HMR event handler. Older SSR listeners capture the host VNode at registration time via QRL
+ * captures.
+ *
+ * When called by the qwikloader or the test dispatch for an older SSR listener, `this` is the
+ * serialized captures string which we deserialize to get the host VNode. When called through
+ * `_qDispatch` (client-rendered) or a current SSR listener, the handler resolves indexed host
+ * references for the changed files.
  *
  * @internal
  */

@@ -50,4 +50,4 @@ document.addEventListener('qerror', (event) => {
 
 - The original text is recorded by the preloader, which starts after the page has loaded and gone idle. A sentence that is translated before that is rendered again when it updates.
 - If the component of such a sentence never renders on the client, Qwik keeps the translation, shows the new value next to it and reports Q42.
-- Only Google Translate (the website widget and the one built into Chrome) is covered.
+- Only the Google Translate website widget is tested. The translation built into Chrome loads the same library, but is not tested end to end.

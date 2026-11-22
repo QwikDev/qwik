@@ -83,10 +83,16 @@ export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'compone
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
 
-export const chunkHoldsTaskFrom = (url: string, file: string) =>
+const chunkHoldsSegmentFrom = (url: string, file: string, hook: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(
-    (origin) => origin.startsWith(`${file}_`) && origin.includes('_useTask_')
+    (origin) => origin.startsWith(`${file}_`) && origin.includes(`_${hook}_`)
   );
+
+export const chunkHoldsTaskFrom = (url: string, file: string) =>
+  chunkHoldsSegmentFrom(url, file, 'useTask');
+
+export const chunkHoldsComputedFrom = (url: string, file: string) =>
+  chunkHoldsSegmentFrom(url, file, 'useComputed');
 
 /** The chunks holding `path`'s modules, with everything they import statically. */
 export const chunkUrlsNeededToRun = (path: string) => {

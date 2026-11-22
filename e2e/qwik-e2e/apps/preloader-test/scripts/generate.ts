@@ -507,6 +507,11 @@ const HAND_WRITTEN = [
   { group: 'other', href: '/tasks/parent-child/', label: 'tasks in a parent and its child' },
   { group: 'other', href: '/tasks/siblings/', label: 'tasks in two siblings' },
   { group: 'other', href: '/tasks/shared-store/', label: 'tasks on a shared store' },
+  {
+    group: 'other',
+    href: '/tasks/computed-from-parent/',
+    label: 'task reading a computed from another component',
+  },
   { group: 'other', href: '/user-import/', label: 'user import' },
   { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'other', href: '/slot/', label: 'slot' },

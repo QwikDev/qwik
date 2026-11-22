@@ -252,6 +252,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/tasks/computed-from-parent/',
+    label: 'task reading a computed from another component',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

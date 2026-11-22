@@ -4,7 +4,9 @@ import {
   chunkComesFrom,
   chunkHasComponent,
   chunkHasScopedStyles,
+  chunkHoldsComputedFrom,
   chunkHoldsTaskFrom,
+  ORIGIN,
 } from '../utils/app';
 import {
   BARREL,
@@ -16,13 +18,28 @@ import {
   SHARED_HELPER,
   SLOT,
   SYNC,
+  TASK_READING_A_COMPUTED_FROM_ITS_PARENT,
   TASKS_IN_PARENT_AND_CHILD,
   TASKS_IN_SIBLINGS,
   TASKS_ON_A_SHARED_STORE,
   USER_IMPORT,
 } from '../utils/fixtures';
-import { releaseAll, resultIsDone, type RoundTrip } from '../utils/gate';
-import { coldClick, countFixtureRoundTrips, fixtureRoot, openFixture } from '../utils/scenarios';
+import {
+  chunksHintedAtHighestPriority,
+  recordPreloadHints,
+  releaseAll,
+  resultIsDone,
+  settle,
+  type RoundTrip,
+} from '../utils/gate';
+import {
+  coldClick,
+  countFixtureRoundTrips,
+  expectResult,
+  fixtureResult,
+  fixtureRoot,
+  openFixture,
+} from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
   if (!fixture.startsWhenVisible) {
@@ -145,6 +162,52 @@ test.describe('tasks in several components', () => {
     );
     expect(firstRoundTrip).toBeGreaterThanOrEqual(0);
     expect(secondRoundTrip).toBe(firstRoundTrip);
+  });
+
+  test('opening the page asks for no task chunk at the highest priority', async ({ page }) => {
+    await recordPreloadHints(page);
+    await openFixture(page, TASKS_IN_PARENT_AND_CHILD, 'cold');
+    const taskChunks = (await chunksHintedAtHighestPriority(page)).filter((chunk) =>
+      ['parent-child/index.tsx', 'parent-child/child.tsx'].some((file) =>
+        chunkHoldsTaskFrom(`${ORIGIN}/build/${chunk}`, `${TASKS_DIR}${file}`)
+      )
+    );
+    expect(taskChunks).toEqual([]);
+  });
+
+  test.describe('task reading a computed from another component', () => {
+    const fixture = TASK_READING_A_COMPUTED_FROM_ITS_PARENT;
+    const holdsTheComputed = (url: string) =>
+      chunkHoldsComputedFrom(url, `${TASKS_DIR}computed-from-parent/index.tsx`);
+
+    const clickWhileTheComputedLoads = async (page: Page, buttonTestId: string) => {
+      const { gate } = await openFixture(page, fixture, 'cold');
+      gate.mode = 'pass';
+      gate.holdWhilePassing = holdsTheComputed;
+      await fixtureRoot(page, fixture).locator(`[data-testid=${buttonTestId}]`).click();
+      await expect.poll(() => gate.held.length).toBe(1);
+      return gate;
+    };
+
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const gate = await clickWhileTheComputedLoads(page, 'trigger');
+      await settle(page, gate);
+      await expect(fixtureResult(page, fixture)).not.toHaveAttribute('data-done');
+      await releaseAll(gate);
+      await expectResult(page, fixture);
+      expect(await page.evaluate(() => (globalThis as { taskRuns?: number }).taskRuns)).toBe(1);
+    });
+
+    test("a click that only reads a signal shows its result while the task's computed is still loading", async ({
+      page,
+    }) => {
+      const gate = await clickWhileTheComputedLoads(page, 'read');
+      await expect(fixtureRoot(page, fixture).locator('[data-testid=read-result]')).toHaveAttribute(
+        'data-done'
+      );
+      expect(gate.held).toHaveLength(1);
+      await releaseAll(gate);
+    });
   });
 });
 

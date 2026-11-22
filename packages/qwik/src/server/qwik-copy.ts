@@ -40,7 +40,6 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QStatePrewarmAttr,
   QStatePatchAttr,
   QStateStreamAttr,
   QStyle,

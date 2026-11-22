@@ -208,11 +208,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
-    if (!Array.isArray(target)) {
-      // If the target is an array, we don't need to trigger effects.
-      // Changing the length property will trigger effects.
-      scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
-    }
+    scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
     return true;
   }
 

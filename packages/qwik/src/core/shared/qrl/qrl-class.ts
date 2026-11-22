@@ -535,28 +535,27 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
+/** Deserializes the qrl captures, and returns the loading Promise that deserializing started */
+const deserializeCaptures = (qrl: QRLClass<unknown>) => {
+  const container = qrl.$container$;
+  if (!container) {
+    throw qError(QError.qrlMissingContainer);
+  }
+  const prevLoading = loadingHolder.p;
+  qrl.$captures$ = deserializeQrlCaptureDeltas(container, qrl.$captures$ as string);
+  if (loadingHolder.p !== prevLoading) {
+    return loadingHolder.p;
+  }
+};
+
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible
  */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
-  // We read the captures once, synchronously, so no need to keep previous
-  const serializedCaptures = qrl.$captures$;
-  const container = qrl.$container$;
-  if (typeof serializedCaptures === 'string') {
-    if (!container) {
-      throw qError(QError.qrlMissingContainer);
-    }
-    const prevLoading = loadingHolder.p;
-    const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
-    setCaptures(captures);
-    if (loadingHolder.p !== prevLoading) {
-      // return the loading promise so callers can await it
-      return loadingHolder.p;
-    }
-  } else {
-    setCaptures(serializedCaptures || null);
-  }
+  const loading = typeof qrl.$captures$ === 'string' ? deserializeCaptures(qrl) : undefined;
+  setCaptures((qrl.$captures$ as Readonly<unknown[]> | undefined) || null);
+  return loading;
 };
 
 // Wrap functions to provide their lexical scope

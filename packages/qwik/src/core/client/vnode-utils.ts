@@ -759,6 +759,10 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     const parentNode = vnode_getDomParent(vnode, true);
     isDev && assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode.node as Text;
+    const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
+    if (translation) {
+      return vnode_inflateTranslatedText(journal, textVNode, parentNode!, translation);
+    }
     const doc = fastOwnerDocument(parentNode!);
     // Walk the previous siblings and inflate them.
     let vCursor = vnode_getDomSibling(vnode, false, true);
@@ -766,19 +770,6 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
     const node = vnode_getDomSibling(vnode, true, true);
-    const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
-    const isShared = vCursor?.node === sharedTextNode || node?.node === sharedTextNode;
-    const isTextUnknown = !!translation && getOriginalText(translation) === undefined;
-    // Without its original text a translation can't be split, so its vnodes have to render again.
-    const container = isTextUnknown && isShared ? getDomContainer(parentNode!) : null;
-    // Text that can't render again only exists in the translation, which then has to stay.
-    let isTextLost = false;
-    const getInflatedText = (vText: TextVNode): string => {
-      if (container && !vnode_rerenderText(container, vText)) {
-        isTextLost = true;
-      }
-      return isTextUnknown ? '' : vText.text!;
-    };
     const insertBeforeNode: Element | Text | null =
       sharedTextNode ||
       (((node && vnode_isElementVNode(node) ? node.node : node?.node) || null) as
@@ -792,7 +783,7 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     let lastPreviousTextNode = insertBeforeNode;
     while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
-        const textNode = doc.createTextNode((vCursor.text = getInflatedText(vCursor)));
+        const textNode = doc.createTextNode(vCursor.text!);
         addVNodeOperation(
           journal,
           createInsertOrMoveOperation(textNode, parentNode!, lastPreviousTextNode)
@@ -809,18 +800,10 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
       const next = vnode_getDomSibling(vCursor, true, true);
       const isLastNode = !next || !vnode_isTextVNode(next) || next.node !== sharedTextNode;
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
-        const text = getInflatedText(vCursor);
-        if (isLastNode && sharedTextNode && !isTextLost) {
-          if (!translation) {
-            addVNodeOperation(journal, createSetTextOperation(sharedTextNode, text));
-          } else if (isShared && !isTextUnknown) {
-            // The translation also covers the other vnodes, so a new node takes its place.
-            vCursor.node = createTranslatedTextNode(translation);
-            addVNodeOperation(journal, createSetTextOperation(vCursor.node, text));
-          }
-          // Otherwise the translation stays in place until its vnode gets a new text.
+        if (isLastNode && sharedTextNode) {
+          addVNodeOperation(journal, createSetTextOperation(sharedTextNode, vCursor.text!));
         } else {
-          const textNode = doc.createTextNode((vCursor.text = text));
+          const textNode = doc.createTextNode(vCursor.text!);
           addVNodeOperation(
             journal,
             createInsertOrMoveOperation(textNode, parentNode!, insertBeforeNode)
@@ -831,10 +814,69 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
       }
       vCursor = next;
     }
-    if (isTextLost) {
-      // Nothing here can restore the text, so the app gets to decide, e.g. to reload the page.
-      emitEvent('qerror', { error: qErrorWithoutStop(QError.translatedTextLost) });
+  }
+};
+
+/** Inflates the text vnodes of a sentence that a page translator replaced with `translation`. */
+const vnode_inflateTranslatedText = (
+  journal: VNodeJournal,
+  vnode: TextVNode,
+  parentNode: Element,
+  translation: Element | Text
+) => {
+  const sharedTextNode = vnode.node as Text;
+  const doc = fastOwnerDocument(parentNode);
+  let vCursor = vnode_getDomSibling(vnode, false, true);
+  const isShared =
+    vCursor?.node === sharedTextNode ||
+    vnode_getDomSibling(vnode, true, true)?.node === sharedTextNode;
+  const isTextUnknown = getOriginalText(translation) === undefined;
+  // Without its original text a translation can't be split, so its vnodes have to render again.
+  const container = isTextUnknown && isShared ? getDomContainer(parentNode) : null;
+  // Text that can't render again only exists in the translation, which then has to stay.
+  let isTextLost = false;
+  const getInflatedText = (vText: TextVNode): string => {
+    if (container && !vnode_rerenderText(container, vText)) {
+      isTextLost = true;
     }
+    return isTextUnknown ? '' : vText.text!;
+  };
+  const insertNewTextNode = (vText: TextVNode, text: string, insertBefore: Text): Text => {
+    const textNode = doc.createTextNode((vText.text = text));
+    addVNodeOperation(journal, createInsertOrMoveOperation(textNode, parentNode, insertBefore));
+    return (vText.node = textNode);
+  };
+
+  let lastPreviousTextNode = sharedTextNode;
+  while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
+    if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
+      const text = getInflatedText(vCursor);
+      lastPreviousTextNode = insertNewTextNode(vCursor, text, lastPreviousTextNode);
+      vCursor.flags |= VNodeFlags.Inflated;
+    }
+    vCursor = vnode_getDomSibling(vCursor, false, true);
+  }
+  vCursor = vnode;
+  while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
+    const next = vnode_getDomSibling(vCursor, true, true);
+    const isLastNode = !next || !vnode_isTextVNode(next) || next.node !== sharedTextNode;
+    if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
+      const text = getInflatedText(vCursor);
+      if (!isLastNode || isTextLost) {
+        insertNewTextNode(vCursor, text, sharedTextNode);
+      } else if (isShared && !isTextUnknown) {
+        // The translation also covers the other vnodes, so a new node takes its place.
+        vCursor.node = createTranslatedTextNode(translation);
+        addVNodeOperation(journal, createSetTextOperation(vCursor.node, text));
+      }
+      // Otherwise the translation stays in place until its vnode gets a new text.
+      vCursor.flags |= VNodeFlags.Inflated;
+    }
+    vCursor = next;
+  }
+  if (isTextLost) {
+    // Nothing here can restore the text, so the app gets to decide, e.g. to reload the page.
+    emitEvent('qerror', { error: qErrorWithoutStop(QError.translatedTextLost) });
   }
 };
 

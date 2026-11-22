@@ -3,6 +3,7 @@
  * original node detached. This tracks which DOM node stands in for the node of a text vnode.
  */
 import { Q_PROPS_SEPARATOR } from '../shared/utils/markers';
+import { fastGetAttribute, fastNodeName } from './vnode-utils';
 
 type TranslatedGlobal = typeof globalThis & {
   /** Shared by core and the preloader, which starts tracking before core loads. */
@@ -27,9 +28,9 @@ const translated = ((globalThis as TranslatedGlobal).qTranslated ||= {});
 
 export const isTranslatedText = (node: Node | null): node is Element =>
   !!node &&
-  node.nodeName === 'FONT' &&
-  !(node as Element).hasAttribute(Q_PROPS_SEPARATOR) &&
-  !!(node as Element).getAttribute('style')?.includes('vertical-align: inherit');
+  fastNodeName(node as Element) === 'FONT' &&
+  fastGetAttribute(node as Element, Q_PROPS_SEPARATOR) === null &&
+  !!fastGetAttribute(node as Element, 'style')?.includes('vertical-align: inherit');
 
 export const getTranslatedStandIn = (textNode: Node): Element | Text | undefined =>
   translated.standIns?.get(textNode);
@@ -45,6 +46,7 @@ export const getDomNode = <T extends Node>(node: T): T | Element | Text =>
 export const unlinkTranslatedText = (textNode: Node): Element | Text | undefined => {
   const standIn = translated.standIns?.get(textNode);
   if (standIn) {
+    // Linking creates both maps, so a stand-in means both exist.
     translated.standIns!.delete(textNode);
     if (translated.textNodes!.get(standIn) === textNode) {
       translated.textNodes!.delete(standIn);

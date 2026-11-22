@@ -1,0 +1,6 @@
+{
+  "name": "translated-unsupported.prod",
+  "description": "Twin of translated.prod, built without the experimental pageTranslation flag.",
+  "private": true,
+  "type": "module"
+}

@@ -55,6 +55,7 @@ export enum ExperimentalFeatures {
     each = "each",
     insights = "insights",
     noSPA = "noSPA",
+    pageTranslation = "pageTranslation",
     pendingBoundary = "pendingBoundary",
     show = "show",
     valibot = "valibot"

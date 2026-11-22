@@ -105,7 +105,13 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer, externalLibraries);
+      clientManifest = buildApp(
+        appDir,
+        appName,
+        enableRouterServer,
+        externalLibraries,
+        pkgJson.__qwik__?.experimental
+      );
       cache.set(appDir, clientManifest);
     }
 
@@ -136,8 +142,17 @@ async function buildApp(
   appDir: string,
   appName: string,
   enableRouterServer: boolean,
-  externalLibraries: string[]
+  externalLibraries: string[],
+  appExperimental: string[] = []
 ) {
+  const experimental = [
+    'each',
+    'show',
+    'pendingBoundary',
+    'catchBoundary',
+    'blockSSR',
+    ...appExperimental,
+  ] as any[];
   const optimizer = await import('@qwik.dev/core/optimizer');
   for (const libraryName of externalLibraries) {
     await buildLibrary(join(appsDir, libraryName), optimizer);
@@ -252,7 +267,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'blockSSR'],
+          experimental,
         }),
       ],
     })
@@ -273,7 +288,7 @@ export { router }
         ...plugins,
         optimizer.qwikVite({
           tsOptimizer: true,
-          experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'blockSSR'],
+          experimental,
           ssr: {
             manifestInput: clientManifest,
           },
@@ -468,7 +483,13 @@ async function main() {
       const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
 
-      await buildApp(appDir, buildTarget, enableRouterServer);
+      await buildApp(
+        appDir,
+        buildTarget,
+        enableRouterServer,
+        pkgJson.__qwik__?.externalLibraries ?? [],
+        pkgJson.__qwik__?.experimental
+      );
       console.log(`\n✅ Successfully built ${buildTarget}\n`);
       process.exit(0);
     } catch (error: any) {

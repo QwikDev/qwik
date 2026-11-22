@@ -35,7 +35,7 @@ export default defineConfig({
       debug: !true,
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
-      experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
+      experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'pageTranslation'],
     }),
     tsconfigPaths({ ignoreConfigErrors: true, loose: true }),
   ],

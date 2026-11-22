@@ -6,8 +6,9 @@
  * Here we handle preloading of bundles. See @link{./preloading.md} for more details.
  */
 
+import { observeTranslatedText } from '../client/translated-text';
 import { setPreloader } from './bridge';
-import { isBrowser } from './constants';
+import { doc, isBrowser } from './constants';
 import { preload } from './queue';
 
 // Short names for minification
@@ -17,4 +18,8 @@ export { preload as p } from './queue';
 // Here, not in queue.ts: queue and bundle-graph import each other and must both be evaluated
 if (isBrowser) {
   setPreloader(preload);
+  if (__EXPERIMENTAL__.pageTranslation) {
+    // Core loads too late to see what a page translator replaces right after the page loads.
+    observeTranslatedText(doc);
+  }
 }

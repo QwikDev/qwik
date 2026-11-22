@@ -1,5 +1,10 @@
 import type { ClientContainer } from '../../client/types';
 import {
+  getDomNode,
+  getTranslatedStandIn,
+  unlinkTranslatedText,
+} from '../../client/translated-text';
+import {
   registerQwikLoaderEvent,
   vnode_journalToString,
   type VNodeJournal,
@@ -54,6 +59,10 @@ const fastInsertBefore = (
   if (!_insertBefore) {
     _insertBefore = insertBeforeParent.insertBefore;
   }
+  if (__EXPERIMENTAL__.pageTranslation) {
+    target = getDomNode(target);
+    insertBefore = insertBefore && getDomNode(insertBefore);
+  }
   _insertBefore.call(insertBeforeParent, target, insertBefore);
 };
 
@@ -72,7 +81,9 @@ export function _flushJournal(journal: VNodeJournal): void {
         const doc = batchParent!.ownerDocument || (batchParent as Document);
         const fragment = doc.createDocumentFragment();
         for (let i = 0; i < batchNodes.length; i++) {
-          fragment.appendChild(batchNodes[i]);
+          fragment.appendChild(
+            __EXPERIMENTAL__.pageTranslation ? getDomNode(batchNodes[i]) : batchNodes[i]
+          );
         }
         fastInsertBefore(batchParent!, fragment, batchBefore);
       }
@@ -143,7 +154,8 @@ export function _flushJournal(journal: VNodeJournal): void {
       ) {
         flush();
       }
-      operation.target.remove();
+      const standIn = __EXPERIMENTAL__.pageTranslation && unlinkTranslatedText(operation.target);
+      (standIn || operation.target).remove();
       continue;
     }
 
@@ -162,7 +174,14 @@ export function _flushJournal(journal: VNodeJournal): void {
     }
 
     if (operation instanceof SetTextOperation) {
-      operation.target.nodeValue = operation.text;
+      const target = operation.target;
+      target.nodeValue = operation.text;
+      if (__EXPERIMENTAL__.pageTranslation && getTranslatedStandIn(target)) {
+        // Pending inserts may be positioned relative to the translation, while it is still linked.
+        flush();
+        const translation = unlinkTranslatedText(target)!;
+        translation.parentNode?.replaceChild(target, translation);
+      }
     } else if (operation instanceof SetAttributeOperation) {
       const element = operation.target;
       const attrName = operation.attrName;

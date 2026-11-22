@@ -167,6 +167,7 @@
 - [Show](/docs/labs/show/index.mdx)
 - [Pending](/docs/labs/pending/index.mdx)
 - [Catch](/docs/labs/catch/index.mdx)
+- [Page Translation](/docs/labs/page-translation/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)

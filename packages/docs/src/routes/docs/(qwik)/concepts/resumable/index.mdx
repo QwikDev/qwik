@@ -83,6 +83,8 @@ Qwik collects [component boundary information](https://qwik.dev/docs/cheat/seria
 2. Qwik can do this lazily only for the components which need to be re-rendered rather than all upfront.
 3. Qwik collects relationship information between stores and components. This creates a subscription model that informs Qwik which components need to be re-rendered as a result of state change. The subscription information also gets serialized into HTML.
 
+This information is sparse. Qwik only serializes what a component needs to render again, so a component that can never render again on the client may leave no boundary information in the HTML at all.
+
 ### Application State
 
 Existing frameworks usually have a way of serializing the application state into HTML so that the state can be restored as part of hydration. In this way, they are very similar to Qwik. However, Qwik has state management more tightly integrated into the lifecycle of the components. In practice, this means that component can be delay-loaded independently from the state of the component. This is not easily achievable in existing frameworks because component props are usually created by the parent component. This creates a chain reaction. In order to restore component X, its parents need to be restored as well. Qwik allows any component to be resumed without the parent component code being present.

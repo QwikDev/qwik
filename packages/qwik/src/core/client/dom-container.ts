@@ -87,6 +87,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
+import { observeTranslatedText, trackTranslatedText } from './translated-text';
 import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
 import { Brand, brandClass } from '../shared/utils/brand';
 import { NOT_READY } from '../reactive-primitives/types';
@@ -194,6 +195,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.qDestroy = () => this.$destroy$();
     if (__EXPERIMENTAL__.catchBoundary) {
       installQErrorListener(this.document);
+    }
+    if (__EXPERIMENTAL__.pageTranslation) {
+      observeTranslatedText(document, trackTranslatedText);
     }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);

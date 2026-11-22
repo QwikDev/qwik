@@ -7,6 +7,7 @@ import {
   vnode_isTextVNode,
   vnode_isVNode,
 } from '../../client/vnode-utils';
+import { getTranslatedStandIn } from '../../client/translated-text';
 import { _EFFECT_BACK_REF } from '../../internal';
 import type { BackRef } from '../../reactive-primitives/backref';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
@@ -531,7 +532,9 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
       if (
         firstChild &&
         hostVNode.firstChild === hostVNode.lastChild &&
-        vnode_isTextVNode(firstChild)
+        vnode_isTextVNode(firstChild) &&
+        // A translated text is not the signal's value; leave it to be computed.
+        !(__EXPERIMENTAL__.pageTranslation && getTranslatedStandIn(firstChild.node!))
       ) {
         signal.$untrackedValue$ = vnode_getText(firstChild);
       }

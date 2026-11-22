@@ -55,6 +55,17 @@ describe('v2/store', () => {
     });
   });
 
+  it('should notify when an array index is deleted', async () => {
+    await withContainer(async () => {
+      const store = getOrCreateStore([1, 2], StoreFlags.NONE, container);
+      effect$(() => log.push(store.join(',')));
+      expect(log).toEqual(['1,2']);
+      delete store[0];
+      await flushSignals();
+      expect(log).toEqual(['1,2', ',2']);
+    });
+  });
+
   function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();
     ctx.$container$ = container;

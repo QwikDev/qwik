@@ -1974,7 +1974,7 @@ describe('shared-serialization', () => {
       setPlatform(platformBeforeTest);
     });
 
-    it("waits for the computed's module when another QRL started loading it", async () => {
+    it('a second QRL capturing the same computed also waits for its code', async () => {
       const computed = createComputedQrl(lazyQrl('s_computed') as any);
       const objs = await serialize(lazyQrl('s_first', [computed]), lazyQrl('s_second', [computed]));
       const releaseComputedModule = holdModuleOf('s_computed');

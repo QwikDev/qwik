@@ -9,6 +9,7 @@ import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core
 import { describe, expect, it } from 'vitest';
 import { _useHmr } from '../internal';
 import { VNodeFlags } from '../client/types';
+import { vnode_isMaterialized } from '../client/vnode-utils';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -303,6 +304,58 @@ describe('domRender: HMR', () => {
 
 describe('ssrRenderToDom: HMR', () => {
   const render = ssrRenderToDom;
+
+  it('leaves unrelated branches unmaterialized on HMR', async () => {
+    const Target = component$(() => {
+      _useHmr('target.tsx?import');
+      return <p>target</p>;
+    });
+    const Unrelated = component$(() => {
+      _useHmr('target.tsx-extra.tsx');
+      return <p>unrelated</p>;
+    });
+    const { container } = await render(
+      <>
+        <article>
+          <Target />
+        </article>
+        <aside>
+          <Unrelated />
+        </aside>
+      </>
+    );
+    const unrelatedBranch = container.vNodeLocate(container.element.querySelector('aside')!);
+    expect(vnode_isMaterialized(unrelatedBranch)).toBe(false);
+
+    await triggerHmr(container, ['target.tsx']);
+
+    expect((container.document as any).__hmrDone).toBe((container.document as any).__hmrT);
+    expect(vnode_isMaterialized(unrelatedBranch)).toBe(false);
+  });
+
+  it('ignores a removed SSR host on its first HMR update', async () => {
+    const Item = component$(() => {
+      _useHmr('removed.tsx');
+      return <p>item</p>;
+    });
+    const App = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (show.value = false)}>Remove</button>
+          {show.value && <Item />}
+        </>
+      );
+    });
+    const { container } = await render(<App />);
+    expect(container.element.querySelector('p')?.textContent).toBe('item');
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('p')).toBeFalsy();
+
+    await triggerHmr(container, ['removed.tsx']);
+
+    expect((container.document as any).__hmrDone).not.toBe((container.document as any).__hmrT);
+  });
 
   it('dispatches SSR HMR from the container VNode script', async () => {
     const Counter = component$(() => {

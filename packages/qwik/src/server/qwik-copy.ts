@@ -34,6 +34,7 @@ export {
   QCtxAttr,
   QHmrAttr,
   QHmrEvent,
+  QHmrTargets,
   QDefaultSlot,
   QInstanceAttr,
   QLocaleAttr,

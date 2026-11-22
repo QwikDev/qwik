@@ -46,6 +46,7 @@ import {
   QError,
   QHmrAttr,
   QHmrEvent,
+  QHmrTargets,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -307,7 +308,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
-  protected hmrEnabled = false;
+  protected hmrTargets: Map<string, Set<number>> | null = null;
 
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
@@ -1170,9 +1171,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return false;
   }
 
-  $enableHmr$(host: ISsrNode): void {
-    this.hmrEnabled = true;
-    this.$retainForResume$(host);
+  $registerHmrHost$(file: string, host: ISsrNode): void {
+    const id = this.addRoot(host);
+    if (id !== undefined) {
+      this.markVNodeRefForSerialization(host);
+      const targets = (this.hmrTargets ||= new Map());
+      let hosts = targets.get(file);
+      if (!hosts) {
+        hosts = new Set();
+        targets.set(file, hosts);
+      }
+      hosts.add(id);
+    }
   }
 
   ////////////////////////////////////
@@ -1284,8 +1294,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     patch = false
   ) {
     const attrs: Props = { type: 'qwik/vnode' };
-    if (this.hmrEnabled && !patch) {
+    if (this.hmrTargets && !patch) {
       attrs[QHmrAttr] = hmrQrl();
+      const targets: SSRWriteChunk[] = ['['];
+      for (const [file, rootIds] of this.hmrTargets) {
+        if (targets.length > 1) {
+          targets.push(',');
+        }
+        targets.push('[', JSON.stringify(file), ',[');
+        let separator = '';
+        for (const id of rootIds) {
+          targets.push(separator, id);
+          separator = ',';
+        }
+        targets.push(']]');
+      }
+      targets.push(']');
+      attrs[QHmrTargets] = targets;
     }
     if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
       attrs[QPendingResolved] = segmentId;
@@ -2379,7 +2404,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): void {
-    if (this.hmrEnabled) {
+    if (this.hmrTargets) {
       rootContainer.serializationCtx.$eventNames$.add(QHmrEvent);
     }
     for (const eventName of segmentSerializationCtx.$eventNames$) {

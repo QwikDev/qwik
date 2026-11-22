@@ -25,6 +25,7 @@ export const QStyle = 'q:style';
 export const QHmrEvent = 'd:q-hmr';
 export const QHmrAttr = 'q-' + QHmrEvent;
 export const QHmrPath = 'q:hmr-path';
+export const QHmrTargets = 'q:hmr-targets';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;

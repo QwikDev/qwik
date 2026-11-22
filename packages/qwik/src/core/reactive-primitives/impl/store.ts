@@ -208,6 +208,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
+    // `delete arr[i]` leaves `length` unchanged, so arrays must notify here too.
     scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
     return true;
   }

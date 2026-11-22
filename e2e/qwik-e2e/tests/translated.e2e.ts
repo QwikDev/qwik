@@ -112,6 +112,13 @@ test.describe('translated page', () => {
       );
     });
 
+    test('updates text that was reordered while translated', async ({ page }) => {
+      await page.locator('#reverse').click();
+      await expect(page.locator('#words')).toHaveText('[beta 6][alpha 6]');
+      await page.locator('#count').click();
+      await expect(page.locator('#words')).toHaveText('beta 7alpha 7');
+    });
+
     test('updates the number after show original', async ({ page }) => {
       await showOriginal(page);
       await page.locator('#count').click();

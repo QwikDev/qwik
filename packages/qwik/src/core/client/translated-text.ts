@@ -128,7 +128,8 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
       continue;
     }
     const textNode = translated.textNodes?.get(removed);
-    if (textNode) {
+    // A stand-in that Qwik moved is removed too, but has a parent again.
+    if (textNode && !removed.parentNode) {
       // Show original: the translator puts its own text node back in front of the wrapper.
       unlinkTranslatedText(textNode);
       if (previous && previous !== textNode && previous.nodeType === 3) {

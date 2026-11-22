@@ -12,7 +12,7 @@ import {
 } from './process-vnode-data';
 import type { ClientContainer, ContainerElement, QDocument } from './types';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr, QStatePrewarmAttr, QStyle } from '../shared/utils/markers';
+import { QContainerAttr, QStyle } from '../shared/utils/markers';
 import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
 import { TypeIds } from '../shared/serdes/constants';
@@ -26,71 +26,68 @@ import { _serialize } from '../../serializer';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 
 describe('processVnodeData', () => {
-  it.each([false, true])(
-    'releases streaming object references after queued patches (eager=%s)',
-    async (eager) => {
-      const raw = await _serialize({ nested: [{ count: 0 }] });
-      const document = createDocument({
-        html: `<html q:container="paused" q:instance="" ${eager ? 'q:prewarm="0"' : ''}>
+  it('releases streaming object references after queued patches', async () => {
+    const raw = await _serialize({ nested: [{ count: 0 }] });
+    const document = createDocument({
+      html: `<html q:container="paused" q:instance="">
         <head :></head><body :>
           <div : q:rp="1"><template q:r="1"></template></div>
           ${encodeVNode()}
           <script type="qwik/state" q:instance="" q:stream>${raw}</script>
         </body></html>`,
-      }) as QDocument;
-      await withYieldingVNodeData(document, async (tasks) => {
-        const container = getDomContainer(document.documentElement) as DomContainer;
-        while (!isContainerReady(container)) {
-          runNextTask(tasks);
-        }
-        const shell = container.$getObjectById$(0) as { nested: { count: number }[] };
-        const original = shell.nested[0];
-        original.count = 1;
-        shell.nested.unshift({ count: 100 });
-        expect(container.$streamingObjectRefs$?.has(shell)).toBe(true);
-        container.element.insertAdjacentHTML(
-          'beforeend',
-          '<script type="qwik/state" q:instance="" q:patch q:r="2">[1,[],0]</script>'
-        );
-        const earlierScan = processSegmentStateScriptsIterator(container);
-        expect(earlierScan.next().done).toBe(false);
+    }) as QDocument;
+    await withYieldingVNodeData(document, async (tasks) => {
+      const container = getDomContainer(document.documentElement) as DomContainer;
+      while (!isContainerReady(container)) {
+        runNextTask(tasks);
+      }
+      const shell = container.$getObjectById$(0) as { nested: { count: number }[] };
+      const original = shell.nested[0];
+      original.count = 1;
+      shell.nested.unshift({ count: 100 });
+      expect(container.$streamingObjectRefs$?.has(shell)).toBe(true);
+      container.element.insertAdjacentHTML(
+        'beforeend',
+        '<script type="qwik/state" q:instance="" q:patch q:r="2">[1,[],0]</script>'
+      );
+      const earlierScan = processSegmentStateScriptsIterator(container);
+      expect(earlierScan.next().done).toBe(false);
 
-        const patch = [TypeIds.RootRef, '0 1 0'];
-        for (let i = 0; i < 128; i++) {
-          patch.push(TypeIds.Plain, i);
-        }
-        container.element.insertAdjacentHTML(
-          'beforeend',
-          encodeVNode({ 0: '~' }, '1') +
-            `<script type="qwik/state" q:instance="" q:patch q:r="1">${JSON.stringify([1, patch, 0])}</script>` +
-            '<script q:instance="" q:stream="done"></script>'
-        );
-        document.qProcessOOOS!(1, container.element.querySelector('[q\\:rp="1"]'));
-        installOutOfOrderExecutor(document);
-        Object.defineProperty(document, 'currentScript', {
-          configurable: true,
-          value: container.element.lastElementChild,
-        });
-        (globalThis as any).qO(0);
-        Object.defineProperty(document, 'currentScript', { configurable: true, value: null });
-        expect(earlierScan.next().done).toBe(true);
-        expect(container.$streamingObjectRefs$).toBeDefined();
-        while (tasks.length) {
-          runNextTask(tasks);
-        }
-
-        expect(container.$getObjectById$(1)).toBe(original);
-        expect(original.count).toBe(1);
-        expect(container.$streamingObjectRefs$).toBeUndefined();
-        expect(container.$getObjectById$(129)).toBe(127);
-        expect(container.$streamingObjectRefs$).toBeUndefined();
+      const patch = [TypeIds.RootRef, '0 1 0'];
+      for (let i = 0; i < 128; i++) {
+        patch.push(TypeIds.Plain, i);
+      }
+      container.element.insertAdjacentHTML(
+        'beforeend',
+        encodeVNode({ 0: '~' }, '1') +
+          `<script type="qwik/state" q:instance="" q:patch q:r="1">${JSON.stringify([1, patch, 0])}</script>` +
+          '<script q:instance="" q:stream="done"></script>'
+      );
+      document.qProcessOOOS!(1, container.element.querySelector('[q\\:rp="1"]'));
+      installOutOfOrderExecutor(document);
+      Object.defineProperty(document, 'currentScript', {
+        configurable: true,
+        value: container.element.lastElementChild,
       });
-    }
-  );
+      (globalThis as any).qO(0);
+      Object.defineProperty(document, 'currentScript', { configurable: true, value: null });
+      expect(earlierScan.next().done).toBe(true);
+      expect(container.$streamingObjectRefs$).toBeDefined();
+      while (tasks.length) {
+        runNextTask(tasks);
+      }
 
-  it.each([false, true])('resumes after the stream has finished (eager=%s)', async (eager) => {
+      expect(container.$getObjectById$(1)).toBe(original);
+      expect(original.count).toBe(1);
+      expect(container.$streamingObjectRefs$).toBeUndefined();
+      expect(container.$getObjectById$(129)).toBe(127);
+      expect(container.$streamingObjectRefs$).toBeUndefined();
+    });
+  });
+
+  it('resumes after the stream has finished', async () => {
     const document = createDocument({
-      html: `<html q:container="paused" q:instance="" ${eager ? 'q:prewarm="0"' : ''}>
+      html: `<html q:container="paused" q:instance="">
         <head :></head><body :>${encodeVNode()}
         <script type="qwik/state" q:instance="" q:stream>${await _serialize({ nested: { count: 0 } })}</script>
         <script type="qwik/state" q:instance="" q:patch q:r="1">${JSON.stringify([1, [TypeIds.RootRef, '0 1'], 0])}</script>
@@ -395,76 +392,7 @@ describe('processVnodeData', () => {
     });
   });
 
-  it('should keep below-threshold state lazy until first access', async () => {
-    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
-    for (let i = 1; i < 128; i++) {
-      stateItems.push(TypeIds.Plain, i);
-    }
-    const document = createDocument({
-      html: `
-        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="">
-          <head :></head>
-          <body :>
-            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
-          </body>
-        </html>
-      `,
-    }) as QDocument;
-
-    await withYieldingVNodeData(document, async (tasks) => {
-      const container = getDomContainer(document.documentElement) as DomContainer;
-      const ready = whenContainerDataReady(container, () => undefined);
-
-      while (!isContainerReady(container)) {
-        runNextTask(tasks);
-      }
-
-      await ready;
-      const rawState = (container as any).$rawStateData$ as unknown[];
-      expect(rawState[0]).toBe(TypeIds.Object);
-      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
-      expect(rawState[0]).toBe(TypeIds.Plain);
-    });
-  });
-
-  it('should eagerly deserialize opted-in large state before marking the container resumed', async () => {
-    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
-    for (let i = 1; i < 2048; i++) {
-      stateItems.push(TypeIds.Plain, i);
-    }
-    const document = createDocument({
-      html: `
-        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="2048">
-          <head :></head>
-          <body :>
-            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
-          </body>
-        </html>
-      `,
-    }) as QDocument;
-
-    await withYieldingVNodeData(document, async (tasks) => {
-      const container = getDomContainer(document.documentElement) as DomContainer;
-      const ready = whenContainerDataReady(container, () => undefined);
-      let chunks = 0;
-
-      while (!isContainerReady(container)) {
-        expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.PAUSED);
-        runNextTask(tasks);
-        chunks++;
-        expect(chunks).toBeLessThan(300);
-      }
-
-      await ready;
-      const rawState = (container as any).$rawStateData$ as unknown[];
-      expect(chunks).toBeGreaterThan(1);
-      expect(rawState[0]).toBe(TypeIds.Plain);
-      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
-      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
-    });
-  });
-
-  it('should keep large state lazy by default', async () => {
+  it('keeps a large state lazy until first access', async () => {
     const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
     for (let i = 1; i < 2048; i++) {
       stateItems.push(TypeIds.Plain, i);
@@ -493,38 +421,6 @@ describe('processVnodeData', () => {
       expect(rawState[0]).toBe(TypeIds.Object);
       expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
       expect(rawState[0]).toBe(TypeIds.Plain);
-    });
-  });
-
-  it('should eagerly deserialize smaller state when state prewarm threshold is lowered', async () => {
-    const stateItems: unknown[] = [TypeIds.Object, [TypeIds.Plain, 'answer', TypeIds.Plain, 42]];
-    for (let i = 1; i < 128; i++) {
-      stateItems.push(TypeIds.Plain, i);
-    }
-    const document = createDocument({
-      html: `
-        <html q:container="paused" q:locale="" q:base="" q:instance="" q:manifest-hash="" ${QStatePrewarmAttr}="128">
-          <head :></head>
-          <body :>
-            <script type="qwik/state">${JSON.stringify(stateItems)}</script>
-          </body>
-        </html>
-      `,
-    }) as QDocument;
-
-    await withYieldingVNodeData(document, async (tasks) => {
-      const container = getDomContainer(document.documentElement) as DomContainer;
-      const ready = whenContainerDataReady(container, () => undefined);
-
-      while (!isContainerReady(container)) {
-        runNextTask(tasks);
-      }
-
-      await ready;
-      const rawState = (container as any).$rawStateData$ as unknown[];
-      expect(rawState[0]).toBe(TypeIds.Plain);
-      expect(container.$getObjectById$(0)).toEqual({ answer: 42 });
-      expect(document.documentElement.getAttribute(QContainerAttr)).toBe(QContainerValue.RESUMED);
     });
   });
 

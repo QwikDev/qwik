@@ -194,6 +194,52 @@ export function makeReader(values) {
 }
 
 #[test]
+fn preserves_captured_reads_before_mutating_the_binding() {
+	let code = parent_code(
+		r#"
+export function makeReader() {
+  let index = 0;
+  return (_) => {
+    const value = index;
+    index++;
+    return value;
+  };
+}
+"#,
+		EntryStrategy::Inline,
+	);
+	let read = code
+		.find("const value = index;")
+		.unwrap_or_else(|| panic!("expected the captured read before mutation:\n{code}"));
+	assert!(read < code.find("index++;").unwrap(), "{code}");
+	assert!(code.contains("return value;"), "{code}");
+}
+
+#[test]
+fn removes_inlined_declarators_from_mixed_const_statements() {
+	let output = test_input_fn(TestInput {
+		code: r#"
+export function makeReader(values) {
+  let index = 0;
+  return (_) => {
+    const label = 42, value = values[index];
+    index++;
+    return label + value;
+  };
+}
+"#
+		.to_string(),
+		minify: MinifyMode::None,
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let code = &output.modules[0].code;
+	assert!(code.contains("const value = values[index];"), "{code}");
+	assert!(code.contains("return 42 + value;"), "{code}");
+}
+
+#[test]
 fn qrl_used_through_a_function_comes_before_code_calling_it() {
 	let code = r#"
 import { $ } from '@qwik.dev/core';

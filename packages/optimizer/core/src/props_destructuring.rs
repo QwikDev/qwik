@@ -153,7 +153,7 @@ impl<'a> PropsDestructuring<'a> {
 		for (index, stmt) in body.stmts.iter_mut().enumerate() {
 			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
 				if var_decl.kind == ast::VarDeclKind::Const {
-					for decl in var_decl.decls.iter_mut() {
+					var_decl.decls.retain_mut(|decl| {
 						let convert = match &decl.init {
 							Some(box ast::Expr::Lit(lit)) => {
 								let new_ident = private_ident!("_unused");
@@ -229,7 +229,9 @@ impl<'a> PropsDestructuring<'a> {
 								}
 								_ => None,
 							},
-							Some(box ast::Expr::Ident(ref ident)) => {
+							Some(box ast::Expr::Ident(ref ident))
+								if is_component || matches!(decl.name, ast::Pat::Object(_)) =>
+							{
 								let new_ident = private_ident!("_unused");
 								let new_replace = self
 									.identifiers
@@ -300,7 +302,7 @@ impl<'a> PropsDestructuring<'a> {
 							}
 							match transform_init {
 								TransformInit::Remove => {
-									decl.init = None;
+									return false;
 								}
 								TransformInit::Replace(expr) => {
 									decl.init = Some(Box::new(expr));
@@ -308,7 +310,8 @@ impl<'a> PropsDestructuring<'a> {
 								TransformInit::Keep => {}
 							}
 						}
-					}
+						true
+					});
 				} else {
 					break;
 				}
@@ -319,18 +322,9 @@ impl<'a> PropsDestructuring<'a> {
 			body.stmts.insert(index, stmt);
 		}
 
-		// Remove declarations that were replaced with _unused and have no init
-		// (e.g., `const _unused;` from inlined literals). These are invalid JS.
-		body.stmts.retain(|stmt| {
-			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
-				!var_decl.decls.iter().all(|decl| {
-					decl.init.is_none()
-						&& matches!(&decl.name, ast::Pat::Ident(ident) if ident.id.sym.starts_with("_unused"))
-				})
-			} else {
-				true
-			}
-		});
+		body.stmts.retain(
+			|stmt| !matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(var_decl)) if var_decl.decls.is_empty()),
+		);
 	}
 }
 

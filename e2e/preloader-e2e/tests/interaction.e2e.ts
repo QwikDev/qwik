@@ -1,9 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { defineColdClickTest } from '../utils/click-tests';
 import {
   chunkComesFrom,
   chunkHasComponent,
   chunkHasScopedStyles,
+  chunkHoldsComputedFrom,
   chunkHoldsTaskFrom,
 } from '../utils/app';
 import {
@@ -16,12 +17,21 @@ import {
   SHARED_HELPER,
   SLOT,
   SYNC,
+  TASK_READING_A_COMPUTED_FROM_A_RERENDERING_PARENT,
+  TASK_READING_A_COMPUTED_FROM_CONTEXT,
   TASKS_IN_PARENT_AND_CHILD,
   TASKS_IN_SIBLINGS,
   USER_IMPORT,
+  type Fixture,
 } from '../utils/fixtures';
-import type { RoundTrip } from '../utils/gate';
-import { coldClick } from '../utils/scenarios';
+import { releaseAll, settle, type RoundTrip } from '../utils/gate';
+import {
+  coldClick,
+  expectResult,
+  fixtureResult,
+  fixtureRoot,
+  openFixture,
+} from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
   if (!fixture.startsWhenVisible) {
@@ -148,6 +158,45 @@ test.describe('tasks in several components', () => {
     );
     expect(firstRoundTrip).toBeGreaterThanOrEqual(0);
     expect(secondRoundTrip).toBe(firstRoundTrip);
+  });
+
+  const countTaskRunsWhenTheComputedArrivesLast = async (
+    page: Page,
+    fixture: Fixture,
+    componentFile: string
+  ) => {
+    const { gate } = await openFixture(page, fixture, 'cold');
+    gate.mode = 'pass';
+    gate.holdWhilePassing = (url) => chunkHoldsComputedFrom(url, `${TASKS_DIR}${componentFile}`);
+    await fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+    await expect.poll(() => gate.held.length).toBe(1);
+    await settle(page, gate);
+    await expect(fixtureResult(page, fixture)).not.toHaveAttribute('data-done');
+    await releaseAll(gate);
+    await expectResult(page, fixture);
+    return page.evaluate(() => (globalThis as { taskRuns?: number }).taskRuns);
+  };
+
+  test.describe('task reading a computed from context', () => {
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const taskRuns = await countTaskRunsWhenTheComputedArrivesLast(
+        page,
+        TASK_READING_A_COMPUTED_FROM_CONTEXT,
+        'computed-from-context/index.tsx'
+      );
+      expect(taskRuns).toBe(1);
+    });
+  });
+
+  test.describe('task reading a computed from props while its parent re-renders', () => {
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const taskRuns = await countTaskRunsWhenTheComputedArrivesLast(
+        page,
+        TASK_READING_A_COMPUTED_FROM_A_RERENDERING_PARENT,
+        'computed-from-rerendering-parent/index.tsx'
+      );
+      expect(taskRuns).toBe(1);
+    });
   });
 });
 

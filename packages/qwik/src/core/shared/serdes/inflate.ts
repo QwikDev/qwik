@@ -47,11 +47,13 @@ import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
   p: Promise<void>;
+  computedLoads: number;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
     p: Promise.resolve(),
+    computedLoads: 0,
   })
 );
 
@@ -349,6 +351,8 @@ function* inflateIterator(
         // ignore preload errors
       });
       loadingHolder.p = loadingHolder.p.finally(() => p);
+      loadingHolder.computedLoads++;
+      p.finally(() => loadingHolder.computedLoads--);
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }

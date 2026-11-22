@@ -247,6 +247,16 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/tasks/computed-from-context/',
+    label: 'task reading a computed from context',
+  },
+  {
+    group: 'other',
+    href: '/tasks/computed-from-rerendering-parent/',
+    label: 'task reading a computed from props while its parent re-renders',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

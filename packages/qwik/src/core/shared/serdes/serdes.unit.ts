@@ -19,7 +19,12 @@ import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serial
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import { createStore, getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
+import {
+  createStore,
+  getStoreHandler,
+  isStore,
+  unwrapStore,
+} from '../../reactive-primitives/impl/store';
 import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
@@ -37,6 +42,7 @@ import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { isObject } from '../utils/types';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
 import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
@@ -1984,6 +1990,60 @@ describe('shared-serialization', () => {
       expect(await isReady(second)).toBe(false);
       releaseComputedModule();
       expect(await isReady(second)).toBe(true);
+    });
+
+    const expectToWaitForTheComputedInside = async (capture: (computed: unknown) => unknown) => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(
+        lazyQrl('s_first', [computed]),
+        lazyQrl('s_second', [capture(computed)])
+      );
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const [first, second] = deserialize(objs) as QRLInternal[];
+
+      expect(await isReady(first)).toBe(false);
+      expect(await isReady(second)).toBe(false);
+      releaseComputedModule();
+      expect(await isReady(second)).toBe(true);
+    };
+
+    it('waits for the module of a computed inside an object it captures', async () => {
+      await expectToWaitForTheComputedInside((computed) => ({ total: computed }));
+    });
+
+    it('waits for the module of a computed inside a store it captures', async () => {
+      await expectToWaitForTheComputedInside((computed) =>
+        createStore(null, { total: computed }, StoreFlags.RECURSIVE)
+      );
+    });
+
+    it('waits for the module of a computed inside the props it captures', async () => {
+      await expectToWaitForTheComputedInside((computed) =>
+        createComponentProps({ total: computed }, null)
+      );
+    });
+
+    it('does not read a captured store through its proxy', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(
+        lazyQrl('s_first', [computed]),
+        lazyQrl('s_second', [createStore(null, { total: computed }, StoreFlags.RECURSIVE)])
+      );
+      holdModuleOf('s_computed');
+      const state = deserialize(objs);
+      const [first, second] = [state[0], state[1]] as QRLInternal[];
+      await isReady(first);
+      const store = Array.from({ length: objs.length / 2 }, (_, i) => state[i]).find(
+        (root) => isObject(root) && isStore(root)
+      ) as object;
+      const handler = getStoreHandler(store as any)!;
+      const reads = vi.spyOn(handler, 'get');
+      const keyLists = vi.spyOn(handler, 'ownKeys');
+
+      await isReady(second);
+
+      expect(reads.mock.calls.filter(([, key]) => typeof key === 'string')).toEqual([]);
+      expect(keyLists).not.toHaveBeenCalled();
     });
 
     it('does not take a captured plain object for a computed', async () => {

@@ -69,6 +69,14 @@ export const CONDITIONAL_MODAL = handWritten('conditional-modal', 'ready');
 export const EMPTY_LIST = handWritten('empty-list', '1');
 export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
 export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
+export const TASK_READING_A_COMPUTED_FROM_CONTEXT = handWritten(
+  'tasks/computed-from-context',
+  '1 of 3'
+);
+export const TASK_READING_A_COMPUTED_FROM_A_RERENDERING_PARENT = handWritten(
+  'tasks/computed-from-rerendering-parent',
+  '1 of 3'
+);
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');

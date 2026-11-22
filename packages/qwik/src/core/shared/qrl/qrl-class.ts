@@ -8,6 +8,8 @@ import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
+import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
+import { STORE_TARGET } from '../../reactive-primitives/types';
 import { Brand, hasBrand } from '../utils/brand';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
@@ -536,6 +538,43 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
+const waitForComputedModule = (loading: Promise<unknown> | undefined, value: unknown) => {
+  const computeQrl =
+    hasBrand(value, Brand.ComputedSignal) && (value as { $computeQrl$?: QRLInternal }).$computeQrl$;
+  const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
+  if (!isPromise(computedModule)) {
+    return loading;
+  }
+  const computedLoaded = computedModule.catch(() => {});
+  return loading ? loading.then(() => computedLoaded) : computedLoaded;
+};
+
+/** The objects whose own values a capture holds, read without going through a proxy */
+const objectsInsideCapture = (capture: unknown): unknown[] => {
+  if (!isObject(capture)) {
+    return [];
+  }
+  if (STORE_TARGET in capture) {
+    return [(capture as Record<symbol, unknown>)[STORE_TARGET]];
+  }
+  if (_VAR_PROPS in capture) {
+    const props = capture as Record<symbol, unknown>;
+    return [props[_VAR_PROPS], props[_CONST_PROPS]];
+  }
+  return Object.getPrototypeOf(capture) === Object.prototype ? [capture] : [];
+};
+
+const waitForComputedModulesInside = (loading: Promise<unknown> | undefined, capture: unknown) => {
+  const objects = objectsInsideCapture(capture);
+  for (let i = 0; i < objects.length; i++) {
+    const values = isObject(objects[i]) ? Object.values(objects[i] as object) : [];
+    for (let j = 0; j < values.length; j++) {
+      loading = waitForComputedModule(loading, values[j]);
+    }
+  }
+  return loading;
+};
+
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible
@@ -553,15 +592,11 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     setCaptures(captures);
     let loading: Promise<unknown> | undefined =
       loadingHolder.p !== prevLoading ? loadingHolder.p : undefined;
+    const isAComputedLoading = loadingHolder.computedLoads > 0;
     for (let i = 0; i < captures.length; i++) {
-      const capture = captures[i];
-      const computeQrl =
-        hasBrand(capture, Brand.ComputedSignal) &&
-        (capture as { $computeQrl$?: QRLInternal }).$computeQrl$;
-      const computedModule = computeQrl && getInstance(computeQrl).$lazy$.$ref$;
-      if (isPromise(computedModule)) {
-        const computedLoaded = computedModule.catch(() => {});
-        loading = loading ? loading.then(() => computedLoaded) : computedLoaded;
+      loading = waitForComputedModule(loading, captures[i]);
+      if (isAComputedLoading) {
+        loading = waitForComputedModulesInside(loading, captures[i]);
       }
     }
     // return the loading promise so callers can await it

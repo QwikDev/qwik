@@ -37,6 +37,8 @@ test('runs independently of core and replays buffered hints', async () => {
     const context = {
       module,
       __qwik__: undefined,
+      // An app build replaces every experimental flag; here none is enabled.
+      __EXPERIMENTAL__: {},
       document,
       URL,
       setTimeout,

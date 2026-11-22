@@ -2,7 +2,10 @@
   "description": "Qwik E2E",
   "__qwik__": {
     "priority": 0,
-    "featureOptions": []
+    "featureOptions": [],
+    "experimental": [
+      "pageTranslation"
+    ]
   },
   "type": "module"
 }

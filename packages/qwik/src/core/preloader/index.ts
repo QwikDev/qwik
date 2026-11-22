@@ -18,6 +18,8 @@ export { preload as p } from './queue';
 // Here, not in queue.ts: queue and bundle-graph import each other and must both be evaluated
 if (isBrowser) {
   setPreloader(preload);
-  // Core loads too late to see what a page translator replaces right after the page loads.
-  observeTranslatedText(doc);
+  if (__EXPERIMENTAL__.pageTranslation) {
+    // Core loads too late to see what a page translator replaces right after the page loads.
+    observeTranslatedText(doc);
+  }
 }

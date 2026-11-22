@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/core': patch
+'@qwik.dev/core': minor
 ---
 
-fix: text updates broke on pages translated by Google Translate
+feat: the experimental `pageTranslation` flag keeps text updates working on pages translated by Google Translate

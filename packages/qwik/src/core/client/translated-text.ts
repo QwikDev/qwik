@@ -24,7 +24,7 @@ type TranslatedGlobal = typeof globalThis & {
   };
 };
 
-const translated = ((globalThis as TranslatedGlobal).qTranslated ||= {});
+let translated: NonNullable<TranslatedGlobal['qTranslated']> = {};
 
 export const isTranslatedText = (node: Node | null): node is Element =>
   !!node &&
@@ -149,6 +149,8 @@ export const trackTranslatedText = (records: TextSwapRecord[]): void => {
  * @param track - Core passes its own tracking, which replaces the capture of the preloader.
  */
 export const observeTranslatedText = (document: Document, track?: typeof trackTranslatedText) => {
+  // Whichever of core and the preloader comes second continues with the state of the first.
+  translated = (globalThis as TranslatedGlobal).qTranslated ||= translated;
   const isObserved = !!translated.track;
   translated.track = track || translated.track || captureOriginalTexts;
   if (isObserved || typeof MutationObserver === 'undefined') {

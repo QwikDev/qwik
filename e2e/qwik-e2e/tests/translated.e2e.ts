@@ -49,6 +49,14 @@ const failOnPageErrors = (page: Page) => {
   });
 };
 
+/** Collects the errors that Qwik reports to the app. */
+const collectQErrors = (page: Page) =>
+  page.addInitScript(() => {
+    document.addEventListener('qerror', (event) => {
+      ((window as any).qErrors ||= []).push(String((event as CustomEvent).detail.error));
+    });
+  });
+
 test.describe('translated page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/translated');
@@ -127,12 +135,8 @@ test.describe('translated page whose sentence never renders again', () => {
   });
 
   test('keeps the translation and reports it when nothing saw it happen', async ({ page }) => {
-    await page.addInitScript(() => {
-      delete (window as any).MutationObserver;
-      document.addEventListener('qerror', (event) => {
-        ((window as any).qErrors ||= []).push(String((event as CustomEvent).detail.error));
-      });
-    });
+    await collectQErrors(page);
+    await page.addInitScript(() => delete (window as any).MutationObserver);
     await page.goto('/translated.prod/');
     await translate(page);
     await page.locator('#count').click();
@@ -140,5 +144,18 @@ test.describe('translated page whose sentence never renders again', () => {
     expect(await page.evaluate(() => (window as any).qErrors)).toEqual([
       expect.stringContaining('Code(Q42)'),
     ]);
+  });
+});
+
+test.describe('translated page of an app without the pageTranslation flag', () => {
+  test('reports once that translated text can not be updated', async ({ page }) => {
+    await collectQErrors(page);
+    await page.goto('/translated-unsupported.prod/');
+    await translate(page);
+    await page.locator('#count').click();
+    await page.locator('#count').click();
+    await expect
+      .poll(() => page.evaluate(() => (window as any).qErrors))
+      .toEqual([expect.stringContaining('Code(Q42)')]);
   });
 });

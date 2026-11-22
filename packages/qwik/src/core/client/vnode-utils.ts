@@ -759,9 +759,11 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     const parentNode = vnode_getDomParent(vnode, true);
     isDev && assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode.node as Text;
-    const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
-    if (translation) {
-      return vnode_inflateTranslatedText(journal, textVNode, parentNode!, translation);
+    if (__EXPERIMENTAL__.pageTranslation) {
+      const translation = sharedTextNode && getTranslatedStandIn(sharedTextNode);
+      if (translation) {
+        return vnode_inflateTranslatedText(journal, textVNode, parentNode!, translation);
+      }
     }
     const doc = fastOwnerDocument(parentNode!);
     // Walk the previous siblings and inflate them.
@@ -875,7 +877,15 @@ const vnode_inflateTranslatedText = (
     vCursor = next;
   }
   if (isTextLost) {
-    // Nothing here can restore the text, so the app gets to decide, e.g. to reload the page.
+    reportTranslatedTextLost();
+  }
+};
+
+let isTranslatedTextLostReported = false;
+/** Nothing here can restore the text, so the app gets to decide, e.g. to reload the page. */
+const reportTranslatedTextLost = () => {
+  if (!isTranslatedTextLostReported) {
+    isTranslatedTextLostReported = true;
     emitEvent('qerror', { error: qErrorWithoutStop(QError.translatedTextLost) });
   }
 };
@@ -1647,7 +1657,7 @@ export const vnode_getText = (textVNode: TextVNode): string => {
 export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text: string) => {
   vnode_ensureTextInflated(journal, textVNode);
   textVNode.text = text;
-  if (isTranslatorTextNode(textVNode.node!)) {
+  if (__EXPERIMENTAL__.pageTranslation && isTranslatorTextNode(textVNode.node!)) {
     textVNode.node = createTranslatedTextNode(getTranslatedStandIn(textVNode.node!)!);
   }
   addVNodeOperation(journal, createSetTextOperation(textVNode.node!, text));
@@ -1944,7 +1954,7 @@ const materializeFromDOM = (
     let vNextChild: VNode | null = null;
     if (nodeType === /* Node.TEXT_NODE */ 3) {
       vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
-    } else if (isTranslatedText(child)) {
+    } else if (__EXPERIMENTAL__.pageTranslation && isTranslatedText(child)) {
       vNextChild = vnode_newText(getTranslatedTextNode(child), getOriginalText(child));
     } else if (nodeType === /* Node.ELEMENT_NODE */ 1) {
       vNextChild = vnode_newUnMaterializedElement(child as Element);
@@ -2264,7 +2274,18 @@ function shouldSkipElement(element: Element) {
 
 /** A translated text stands in for a text node, so a search for text must stop at it. */
 function shouldSkipElementBeforeText(element: Element) {
-  return shouldSkipElement(element) && !isTranslatedText(element);
+  if (!shouldSkipElement(element)) {
+    return false;
+  }
+  if (!isTranslatedText(element)) {
+    return true;
+  }
+  if (__EXPERIMENTAL__.pageTranslation) {
+    return false;
+  }
+  // Without page translation support the text behind the translation can't be updated.
+  reportTranslatedTextLost();
+  return true;
 }
 
 function hasOnlyPendingPlaceholder(element: Element) {
@@ -2428,7 +2449,7 @@ function materializeFromVNodeData(
       while (isElement(child) && shouldSkipElementBeforeText(child)) {
         child = fastNextSibling(child);
       }
-      const isTranslated = isTranslatedText(child);
+      const isTranslated = __EXPERIMENTAL__.pageTranslation && isTranslatedText(child);
       const textNode = isTranslated
         ? getTranslatedTextNode(child as Element)
         : child && fastNodeType(child) === /* Node.TEXT_NODE */ 3

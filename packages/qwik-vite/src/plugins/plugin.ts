@@ -97,6 +97,8 @@ export enum ExperimentalFeatures {
   insights = 'insights',
   /** Enable the `blockSSR: false` route loader option */
   blockSSR = 'blockSSR',
+  /** Keep text updates working on pages translated by Google Translate */
+  pageTranslation = 'pageTranslation',
 }
 
 export interface QwikPackages {

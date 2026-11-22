@@ -534,7 +534,7 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
         hostVNode.firstChild === hostVNode.lastChild &&
         vnode_isTextVNode(firstChild) &&
         // A translated text is not the signal's value; leave it to be computed.
-        !getTranslatedStandIn(firstChild.node!)
+        !(__EXPERIMENTAL__.pageTranslation && getTranslatedStandIn(firstChild.node!))
       ) {
         signal.$untrackedValue$ = vnode_getText(firstChild);
       }

@@ -59,11 +59,11 @@ const fastInsertBefore = (
   if (!_insertBefore) {
     _insertBefore = insertBeforeParent.insertBefore;
   }
-  _insertBefore.call(
-    insertBeforeParent,
-    getDomNode(target),
-    insertBefore && getDomNode(insertBefore)
-  );
+  if (__EXPERIMENTAL__.pageTranslation) {
+    target = getDomNode(target);
+    insertBefore = insertBefore && getDomNode(insertBefore);
+  }
+  _insertBefore.call(insertBeforeParent, target, insertBefore);
 };
 
 export function _flushJournal(journal: VNodeJournal): void {
@@ -81,7 +81,9 @@ export function _flushJournal(journal: VNodeJournal): void {
         const doc = batchParent!.ownerDocument || (batchParent as Document);
         const fragment = doc.createDocumentFragment();
         for (let i = 0; i < batchNodes.length; i++) {
-          fragment.appendChild(getDomNode(batchNodes[i]));
+          fragment.appendChild(
+            __EXPERIMENTAL__.pageTranslation ? getDomNode(batchNodes[i]) : batchNodes[i]
+          );
         }
         fastInsertBefore(batchParent!, fragment, batchBefore);
       }
@@ -152,7 +154,8 @@ export function _flushJournal(journal: VNodeJournal): void {
       ) {
         flush();
       }
-      (unlinkTranslatedText(operation.target) || operation.target).remove();
+      const standIn = __EXPERIMENTAL__.pageTranslation && unlinkTranslatedText(operation.target);
+      (standIn || operation.target).remove();
       continue;
     }
 
@@ -173,7 +176,7 @@ export function _flushJournal(journal: VNodeJournal): void {
     if (operation instanceof SetTextOperation) {
       const target = operation.target;
       target.nodeValue = operation.text;
-      if (getTranslatedStandIn(target)) {
+      if (__EXPERIMENTAL__.pageTranslation && getTranslatedStandIn(target)) {
         // Pending inserts may be positioned relative to the translation, while it is still linked.
         flush();
         const translation = unlinkTranslatedText(target)!;

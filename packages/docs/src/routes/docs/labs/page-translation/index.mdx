@@ -1,0 +1,53 @@
+---
+title: "\U0001F9EA Page Translation | Experimental"
+keywords: 'google translate, translation, text, Q42'
+---
+
+import { Note } from '~/components/note/note';
+
+# Page Translation
+
+**Stage:** `implementation`
+
+<Note>
+  Page translation support is experimental. Its behavior may still change as we gather feedback
+  from real-world usage.
+</Note>
+
+Page translators such as Google Translate replace every text node of a page with a `<font>` element. Qwik then no longer finds the text it rendered: updates to that text are not shown or show up next to the translation, and inserting next to it can fail.
+
+With the `pageTranslation` flag, Qwik follows what the translator replaces and keeps updating the text. The translator then translates the new text again.
+
+To use it, add `experimental: ['pageTranslation']` to your `qwikVite` plugin options:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      qwikVite({
+        experimental: ['pageTranslation'],
+      }),
+    ],
+  };
+});
+```
+
+## Without the flag
+
+Qwik does not follow the translation. When it finds translated text where it expects its own, it reports error [Q42](/docs/errors/#q42) once through the `qerror` event on `document`, so that your app can react:
+
+```ts
+document.addEventListener('qerror', (event) => {
+  console.log((event as CustomEvent).detail.error);
+});
+```
+
+## Known limits
+
+- The original text is recorded by the preloader, which starts after the page has loaded and gone idle. A sentence that is translated before that is rendered again when it updates.
+- If the component of such a sentence never renders on the client, Qwik keeps the translation, shows the new value next to it and reports Q42.
+- Only Google Translate (the website widget and the one built into Chrome) is covered.

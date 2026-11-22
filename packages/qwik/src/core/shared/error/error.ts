@@ -50,7 +50,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Computed signal was disposed', // 39
       'Missing streaming object references for a late patch', // 40
       'Invalid serialized BigInt payload', // 41
-      'A page translation replaced text that can not be rendered again', // 42
+      'A page translation replaced text that can not be updated', // 42
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {

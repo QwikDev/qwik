@@ -2,5 +2,10 @@
   "name": "translated.prod",
   "description": "Prod-mode app: only prod leaves components that never render again without a render function, and only prod loads the preloader.",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "__qwik__": {
+    "experimental": [
+      "pageTranslation"
+    ]
+  }
 }

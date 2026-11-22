@@ -259,6 +259,9 @@ A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larg
 
 ## Q42
 
-**A page translation replaced text that can not be rendered again**
+**A page translation replaced text that can not be updated**
 
-A page translator (such as Google Translate) replaced a sentence before Qwik could record its original text, and the component that rendered it never renders on the client. Qwik keeps the translation and shows updated values next to it. The error is reported through the `qerror` event on `document`, so the app can react, for example by offering to reload the page.
+A page translator (such as Google Translate) replaced text that Qwik rendered, and Qwik can no longer update it. The error is reported once through the `qerror` event on `document`, so the app can react.
+
+- Without the experimental [`pageTranslation`](/docs/labs/page-translation/) flag, Qwik does not follow translated text at all. Enable the flag to keep text updates working.
+- With the flag, this happens when a sentence was translated before Qwik could record its original text, and the component that rendered it never renders on the client. Qwik keeps the translation and shows updated values next to it.

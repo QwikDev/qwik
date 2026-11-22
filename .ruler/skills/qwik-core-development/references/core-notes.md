@@ -211,8 +211,13 @@ Out-of-order (OOOS) invariants:
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 
-Translated pages (Google Translate swaps each text node for a `<font>` wrapper, see #9572):
+Translated pages (experimental `pageTranslation`; Google Translate swaps each text node for a
+`<font>` wrapper, see #9572):
 
+- Guard every use at its call site with `__EXPERIMENTAL__.pageTranslation`, in the preloader too, so
+  an app without the flag ships none of it. Without the flag only the Q42 report for a wrapper found
+  in place of text stays. Check with the `translated-unsupported.prod` fixture and the size budgets
+  in `ssg-snapshot.e2e.ts`, which need `pnpm build.core`: a dev build of core is not minified.
 - A text vnode's DOM node may be detached. Resolve it through `client/translated-text.ts` when the
   journal is flushed, not when the operation is created: a later operation in the same journal can
   replace the stand-in.

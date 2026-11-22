@@ -196,7 +196,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (__EXPERIMENTAL__.catchBoundary) {
       installQErrorListener(this.document);
     }
-    observeTranslatedText(document, trackTranslatedText);
+    if (__EXPERIMENTAL__.pageTranslation) {
+      observeTranslatedText(document, trackTranslatedText);
+    }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);
     onVNodeDataReady(document, () => {

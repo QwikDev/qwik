@@ -167,6 +167,33 @@ fn parent_code(code: &str, entry_strategy: EntryStrategy) -> String {
 }
 
 #[test]
+fn preserves_indexed_reads_before_mutating_the_index() {
+	let output = test_input_fn(TestInput {
+		code: r#"
+export function makeReader(values) {
+  let index = 0;
+  return (_) => {
+    const value = values[index];
+    index++;
+    return value;
+  };
+}
+"#
+		.to_string(),
+		filename: "reader.js".to_string(),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	let code = &output.modules[0].code;
+	let read = code
+		.find("const value = values[index];")
+		.unwrap_or_else(|| panic!("expected the indexed read before mutation:\n{code}"));
+	assert!(read < code.find("index++;").unwrap(), "{code}");
+	assert!(code.contains("return value;"), "{code}");
+}
+
+#[test]
 fn qrl_used_through_a_function_comes_before_code_calling_it() {
 	let code = r#"
 import { $ } from '@qwik.dev/core';

@@ -5,7 +5,7 @@ description: Use when modifying or reviewing Qwik core package code under packag
 
 # Qwik Core Development
 
-Use this skill for `packages/qwik/**` work. Keep the normal repo-wide instructions from `.ruler/AGENTS.md` in force.
+Use this skill for `packages/qwik/**` work. Keep the normal repo-wide instructions from `AGENTS.md` in force.
 
 ## Fast Path
 

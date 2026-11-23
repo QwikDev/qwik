@@ -361,7 +361,7 @@ Before finishing a core task, ask:
 
 1. Did current source contradict anything in this reference?
 2. Did the task teach a durable pattern that future core work should reuse?
-3. Is the lesson specific enough to belong here rather than in `.ruler/AGENTS.md`?
+3. Is the lesson specific enough to belong here rather than in `AGENTS.md`?
 
 If yes, update this file in the same task when scope allows it. Prefer replacing stale text over
 appending another long lesson.

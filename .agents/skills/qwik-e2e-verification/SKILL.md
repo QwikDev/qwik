@@ -6,7 +6,7 @@ description: Use when creating, modifying, debugging, or running Qwik Playwright
 # Qwik E2E Verification
 
 Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules from
-`.ruler/AGENTS.md` in force.
+`AGENTS.md` in force.
 
 ## Fast Path
 

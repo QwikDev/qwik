@@ -2042,6 +2042,18 @@ describe('shared-serialization', () => {
       expect(_capturesObj._).toBe(runningCaptures);
     });
 
+    it("leaves the captures of the QRL that is running untouched when the task's captures hold a computed with captures", async () => {
+      const runningCaptures = ['running'];
+      const computed = createComputedQrl(lazyQrl('s_computed', [createSignal(0)]) as any);
+      const objs = await serialize(createTask(lazyQrl('s_task', [computed])));
+      holdModuleOf('s_nothing');
+      setCaptures(runningCaptures);
+
+      deserialize(objs)[0];
+
+      expect(_capturesObj._).toBe(runningCaptures);
+    });
+
     const restoreReaderOfABrokenTask = async () => {
       const written = createSignal(0) as SignalImpl;
       subscribeTaskTo(written, createTask(lazyQrl('s_task', [{ broken: true }])));

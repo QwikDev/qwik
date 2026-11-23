@@ -205,7 +205,8 @@ export const Tree = component$<TreeProps>((props) => {
   });
 
   const toggleNode = $((id: string, childrenVisible: boolean) => {
-    expanded.value = { ...expanded.value, [id]: !childrenVisible };
+    const isExpanded = expanded.value[id] ?? childrenVisible;
+    expanded.value = { ...expanded.value, [id]: !isExpanded };
   });
 
   // Signal-driven reveal: expand the target's ancestors, select it, and scroll to it. Retries when

@@ -125,7 +125,7 @@ describe('__qwik_install_vnode_runtime__', () => {
     };
     (globalThis as any).document = {
       readyState: 'complete',
-      documentElement: {},
+      documentElement: { getAttribute: () => 'resumed' },
       querySelectorAll() {
         return [this.documentElement];
       },
@@ -152,10 +152,22 @@ describe('__qwik_install_vnode_runtime__', () => {
   });
 
   test('finds a CSR container below the document element', () => {
-    const containerElement = {};
+    const containerElement = { getAttribute: () => 'resumed' };
     (globalThis as any).document.querySelectorAll = () => [containerElement];
     const hook = installBridge(componentVNode('Counter_component', { qId: '1' }), containerElement);
     expect(hook.getVNodeTree()).toMatchObject([{ name: 'Counter', id: 'q-1' }]);
+  });
+
+  test('raw HTML and text markers do not duplicate the application tree', () => {
+    const document = (globalThis as any).document;
+    document.querySelectorAll = () => [
+      document.documentElement,
+      { getAttribute: () => 'html' },
+      { getAttribute: () => 'text' },
+    ];
+    const hook = installBridge(componentVNode('App_component', { qId: '1' }));
+
+    expect(hook.getVNodeTree()).toMatchObject([{ name: 'App', id: 'q-1' }]);
   });
 
   test('reuses the bridge when MCP and DevTools both install it', () => {

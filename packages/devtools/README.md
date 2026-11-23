@@ -40,6 +40,10 @@ export default defineConfig({
 });
 ```
 
+Open `/__inspect/` on the local Vite dev server to see module transforms. No separate
+Vite DevTools installation or configuration is needed. Inspect is available only on
+loopback servers using Vite's default WebSocket checks.
+
 ## Features
 
 - 🔍 Route Explorer

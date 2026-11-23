@@ -5,7 +5,7 @@ description: Use when modifying or reviewing Qwik Router code under packages/qwi
 
 # Qwik Router Development
 
-Use this skill for `packages/qwik-router/**` work. Keep the repo-wide rules from `.ruler/AGENTS.md`
+Use this skill for `packages/qwik-router/**` work. Keep the repo-wide rules from `AGENTS.md`
 in force.
 
 ## Fast Path
@@ -55,7 +55,7 @@ Do not use `--project chromium` with `e2e/qwik-e2e/playwright.config.ts`; this c
   consumption in the same change.
 - Preserve deprecated Qwik City compatibility only when current source still supports it, and keep
   compatibility warnings/tests intentional.
-- If router work exposes stale guidance here or in `.ruler/AGENTS.md`, update the guidance before
+- If router work exposes stale guidance here or in `AGENTS.md`, update the guidance before
   finishing or record why guidance edits were out of scope.
 
 ## Stop Conditions

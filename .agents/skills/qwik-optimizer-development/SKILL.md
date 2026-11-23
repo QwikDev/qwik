@@ -6,7 +6,7 @@ description: Use when modifying or reviewing the Qwik optimizer under packages/o
 # Qwik Optimizer Development
 
 Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the repo-wide rules from
-`.ruler/AGENTS.md` in force.
+`AGENTS.md` in force.
 
 ## Fast Path
 

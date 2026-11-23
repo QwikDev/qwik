@@ -9,10 +9,11 @@ import { deserializeCaptureDeltas } from '../shared/qrl/qrl-class';
 import { registerSingleton } from '../shared/singletons';
 import type { QElement } from '../shared/types';
 import { QHmrAttr, QHmrEvent, QHmrPath, QHmrTargets } from '../shared/utils/markers';
+import { qDev } from '../shared/utils/qdev';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import type { SSRContainer } from '../ssr/ssr-types';
+import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { tryGetInvokeContext } from './use-core';
 
 interface HmrState {
@@ -33,6 +34,20 @@ function getHmrState(container: ClientContainer): HmrState {
     hmrStates.set(container, state);
   }
   return state;
+}
+
+function registerSsrHmrHost(container: SSRContainer, file: string, host: ISsrNode): void {
+  const id = container.$retainForResume$(host);
+  if (id === undefined) {
+    return;
+  }
+  const targets = (container.$hmrTargets$ ||= new Map());
+  let hosts = targets.get(file);
+  if (!hosts) {
+    hosts = new Set();
+    targets.set(file, hosts);
+  }
+  hosts.add(id);
 }
 
 export function unregisterHmrHost(container: ClientContainer, host: VNode): void {
@@ -123,6 +138,9 @@ export function _hmr(
  * @internal
  */
 export function _useHmr(devPath: string): void {
+  if (!qDev) {
+    return;
+  }
   const iCtx = tryGetInvokeContext();
   if (!iCtx?.$container$ || !iCtx.$hostElement$) {
     return;
@@ -130,7 +148,7 @@ export function _useHmr(devPath: string): void {
   const { $container$: container, $hostElement$: host } = iCtx;
   const file = devPath.split('?', 1)[0];
   if (!vnode_isVNode(host)) {
-    (container as SSRContainer).$registerHmrHost$(file, host);
+    registerSsrHmrHost(container as SSRContainer, file, host);
     return;
   }
   const client = container as ClientContainer;

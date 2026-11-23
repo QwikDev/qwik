@@ -6,14 +6,20 @@ import {
   useStore,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { _useHmr } from '../internal';
 import { VNodeFlags } from '../client/types';
 import { vnode_isMaterialized } from '../client/vnode-utils';
+import * as devFlags from '../shared/utils/qdev';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+/**
+ * Helper to fire the qHmr document event that triggers HMR re-renders.
+ *
+ * Uses the kebab-cased `d:q-hmr` form so `trigger` finds elements with the `q-d:q-hmr` attribute.
+ */
 async function triggerHmr(container: any, files: string[]) {
   const t = Date.now();
   container.document.__hmrT = t;
@@ -304,6 +310,20 @@ describe('domRender: HMR', () => {
 
 describe('ssrRenderToDom: HMR', () => {
   const render = ssrRenderToDom;
+
+  it('omits SSR HMR listeners and targets with qDev disabled', async () => {
+    const Item = component$(() => {
+      _useHmr('item.tsx');
+      return <p>item</p>;
+    });
+    const qDev = vi.spyOn(devFlags, 'qDev', 'get').mockReturnValue(false);
+    try {
+      const { container } = await render(<Item />);
+      expect(container.element.querySelectorAll('[q-d\\:q-hmr], [q\\:hmr-targets]').length).toBe(0);
+    } finally {
+      qDev.mockRestore();
+    }
+  });
 
   it('leaves unrelated branches unmaterialized on HMR', async () => {
     const Target = component$(() => {

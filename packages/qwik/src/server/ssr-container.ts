@@ -308,7 +308,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
-  protected hmrTargets: Map<string, Set<number>> | null = null;
+  declare $hmrTargets$?: Map<string, Set<number>>;
 
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
@@ -1171,20 +1171,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return false;
   }
 
-  $registerHmrHost$(file: string, host: ISsrNode): void {
-    const id = this.addRoot(host);
-    if (id !== undefined) {
-      this.markVNodeRefForSerialization(host);
-      const targets = (this.hmrTargets ||= new Map());
-      let hosts = targets.get(file);
-      if (!hosts) {
-        hosts = new Set();
-        targets.set(file, hosts);
-      }
-      hosts.add(id);
-    }
-  }
-
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {
@@ -1294,10 +1280,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     patch = false
   ) {
     const attrs: Props = { type: 'qwik/vnode' };
-    if (this.hmrTargets && !patch) {
+    if (isDev && this.$hmrTargets$ && !patch) {
       attrs[QHmrAttr] = hmrQrl();
       const targets: SSRWriteChunk[] = ['['];
-      for (const [file, rootIds] of this.hmrTargets) {
+      for (const [file, rootIds] of this.$hmrTargets$) {
         if (targets.length > 1) {
           targets.push(',');
         }
@@ -1397,10 +1383,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     }
   }
 
-  $retainForResume$(node: ISsrNode | null | undefined): void {
+  $retainForResume$(node: ISsrNode | null | undefined): number | undefined {
     if (node) {
-      this.addRoot(node);
+      const id = this.addRoot(node);
       this.markVNodeRefForSerialization(node);
+      return id;
     }
   }
 
@@ -2404,7 +2391,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): void {
-    if (this.hmrTargets) {
+    if (isDev && this.$hmrTargets$) {
       rootContainer.serializationCtx.$eventNames$.add(QHmrEvent);
     }
     for (const eventName of segmentSerializationCtx.$eventNames$) {

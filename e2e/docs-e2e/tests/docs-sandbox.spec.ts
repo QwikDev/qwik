@@ -76,14 +76,38 @@ test.describe('Sandbox smoke tests', () => {
       await expect(bundles.first().locator('pre code')).not.toBeEmpty();
     });
 
-    test('a truncated bundle expands when asked to show more', async ({ page }) => {
+    test('a truncated bundle stays expanded after a rebuild', async ({ page }) => {
+      await page.addInitScript(() => {
+        const NativeWorker = window.Worker;
+        window.Worker = class extends NativeWorker {
+          constructor(url: string | URL, options?: WorkerOptions) {
+            if (String(url).includes('repl-bundler-worker')) {
+              url = URL.createObjectURL(
+                new Blob(
+                  [
+                    `self.onmessage = ({ data }) => {
+                      if (data.type !== 'bundle') return;
+                      const mode = data.data.buildMode;
+                      self.postMessage({ type: 'result', buildId: data.buildId, result: {
+                        buildId: data.buildId, html: '<p>Preview</p>', diagnostics: [],
+                        transformedModules: [], ssrModules: [], events: [],
+                        clientBundles: [{ path: 'example.js', code: '// ' + mode + '\\n' + 'x'.repeat(3500) }],
+                      }});
+                    };
+                    self.postMessage({ type: 'ready' });`,
+                  ],
+                  { type: 'text/javascript' }
+                )
+              );
+            }
+            super(url, options);
+          }
+        };
+      });
       await page.goto('/playground/');
       await page.getByRole('button', { name: 'Client Bundles' }).click();
 
-      const longBundle = page
-        .locator('.output-modules .file-item')
-        .filter({ has: page.locator('.file-toggle-button') })
-        .first();
+      const longBundle = page.locator('.output-modules .file-item');
       const toggle = longBundle.locator('.file-toggle-button');
       const code = longBundle.locator('pre code');
       await expect(toggle).toHaveText('Truncated - show more');
@@ -97,6 +121,18 @@ test.describe('Sandbox smoke tests', () => {
       await expect
         .poll(async () => (await code.innerText()).length)
         .toBeGreaterThan(truncatedLength);
+
+      await page.getByRole('button', { name: 'Options', exact: true }).click();
+      await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('production');
+      await expect.poll(async () => (await code.innerText()).split('\n')[0]).toBe('// production');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await expect
+        .poll(async () => (await code.innerText()).length)
+        .toBeGreaterThan(truncatedLength);
+
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await expect.poll(async () => (await code.innerText()).length).toBe(truncatedLength);
     });
   });
 });

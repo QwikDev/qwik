@@ -17,8 +17,9 @@ import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 import { DomContainer } from '../../client/dom-container';
+import { beginDeserialization, endDeserialization } from '../serdes/allocate';
 import { loadingHolder } from '../serdes/inflate';
-import type { Container } from '../types';
+import type { Container, DeserializeContainer } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
 
 interface SyncQRLSymbol {
@@ -258,6 +259,7 @@ export class QRLClass<TYPE> {
   $captures$?: QrlCaptures;
   $container$?: Container | null;
   declare $capturesLoading$?: Promise<void>;
+  declare $capturesError$?: unknown;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
@@ -542,11 +544,19 @@ const deserializeCaptures = (qrl: QRLClass<unknown>) => {
   if (!container) {
     throw qError(QError.qrlMissingContainer);
   }
-  const prevLoading = loadingHolder.p;
-  qrl.$captures$ = deserializeQrlCaptureDeltas(container, qrl.$captures$ as string);
-  if (loadingHolder.p !== prevLoading) {
-    return loadingHolder.p;
+  const restoreContainer = container as unknown as DeserializeContainer;
+  const ownsRestore = beginDeserialization(restoreContainer);
+  let loading: Promise<void> | undefined;
+  try {
+    const prevLoading = loadingHolder.p;
+    qrl.$captures$ = deserializeQrlCaptureDeltas(container, qrl.$captures$ as string);
+    if (loadingHolder.p !== prevLoading) {
+      loading = loadingHolder.p;
+    }
+  } finally {
+    endDeserialization(restoreContainer, ownsRestore);
   }
+  return loading;
 };
 
 /**
@@ -554,6 +564,11 @@ const deserializeCaptures = (qrl: QRLClass<unknown>) => {
  * possible
  */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
+  if (qrl.$capturesError$ !== undefined) {
+    const error = qrl.$capturesError$;
+    qrl.$capturesError$ = undefined;
+    throw error;
+  }
   const loading = typeof qrl.$captures$ === 'string' ? deserializeCaptures(qrl) : undefined;
   setCaptures((qrl.$captures$ as Readonly<unknown[]> | undefined) || null);
   return loading;
@@ -561,8 +576,13 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
 
 export const restoreQrlCaptures = (qrl: QRLInternal) => {
   const qrlState = getInstance(qrl);
-  if (typeof qrlState.$captures$ === 'string') {
+  if (typeof qrlState.$captures$ !== 'string') {
+    return;
+  }
+  try {
     qrlState.$capturesLoading$ = deserializeCaptures(qrlState);
+  } catch (error) {
+    qrlState.$capturesError$ = error;
   }
 };
 

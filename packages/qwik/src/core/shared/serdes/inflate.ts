@@ -35,13 +35,19 @@ import { JSXNodeImpl } from '../jsx/jsx-node';
 import { Fragment, Props } from '../jsx/jsx-runtime';
 import { PropsProxy } from '../jsx/props-proxy';
 import { isServerPlatform } from '../platform/platform';
-import { restoreQrlCaptures, type QRLInternal } from '../qrl/qrl-class';
+import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isObject, isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { registerSingleton } from '../singletons';
-import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
+import {
+  allocate,
+  beginDeserialization,
+  collectedTasks,
+  endDeserialization,
+  resolvers,
+} from './allocate';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
@@ -559,7 +565,7 @@ const preloadTaskChain = (task: Task) => {
   if (qrl.$chunk$) {
     requestPreload(qrl.$chunk$, 1);
   }
-  queueMicrotask(() => restoreQrlCaptures(qrl));
+  collectedTasks.list.push(task);
 };
 
 function restoreEffectBackRefForEffects(

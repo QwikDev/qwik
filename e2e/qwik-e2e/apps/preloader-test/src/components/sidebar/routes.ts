@@ -247,6 +247,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/tasks/callback-reading-a-computed/',
+    label: 'callback reading a computed that a task in the chain also reads',
+  },
+  {
+    group: 'other',
     href: '/tasks/shared-store/',
     label: 'tasks on a shared store',
   },

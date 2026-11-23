@@ -10,6 +10,7 @@ import {
 } from '../utils/app';
 import {
   BARREL,
+  CALLBACK_READING_A_COMPUTED,
   MATRIX,
   MODAL,
   NEVER_SHOWS_RESULT,
@@ -207,6 +208,30 @@ test.describe('tasks in several components', () => {
       );
       expect(gate.held).toHaveLength(1);
       await releaseAll(gate);
+    });
+  });
+
+  test.describe('callback reading a computed that a task in the chain also reads', () => {
+    test("a click whose callback reads the task's computed shows its value when the computed's chunk arrives last", async ({
+      page,
+    }) => {
+      test.fail(
+        true,
+        "the task's early restore starts the computed's load, so the callback no longer waits for it (#9586)"
+      );
+      const fixture = CALLBACK_READING_A_COMPUTED;
+      const { gate } = await openFixture(page, fixture, 'cold');
+      gate.mode = 'pass';
+      gate.holdWhilePassing = (url) =>
+        chunkHoldsComputedFrom(url, `${TASKS_DIR}callback-reading-a-computed/index.tsx`);
+      await fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+      await expect.poll(() => gate.held.length).toBe(1);
+      await settle(page, gate);
+      await releaseAll(gate);
+      await expectResult(page, fixture);
+      expect(await page.evaluate(() => (globalThis as { handlerRuns?: number }).handlerRuns)).toBe(
+        1
+      );
     });
   });
 });

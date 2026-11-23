@@ -70,6 +70,7 @@ export const EMPTY_LIST = handWritten('empty-list', '1');
 export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
 export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
 export const TASKS_ON_A_SHARED_STORE = handWritten('tasks/shared-store', '2');
+export const CALLBACK_READING_A_COMPUTED = handWritten('tasks/callback-reading-a-computed', '3');
 export const TASK_READING_A_COMPUTED_FROM_ITS_PARENT = handWritten(
   'tasks/computed-from-parent',
   '1 of 3'

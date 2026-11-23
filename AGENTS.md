@@ -120,22 +120,7 @@ pnpm vitest packages/qwik/src/qwikloader.unit.ts -u
 
 If any of those fail, fix and push your changes.
 
-PR descriptions also show, when they apply (always for optimizer PRs):
-
-- a minimal code example of the change: the smallest input, and the relevant output or behavior
-  before and after it;
-- the tests that cover the change, as a tree per test file in a code block, grouped by `describe`
-  block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests keep their real names,
-  unless rewriting an `it` name in plain English makes it clearer on a first read; that rename is a
-  refactor, marked `~`. New tests get plain-English names. For example:
-
-  ```text
-  packages/qwik/src/core/tests/use-task.spec.tsx
-  └─ useTask$
-     ├─ ✓ runs once on the server
-     ├─ + reruns on the client when a tracked signal changes
-     └─ - warns when tracking a plain value
-  ```
+Write the PR description with the `qwik-plan` skill.
 
 ## Rules
 
@@ -168,6 +153,7 @@ Load the relevant skill before non-trivial work in that area:
 | `qwik-e2e-verification`      | Creating, debugging, or running Playwright e2e suites                      |
 | `qwik-docs-development`      | Writing/editing docs content, docs site routes, or docs LLM outputs        |
 | `qwik-guidance-maintenance`  | Editing `AGENTS.md`, `.agents/skills/**`, or stale skill/reference content |
+| `qwik-plan`                  | Planning a change, or writing a PR description                             |
 
 If no skill fits, stay with these repo-wide rules and inspect local source before changing code.
 

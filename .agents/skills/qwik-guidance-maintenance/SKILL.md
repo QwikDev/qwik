@@ -42,13 +42,13 @@ When an agent uses a skill and current source contradicts it:
 ## Verification
 
 ```bash
-ls .claude/skills/
+ls .agents/skills/
 wc -c AGENTS.md
 pnpm prettier --check AGENTS.md CLAUDE.md CONTRIBUTING.md .agents
 git diff --check
 ```
 
-`ls .claude/skills/` lists every skill folder. `wc -c` stays under 32768.
+`ls .agents/skills/` lists every skill folder. `wc -c` stays under 32768.
 
 ## Stop Conditions
 

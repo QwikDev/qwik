@@ -216,8 +216,8 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
       rolldown:
-        specifier: 1.2.4
-        version: 1.2.4
+        specifier: 1.2.19
+        version: 1.2.19
       rollup:
         specifier: 4.61.0
         version: 4.61.0
@@ -268,7 +268,7 @@ importers:
         version: 10.0.0(@types/node@25.6.0)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
       vite-plugin-dts:
         specifier: 5.0.3
-        version: 5.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 5.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
       vite-tsconfig-paths:
         specifier: 6.1.1
         version: 6.1.1(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -335,7 +335,7 @@ importers:
         version: 3.3.3
       wxt:
         specifier: ^0.20.20
-        version: 0.20.27(@types/node@25.6.0)(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jiti@2.7.0)(oxc-parser@0.158.0)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
+        version: 0.20.27(@types/node@25.6.0)(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jiti@2.7.0)(oxc-parser@0.158.0)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
     devDependencies:
       '@emnapi/core':
         specifier: 1.11.3
@@ -391,7 +391,7 @@ importers:
         version: 0.158.0
       rollup-plugin-visualizer:
         specifier: ^7.1.3
-        version: 7.1.3(rolldown@1.3.2)(rollup@4.61.0)
+        version: 7.1.3(rolldown@1.2.19)(rollup@4.61.0)
       superjson:
         specifier: ^2.2.6
         version: 2.2.6
@@ -614,13 +614,13 @@ importers:
         version: 1.9.4
       magic-regexp:
         specifier: 0.11.0
-        version: 0.11.0(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 0.11.0(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
       oxc-walker:
         specifier: 1.1.1
-        version: 1.1.1(@oxc-project/types@0.158.0)(oxc-parser@0.158.0)(rolldown@1.3.2)
+        version: 1.1.1(@oxc-project/types@0.158.0)(oxc-parser@0.158.0)(rolldown@1.2.19)
       pagefind:
         specifier: 1.5.2
         version: 1.5.2
@@ -1121,7 +1121,7 @@ importers:
         version: 0.158.0
       oxc-walker:
         specifier: ^1.1.1
-        version: 1.1.1(@oxc-project/types@0.158.0)(oxc-parser@0.158.0)(rolldown@1.3.2)
+        version: 1.1.1(@oxc-project/types@0.158.0)(oxc-parser@0.158.0)(rolldown@1.2.19)
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -15253,23 +15253,6 @@ snapshots:
       - vite
       - webpack
 
-  magic-regexp@0.11.0(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
-    dependencies:
-      magic-string: 0.30.21
-      regexp-tree: 0.1.27
-      type-level-regexp: 0.1.17
-      unplugin: 3.3.0(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
-    transitivePeerDependencies:
-      - '@farmfe/core'
-      - '@rspack/core'
-      - bun-types-no-globals
-      - esbuild
-      - rolldown
-      - rollup
-      - unloader
-      - vite
-      - webpack
-
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -16290,12 +16273,6 @@ snapshots:
       oxc-parser: 0.158.0
       rolldown: 1.2.19
 
-  oxc-walker@1.1.1(@oxc-project/types@0.158.0)(oxc-parser@0.158.0)(rolldown@1.3.2):
-    optionalDependencies:
-      '@oxc-project/types': 0.158.0
-      oxc-parser: 0.158.0
-      rolldown: 1.3.2
-
   p-event@6.0.1:
     dependencies:
       p-timeout: 6.1.4
@@ -16989,14 +16966,14 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.3.2
       '@rolldown/binding-win32-x64-msvc': 1.3.2
 
-  rollup-plugin-visualizer@7.1.3(rolldown@1.3.2)(rollup@4.61.0):
+  rollup-plugin-visualizer@7.1.3(rolldown@1.2.19)(rollup@4.61.0):
     dependencies:
       open: 11.0.4
       picomatch: 4.0.7
       source-map: 0.8.0
       yargs: 18.1.0
     optionalDependencies:
-      rolldown: 1.3.2
+      rolldown: 1.2.19
       rollup: 4.61.0
 
   rollup@4.61.0:
@@ -17836,7 +17813,7 @@ snapshots:
       trough: 2.2.0
       vfile: 6.0.3
 
-  unimport@6.5.0(esbuild@0.28.2)(oxc-parser@0.158.0)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
+  unimport@6.5.0(esbuild@0.28.2)(oxc-parser@0.158.0)(rolldown@1.2.19)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       acorn: 8.18.0
       escape-string-regexp: 5.0.0
@@ -17850,11 +17827,11 @@ snapshots:
       scule: 1.3.0
       strip-literal: 4.0.0
       tinyglobby: 0.2.17
-      unplugin: 3.3.0(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+      unplugin: 3.3.0(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
       unplugin-utils: 0.3.2
     optionalDependencies:
       oxc-parser: 0.158.0
-      rolldown: 1.3.2
+      rolldown: 1.2.19
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@rspack/core'
@@ -17906,7 +17883,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-dts@1.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
+  unplugin-dts@1.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       '@rollup/pluginutils': 5.4.0(rollup@4.61.0)
       '@volar/typescript': 2.4.28(typescript@5.9.3)
@@ -17920,7 +17897,7 @@ snapshots:
     optionalDependencies:
       '@microsoft/api-extractor': 7.57.6(@types/node@25.6.0)
       esbuild: 0.28.2
-      rolldown: 1.3.2
+      rolldown: 1.2.19
       rollup: 4.61.0
       vite: 8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
     transitivePeerDependencies:
@@ -17946,17 +17923,6 @@ snapshots:
     optionalDependencies:
       esbuild: 0.28.2
       rolldown: 1.2.19
-      rollup: 4.61.0
-      vite: 8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
-
-  unplugin@3.3.0(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
-    dependencies:
-      '@jridgewell/remapping': 2.3.5
-      picomatch: 4.0.7
-      webpack-virtual-modules: 0.6.2
-    optionalDependencies:
-      esbuild: 0.28.2
-      rolldown: 1.3.2
       rollup: 4.61.0
       vite: 8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
 
@@ -18062,9 +18028,9 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-dts@5.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
+  vite-plugin-dts@5.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
-      unplugin-dts: 1.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+      unplugin-dts: 1.0.3(@microsoft/api-extractor@7.57.6(@types/node@25.6.0))(esbuild@0.28.2)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
     optionalDependencies:
       '@microsoft/api-extractor': 7.57.6(@types/node@25.6.0)
       rollup: 4.61.0
@@ -18324,7 +18290,7 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
-  wxt@0.20.27(@types/node@25.6.0)(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jiti@2.7.0)(oxc-parser@0.158.0)(rolldown@1.3.2)(rollup@4.61.0)(supports-color@10.2.2)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1):
+  wxt@0.20.27(@types/node@25.6.0)(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(jiti@2.7.0)(oxc-parser@0.158.0)(rolldown@1.2.19)(rollup@4.61.0)(supports-color@10.2.2)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1):
     dependencies:
       '@1natsu/wait-element': 4.2.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0(rollup@4.61.0)
@@ -18364,7 +18330,7 @@ snapshots:
       publish-browser-extension: 4.0.5
       scule: 1.3.0
       tinyglobby: 0.2.17
-      unimport: 6.5.0(esbuild@0.28.2)(oxc-parser@0.158.0)(rolldown@1.3.2)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+      unimport: 6.5.0(esbuild@0.28.2)(oxc-parser@0.158.0)(rolldown@1.2.19)(rollup@4.61.0)(vite@8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
       vite: 8.3.8(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
       vite-node: 6.0.0(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
       web-ext-run: 0.2.4(supports-color@10.2.2)

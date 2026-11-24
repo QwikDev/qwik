@@ -2,6 +2,7 @@ import { expect, test, type Browser, type Page, type Request } from '@playwright
 import {
   bundleFile,
   chunkComesFrom,
+  chunkHoldsComputedFrom,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
   getCoreBundle,
@@ -10,6 +11,7 @@ import {
 } from '../utils/app';
 import {
   fixtureById,
+  HANDLER_READING_A_COMPUTED,
   NAVIGATION_SOURCES,
   SHARED_HELPER,
   STREAMING,
@@ -30,7 +32,7 @@ import {
   type RoundTrip,
 } from '../utils/gate';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
-import { expectResult, fixtureResult, fixtureRoot } from '../utils/scenarios';
+import { expectResult, fixtureResult, fixtureRoot, openFixture } from '../utils/scenarios';
 
 const CONDITIONAL_ALL = fixtureById('conditional/all');
 const FROM_OFF: Fixture = {
@@ -731,5 +733,35 @@ test.describe('a chunk the click needs after its handler fails to load', () => {
       'on main, a QRL keeps a failed import for good: what it renders never shows, whatever is clicked after'
     );
     await expectResult(page, CONDITIONAL_ALL);
+  });
+});
+
+test.describe('a computed chunk that never arrives', () => {
+  test('a click fires qerror after 10 seconds, and the handler never runs', async ({ page }) => {
+    test.slow();
+    const { gate } = await openFixture(page, HANDLER_READING_A_COMPUTED, 'cold');
+    await page.evaluate(() => {
+      const win = window as typeof window & { qerrors?: string[] };
+      win.qerrors = [];
+      document.addEventListener('qerror', (event) =>
+        win.qerrors!.push((event as CustomEvent<{ importError: string }>).detail.importError)
+      );
+    });
+    gate.mode = 'pass';
+    gate.holdWhilePassing = (url) =>
+      chunkHoldsComputedFrom(url, 'src/components/fixtures/computeds/handler-in-a-list/index.tsx');
+    const root = fixtureRoot(page, HANDLER_READING_A_COMPUTED);
+    const clickedAt = Date.now();
+    await root.locator('[data-testid=count-rows]').click();
+    await expect.poll(() => gate.held.length).toBe(1);
+
+    await expect
+      .poll(() => page.evaluate(() => (window as typeof window & { qerrors: string[] }).qerrors), {
+        timeout: 20_000,
+      })
+      .toEqual(['async']);
+    expect(Date.now() - clickedAt).toBeGreaterThan(8_000);
+    await expect(root.locator('[data-testid=row-count]')).not.toHaveAttribute('data-done');
+    await releaseAll(gate);
   });
 });

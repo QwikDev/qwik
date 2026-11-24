@@ -5,7 +5,7 @@ import { getPlatform, isServerPlatform } from '../platform/platform';
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
-import { QError, qError } from '../error/error';
+import { QError, qError, qErrorWithoutStop } from '../error/error';
 import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
@@ -18,6 +18,7 @@ import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 import { DomContainer } from '../../client/dom-container';
 import { loadingHolder } from '../serdes/inflate';
+import { waitForReachableComputedLoads } from './reachable-computed-loads';
 import type { Container } from '../types';
 import { ElementVNode } from '../vnode/element-vnode';
 
@@ -39,6 +40,40 @@ const tagImportError = (err: unknown): never => {
 
 /** @internal Whether `err` came from a failed QRL import rather than from running user code. */
 export const isQrlImportError = (err: unknown): boolean => qrlImportErrors.has(err as object);
+
+const computedPreloadFailures = registerSingleton(
+  'computedPreloadFailures',
+  () => new WeakSet<object>()
+);
+
+/** @internal Whether a run failed because a computed it reaches wasn't preloaded in time. */
+export const isComputedPreloadFailure = (err: unknown): boolean =>
+  computedPreloadFailures.has(err as object);
+
+const COMPUTED_PRELOAD_WAIT_LIMIT_MS = 10_000;
+
+const computedPreloadFailure = (cause?: unknown): Error => {
+  const err = qErrorWithoutStop(QError.computedNotPreloaded);
+  if (cause !== undefined) {
+    (err as Error & { cause?: unknown }).cause = cause;
+  }
+  qrlImportErrors.add(err);
+  computedPreloadFailures.add(err);
+  return err;
+};
+
+const waitWithinPreloadLimit = (preloads: Promise<unknown>): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const fail = (cause?: unknown) => {
+      clearTimeout(timer);
+      reject(computedPreloadFailure(cause));
+    };
+    const timer = setTimeout(fail, COMPUTED_PRELOAD_WAIT_LIMIT_MS);
+    preloads.then(() => {
+      clearTimeout(timer);
+      resolve();
+    }, fail);
+  });
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
@@ -64,7 +99,8 @@ export type QRLInternalMethods<TYPE> = {
   getFn(
     currentCtx?: InvokeContext,
     /** If this returns false, the function execution will be skipped */
-    beforeFn?: () => void | false
+    beforeFn?: () => void | false,
+    waitsForReachableComputedLoads?: boolean
   ): TYPE extends (...args: any) => any
     ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
     : // unknown instead of never so we allow assigning function QRLs to any
@@ -293,7 +329,12 @@ const qrlCallFn = function <TYPE>(
 ): ValueOrPromise<QrlReturn<TYPE>> {
   const qrl = getInstance<TYPE>(this);
   if (qrl.resolved) {
-    return (qrl.resolved as any).apply(withThis, args);
+    const computedLoads = waitForComputedLoadsReachableFrom(qrl, args);
+    if (!computedLoads) {
+      return (qrl.resolved as any).apply(withThis, args);
+    }
+    const ctx = tryGetInvokeContext();
+    return computedLoads.then(() => invokeApply.call(withThis, ctx, qrl.resolved as any, args));
   }
 
   // Not resolved yet: we'll return a promise
@@ -301,9 +342,11 @@ const qrlCallFn = function <TYPE>(
   // grab the context while we are sync
   const ctx = tryGetInvokeContext();
 
-  return qrlResolve
-    .call(qrl, ctx?.$container$)
-    .then(() => invokeApply.call(withThis, ctx, qrl.resolved as any, args));
+  return qrlResolve.call(qrl, ctx?.$container$).then(() => {
+    const run = () => invokeApply.call(withThis, ctx, qrl.resolved as any, args);
+    const computedLoads = waitForComputedLoadsReachableFrom(qrl, args);
+    return computedLoads ? computedLoads.then(run) : run();
+  });
 };
 
 const qrlWithCaptures = function <TYPE>(
@@ -358,12 +401,19 @@ const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>)
 const qrlGetFn = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
   currentCtx?: InvokeContext,
-  beforeFn?: () => void | false
+  beforeFn?: () => void | false,
+  waitsForReachableComputedLoads?: boolean
 ): TYPE extends (...args: any) => any
   ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE> | undefined>
   : // unknown instead of never so we allow assigning function QRLs to any
     unknown {
   const qrl = getInstance<TYPE>(this);
+  const runResolved = (args: QrlArgs<TYPE>): unknown => {
+    if (beforeFn && beforeFn() === false) {
+      return undefined;
+    }
+    return invokeApply(currentCtx, qrl.resolved as any, args);
+  };
   const bound = (...args: QrlArgs<TYPE>): unknown => {
     if (!qrl.resolved) {
       return qrlResolve.call(qrl).then((fn) => {
@@ -373,10 +423,11 @@ const qrlGetFn = function <TYPE>(
         return bound(...args);
       });
     }
-    if (beforeFn && beforeFn() === false) {
-      return undefined;
+    const computedLoads = waitsForReachableComputedLoads && waitForComputedLoadsReachableFrom(qrl);
+    if (computedLoads) {
+      return computedLoads.then(() => runResolved(args));
     }
-    return invokeApply(currentCtx, qrl.resolved as any, args);
+    return runResolved(args);
   };
   return bound as any;
 };
@@ -535,10 +586,7 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
-/**
- * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
- * possible
- */
+/** Puts the qrl captures into `_capturesObj` */
 const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
   // We read the captures once, synchronously, so no need to keep previous
   const serializedCaptures = qrl.$captures$;
@@ -547,16 +595,29 @@ const ensureQrlCaptures = (qrl: QRLClass<unknown>) => {
     if (!container) {
       throw qError(QError.qrlMissingContainer);
     }
-    const prevLoading = loadingHolder.p;
     const captures = (qrl.$captures$ = deserializeQrlCaptureDeltas(container, serializedCaptures));
     setCaptures(captures);
-    if (loadingHolder.p !== prevLoading) {
-      // return the loading promise so callers can await it
-      return loadingHolder.p;
-    }
   } else {
     setCaptures(serializedCaptures || null);
   }
+};
+
+const waitForComputedLoadsReachableFrom = (
+  qrl: QRLClass<unknown>,
+  args?: readonly unknown[]
+): Promise<unknown> | undefined => {
+  if (!loadingHolder.inFlight || qrl.$lazy$.$chunk$ === '') {
+    return;
+  }
+  if (typeof qrl.$captures$ === 'string' && qrl.$container$) {
+    ensureQrlCaptures(qrl);
+  }
+  const captures = qrl.$captures$;
+  const preloads = waitForReachableComputedLoads(
+    typeof captures === 'string' ? null : captures,
+    args
+  );
+  return preloads && waitWithinPreloadLimit(preloads);
 };
 
 // Wrap functions to provide their lexical scope
@@ -610,10 +671,8 @@ const $resolve$ = <TYPE>(
     );
   }
 
-  const capturedPromise = shouldDeserialize && qrl.$container$ && ensureQrlCaptures(qrl);
-
-  if (capturedPromise) {
-    return capturedPromise.then(() => maybePromise);
+  if (shouldDeserialize && qrl.$container$) {
+    ensureQrlCaptures(qrl);
   }
   return maybePromise;
 };

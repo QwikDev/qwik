@@ -1,13 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { defineColdClickTest } from '../utils/click-tests';
 import {
   chunkComesFrom,
   chunkHasComponent,
   chunkHasScopedStyles,
+  chunkHoldsComputedFrom,
   chunkHoldsTaskFrom,
 } from '../utils/app';
 import {
   BARREL,
+  CLICK_AFTER_LOAD,
+  HANDLER_READING_A_COMPUTED,
   MATRIX,
   MODAL,
   NEVER_SHOWS_RESULT,
@@ -15,13 +18,24 @@ import {
   SCOPED_STYLES,
   SHARED_HELPER,
   SLOT,
+  SPINNER,
   SYNC,
+  TASK_READING_A_COMPUTED_FROM_A_RERENDERING_PARENT,
+  TASK_READING_A_COMPUTED_FROM_CONTEXT,
+  TASK_READING_A_COMPUTED_INSIDE_A_STORE,
   TASKS_IN_PARENT_AND_CHILD,
   TASKS_IN_SIBLINGS,
   USER_IMPORT,
+  type Fixture,
 } from '../utils/fixtures';
-import type { RoundTrip } from '../utils/gate';
-import { coldClick } from '../utils/scenarios';
+import { releaseAll, settle, type RoundTrip } from '../utils/gate';
+import {
+  coldClick,
+  expectResult,
+  fixtureResult,
+  fixtureRoot,
+  openFixture,
+} from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
   if (!fixture.startsWhenVisible) {
@@ -115,7 +129,26 @@ test.describe('clicks that render nothing', () => {
   }
 });
 
-const TASKS_DIR = 'src/components/fixtures/tasks/';
+const FIXTURES_DIR = 'src/components/fixtures/';
+const TASKS_DIR = `${FIXTURES_DIR}tasks/`;
+
+const countRunsWhenTheComputedArrivesLast = async (
+  page: Page,
+  fixture: Fixture,
+  computedFile: string,
+  counter: 'taskRuns' | 'handlerRuns' = 'taskRuns'
+) => {
+  const { gate } = await openFixture(page, fixture, 'cold');
+  gate.mode = 'pass';
+  gate.holdWhilePassing = (url) => chunkHoldsComputedFrom(url, `${FIXTURES_DIR}${computedFile}`);
+  await fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+  await expect.poll(() => gate.held.length).toBe(1);
+  await settle(page, gate);
+  await expect(fixtureResult(page, fixture)).not.toHaveAttribute('data-done');
+  await releaseAll(gate);
+  await expectResult(page, fixture);
+  return page.evaluate((name) => (globalThis as Record<string, number | undefined>)[name], counter);
+};
 
 test.describe('tasks in several components', () => {
   test("a click that makes a parent's and its child's tasks dirty fetches both task chunks in one round trip", async ({
@@ -148,6 +181,115 @@ test.describe('tasks in several components', () => {
     );
     expect(firstRoundTrip).toBeGreaterThanOrEqual(0);
     expect(secondRoundTrip).toBe(firstRoundTrip);
+  });
+
+  test.describe('task reading a computed from context', () => {
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const taskRuns = await countRunsWhenTheComputedArrivesLast(
+        page,
+        TASK_READING_A_COMPUTED_FROM_CONTEXT,
+        'tasks/computed-from-context/index.tsx'
+      );
+      expect(taskRuns).toBe(1);
+    });
+  });
+
+  test.describe('task reading a computed from props while its parent re-renders', () => {
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const taskRuns = await countRunsWhenTheComputedArrivesLast(
+        page,
+        TASK_READING_A_COMPUTED_FROM_A_RERENDERING_PARENT,
+        'tasks/computed-from-rerendering-parent/index.tsx'
+      );
+      expect(taskRuns).toBe(1);
+    });
+  });
+});
+
+test.describe('a click handler reading a computed from another component', () => {
+  test("runs once when the computed's chunk arrives last", async ({ page }) => {
+    const handlerRuns = await countRunsWhenTheComputedArrivesLast(
+      page,
+      HANDLER_READING_A_COMPUTED,
+      'computeds/handler-in-a-list/index.tsx',
+      'handlerRuns'
+    );
+    expect(handlerRuns).toBe(1);
+  });
+});
+
+test.describe('task reading a computed inside a store', () => {
+  test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+    const taskRuns = await countRunsWhenTheComputedArrivesLast(
+      page,
+      TASK_READING_A_COMPUTED_INSIDE_A_STORE,
+      'tasks/computed-inside-store/index.tsx'
+    );
+    expect(taskRuns).toBe(1);
+  });
+});
+
+const SPINNER_DIR = `${FIXTURES_DIR}computeds/spinner/`;
+
+test.describe('a click that shows a spinner', () => {
+  test('shows the spinner while a chunk the click sets off is still being preloaded', async ({
+    page,
+  }) => {
+    // Pins today's behavior, which isn't necessarily the one we want.
+    const { gate } = await openFixture(page, SPINNER, 'cold');
+    gate.mode = 'pass';
+    gate.holdWhilePassing = (url) => chunkHoldsTaskFrom(url, `${SPINNER_DIR}worker.tsx`);
+    const root = fixtureRoot(page, SPINNER);
+    await root.locator('[data-testid=trigger]').click();
+    await expect.poll(() => gate.held.length).toBe(1);
+
+    await expect(root.locator('[data-testid=spinner]')).toHaveText('loading');
+
+    await releaseAll(gate);
+    await expectResult(page, SPINNER);
+    await expect(root.locator('[data-testid=spinner]')).toHaveText('idle');
+  });
+
+  test("shows the spinner even when its handler can reach a computed being preloaded that it doesn't read", async ({
+    page,
+  }) => {
+    test.fail(
+      true,
+      'a run waits for every computed being preloaded that it can reach, read or not'
+    );
+    const { gate } = await openFixture(page, SPINNER, 'cold');
+    gate.mode = 'pass';
+    gate.holdWhilePassing = (url) =>
+      chunkHoldsTaskFrom(url, `${SPINNER_DIR}worker.tsx`) ||
+      chunkHoldsComputedFrom(url, `${SPINNER_DIR}index.tsx`);
+    const root = fixtureRoot(page, SPINNER);
+    await root.locator('[data-testid=trigger-with-report]').click();
+    await expect.poll(() => gate.held.length).toBeGreaterThan(0);
+
+    await expect(root.locator('[data-testid=spinner]')).toHaveText('loading', { timeout: 5_000 });
+
+    await releaseAll(gate);
+    await expectResult(page, SPINNER);
+  });
+});
+
+test.describe('a click right after load', () => {
+  test("shows its result while a visible task's computed is still being preloaded", async ({
+    page,
+  }) => {
+    const { gate } = await openFixture(page, CLICK_AFTER_LOAD, 'cold');
+    gate.mode = 'pass';
+    gate.holdWhilePassing = (url) =>
+      chunkHoldsComputedFrom(url, `${FIXTURES_DIR}computeds/click-after-load/stats.tsx`);
+    await page.locator('[data-testid=panel]').scrollIntoViewIfNeeded();
+    await expect.poll(() => gate.held.length).toBe(1);
+
+    await fixtureRoot(page, CLICK_AFTER_LOAD).locator('[data-testid=trigger]').click();
+
+    await expectResult(page, CLICK_AFTER_LOAD);
+    await expect(page.locator('[data-testid=panel]')).toHaveText('waiting');
+    await releaseAll(gate);
+    await expect(page.locator('[data-testid=panel]')).toHaveText('total 6');
   });
 });
 

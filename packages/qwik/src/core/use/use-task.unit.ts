@@ -1,7 +1,9 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
-import type { ReadonlySignal } from '../reactive-primitives/signal.public';
+import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/signal.public';
 import { component$ } from '../shared/component.public';
+import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { trackComputedLoad } from '../shared/serdes/inflate';
 import type { Container, HostElement } from '../shared/types';
 import { useResource$ } from './use-resource-dollar';
 import { useSignal } from './use-signal';
@@ -192,5 +194,75 @@ describe('runTask', () => {
 
     expect(run).toBe(2);
     expect(cleanupCalls).toBe(1);
+  });
+
+  it('waits for a computed the task reaches before each run', async () => {
+    const container = createMockContainer();
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    let release!: () => void;
+    const startLoadingComputedCode = () =>
+      trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    const taskFn = vi.fn();
+    const host = {} as HostElement;
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+
+    startLoadingComputedCode();
+    const firstRun = runTask(task, container, host);
+    expect(taskFn).not.toHaveBeenCalled();
+    release();
+    await firstRun;
+    expect(taskFn).toHaveBeenCalledTimes(1);
+
+    startLoadingComputedCode();
+    task.$flags$ |= TaskFlags.DIRTY;
+    const secondRun = runTask(task, container, host);
+    expect(taskFn).toHaveBeenCalledTimes(1);
+    release();
+    await secondRun;
+    expect(taskFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a computed whose code wasn't preloaded in time as a qerror, without running the task", async () => {
+    const dispatchEvent = vi.fn();
+    const containerElement = { ownerDocument: { dispatchEvent } };
+    const container = {
+      ...createMockContainer(),
+      element: containerElement,
+    } as unknown as Container;
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    let release!: () => void;
+    trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    const taskFn = vi.fn();
+    const host = {} as HostElement;
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+    vi.useFakeTimers();
+    try {
+      const run = runTask(task, container, host);
+      await vi.advanceTimersByTimeAsync(10_000);
+      await run;
+
+      expect(taskFn).not.toHaveBeenCalled();
+      expect(container.handleError).not.toHaveBeenCalled();
+      expect(dispatchEvent).toHaveBeenCalledOnce();
+      const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
+      expect(event.type).toBe('qerror');
+      expect(event.detail.importError).toBe('async');
+      expect(event.detail.element).toBe(containerElement);
+    } finally {
+      vi.useRealTimers();
+      release();
+    }
   });
 });

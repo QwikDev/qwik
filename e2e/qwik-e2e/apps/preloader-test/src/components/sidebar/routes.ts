@@ -247,6 +247,36 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/tasks/computed-from-context/',
+    label: 'task reading a computed from context',
+  },
+  {
+    group: 'other',
+    href: '/tasks/computed-from-rerendering-parent/',
+    label: 'task reading a computed from props while its parent re-renders',
+  },
+  {
+    group: 'other',
+    href: '/tasks/computed-inside-store/',
+    label: 'task reading a computed inside a store',
+  },
+  {
+    group: 'other',
+    href: '/computeds/handler-in-a-list/',
+    label: 'a click handler reading a computed from another component',
+  },
+  {
+    group: 'other',
+    href: '/computeds/spinner/',
+    label: 'a click that shows a spinner',
+  },
+  {
+    group: 'other',
+    href: '/computeds/click-after-load/',
+    label: 'a click right after load',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

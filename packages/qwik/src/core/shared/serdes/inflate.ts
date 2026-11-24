@@ -1,5 +1,6 @@
 import { isServer } from '@qwik.dev/core/build';
 import { qTest } from '../utils/qdev';
+import { delay } from '../utils/promises';
 import {
   vnode_getFirstChild,
   vnode_getProp,
@@ -47,13 +48,34 @@ import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
   p: Promise<void>;
+  inFlight: number;
+  computedLoads: WeakMap<object, Promise<unknown>>;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
     p: Promise.resolve(),
+    inFlight: 0,
+    computedLoads: new WeakMap(),
   })
 );
+
+const COMPUTED_PRELOAD_RETRY_DELAY_MS = 1_000;
+
+export const trackComputedLoad = (computed: object, load: () => Promise<unknown>): void => {
+  loadingHolder.inFlight++;
+  const tracked = load()
+    .catch(() => delay(COMPUTED_PRELOAD_RETRY_DELAY_MS).then(load))
+    .finally(() => {
+      loadingHolder.inFlight--;
+      if (loadingHolder.computedLoads.get(computed) === tracked) {
+        loadingHolder.computedLoads.delete(computed);
+      }
+    });
+  const settled = tracked.catch(() => {});
+  loadingHolder.computedLoads.set(computed, tracked);
+  loadingHolder.p = loadingHolder.p.finally(() => settled);
+};
 
 const dangerousObjectKeys = new Set([
   'constructor',
@@ -345,10 +367,14 @@ function* inflateIterator(
        * the resolve promise. To prevent that we load it now and qrls wait for the loading to
        * finish.
        */
-      const p = computed.$computeQrl$.resolve(container as any).catch(() => {
-        // ignore preload errors
-      });
-      loadingHolder.p = loadingHolder.p.finally(() => p);
+      const load = () => computed.$computeQrl$.resolve(container as any);
+      if (qTest ? isServerPlatform() : isServer) {
+        load().catch(() => {
+          // ignore preload errors
+        });
+      } else {
+        trackComputedLoad(computed, load);
+      }
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }

@@ -226,6 +226,15 @@ const handleQError = (e: Event) => {
   }
 };
 
+/** Reports a chunk that failed to load as a `qerror` event, which skips error boundaries. */
+export const dispatchQrlImportError = (element: Element, error: unknown, symbol: string) => {
+  element.ownerDocument?.dispatchEvent(
+    new CustomEvent('qerror', {
+      detail: { importError: 'async', error, element, symbol },
+    })
+  );
+};
+
 /**
  * One listener per document, routed by target, so no container is retained by the document. The
  * marker lives on the document so a second bundle on the page reuses it instead of

@@ -1,11 +1,17 @@
-import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
+import {
+  getDomContainer,
+  whenContainerDataReady,
+  type DomContainer,
+} from '../client/dom-container';
+import { vnode_getDomParent, vnode_isVNode } from '../client/vnode-utils';
 import { BackRef } from '../reactive-primitives/backref';
-import { CatchPhase, tagErrorPhase } from '../shared/error/error-handling';
+import { CatchPhase, dispatchQrlImportError, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
+  isComputedPreloadFailure,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -175,6 +181,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   }
 };
 
+const getTaskElement = (container: Container, host: HostElement): Element | null =>
+  (vnode_isVNode(host) && vnode_getDomParent(host, true)) ||
+  (container as DomContainer).element ||
+  null;
+
 export const runTask = (
   task: Task,
   container: Container,
@@ -186,6 +197,13 @@ export const runTask = (
   }
 
   const handleError = (reason: unknown) => {
+    if (isComputedPreloadFailure(reason)) {
+      const element = getTaskElement(container, host);
+      if (element) {
+        dispatchQrlImportError(element, reason, task.$qrl$.getSymbol());
+      }
+      return;
+    }
     tagErrorPhase(reason, CatchPhase.Hook);
     container.handleError(reason, host, CatchPhase.Hook);
   };
@@ -197,7 +215,7 @@ export const runTask = (
     task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
-    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
+    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task), true) as TaskFn;
 
     const track = trackFn(task, container);
     const [cleanup] = cleanupFn(task, handleError);

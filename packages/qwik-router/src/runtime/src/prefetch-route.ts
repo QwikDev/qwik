@@ -1,9 +1,9 @@
 import { isBrowser, isDev } from '@qwik.dev/core';
 import { preloadRouteBundles } from './client-navigate';
-import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
+import { fetchRouteLoaderData, filterSearchParams, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';
 import { getLayoutKeys, getNewLayoutKeys, loadRoute, matchRouteTree } from './routing';
-import type { LoadedRoute, RouteModule } from './types';
+import type { LoadedRoute, LoaderInternal, RouteModule } from './types';
 
 /**
  * Prefetch a route's JS bundles and optionally its loader data.
@@ -64,25 +64,29 @@ export async function prefetchRoute(
 }
 
 /**
- * Prefetch a route's loader data in parallel (fire-and-forget). The per-nav fetch map dedupes
- * repeat hovers and shares the promise with the navigation's own fetch; the browser HTTP cache
- * handles freshness. Immutable loaders are skipped: they download lazily on first actual read and
- * are then browser-cached for the life of the deploy.
+ * Prefetch a route's loader data in parallel (fire-and-forget), fetching each loader as a
+ * navigation does — by its id, with its search filter — so the navigation's fetch reuses it. The
+ * per-nav fetch map dedupes repeat hovers and shares the promise with the navigation's own fetch;
+ * the browser HTTP cache handles freshness. Immutable loaders are skipped: they download lazily on
+ * first actual read and are then browser-cached for the life of the deploy.
  */
 export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestHash: string) => {
   if (!loadedRoute.$loaders$?.length || !loadedRoute.$loaderPaths$) {
     return;
   }
-  const immutableIds = new Set(
-    getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])
-      .filter((loader) => loader.__cacheControl === 'immutable')
-      .map((loader) => loader.__id)
-  );
-  const basePath = getBasePathname();
-  for (const hash of loadedRoute.$loaders$) {
-    if (immutableIds.has(hash)) {
-      continue;
+  // The route tree lists loaders by QRL hash; one hash can be several loaders with their own ids.
+  const loadersByHash = new Map<string, LoaderInternal[]>();
+  for (const loader of getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])) {
+    const hash = loader.__qrl.getHash();
+    const sharing = loadersByHash.get(hash);
+    if (sharing) {
+      sharing.push(loader);
+    } else {
+      loadersByHash.set(hash, [loader]);
     }
+  }
+  const basePath = getBasePathname();
+  for (const hash of new Set(loadedRoute.$loaders$)) {
     let loaderPath = loadedRoute.$loaderPaths$[hash];
     if (!loaderPath) {
       continue;
@@ -90,9 +94,19 @@ export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestH
     if (basePath !== '/' && !loaderPath.startsWith(basePath)) {
       loaderPath = basePath + loaderPath.slice(1);
     }
-    fetchRouteLoaderData(hash, loaderPath, manifestHash, {
-      pageUrl: url,
-      basePath,
-    }).catch(() => {});
+    for (const loader of loadersByHash.get(hash) ?? [undefined]) {
+      if (loader?.__cacheControl === 'immutable') {
+        continue;
+      }
+      let pageUrl = url;
+      if (loader?.__search) {
+        pageUrl = new URL(url.href);
+        pageUrl.search = filterSearchParams(url.searchParams, loader.__search);
+      }
+      fetchRouteLoaderData(loader?.__id ?? hash, loaderPath, manifestHash, {
+        pageUrl,
+        basePath,
+      }).catch(() => {});
+    }
   }
 };

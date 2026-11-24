@@ -147,6 +147,32 @@ test.describe('loaders', () => {
       await expect(page.getByRole('heading', { name: 'Group page' })).toBeVisible();
     });
 
+    test('prefetches a custom-id loader under the url its navigation requests', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/custom-id-prefetch/');
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/custom-id-prefetch/target/q-loader-')) {
+          loaderRequests.push(new URL(request.url()).pathname);
+        }
+      });
+      const link = page.getByRole('link', { name: 'Open target' });
+      const prefetch = page.waitForRequest((request) =>
+        request.url().includes('/custom-id-prefetch/target/q-loader-')
+      );
+      await link.hover();
+      await prefetch;
+      await link.click();
+      await expect(page.getByRole('heading', { name: 'Custom id target' })).toBeVisible();
+
+      expect(loaderRequests.length).toBeGreaterThan(0);
+      for (const pathname of loaderRequests) {
+        expect(pathname).toContain('/q-loader-custom-id-prefetch.');
+      }
+    });
+
     test('catch-all q-loader requests run server plugins before route loaders', async ({
       page,
     }) => {

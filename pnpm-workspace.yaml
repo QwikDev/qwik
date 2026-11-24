@@ -45,7 +45,6 @@ overrides:
   '@builder.io/qwik': link:./packages/qwik
   '@builder.io/qwik-city': link:./packages/qwik-router
   '@fastify/static': 10.1.2
-  '@rolldown/browser>@napi-rs/wasm-runtime': 1.2.3
   adm-zip: 0.6.1
   body-parser@1: 1.20.9
   body-parser@2: 2.4.0

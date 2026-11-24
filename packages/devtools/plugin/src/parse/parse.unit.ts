@@ -19,13 +19,14 @@ const sampleVarDecl = `
   useStylesScoped$,
   createContextId,
   Resource,
-  useAsyncComputed$,
   useSerializer$,
   useConstant,
   useOn,
-  useServerData
+  useServerData,
+  isServer,
+  useVisibleTask$
 } from '@qwik.dev/core';
-import { _getDomContainer, isServer, useVisibleTask$ } from '@qwik.dev/core/internal';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import type { QRL, Signal } from '@qwik.dev/core';
 import { useLocation, useNavigate, Link, useContent, useDocumentHead } from '@qwik.dev/router';
 import { useDebouncer } from './debounce';
@@ -82,7 +83,7 @@ export default component$<ButtonProps>((props) => {
     }
   });
 
-  const asyncComputedValue =  useAsyncComputed$(({ track }) =>
+  const asyncComputedValue =  useComputed$(({ track }) =>
     Promise.resolve(track(signal) + 3),
   );
                                                                                                                                       

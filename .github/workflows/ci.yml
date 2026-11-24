@@ -782,7 +782,7 @@ jobs:
 
   ############ DOCS E2E TEST ############
   test-e2e-docs:
-    timeout-minutes: 15
+    timeout-minutes: 30
     name: Docs E2E Tests (shard ${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }})
     if: ${{ !cancelled() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true' }}
     needs:

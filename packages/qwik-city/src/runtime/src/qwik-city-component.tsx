@@ -286,7 +286,14 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       if (isBrowser) {
         // Use `location.href` because the lastDest signal is only updated on page navigates.
         if (type === 'link' && dest.href !== location.href) {
-          history.pushState(null, '', dest);
+          if (location.href.startsWith(dest.href.split('#')[0])) {
+            location.hash = dest.hash;
+            if (location.hash === '') {
+              history.pushState(null, '', dest);
+            }
+          } else {
+            history.pushState(null, '', dest);
+          }
         }
 
         // Always scroll on same-page popstates, #hash clicks, or links.

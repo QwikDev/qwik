@@ -28,6 +28,7 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
 import { qrl } from '../shared/qrl/qrl';
+import { dispatch } from '../../testing/element-fixture';
 import {
   emulateExecutionOfStreamingOutOfOrderScripts,
   rerenderComponent,
@@ -2048,6 +2049,41 @@ describe('qerror (client event channel)', () => {
       expect(seen[0].error).toBe(importFailure);
       expect(seen[0].element).toBe(container.element.querySelector('#target'));
       expect(seen[0].symbol).toBe('s_failingHandler');
+    });
+
+    it("a failed chunk import of a qerror listener doesn't fire qerror again", async () => {
+      const importFailure = new Error('Failed to fetch dynamically imported module: /q-l.js');
+      const failingListener = qrl(() => Promise.reject(importFailure), 's_failingListener') as any;
+      const { container } = await domRender(
+        <div id="listener" document:onQError$={failingListener} />,
+        { debug }
+      );
+      const doc = container.element.ownerDocument;
+      const seen: any[] = [];
+      const listener = (e: Event) => seen.push((e as CustomEvent).detail);
+      doc.addEventListener('qerror', listener);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const originalCustomEvent = globalThis.CustomEvent;
+      vi.stubGlobal('CustomEvent', doc.createEvent('CustomEvent').constructor);
+      let loggedErrors: unknown[][] = [];
+      try {
+        await dispatch(
+          container.element.querySelector('#listener'),
+          new Event('qerror'),
+          'd:qerror',
+          'qerror'
+        );
+        await waitForDrain(container).catch(() => {});
+        await delay(0);
+        loggedErrors = [...errorSpy.mock.calls];
+      } finally {
+        doc.removeEventListener('qerror', listener);
+        errorSpy.mockRestore();
+        vi.stubGlobal('CustomEvent', originalCustomEvent);
+      }
+
+      expect(seen).toEqual([]);
+      expect(loggedErrors).toEqual([['qrl s_failingListener failed to load', importFailure]]);
     });
 
     it('a handler that resolves but throws in core dispatch still reaches the boundary', async () => {

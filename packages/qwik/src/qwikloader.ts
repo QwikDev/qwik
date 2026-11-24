@@ -180,6 +180,7 @@ const resolveHandler = (
   otherChunks: string | undefined,
   reqTime: number,
   isUserEvent: boolean,
+  isQErrorEvent: boolean,
   reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
@@ -188,16 +189,19 @@ const resolveHandler = (
     element,
     reqTime,
   };
-  if (!chunk) {
-    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
-    if (!handler && reportSyncError) {
-      const error = new Error('sym:' + symbol);
+  const reportImportError = (importError: 'sync' | 'no-symbol' | 'async', error: unknown) => {
+    isQErrorEvent ||
       emitEvent<QwikErrorEvent>('qerror', {
-        importError: 'sync',
+        importError,
         error,
         ...eventData,
       });
-      console.error(error);
+    console.error(error);
+  };
+  if (!chunk) {
+    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
+    if (!handler && reportSyncError) {
+      reportImportError('sync', new Error('sym:' + symbol));
     }
     return handler as Handler | undefined;
   }
@@ -228,13 +232,7 @@ const resolveHandler = (
     (module) => {
       const handler = module[symbol] as Handler | undefined;
       if (!handler) {
-        const error = new Error(`${symbol} not in ${href}`);
-        emitEvent<QwikErrorEvent>('qerror', {
-          importError: 'no-symbol',
-          error,
-          ...eventData,
-        });
-        console.error(error);
+        reportImportError('no-symbol', new Error(`${symbol} not in ${href}`));
       } else {
         symbols.set(key, handler);
         emitEvent<QwikSymbolEvent>('qsymbol', eventData);
@@ -242,12 +240,7 @@ const resolveHandler = (
       return handler;
     },
     (error) => {
-      emitEvent<QwikErrorEvent>('qerror', {
-        importError: 'async',
-        error,
-        ...eventData,
-      });
-      console.error(error);
+      reportImportError('async', error);
       return undefined;
     }
   );
@@ -331,6 +324,7 @@ const dispatch = (
     const base = new URL(qBase, doc.baseURI);
     const qrls = attrValue.split('|');
     const waitForReady = waitForContainerReady(container);
+    const isQErrorEvent = ev.type == 'qerror';
     for (let i = 0; i < qrls.length; i++) {
       const qrl = qrls[i];
       const reqTime = performance.now();
@@ -338,13 +332,15 @@ const dispatch = (
       const run = (handler: Handler | undefined): void | Promise<void> => {
         if (handler && element.isConnected) {
           const onError = (error: any) => {
-            emitEvent<QwikErrorEvent>('qerror', {
-              error,
-              qBase,
-              symbol,
-              element,
-              reqTime,
-            });
+            isQErrorEvent
+              ? console.error(error)
+              : emitEvent<QwikErrorEvent>('qerror', {
+                  error,
+                  qBase,
+                  symbol,
+                  element,
+                  reqTime,
+                });
           };
           try {
             const result = handler.call(capturedIds, ev, element);
@@ -368,6 +364,7 @@ const dispatch = (
           reqTime,
           // A user event named q* only misses the early hint, loading its QRLs still hints
           !isQwikLifecycleEvent(ev.type),
+          isQErrorEvent,
           reportSyncError
         );
       // Sync handlers only exist once the container is ready, chunks can load meanwhile

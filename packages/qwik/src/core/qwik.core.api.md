@@ -1053,6 +1053,16 @@ export interface QwikDOMAttributes extends DOMAttributes<Element> {
 // @public @deprecated (undocumented)
 export type QwikDragEvent<T = Element> = NativeDragEvent;
 
+// @public
+export type QwikErrorEvent = CustomEvent<{
+    importError?: 'sync' | 'async' | 'no-symbol';
+    error: unknown;
+    symbol: string;
+    element: Element;
+    reqTime?: number;
+    qBase?: string;
+}>;
+
 // @public @deprecated (undocumented)
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 

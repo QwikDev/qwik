@@ -2,6 +2,7 @@ import type { Signal } from '../../../reactive-primitives/signal.public';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXNode } from './jsx-node';
 import type {
+  QwikErrorEvent,
   QwikIdleEvent,
   QwikInitEvent,
   QwikResumeEvent,
@@ -65,6 +66,7 @@ type PascalCaseNames =
   | 'PointerOut'
   | 'PointerOver'
   | 'PointerUp'
+  | 'QError'
   | 'QIdle'
   | 'QInit'
   | 'QResume'
@@ -127,6 +129,7 @@ type QwikDocumentEventMap = Omit<DocumentEventMap, keyof QwikHTMLElementEventMap
     // most element events bubble but not these
     'qvisible' | 'focus' | 'blur'
   > & {
+    qerror: QwikErrorEvent;
     qidle: QwikIdleEvent;
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;

@@ -1655,6 +1655,20 @@
       "mdFile": "core.qwikdragevent.md"
     },
     {
+      "name": "QwikErrorEvent",
+      "id": "qwikerrorevent",
+      "hierarchy": [
+        {
+          "name": "QwikErrorEvent",
+          "id": "qwikerrorevent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Emitted on document when a chunk failed to download, or when an event handler threw. `importError` is set only for a failed download, which error boundaries never see.\n\n\n```typescript\nexport type QwikErrorEvent = CustomEvent<{\n    importError?: 'sync' | 'async' | 'no-symbol';\n    error: unknown;\n    symbol: string;\n    element: Element;\n    reqTime?: number;\n    qBase?: string;\n}>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
+      "mdFile": "core.qwikerrorevent.md"
+    },
+    {
       "name": "QwikFocusEvent",
       "id": "qwikfocusevent",
       "hierarchy": [

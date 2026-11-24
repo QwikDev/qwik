@@ -196,6 +196,7 @@ export { version } from './version';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
   KnownEventNames,
+  QwikErrorEvent,
   QwikIdleEvent,
   QwikInitEvent,
   QwikResumeEvent,

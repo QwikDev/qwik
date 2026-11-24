@@ -8,6 +8,7 @@ import type {
   PropsOf,
   PublicProps,
   QRLEventHandlerMulti,
+  QwikErrorEvent,
   QwikHTMLElements,
   QwikIntrinsicElements,
   QwikResumeEvent,
@@ -233,6 +234,10 @@ describe('types', () => {
         document:onQResume$={(ev) => {
           expectTypeOf(ev).not.toBeAny();
           assertType<QwikResumeEvent>(ev);
+        }}
+        document:onQError$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<QwikErrorEvent>(ev);
         }}
       />
     </>;

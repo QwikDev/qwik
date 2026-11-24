@@ -59,6 +59,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrlDEV } from "@qwik.dev/core";
 //
+const left = 1;
+const right = 2;
+//
 const q_task = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_task_task"), "task", {
     file: "/user/qwik/src/test.tsx",
     lo: 127,
@@ -66,8 +69,6 @@ const q_task = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_task_task"), "task", 
     displayName: "test.tsx_task"
 });
 //
-const left = 1;
-const right = 2;
 export const task = q_task.w([
     left,
     true,
@@ -75,7 +76,7 @@ export const task = q_task.w([
 ]);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,MAAM,OAAO;AACb,MAAM,QAAQ;AAEd,OAAO,MAAM,gBAKF;IAAC;IAAM;IAAM;CAAM,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,OAAO;AACb,MAAM,QAAQ;;;;;;;;;AAEd,OAAO,MAAM,gBAKF;IAAC;IAAM;IAAM;CAAM,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

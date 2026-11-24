@@ -84,7 +84,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     qwikLoader?: QwikLoaderOptions;
     serverData?: Record<string, any>;
     snapshot?: boolean;
-    statePrewarm?: number | false;
     transformError?: (error: unknown) => Error | undefined | null | void;
 }
 

@@ -89,6 +89,266 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 }
 
 #[test]
+fn qrl_declared_before_the_statement_creating_it() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+export const before = 1;
+export const first = $(() => before);
+export const between = 2;
+export const second = $(() => $(() => between));
+"#;
+	for entry_strategy in [
+		EntryStrategy::Segment,
+		EntryStrategy::Inline,
+		EntryStrategy::Hoist,
+	] {
+		let output = test_input_fn(TestInput {
+			code: code.to_string(),
+			entry_strategy,
+			snapshot: false,
+			..TestInput::default()
+		})
+		.unwrap();
+		let parent = &output
+			.modules
+			.iter()
+			.find(|module| module.segment.is_none())
+			.unwrap()
+			.code;
+		let at = |needle: &str| {
+			parent
+				.find(needle)
+				.unwrap_or_else(|| panic!("{entry_strategy:?}: no `{needle}` in\n{parent}"))
+		};
+		let order = [
+			at("before = 1"),
+			at("const q_first"),
+			at("const first ="),
+			at("between = 2"),
+			at("const q_second"),
+			at("const second ="),
+		];
+		assert!(order.is_sorted(), "{entry_strategy:?}:\n{parent}");
+		for module in &output.modules {
+			for line in module.code.lines() {
+				assert!(
+					!line.starts_with("/*#__PURE__*/ qrl("),
+					"{entry_strategy:?}:\n{}",
+					module.code
+				);
+			}
+		}
+		let declarations = output
+			.modules
+			.iter()
+			.map(|module| module.code.matches("const q_second_1_").count())
+			.sum::<usize>();
+		assert_eq!(
+			declarations, 1,
+			"{entry_strategy:?}: the nested qrl is declared once"
+		);
+	}
+}
+
+fn parent_code(code: &str, entry_strategy: EntryStrategy) -> String {
+	let output = test_input_fn(TestInput {
+		code: code.to_string(),
+		entry_strategy,
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+	output
+		.modules
+		.into_iter()
+		.find(|module| module.segment.is_none())
+		.unwrap()
+		.code
+}
+
+#[test]
+fn qrl_used_through_a_function_comes_before_code_calling_it() {
+	let code = r#"
+import { $ } from '@qwik.dev/core';
+export const handler = make();
+function make() { return $(() => 1); }
+"#;
+	for entry_strategy in [
+		EntryStrategy::Segment,
+		EntryStrategy::Inline,
+		EntryStrategy::Hoist,
+	] {
+		let parent = parent_code(code, entry_strategy);
+		let declaration = parent.find("const q_").unwrap();
+		assert!(
+			declaration < parent.find("handler = make()").unwrap(),
+			"{entry_strategy:?}:\n{parent}"
+		);
+	}
+}
+
+#[test]
+fn unused_qrl_is_created_after_the_rest_of_the_module() {
+	let parent = parent_code(
+		r#"
+import { $, component$ } from '@qwik.dev/core';
+const greet = $(() => console.log('hi'));
+export const Greeter = component$(() => {
+	greet();
+	return <p>hi</p>;
+});
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.rfind("qrl(").unwrap() > parent.find("export const Greeter").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn user_variables_named_like_qrls_keep_their_order() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+const q_log = console.log('first');
+console.log('second');
+export const x = q_log;
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("'first'").unwrap() < parent.find("'second'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_of_an_exported_function_stays_before_code_that_may_call_it() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { run } from './b';
+run();
+export function make() { return $(() => 1); }
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("const q_").unwrap() < parent.find("run();").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_of_an_anonymous_default_function_stays_before_code_that_may_call_it() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { run } from './b';
+run();
+export default function () { return $(() => 1); }
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("const q_").unwrap() < parent.find("run();").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn invoked_qrl_statement_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+qrl(() => import('./a'), 'a').resolve();
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find(".resolve()").unwrap() < parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_statement_with_side_effects_in_its_arguments_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+import { load } from './load';
+qrl(load(), 'a');
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("load()").unwrap() < parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn unused_qrl_statement_with_pure_arguments_moves_to_the_end() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+(qrl)(() => import('./unused'), 'unused', { file: 'a.tsx', lo: 1, list: [1, 'x'] });
+console.log('after');
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("./unused").unwrap() > parent.find("'after'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
+fn qrl_declaration_that_runs_code_keeps_its_place() {
+	let parent = parent_code(
+		r#"
+import { $, qrl } from '@qwik.dev/core';
+import { load } from './load';
+const a = qrl(load(), 'a');
+const b = qrl(() => import('./b'), 'b').resolve();
+console.log('after');
+export const x = [a, b];
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	let after = parent.find("'after'").unwrap();
+	assert!(parent.find("load()").unwrap() < after, "{parent}");
+	assert!(parent.find(".resolve()").unwrap() < after, "{parent}");
+}
+
+#[test]
+fn user_qrl_function_from_another_module_keeps_its_order() {
+	let parent = parent_code(
+		r#"
+import { $ } from '@qwik.dev/core';
+import { qrl } from './mine';
+const q_a = qrl(console.log('first'));
+console.log('second');
+export const x = q_a;
+export const y = $(() => 1);
+"#,
+		EntryStrategy::Segment,
+	);
+	assert!(
+		parent.find("'first'").unwrap() < parent.find("'second'").unwrap(),
+		"{parent}"
+	);
+}
+
+#[test]
 fn migrated_qrl_pure() {
 	let code = include_str!("fixtures/migrated-qrl-pure.js").to_string();
 	for minify in [MinifyMode::None, MinifyMode::Simplify] {
@@ -4350,6 +4610,14 @@ export const Local = component$(() => {
 	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
+fn removed_entry_strategies_are_rejected() {
+	for name in ["component", "hook"] {
+		let parsed = serde_json::from_str::<EntryStrategy>(&format!("\"{name}\""));
+		assert!(parsed.is_err(), "{name}");
+	}
+}
+
+#[test]
 fn consistent_hashes() {
 	let code = r#"
 import { component$, $ } from '@qwik.dev/core';
@@ -4373,27 +4641,21 @@ export const Greeter = component$(() => {
 	let options = vec![
 		(EmitMode::Test, EntryStrategy::Segment, true),
 		(EmitMode::Test, EntryStrategy::Single, true),
-		(EmitMode::Test, EntryStrategy::Component, true),
 		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
-		(EmitMode::Prod, EntryStrategy::Component, true),
 		// (EmitMode::Prod, EntryStrategy::Inline, true),
 		(EmitMode::Dev, EntryStrategy::Segment, true),
 		(EmitMode::Dev, EntryStrategy::Single, true),
-		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
 		(EmitMode::Test, EntryStrategy::Segment, false),
 		(EmitMode::Test, EntryStrategy::Single, false),
-		(EmitMode::Test, EntryStrategy::Component, false),
 		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
-		(EmitMode::Prod, EntryStrategy::Component, false),
 		// (EmitMode::Prod, EntryStrategy::Inline, false),
 		(EmitMode::Dev, EntryStrategy::Segment, false),
 		(EmitMode::Dev, EntryStrategy::Single, false),
-		(EmitMode::Dev, EntryStrategy::Component, false),
 		// (EmitMode::Dev, EntryStrategy::Inline, false),
 	];
 

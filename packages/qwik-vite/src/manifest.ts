@@ -3,33 +3,6 @@ import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import { condenseImportGraph, createReachability } from './plugins/bundle-graph';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
-// The handlers that are exported by the core package
-// See handlers.mjs
-const extraSymbols = new Set([
-  '_chk',
-  '_rsc',
-  '_res',
-  '_run',
-  '_task',
-  '_val',
-  // Each
-  '_eaC',
-  '_eaT',
-  // Show
-  '_shC',
-  '_shT',
-  // Pending
-  '_peC',
-  '_peT',
-  // Reveal
-  '_reR',
-  '_reC',
-  '_reT',
-  // Catch
-  '_caC',
-  '_caR',
-]);
-
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
 // still further optimize the priorities depending on the user/document.
@@ -349,7 +322,7 @@ function getQrlImports(
 
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
- * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
+ * files for the preloader and qwikloader. This information is used during SSR.
  */
 export function generateManifestFromBundles(
   path: Path,
@@ -361,8 +334,7 @@ export function generateManifestFromBundles(
   canonPath: (p: string) => string,
   getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
   qwikLoaderFileName?: string,
-  preloaderFileName?: string,
-  handlersFileName?: string
+  preloaderFileName?: string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -374,7 +346,6 @@ export function generateManifestFromBundles(
       // don't copy the insights stuff
       entryStrategy: opts.entryStrategy && { type: opts.entryStrategy.type },
     },
-    core: undefined,
     preloader: undefined,
     qwikLoader: undefined,
     bundleGraphAsset: undefined,
@@ -395,21 +366,14 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
-  let coreBundleName: string | undefined;
   let preloaderBundleName: string | undefined;
-  let qwikHandlersName: string | undefined;
 
   // A /qwikloader route could shadow a chunk-name match.
   manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
 
-  // Group names come from plugin.ts; qwik-core also holds the handlers.
+  // Group names come from plugin.ts.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
-    if (outputBundle.name === 'qwik-core') {
-      coreBundleName = bundleFileName;
-      qwikHandlersName = bundleFileName;
-      manifest.core = bundleFileName;
-    }
     if (outputBundle.name === 'qwik-preloader') {
       preloaderBundleName = bundleFileName;
       manifest.preloader = bundleFileName;
@@ -419,9 +383,6 @@ export function generateManifestFromBundles(
   if (preloaderFileName && preloaderFileName in outputBundles) {
     manifest.preloader = canonPath(preloaderFileName);
   }
-  if (handlersFileName && handlersFileName in outputBundles) {
-    qwikHandlersName = canonPath(handlersFileName);
-  }
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   const bundleByModuleId = new Map<string, string>();
@@ -430,6 +391,17 @@ export function generateManifestFromBundles(
       for (const moduleId of Object.keys(outputBundle.modules)) {
         bundleByModuleId.set(moduleId, getBundleName(outputBundle.fileName)!);
       }
+    }
+  }
+  // A re-exported segment's code sits in its group chunk, but only its facade exports the symbol
+  for (const outputBundle of Object.values(outputBundles)) {
+    const { facadeModuleId } = outputBundle as Rolldown.OutputChunk;
+    if (
+      outputBundle.type === 'chunk' &&
+      facadeModuleId &&
+      !(facadeModuleId in outputBundle.modules)
+    ) {
+      bundleByModuleId.set(facadeModuleId, getBundleName(outputBundle.fileName)!);
     }
   }
   for (const outputBundle of Object.values(outputBundles)) {
@@ -462,7 +434,7 @@ export function generateManifestFromBundles(
     }
     const bundleImports = outputBundle.imports
       .map((i) => getBundleName(i))
-      .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
+      .filter((i) => i !== preloaderBundleName)
       .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
@@ -494,7 +466,10 @@ export function generateManifestFromBundles(
       }
     }
 
-    const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
+    const moduleIds = outputBundle.moduleIds || Object.keys(outputBundle.modules);
+    // A facade holds no module; its origin is the one it exports, for same-parent preload ratings
+    const ids =
+      moduleIds.length || !outputBundle.facadeModuleId ? moduleIds : [outputBundle.facadeModuleId];
     const modulePaths = ids
       .filter((m) => !m.startsWith(`\u0000`))
       .map((m) => path.relative(opts.rootDir, m));
@@ -527,25 +502,6 @@ export function generateManifestFromBundles(
       captureNames: segment.captureNames,
     };
   }
-  if (qwikHandlersName) {
-    for (const symbol of extraSymbols) {
-      manifest.symbols[symbol] = {
-        origin: 'Qwik core',
-        displayName: symbol,
-        canonicalFilename: '',
-        hash: symbol,
-        ctxKind: 'function',
-        ctxName: symbol,
-        captures: false,
-        parent: null,
-        loc: [0, 0],
-      };
-      manifest.mapping[symbol] = qwikHandlersName;
-    }
-  } else {
-    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
-  }
-
   for (const bundle of Object.values(manifest.bundles)) {
     const interactivityScore = getBundleInteractivity(bundle, manifest);
     bundle.interactivity = interactivityScore;

@@ -23,12 +23,14 @@ export interface PreloaderOptions {
    * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
    * bundles before the preloader script is active: the first ones the preloader would fetch for the
    * page, ranked the same way by probability, so shared static imports come first. Setting this to
-   * 0 will disable all preload links.
+   * 0 will disable these links.
    *
    * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
    * a Core Web Vital but more noticeable to the user.
    *
-   * Defaults to `0`, so speculative preloading starts once the page is loaded.
+   * Defaults to `0`, so speculative preloading starts once the page is loaded. Core and the bundles
+   * of its handlers that the page's events and tasks run through are always linked, as the page
+   * streams: every interaction needs them.
    */
   ssrPreloads?: number;
   /**
@@ -151,14 +153,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
 
   /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
   preloader?: PreloaderOptions | false;
-
-  /**
-   * Root-count threshold for eager yielded state prewarm during client resume.
-   *
-   * Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when
-   * serialized state has at least that many roots.
-   */
-  statePrewarm?: number | false;
 
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete

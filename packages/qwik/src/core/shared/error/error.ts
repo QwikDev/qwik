@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { logErrorAndStop } from '../utils/log';
+import { logError, logErrorAndStop } from '../utils/log';
 import { isObject } from '../utils/types';
 
 const baseUrl = 'https://qwikdev-build-v2.qwik-8nx.pages.dev/docs/errors/#q';
@@ -115,4 +115,10 @@ export const enum QError {
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {
   const text = codeToText(code, ...errorMessageArgs);
   return logErrorAndStop(text, ...errorMessageArgs);
+};
+
+/** Like `qError`, but skips the debugger pause and the async rethrow. */
+export const qErrorWithoutStop = (code: number, errorMessageArgs: any[] = []): Error => {
+  const text = codeToText(code, ...errorMessageArgs);
+  return logError(text, ...errorMessageArgs);
 };

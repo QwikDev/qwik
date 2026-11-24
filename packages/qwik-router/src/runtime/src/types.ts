@@ -809,6 +809,7 @@ export type LoaderOptions = {
    */
   readonly id?: string;
   readonly validation?: DataValidator[];
+  /** Controls value serialization during SSR; defaults to `auto`. */
   readonly serializationStrategy?: SerializationStrategy;
   /**
    * Cache-Control for this loader's JSON responses. The browser HTTP cache is the single source of

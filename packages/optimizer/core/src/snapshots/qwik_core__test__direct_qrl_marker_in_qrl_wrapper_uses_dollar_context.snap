@@ -68,14 +68,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@qwik.dev/core";
 import { routeLoaderQrl } from '@qwik.dev/router';
 //
-const q_standalone_JfX9MiBjaoY = /*#__PURE__*/ qrl(()=>import("./test.tsx_standalone_JfX9MiBjaoY"), "standalone_JfX9MiBjaoY");
 const q_useSession_routeLoaderQrl_MyHiCWvkVgk = /*#__PURE__*/ qrl(()=>import("./test.tsx_useSession_routeLoaderQrl_MyHiCWvkVgk"), "useSession_routeLoaderQrl_MyHiCWvkVgk");
 //
 export const useSession = routeLoaderQrl(q_useSession_routeLoaderQrl_MyHiCWvkVgk);
+//
+const q_standalone_JfX9MiBjaoY = /*#__PURE__*/ qrl(()=>import("./test.tsx_standalone_JfX9MiBjaoY"), "standalone_JfX9MiBjaoY");
+//
 export const standalone = q_standalone_JfX9MiBjaoY;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,SAAS,cAAc,QAAQ,mBAAmB;;;;;AAElD,OAAO,MAAM,aAAa,wDAAmC;AAC7D,OAAO,MAAM,sCAAmC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,SAAS,cAAc,QAAQ,mBAAmB;;;;AAElD,OAAO,MAAM,aAAa,wDAAmC;;;;AAC7D,OAAO,MAAM,sCAAmC\"}")
 == DIAGNOSTICS ==
 
 []

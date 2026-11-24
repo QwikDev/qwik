@@ -41,6 +41,21 @@ export const LibCounter = component$(() => {
   );
 });
 
+/** `bind:` compiles to core's `_val`/`_chk`, imported from the library's own copy of core. */
+export const LibBindings = component$(() => {
+  const text = useSignal('from the library');
+  const checked = useSignal(false);
+
+  return (
+    <div id="lib-bindings">
+      <input id="lib-bind-value" bind:value={text} />
+      <p id="lib-bound-text">{text.value}</p>
+      <input id="lib-bind-checked" type="checkbox" bind:checked={checked} />
+      <p id="lib-bound-checked">{String(checked.value)}</p>
+    </div>
+  );
+});
+
 /** A router link rendered by the library's own copy of the router. */
 export const LibLink = component$((props: { href: string }) => {
   return (

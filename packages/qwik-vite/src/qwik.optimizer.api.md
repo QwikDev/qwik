@@ -13,14 +13,6 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
 }>;
 
 // @public (undocumented)
-export interface ComponentEntryStrategy {
-    // (undocumented)
-    manual?: Record<string, string>;
-    // (undocumented)
-    type: 'component';
-}
-
-// @public (undocumented)
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 // @public (undocumented)
@@ -54,7 +46,7 @@ export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
 
 // @public (undocumented)
-export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | SegmentEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | SegmentEntryStrategy | SmartEntryStrategy;
 
 // @public
 export enum ExperimentalFeatures {
@@ -84,14 +76,6 @@ export interface GlobalInjections {
 export interface HoistEntryStrategy {
     // (undocumented)
     type: 'hoist';
-}
-
-// @public @deprecated (undocumented)
-export interface HookEntryStrategy {
-    // (undocumented)
-    manual?: Record<string, string>;
-    // (undocumented)
-    type: 'hook';
 }
 
 // @public (undocumented)
@@ -221,7 +205,6 @@ export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
     };
-    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {
@@ -388,7 +371,7 @@ export interface SegmentEntryStrategy {
 }
 
 // @public
-export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'qwikLoader'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

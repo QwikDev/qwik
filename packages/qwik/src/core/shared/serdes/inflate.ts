@@ -167,11 +167,12 @@ export function* restoreRootsIterator(
       return value;
     }
     const target = allocate(container, typeId, value);
-    data[typeIndex] = TypeIds.Plain;
-    data[typeIndex + 1] = target;
+    // Queued before the writes: the Rust optimizer inlines `typeId` and `value` as reads of `data`.
     if (needsInflation(typeId)) {
       pendingInflations.push([target, typeId, value]);
     }
+    data[typeIndex] = TypeIds.Plain;
+    data[typeIndex + 1] = target;
     return target;
   };
   const steps = (function* (): Generator<void, void, void> {

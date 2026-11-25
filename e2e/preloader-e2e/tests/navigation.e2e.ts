@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
 import {
   bundleFile,
   chunkComesFrom,
@@ -25,6 +25,7 @@ import {
   settle,
   waitForNetworkIdle,
   waitForQwikloader,
+  type Gate,
   type RoundTrip,
 } from '../utils/gate';
 import {
@@ -697,5 +698,357 @@ test.describe('form action', () => {
       roundTrips: 5,
       reason: 'over the cap on main: the action request waits for 4 round trips of router code',
     });
+  });
+});
+
+const TO_SMALL: Fixture = {
+  id: 'navigation/to-small',
+  path: '/navigation/to-small/',
+  sources: ['src/routes/navigation/to-small/'],
+  expected: 'small',
+};
+const TO_SMALL_ROUTE = 'navigation/to-small/';
+
+const smallLink = (page: Page, from: Fixture) =>
+  fixtureRoot(page, from).locator('[data-testid=link-small]');
+
+const dataLink = (page: Page, from: Fixture) =>
+  fixtureRoot(page, from).locator('[data-testid=link-data]');
+
+const isChunkOfTheTreePage = (url: string) => chunkComesFrom(url, TO_TREE_SOURCES);
+
+const isLoaderData = (url: string) => new URL(url).pathname.includes('/q-loader-');
+
+const pathOf = (page: Page) => new URL(page.url()).pathname;
+
+type WindowWithShownFixtures = Window & { __shownFixtures?: string[] };
+
+const recordShownFixtures = (page: Page) =>
+  page.addInitScript(() => {
+    const shown: string[] = ((window as WindowWithShownFixtures).__shownFixtures = []);
+    new MutationObserver(() => {
+      document.querySelectorAll('[data-fixture]').forEach((fixture) => {
+        const id = fixture.getAttribute('data-fixture')!;
+        const result = fixture.querySelector('[data-testid=result][data-done]');
+        if (result?.checkVisibility() && !shown.includes(id)) {
+          shown.push(id);
+        }
+      });
+    }).observe(document, { childList: true, subtree: true, attributes: true });
+  });
+
+const shownFixtures = (page: Page) =>
+  page.evaluate(() => (window as WindowWithShownFixtures).__shownFixtures ?? []);
+
+const recordRequests = (page: Page) => {
+  const requested: string[] = [];
+  page.on('request', (request) => requested.push(request.url()));
+  return requested;
+};
+
+const requestedMoreThanOnce = (urls: string[]) => [
+  ...new Set(urls.filter((url, index) => urls.indexOf(url) !== index)),
+];
+
+type OngoingRequests = { routes: Route[]; release: () => Promise<void> };
+
+const keepOngoing = async (page: Page, isKept: (url: string) => boolean) => {
+  let isKeeping = true;
+  const ongoing: OngoingRequests = {
+    routes: [],
+    release: async () => {
+      isKeeping = false;
+      await release(ongoing.routes.splice(0));
+    },
+  };
+  await page.route(
+    (url) => isKept(url.href),
+    (route) => {
+      if (!isKeeping) {
+        return route.fallback();
+      }
+      ongoing.routes.push(route);
+    }
+  );
+  return ongoing;
+};
+
+const startAndKeepOngoing = async (
+  page: Page,
+  from: Fixture,
+  start: () => Promise<unknown>,
+  isKept: (url: string) => boolean
+) => {
+  await recordShownFixtures(page);
+  const opened = await openFixture(page, from, 'cold');
+  const requested = recordRequests(page);
+  const ongoing = await keepOngoing(page, isKept);
+  await collectUntilQuiet(page, opened.gate, start);
+  expect(ongoing.routes.length).toBeGreaterThan(0);
+  return { ...opened, ongoing, requested };
+};
+
+const releaseEverything = (page: Page, gate: Gate, ongoing?: OngoingRequests) =>
+  waitForNetworkIdle(page, async () => {
+    await ongoing?.release();
+    await releaseAll(gate);
+  });
+
+test.describe("a second Link click before the first click's chunks arrive", () => {
+  const clickTheTreeLinkThenTheSmallLink = async (page: Page) => {
+    await recordShownFixtures(page);
+    const opened = await openFixture(page, FROM.off, 'cold');
+    await treeLink(page, FROM.off).click();
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => smallLink(page, FROM.off).click(),
+      isShown(page, TO_SMALL)
+    );
+    return { ...opened, roundTrips };
+  };
+
+  test('the second page shows, and the first never does', async ({ page }) => {
+    const { gate } = await clickTheTreeLinkThenTheSmallLink(page);
+    await releaseEverything(page, gate);
+    await expectResult(page, TO_SMALL);
+    expect(pathOf(page)).toBe(TO_SMALL.path);
+    const shown = await shownFixtures(page);
+    expect(shown).toContain(TO_SMALL.id);
+    expect(shown).not.toContain(TO_TREE.id);
+  });
+
+  test('the second page shows in 2 round trips', async ({ page }) => {
+    const { gate, roundTrips } = await clickTheTreeLinkThenTheSmallLink(page);
+    await releaseAll(gate);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips);
+  });
+});
+
+test.describe("a second Link click while the first page's chunks are ongoing", () => {
+  const clickTheSmallLinkWhileTheTreePageLoads = async (page: Page) => {
+    const started = await startAndKeepOngoing(
+      page,
+      FROM.off,
+      () => treeLink(page, FROM.off).click(),
+      isChunkOfTheTreePage
+    );
+    const roundTrips = await countFixtureRoundTrips(
+      started,
+      () => smallLink(page, FROM.off).click(),
+      isShown(page, TO_SMALL)
+    );
+    return { ...started, roundTrips };
+  };
+
+  test('the second page shows, and the first never does once its chunks arrive', async ({
+    page,
+  }) => {
+    const { gate, ongoing } = await clickTheSmallLinkWhileTheTreePageLoads(page);
+    await releaseEverything(page, gate, ongoing);
+    await expectResult(page, TO_SMALL);
+    expect(pathOf(page)).toBe(TO_SMALL.path);
+    const shown = await shownFixtures(page);
+    expect(shown).toContain(TO_SMALL.id);
+    expect(shown).not.toContain(TO_TREE.id);
+  });
+
+  test("the second page shows in 1 round trip, without the first page's chunks", async ({
+    page,
+  }) => {
+    const { gate, ongoing, roundTrips } = await clickTheSmallLinkWhileTheTreePageLoads(page);
+    const stillOngoing = ongoing.routes.length;
+    await releaseEverything(page, gate, ongoing);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expect(stillOngoing).toBeGreaterThan(0);
+    expect(roundTrips).toHaveLength(1);
+  });
+
+  test("the second page's chunks are requested at the highest priority", async ({ page }) => {
+    await recordPreloadHints(page);
+    const { gate, ongoing } = await clickTheSmallLinkWhileTheTreePageLoads(page);
+    await releaseEverything(page, gate, ongoing);
+    const routeProbabilities = (await preloadHints(page))
+      .filter(({ item }) => [item].flat().includes(TO_SMALL_ROUTE))
+      .map(({ probability }) => probability);
+    expect(routeProbabilities.length).toBeGreaterThan(0);
+    expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);
+  });
+
+  test('a chunk both pages need is requested once', async ({ page }) => {
+    const isChunkOfDocsA = (url: string) =>
+      holdsPageChunk(DOCS_A)(url) || holdsLayoutSegments(DOCS_LAYOUT_SOURCES)(url);
+    const { gate, ongoing, requested } = await startAndKeepOngoing(
+      page,
+      SHELL_HOME,
+      () => shellControl(page, 'link-docs-a').click(),
+      isChunkOfDocsA
+    );
+    await collectUntilQuiet(page, gate, () => shellControl(page, 'link-docs-b').click());
+    await releaseEverything(page, gate, ongoing);
+    await expectResult(page, DOCS_B);
+    const docsLayoutChunks = requested.filter(holdsLayoutSegments(DOCS_LAYOUT_SOURCES));
+    expect(docsLayoutChunks.length).toBeGreaterThan(0);
+    expect(requestedMoreThanOnce(docsLayoutChunks)).toEqual([]);
+  });
+});
+
+test.describe('the same Link clicked twice', () => {
+  const clickTwice = async (
+    page: Page,
+    link: (page: Page, from: Fixture) => Locator,
+    to: Fixture
+  ) => {
+    const opened = await openFixture(page, FROM.off, 'cold');
+    const requested = recordRequests(page);
+    await link(page, FROM.off).click();
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => link(page, FROM.off).click(),
+      isShown(page, to)
+    );
+    await releaseEverything(page, opened.gate);
+    await expectResult(page, to);
+    return { roundTrips, requested };
+  };
+
+  test('no chunk is requested twice', async ({ page }) => {
+    const { requested } = await clickTwice(page, treeLink, TO_TREE);
+    expect(requestedMoreThanOnce(requested)).toEqual([]);
+  });
+
+  test('the page shows in 2 round trips', async ({ page }) => {
+    const { roundTrips } = await clickTwice(page, treeLink, TO_TREE);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expectRoundTrips(roundTrips);
+  });
+
+  test("a Link to a page with a routeLoader$: the loader's data is requested once", async ({
+    page,
+  }) => {
+    const { requested } = await clickTwice(page, dataLink, TO_DATA);
+    expect(requested.filter(isLoaderData)).toHaveLength(1);
+  });
+});
+
+test.describe('back button before the new page shows', () => {
+  const goBackWhileTheTreePageLoads = async (page: Page) => {
+    const started = await startAndKeepOngoing(
+      page,
+      FROM.off,
+      () => treeLink(page, FROM.off).click(),
+      isChunkOfTheTreePage
+    );
+    const urls = await collectUntilQuiet(page, started.gate, () => page.goBack());
+    return { ...started, urls };
+  };
+
+  test('the page the user came from stays, with no JS request', async ({ page }) => {
+    const { gate, ongoing, urls } = await goBackWhileTheTreePageLoads(page);
+    await expect(treeLink(page, FROM.off)).toBeVisible();
+    expect(pathOf(page)).toBe(FROM.off.path);
+    await releaseEverything(page, gate, ongoing);
+    test.fail(
+      true,
+      'on main, going back renders the page again on the client, though it never left the screen, and fetches its chunks'
+    );
+    expect(urls.filter((url) => new URL(url).pathname.endsWith('.js'))).toEqual([]);
+  });
+
+  test('the new page never shows once its chunks arrive', async ({ page }) => {
+    const { gate, ongoing } = await goBackWhileTheTreePageLoads(page);
+    await releaseEverything(page, gate, ongoing);
+    await expect(treeLink(page, FROM.off)).toBeVisible();
+    expect(pathOf(page)).toBe(FROM.off.path);
+    expect(await shownFixtures(page)).not.toContain(TO_TREE.id);
+  });
+});
+
+test.describe("a Link click while another Link's prefetch is ongoing", () => {
+  const clickTheSmallLinkWhileTheTreePagePrefetches = async (page: Page) => {
+    const started = await startAndKeepOngoing(
+      page,
+      FROM.intent,
+      () => treeLink(page, FROM.intent).hover(),
+      isChunkOfTheTreePage
+    );
+    const roundTrips = await countFixtureRoundTrips(
+      started,
+      () => smallLink(page, FROM.intent).click(),
+      isShown(page, TO_SMALL)
+    );
+    return { ...started, roundTrips };
+  };
+
+  test("the clicked page's chunks are requested at the highest priority", async ({ page }) => {
+    await recordPreloadHints(page);
+    const { gate, ongoing } = await clickTheSmallLinkWhileTheTreePagePrefetches(page);
+    await releaseEverything(page, gate, ongoing);
+    const routeProbabilities = (await preloadHints(page))
+      .filter(({ item }) => [item].flat().includes(TO_SMALL_ROUTE))
+      .map(({ probability }) => probability);
+    expect(routeProbabilities).toContain(1);
+  });
+
+  test("the clicked page shows in 1 round trip, without the prefetched page's chunks", async ({
+    page,
+  }) => {
+    const { gate, ongoing, roundTrips } = await clickTheSmallLinkWhileTheTreePagePrefetches(page);
+    const stillOngoing = ongoing.routes.length;
+    await releaseEverything(page, gate, ongoing);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expect(stillOngoing).toBeGreaterThan(0);
+    expect(roundTrips).toHaveLength(1);
+  });
+});
+
+test.describe('a Link click while its own prefetch is ongoing', () => {
+  test('none of its chunks is requested twice', async ({ page }) => {
+    const { gate, ongoing, requested } = await startAndKeepOngoing(
+      page,
+      FROM.intent,
+      () => treeLink(page, FROM.intent).hover(),
+      isChunkOfTheTreePage
+    );
+    await collectUntilQuiet(page, gate, () => treeLink(page, FROM.intent).click());
+    await releaseEverything(page, gate, ongoing);
+    await expectResult(page, TO_TREE);
+    const chunksOfTheTreePage = requested.filter(isChunkOfTheTreePage);
+    expect(chunksOfTheTreePage.length).toBeGreaterThan(0);
+    expect(requestedMoreThanOnce(chunksOfTheTreePage)).toEqual([]);
+  });
+});
+
+test.describe('a second Link click before a routeLoader$ page shows', () => {
+  const SECOND_CLICK_NEVER_NAVIGATES =
+    "on main, a click on another Link while a loader's data is ongoing never navigates, and the first page shows";
+
+  const clickTheSmallLinkWhileTheLoaderDataLoads = async (page: Page) => {
+    const started = await startAndKeepOngoing(
+      page,
+      FROM.off,
+      () => dataLink(page, FROM.off).click(),
+      isLoaderData
+    );
+    await collectUntilQuiet(page, started.gate, () => smallLink(page, FROM.off).click());
+    return started;
+  };
+
+  test("the second page shows without the loader's data", async ({ page }) => {
+    const { gate, ongoing } = await clickTheSmallLinkWhileTheLoaderDataLoads(page);
+    const stillOngoing = ongoing.routes.length;
+    const isSecondPageShown = await isShown(page, TO_SMALL)();
+    await releaseEverything(page, gate, ongoing);
+    expect(stillOngoing).toBeGreaterThan(0);
+    test.fail(true, SECOND_CLICK_NEVER_NAVIGATES);
+    expect(isSecondPageShown).toBe(true);
+  });
+
+  test("the loader's late data doesn't bring its page back", async ({ page }) => {
+    const { gate, ongoing } = await clickTheSmallLinkWhileTheLoaderDataLoads(page);
+    await releaseEverything(page, gate, ongoing);
+    test.fail(true, SECOND_CLICK_NEVER_NAVIGATES);
+    expect(await shownFixtures(page)).not.toContain(TO_DATA.id);
+    expect(pathOf(page)).toBe(TO_SMALL.path);
   });
 });

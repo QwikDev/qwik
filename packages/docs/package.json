@@ -20,7 +20,7 @@
     "@qwik.dev/partytown": "0.13.2",
     "@qwik.dev/react": "workspace:*",
     "@qwik.dev/router": "workspace:*",
-    "@rolldown/browser": "1.2.2",
+    "@rolldown/browser": "1.2.19",
     "@shikijs/colorized-brackets": "3.21.0",
     "@shikijs/langs": "3.21.0",
     "@shikijs/rehype": "3.21.0",

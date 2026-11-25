@@ -2445,25 +2445,10 @@ describe('shared-serialization', () => {
         await delay(0);
         expect(ran).toEqual(['s_task']);
       });
-    });
 
-    describe('closures', () => {
-      it('a closure among its values makes it wait for every computed being preloaded', async () => {
-        const { release, ran } = await startPreloadingAComputed();
-        void handlerWithoutCaptures()(() => 0);
-        await delay(0);
-        expect(ran).toEqual([]);
-        release();
-        await delay(0);
-        expect(ran.sort()).toEqual(['s_first', 's_handler']);
-      });
-
-      it("a QRL or a component among its values isn't a closure", async () => {
-        const { ran } = await startPreloadingAComputed();
-        void handlerWithoutCaptures()(
-          lazyQrl('s_other'),
-          componentQrl(lazyQrl('s_component') as any)
-        );
+      it('one read only by a plain function passed to it', async () => {
+        const { ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(() => (computed as { value: unknown }).value);
         await delay(0);
         expect(ran).toEqual(['s_handler']);
       });
@@ -2535,6 +2520,16 @@ describe('shared-serialization', () => {
         expect(getterRuns).toBe(0);
         expect(ran).toEqual(['s_handler']);
       });
+
+      it("an argument that carries methods, like a React event, doesn't make it wait", async () => {
+        const { ran } = await startPreloadingAComputed();
+        class ReactLikeEvent {
+          isDefaultPrevented = () => false;
+        }
+        void handlerWithoutCaptures()(new ReactLikeEvent());
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
     });
 
     describe('a preload that fails or stalls', () => {
@@ -2580,6 +2575,28 @@ describe('shared-serialization', () => {
           expect(ran).toEqual([]);
         } finally {
           vi.useRealTimers();
+          consoleError.mockRestore();
+        }
+      });
+
+      it('a preload that fails twice is not an unhandled promise rejection, even when no run waits for it', async () => {
+        const objs = await serialize(lazyQrl('s_first', [lazyComputed()]));
+        mockModules({ failing: 's_computed' });
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const onUnhandledRejection = vi.fn();
+        process.on('unhandledRejection', onUnhandledRejection);
+        vi.useFakeTimers();
+        try {
+          const [first] = deserialize(objs) as QRLInternal[];
+
+          first.getCaptured();
+          await vi.advanceTimersByTimeAsync(1_000);
+          vi.useRealTimers();
+          await delay(0);
+          expect(onUnhandledRejection).not.toHaveBeenCalled();
+        } finally {
+          vi.useRealTimers();
+          process.off('unhandledRejection', onUnhandledRejection);
           consoleError.mockRestore();
         }
       });

@@ -47,14 +47,12 @@ import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
-  p: Promise<void>;
   inFlight: number;
   computedLoads: WeakMap<object, Promise<unknown>>;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
-    p: Promise.resolve(),
     inFlight: 0,
     computedLoads: new WeakMap(),
   })
@@ -72,9 +70,8 @@ export const trackComputedLoad = (computed: object, load: () => Promise<unknown>
         loadingHolder.computedLoads.delete(computed);
       }
     });
-  const settled = tracked.catch(() => {});
+  tracked.catch(() => {});
   loadingHolder.computedLoads.set(computed, tracked);
-  loadingHolder.p = loadingHolder.p.finally(() => settled);
 };
 
 const dangerousObjectKeys = new Set([

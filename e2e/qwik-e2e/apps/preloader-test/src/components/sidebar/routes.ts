@@ -277,6 +277,11 @@ export const routes = [
   },
   {
     group: 'other',
+    href: '/computeds/second-navigation/',
+    label: 'a second navigation while a click waits for a computed',
+  },
+  {
+    group: 'other',
     href: '/user-import/',
     label: 'user import',
   },

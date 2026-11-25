@@ -3,14 +3,12 @@ import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed
 import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { STORE_TARGET } from '../../reactive-primitives/types';
-import { isQwikComponent } from '../component.public';
 import { isServerPlatform } from '../platform/platform';
 import { loadingHolder } from '../serdes/inflate';
 import { fastSkipSerialize } from '../serdes/verify';
 import { Brand, hasBrand } from '../utils/brand';
 import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
 import { qTest } from '../utils/qdev';
-import { isQrl } from './qrl-utils';
 
 const SKIPPED_BRANDS =
   Brand.Task |
@@ -97,9 +95,6 @@ const collectFromObject = (value: object, pending: unknown[], loads: Promise<unk
   pushOwnDataValues(pending, value);
 };
 
-const isPlainFunction = (fn: Function) =>
-  !isQrl(fn) && !isQwikComponent(fn) && !fastSkipSerialize(fn);
-
 export const waitForReachableComputedLoads = (
   values: readonly unknown[] | null | undefined,
   moreValues?: readonly unknown[]
@@ -118,12 +113,6 @@ export const waitForReachableComputedLoads = (
   const loads: Promise<unknown>[] = [];
   while (pending.length) {
     const value = pending.pop();
-    if (typeof value === 'function') {
-      if (isPlainFunction(value)) {
-        return loadingHolder.p;
-      }
-      continue;
-    }
     if (value === null || typeof value !== 'object' || visited.has(value)) {
       continue;
     }

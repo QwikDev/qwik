@@ -536,6 +536,11 @@ const HAND_WRITTEN = [
     href: '/computeds/click-after-load/',
     label: 'a click right after load',
   },
+  {
+    group: 'other',
+    href: '/computeds/second-navigation/',
+    label: 'a second navigation while a click waits for a computed',
+  },
   { group: 'other', href: '/user-import/', label: 'user import' },
   { group: 'other', href: '/shared-helper/', label: 'shared helper' },
   { group: 'other', href: '/slot/', label: 'slot' },

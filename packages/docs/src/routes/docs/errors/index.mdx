@@ -259,6 +259,6 @@ A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larg
 
 ## Q42
 
-**The code of a computed this run needs was not preloaded within 10 seconds, so the run did not start**
+**The code of a computed this run can reach could not be preloaded, so the run did not start**
 
 A task or event handler can read a computed whose code was still being preloaded. The run waits for that code, but not past 10 seconds, nor after a preload fails twice. Instead of starting, it fires a `qerror` event, like a chunk that fails to load. Listen for `qerror` to tell the user, or reload the page when a deploy removed the chunk.

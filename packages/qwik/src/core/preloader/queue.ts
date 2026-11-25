@@ -1,5 +1,5 @@
 import { createMacroTask } from '../shared/platform/next-tick';
-import { base, getBundle, isWaitingForGraph } from './bundle-graph';
+import { base, getBundle, isComponentChunk, isWaitingForGraph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleDep, BundleImport, BundleImports } from './types';
 import {
@@ -368,14 +368,21 @@ export const getPreloadOrder = (item: string[], priority?: number) => {
 
 const INTENT_PRIORITY = 0.9;
 const IN_VIEW_PRIORITY = 0.8;
+const HANDLER_ATTRIBUTE_PREFIX = 'q-';
 const ELEMENT_HANDLER_ATTRIBUTE_PREFIX = 'q-e';
 const ORDERED_NODE_SNAPSHOT_TYPE = 7;
+const STATE_SCRIPT_SELECTOR = 'script[type="qwik/state"]';
+const CHUNK_NAME_IN_STATE = /"([^"\\]+\.[mc]?js)"/g;
 
-const addHandlerChunksOf = (element: Element, chunks: string[]) => {
+const addHandlerChunksOf = (
+  element: Element,
+  chunks: string[],
+  attributePrefix = ELEMENT_HANDLER_ATTRIBUTE_PREFIX
+) => {
   const attributes = element.attributes;
   for (let i = 0; attributes && i < attributes.length; i++) {
     const { name, value } = attributes[i];
-    if (!name.startsWith(ELEMENT_HANDLER_ATTRIBUTE_PREFIX)) {
+    if (!name.startsWith(attributePrefix)) {
       continue;
     }
     const qrls = value.split('|');
@@ -387,6 +394,14 @@ const addHandlerChunksOf = (element: Element, chunks: string[]) => {
     }
   }
 };
+
+const findElementsWithHandlers = () =>
+  doc.evaluate(
+    `//*[@*[starts-with(name(),'${HANDLER_ATTRIBUTE_PREFIX}')]]`,
+    doc,
+    null,
+    ORDERED_NODE_SNAPSHOT_TYPE
+  );
 
 export const preloadHandlersInView = () => {
   const observer = new IntersectionObserver((entries) => {
@@ -400,15 +415,33 @@ export const preloadHandlersInView = () => {
     }
     preload(chunksInView, IN_VIEW_PRIORITY);
   });
-  const elementsWithHandlers = doc.evaluate(
-    `//*[@*[starts-with(name(),'${ELEMENT_HANDLER_ATTRIBUTE_PREFIX}')]]`,
-    doc,
-    null,
-    ORDERED_NODE_SNAPSHOT_TYPE
-  );
+  const elementsWithHandlers = findElementsWithHandlers();
   for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
     observer.observe(elementsWithHandlers.snapshotItem(i) as Element);
   }
+};
+
+export const preloadChunksNamedInPage = () => {
+  const chunks: string[] = [];
+  const elementsWithHandlers = findElementsWithHandlers();
+  for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
+    addHandlerChunksOf(
+      elementsWithHandlers.snapshotItem(i) as Element,
+      chunks,
+      HANDLER_ATTRIBUTE_PREFIX
+    );
+  }
+  const stateScripts = doc.querySelectorAll(STATE_SCRIPT_SELECTOR);
+  for (let i = 0; i < stateScripts.length; i++) {
+    const state = stateScripts[i].textContent!;
+    let chunkName: RegExpExecArray | null;
+    while ((chunkName = CHUNK_NAME_IN_STATE.exec(state))) {
+      if (!isComponentChunk(chunkName[1])) {
+        chunks.push(chunkName[1]);
+      }
+    }
+  }
+  preload(chunks);
 };
 
 export const preloadHandlersOnIntent = () => {

@@ -64,7 +64,7 @@ export {
   getSegmentVNodeRefId,
 } from '../core/shared/vnode-data-types';
 export { getPreloadOrder, preload } from '../core/preloader/queue';
-export { initPreloader } from '../core/preloader/bundle-graph';
+export { initPreloader, isComponentChunk } from '../core/preloader/bundle-graph';
 export { qTest } from '../core/shared/utils/qdev';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';

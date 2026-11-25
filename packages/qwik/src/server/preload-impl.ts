@@ -1,5 +1,5 @@
 import { getPlatform } from '@qwik.dev/core';
-import { getPreloadOrder, initPreloader, qTest } from './qwik-copy';
+import { getPreloadOrder, initPreloader, isComponentChunk, qTest } from './qwik-copy';
 import type { QRLInternal, SSRContainer } from './qwik-types';
 import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
@@ -232,9 +232,13 @@ export const includePreloader = (
   const insertLinks = links.length ? createLinksScript(base, links) : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
-  if (preloaderBundle) {
+  const preloaderReadsThePage = !!resolvedManifest?.manifest.bundleGraphAsset;
+  const bundlesToList = preloaderReadsThePage
+    ? referencedBundles.filter(isComponentChunk)
+    : referencedBundles;
+  if (preloaderBundle && bundlesToList.length) {
     script += afterPagePaint(
-      `import(${toScriptLiteral(preloaderBundle)}).then(({p})=>p(${toScriptLiteral(referencedBundles)}))`
+      `import(${toScriptLiteral(preloaderBundle)}).then(({p})=>p(${toScriptLiteral(bundlesToList)}))`
     );
   }
   if (script) {

@@ -1,7 +1,7 @@
 import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const createContainer = (buildBase = '/') => {
+const createContainer = (buildBase = '/', hasBundleGraph = true) => {
   const elements: { tagName: string; attrs: Record<string, string> }[] = [];
   let scriptContent = '';
 
@@ -10,7 +10,7 @@ const createContainer = (buildBase = '/') => {
     resolvedManifest: {
       manifest: {
         preloader: 'preloader.js',
-        bundleGraphAsset: 'assets/bundle-graph.json',
+        bundleGraphAsset: hasBundleGraph ? 'assets/bundle-graph.json' : undefined,
         bundleGraph: [],
       },
     },
@@ -182,14 +182,54 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), true, false);
   });
 
-  it('starts speculative bundle preloads after page paint during idle time', async () => {
-    const { container, elements, getScriptContent } = createContainer();
-    const { includePreloader } = await import('./preload-impl');
+  describe('with a bundle graph', () => {
+    it('lists only the chunks that hold nothing but a component', async () => {
+      const { initPreloader } = await import('../core/preloader/bundle-graph');
+      const { includePreloader } = await import('./preload-impl');
+      initPreloader(['render.js', -4, 'events.js', -2, 'tasks.js', -3]);
+      const { container, elements, getScriptContent } = createContainer();
 
-    includePreloader(container, { ssrPreloads: 0 }, ['route.js']);
+      includePreloader(container, { ssrPreloads: 0 }, ['events.js', 'render.js', 'tasks.js']);
 
-    expect(elements).toEqual([]);
-    expectDeferredUntilAfterPaint(getScriptContent(), false);
+      expect(elements).toEqual([]);
+      expect(getScriptContent()).toContain('p(["render.js"])');
+      expectDeferredUntilAfterPaint(getScriptContent(), false);
+    });
+
+    it('writes no list when the render used no such chunk', async () => {
+      const { initPreloader } = await import('../core/preloader/bundle-graph');
+      const { includePreloader } = await import('./preload-impl');
+      initPreloader(['events.js', -2]);
+      const { container, elements, getScriptContent } = createContainer();
+
+      includePreloader(container, { ssrPreloads: 0 }, ['events.js']);
+
+      expect(elements).toEqual([]);
+      expect(getScriptContent()).toBe('');
+    });
+  });
+
+  describe('without a bundle graph', () => {
+    it("passes the page's chunks to the preloader after page paint during idle time", async () => {
+      const { container, elements, getScriptContent } = createContainer('/', false);
+      const { includePreloader } = await import('./preload-impl');
+
+      includePreloader(container, { ssrPreloads: 0 }, ['route.js']);
+
+      expect(elements).toEqual([]);
+      expect(getScriptContent()).toContain('p(["route.js"])');
+      expectDeferredUntilAfterPaint(getScriptContent(), false);
+    });
+
+    it("keeps a build base holding </script> inside the script that passes the page's chunks", async () => {
+      const { container, getScriptContent } = createContainer('/a"</script><b>/', false);
+      const { includePreloader } = await import('./preload-impl');
+
+      includePreloader(container, undefined, ['x.js']);
+
+      expect(getScriptContent()).toContain('p(["x.js"])');
+      expect(getScriptContent()).not.toMatch(/<\/script/i);
+    });
   });
 
   it('links no bundle before page load by default', async () => {
@@ -225,7 +265,7 @@ describe('preloader', () => {
 
     // Only `</script` ends a script element while the HTML is parsed.
     expect(getScriptContent()).not.toMatch(/<\/script/i);
-    const linksScript = getScriptContent().split('window.addEventListener').at(-2)!;
+    const linksScript = getScriptContent().split('window.addEventListener').at(-1)!;
     const hrefs: string[] = [];
     const document = {
       createElement: () => ({}),
@@ -246,7 +286,7 @@ describe('preloader', () => {
 
     const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
     expect(linksScript).toContain('["b.js"].map(');
-    expect(afterLoad).toContain('p(["a.js","b.js"])');
+    expect(afterLoad).toContain('p(["a.js"])');
   });
 
   it('keeps equally likely bundles in render order', async () => {
@@ -309,10 +349,8 @@ describe('preloader', () => {
       );
       preloaderPost(container, { preloader: { ssrPreloads: 1 } } as any);
 
-      const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
       // Render order would link run.js first.
-      expect(linksScript).toContain('["core.js"].map(');
-      expect(afterLoad).toContain('p(["run.js","handler.js"])');
+      expect(getScriptContent()).toContain('["core.js"].map(');
     } finally {
       setPlatform(platform);
     }

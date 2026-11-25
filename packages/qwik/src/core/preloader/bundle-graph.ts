@@ -3,6 +3,7 @@ import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
 import {
   bundles,
   nextTriggerMacroTask,
+  preloadChunksNamedInPage,
   preloadHandlersInView,
   preloadHandlersOnIntent,
   replayBundle,
@@ -51,6 +52,10 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
   }
   return graph;
 };
+
+const COMPONENT_KIND = 3;
+
+export const isComponentChunk = (name: string) => graph?.get(name)?.$kind$ === COMPONENT_KIND;
 
 export const getBundle = (name: string) => {
   let bundle = bundles.get(name);
@@ -110,6 +115,7 @@ export const loadBundleGraph = (
             bundle.$rank$ = UNRANKED;
           }
         }
+        preloadChunksNamedInPage();
         let nextIndex = 0;
         const replayPendingBundles = () => {
           const deadline = performance.now() + yieldInterval;

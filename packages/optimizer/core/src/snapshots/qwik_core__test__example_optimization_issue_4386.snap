@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 741
+assertion_line: 1796
 expression: output
 ---
 ==INPUT==
@@ -35,12 +35,13 @@ export const FOO_MAPPING = {
 const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ _noopQrl("test_component_LUXeXe0DQrg");
 //
 q_test_component_LUXeXe0DQrg.s(()=>{
-    return <>{FOO_MAPPING['A']}</>;
+    const value = FOO_MAPPING['A'];
+    return <>{value}</>;
 });
 export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;;;;+BAEwB;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B;AALA,6BAAe,2CAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;;;;+BAEwB;IAE1B,MAAM,QAAQ,WAAW,CADb,IACkB;IAE9B,UAAU;AACV;AALA,6BAAe,2CAKZ\"}")
 == DIAGNOSTICS ==
 
 []

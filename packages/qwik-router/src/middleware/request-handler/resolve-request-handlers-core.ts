@@ -28,6 +28,7 @@ import {
   RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
+  RequestEvManifestHash,
   RequestEvShareServerTiming,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -782,6 +783,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             }
           },
         });
+        requestEv.sharedMap.set(RequestEvManifestHash, result.manifest?.manifestHash);
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }

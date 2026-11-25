@@ -7,6 +7,7 @@ import {
 import {
   RequestEvCaughtError,
   RequestEvHttpStatusMessage,
+  RequestEvManifestHash,
   RequestEvSentServerError,
 } from '../middleware/request-handler/request-event-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
@@ -254,7 +255,10 @@ export async function workerRender(
               if (writeLoaderDataEnabled && !isNotFoundPage) {
                 const routeLoaders = getRouteLoaders(requestEv);
                 const loaderValues = getRouteLoaderValues(requestEv);
-                const manifestHash = (opts.manifest as any)?.manifestHash || 'dev';
+                const manifestHash =
+                  requestEv.sharedMap.get(RequestEvManifestHash) ||
+                  (opts.manifest as any)?.manifestHash ||
+                  'dev';
                 // Write per-loader files only for static loaders (cacheControl: 'immutable').
                 // Other values imply a freshness horizon a build-time file cannot honor.
                 for (const loader of routeLoaders) {

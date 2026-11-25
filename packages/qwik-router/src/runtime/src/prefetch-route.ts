@@ -14,7 +14,7 @@ import type { LoadedRoute, RouteModule } from './types';
  *
  * @param url - The URL pathname to prefetch
  * @param prefetchData - Whether to prefetch loader data
- * @param probability - Bundle preload probability (0-1, default 0.8)
+ * @param priority - Preload priority of the route's bundles (0-1, default 0.8)
  * @param manifestHash - Build manifest hash for loader URLs (from `useDocumentHead().manifestHash`)
  * @param prefetchBundle - Whether to prefetch route JS bundles
  * @param currentUrl - The page the navigation leaves, when `location` already shows the new one
@@ -22,7 +22,7 @@ import type { LoadedRoute, RouteModule } from './types';
 export async function prefetchRoute(
   url: URL,
   prefetchData?: boolean,
-  probability = 0.8,
+  priority = 0.8,
   manifestHash?: string,
   prefetchBundle = true,
   currentUrl?: URL
@@ -43,10 +43,10 @@ export async function prefetchRoute(
         getLayoutKeys(currentRoute.loaders),
         getLayoutKeys(destRoute.loaders)
       );
-      preloadRouteBundles('/' + destRoute.routeParts.join('/'), probability, newLayoutKeys);
+      preloadRouteBundles('/' + destRoute.routeParts.join('/'), priority, newLayoutKeys);
     }
 
-    const isNavigating = probability === 1;
+    const isNavigating = priority === 1;
     const shouldPrefetchData = !!prefetchData && !!manifestHash;
     if (!isNavigating && !shouldPrefetchData) {
       return;

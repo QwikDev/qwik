@@ -1,5 +1,6 @@
 import { assert, test } from 'vitest';
 import {
+  applyTrailingSlash,
   getClientNavPath,
   shouldPreload,
   isSameOrigin,
@@ -226,3 +227,24 @@ test('valid prefetchUrl', () => {
   const currentLoc = new URL('https://qwik.dev/contact');
   assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), true);
 });
+
+test.each([
+  [false, '/target', '/target/'],
+  [false, '/target/', '/target/'],
+  [true, '/target/', '/target'],
+  [true, '/target', '/target'],
+])(
+  'applyTrailingSlash with __NO_TRAILING_SLASH__=%s: %s is requested as %s',
+  (noTrailingSlash, pathname, expected) => {
+    const previous = globalThis.__NO_TRAILING_SLASH__;
+    globalThis.__NO_TRAILING_SLASH__ = noTrailingSlash;
+    try {
+      const url = new URL(`https://qwik.dev${pathname}?page=2#top`);
+      applyTrailingSlash(url);
+      assert.equal(url.pathname, expected);
+      assert.equal(url.search + url.hash, '?page=2#top');
+    } finally {
+      globalThis.__NO_TRAILING_SLASH__ = previous;
+    }
+  }
+);

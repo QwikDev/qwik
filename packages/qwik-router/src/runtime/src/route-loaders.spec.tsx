@@ -388,6 +388,19 @@ describe('getModuleRouteLoaders', () => {
     expect(loaders[0]).toBe(first);
   });
 
+  it('reports the QRL hash of a loader dropped for a duplicate id, when asked', () => {
+    const withHash = (id: string, hash: string) =>
+      Object.assign(mkLoader(id), { __qrl: { getHash: () => hash } }) as LoaderInternal;
+    const discarded = new Set<string>();
+    const first = withHash('shared', 'h4shFirst');
+    const loaders = getModuleRouteLoaders(
+      [asModule({ useFirst: first, useSecond: withHash('shared', 'h4shSecond') })],
+      discarded
+    );
+    expect(loaders).toEqual([first]);
+    expect([...discarded]).toEqual(['h4shSecond']);
+  });
+
   it('keeps loaders with distinct ids', () => {
     const a = mkLoader('a');
     const b = mkLoader('b');

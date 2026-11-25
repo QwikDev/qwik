@@ -127,7 +127,15 @@ import type {
 } from './types';
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isPromise, isSameOrigin, isSamePath, toPath, toSafeRedirectUrl, toUrl } from './utils';
+import {
+  applyTrailingSlash,
+  isPromise,
+  isSameOrigin,
+  isSamePath,
+  toPath,
+  toSafeRedirectUrl,
+  toUrl,
+} from './utils';
 import {
   shouldStartViewTransition,
   startViewTransition,
@@ -724,14 +732,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       };
 
-      // ensure correct trailing slash
-      if (trackUrl.pathname.endsWith('/')) {
-        if (globalThis.__NO_TRAILING_SLASH__) {
-          trackUrl.pathname = trackUrl.pathname.slice(0, -1);
-        }
-      } else if (!globalThis.__NO_TRAILING_SLASH__) {
-        trackUrl.pathname = ensureSlash(trackUrl.pathname);
-      }
+      applyTrailingSlash(trackUrl);
       const loadRoutePromise = getRouterConfig().then((config) => {
         if (internalState.navCount !== navCountBefore) {
           return;

@@ -165,6 +165,21 @@ describe('prefetchLoaderData', () => {
     expect(fetchedIds()).toEqual(['a', 'orphan']);
   });
 
+  it('skips a loader dropped for a duplicate id: only the one that runs is requested', () => {
+    const kept = createLoader('dup', { hash: 'h4shKept' });
+    const dropped = createLoader('dup', { hash: 'h4shDropped' });
+    const loadedRoute = {
+      $routeName$: 'next/',
+      $mods$: [{ useKept: kept, useDropped: dropped }],
+      $loaders$: ['h4shKept', 'h4shDropped'],
+      $loaderPaths$: { h4shKept: '/next/', h4shDropped: '/next/' },
+    } as unknown as LoadedRoute;
+
+    prefetchLoaderData(loadedRoute, new URL('http://localhost/next/'), manifestHash);
+
+    expect(fetchedIds()).toEqual(['dup']);
+  });
+
   it("reads each loader's hash from its QRL", () => {
     const loader = createLoader('a');
     const loadedRoute = createLoadedRoute([loader]);

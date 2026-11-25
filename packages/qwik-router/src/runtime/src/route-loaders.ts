@@ -701,7 +701,14 @@ export function getRouteLoaderParams(
   return params;
 }
 
-export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
+/**
+ * The route loaders `mods` export, one per id: a second loader with an id already seen is dropped
+ * (the first runs). `discarded`, when given, collects the dropped loaders' QRL hashes.
+ */
+export const getModuleRouteLoaders = (
+  mods: readonly (RouteModule | undefined)[],
+  discarded?: Set<string>
+) => {
   const routeLoaders: LoaderInternal[] = [];
   const seen = new Map<string, LoaderInternal>();
   for (let i = 0; i < mods.length; i++) {
@@ -714,6 +721,9 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
       if (isLoaderInternal(value)) {
         const existing = seen.get(value.__id);
         if (existing) {
+          if (discarded && existing !== value) {
+            discarded.add(value.__qrl.getHash());
+          }
           if (isDev && existing !== value) {
             console.warn(
               `Two route loaders share the same id "${value.__id}". Only the first will run; ` +

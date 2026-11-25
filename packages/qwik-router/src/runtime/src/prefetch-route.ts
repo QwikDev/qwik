@@ -4,6 +4,7 @@ import { fetchRouteLoaderData, filterSearchParams, getModuleRouteLoaders } from 
 import { getBasePathname, getRouterConfig } from './router-config';
 import { getLayoutKeys, getNewLayoutKeys, loadRoute, matchRouteTree } from './routing';
 import type { LoadedRoute, LoaderInternal, RouteModule } from './types';
+import { applyTrailingSlash } from './utils';
 
 /**
  * Prefetch a route's JS bundles and optionally its loader data.
@@ -30,6 +31,10 @@ export async function prefetchRoute(
   if (!isBrowser || isDev) {
     return;
   }
+  // The path the navigation will request: a link written without its trailing slash (or with one
+  // the app drops) would otherwise be prefetched under another url — and another page path header.
+  url = new URL(url.href);
+  applyTrailingSlash(url);
 
   try {
     const { routes, cacheModules } = await getRouterConfig();
@@ -76,7 +81,9 @@ export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestH
   }
   // The route tree lists loaders by QRL hash; one hash can be several loaders with their own ids.
   const loadersByHash = new Map<string, LoaderInternal[]>();
-  for (const loader of getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])) {
+  // Loaders dropped for an id another loader already has: their navigation never requests them.
+  const discarded = new Set<string>();
+  for (const loader of getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[], discarded)) {
     const hash = loader.__qrl.getHash();
     const sharing = loadersByHash.get(hash);
     if (sharing) {
@@ -94,7 +101,12 @@ export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestH
     if (basePath !== '/' && !loaderPath.startsWith(basePath)) {
       loaderPath = basePath + loaderPath.slice(1);
     }
-    for (const loader of loadersByHash.get(hash) ?? [undefined]) {
+    const loaders = loadersByHash.get(hash);
+    if (!loaders && discarded.has(hash)) {
+      continue;
+    }
+    // No loader for the hash on the client (its metadata is the server's): fetched by the hash.
+    for (const loader of loaders ?? [undefined]) {
       if (loader?.__cacheControl === 'immutable') {
         continue;
       }

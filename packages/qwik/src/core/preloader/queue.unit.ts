@@ -224,7 +224,7 @@ test('asks the browser for low priority on speculative preloads only', async () 
   expect(spec.getAttribute('fetchpriority')).toBe('low');
 });
 
-test('keeps a bundle at the highest priority when a later hint gives it a lower probability', async () => {
+test('keeps a bundle at the highest priority when a later hint gives it a lower priority', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -244,7 +244,7 @@ test('keeps a bundle at the highest priority when a later hint gives it a lower 
   expect(highestPriority.getAttribute('fetchpriority')).toBe(null);
 });
 
-test('keeps a highest priority dependency at the highest priority when another importer is hinted at a lower probability', async () => {
+test('keeps a highest priority dependency at the highest priority when another importer is hinted at a lower priority', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -685,8 +685,8 @@ test('keeps newer highest priority hints when buffered replay resumes after yiel
   preload('third/', 1);
   await vi.runAllTimersAsync();
 
-  expect(bundles.get('third/')!.$inverseProbability$).toBe(0);
-  expect(bundles.get('last.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('third/')!.$priority$).toBe(1);
+  expect(bundles.get('last.js')!.$priority$).toBe(1);
 });
 
 test('keeps highest priority links at the highest priority between buffered replay slices', async () => {
@@ -714,10 +714,10 @@ test('keeps highest priority links at the highest priority between buffered repl
   const replay = channels[2];
   clock.mockImplementation(() => now);
   adjust.port1.onmessage!();
-  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
 
   replay.port1.onmessage!();
-  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
   trigger.port1.onmessage!();
   const highestPriorityLink = document.head.querySelector('link[href$="highest-priority.js"]');
   expect(highestPriorityLink).not.toBeNull();
@@ -728,7 +728,7 @@ test('keeps highest priority links at the highest priority between buffered repl
   const leafLink = document.head.querySelector('link[href$="leaf.js"]');
   expect(leafLink).not.toBeNull();
   expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
-  expect(bundles.get('highest-priority.js')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
 });
 
 test('closes the replay MessageChannel after its final slice', async () => {
@@ -796,37 +796,15 @@ test.each([true, false])(
     }
     await vi.runAllTimersAsync();
 
-    expect(bundles.get('c.js')!.$inverseProbability$).toBe(0.01);
-    expect(bundles.get('static-child.js')!.$inverseProbability$).toBe(0);
+    expect(bundles.get('c.js')!.$priority$).toBe(0.99);
+    expect(bundles.get('static-child.js')!.$priority$).toBe(1);
     const childLink = document.head.querySelector('link[href$="/static-child.js"]');
     expect(childLink).not.toBeNull();
     expect(childLink!.getAttribute('fetchpriority')).not.toBe('low');
   }
 );
 
-test('keeps the small-change cutoff for speculative hints', async () => {
-  installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { initPreloader, preload } = await importAndResetState();
-  const { bundles } = await import('./queue');
-  initPreloader(['entry.js', 2, 'child.js']);
-
-  preload('entry.js', 0.8);
-  await vi.runAllTimersAsync();
-  const childInverseProbability = bundles.get('child.js')!.$inverseProbability$;
-  expect(childInverseProbability).toBeCloseTo(0.2);
-
-  preload('entry.js', 0.805);
-  await vi.runAllTimersAsync();
-
-  expect(bundles.get('entry.js')!.$inverseProbability$).toBeCloseTo(0.195);
-  expect(bundles.get('child.js')!.$inverseProbability$).toBe(childInverseProbability);
-});
-
-test("keeps a dependency's probability right when its importer is replayed, then hinted higher", async () => {
+test('a dependency takes the strongest hint that reached it', async () => {
   installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -834,22 +812,22 @@ test("keeps a dependency's probability right when its importer is replayed, then
   await installTestPlatform();
   const { loadBundleGraph } = await import('./bundle-graph');
   const { preload, bundles } = await import('./queue');
-  preload('a.js', 0.8);
+  preload('a.js', 0.6);
   preload('b.js', 0.8);
   vi.runAllTimers();
   loadBundleGraph(
     '/build/',
     Promise.resolve({
-      text: async () => JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js']),
+      text: async () => JSON.stringify(['a.js', -1, 6, 'b.js', -1, 6, 'c.js']),
     } as Response)
   );
   await vi.runAllTimersAsync();
-  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.56);
+  expect(bundles.get('c.js')!.$priority$).toBe(0.8);
 
-  preload('b.js', 0.9);
+  preload('a.js', 0.9);
   await vi.runAllTimersAsync();
 
-  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.55);
+  expect(bundles.get('c.js')!.$priority$).toBe(0.9);
 });
 
 test('schedules a single adjustment task for many replayed hints', async () => {
@@ -1096,4 +1074,175 @@ test('a limit of 0 starts no speculative preload, and still preloads at the high
   preload('highest-priority.js', 1);
   await vi.runAllTimersAsync();
   expect(linkNames(document)).toEqual(['highest-priority.js']);
+});
+
+type ChunkKind = 'handler' | 'other-qrl' | 'component';
+const KIND_MARKERS: Record<ChunkKind, number> = { handler: -2, 'other-qrl': -3, component: -4 };
+
+const graphOf = (
+  entries: Record<string, { kind?: ChunkKind; imports?: string[]; qrls?: string[] }>
+) => {
+  const positions = new Map<string, number>();
+  let position = 0;
+  for (const [name, { kind, imports = [], qrls = [] }] of Object.entries(entries)) {
+    positions.set(name, position);
+    position += 1 + (kind ? 1 : 0) + imports.length + (qrls.length ? 1 + qrls.length : 0);
+  }
+  const serialized: (string | number)[] = [];
+  for (const [name, { kind, imports = [], qrls = [] }] of Object.entries(entries)) {
+    serialized.push(name);
+    if (kind) {
+      serialized.push(KIND_MARKERS[kind]);
+    }
+    serialized.push(...imports.map((dep) => positions.get(dep)!));
+    if (qrls.length) {
+      serialized.push(-1, ...qrls.map((dep) => positions.get(dep)!));
+    }
+  }
+  return serialized;
+};
+
+const CARD_PAGE = graphOf({
+  'page/': { qrls: ['card-render.js', 'card-tasks.js', 'card-events.js'] },
+  'card-render.js': { kind: 'component' },
+  'card-tasks.js': { kind: 'other-qrl' },
+  'card-events.js': { kind: 'handler', imports: ['card.js'] },
+  'card.js': {},
+});
+
+const preloadWithGraph = async (serializedGraph: (string | number)[]) => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+  initPreloader(serializedGraph);
+  return { document, preload };
+};
+
+test('among the chunks one hint reaches, handlers go first, then other QRLs, then components', async () => {
+  const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+  preload('page/', 0.6);
+  vi.runAllTimers();
+
+  expect(linkNames(document).filter((name) => name !== 'card.js')).toEqual([
+    'card-events.js',
+    'card-tasks.js',
+    'card-render.js',
+  ]);
+});
+
+test("a chunk's static imports are preloaded with it", async () => {
+  const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+  preload('page/', 0.6);
+  vi.runAllTimers();
+
+  expect(linkNames(document).slice(0, 2)).toEqual(['card-events.js', 'card.js']);
+});
+
+test('a stronger hint goes first, whatever the kinds', async () => {
+  const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+  preload('card-events.js', 0.6);
+  preload('card-render.js', 0.8);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(['card-render.js', 'card-events.js', 'card.js']);
+});
+
+test('a hint preloads every chunk it reaches, however many imports away', async () => {
+  const chain = Object.fromEntries(
+    Array.from({ length: 12 }, (_, index) => [
+      `chunk-${index}.js`,
+      index < 11 ? { qrls: [`chunk-${index + 1}.js`] } : {},
+    ])
+  );
+  const { document, preload } = await preloadWithGraph(graphOf(chain));
+
+  preload('chunk-0.js', 0.6);
+  vi.runAllTimers();
+
+  expect(linkNames(document)).toEqual(Object.keys(chain));
+});
+
+test('a hint for a page to render preloads components first', async () => {
+  const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+  preload('page/', 0.6, true);
+  vi.runAllTimers();
+
+  expect(linkNames(document).filter((name) => name !== 'card.js')).toEqual([
+    'card-render.js',
+    'card-tasks.js',
+    'card-events.js',
+  ]);
+});
+
+const preloadBeforeGraph = async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  let deliver!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliver = resolve)));
+  const deliverGraph = async (serializedGraph: (string | number)[]) => {
+    deliver({ text: async () => JSON.stringify(serializedGraph) } as Response);
+    await vi.runAllTimersAsync();
+  };
+  return { document, preload, deliverGraph };
+};
+
+test('a chunk hinted before the bundle graph loaded still goes with the handler that imports it', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload(['card-events.js', 'card-tasks.js', 'card-render.js'], 0.6);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler', imports: ['card-render.js'] },
+      'card-tasks.js': { kind: 'other-qrl' },
+      'card-render.js': { kind: 'component' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-events.js', 'card-render.js', 'card-tasks.js']);
+});
+
+test('before the bundle graph loaded, a stronger hint replaces an earlier hint for a page to render', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload('card-render.js', 0.5, true);
+  preload(['card-render.js', 'card-tasks.js'], 0.8);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-render.js': { kind: 'component' },
+      'card-tasks.js': { kind: 'other-qrl' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-tasks.js', 'card-render.js']);
+});
+
+test('a weaker hint made before the bundle graph loaded does not reorder what a stronger one reaches', async () => {
+  const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+  preload('card-events.js', 0.8);
+  preload('card-render.js', 0.5, true);
+  await vi.runAllTimersAsync();
+  await deliverGraph(
+    graphOf({
+      'card-events.js': { kind: 'handler', qrls: ['card-render.js', 'card-tasks.js'] },
+      'card-render.js': { kind: 'component' },
+      'card-tasks.js': { kind: 'other-qrl' },
+    })
+  );
+
+  expect(linkNames(document)).toEqual(['card-events.js', 'card-tasks.js', 'card-render.js']);
 });

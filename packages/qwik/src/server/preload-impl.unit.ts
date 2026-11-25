@@ -238,14 +238,14 @@ describe('preloader', () => {
   it('links what the client preloader would fetch first, not the first bundles in render order', async () => {
     const { initPreloader } = await import('../core/preloader/bundle-graph');
     const { includePreloader } = await import('./preload-impl');
-    // Both bundles statically import shared.js, so the client rates it above either of them.
-    initPreloader(['a.js', 2, 'shared.js', 'b.js', 2]);
+    // a.js only holds a component and b.js holds a handler, so the client fetches b.js first.
+    initPreloader(['a.js', -4, 'b.js', -2]);
     const { container, getScriptContent } = createContainer();
 
     includePreloader(container, { ssrPreloads: 1 }, ['a.js', 'b.js']);
 
     const [linksScript, afterLoad] = getScriptContent().split(`window.addEventListener('load'`);
-    expect(linksScript).toContain('["shared.js"].map(');
+    expect(linksScript).toContain('["b.js"].map(');
     expect(afterLoad).toContain('p(["a.js","b.js"])');
   });
 
@@ -270,8 +270,8 @@ describe('preloader', () => {
     ]);
 
     expect(getPreloadOrder(['a.js', 'b.js', 'c.js'])).toEqual([
-      'core.js',
       'a.js',
+      'core.js',
       'a-dep.js',
       'b.js',
       'b-dep.js',
@@ -280,7 +280,7 @@ describe('preloader', () => {
     ]);
   });
 
-  it("links core first for an event, since _run's and the handler's bundles both import it", async () => {
+  it("links core first for an event, since the handler's bundle imports it", async () => {
     const { getPlatform, setPlatform } = await import('@qwik.dev/core');
     const { setEvent } = await import('../core/ssr/ssr-events');
     const { createQRL } = await import('../core/shared/qrl/qrl-class');
@@ -293,8 +293,7 @@ describe('preloader', () => {
       ...platform,
       chunkForSymbol: (symbol, chunk) => [symbol, symbol === runSymbol ? 'run.js' : chunk!],
     });
-    // Both bundles statically import core.js, so the client rates it above either of them.
-    initPreloader(['run.js', 2, 'core.js', 'handler.js', 2]);
+    initPreloader(['run.js', -3, 3, 'core.js', 'handler.js', -2, 3]);
     try {
       const { container, getScriptContent } = createContainer();
       Object.assign(container.serializationCtx, {
@@ -323,17 +322,21 @@ describe('preloader', () => {
     // run.js and task.js statically import glue.js, which imports core.js; run.js loads lazy.js.
     const bundleGraph = [
       'run.js',
-      8,
-      -9,
+      -3,
       11,
+      -1,
+      14,
       'task.js',
-      8,
+      -3,
+      11,
       'handler.js',
-      10,
+      -2,
+      13,
       'glue.js',
-      10,
+      13,
       'core.js',
       'lazy.js',
+      -3,
     ];
 
     const withCoreHandlerBundles = async (
@@ -398,7 +401,15 @@ describe('preloader', () => {
         const { preloadHandlerBundles } = await import('./preload-impl');
         const { container, getScriptContent } = createContainerUsing(run);
         // run.js and a.js import each other; a.js imports core.js.
-        container.resolvedManifest.manifest.bundleGraph = ['run.js', 2, 'a.js', 0, 5, 'core.js'];
+        container.resolvedManifest.manifest.bundleGraph = [
+          'run.js',
+          -3,
+          3,
+          'a.js',
+          0,
+          6,
+          'core.js',
+        ];
 
         preloadHandlerBundles(container, undefined);
 
@@ -494,7 +505,7 @@ describe('preloader', () => {
 
     expect(new Set(getPreloadOrder(['a.js']))).toEqual(new Set(['a.js', 'shared.js']));
     expect(new Set(getPreloadOrder(['b.js']))).toEqual(new Set(['b.js', 'shared.js']));
-    // The same page again: its import edges must not remember the first render's probabilities.
+    // The same page again: its import edges must not remember the first render's priorities.
     expect(new Set(getPreloadOrder(['a.js']))).toEqual(new Set(['a.js', 'shared.js']));
   });
 });

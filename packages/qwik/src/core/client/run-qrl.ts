@@ -82,7 +82,7 @@ export function runEventHandlerQRL(
       if (isQrlImportError(err)) {
         // Import failures bypass error boundaries, matching qwikloader (#8962).
         const doc = element.ownerDocument;
-        if (doc) {
+        if (doc && event.type !== 'qerror') {
           doc.dispatchEvent(
             new CustomEvent('qerror', {
               detail: {

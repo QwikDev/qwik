@@ -1,4 +1,5 @@
 import { type PropsOf, Slot, component$ } from '@qwik.dev/core';
+import { Link as RouterLink } from '@qwik.dev/router';
 import { tw } from '~/utils/utils';
 
 const button = {
@@ -57,9 +58,9 @@ export const Link = component$<LinkProps>(({ variant = 'primary', class: classNa
 
   return (
     <div class={[button.wrapper, className]}>
-      <a {...props} class={[button.face, faceClass]}>
+      <RouterLink {...props} class={[button.face, faceClass]}>
         <Slot />
-      </a>
+      </RouterLink>
       <span class={[button.shadow, shadowClass]} aria-hidden="true" />
     </div>
   );

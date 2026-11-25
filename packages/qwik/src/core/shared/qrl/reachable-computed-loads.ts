@@ -85,8 +85,8 @@ const collectFromObject = (value: object, pending: unknown[], loads: Promise<unk
     return;
   }
   if (value instanceof Map || value instanceof Set) {
-    for (const item of value.values()) {
-      pending.push(item);
+    for (const entry of value.entries()) {
+      pending.push(entry[0], entry[1]);
     }
     return;
   }

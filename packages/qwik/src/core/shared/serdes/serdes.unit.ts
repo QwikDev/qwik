@@ -2163,6 +2163,16 @@ describe('shared-serialization', () => {
 
         await expectTaskToWaitForAComputedReachedThrough((value) => ({ total: value }), computed);
       });
+
+      it('one used as a map key', async () => {
+        const { release, ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(new Map([[computed, 'total']]));
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
+      });
     });
 
     describe('a task runs once', () => {

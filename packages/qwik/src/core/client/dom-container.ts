@@ -52,6 +52,8 @@ import {
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev, qTest } from '../shared/utils/qdev';
 import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import { markVNodeInert } from '../reactive-primitives/utils';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
@@ -76,6 +78,7 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
+  vnode_getFirstChild,
   vnode_getProp,
   vnode_isElementVNode,
   vnode_isProjection,
@@ -227,10 +230,40 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
     }
+    const errorContentHosts = element.querySelectorAll('[q\\:cc]');
+    for (let i = 0; i < errorContentHosts.length; i++) {
+      const host = errorContentHosts[i] as HTMLElement;
+      if (host.style.display === 'none') {
+        this.$clearErrorContent$(host);
+      }
+    }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
+    }
+  }
+
+  private $clearErrorContent$(content: Element): void {
+    if (this.element.qContainer !== this) {
+      return;
+    }
+    // qErr may run before VNode data is ready; retry after the data drain.
+    if (!this.document.qVNodeDataReady) {
+      onVNodeDataReady(this.document, () => this.$clearErrorContent$(content));
+      return;
+    }
+    const host = this.vNodeLocate(content);
+    this.$clearErrorVNodeEffects$(host);
+  }
+
+  private $clearErrorVNodeEffects$(vnode: VNode): void {
+    markVNodeInert(vnode);
+    clearAllEffects(this, vnode);
+    let child = vnode_getFirstChild(vnode);
+    while (child) {
+      this.$clearErrorVNodeEffects$(child);
+      child = child.nextSibling || null;
     }
   }
 

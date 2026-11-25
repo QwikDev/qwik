@@ -1290,7 +1290,7 @@ describe('Catch + fallback$', () => {
       });
 
       // https://github.com/QwikDev/qwik/issues/8885
-      it.skip('late delivery: a bound attribute in the errored content stops tracking after resume', async () => {
+      it('late delivery: a bound attribute in the errored content stops tracking after resume', async () => {
         const Bound = component$<{ src: Signal<string> }>((props) => (
           <img id="dead-img" src={props.src.value} />
         ));

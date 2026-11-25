@@ -29,6 +29,7 @@ import {
   StoreFlags,
 } from '../../reactive-primitives/types';
 import { runTask, Task, TaskFlags } from '../../use/use-task';
+import { createDocument } from '../../../testing/document';
 import { getTestPlatform } from '../../../testing/platform';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { QError } from '../error/error';
@@ -2452,6 +2453,16 @@ describe('shared-serialization', () => {
         await delay(0);
         expect(ran).toEqual(['s_handler']);
       });
+
+      it('one held by a class instance', async () => {
+        const { ran, computed } = await startPreloadingAComputed();
+        class Cart {
+          constructor(readonly total: unknown) {}
+        }
+        void handlerWithoutCaptures()(new Cart(computed));
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
     });
 
     describe('looking through its values', () => {
@@ -2538,6 +2549,38 @@ describe('shared-serialization', () => {
         revoke();
         await handlerWithoutCaptures()(proxy);
         expect(ran).toEqual(['s_handler']);
+      });
+
+      it('never looks inside a class instance, even one that leads to a value that throws', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        class EventWithAView {
+          view = { frame: proxy };
+        }
+        await handlerWithoutCaptures()(new EventWithAView());
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('never looks inside a DOM element, with no global Node', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        const element = createDocument().createElement('div') as Element & { frame?: object };
+        element.frame = proxy;
+        expect(typeof Node).toBe('undefined');
+        await handlerWithoutCaptures()(element);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('looks inside an object that has no prototype', async () => {
+        const { release, ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(Object.assign(Object.create(null), { total: computed }));
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
       });
     });
 

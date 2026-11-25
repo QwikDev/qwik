@@ -9,6 +9,7 @@ import { fastSkipSerialize } from '../serdes/verify';
 import { Brand, hasBrand } from '../utils/brand';
 import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
 import { qTest } from '../utils/qdev';
+import { isSerializableObject } from '../utils/types';
 
 const SKIPPED_BRANDS =
   Brand.Task |
@@ -40,10 +41,7 @@ const pushOwnDataValues = (pending: unknown[], obj: object) => {
 };
 
 const isOpaqueObject = (value: object) =>
-  fastSkipSerialize(value) ||
-  hasBrand(value, SKIPPED_BRANDS) ||
-  (typeof Node !== 'undefined' && value instanceof Node) ||
-  ArrayBuffer.isView(value);
+  fastSkipSerialize(value) || hasBrand(value, SKIPPED_BRANDS);
 
 const collectFromSignal = (
   signal: SignalImpl<unknown>,
@@ -92,7 +90,9 @@ const collectFromObject = (value: object, pending: unknown[], loads: Promise<unk
     }
     return;
   }
-  pushOwnDataValues(pending, value);
+  if (isSerializableObject(value)) {
+    pushOwnDataValues(pending, value);
+  }
 };
 
 export const waitForReachableComputedLoads = (

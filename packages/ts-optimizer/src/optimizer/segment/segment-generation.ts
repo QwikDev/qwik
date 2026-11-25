@@ -1424,6 +1424,7 @@ export function buildDefaultStrategySegment(
               // when dev-info is requested.
               source: isDevMode ? ctx.repairedCode : undefined,
               bodyOriginOffset: isDevMode ? ext.argStart : undefined,
+              jsxSourceStarts: isDevMode ? ext.jsxStarts : undefined,
               keyCounterStart: segmentKeyCounter,
             }
           : undefined,

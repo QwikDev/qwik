@@ -14,7 +14,7 @@ type Manifest = {
   preloader?: string;
   bundleGraphAsset?: string;
   bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
-  symbols: Record<string, { ctxName?: string }>;
+  symbols: Record<string, { ctxName?: string; ctxKind?: string }>;
 };
 
 let manifest: Manifest | undefined;
@@ -82,6 +82,24 @@ export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useS
 export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
 
 export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
+
+export type ChunkKind = 'handler' | 'other-qrl' | 'component';
+
+export const chunkKind = (url: string): ChunkKind | undefined => {
+  const manifest = getManifest();
+  const symbols = (manifest.bundles[bundleFile(url)]?.symbols ?? [])
+    .map((symbol) => manifest.symbols[symbol])
+    .filter((symbol) => !!symbol);
+  if (!symbols.length) {
+    return undefined;
+  }
+  if (symbols.some((symbol) => symbol.ctxKind !== 'function')) {
+    return 'handler';
+  }
+  return symbols.every((symbol) => /^(component|useStyles)/.test(symbol.ctxName ?? ''))
+    ? 'component'
+    : 'other-qrl';
+};
 
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(

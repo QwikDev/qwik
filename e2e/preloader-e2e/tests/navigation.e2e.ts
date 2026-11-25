@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page, type Route } from '@playwright/t
 import {
   bundleFile,
   chunkComesFrom,
+  chunkKind,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
   chunkUrlsFrom,
@@ -71,6 +72,7 @@ const OLD_PAGE_SOURCES = [
 ];
 
 const TO_TREE_ROUTE = 'navigation/to-tree/';
+const FROM_OFF_ROUTE = 'navigation/from/off/';
 
 const TO_TREE_MODULE = 'src/routes/navigation/to-tree/index.tsx';
 
@@ -171,11 +173,11 @@ test.describe('cold SPA navigation', () => {
     const { gate } = await navigateToTree(FROM.off, 'cold', page);
     await releaseAll(gate);
     await expectResult(page, TO_TREE);
-    const routeProbabilities = (await preloadHints(page))
+    const routePriorities = (await preloadHints(page))
       .filter(({ item }) => [item].flat().includes(TO_TREE_ROUTE))
-      .map(({ probability }) => probability);
-    expect(routeProbabilities.length).toBeGreaterThan(0);
-    expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);
+      .map(({ priority }) => priority);
+    expect(routePriorities.length).toBeGreaterThan(0);
+    expect(routePriorities.every((priority) => priority === 1)).toBe(true);
   });
 
   test('the new page shows in 2 round trips', async ({ page }) => {
@@ -575,6 +577,23 @@ test.describe('Link that prefetches when visible', () => {
   });
 });
 
+test.describe('Link that prefetches when visible', () => {
+  test("the new page's components are preloaded before its tasks and computeds", async ({
+    page,
+  }) => {
+    const { gate } = await openFixture(page, FROM.visible, 'warm');
+    await releaseAll(gate);
+    const kinds = (await preloaderLinks(page))
+      .filter((link) => link.speculative && chunkComesFrom(link.href, TO_TREE_SOURCES))
+      .map((link) => chunkKind(link.href));
+    const lastComponent = kinds.lastIndexOf('component');
+    const firstOtherQrl = kinds.indexOf('other-qrl');
+    expect(lastComponent).toBeGreaterThanOrEqual(0);
+    expect(firstOtherQrl).toBeGreaterThanOrEqual(0);
+    expect(lastComponent).toBeLessThan(firstOtherQrl);
+  });
+});
+
 test.describe('hover on a Link that prefetches on intent', () => {
   test("the new route's chunks are requested", async ({ page }) => {
     const { gate } = await openFixture(page, FROM.intent, 'cold');
@@ -595,15 +614,15 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
-const SPECULATIVE_PROBABILITY = 0.9;
+const SPECULATIVE_PRIORITY = 0.9;
 
 const navigateToTreeWithOldPageWorkQueued = async (page: Page) => {
   const oldPageChunks = OLD_PAGE_SOURCES.flatMap(chunkUrlsFrom);
   await page.addInitScript(
-    ([bundles, probability]) => {
-      (window as any).qPreloadQueue = bundles.map((bundle) => [bundle, probability]);
+    ([bundles, priority]) => {
+      (window as any).qPreloadQueue = bundles.map((bundle) => [bundle, priority]);
     },
-    [oldPageChunks.map(bundleFile), SPECULATIVE_PROBABILITY] as const
+    [oldPageChunks.map(bundleFile), SPECULATIVE_PRIORITY] as const
   );
   await recordSpeculativePreloads(page);
   const gate = await createGate(page);
@@ -655,9 +674,24 @@ test.describe('after a navigation', () => {
 });
 
 test.describe('back button', () => {
+  test('after a navigation, the page the user left is preloaded as a page to render', async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const { gate } = await navigateToTree(FROM.off, 'cold', page);
+    await releaseAll(gate);
+    await expectResult(page, TO_TREE);
+    const hintsForThePageLeft = (await preloadHints(page)).filter(({ item }) =>
+      [item].flat().includes(FROM_OFF_ROUTE)
+    );
+    expect(hintsForThePageLeft).toEqual([
+      { item: [FROM_OFF_ROUTE], priority: 0.6, isPageToRender: true },
+    ]);
+  });
+
   test('the previous page shows with no JS request', async ({ page }) => {
     const { gate } = await navigateToTree(FROM.visible, 'warm', page);
-    await releaseAll(gate);
+    await waitForNetworkIdle(page, () => releaseAll(gate));
     await expectResult(page, TO_TREE);
     gate.mode = 'hold';
     const roundTrips = await countRoundTrips(
@@ -669,10 +703,6 @@ test.describe('back button', () => {
     await releaseAll(gate);
     const jsRequests = roundTrips.flatMap((roundTrip) =>
       roundTrip.urls.filter((url) => new URL(url).pathname.endsWith('.js'))
-    );
-    test.fail(
-      true,
-      'on main, going back renders the previous page on the client and finds its chunks one round trip at a time'
     );
     expect(jsRequests).toEqual([]);
   });
@@ -868,11 +898,11 @@ test.describe("a second Link click while the first page's chunks are ongoing", (
     await recordPreloadHints(page);
     const { gate, ongoing } = await clickTheSmallLinkWhileTheTreePageLoads(page);
     await releaseEverything(page, gate, ongoing);
-    const routeProbabilities = (await preloadHints(page))
+    const routePriorities = (await preloadHints(page))
       .filter(({ item }) => [item].flat().includes(TO_SMALL_ROUTE))
-      .map(({ probability }) => probability);
-    expect(routeProbabilities.length).toBeGreaterThan(0);
-    expect(routeProbabilities.every((probability) => probability === 1)).toBe(true);
+      .map(({ priority }) => priority);
+    expect(routePriorities.length).toBeGreaterThan(0);
+    expect(routePriorities.every((priority) => priority === 1)).toBe(true);
   });
 
   test('a chunk both pages need is requested once', async ({ page }) => {
@@ -984,10 +1014,10 @@ test.describe("a Link click while another Link's prefetch is ongoing", () => {
     await recordPreloadHints(page);
     const { gate, ongoing } = await clickTheSmallLinkWhileTheTreePagePrefetches(page);
     await releaseEverything(page, gate, ongoing);
-    const routeProbabilities = (await preloadHints(page))
+    const routePriorities = (await preloadHints(page))
       .filter(({ item }) => [item].flat().includes(TO_SMALL_ROUTE))
-      .map(({ probability }) => probability);
-    expect(routeProbabilities).toContain(1);
+      .map(({ priority }) => priority);
+    expect(routePriorities).toContain(1);
   });
 
   test("the clicked page shows in 1 round trip, without the prefetched page's chunks", async ({

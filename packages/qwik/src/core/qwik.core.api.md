@@ -447,6 +447,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $processContainerData$(): Generator<void, void, void>;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
+    $restoreRoots$(rootIds: number[]): Generator<void, void, void>;
     // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)

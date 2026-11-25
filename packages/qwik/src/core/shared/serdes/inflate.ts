@@ -149,6 +149,65 @@ export function* eagerDeserializeStateIterator(
   return output;
 }
 
+/**
+ * Restores the given roots of a live container in yielding steps. Restored roots are written back
+ * as plain values, so the lazy state proxy returns them without restoring them again.
+ */
+export function* restoreRootsIterator(
+  container: DeserializeContainer,
+  data: unknown[],
+  rootIds: number[]
+): Generator<void, void, void> {
+  const pendingInflations: [target: unknown, typeId: TypeIds, value: unknown][] = [];
+  const restoreRoot = (id: number | string): unknown => {
+    const typeIndex = (typeof id === 'string' ? parseInt(id, 10) : id) * 2;
+    const typeId = data[typeIndex] as TypeIds;
+    const value = data[typeIndex + 1];
+    if (typeId === TypeIds.Plain) {
+      return value;
+    }
+    const target = allocate(container, typeId, value);
+    data[typeIndex] = TypeIds.Plain;
+    data[typeIndex + 1] = target;
+    if (needsInflation(typeId)) {
+      pendingInflations.push([target, typeId, value]);
+    }
+    return target;
+  };
+  const steps = (function* (): Generator<void, void, void> {
+    for (let i = 0; i < rootIds.length; i++) {
+      restoreRoot(rootIds[i]);
+      yield;
+    }
+    let pending;
+    while ((pending = pendingInflations.pop())) {
+      yield* inflateIterator(container, pending[0], pending[1], pending[2]);
+      yield;
+    }
+  })();
+
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  const getObjectById = container.$getObjectById$;
+  try {
+    while (true) {
+      // Other code may read the container between steps, so the override must not outlive a step.
+      container.$getObjectById$ = restoreRoot;
+      let result;
+      try {
+        result = steps.next();
+      } finally {
+        container.$getObjectById$ = getObjectById;
+      }
+      if (result.done) {
+        return;
+      }
+      yield;
+    }
+  } finally {
+    endDeserialization(container, ownsPendingStoreTargets);
+  }
+}
+
 function* deserializeDataIterator(
   container: DeserializeContainer,
   typeId: number,

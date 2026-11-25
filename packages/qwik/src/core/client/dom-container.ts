@@ -16,7 +16,7 @@ import {
 import type { CatchInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { getObjectById, parseQRL } from '../shared/serdes/index';
+import { getObjectById, parseQRL, restoreRootsIterator } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
 import {
@@ -232,6 +232,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
+  }
+
+  /** Restores the given roots in yielding steps, before code reads them. */
+  $restoreRoots$(rootIds: number[]): Generator<void, void, void> {
+    return restoreRootsIterator(this, this.$rawStateData$, rootIds);
   }
 
   /** Tear down this container so stale references fail gracefully. */

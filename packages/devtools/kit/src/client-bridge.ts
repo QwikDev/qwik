@@ -13,6 +13,7 @@ import type { DevtoolsComponentDetailEntry } from './protocol/hooks';
 
 export interface InPageBridgeOptions {
   isBrowser: boolean;
+  getWindow?: () => Window | null;
 }
 
 export interface InPageBridge {
@@ -100,7 +101,12 @@ function getHook(pageWindow: Window | null): QwikDevtoolsHookExtended | undefine
 }
 
 export function createInPageBridge(options: InPageBridgeOptions): InPageBridge {
-  const getWindow = () => getPageWindow(options.isBrowser);
+  const getWindow = () => {
+    if (!options.isBrowser) {
+      return null;
+    }
+    return options.getWindow ? options.getWindow() : getPageWindow(true);
+  };
 
   return {
     async readPerfData() {

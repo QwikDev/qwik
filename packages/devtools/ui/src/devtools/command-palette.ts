@@ -37,7 +37,7 @@ const CATEGORY_ORDER: PaletteCategory[] = ['Tabs', 'Components', 'Routes', 'Pack
 /** Tabs reachable in the current context (Vite-only tabs are hidden in the extension). */
 function getTabResults(state: DevtoolsState): PaletteResult[] {
   return devtoolsTabs
-    .filter((tab) => !(state.isExtension && tab.viteOnly))
+    .filter((tab) => !(state.runtimeMode === 'browser-extension' && tab.viteOnly))
     .map((tab) => ({
       id: `tab:${tab.id}`,
       category: 'Tabs',
@@ -58,7 +58,7 @@ function getComponentResults(state: DevtoolsState): PaletteResult[] {
 
 /** Routes live behind the Vite-only Routes tab, so they are excluded in the extension. */
 function getRouteResults(state: DevtoolsState): PaletteResult[] {
-  if (state.isExtension || !state.routes) {
+  if (state.runtimeMode === 'browser-extension' || !state.routes) {
     return [];
   }
   return state.routes.map((route) => ({
@@ -72,7 +72,7 @@ function getRouteResults(state: DevtoolsState): PaletteResult[] {
 
 /** Packages live behind the Vite-only Packages tab, so they are excluded in the extension. */
 function getPackageResults(state: DevtoolsState): PaletteResult[] {
-  if (state.isExtension) {
+  if (state.runtimeMode === 'browser-extension') {
     return [];
   }
   return state.npmPackages.map(([name, version]) => ({
@@ -106,7 +106,7 @@ export function getActionResults(state: DevtoolsState): PaletteResult[] {
       target: { kind: 'action', action: 'clearRecents' },
     },
   ];
-  if (!state.isExtension) {
+  if (state.runtimeMode !== 'browser-extension') {
     actions.push({
       id: 'action:customizeTabs',
       category: 'Actions',

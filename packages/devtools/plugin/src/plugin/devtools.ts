@@ -1,4 +1,6 @@
 import type { OutgoingHttpHeader, OutgoingHttpHeaders } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import type { PluginWithDevTools } from '@vitejs/devtools-kit';
 import { ResolvedConfig, type Plugin } from 'vite';
 import { getServerFunctions } from '../rpc';
 import { createServerRpc, setViteServerContext } from '@qwik.dev/devtools/kit';
@@ -13,15 +15,18 @@ import {
 import { createVirtualModuleRegistry } from '../virtualmodules/registry';
 
 const log = createDebug('qwik:devtools:plugin');
+const icon = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 506"><path fill="white" d="M370.826 224.859 156.157 16.117l23.021 158.743-50.004 49.999 213.863 198.793-12.209-158.792 39.998-40.001Z"/><path fill="#18b6f6" d="m250 449.707 181.102 55.804-88.065-81.859-213.863-198.793 50.004-49.999-23.021-158.743L8.348 193.702a62.314 62.314 0 0 0 0 62.314l93.843 162.535a62.314 62.314 0 0 0 53.965 31.156H250Z"/><path fill="#ac7ef4" d="M343.843 0H156.157a62.312 62.312 0 0 0-53.965 31.157L8.348 193.702 156.157 16.117l214.669 208.742-39.998 40.001 12.209 158.792 88.065 81.859c5.078 1.564 9.533-3.756 7.102-8.48l-40.395-78.48 93.842-162.535a62.313 62.313 0 0 0 .001-62.314L397.808 31.157A62.312 62.312 0 0 0 343.843 0Z"/></svg>')}`;
 
 /** Core Qwik DevTools plugin */
 export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
   let resolvedConfig: ResolvedConfig;
   const qwikData = new Map<string, any>();
   let preloadStarted = false;
+  let unifiedDockActive = false;
+  const mode = opts.mode ?? 'auto';
   const virtualModuleRegistry = createVirtualModuleRegistry();
 
-  return {
+  const plugin = {
     name: 'vite-plugin-qwik-devtools',
     enforce: 'pre',
     apply: 'serve',
@@ -55,7 +60,12 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
           transformed = transformComponentFile(transformed, id);
         }
         if (id.endsWith('root.tsx')) {
-          transformed = transformRootFile(transformed, opts);
+          transformed = transformRootFile(
+            transformed,
+            opts,
+            mode === 'overlay' || (mode === 'auto' && !unifiedDockActive),
+            resolvedConfig?.base
+          );
         }
         return transformed === code ? null : { code: transformed, map: null };
       },
@@ -92,6 +102,39 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
         qwikData,
       });
       createServerRpc(rpcFunctions);
+
+      return () => {
+        if (mode === 'dock' && !unifiedDockActive) {
+          server.config.logger.warn(
+            '[Qwik DevTools] Dock mode requires an enabled Vite DevTools host.'
+          );
+        }
+      };
     },
-  };
+    devtools: {
+      capabilities: { dev: true, build: false },
+      setup(ctx) {
+        if (mode === 'overlay') {
+          return;
+        }
+        const clientPath = fileURLToPath(new URL('../client/', import.meta.url));
+        ctx.views.hostStatic('/__qwik_devtools__/', clientPath);
+        ctx.docks.register({
+          id: 'qwik-devtools',
+          title: 'Qwik',
+          icon,
+          type: 'iframe',
+          url: `/__qwik_devtools__/?base=${encodeURIComponent(ctx.viteConfig.base)}`,
+        });
+        ctx.commands.register({
+          id: 'qwik-devtools:open',
+          title: 'Open Qwik DevTools',
+          icon,
+          handler: () => ctx.docks.activate('qwik-devtools'),
+        });
+        unifiedDockActive = true;
+      },
+    },
+  } satisfies PluginWithDevTools;
+  return plugin;
 }

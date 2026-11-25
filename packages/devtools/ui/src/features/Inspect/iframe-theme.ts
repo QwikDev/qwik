@@ -72,7 +72,7 @@ export function setupIframeThemeSync(iframe: HTMLIFrameElement): void {
     subtree: true,
   });
 
-  doc.defaultView?.addEventListener('unload', () => {
+  doc.defaultView?.addEventListener('pagehide', () => {
     themeObs.disconnect();
     styleObs.disconnect();
   });

@@ -89,4 +89,23 @@ describe('createInPageBridge', () => {
     expect(await bridge.setSignalValue('Counter', 'chunk.js', 'count', 1)).toBe(true);
     expect(hook.setSignalValue).toHaveBeenCalledWith('Counter', 'chunk.js', 'count', 1);
   });
+
+  test('reads and subscribes using the supplied application window', async () => {
+    const perf = { ssr: [], csr: [] };
+    const addEventListener = vi.fn();
+    const removeEventListener = vi.fn();
+    const pageWindow = {
+      __QWIK_DEVTOOLS__: { version: 1, perf },
+      addEventListener,
+      removeEventListener,
+    } as unknown as Window;
+    const bridge = createInPageBridge({ isBrowser: true, getWindow: () => pageWindow });
+
+    expect(await bridge.readPerfData()).toBe(perf);
+    const callback = vi.fn();
+    const unsubscribe = bridge.subscribePreloadUpdates(callback);
+    expect(addEventListener).toHaveBeenCalledWith(expect.any(String), callback);
+    unsubscribe?.();
+    expect(removeEventListener).toHaveBeenCalledWith(expect.any(String), callback);
+  });
 });

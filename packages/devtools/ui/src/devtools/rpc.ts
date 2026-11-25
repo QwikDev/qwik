@@ -12,6 +12,7 @@ import debug from 'debug';
 import { tryCreateHotContext } from 'vite-hot-client';
 import type { DataProvider } from './data-provider';
 import type { DevtoolsState } from './state';
+import { getAppBase } from './app-base';
 
 const log = debug('qwik:devtools:devtools');
 
@@ -39,7 +40,7 @@ function toDevtoolsRoutes(routes: any): RoutesInfo[] {
 }
 
 async function connectRpc() {
-  const hot = await tryCreateHotContext(undefined, [import.meta.env.BASE_URL ?? '/', '/']);
+  const hot = await tryCreateHotContext(undefined, [getAppBase(), '/']);
   if (!hot) {
     throw new Error('Vite Hot Context not connected');
   }

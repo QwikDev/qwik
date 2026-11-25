@@ -38,7 +38,7 @@ export const DevtoolsSidebar = component$<DevtoolsSidebarProps>(({ state }) => {
 
   return (
     <div class="glass-bg border-glass-border shadow-r flex h-full w-16 flex-col items-center justify-start gap-3 border-r p-3 md:w-20">
-      {getVisibleTabs(state.visibleTabIds, state.isExtension).map((tab) => (
+      {getVisibleTabs(state.visibleTabIds, state.runtimeMode === 'browser-extension').map((tab) => (
         <Tab key={tab.id} state={state} id={tab.id} title={tab.title}>
           {tab.renderIcon()}
         </Tab>
@@ -81,7 +81,7 @@ export const DevtoolsSidebar = component$<DevtoolsSidebarProps>(({ state }) => {
           </div>
         )}
 
-        {!state.isExtension && (
+        {state.runtimeMode !== 'browser-extension' && (
           <SidebarIconButton
             title="Customize Tabs"
             onClick$={$(() => (state.isCustomizeOpen = true))}

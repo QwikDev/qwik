@@ -30,6 +30,7 @@
     "@types/react-dom": "19.3.0",
     "@typescript-eslint/eslint-plugin": "8.72.2",
     "@typescript-eslint/parser": "8.72.2",
+    "@vitejs/devtools-kit": "0.8.3",
     "autoprefixer": "10.6.2",
     "cpy-cli": "7.0.0",
     "eslint": "10.15.0",

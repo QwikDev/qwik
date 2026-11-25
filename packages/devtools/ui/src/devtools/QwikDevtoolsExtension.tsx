@@ -17,7 +17,7 @@ import { DevtoolsSidebar } from './DevtoolsSidebar';
  * match.
  */
 export const QwikDevtoolsExtension = component$(() => {
-  const state = useStore<DevtoolsState>(createDevtoolsState({ isExtension: true }));
+  const state = useStore<DevtoolsState>(createDevtoolsState({ runtimeMode: 'browser-extension' }));
 
   useVisibleTask$(async () => {
     await loadDevtoolsData(state);

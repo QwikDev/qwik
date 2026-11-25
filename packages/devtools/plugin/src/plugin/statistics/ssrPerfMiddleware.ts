@@ -29,7 +29,7 @@ export function attachSsrPerfInjectorMiddleware(server: any) {
   server.middlewares.use(
     (req: MinimalMiddlewareReq, res: MinimalMiddlewareRes, next: MiddlewareNext) => {
       const accept = normalizeAcceptHeader(req.headers.accept);
-      if (!accept.includes('text/html')) {
+      if (!accept.includes('text/html') || req.url?.startsWith('/__qwik_devtools__/')) {
         return next();
       }
 
@@ -87,7 +87,7 @@ export function attachSsrPerfInjectorMiddleware(server: any) {
         const args = normalizeBodyArgs(chunk, encodingOrCallback, callback);
         appendChunk(args.chunk, args.encoding);
 
-        const nextBody = injectSsrDevtoolsIntoHtml(body, store, req.url);
+        const nextBody = injectSsrDevtoolsIntoHtml(body, store, req.url, server.config?.base);
 
         try {
           res.setHeader('Content-Length', Buffer.byteLength(nextBody));
@@ -232,7 +232,8 @@ export function collectSsrPreloadEntries(
 export function injectSsrDevtoolsIntoHtml(
   html: string,
   store: Record<string, unknown>,
-  url: string | undefined
+  url: string | undefined,
+  base = '/'
 ): string {
   if (!html.includes('</head>')) {
     return html;
@@ -248,7 +249,7 @@ export function injectSsrDevtoolsIntoHtml(
   });
 
   const scripts = [
-    createHookInjectionScript(),
+    createHookInjectionScript(base),
     perfEntries.length > 0 ? createSsrPerfInjectionScript(perfEntries) : '',
     preloadEntries.length > 0 ? createSsrPreloadInjectionScript(preloadEntries) : '',
   ].join('');
@@ -256,10 +257,14 @@ export function injectSsrDevtoolsIntoHtml(
   return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}${scripts}`);
 }
 
-function createHookInjectionScript(): string {
+function createHookInjectionScript(base: string): string {
+  const bridgeUrl = `${base}${VNODE_BRIDGE_KEY}`.replace(
+    /[&"<>]/g,
+    (character) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[character]!
+  );
   return (
     `\n<script type="module">${hookRuntime}</script>` +
-    `\n<script type="module" src="/${VNODE_BRIDGE_KEY}"></script>`
+    `\n<script type="module" src="${bridgeUrl}"></script>`
   );
 }
 

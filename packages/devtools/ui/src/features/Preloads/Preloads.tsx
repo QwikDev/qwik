@@ -47,7 +47,7 @@ export const Preloads = component$(() => {
   });
   const store = useSignal<QwikPreloadStoreRemembered | null>(null);
 
-  useVisibleTask$(async () => {
+  useVisibleTask$(async ({ cleanup }) => {
     const source = getPageDataSource();
     store.value = await source.readPreloadStore();
     version.value++;
@@ -61,9 +61,9 @@ export const Preloads = component$(() => {
     };
 
     const unsub = source.subscribePreloadUpdates(refresh);
-    return () => {
+    cleanup(() => {
       unsub?.();
-    };
+    });
   });
 
   const vm = useComputed$(() => {

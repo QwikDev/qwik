@@ -8,7 +8,7 @@ import * as domContainer from './dom-container';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
 import { createComputedQrl } from '../reactive-primitives/signal.public';
-import { trackComputedLoad } from '../shared/serdes/inflate';
+import { trackPreload } from '../shared/serdes/inflate';
 
 vi.mock('../shared/qrl/qrl-class', async () => {
   const actual =
@@ -502,10 +502,7 @@ describe('runEventHandlerQRL', () => {
 
       beforeEach(() => {
         computed = createComputedQrl(qrlClass.createQRL('c.js', 's_computed', () => 1) as any);
-        trackComputedLoad(
-          computed,
-          () => new Promise<void>((resolve) => (releaseComputed = resolve))
-        );
+        trackPreload(computed, () => new Promise<void>((resolve) => (releaseComputed = resolve)));
         element = { isConnected: true } as unknown as Element;
         mockHostElement.flags = VNodeFlags.HasIterationItems;
         vi.mocked(useCore.invokeApply).mockImplementation((_ctx, fn, args) =>

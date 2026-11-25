@@ -48,30 +48,30 @@ import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
   inFlight: number;
-  computedLoads: WeakMap<object, Promise<unknown>>;
+  preloads: WeakMap<object, Promise<unknown>>;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
     inFlight: 0,
-    computedLoads: new WeakMap(),
+    preloads: new WeakMap(),
   })
 );
 
-const COMPUTED_PRELOAD_RETRY_DELAY_MS = 1_000;
+const PRELOAD_RETRY_DELAY_MS = 1_000;
 
-export const trackComputedLoad = (computed: object, load: () => Promise<unknown>): void => {
+export const trackPreload = (owner: object, load: () => Promise<unknown>): void => {
   loadingHolder.inFlight++;
   const tracked = load()
-    .catch(() => delay(COMPUTED_PRELOAD_RETRY_DELAY_MS).then(load))
+    .catch(() => delay(PRELOAD_RETRY_DELAY_MS).then(load))
     .finally(() => {
       loadingHolder.inFlight--;
-      if (loadingHolder.computedLoads.get(computed) === tracked) {
-        loadingHolder.computedLoads.delete(computed);
+      if (loadingHolder.preloads.get(owner) === tracked) {
+        loadingHolder.preloads.delete(owner);
       }
     });
   tracked.catch(() => {});
-  loadingHolder.computedLoads.set(computed, tracked);
+  loadingHolder.preloads.set(owner, tracked);
 };
 
 const dangerousObjectKeys = new Set([
@@ -370,7 +370,7 @@ function* inflateIterator(
           // ignore preload errors
         });
       } else {
-        trackComputedLoad(computed, load);
+        trackPreload(computed, load);
       }
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);

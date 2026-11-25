@@ -5,7 +5,7 @@ import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/s
 import { component$ } from '../shared/component.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { trackComputedLoad } from '../shared/serdes/inflate';
+import { trackPreload } from '../shared/serdes/inflate';
 import type { Container, HostElement } from '../shared/types';
 import { useResource$ } from './use-resource-dollar';
 import { useSignal } from './use-signal';
@@ -203,7 +203,7 @@ describe('runTask', () => {
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
     let release!: () => void;
     const startLoadingComputedCode = () =>
-      trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+      trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
     const taskFn = vi.fn();
     const host = {} as HostElement;
     const task = new Task(
@@ -239,7 +239,7 @@ describe('runTask', () => {
     } as unknown as Container;
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
     let release!: () => void;
-    trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
     const taskFn = vi.fn();
     const host = {} as HostElement;
     const task = new Task(
@@ -272,7 +272,7 @@ describe('runTask', () => {
     const container = createMockContainer();
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
     let release!: () => void;
-    trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
     const taskFn = vi.fn();
     const host = vnode_newVirtual();
     const task = new Task(

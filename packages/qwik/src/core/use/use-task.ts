@@ -12,7 +12,7 @@ import { type Signal } from '../reactive-primitives/signal.public';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
-  isComputedPreloadFailure,
+  isPreloadWaitFailure,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -198,7 +198,7 @@ export const runTask = (
   }
 
   const handleError = (reason: unknown) => {
-    if (isComputedPreloadFailure(reason)) {
+    if (isPreloadWaitFailure(reason)) {
       const element = getTaskElement(container, host);
       if (element) {
         dispatchQrlImportError(element, reason, task.$qrl$.getSymbol());

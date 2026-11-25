@@ -35,7 +35,7 @@ const loadCoreCopy = async () => {
   const cursorProps = await import('./cursor/cursor-props');
   const pendingUtils = await import('../control-flow/pending-utils');
   const inflate = await import('./serdes/inflate');
-  const reachableComputedLoads = await import('./qrl/reachable-computed-loads');
+  const reachablePreloads = await import('./qrl/reachable-preloads');
   return {
     ...useCore,
     ...platform,
@@ -61,7 +61,7 @@ const loadCoreCopy = async () => {
     ...cursorProps,
     ...pendingUtils,
     ...inflate,
-    ...reachableComputedLoads,
+    ...reachablePreloads,
     // Module namespaces keep live bindings; a spread copies their value at spread time.
     qrlClassModule: qrlClass,
   };
@@ -176,10 +176,10 @@ describe('duplicate core copies share runtime state', async () => {
   test('computed preloads counted by one copy are found by the other', () => {
     const computed = first.createComputedSignal(first.$(() => 1));
     let release!: () => void;
-    first.trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    first.trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
     second.setPlatform({ ...second.createPlatform(), isServer: false });
     try {
-      expect(second.waitForReachableComputedLoads([{ total: computed }])).toBeInstanceOf(Promise);
+      expect(second.waitForReachablePreloads([{ total: computed }])).toBeInstanceOf(Promise);
     } finally {
       second.setPlatform(second.createPlatform());
       release();

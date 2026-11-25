@@ -49,7 +49,7 @@ const collectFromSignal = (
   loads: Promise<unknown>[]
 ) => {
   if (hasBrand(signal, Brand.ComputedSignal) && !hasBrand(signal, Brand.AsyncSignal)) {
-    const load = loadingHolder.computedLoads.get(signal);
+    const load = loadingHolder.preloads.get(signal);
     if (load) {
       loads.push(load);
     }
@@ -95,7 +95,7 @@ const collectFromObject = (value: object, pending: unknown[], loads: Promise<unk
   }
 };
 
-export const waitForReachableComputedLoads = (
+export const waitForReachablePreloads = (
   values: readonly unknown[] | null | undefined,
   moreValues?: readonly unknown[]
 ): Promise<unknown> | undefined => {

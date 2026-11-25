@@ -111,7 +111,7 @@ export const enum QError {
   computedSignalDisposed = 39,
   missingStreamingObjectRefs = 40,
   invalidBigIntPayload = 41,
-  computedNotPreloaded = 42,
+  codeNotPreloaded = 42,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

@@ -40,8 +40,8 @@ const pushOwnDataValues = (pending: unknown[], obj: object) => {
 };
 
 const isOpaqueObject = (value: object) =>
-  hasBrand(value, SKIPPED_BRANDS) ||
   fastSkipSerialize(value) ||
+  hasBrand(value, SKIPPED_BRANDS) ||
   (typeof Node !== 'undefined' && value instanceof Node) ||
   ArrayBuffer.isView(value);
 

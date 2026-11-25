@@ -2530,6 +2530,15 @@ describe('shared-serialization', () => {
         await delay(0);
         expect(ran).toEqual(['s_handler']);
       });
+
+      it('never reads from a noSerialize value, even one that throws when read', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        noSerialize(proxy);
+        revoke();
+        await handlerWithoutCaptures()(proxy);
+        expect(ran).toEqual(['s_handler']);
+      });
     });
 
     describe('a preload that fails or stalls', () => {

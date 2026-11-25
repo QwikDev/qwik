@@ -14,6 +14,13 @@ export default component$(() => {
       >
         second pretty URL, same target
       </Link>
+      <Link
+        href="/qwikrouter-test/rewrite-spa/pretty/"
+        rewrite="/qwikrouter-test/rewrite-spa/target/"
+        data-test-link="rewrite-spa-pretty-hinted"
+      >
+        pretty URL whose link names the rewrite target
+      </Link>
     </>
   );
 });

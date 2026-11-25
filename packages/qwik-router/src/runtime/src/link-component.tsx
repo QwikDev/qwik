@@ -20,6 +20,7 @@ export const Link = component$<LinkProps>((props) => {
     reload,
     replaceState,
     scroll,
+    rewrite,
     prefetchBundles: prefetchBundlesProp = 'visible',
     prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'intent',
     ...linkProps
@@ -54,7 +55,7 @@ export const Link = component$<LinkProps>((props) => {
     routes &&
     untrack(() => {
       try {
-        return matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname);
+        return matchRouteTree(routes, new URL(rewrite ?? clientNavPath!, loc.url).pathname);
       } catch {
         return undefined;
       }
@@ -85,7 +86,7 @@ export const Link = component$<LinkProps>((props) => {
         }
 
         if (elm && elm.href) {
-          const url = new URL(elm.href);
+          const url = new URL(elm.getAttribute('data-q-rewrite') ?? elm.href, elm.href);
           prefetchRoute(url, false, INTENT_PRIORITY);
         }
       })
@@ -134,7 +135,12 @@ export const Link = component$<LinkProps>((props) => {
           // If default was prevented, then it is up to us to make client side navigation.
           if (elm.href) {
             elm.setAttribute('data-navigating', '');
-            nav(elm.href, { forceReload: reload, replaceState, scroll }).finally(() => {
+            nav(elm.href, {
+              forceReload: reload,
+              replaceState,
+              scroll,
+              rewrite: elm.getAttribute('data-q-rewrite') ?? undefined,
+            }).finally(() => {
               elm.removeAttribute('data-navigating');
             });
           }
@@ -147,7 +153,7 @@ export const Link = component$<LinkProps>((props) => {
     if (routeName) {
       preloadRouteBundles(routeName, 1);
     }
-    prefetchRoute(new URL(elm.href), false, 1);
+    prefetchRoute(new URL(elm.getAttribute('data-q-rewrite') ?? elm.href, elm.href), false, 1);
   });
 
   return (
@@ -165,6 +171,7 @@ export const Link = component$<LinkProps>((props) => {
               : null
       }
       data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
+      data-q-rewrite={clientNavPath ? rewrite : undefined}
       data-q-layouts={newLayoutKeys?.length ? newLayoutKeys.join(' ') : undefined}
       onClick$={[
         preventDefault,
@@ -241,6 +248,11 @@ export interface LinkProps extends AnchorAttributes {
   reload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
+  /**
+   * The pathname a server `rewrite()` routes this link's `href` to. The router then renders that
+   * route without asking the server first (`q-route.json`), and can preload its bundles.
+   */
+  rewrite?: string;
 }
 
 /**

@@ -1350,6 +1350,21 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+rewrite?
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The pathname a server `rewrite()` routes this link's `href` to. The router then renders that route without asking the server first (`q-route.json`), and can preload its bundles.
+
+</td></tr>
+<tr><td>
+
 scroll?
 
 </td><td>
@@ -2741,6 +2756,7 @@ export type RouteNavigate = QRL<
           forceReload?: boolean;
           replaceState?: boolean;
           scroll?: boolean;
+          rewrite?: string;
         }
       | boolean,
   ) => Promise<void>

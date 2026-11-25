@@ -311,6 +311,11 @@ export const routes = [
     label: 'heavy chunk',
   },
   {
+    group: 'speculative',
+    href: '/speculative/in-view/',
+    label: 'in view, off screen first',
+  },
+  {
     group: 'navigation',
     href: '/navigation/from/off/',
     label: 'from (prefetch off)',

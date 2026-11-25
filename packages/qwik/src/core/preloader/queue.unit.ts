@@ -11,6 +11,33 @@ const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
 const originalMessageChannel = globalThis.MessageChannel;
+const originalIntersectionObserver = globalThis.IntersectionObserver;
+
+type ViewEntry = { target: unknown; isIntersecting: boolean };
+
+const installViewObserver = (document: Document, elementsWithHandlers: unknown[] = []) => {
+  const watched = new Set<unknown>();
+  let reportToPreloader: (entries: ViewEntry[]) => void = () => {};
+  class TestIntersectionObserver {
+    constructor(callback: (entries: ViewEntry[]) => void) {
+      reportToPreloader = callback;
+    }
+    observe = (element: unknown) => watched.add(element);
+    unobserve = (element: unknown) => watched.delete(element);
+  }
+  Object.assign(globalThis, { IntersectionObserver: TestIntersectionObserver });
+  Object.assign(document, {
+    evaluate: () => ({
+      snapshotLength: elementsWithHandlers.length,
+      snapshotItem: (index: number) => elementsWithHandlers[index],
+    }),
+  });
+  return { watched, report: (entries: ViewEntry[]) => reportToPreloader(entries) };
+};
+
+const elementWith = (attributes: Record<string, string>) => ({
+  attributes: Object.entries(attributes).map(([name, value]) => ({ name, value })),
+});
 
 const installBrowserGlobals = () => {
   const document = createDocument();
@@ -22,6 +49,7 @@ const installBrowserGlobals = () => {
     document,
     HTMLElement,
   });
+  installViewObserver(document);
 
   return document;
 };
@@ -79,6 +107,7 @@ afterEach(() => {
     document: originalDocument,
     HTMLElement: originalHTMLElement,
     MessageChannel: originalMessageChannel,
+    IntersectionObserver: originalIntersectionObserver,
   });
 });
 
@@ -108,6 +137,22 @@ const linkNames = (document: Document) =>
   );
 
 const LAYOUT_AND_ROUTE_GRAPH = ['DocsLayout', -7, 3, 'layout.js', 'docs/intro/', -7, 7, 'page.js'];
+
+const loadGraphOfThreeHandlers = async (maxIdlePreloads = 1) => {
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  const graph = { text: async () => JSON.stringify(['first.js', 'second.js', 'third.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: maxIdlePreloads });
+  preload(['first.js', 'second.js', 'third.js']);
+};
+
+const listenerFor = (document: Document, eventName: string) => {
+  const listen = vi.spyOn(document, 'addEventListener');
+  return () =>
+    listen.mock.calls.find(([name]) => name === eventName)![1] as (event: unknown) => void;
+};
+
+const intentOn = (...path: unknown[]) => ({ composedPath: () => path });
 
 type ChunkKind = 'handler' | 'other-qrl' | 'component';
 
@@ -1262,5 +1307,249 @@ describe('order by priority and kind', () => {
     await vi.runAllTimersAsync();
 
     expect(bundles.get('c.js')!.$priority$).toBe(0.9);
+  });
+});
+
+describe('handlers in view', () => {
+  test('preloads the handlers of an element in view before the other speculative preloads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: button, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js']);
+  });
+
+  test('leaves the handlers of an element out of view at their place, and keeps watching it', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: button, isIntersecting: false }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['first.js']);
+    expect(view.watched.has(button)).toBe(true);
+  });
+
+  test('stops watching an element once it came into view', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    expect(view.watched.has(button)).toBe(true);
+    view.report([{ target: button, isIntersecting: true }]);
+
+    expect(view.watched.has(button)).toBe(false);
+  });
+
+  test('keeps the order of the elements that come into view together', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const upper = elementWith({ 'q-e:click': 'second.js#s_click' });
+    const lower = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [upper, lower]);
+
+    await loadGraphOfThreeHandlers(2);
+    view.report([
+      { target: upper, isIntersecting: true },
+      { target: lower, isIntersecting: true },
+    ]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['second.js', 'third.js']);
+  });
+
+  test("an element in view raises every chunk of its handlers, but not its document handlers'", async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { bundles } = await import('./queue');
+    const input = elementWith({
+      'q-e:input': 'second.js#s_input##third.js|#0',
+      'q-d:scroll': 'first.js#s_scroll',
+    });
+    const view = installViewObserver(document, [input]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: input, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    const priorityOf = (name: string) => bundles.get(name)!.$priority$;
+    expect(priorityOf('second.js')).toBeGreaterThan(priorityOf('first.js'));
+    expect(priorityOf('third.js')).toBe(priorityOf('second.js'));
+  });
+});
+
+describe('hover and focus', () => {
+  test.each(['pointerover', 'focusin'])(
+    "%s on an element preloads its handlers and its ancestors' next",
+    async (eventName) => {
+      const document = installBrowserGlobals();
+      Object.assign(globalThis, { MessageChannel: undefined });
+      vi.spyOn(performance, 'now').mockReturnValue(0);
+      vi.resetModules();
+      await installTestPlatform();
+      const getListener = listenerFor(document, eventName);
+      const card = elementWith({ 'q-e:click': 'second.js#s_card' });
+      const button = elementWith({ 'q-e:click': 'third.js#s_button' });
+
+      await loadGraphOfThreeHandlers(2);
+      getListener()(intentOn(button, card, document));
+      await vi.runAllTimersAsync();
+
+      expect(linkNames(document)).toEqual(['second.js', 'third.js']);
+    }
+  );
+
+  test('the pointer moving inside the same element sends one hint', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { bundles } = await import('./queue');
+    const getListener = listenerFor(document, 'pointerover');
+    const card = elementWith({ 'q-e:click': 'third.js#s_card' });
+    const label = elementWith({});
+    const icon = elementWith({});
+
+    await loadGraphOfThreeHandlers();
+    getListener()(intentOn(label, card, document));
+    await vi.runAllTimersAsync();
+    const hintOrder = bundles.get('third.js')!.$hintOrder$;
+    getListener()(intentOn(icon, card, document));
+    await vi.runAllTimersAsync();
+
+    expect(bundles.get('third.js')!.$hintOrder$).toBe(hintOrder);
+  });
+});
+
+describe('latest hint first', () => {
+  test('a later speculative hint is preloaded before an earlier one of the same priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 'b.js', 'c.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['c.js', 'b.js', 'a.js']);
+  });
+
+  test('hinting a queued bundle again moves it to the front of its priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 'b.js', 'c.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['a.js', 'c.js', 'b.js']);
+  });
+
+  test('a later hint brings what its bundle imports to the front with it', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 2, 'a-import.js', 'b.js', 5, 'b-import.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['b.js', 'b-import.js', 'a.js', 'a-import.js']);
+  });
+
+  test('hinting a queued bundle again brings what it imports to the front too', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 2, 'a-import.js', 'b.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['a.js', 'a-import.js', 'b.js']);
+  });
+
+  test('a weaker hint does not move a bundle ahead of its equals', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 'b.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('a.js', 0.6);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['b.js', 'a.js']);
+  });
+
+  test('an import shared by two chunks hinted before the bundle graph loaded keeps the later hint', async () => {
+    const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    await deliverGraph(
+      graphOf({
+        'a.js': { imports: ['shared.js'] },
+        'b.js': { imports: ['shared.js'] },
+        'c.js': {},
+        'shared.js': {},
+      })
+    );
+
+    expect(linkNames(document)).toEqual(['a.js', 'shared.js', 'c.js', 'b.js']);
   });
 });

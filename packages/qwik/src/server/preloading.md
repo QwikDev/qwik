@@ -38,7 +38,7 @@ Every hint has a priority, a number from 0 to 1, and a bundle takes the highest 
 | Priority | Hint                                            |
 | -------- | ----------------------------------------------- |
 | 1        | A click, a QRL being loaded, a navigation       |
-| 0.9      | Hover or focus                                  |
+| 0.9      | Hover or focus on an element or a Link          |
 | 0.8      | An element in view, a QRL created on the client |
 | 0.6      | The page, and the page the user just left       |
 | 0.5      | A Link in view                                  |

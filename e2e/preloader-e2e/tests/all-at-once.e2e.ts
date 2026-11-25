@@ -4,7 +4,6 @@ import { expectRoundTrips } from '../utils/click-tests';
 import {
   CLICKABLE_ON_ALL_AT_ONCE,
   NEVER_SHOWS_RESULT,
-  NOT_READY_WHEN_WARM,
   ROUND_TRIPS_ON_MAIN,
   type Fixture,
 } from '../utils/fixtures';
@@ -105,10 +104,7 @@ test.describe('all at once', () => {
         clickFixture(page, fixture),
         resultIsDone(fixtureResult(page, fixture))
       );
-      const notReady = NOT_READY_WHEN_WARM[fixture.id];
-      expect
-        .soft(roundTrips, notReady ? `${fixture.id}: ${notReady.reason}` : fixture.id)
-        .toHaveLength(notReady?.roundTrips ?? fixture.warmRoundTrips ?? 0);
+      expect.soft(roundTrips, fixture.id).toHaveLength(fixture.warmRoundTrips ?? 0);
       await expectExpectedText(page, fixture);
     }
     await releaseAll(gate);

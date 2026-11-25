@@ -69,6 +69,8 @@ describe('devtools plugin transform', () => {
       expect.objectContaining({ id: 'qwik-devtools', type: 'iframe' })
     );
     expect(registerCommand).toHaveBeenCalledOnce();
+    expect(registerDock.mock.calls[0][0].icon).toBe('logos:qwik-icon');
+    expect(registerCommand.mock.calls[0][0].icon).toBe('logos:qwik-icon');
     registerCommand.mock.calls[0][0].handler();
     expect(activate).toHaveBeenCalledWith('qwik-devtools');
   });

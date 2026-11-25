@@ -105,6 +105,8 @@ export const preloaderPre = (
   }
 };
 
+const QRL_IMPORTS_MARKER = -1;
+
 /** We only use modulepreload links because they behave best. */
 const createLinksScript = (base: string, links: string[]) =>
   `${toScriptLiteral(links)}.map((l,e)=>{` +
@@ -115,8 +117,9 @@ const createLinksScript = (base: string, links: string[]) =>
   `});`;
 
 /**
- * A bundle and everything it imports statically, imports first. The graph lists a bundle's direct
- * static imports before its first dynamic-import marker, without those reachable through another.
+ * A bundle and everything it imports statically, imports first. After a bundle's name and its kind
+ * marker, the graph lists its direct static imports up to the QRL imports marker, without those
+ * reachable through another.
  */
 const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: string) => {
   const closure: string[] = [];
@@ -128,7 +131,13 @@ const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: 
     }
     seen.add(name);
     const nameIdx = bundleGraph?.indexOf(name) ?? -1;
-    for (let i = nameIdx + 1; nameIdx >= 0 && typeof bundleGraph![i] === 'number'; i++) {
+    const hasKindMarker =
+      nameIdx >= 0 && (bundleGraph![nameIdx + 1] as number) < QRL_IMPORTS_MARKER;
+    for (
+      let i = nameIdx + (hasKindMarker ? 2 : 1);
+      nameIdx >= 0 && typeof bundleGraph![i] === 'number';
+      i++
+    ) {
       const depIdx = bundleGraph![i] as number;
       if (depIdx < 0) {
         break;

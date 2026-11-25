@@ -3,6 +3,7 @@ import {
   whenContainerDataReady,
   type DomContainer,
 } from '../client/dom-container';
+import { VNodeFlags } from '../client/types';
 import { vnode_getDomParent, vnode_isVNode } from '../client/vnode-utils';
 import { BackRef } from '../reactive-primitives/backref';
 import { CatchPhase, dispatchQrlImportError, tagErrorPhase } from '../shared/error/error-handling';
@@ -215,7 +216,16 @@ export const runTask = (
     task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
-    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task), true) as TaskFn;
+    const taskFn = task.$qrl$.getFn(
+      iCtx,
+      () => {
+        if (vnode_isVNode(host) && host.flags & VNodeFlags.Deleted) {
+          return false;
+        }
+        clearAllEffects(container, task);
+      },
+      true
+    ) as TaskFn;
 
     const track = trackFn(task, container);
     const [cleanup] = cleanupFn(task, handleError);

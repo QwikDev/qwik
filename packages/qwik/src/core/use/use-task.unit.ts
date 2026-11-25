@@ -1,4 +1,6 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import { VNodeFlags } from '../client/types';
+import { vnode_newVirtual } from '../client/vnode-utils';
 import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/signal.public';
 import { component$ } from '../shared/component.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
@@ -264,5 +266,28 @@ describe('runTask', () => {
       vi.useRealTimers();
       release();
     }
+  });
+
+  it("a task whose component was removed while it waited doesn't run", async () => {
+    const container = createMockContainer();
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    let release!: () => void;
+    trackComputedLoad(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    const taskFn = vi.fn();
+    const host = vnode_newVirtual();
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+
+    const run = runTask(task, container, host);
+    host.flags |= VNodeFlags.Deleted;
+    release();
+    await run;
+
+    expect(taskFn).not.toHaveBeenCalled();
   });
 });

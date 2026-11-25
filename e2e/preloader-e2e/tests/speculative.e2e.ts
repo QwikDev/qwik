@@ -83,7 +83,9 @@ test.describe('queue', () => {
     await expectResult(page, WITH_25_IDLE_PRELOADS);
     expect(startedMeanwhile).toEqual([]);
   });
+});
 
+test.describe('handlers in view', () => {
   test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {
     await recordSpeculativePreloads(page);
     await waitForNetworkIdle(

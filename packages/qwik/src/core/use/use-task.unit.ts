@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, test, vi } from 'vitest';
 import { VNodeFlags } from '../client/types';
 import { vnode_newVirtual } from '../client/vnode-utils';
 import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/signal.public';
@@ -76,6 +76,20 @@ const createTask = (fn: (...args: any[]) => any) => {
 };
 
 describe('runTask', () => {
+  const heldPreloads: (() => void)[] = [];
+  const holdPreloadOf = (computed: object) => {
+    let release!: () => void;
+    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    heldPreloads.push(release);
+    return release;
+  };
+  afterEach(() => {
+    const releases = heldPreloads.splice(0);
+    for (let i = 0; i < releases.length; i++) {
+      releases[i]();
+    }
+  });
+
   it('reports a rejected thrown promise once and allows a later rerun', async () => {
     const error = new Error('dependency failed');
     const container = createMockContainer();
@@ -201,11 +215,8 @@ describe('runTask', () => {
   it('waits for a computed the task reaches before each run', async () => {
     const container = createMockContainer();
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
-    let release!: () => void;
-    const startLoadingComputedCode = () =>
-      trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
     const taskFn = vi.fn();
-    const host = {} as HostElement;
+    const host = vnode_newVirtual();
     const task = new Task(
       TaskFlags.DIRTY | TaskFlags.TASK,
       0,
@@ -214,14 +225,14 @@ describe('runTask', () => {
       null
     );
 
-    startLoadingComputedCode();
+    let release = holdPreloadOf(computed);
     const firstRun = runTask(task, container, host);
     expect(taskFn).not.toHaveBeenCalled();
     release();
     await firstRun;
     expect(taskFn).toHaveBeenCalledTimes(1);
 
-    startLoadingComputedCode();
+    release = holdPreloadOf(computed);
     task.$flags$ |= TaskFlags.DIRTY;
     const secondRun = runTask(task, container, host);
     expect(taskFn).toHaveBeenCalledTimes(1);
@@ -238,8 +249,7 @@ describe('runTask', () => {
       element: containerElement,
     } as unknown as Container;
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
-    let release!: () => void;
-    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    holdPreloadOf(computed);
     const taskFn = vi.fn();
     const host = {} as HostElement;
     const task = new Task(
@@ -264,15 +274,13 @@ describe('runTask', () => {
       expect(event.detail.element).toBe(containerElement);
     } finally {
       vi.useRealTimers();
-      release();
     }
   });
 
   it("a task whose component was removed while it waited doesn't run", async () => {
     const container = createMockContainer();
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
-    let release!: () => void;
-    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    const release = holdPreloadOf(computed);
     const taskFn = vi.fn();
     const host = vnode_newVirtual();
     const task = new Task(

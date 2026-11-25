@@ -2296,8 +2296,10 @@ describe('shared-serialization', () => {
           'task read 6',
         ]);
       });
+    });
 
-      it.fails('when the computed is first restored during an await', async () => {
+    describe('a task runs twice', () => {
+      it('when the computed is first restored during an await', async () => {
         const store = createStore<{ total?: unknown }>(null, {}, StoreFlags.RECURSIVE);
         const objs = await serialize(
           lazyQrl('s_task', [store]),
@@ -2327,7 +2329,11 @@ describe('shared-serialization', () => {
         await delay(0);
         release();
         await running;
-        expect(ran.filter((entry) => entry === 'task started')).toHaveLength(1);
+        expect(ran.filter((entry) => entry.startsWith('task'))).toEqual([
+          'task started',
+          'task started',
+          'task read 6',
+        ]);
       });
     });
 

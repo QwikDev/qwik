@@ -27,29 +27,35 @@ type PreloaderWindow = Window & {
   __maxSpeculativeInFlight?: number;
   __preloadHints?: PreloadHint[];
   /** Qwik's own hint queue (preloader/bridge.ts), not a test hook. */
-  qPreloadQueue?: [item: string | string[], probability?: number][];
+  qPreloadQueue?: [item: string | string[], priority?: number, isPageToRender?: boolean][];
 };
 
-export type PreloadHint = { item: string | string[]; probability?: number };
+export type PreloadHint = {
+  item: string | string[];
+  priority?: number;
+  isPageToRender?: boolean;
+};
 
 export const recordPreloadHints = (page: Page) =>
   page.addInitScript(() => {
     const win = window as PreloaderWindow;
     const hints: PreloadHint[] = (win.__preloadHints = []);
-    let preload: ((item: string | string[], probability?: number) => void) | undefined;
+    let preload:
+      | ((item: string | string[], priority?: number, isPageToRender?: boolean) => void)
+      | undefined;
     Object.defineProperty(win, 'qPreload', {
       configurable: true,
       get: () =>
         preload &&
-        ((item: string | string[], probability?: number) => {
-          hints.push({ item, probability });
-          preload!(item, probability);
+        ((item: string | string[], priority?: number, isPageToRender?: boolean) => {
+          hints.push({ item, priority, isPageToRender });
+          preload!(item, priority, isPageToRender);
         }),
       set: (value) => {
         // The preloader drains the hints queued before it loaded without calling the getter
         if (win.qPreloadQueue) {
-          for (const [item, probability] of win.qPreloadQueue) {
-            hints.push({ item, probability });
+          for (const [item, priority, isPageToRender] of win.qPreloadQueue) {
+            hints.push({ item, priority, isPageToRender });
           }
         }
         preload = value;
@@ -66,9 +72,9 @@ export const chunksHintedAtHighestPriority = (page: Page) =>
     const win = window as PreloaderWindow;
     const hints = [
       ...(win.__preloadHints ?? []),
-      ...(win.qPreloadQueue ?? []).map(([item, probability]) => ({ item, probability })),
+      ...(win.qPreloadQueue ?? []).map(([item, priority]) => ({ item, priority })),
     ];
-    return hints.filter((hint) => hint.probability === 1).flatMap((hint) => hint.item);
+    return hints.filter((hint) => hint.priority === 1).flatMap((hint) => hint.item);
   });
 
 export const recordSpeculativePreloads = (page: Page) =>

@@ -5,7 +5,7 @@ description: Use when writing, modifying, or reviewing Qwik docs content or docs
 
 # Qwik Docs Development
 
-Use this skill for `packages/docs/**` work. Keep the repo-wide rules from `.ruler/AGENTS.md` in
+Use this skill for `packages/docs/**` work. Keep the repo-wide rules from `AGENTS.md` in
 force.
 
 ## Fast Path

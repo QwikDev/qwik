@@ -43,12 +43,12 @@ export const newScrollState = (): ScrollState => {
 
 export const preloadRouteBundles = (
   routeName: string,
-  probability: number = 0.8,
+  priority: number = 0.8,
   newLayoutKeys: string[] = []
 ) => {
   if (isBrowser) {
     routeName = ensureSlash(routeName);
     routeName = routeName.length > 1 && routeName.startsWith('/') ? routeName.slice(1) : routeName;
-    preload([...newLayoutKeys, routeName], probability);
+    preload([...newLayoutKeys, routeName], priority, true);
   }
 };

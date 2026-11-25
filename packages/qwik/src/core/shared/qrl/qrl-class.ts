@@ -144,7 +144,7 @@ export class LazyRef<TYPE = unknown> {
     }
     qDev && initLazyRefDev(this);
 
-    /** Preload the chunk with somewhat lower probability when we create the QRL. */
+    /** Preload the chunk at a lower priority when we create the QRL. */
     if (isBrowser && $chunk$) {
       requestPreload($chunk$, 0.8);
     }
@@ -205,7 +205,7 @@ export class LazyRef<TYPE = unknown> {
     }
 
     if (isBrowser && this.$chunk$) {
-      /** We will run the QRL, so now the probability of the chunk is 100% */
+      /** We will run the QRL, so its chunk is now highest priority */
       requestPreload(this.$chunk$, 1);
     }
 

@@ -1,5 +1,5 @@
-import { isBrowser } from '@qwik.dev/core';
-import { _getDomContainer, isServer } from '@qwik.dev/core/internal';
+import { isBrowser, isServer } from '@qwik.dev/core';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 export function getCurrentLocation() {
   if (!isBrowser) {
     return '';

@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
-    "oxc-parser": "^0.144.0",
+    "oxc-parser": "^0.158.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
@@ -35,8 +35,8 @@
     "@types/node": "25.6.0",
     "esbuild": "0.28.2",
     "typescript": "5.9.3",
-    "vite": "8.2.4",
-    "vitest": "5.0.5"
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
   },
   "peerDependencies": {
     "@qwik.dev/core": "workspace:*",

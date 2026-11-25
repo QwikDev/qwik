@@ -2,7 +2,7 @@ import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser'
 // Browser builds of the TS optimizer's runtime deps, bundled into this worker by vite.
 // Rolldown embeds the same oxc version, so reusing its parser saves 4.5MB of extra wasm.
 // `/experimental` re-exports these as deprecated aliases; move to `/utils` once that
-// subpath ships a `browser` condition (absent as of @rolldown/browser 1.2.2).
+// subpath ships a `browser` condition (absent as of @rolldown/browser 1.2.19).
 import * as rolldownOxc from '@rolldown/browser/experimental';
 import * as oxcWalker from 'oxc-walker';
 import * as magicRegexp from 'magic-regexp';
@@ -134,9 +134,25 @@ function getDepShimUrl(specifier: string, mod: Record<string, unknown>): string 
   return url;
 }
 
+type OxcTransform = (
+  filename: string,
+  sourceText: string,
+  options?: { cwd?: string },
+  ...rest: any[]
+) => unknown;
+
+// Workaround for rolldown/rolldown#11956: transform falls back to process.cwd(), missing here.
+const withRootCwd = <Transform extends OxcTransform>(transform: Transform) =>
+  ((filename, sourceText, options, ...rest) =>
+    transform(filename, sourceText, { cwd: '/', ...options }, ...rest)) as Transform;
+
 const TS_OPTIMIZER_DEPS: Record<string, Record<string, unknown>> = {
   'oxc-parser': rolldownOxc,
-  'oxc-transform': rolldownOxc,
+  'oxc-transform': {
+    ...rolldownOxc,
+    transform: withRootCwd(rolldownOxc.transform),
+    transformSync: withRootCwd(rolldownOxc.transformSync),
+  },
   'oxc-walker': oxcWalker,
   'magic-regexp': magicRegexp,
   'magic-string': magicString,

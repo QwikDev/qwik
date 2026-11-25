@@ -15,26 +15,36 @@ export const scheduleYieldingIterator = <T>(state: YieldingIteratorState<T>): vo
   }
 };
 
+/** Runs the iterator until it finishes or the time slice runs out; `null` means unfinished. */
+export const runIteratorSlice = <T>(
+  iterator: Generator<void, T, void>
+): IteratorReturnResult<T> | null => {
+  const deadline = performance.now() + YIELD_INTERVAL;
+  let count = 0;
+  while (true) {
+    const result = iterator.next();
+    if (result.done) {
+      return result;
+    }
+    // Sampling the clock every 32 steps keeps `performance.now()` out of the hottest path.
+    if ((++count & 31) === 0 && performance.now() >= deadline) {
+      return null;
+    }
+  }
+};
+
 const runYieldingIterator = <T>(
   state: YieldingIteratorState<T>,
   onDone: (value: T) => void,
   onError: (error: unknown) => void
 ): void => {
   state.$scheduled$ = false;
-  const deadline = performance.now() + YIELD_INTERVAL;
-  let count = 0;
   try {
-    while (true) {
-      const result = state.$iterator$.next();
-      if (result.done) {
-        onDone(result.value);
-        return;
-      }
-      // Sampling the clock every 32 steps keeps `performance.now()` out of the hottest path.
-      if ((++count & 31) === 0 && performance.now() >= deadline) {
-        scheduleYieldingIterator(state);
-        return;
-      }
+    const result = runIteratorSlice(state.$iterator$);
+    if (result) {
+      onDone(result.value);
+    } else {
+      scheduleYieldingIterator(state);
     }
   } catch (error) {
     onError(error);

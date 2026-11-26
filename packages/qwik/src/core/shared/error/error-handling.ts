@@ -13,6 +13,7 @@ import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { CatchPhase } from './catch-phase';
 import { qwikSymbol, registerSingleton } from '../singletons';
+import { getFailedImportSymbol } from '../qrl/qrl-class';
 
 export { CatchPhase } from './catch-phase';
 
@@ -226,11 +227,10 @@ const handleQError = (e: Event) => {
   }
 };
 
-/** Reports a chunk that failed to load as a `qerror` event, which skips error boundaries. */
-export const dispatchQrlImportError = (element: Element, error: unknown, symbol: string) => {
+export const dispatchQrlImportError = (element: Element, error: unknown) => {
   element.ownerDocument?.dispatchEvent(
     new CustomEvent('qerror', {
-      detail: { importError: 'async', error, element, symbol },
+      detail: { importError: 'async', error, element, symbol: getFailedImportSymbol(error) },
     })
   );
 };

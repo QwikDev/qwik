@@ -4,7 +4,7 @@ import { vnode_newVirtual } from '../client/vnode-utils';
 import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/signal.public';
 import { component$ } from '../shared/component.public';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { isQrlImportError, type QRLInternal } from '../shared/qrl/qrl-class';
 import { trackPreload } from '../shared/serdes/inflate';
 import type { Container, HostElement } from '../shared/types';
 import { useResource$ } from './use-resource-dollar';
@@ -241,13 +241,8 @@ describe('runTask', () => {
     expect(taskFn).toHaveBeenCalledTimes(2);
   });
 
-  it("reports a computed whose code wasn't preloaded in time as a qerror, without running the task", async () => {
-    const dispatchEvent = vi.fn();
-    const containerElement = { ownerDocument: { dispatchEvent } };
-    const container = {
-      ...createMockContainer(),
-      element: containerElement,
-    } as unknown as Container;
+  it("reports a computed whose code wasn't preloaded in time as a chunk import error, without running the task", async () => {
+    const container = createMockContainer();
     const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
     holdPreloadOf(computed);
     const taskFn = vi.fn();
@@ -266,12 +261,9 @@ describe('runTask', () => {
       await run;
 
       expect(taskFn).not.toHaveBeenCalled();
-      expect(container.handleError).not.toHaveBeenCalled();
-      expect(dispatchEvent).toHaveBeenCalledOnce();
-      const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
-      expect(event.type).toBe('qerror');
-      expect(event.detail.importError).toBe('async');
-      expect(event.detail.element).toBe(containerElement);
+      expect(container.handleError).toHaveBeenCalledOnce();
+      const [error] = vi.mocked(container.handleError).mock.calls[0];
+      expect(isQrlImportError(error)).toBe(true);
     } finally {
       vi.useRealTimers();
     }

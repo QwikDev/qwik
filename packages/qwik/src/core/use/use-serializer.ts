@@ -1,4 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
+import { resolveQrlAhead } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { SerializerArg } from '../reactive-primitives/types';
 import type { createSerializer$ } from '../reactive-primitives/signal.public';
@@ -6,7 +7,7 @@ import { createSerializerSignal } from '../reactive-primitives/signal-api';
 import { useConstant } from './use-signal';
 
 const creator = <T, S>(qrl: QRL<SerializerArg<T, S>>) => {
-  qrl.resolve();
+  resolveQrlAhead(qrl);
   return createSerializerSignal<T, S>(qrl as any);
 };
 

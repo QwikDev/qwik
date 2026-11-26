@@ -59,8 +59,13 @@ project's words.
 6. **Plan**: the steps, with every test of the target design grouped in `describe` blocks, as a tree
    per test file in a code block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests
    keep their real names unless a plain-English rename reads clearer (mark it `~`); new tests get
-   plain-English names. Write a changed test as `~ previous name -> new name`, or `~ name` when only
-   its body changes. Each risk of the chosen solution gets at least one test, tagged with its ID.
+   plain-English names. A test name stands on its own: it never points at another test
+   (`those chunks`, `them`, `also`). When tests share a subject, put them in a `describe` block that
+   names it. Write a changed test as `~ previous name -> new name`, or `~ name` when only its body
+   changes. A change may also regroup the file's old tests into more logical `describe`
+   blocks: do it in its own commit, before the change, without touching the test bodies, and write
+   a moved test as `~ name (moved from <where it was>)`. Each risk of the chosen solution gets at
+   least one test, tagged with its ID.
    So does another solution's risk that could hit the chosen one too, or that a later change could
    bring back. With a problem-space study, each use case the chosen options pass that a test can
    check, tagged UC1, UC2. Approving the plan approves these tests.
@@ -81,9 +86,12 @@ src/queue.unit.ts
 describe('runAll')
   ✓ runs every task
   ~ waits for tasks -> waits for every task, even after one fails
+  ~ stops when the queue is empty (moved from the top level)
   + keeps the count right when a task throws (B1)
   +⚠ runs tasks queued while running (B2)
-  + returns the error of each failed task (A1)
+  describe('a task that fails')
+    + its error is returned (A1)
+    + the tasks after it still run
 ```
 
 ## Pull Requests

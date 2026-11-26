@@ -82,7 +82,7 @@ export function runEventHandlerQRL(
       if (isQrlImportError(err)) {
         // Import failures bypass error boundaries, matching qwikloader (#8962).
         if (event.type !== 'qerror') {
-          dispatchQrlImportError(element, err, (handler as QRLInternal).getSymbol());
+          dispatchQrlImportError(element, err);
         }
         return;
       }

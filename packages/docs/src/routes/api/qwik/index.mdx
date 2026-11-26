@@ -3514,6 +3514,23 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
 
+<h2 id="qwikerrorevent">QwikErrorEvent</h2>
+
+Emitted on document when a chunk failed to download, or when an event handler threw. `importError` is set only for a failed download, which error boundaries never see.
+
+```typescript
+export type QwikErrorEvent = CustomEvent<{
+  importError?: "sync" | "async" | "no-symbol";
+  error: unknown;
+  symbol: string;
+  element: Element;
+  reqTime?: number;
+  qBase?: string;
+}>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
+
 <h2 id="qwikfocusevent">QwikFocusEvent</h2>
 
 > Warning: This API is now obsolete.

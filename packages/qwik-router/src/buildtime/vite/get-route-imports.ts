@@ -31,6 +31,7 @@ export function getRouteImports(routes: BuiltRoute[], manifest: QwikManifest) {
         ),
       };
       addRouterConfigToItsImporters(manifest, bundleName, result);
+      result[QWIK_ROUTER_CONFIG_ID] = { dynamicImports: [bundleName] };
       break;
     }
   }

@@ -4,14 +4,24 @@ import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, preloadRouteBundlesMock, getClientNavPathMock, gotoMock } = vi.hoisted(
-  () => ({
-    prefetchRouteMock: vi.fn(),
-    preloadRouteBundlesMock: vi.fn(),
-    getClientNavPathMock: vi.fn(),
-    gotoMock: vi.fn(),
-  })
-);
+const {
+  prefetchRouteMock,
+  preloadRouteBundlesMock,
+  getClientNavPathMock,
+  gotoMock,
+  modulepreloadMock,
+} = vi.hoisted(() => ({
+  prefetchRouteMock: vi.fn(),
+  preloadRouteBundlesMock: vi.fn(),
+  getClientNavPathMock: vi.fn(),
+  gotoMock: vi.fn(),
+  modulepreloadMock: vi.fn(),
+}));
+
+vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  _modulepreload: modulepreloadMock,
+}));
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
@@ -450,6 +460,49 @@ describe.each([
         process.removeAllListeners('unhandledRejection');
         vitestListeners.forEach((listener) => process.on('unhandledRejection', listener));
       }
+    });
+  });
+
+  describe('what a <Link> asks core to modulepreload', () => {
+    const LinkRoot = component$((props: { href: string; reload?: boolean }) => {
+      return (
+        <QwikRouterMockProvider goto={$(() => gotoMock())}>
+          <Link href={props.href} reload={props.reload}>
+            Test Link
+          </Link>
+        </QwikRouterMockProvider>
+      );
+    });
+
+    beforeEach(async () => {
+      const { getClientNavPath } = await vi.importActual<typeof import('./utils')>('./utils');
+      getClientNavPathMock.mockImplementation(getClientNavPath);
+      modulepreloadMock.mockClear();
+      gotoMock.mockReset();
+    });
+
+    it(`a <Link> that navigates client-side asks for the router's chunks: <Link href="/about/"> on the server asks for its two click handlers, nav and '@qwik-router-config'`, async () => {
+      await render(<LinkRoot href="/about/" />, { debug });
+
+      const [preloadHandler, navigationHandler, nav, routerConfigName] =
+        modulepreloadMock.mock.calls[0];
+      expect(preloadHandler.getSymbol()).toContain('handlePreload');
+      expect(navigationHandler.getSymbol()).toContain('handleClientSideNavigation');
+      await nav();
+      expect(gotoMock).toHaveBeenCalledOnce();
+      expect(routerConfigName).toBe('@qwik-router-config');
+    });
+
+    it('a <Link> that leaves the app asks for nothing: <Link href="https://example.com/">', async () => {
+      await render(<LinkRoot href="https://example.com/" />, { debug });
+
+      expect(modulepreloadMock).not.toHaveBeenCalled();
+    });
+
+    it('a <Link> that reloads the page asks for nothing: <Link href="/about/" reload>', async () => {
+      await render(<LinkRoot href="/about/" reload />, { debug });
+
+      expect(modulepreloadMock).not.toHaveBeenCalled();
     });
   });
 

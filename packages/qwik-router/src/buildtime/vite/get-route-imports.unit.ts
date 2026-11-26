@@ -36,6 +36,21 @@ describe('modifyBundleGraph', () => {
     expect(routerBundle.dynamicImports).toEqual(['loader-signal.js', 'q-router-config.js']);
   });
 
+  test("gives the router config's bundle a fixed name: q-AbC123.js is listed under '@qwik-router-config'", () => {
+    const size = 0;
+    const total = 0;
+    const manifest = {
+      bundles: {
+        'router.js': { size, total, dynamicImports: ['q-AbC123.js'] },
+        'q-AbC123.js': { size, total, origins: ['@qwik-router-config'] },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    expect(getRouteImports([], manifest)['@qwik-router-config']).toEqual({
+      dynamicImports: ['q-AbC123.js'],
+    });
+  });
+
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {
@@ -93,6 +108,11 @@ describe('modifyBundleGraph', () => {
         "/subroute/": {
           "dynamicImports": [
             "fake-bundle-part-of-sub-route.js",
+          ],
+        },
+        "@qwik-router-config": {
+          "dynamicImports": [
+            "q-router-config.js",
           ],
         },
         "Layout": {

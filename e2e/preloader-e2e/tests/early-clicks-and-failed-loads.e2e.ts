@@ -401,7 +401,7 @@ test.describe('early click that needs the bundle graph', () => {
     });
   }
 
-  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 2 round trips', async ({
+  test('navigation: once the preloader, core and the bundle graph are loaded, the new page shows in 1 round trip', async ({
     page,
   }) => {
     const startupUrls = everyStartupPiece();
@@ -414,7 +414,7 @@ test.describe('early click that needs the bundle graph', () => {
     );
     await releaseAll(gate, startupPiece);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTripsAfterStartup(roundTrips, startupUrls));
+    expect.soft(roundTripsAfterStartup(roundTrips, startupUrls)).toHaveLength(1);
   });
 });
 

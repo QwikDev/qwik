@@ -1,6 +1,13 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { bundles, nextTriggerMacroTask, replayBundle, UNRANKED } from './queue';
+import {
+  bundles,
+  nextTriggerMacroTask,
+  preloadHandlersInView,
+  preloadHandlersOnIntent,
+  replayBundle,
+  UNRANKED,
+} from './queue';
 import type { BundleDep, BundleGraph } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
@@ -17,6 +24,7 @@ const makeBundle = (name: string, deps?: BundleDep[], kind = 0) => {
     $priority$: 0,
     $kind$: kind,
     $rank$: 0,
+    $hintOrder$: 0,
   };
 };
 
@@ -83,6 +91,8 @@ export const loadBundleGraph = (
     return;
   }
   base = basePath;
+  preloadHandlersInView();
+  preloadHandlersOnIntent();
 
   if (serializedResponse) {
     isWaitingForGraph = true;

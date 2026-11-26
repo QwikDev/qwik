@@ -519,6 +519,7 @@ const HAND_WRITTEN = [
   { group: 'visible', href: '/visible/document-ready/', label: 'document-ready' },
   { group: 'visible', href: '/visible/document-idle/', label: 'document-idle' },
   { group: 'speculative', href: '/speculative/heavy/', label: 'heavy chunk' },
+  { group: 'speculative', href: '/speculative/in-view/', label: 'in view, off screen first' },
   { group: 'navigation', href: '/navigation/from/off/', label: 'from (prefetch off)' },
   { group: 'navigation', href: '/navigation/from/visible/', label: 'from (prefetch visible)' },
   { group: 'navigation', href: '/navigation/from/intent/', label: 'from (prefetch intent)' },

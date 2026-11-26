@@ -1265,6 +1265,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+onBeforeNavigate$?
+
+</td><td>
+
+</td><td>
+
+QRL&lt;(event: MouseEvent, element: HTMLAnchorElement) =&gt; boolean \| void \| Promise&lt;boolean \| void&gt;&gt;
+
+</td><td>
+
+_(Optional)_ Runs before client-side navigation. Return `false` to cancel navigation.
+
+</td></tr>
+<tr><td>
+
 prefetch?
 
 </td><td>
@@ -1478,6 +1493,122 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
+<h2 id="prefetchroute">prefetchRoute</h2>
+
+Prefetch a route's JS bundles and optionally its loader data.
+
+Resolves the route from the trie to get the routeName (for the bundle graph preloader) and `$loaders$` (for data prefetching). The bundle graph is keyed by route name (e.g. `products/[id]/`), not by actual pathname (e.g. `products/123/`).
+
+```typescript
+export declare function prefetchRoute(
+  url: URL,
+  prefetchData?: boolean,
+  priority?: number,
+  manifestHash?: string,
+  prefetchBundle?: boolean,
+  currentUrl?: URL,
+): Promise<void>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+url
+
+</td><td>
+
+URL
+
+</td><td>
+
+The URL pathname to prefetch
+
+</td></tr>
+<tr><td>
+
+prefetchData
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Whether to prefetch loader data
+
+</td></tr>
+<tr><td>
+
+priority
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Preload priority of the route's bundles (0-1, default 0.8)
+
+</td></tr>
+<tr><td>
+
+manifestHash
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Build manifest hash for loader URLs (from `useDocumentHead().manifestHash`)
+
+</td></tr>
+<tr><td>
+
+prefetchBundle
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Whether to prefetch route JS bundles
+
+</td></tr>
+<tr><td>
+
+currentUrl
+
+</td><td>
+
+URL
+
+</td><td>
+
+_(Optional)_ The page the navigation leaves, when `location` already shows the new one
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;void&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/prefetch-route.ts)
 
 <h2 id="prefetchstrategy">PrefetchStrategy</h2>
 

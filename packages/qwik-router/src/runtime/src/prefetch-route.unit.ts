@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prefetchLoaderData } from './prefetch-route';
 import { _setRouterConfig } from './router-config';
 import type { LoadedRoute, LoaderInternal } from './types';
+import { prefetchRoute } from './index';
+import { prefetchRoute as prefetchRouteImplementation } from './prefetch-route';
 
 const { fetchRouteLoaderDataMock } = vi.hoisted(() => ({
   fetchRouteLoaderDataMock: vi.fn(async () => ({ raw: 'data' })),
@@ -66,5 +68,11 @@ describe('prefetchLoaderData', () => {
 
     const fetchedIds = fetchRouteLoaderDataMock.mock.calls.map(([id]: unknown[]) => id);
     expect(fetchedIds).toEqual(['a']);
+  });
+});
+
+describe('prefetchRoute public export', () => {
+  it('exports the route prefetch function from the router API', () => {
+    expect(prefetchRoute).toBe(prefetchRouteImplementation);
   });
 });

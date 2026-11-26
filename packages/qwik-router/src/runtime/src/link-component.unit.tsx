@@ -4,14 +4,19 @@ import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, preloadRouteBundlesMock, getClientNavPathMock, gotoMock } = vi.hoisted(
-  () => ({
-    prefetchRouteMock: vi.fn(),
-    preloadRouteBundlesMock: vi.fn(),
-    getClientNavPathMock: vi.fn(),
-    gotoMock: vi.fn(),
-  })
-);
+const {
+  prefetchRouteMock,
+  preloadRouteBundlesMock,
+  getClientNavPathMock,
+  gotoMock,
+  beforeNavigateMock,
+} = vi.hoisted(() => ({
+  prefetchRouteMock: vi.fn(),
+  preloadRouteBundlesMock: vi.fn(),
+  getClientNavPathMock: vi.fn(),
+  gotoMock: vi.fn(),
+  beforeNavigateMock: vi.fn(),
+}));
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
@@ -103,6 +108,8 @@ describe.each([
     preloadRouteBundlesMock.mockClear();
     onPointerEnterMock.mockClear();
     onMouseOverMock.mockClear();
+    gotoMock.mockReset();
+    beforeNavigateMock.mockReset();
   });
 
   it('prefetches bundles by default and prefetches route data on intent by default', async () => {
@@ -389,6 +396,7 @@ describe.each([
 
       const anchor = await clickLink();
 
+      expect(gotoMock).toHaveBeenCalledTimes(1);
       expect(anchor.hasAttribute('aria-pressed')).toBe(false);
       expect(anchor.hasAttribute('data-navigating')).toBe(true);
 
@@ -422,6 +430,60 @@ describe.each([
         vitestListeners.forEach((listener) => process.on('unhandledRejection', listener));
       }
     });
+  });
+
+  it('cancels client-side navigation when onBeforeNavigate$ returns false', async () => {
+    const GuardedRoot = component$(() => (
+      <QwikRouterMockProvider goto={$(() => gotoMock())}>
+        <Link href="/test" onBeforeNavigate$={$(async () => false)}>
+          Test Link
+        </Link>
+      </QwikRouterMockProvider>
+    ));
+    const { document } = await render(<GuardedRoot />, { debug });
+    const anchor = document.querySelector('a');
+    expect(anchor).not.toBeNull();
+
+    await trigger(document.body, anchor, 'click');
+
+    expect(gotoMock).not.toHaveBeenCalled();
+  });
+
+  it('allows client-side navigation when onBeforeNavigate$ returns true', async () => {
+    beforeNavigateMock.mockReturnValue(true);
+    const GuardedRoot = component$(() => (
+      <QwikRouterMockProvider goto={$(() => gotoMock())}>
+        <Link href="/test" onBeforeNavigate$={$(() => beforeNavigateMock())}>
+          Test Link
+        </Link>
+      </QwikRouterMockProvider>
+    ));
+    const { document } = await render(<GuardedRoot />, { debug });
+    const anchor = document.querySelector('a');
+    expect(anchor).not.toBeNull();
+
+    await trigger(document.body, anchor, 'click');
+
+    expect(beforeNavigateMock).toHaveBeenCalledTimes(1);
+    expect(gotoMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips client-side navigation for modifier clicks', async () => {
+    const GuardedRoot = component$(() => (
+      <QwikRouterMockProvider goto={$(() => gotoMock())}>
+        <Link href="/test" onBeforeNavigate$={$(() => beforeNavigateMock())}>
+          Test Link
+        </Link>
+      </QwikRouterMockProvider>
+    ));
+    const { document } = await render(<GuardedRoot />, { debug });
+    const anchor = document.querySelector('a');
+    expect(anchor).not.toBeNull();
+
+    await trigger(document.body, anchor!, 'click', { ctrlKey: true });
+
+    expect(gotoMock).not.toHaveBeenCalled();
+    expect(beforeNavigateMock).not.toHaveBeenCalled();
   });
 
   it('calls onPointerEnter$ on pointerenter, not onMouseOver$', async () => {

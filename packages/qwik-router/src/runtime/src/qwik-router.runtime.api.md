@@ -300,6 +300,7 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    onBeforeNavigate$?: QRL<(event: MouseEvent, element: HTMLAnchorElement) => boolean | void | Promise<boolean | void>>;
     // @deprecated (undocumented)
     prefetch?: boolean | 'js';
     prefetchBundles?: PrefetchStrategy;
@@ -344,6 +345,9 @@ export type PageModule = RouteModule & {
 
 // @public (undocumented)
 export type PathParams = Record<string, string>;
+
+// @public
+export function prefetchRoute(url: URL, prefetchData?: boolean, priority?: number, manifestHash?: string, prefetchBundle?: boolean, currentUrl?: URL): Promise<void>;
 
 // @public
 export type PrefetchStrategy =

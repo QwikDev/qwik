@@ -91,6 +91,7 @@ export {
   getRequestEvent,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
+export { prefetchRoute } from './prefetch-route';
 export {
   _setRouterConfig,
   getBasePathname,

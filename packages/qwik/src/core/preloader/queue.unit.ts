@@ -136,6 +136,13 @@ const linkNames = (document: Document) =>
     new URL(link.href).pathname.split('/').pop()
   );
 
+const loadLinks = (document: Document) => {
+  const links = document.head.querySelectorAll('link');
+  for (let i = 0; i < links.length; i++) {
+    links[i].onload!({} as Event);
+  }
+};
+
 const LAYOUT_AND_ROUTE_GRAPH = ['DocsLayout', -7, 3, 'layout.js', 'docs/intro/', -7, 7, 'page.js'];
 
 const loadGraphOfThreeHandlers = async (maxIdlePreloads = 1) => {
@@ -1551,5 +1558,55 @@ describe('latest hint first', () => {
     );
 
     expect(linkNames(document)).toEqual(['a.js', 'shared.js', 'c.js', 'b.js']);
+  });
+
+  test('hinting a.js again once it and a-import.js have loaded leaves a-import.js untouched', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+    const { bundles } = await import('./queue');
+
+    initPreloader(['a.js', 2, 'a-import.js']);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
+    loadLinks(document);
+    vi.runAllTimers();
+    const hintOrder = bundles.get('a-import.js')!.$hintOrder$;
+    preload('a.js', 0.9);
+    vi.runAllTimers();
+
+    expect(bundles.get('a-import.js')!.$hintOrder$).toBe(hintOrder);
+  });
+
+  test('hinting a loaded a.js again still moves its queued a-import.js ahead of c.js', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    const graph = {
+      text: async () => JSON.stringify(['a.js', 2, 'a-import.js', 'b.js', 'c.js']),
+    };
+    loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 1 });
+
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    preload('b.js', 0.9);
+    await vi.runAllTimersAsync();
+    loadLinks(document);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['b.js']);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    loadLinks(document);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['a-import.js']);
   });
 });

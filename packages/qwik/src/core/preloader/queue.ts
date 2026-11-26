@@ -172,7 +172,7 @@ const processAdjustmentFrame = () => {
     queueDirty = true;
   }
   const isUnchanged = !frame.$isReplay$ && !isStronger && !isBetterRanked;
-  if (isWeaker || (isUnchanged && !isNewer)) {
+  if (isWeaker || (isUnchanged && (!isNewer || !queue.length))) {
     adjustmentStack.pop();
     return false;
   }

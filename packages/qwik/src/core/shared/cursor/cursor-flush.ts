@@ -12,6 +12,7 @@ import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
   InsertOrMoveOperation,
+  PostFlushCallbackOperation,
   RemoveAllChildrenOperation,
   SetAttributeOperation,
   SetTextOperation,
@@ -59,6 +60,7 @@ const fastInsertBefore = (
 
 export function _flushJournal(journal: VNodeJournal): void {
   DEBUG && console.warn('walkCursor: flushing journal', vnode_journalToString(journal));
+  const postFlushCallbacks: Array<() => void> = [];
   let batchParent: Node | null = null;
   let batchBefore: Node | null = null;
   let batchNodes: Node[] | null = null;
@@ -85,6 +87,11 @@ export function _flushJournal(journal: VNodeJournal): void {
 
   for (let i = 0; i < journal.length; i++) {
     const operation = journal[i];
+    if (operation instanceof PostFlushCallbackOperation) {
+      postFlushCallbacks.push(operation.callback);
+      continue;
+    }
+
     if (operation instanceof InsertOrMoveOperation) {
       if (batchParent === operation.parent && batchBefore === operation.beforeTarget) {
         if (!batchNodes) {
@@ -191,6 +198,9 @@ export function _flushJournal(journal: VNodeJournal): void {
     }
   }
   flush();
+  for (let i = 0; i < postFlushCallbacks.length; i++) {
+    postFlushCallbacks[i]();
+  }
 }
 
 function executeAfterFlush(container: Container, cursorData: CursorData): void {

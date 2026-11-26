@@ -30,6 +30,7 @@ export const enum Brand {
   EffectSubscription = 1 << 19,
   SubscriptionPatch = 1 << 20,
   SerializationBackRef = 1 << 21,
+  PostFlushCallbackOperation = 1 << 22,
 }
 
 export const hasBrand = (value: unknown, brand: Brand): boolean =>

@@ -16,6 +16,98 @@ import { isElement } from '../../testing/html';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const recordBeforeUpdateRef = (element: Element) => {
+  (globalThis as any).refObservations.push({
+    isConnected: element.isConnected,
+    dataAfter: element.getAttribute('data-after'),
+  });
+};
+const recordAfterUpdateRef = (element: Element) => {
+  (globalThis as any).refObservations.push({
+    isConnected: element.isConnected,
+    dataAfter: element.getAttribute('data-after'),
+  });
+};
+
+describe('domRender: ref', () => {
+  it('should call function refs after the element is connected with its props and children', async () => {
+    let observed:
+      | {
+          isConnected: boolean;
+          dataAfter: string | null;
+          childCount: number;
+        }
+      | undefined;
+    await domRender(
+      <div
+        ref={(element) => {
+          observed = {
+            isConnected: element.isConnected,
+            dataAfter: element.getAttribute('data-after'),
+            childCount: element.childNodes.length,
+          };
+        }}
+        data-after="x"
+      >
+        child text
+      </div>,
+      { debug }
+    );
+
+    expect(observed).toEqual({ isConnected: true, dataAfter: 'x', childCount: 1 });
+  });
+
+  it('should set signal refs after the element is connected with its props and children', async () => {
+    const Cmp = component$(() => {
+      const element = useSignal<Element>();
+      (globalThis as any).refSignal = element;
+      return (
+        <div ref={element} data-after="x">
+          child text
+        </div>
+      );
+    });
+
+    await domRender(<Cmp />, { debug });
+
+    const element = (globalThis as any).refSignal.value as Element;
+    expect(element.isConnected).toBe(true);
+    expect(element.getAttribute('data-after')).toBe('x');
+    expect(element.childNodes.length).toBe(1);
+    (globalThis as any).refSignal = undefined;
+  });
+
+  it('should call updated refs after changed props are applied', async () => {
+    (globalThis as any).refObservations = [] as {
+      isConnected: boolean;
+      dataAfter: string | null;
+    }[];
+    const Cmp = component$(() => {
+      const value = useSignal('before');
+      return (
+        <>
+          <div
+            ref={value.value === 'before' ? recordBeforeUpdateRef : recordAfterUpdateRef}
+            data-after={value.value}
+          >
+            child text
+          </div>
+          <button onClick$={() => (value.value = 'after')}>update</button>
+        </>
+      );
+    });
+
+    const { document } = await domRender(<Cmp />, { debug });
+    await trigger(document.body, 'button', 'click');
+
+    expect((globalThis as any).refObservations).toEqual([
+      { isConnected: true, dataAfter: 'before' },
+      { isConnected: true, dataAfter: 'after' },
+    ]);
+    (globalThis as any).refObservations = undefined;
+  });
+});
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //

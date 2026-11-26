@@ -3,7 +3,6 @@ import { chunkComesFrom, chunkHasVisibleTask, getCoreBundle, ORIGIN } from '../u
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
-  OFF_SCREEN_VISIBLE_TASKS,
   VISIBLE_ABOVE,
   VISIBLE_BELOW,
   VISIBLE_DOCUMENT_IDLE,
@@ -106,6 +105,16 @@ test.describe('visible task below the fold', () => {
     await releaseAll(opened.gate);
   });
 
+  test('the page lists its chunk for the preloader', async ({ page }) => {
+    const response = await page.goto(VISIBLE_BELOW.path);
+    const [, chunkList] = (await response!.text()).match(/\(\{p\}\)=>p\((\[[^\]]*\])\)/)!;
+    const listed = (JSON.parse(chunkList) as string[]).map((name) => `${ORIGIN}/build/${name}`);
+    const itsVisibleTaskChunks = listed.filter(
+      (url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]) && chunkHasVisibleTask(url)
+    );
+    expect(itsVisibleTaskChunks).not.toEqual([]);
+  });
+
   test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows in that one round trip', async ({
     page,
   }) => {
@@ -153,7 +162,6 @@ test.describe('visible task chain scrolled into view', () => {
       const roundTrips = await scrollIntoView(opened);
       await releaseAll(opened.gate);
       await expectResult(page, fixture);
-      test.fail(true, OFF_SCREEN_VISIBLE_TASKS);
       expect(roundTrips).toEqual([]);
     });
   }

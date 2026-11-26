@@ -5,6 +5,7 @@ import { inlinedQrl } from '../shared/qrl/qrl';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { Task, TaskFlags } from '../use/use-task';
 import { setEvent } from './ssr-events';
 
 describe('setEvent', () => {
@@ -52,6 +53,55 @@ describe('setEvent', () => {
     setEvent(context, 'q-e:click', qrl, true);
 
     expect(symbols(context.$eventQrls$)).toEqual([runQrl().$symbol$, 'handler']);
+  });
+
+  const visibleTask = () =>
+    new Task(
+      TaskFlags.VISIBLE_TASK,
+      0,
+      null!,
+      createQRL('task-chunk', 'visibleTask', () => {}),
+      null
+    );
+
+  it('tells the preloader about _task and the visible task it runs, in that order', () => {
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-e:qvisible', taskQrl().w([visibleTask()]), false);
+
+    expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$, 'visibleTask']);
+  });
+
+  it('tells the preloader about a visible task that runs when the document is ready', () => {
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-d:qinit', taskQrl().w([visibleTask()]), false);
+
+    expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$, 'visibleTask']);
+  });
+
+  it('tells the preloader about a visible task that runs when the document is idle', () => {
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-d:qidle', taskQrl().w([visibleTask()]), false);
+
+    expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$, 'visibleTask']);
+  });
+
+  it('writes the same attribute for a visible task as before', () => {
+    expect(setEvent(context, 'q-e:qvisible', taskQrl().w([visibleTask()]), false)).toEqual([
+      `runtime#${taskQrl().$symbol$}`,
+      '#',
+      0,
+    ]);
+  });
+
+  it('skips what _task captures when it is not a task', () => {
+    context.$eventQrls$.clear();
+
+    setEvent(context, 'q-e:qvisible', taskQrl().w([{}]), false);
+
+    expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$]);
   });
 
   describe("remembers each of core's handlers the page's events run through", () => {

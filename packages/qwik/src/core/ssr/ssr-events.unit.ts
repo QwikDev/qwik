@@ -5,7 +5,9 @@ import { inlinedQrl } from '../shared/qrl/qrl';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { setEvent } from './ssr-events';
+import type { Container } from '../shared/types';
+import { invoke, newInvokeContext } from '../use/use-core';
+import { modulepreload as _modulepreload, setEvent } from './ssr-events';
 
 describe('setEvent', () => {
   const context = {
@@ -122,5 +124,47 @@ describe('setEvent', () => {
       '#',
       0,
     ]);
+  });
+});
+
+describe('_modulepreload', () => {
+  const symbols = (qrls: QRL<unknown>[]) => qrls.map((q) => q.getSymbol());
+  const createGotoQrl = () => createQRL('goto.js', 's_goto', () => {});
+
+  const duringServerRender = (render: () => void) => {
+    const serializationCtx = { $modulepreloads$: new Map() } as unknown as SerializationContext;
+    const context = newInvokeContext();
+    context.$container$ = { serializationCtx } as unknown as Container;
+    invoke(context, render);
+    return [...serializationCtx.$modulepreloads$.values()];
+  };
+
+  it("remembers QRLs and bundle graph names during a server render: _modulepreload(gotoQrl, '@qwik-router-config') keeps both", () => {
+    const gotoQrl = createGotoQrl();
+
+    const kept = duringServerRender(() => _modulepreload(gotoQrl, '@qwik-router-config'));
+
+    expect(kept).toEqual([gotoQrl, '@qwik-router-config']);
+  });
+
+  it('remembers a QRL once: two <Link>s call _modulepreload(gotoQrl), the page keeps one gotoQrl', () => {
+    const kept = duringServerRender(() => {
+      _modulepreload(createGotoQrl());
+      _modulepreload(createGotoQrl());
+    });
+
+    expect(symbols(kept as QRL<unknown>[])).toEqual(['s_goto']);
+  });
+
+  it('does nothing on the client: _modulepreload(gotoQrl) in a client render keeps nothing', () => {
+    const clientRender = newInvokeContext();
+    clientRender.$container$ = {} as unknown as Container;
+
+    expect(() => invoke(clientRender, () => _modulepreload(createGotoQrl()))).not.toThrow();
+    expect(() => _modulepreload(createGotoQrl())).not.toThrow();
+  });
+
+  it('ignores a missing value: _modulepreload(undefined) keeps nothing', () => {
+    expect(duringServerRender(() => _modulepreload(undefined))).toEqual([]);
   });
 });

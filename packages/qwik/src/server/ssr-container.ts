@@ -757,15 +757,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   private coreHandlersLinked = 0;
 
   linkCoreHandlerBundles(): void {
+    const modulepreloadCount =
+      this.serializationCtx.$coreHandlerQrls$.size + this.serializationCtx.$modulepreloads$.size;
     if (
-      this.coreHandlersLinked === this.serializationCtx.$coreHandlerQrls$.size ||
+      this.coreHandlersLinked === modulepreloadCount ||
       isDev ||
       // Segments stream inside <template>, where scripts don't run; their root links them
       this instanceof SSRSegmentContainer
     ) {
       return;
     }
-    this.coreHandlersLinked = this.serializationCtx.$coreHandlerQrls$.size;
+    this.coreHandlersLinked = modulepreloadCount;
     preloadHandlerBundles(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
   }
   $errorContentHost$: ISsrNode | null = null;
@@ -2368,6 +2370,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
     for (const [hash, qrl] of segmentSerializationCtx.$coreHandlerQrls$) {
       rootContainer.serializationCtx.$coreHandlerQrls$.set(hash, qrl);
+    }
+    for (const [hashOrName, item] of segmentSerializationCtx.$modulepreloads$) {
+      rootContainer.serializationCtx.$modulepreloads$.set(hashOrName, item);
     }
   }
 

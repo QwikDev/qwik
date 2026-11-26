@@ -849,6 +849,9 @@ export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | nul
 // @internal
 export const _markSignalAsExternallyOwned: (signal: ComputedSignal<unknown>) => void;
 
+// @internal (undocumented)
+export const _modulepreload: (...items: (QRL | string | null | undefined)[]) => void;
+
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
 

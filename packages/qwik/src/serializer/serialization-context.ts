@@ -113,6 +113,7 @@ export interface SerializationContext {
   $eventQrls$: Set<QRL>;
   /** Core's handlers (`_run`, `_task`, …) that the page's events run through, by hash. */
   $coreHandlerQrls$: Map<string, QRL>;
+  $modulepreloads$: Map<string, QRL | string>;
   $eventNames$: Set<string>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
@@ -138,6 +139,7 @@ class SerializationContextImpl implements SerializationContext {
   public $eagerResume$: Set<unknown> = new Set();
   public $eventQrls$: Set<QRL> = new Set();
   public $coreHandlerQrls$: Map<string, QRL> = new Map();
+  public $modulepreloads$: Map<string, QRL | string> = new Map();
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();
   private $serializer$: Serializer;

@@ -5,7 +5,25 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from '../shared/utils/event-names';
-import type { SSRWriteChunk } from './ssr-types';
+import { tryGetInvokeContext } from '../use/use-core';
+import type { SSRContainer, SSRWriteChunk } from './ssr-types';
+
+/** @internal */
+export const modulepreload = (...items: (QRL | string | null | undefined)[]): void => {
+  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
+  const modulepreloads = container?.serializationCtx?.$modulepreloads$;
+  if (!modulepreloads) {
+    return;
+  }
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (typeof item === 'string') {
+      modulepreloads.set(item, item);
+    } else if (isQrl(item)) {
+      modulepreloads.set(item.$hash$, item);
+    }
+  }
+};
 
 /** @internal */
 export function setEvent(

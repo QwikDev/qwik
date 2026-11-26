@@ -17,6 +17,7 @@ const createContainer = (buildBase = '/') => {
     serializationCtx: {
       $eventQrls$: new Set(),
       $coreHandlerQrls$: new Map(),
+      $modulepreloads$: new Map(),
     },
     openElement(tagName: string, _key: any, attrs: Record<string, string>) {
       elements.push({ tagName, attrs });
@@ -496,6 +497,159 @@ describe('preloader', () => {
           .split(`window.addEventListener('load'`);
         expect(linksAtTheEnd).toContain('["handler.js"].map(');
       }));
+  });
+
+  describe('bundles a library asks for with _modulepreload', () => {
+    const graphWhereGotoImportsQwikRouter = [
+      'goto.js',
+      -3,
+      3,
+      'qwik-router.js',
+      '@qwik-router-config',
+      -1,
+      7,
+      'q-AbC123.js',
+    ];
+    const graphWhereGotoAndRunImportCore = ['goto.js', -3, 6, 'run.js', -3, 6, 'core.js'];
+    const graphWithFiveOtherBundles = [
+      'goto.js',
+      -3,
+      'a.js',
+      -2,
+      'b.js',
+      -2,
+      'c.js',
+      -2,
+      'd.js',
+      -2,
+      'e.js',
+      -2,
+    ];
+
+    const createQrl = async (bundle: string, symbol: string) => {
+      const { createQRL } = await import('../core/shared/qrl/qrl-class');
+      return createQRL(bundle, symbol, () => {});
+    };
+    const createGotoQrl = () => createQrl('goto.js', 's_goto');
+
+    const askFor = (container: { serializationCtx: any }, item: any) =>
+      container.serializationCtx.$modulepreloads$.set(
+        typeof item === 'string' ? item : item.$hash$,
+        item
+      );
+
+    const createContainerAskingFor = (
+      item: unknown,
+      bundleGraph = graphWhereGotoImportsQwikRouter
+    ) => {
+      const created = createContainer();
+      created.container.resolvedManifest.manifest.bundleGraph = bundleGraph;
+      askFor(created.container, item);
+      return created;
+    };
+
+    it("modulepreloads a QRL's bundle and its static imports mid-stream: gotoQrl gives goto.js and qwik-router.js, before the next element", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor(await createGotoQrl());
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toContain('["qwik-router.js","goto.js"].map(');
+    });
+
+    it("a bundle graph name modulepreloads the bundle it stands for: '@qwik-router-config' gives q-AbC123.js", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor('@qwik-router-config');
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toContain('["q-AbC123.js"].map(');
+    });
+
+    it("a name the bundle graph doesn't know gets no modulepreload: 'not-a-chunk' gives none", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor('not-a-chunk');
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toBe('');
+    });
+
+    it("modulepreloads no bundle twice: goto.js imports core.js, which core's handlers already modulepreloaded, and core.js gets one", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainer();
+      container.resolvedManifest.manifest.bundleGraph = graphWhereGotoAndRunImportCore;
+      const coreHandlerQrl = await createQrl('run.js', 's_run');
+      container.serializationCtx.$coreHandlerQrls$.set(coreHandlerQrl.$hash$, coreHandlerQrl);
+      preloadHandlerBundles(container, undefined);
+      const forCoreHandler = getScriptContent();
+
+      askFor(container, await createGotoQrl());
+      preloadHandlerBundles(container, undefined);
+
+      expect(forCoreHandler).toContain('["core.js","run.js"].map(');
+      expect(getScriptContent().slice(forCoreHandler.length)).toContain('["goto.js"].map(');
+    });
+
+    it("the ssrPreloads limit doesn't apply: at 0, gotoQrl still gives goto.js", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor(await createGotoQrl());
+
+      preloadHandlerBundles(container, { ssrPreloads: 0 });
+
+      expect(getScriptContent()).toContain('"goto.js"');
+    });
+
+    it('preloader: false turns the modulepreloads off: gotoQrl gives none', async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor(await createGotoQrl());
+
+      preloadHandlerBundles(container, false);
+
+      expect(getScriptContent()).toBe('');
+    });
+
+    it('dev mode modulepreloads nothing: gotoQrl gives none', async () => {
+      vi.stubEnv('DEV', true);
+      vi.doMock('./qwik-copy', () => ({
+        initPreloader: vi.fn(),
+        qTest: false,
+      }));
+      vi.resetModules();
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = createContainerAskingFor(await createGotoQrl());
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toBe('');
+    });
+
+    it('the speculative modulepreloads at the end of the page neither repeat nor count a bundle modulepreloaded mid-stream: with ssrPreloads at 5, the page still gets 5, without goto.js', async () => {
+      const { initPreloader } = await import('../core/preloader/bundle-graph');
+      const { includePreloader, preloadHandlerBundles } = await import('./preload-impl');
+      initPreloader(graphWithFiveOtherBundles);
+      const { container, getScriptContent } = createContainerAskingFor(
+        await createGotoQrl(),
+        graphWithFiveOtherBundles
+      );
+      preloadHandlerBundles(container, undefined);
+      const midStream = getScriptContent();
+
+      includePreloader(container, { ssrPreloads: 5 }, [
+        'goto.js',
+        'a.js',
+        'b.js',
+        'c.js',
+        'd.js',
+        'e.js',
+      ]);
+
+      const atTheEnd = getScriptContent().slice(midStream.length);
+      const speculative = JSON.parse(atTheEnd.slice(0, atTheEnd.indexOf('.map(')));
+      expect(midStream).toContain('["goto.js"].map(');
+      expect(speculative).toHaveLength(5);
+      expect(speculative).not.toContain('goto.js');
+    });
   });
 
   it("ranks each render's hint afresh, since SSR shares the preloader's state", async () => {

@@ -368,14 +368,15 @@ export const getPreloadOrder = (item: string[], priority?: number) => {
 
 const INTENT_PRIORITY = 0.9;
 const IN_VIEW_PRIORITY = 0.8;
-const ELEMENT_HANDLER_ATTRIBUTE_PREFIX = 'q-e';
+const ELEMENT_HANDLER_ATTRIBUTE = /^q-ep?:/;
+const VISIBLE_TASK_ATTRIBUTE = 'q-e:qvisible';
 const ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
-const addHandlerChunksOf = (element: Element, chunks: string[]) => {
+const addHandlerChunksOf = (element: Element, chunks: string[], skippedAttribute?: string) => {
   const attributes = element.attributes;
   for (let i = 0; attributes && i < attributes.length; i++) {
     const { name, value } = attributes[i];
-    if (!name.startsWith(ELEMENT_HANDLER_ATTRIBUTE_PREFIX)) {
+    if (!ELEMENT_HANDLER_ATTRIBUTE.test(name) || name === skippedAttribute) {
       continue;
     }
     const qrls = value.split('|');
@@ -401,7 +402,7 @@ export const preloadHandlersInView = () => {
     preload(chunksInView, IN_VIEW_PRIORITY);
   });
   const elementsWithHandlers = doc.evaluate(
-    `//*[@*[starts-with(name(),'${ELEMENT_HANDLER_ATTRIBUTE_PREFIX}')]]`,
+    "//*[@*[starts-with(name(),'q-e:') or starts-with(name(),'q-ep:')]]",
     doc,
     null,
     ORDERED_NODE_SNAPSHOT_TYPE
@@ -417,7 +418,7 @@ export const preloadHandlersOnIntent = () => {
     const chunks: string[] = [];
     const path = event.composedPath() as Element[];
     for (let i = 0; i < path.length; i++) {
-      addHandlerChunksOf(path[i], chunks);
+      addHandlerChunksOf(path[i], chunks, VISIBLE_TASK_ATTRIBUTE);
     }
     const hint = chunks.join();
     if (hint !== lastHint) {

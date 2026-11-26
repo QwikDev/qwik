@@ -1408,6 +1408,38 @@ describe('handlers in view', () => {
     expect(priorityOf('second.js')).toBeGreaterThan(priorityOf('first.js'));
     expect(priorityOf('third.js')).toBe(priorityOf('second.js'));
   });
+
+  test('a q-editor attribute that names third.js leaves third.js at its place', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const editor = elementWith({ 'q-editor': 'third.js#s_edit' });
+    const view = installViewObserver(document, [editor]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: editor, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['first.js']);
+  });
+
+  test('a q-ep:scroll handler in view is preloaded before the other speculative preloads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const list = elementWith({ 'q-ep:scroll': 'third.js#s_scroll' });
+    const view = installViewObserver(document, [list]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: list, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js']);
+  });
 });
 
 describe('hover and focus', () => {
@@ -1451,6 +1483,23 @@ describe('hover and focus', () => {
     await vi.runAllTimersAsync();
 
     expect(bundles.get('third.js')!.$hintOrder$).toBe(hintOrder);
+  });
+
+  test('pointerover on a button inside a q-e:qvisible element preloads the click handler, not the visible task', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const getListener = listenerFor(document, 'pointerover');
+    const section = elementWith({ 'q-e:qvisible': 'second.js#s_visible' });
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+
+    await loadGraphOfThreeHandlers(2);
+    getListener()(intentOn(button, section, document));
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js', 'first.js']);
   });
 });
 

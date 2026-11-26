@@ -246,7 +246,11 @@ async function collectRouteLoaderSources(
     } else if (/^export\s*{/.test(exp.code)) {
       // `import { useData } from './data'; export { useData as useRouteData };`: the imported
       // binding's module, by its local name (the documented re-export pattern without `from`).
-      const list = exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '';
+      // Comments out first: mlly keeps them in the export's text (`export { /* x */ useData }`).
+      const list = (exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '').replace(
+        /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,
+        ''
+      );
       for (const entry of list.split(',')) {
         const localName = entry.trim().split(/\s+as\s+/)[0];
         const specifier = localName && importedFactories.get(localName);

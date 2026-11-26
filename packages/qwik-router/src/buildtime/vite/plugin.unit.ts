@@ -117,7 +117,11 @@ describe('qwikRouter plugin', () => {
             `import { useData } from './data';`,
             `import { useOther as useOtherLocal } from './other';`,
             `import { helper } from './unrelated';`,
-            `export { useData, useOtherLocal as useOtherData };`,
+            `export {`,
+            `  /* the page's data */ useData,`,
+            `  // under the name the route uses`,
+            `  useOtherLocal as useOtherData,`,
+            `};`,
             `export default helper;`,
           ].join('\n')
         );

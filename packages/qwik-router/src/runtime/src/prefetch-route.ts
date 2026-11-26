@@ -18,6 +18,7 @@ import type { LoadedRoute, RouteModule } from './types';
  * @param manifestHash - Build manifest hash for loader URLs (from `useDocumentHead().manifestHash`)
  * @param prefetchBundle - Whether to prefetch route JS bundles
  * @param currentUrl - The page the navigation leaves, when `location` already shows the new one
+ * @public
  */
 export async function prefetchRoute(
   url: URL,

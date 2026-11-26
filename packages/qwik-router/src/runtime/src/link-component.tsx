@@ -1,4 +1,12 @@
-import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  Slot,
+  sync$,
+  untrack,
+  type QwikIntrinsicElements,
+  type QRL,
+} from '@qwik.dev/core';
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
@@ -14,6 +22,7 @@ export const Link = component$<LinkProps>((props) => {
   const originalHref = props.href;
   const {
     onClick$,
+    onBeforeNavigate$,
     prefetch: prefetchProp,
     reload,
     replaceState,
@@ -127,15 +136,23 @@ export const Link = component$<LinkProps>((props) => {
   });
 
   const handleClientSideNavigation = clientNavPath
-    ? $((event: Event, elm: HTMLAnchorElement) => {
-        if (event.defaultPrevented) {
-          // If default was prevented, then it is up to us to make client side navigation.
-          if (elm.href) {
-            elm.setAttribute('data-navigating', '');
-            nav(elm.href, { forceReload: reload, replaceState, scroll }).finally(() => {
-              elm.removeAttribute('data-navigating');
-            });
+    ? $(async (event: Event, elm: HTMLAnchorElement) => {
+        if (!event.defaultPrevented) {
+          return;
+        }
+
+        if (onBeforeNavigate$) {
+          if ((await onBeforeNavigate$(event as MouseEvent, elm)) === false) {
+            return;
           }
+        }
+
+        // If default was prevented, then it is up to us to make client side navigation.
+        if (elm.href) {
+          elm.setAttribute('data-navigating', '');
+          nav(elm.href, { forceReload: reload, replaceState, scroll }).finally(() => {
+            elm.removeAttribute('data-navigating');
+          });
         }
       })
     : null;
@@ -199,6 +216,15 @@ type AnchorAttributes = QwikIntrinsicElements['a'];
 
 /** @public */
 export interface LinkProps extends AnchorAttributes {
+  /**
+   * Runs before client-side navigation. Return `false` to cancel navigation.
+   *
+   * @public
+   */
+  onBeforeNavigate$?: QRL<
+    (event: MouseEvent, element: HTMLAnchorElement) => boolean | void | Promise<boolean | void>
+  >;
+
   /**
    * @deprecated Use `prefetchBundles` and `prefetchData` instead for more granular control over
    *   what is prefetched and when. This prop will be removed in a future major version.

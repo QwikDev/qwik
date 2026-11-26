@@ -101,6 +101,49 @@ describe('qwikRouter plugin', () => {
         await rm(dir, { recursive: true, force: true });
       }
     });
+
+    it('discovers a loader imported and then re-exported, under its own name or another', async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
+      try {
+        const routeDir = join(dir, 'src/routes/target');
+        await mkdir(routeDir, { recursive: true });
+        const route = join(routeDir, 'index.tsx');
+        const data = join(routeDir, 'data.ts');
+        const other = join(routeDir, 'other.ts');
+        const unrelated = join(routeDir, 'unrelated.ts');
+        await writeFile(
+          route,
+          [
+            `import { useData } from './data';`,
+            `import { useOther as useOtherLocal } from './other';`,
+            `import { helper } from './unrelated';`,
+            `export { useData, useOtherLocal as useOtherData };`,
+            `export default helper;`,
+          ].join('\n')
+        );
+        await writeFile(data, `export const useData = 1;`);
+        await writeFile(other, `export const useOther = 1;`);
+        await writeFile(unrelated, `export const helper = 1;`);
+        const ctx = {
+          routeTrie: {
+            _files: [{ type: 'route', filePath: route, fileName: 'index.tsx' }],
+            children: new Map(),
+          },
+          serverPlugins: [],
+        } as any;
+
+        const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) =>
+          specifier.startsWith('.') ? join(dirname(importer), specifier) + '.ts' : undefined
+        );
+
+        expect(sources.get(route)).toEqual([
+          data.replaceAll(/\\/g, '/'),
+          other.replaceAll(/\\/g, '/'),
+        ]);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('config hook', () => {

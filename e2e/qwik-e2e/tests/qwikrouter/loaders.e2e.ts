@@ -202,6 +202,30 @@ test.describe('loaders', () => {
       );
     });
 
+    test('prefetches a loader the route imports and then re-exports, by its custom id', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/custom-id-prefetch/');
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/custom-id-prefetch/reexported/q-loader-')) {
+          loaderRequests.push(new URL(request.url()).pathname);
+        }
+      });
+      const link = page.getByRole('link', { name: 'Open re-exported target' });
+      const prefetched = page.waitForResponse(
+        (response) => response.url().includes('/q-loader-custom-id-reexported.') && response.ok()
+      );
+      await link.hover();
+      await prefetched;
+      await link.click();
+      await expect(page.getByRole('heading', { name: 'Re-exported target' })).toBeVisible();
+
+      expect(loaderRequests).toHaveLength(1);
+      expect(loaderRequests[0]).toContain('/q-loader-custom-id-reexported.');
+    });
+
     test('catch-all q-loader requests run server plugins before route loaders', async ({
       page,
     }) => {

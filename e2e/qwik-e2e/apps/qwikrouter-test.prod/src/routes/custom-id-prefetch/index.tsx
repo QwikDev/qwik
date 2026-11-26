@@ -17,5 +17,12 @@ export default component$(() => (
     >
       Open target without its slash
     </Link>
+    <Link
+      href="/qwikrouter-test.prod/custom-id-prefetch/reexported/"
+      prefetchData="intent"
+      prefetchBundles="off"
+    >
+      Open re-exported target
+    </Link>
   </>
 ));

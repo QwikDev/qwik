@@ -243,6 +243,17 @@ async function collectRouteLoaderSources(
       if (specifier) {
         specifiers.add(specifier);
       }
+    } else if (/^export\s*{/.test(exp.code)) {
+      // `import { useData } from './data'; export { useData as useRouteData };`: the imported
+      // binding's module, by its local name (the documented re-export pattern without `from`).
+      const list = exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '';
+      for (const entry of list.split(',')) {
+        const localName = entry.trim().split(/\s+as\s+/)[0];
+        const specifier = localName && importedFactories.get(localName);
+        if (specifier) {
+          specifiers.add(specifier);
+        }
+      }
     }
   }
 

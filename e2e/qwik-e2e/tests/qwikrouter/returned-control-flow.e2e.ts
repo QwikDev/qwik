@@ -17,6 +17,36 @@ async function replaceActionRedirect(page: Page, target: string) {
 
 // Returning ev.redirect()/ev.error() must behave the same as throwing them.
 test.describe('returned control-flow signals', () => {
+  test('keeps an action running while its redirect target loads', async ({ page }) => {
+    const source = `${base}/action-redirect-loading/`;
+    const target = `${base}/action-redirect-loading-target/`;
+    let releaseLoader!: () => void;
+    let markLoaderRequested!: () => void;
+    const loaderGate = new Promise<void>((resolve) => (releaseLoader = resolve));
+    const loaderRequested = new Promise<void>((resolve) => (markLoaderRequested = resolve));
+    await page.goto(source);
+    await page.waitForFunction(() => (window as any)._qwikEv?.roots);
+
+    await page.route(`**${target}q-loader-*`, async (route) => {
+      markLoaderRequested();
+      await loaderGate;
+      await route.continue();
+    });
+
+    try {
+      await page.locator('#redirect-action-submit').click();
+      await loaderRequested;
+      await expect.poll(() => new URL(page.url()).pathname).toBe(target);
+      await expect(page.locator('#redirect-action-page')).toBeVisible();
+      await expect(page.locator('#redirect-action-running')).toHaveText('true');
+
+      releaseLoader();
+      await expect(page.locator('#redirect-action-target')).toHaveText('Loaded');
+    } finally {
+      releaseLoader();
+    }
+  });
+
   test('loader returning redirect redirects', async ({ page }) => {
     await page.goto(`${base}/loader-redirect/`);
     await expect(page.locator('#returned-control-flow-target')).toBeVisible();

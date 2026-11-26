@@ -125,7 +125,9 @@ test.describe('gate: speculative preloads', () => {
         document.head.appendChild(link);
       }`,
     });
-    expect(await preloaderLinks(page)).toContainEqual({ href: addedByThePage, speculative: false });
+    expect(await preloaderLinks(page)).toContainEqual(
+      expect.objectContaining({ href: addedByThePage, speculative: false })
+    );
     expect(await speculativePreloads(page)).not.toContain(addedByThePage);
   });
 });

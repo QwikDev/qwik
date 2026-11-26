@@ -85,6 +85,7 @@ test.describe('before any user event', () => {
     const hrefs = whileLoading.map((link) => link.href);
     expect(hrefs).toContain(coreUrl());
     expect(hrefs.some((href) => chunkComesFrom(href, ROUTER_SOURCES))).toBe(true);
+    expect(hrefs.some((href) => chunkComesFrom(href, PRIORITY.sources))).toBe(true);
     expect(whileLoading.filter((link) => link.fetchPriority !== 'low')).toEqual([]);
   });
 
@@ -99,7 +100,7 @@ test.describe('before any user event', () => {
     expect(requests.filter((url) => url === bundleGraphUrl())).toHaveLength(1);
   });
 
-  test("no Qwik JavaScript goes out above Low, the visible task's own chunk aside: on /priority/ core and the router are Low and the hero image is High", async ({
+  test("no Qwik JavaScript goes out above Low: on /priority/ core, qwik-router.js and the task's chunk are Low and the hero image is High", async ({
     page,
     browser,
   }) => {
@@ -117,14 +118,15 @@ test.describe('before any user event', () => {
     const routerChunks = whileLoading.filter((request) =>
       chunkComesFrom(request.url, ROUTER_SOURCES)
     );
+    const taskChunk = whileLoading.find((request) => chunkComesFrom(request.url, PRIORITY.sources));
     expect(priorityOf(HERO_IMAGE)).toBe('High');
     expect(priorityOf(coreUrl())).toBe('Low');
     expect(routerChunks.length).toBeGreaterThan(0);
+    expect(taskChunk?.priority).toBe('Low');
     expect(
       whileLoading.filter(
         (request) =>
           (isBuildChunk(request.url) || request.url === bundleGraphUrl()) &&
-          !chunkComesFrom(request.url, PRIORITY.sources) &&
           request.priority !== 'Low'
       )
     ).toEqual([]);

@@ -56,12 +56,12 @@ describe('setEvent', () => {
     expect(symbols(context.$eventQrls$)).toEqual([runQrl().$symbol$, 'handler']);
   });
 
-  const visibleTask = () =>
+  const visibleTask = (chunk = 'task-chunk') =>
     new Task(
       TaskFlags.VISIBLE_TASK,
       0,
       null!,
-      createQRL('task-chunk', 'visibleTask', () => {}),
+      createQRL(chunk, 'visibleTask', () => {}),
       null
     );
 
@@ -89,8 +89,25 @@ describe('setEvent', () => {
     expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$, 'visibleTask']);
   });
 
-  it('writes the same attribute for a visible task as before', () => {
+  it("names the visible task's chunk after core's in its attribute", () => {
     expect(setEvent(context, 'q-e:qvisible', taskQrl().w([visibleTask()]), false)).toEqual([
+      `runtime#${taskQrl().$symbol$}`,
+      '#',
+      0,
+      '#task-chunk',
+    ]);
+  });
+
+  it('names no extra chunk when the visible task has no chunk file of its own', () => {
+    expect(setEvent(context, 'q-e:qvisible', taskQrl().w([visibleTask('_')]), false)).toEqual([
+      `runtime#${taskQrl().$symbol$}`,
+      '#',
+      0,
+    ]);
+  });
+
+  it('names no extra chunk when what _task captures is not a task', () => {
+    expect(setEvent(context, 'q-e:qvisible', taskQrl().w([{}]), false)).toEqual([
       `runtime#${taskQrl().$symbol$}`,
       '#',
       0,

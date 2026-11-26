@@ -54,7 +54,7 @@ export function setEvent(
       // Listing the handler chunk lets qwikloader import it with core instead of after it
       return qrlToChunks(serializationCtx, runQrl().w([qrl]), qrl);
     }
-    return qrlToChunks(serializationCtx, qrl);
+    return qrlToChunks(serializationCtx, qrl, getCapturedTask(qrl)?.$qrl$);
   };
   const appendQrl = (qrl: QRLInternal<unknown>) => {
     // The optimizer's `bind:` handlers serialize and preload as core's own.

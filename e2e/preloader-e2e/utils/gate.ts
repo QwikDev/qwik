@@ -19,7 +19,9 @@ export type RoundTrip = {
   urls: string[];
 };
 
-export type PreloaderLink = { href: string; speculative: boolean };
+export type PreloaderLink = { href: string; speculative: boolean; time: number };
+
+export type PageFetch = { url: string; startTime: number; speculative: boolean };
 
 type PreloaderWindow = Window & {
   __preloaderLinks?: PreloaderLink[];
@@ -82,6 +84,7 @@ export const recordSpeculativePreloads = (page: Page, preloaderFile = getManifes
     const win = window as PreloaderWindow;
     win.__preloaderLinks = [];
     win.__speculativeInFlight = 0;
+    performance.setResourceTimingBufferSize(2000);
     win.__maxSpeculativeInFlight = 0;
     const appendChild = Node.prototype.appendChild;
     Node.prototype.appendChild = function <T extends Node>(this: Node, node: T): T {
@@ -89,7 +92,7 @@ export const recordSpeculativePreloads = (page: Page, preloaderFile = getManifes
         const speculative =
           node.getAttribute('fetchpriority') === 'low' &&
           new Error().stack!.includes(preloaderFile);
-        win.__preloaderLinks!.push({ href: node.href, speculative });
+        win.__preloaderLinks!.push({ href: node.href, speculative, time: performance.now() });
         if (speculative) {
           win.__speculativeInFlight!++;
           win.__maxSpeculativeInFlight = Math.max(
@@ -113,6 +116,36 @@ export const preloaderLinks = (page: Page) =>
 
 export const speculativePreloads = async (page: Page) =>
   new Set((await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href));
+
+export const settledFetches = async (page: Page) => {
+  const settled = await page.waitForFunction(() => {
+    const win = window as PreloaderWindow;
+    const [navigation] = performance.getEntriesByType(
+      'navigation'
+    ) as PerformanceNavigationTiming[];
+    if (win.__speculativeInFlight || !navigation.loadEventStart) {
+      return null;
+    }
+    const firstPreloads = new Map<string, PreloaderLink>();
+    for (const link of win.__preloaderLinks ?? []) {
+      if (!firstPreloads.has(link.href)) {
+        firstPreloads.set(link.href, link);
+      }
+    }
+    const fetches = (performance.getEntriesByType('resource') as PerformanceResourceTiming[]).map(
+      (entry): PageFetch => {
+        const preload = firstPreloads.get(entry.name);
+        return {
+          url: entry.name,
+          startTime: entry.startTime,
+          speculative: !!preload?.speculative && preload.time <= entry.startTime,
+        };
+      }
+    );
+    return { load: navigation.loadEventStart, fetches };
+  });
+  return (await settled.jsonValue())!;
+};
 
 export const createGate = async (page: Page): Promise<Gate> => {
   const gate: Gate = { page, mode: 'pass', held: [] };

@@ -326,6 +326,28 @@ describe.each([
     expect(document.body.textContent).toContain('run');
   });
 
+  it('should run a visible task when a child component precedes a hidden element', async () => {
+    const Trigger = component$(() => <button>Trigger</button>);
+    const Cmp = component$(() => {
+      const ran = useSignal(false);
+      useVisibleTask$(() => {
+        ran.value = true;
+      });
+      return (
+        <>
+          <Trigger />
+          <div style="display:none">visible task ran: {String(ran.value)}</div>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'script', 'd:qinit');
+    const hiddenElement = document.querySelector('div[style]');
+    expect(hiddenElement?.hasAttribute('q-e:qvisible')).toBe(false);
+    expect(hiddenElement?.textContent).toBe('visible task ran: true');
+  });
+
   it('should trigger in empty components array', async () => {
     const Cmp = component$(() => {
       const signal = useSignal('empty');

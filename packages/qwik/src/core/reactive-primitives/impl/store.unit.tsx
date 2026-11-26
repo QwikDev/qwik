@@ -9,6 +9,7 @@ import { newInvokeContext } from '../../use/use-core';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { Task, TaskFlags } from '../../use/use-task';
 import { getSubscriber } from '../subscriber';
+import { createComputed$ } from '../signal.public';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from 'packages/qwik/src/server/qwik-copy';
 
@@ -18,7 +19,9 @@ describe('v2/store', () => {
   let document: Document = null!;
   beforeEach(() => {
     log.length = 0;
-    document = createDocument({ html: '<html><body q:container="paused"></body></html>' });
+    document = createDocument({
+      html: '<html><body q:container="paused"></body></html>',
+    });
     container = getDomContainer(document.body);
   });
 
@@ -55,6 +58,148 @@ describe('v2/store', () => {
     });
   });
 
+  it('should notify when an array index is deleted', async () => {
+    await withContainer(async () => {
+      const store = getOrCreateStore([1, 2], StoreFlags.NONE, container);
+      effect$(() => log.push(store.join(',')));
+      expect(log).toEqual(['1,2']);
+      delete store[0];
+      await flushSignals();
+      expect(log).toEqual(['1,2', ',2']);
+    });
+  });
+
+  it('should notify once when the last array index is deleted', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      delete store[2];
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('1,2,');
+    });
+  });
+
+  it('should notify once when an array is popped', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      store.pop();
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('1,2');
+    });
+  });
+
+  it('should preserve a retrieved array method when called later', async () => {
+    await withContainer(async () => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+      const pop = store.pop;
+
+      expect(pop).toBe(store.pop);
+      await Promise.resolve();
+      Reflect.apply(pop, store, []);
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('1,2');
+    });
+  });
+
+  it('should notify once for each reentrant array method call', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      Reflect.apply(store.splice, store, [0, { valueOf: () => store.pop() && 1 }]);
+
+      expect(calls.count).toBe(2);
+      expect(value.value).toBe('2,');
+    });
+  });
+
+  it('should notify once when an array item is spliced out', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      store.splice(0, 1);
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('2,3');
+    });
+  });
+
+  it('should notify once when an array item is spliced in', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      store.splice(1, 0, 9);
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('1,9,2,3');
+    });
+  });
+
+  it('should notify once when an array is shifted', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      store.shift();
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('2,3');
+    });
+  });
+
+  it('should update a derived array value synchronously after deletion', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([1, 2, 3], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      delete store[1];
+
+      expect(value.value).toBe('1,,3');
+      expect(calls.count).toBe(1);
+    });
+  });
+
+  it('should not notify when an array method does not change the array', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore<number[]>([], StoreFlags.NONE, container);
+      const { calls, value } = watchArray(store);
+
+      store.pop();
+      store.splice(0, 0);
+
+      expect(calls.count).toBe(0);
+      expect(value.value).toBe('');
+    });
+  });
+
+  it('should coalesce mutations independently for nested array stores', async () => {
+    await withContainer(() => {
+      const store = getOrCreateStore([[1, 2], [3]], StoreFlags.RECURSIVE, container);
+      const calls = { count: 0 };
+      const value = createComputed$(() => {
+        calls.count++;
+        return store.map((items) => items.join(',')).join(';');
+      });
+      effect$(() => value.value);
+      expect(calls.count).toBe(1);
+      calls.count = 0;
+
+      store[0].pop();
+
+      expect(calls.count).toBe(1);
+      expect(value.value).toBe('1;3');
+    });
+  });
+
   function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();
     ctx.$container$ = container;
@@ -63,6 +208,18 @@ describe('v2/store', () => {
 
   async function flushSignals() {
     await container.$renderPromise$;
+  }
+
+  function watchArray(store: number[]) {
+    const calls = { count: 0 };
+    const value = createComputed$(() => {
+      calls.count++;
+      return store.join(',');
+    });
+    effect$(() => value.value);
+    expect(calls.count).toBe(1);
+    calls.count = 0;
+    return { calls, value };
   }
 
   function effectQrl(fnQrl: QRL<() => void>) {

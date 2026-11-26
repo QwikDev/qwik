@@ -109,6 +109,9 @@ export const getOrCreateStore = <T extends object>(
 
 export class StoreHandler implements ProxyHandler<StoreTarget> {
   $effects$: undefined | Map<string | symbol, Set<EffectSubscription>> = undefined;
+  private $arrayMutationChanges$: boolean[] = [];
+  private $arrayMethodWrappers$: Map<string, { method: Function; wrapper: Function }> | undefined =
+    undefined;
 
   constructor(
     public $flags$: StoreFlags,
@@ -167,6 +170,10 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
       return this.toString;
     }
 
+    if (Array.isArray(target) && isArrayMutatingMethod(prop, value)) {
+      return this.getArrayMethod(target, prop, value);
+    }
+
     const flags = this.$flags$;
     let shouldWrapRecursively = false;
     if (flags & StoreFlags.RECURSIVE && isObject(value)) {
@@ -208,12 +215,52 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
-    if (!Array.isArray(target)) {
-      // If the target is an array, we don't need to trigger effects.
-      // Changing the length property will trigger effects.
-      scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
-    }
+    this.scheduleStoreEffects(target, prop);
     return true;
+  }
+
+  private getArrayMethod(target: StoreTarget, prop: string, method: Function): Function {
+    const wrappers = (this.$arrayMethodWrappers$ ||= new Map());
+    const existing = wrappers.get(prop);
+    if (existing?.method === method) {
+      return existing.wrapper;
+    }
+
+    const wrapper = new Proxy(method, {
+      apply: (arrayMethod, thisArg, args) => {
+        if (
+          !thisArg ||
+          (typeof thisArg !== 'object' && typeof thisArg !== 'function') ||
+          getStoreHandler(thisArg as StoreTarget) !== this
+        ) {
+          return Reflect.apply(arrayMethod, thisArg, args);
+        }
+
+        this.$arrayMutationChanges$.push(false);
+        try {
+          return Reflect.apply(arrayMethod, thisArg, args);
+        } finally {
+          const didChange = this.$arrayMutationChanges$.pop()!;
+          if (didChange) {
+            scheduleEffects(
+              this.$container$,
+              this,
+              getEffects(target, STORE_ALL_PROPS, this.$effects$)
+            );
+          }
+        }
+      },
+    });
+    wrappers.set(prop, { method, wrapper });
+    return wrapper;
+  }
+
+  scheduleStoreEffects(target: StoreTarget, prop: string | symbol): void {
+    if (this.$arrayMutationChanges$.length > 0) {
+      this.$arrayMutationChanges$[this.$arrayMutationChanges$.length - 1] = true;
+      return;
+    }
+    scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
   }
 
   has(target: StoreTarget, prop: string | symbol) {
@@ -266,6 +313,14 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 }
 brandClass(StoreHandler, Brand.StoreHandler);
 
+function isArrayMutatingMethod(prop: string | symbol, value: unknown): value is Function {
+  return (
+    (prop === 'pop' && value === Array.prototype.pop) ||
+    (prop === 'shift' && value === Array.prototype.shift) ||
+    (prop === 'splice' && value === Array.prototype.splice)
+  );
+}
+
 export function addStoreEffect(
   target: StoreTarget | PropsProxy,
   prop: string | symbol,
@@ -315,10 +370,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   target[prop] = value;
-  const effects = getEffects(target, prop as string | symbol, currentStore.$effects$);
-  if (effects) {
-    scheduleEffects(currentStore.$container$, currentStore, effects);
-  }
+  currentStore.scheduleStoreEffects(target as StoreTarget, prop as string | symbol);
 }
 
 function getEffects<T extends Record<string | symbol, any>>(

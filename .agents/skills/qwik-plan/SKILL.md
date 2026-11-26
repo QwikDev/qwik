@@ -59,7 +59,9 @@ project's words.
 6. **Plan**: the steps, with every test of the target design grouped in `describe` blocks, as a tree
    per test file in a code block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests
    keep their real names unless a plain-English rename reads clearer (mark it `~`); new tests get
-   plain-English names. A test name stands on its own: it never points at another test
+   plain-English names that state the rule, then its most common concrete case, a named input and
+   what it gives: `keeps running after a failure: runAll([ok, throws, ok]) runs the third task`. A
+   test name stands on its own: it never points at another test
    (`those chunks`, `them`, `also`). When tests share a subject, put them in a `describe` block that
    names it. Write a changed test as `~ previous name -> new name`, or `~ name` when only its body
    changes. A change may also regroup the file's old tests into more logical `describe`
@@ -87,11 +89,11 @@ describe('runAll')
   ✓ runs every task
   ~ waits for tasks -> waits for every task, even after one fails
   ~ stops when the queue is empty (moved from the top level)
-  + keeps the count right when a task throws (B1)
-  +⚠ runs tasks queued while running (B2)
+  + keeps the count right when a task throws: runAll([ok, throws]) counts 2 run and 1 failed (B1)
+  +⚠ runs tasks queued while running: a task queues another, runAll runs both (B2)
   describe('a task that fails')
-    + its error is returned (A1)
-    + the tasks after it still run
+    + returns its error: runAll([ok, throws, ok]) returns the second task's error (A1)
+    + keeps running: runAll([ok, throws, ok]) runs the third task
 ```
 
 ## Pull Requests

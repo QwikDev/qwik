@@ -615,6 +615,20 @@ test.describe('hover on a Link that prefetches on intent', () => {
   });
 });
 
+test.describe('hover on a Link with prefetch off', () => {
+  test('the new route is not hinted to the preloader, and its chunks are not requested', async ({
+    page,
+  }) => {
+    await recordPreloadHints(page);
+    const { gate } = await openFixture(page, FROM.off, 'warm');
+    const urls = await collectUntilQuiet(page, gate, () => treeLink(page, FROM.off).hover());
+    await releaseAll(gate);
+    const hints = await preloadHints(page);
+    expect(hints.filter(({ item }) => [item].flat().includes(TO_TREE_ROUTE))).toEqual([]);
+    expect(urls.filter((url) => chunkComesFrom(url, TO_TREE_SOURCES))).toEqual([]);
+  });
+});
+
 const SPECULATIVE_PRIORITY = 0.9;
 
 const navigateToTreeWithOldPageWorkQueued = async (page: Page) => {

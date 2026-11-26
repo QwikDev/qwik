@@ -114,8 +114,28 @@ describe.each([
 
     await trigger(document.body, anchor, 'pointerenter');
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
+  });
+
+  it('hints the bundles of a link that prefetches when visible again on intent', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'visible',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
   it('renders the route name of the link target on every client-side link', async () => {
@@ -149,7 +169,10 @@ describe.each([
   });
 
   it('prefetches route data on intent', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'intent' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'intent',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerdown');
@@ -165,7 +188,10 @@ describe.each([
   });
 
   it('prefetches route data on commit', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'commit' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'commit',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');
@@ -196,8 +222,8 @@ describe.each([
     await trigger(document.body, anchor, 'focus');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
   it('prefetches route bundles on commit', async () => {
@@ -216,8 +242,8 @@ describe.each([
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
   it('prefetches route bundles and data on commit', async () => {
@@ -232,9 +258,9 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(4);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
     expectPrefetchRouteCall(2, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(3, '/test', false, 0.8);
+    expectPrefetchRouteCall(3, '/test', false, 0.9);
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
@@ -282,7 +308,10 @@ describe.each([
   });
 
   it('does not prefetch route data when data prefetching is off', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'off' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'off',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');

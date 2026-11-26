@@ -16,6 +16,7 @@ export type BundleImport = BundleInfo & {
   /** 0 none, 1 handler, 2 other QRL, 3 component */
   $kind$: number;
   $rank$: number;
+  $hintOrder$: number;
   $isPageToRender$?: boolean;
   $failures$?: number;
 };

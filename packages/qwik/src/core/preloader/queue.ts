@@ -24,6 +24,7 @@ type AdjustmentFrame = {
   $bundle$: BundleImport;
   $priority$: number;
   $importerRank$: number;
+  $hintOrder$: number;
   $isStaticImport$?: boolean;
   $isPageToRender$?: boolean;
   $isReplay$?: boolean;
@@ -32,6 +33,7 @@ type AdjustmentFrame = {
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
+let hintCount = 0;
 
 const isHighestPriority = (bundle: BundleImport) => bundle.$priority$ >= 0.99;
 
@@ -47,7 +49,9 @@ const isHighestPriorityInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => b.$priority$ - a.$priority$ || a.$rank$ - b.$rank$);
+    queue.sort(
+      (a, b) => b.$priority$ - a.$priority$ || a.$rank$ - b.$rank$ || b.$hintOrder$ - a.$hintOrder$
+    );
     queueDirty = false;
   }
 };
@@ -99,6 +103,7 @@ function trigger() {
 const enqueueAdjustment = (
   bundle: BundleImport,
   priority: number,
+  hintOrder: number,
   isPageToRender?: boolean,
   isReplay?: boolean
 ) => {
@@ -106,6 +111,7 @@ const enqueueAdjustment = (
   adjustmentStack.unshift({
     $bundle$: bundle,
     $priority$: priority,
+    $hintOrder$: hintOrder,
     $importerRank$: 0,
     $isPageToRender$: isPageToRender,
     $isReplay$: isReplay,
@@ -147,6 +153,7 @@ const processAdjustmentFrame = () => {
     adjustmentStack.push({
       $bundle$: depBundle,
       $priority$: isHighestPriority(bundle) ? (dep.$isStatic$ ? 1 : 0.99) : bundle.$priority$,
+      $hintOrder$: frame.$hintOrder$,
       $importerRank$: bundle.$rank$,
       $isStaticImport$: dep.$isStatic$,
       $isPageToRender$: frame.$isPageToRender$,
@@ -159,7 +166,13 @@ const processAdjustmentFrame = () => {
   const isStronger = frame.$priority$ > previousPriority;
   const isBetterRanked = frame.$priority$ === previousPriority && rank < bundle.$rank$;
   const isWeaker = frame.$priority$ < previousPriority;
-  if (isWeaker || (!frame.$isReplay$ && !isStronger && !isBetterRanked)) {
+  const isNewer = !isWeaker && !isStronger && frame.$hintOrder$ > bundle.$hintOrder$;
+  if (isStronger || isNewer) {
+    bundle.$hintOrder$ = frame.$hintOrder$;
+    queueDirty = true;
+  }
+  const isUnchanged = !frame.$isReplay$ && !isStronger && !isBetterRanked;
+  if (isWeaker || (isUnchanged && (!isNewer || !queue.length))) {
     adjustmentStack.pop();
     return false;
   }
@@ -174,7 +187,7 @@ const processAdjustmentFrame = () => {
     base != null &&
     bundle.$state$ < BundleImportState_Preload
   ) {
-    if (bundle.$state$ === BundleImportState_None) {
+    if (bundle.$state$ === BundleImportState_None && !isUnchanged) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
     }
@@ -299,7 +312,7 @@ const retryFailedPreload = (bundle: BundleImport) => {
 
 /** Replay a buffered hint after its dependencies become available. */
 export const replayBundle = (bundle: BundleImport) => {
-  enqueueAdjustment(bundle, bundle.$priority$, bundle.$isPageToRender$, true);
+  enqueueAdjustment(bundle, bundle.$priority$, bundle.$hintOrder$, bundle.$isPageToRender$, true);
   if (isBrowser) {
     scheduleAdjustments();
   } else {
@@ -310,7 +323,7 @@ export const replayBundle = (bundle: BundleImport) => {
 export const handleBundle = (name: string, priority: number, isPageToRender?: boolean) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, priority, isPageToRender);
+    enqueueAdjustment(bundle, priority, hintCount, isPageToRender);
   }
 };
 
@@ -321,6 +334,7 @@ export const preload = (item: string | string[], priority?: number, isPageToRend
     return;
   }
   const hintPriority = priority || PAGE_PRIORITY;
+  hintCount++;
   if (Array.isArray(item)) {
     for (let i = 0; i < item.length; i++) {
       handleBundle(item[i], hintPriority, isPageToRender);
@@ -350,4 +364,68 @@ export const getPreloadOrder = (item: string[], priority?: number) => {
     adjustmentStack.length = 0;
     isProcessingAdjustments = false;
   }
+};
+
+const INTENT_PRIORITY = 0.9;
+const IN_VIEW_PRIORITY = 0.8;
+const ELEMENT_HANDLER_ATTRIBUTE = /^q-ep?:/;
+const VISIBLE_TASK_ATTRIBUTE = 'q-e:qvisible';
+const ORDERED_NODE_SNAPSHOT_TYPE = 7;
+
+const addHandlerChunksOf = (element: Element, chunks: string[], skippedAttribute?: string) => {
+  const attributes = element.attributes;
+  for (let i = 0; attributes && i < attributes.length; i++) {
+    const { name, value } = attributes[i];
+    if (!ELEMENT_HANDLER_ATTRIBUTE.test(name) || name === skippedAttribute) {
+      continue;
+    }
+    const qrls = value.split('|');
+    for (let j = 0; j < qrls.length; j++) {
+      const [chunk, , , otherChunks] = qrls[j].split('#');
+      if (chunk) {
+        chunks.push(chunk, ...(otherChunks ? otherChunks.split(',') : []));
+      }
+    }
+  }
+};
+
+export const preloadHandlersInView = () => {
+  const observer = new IntersectionObserver((entries) => {
+    const chunksInView: string[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const { target, isIntersecting } = entries[i];
+      if (isIntersecting) {
+        observer.unobserve(target);
+        addHandlerChunksOf(target, chunksInView);
+      }
+    }
+    preload(chunksInView, IN_VIEW_PRIORITY);
+  });
+  const elementsWithHandlers = doc.evaluate(
+    "//*[@*[starts-with(name(),'q-e:') or starts-with(name(),'q-ep:')]]",
+    doc,
+    null,
+    ORDERED_NODE_SNAPSHOT_TYPE
+  );
+  for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
+    observer.observe(elementsWithHandlers.snapshotItem(i) as Element);
+  }
+};
+
+export const preloadHandlersOnIntent = () => {
+  let lastHint: string;
+  const preloadHandlersUnder = (event: Event) => {
+    const chunks: string[] = [];
+    const path = event.composedPath() as Element[];
+    for (let i = 0; i < path.length; i++) {
+      addHandlerChunksOf(path[i], chunks, VISIBLE_TASK_ATTRIBUTE);
+    }
+    const hint = chunks.join();
+    if (hint !== lastHint) {
+      lastHint = hint;
+      preload(chunks, INTENT_PRIORITY);
+    }
+  };
+  doc.addEventListener('pointerover', preloadHandlersUnder, true);
+  doc.addEventListener('focusin', preloadHandlersUnder, true);
 };

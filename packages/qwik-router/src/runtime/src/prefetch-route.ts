@@ -71,16 +71,18 @@ export async function prefetchRoute(
  */
 export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestHash: string) => {
   if (!loadedRoute.$loaders$?.length || !loadedRoute.$loaderPaths$) {
-    return;
+    return false;
   }
-  const immutableIds = new Set(
-    getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])
-      .filter((loader) => loader.__cacheControl === 'immutable')
-      .map((loader) => loader.__id)
-  );
+  const loadersByHash = new Map<string, ReturnType<typeof getModuleRouteLoaders>[number]>();
+  for (const loader of getModuleRouteLoaders(loadedRoute.$mods$ as RouteModule[])) {
+    loadersByHash.set(loader.__id, loader);
+    loadersByHash.set(loader.__qrl.getHash(), loader);
+  }
   const basePath = getBasePathname();
+  let didPrefetchLoaders = false;
   for (const hash of loadedRoute.$loaders$) {
-    if (immutableIds.has(hash)) {
+    const loader = loadersByHash.get(hash);
+    if (loader?.__cacheControl === 'immutable') {
       continue;
     }
     let loaderPath = loadedRoute.$loaderPaths$[hash];
@@ -90,9 +92,11 @@ export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestH
     if (basePath !== '/' && !loaderPath.startsWith(basePath)) {
       loaderPath = basePath + loaderPath.slice(1);
     }
-    fetchRouteLoaderData(hash, loaderPath, manifestHash, {
+    fetchRouteLoaderData(loader?.__id ?? hash, loaderPath, manifestHash, {
       pageUrl: url,
       basePath,
     }).catch(() => {});
+    didPrefetchLoaders = true;
   }
+  return didPrefetchLoaders;
 };

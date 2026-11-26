@@ -10,6 +10,155 @@ test.describe('loaders', () => {
     test.use({ javaScriptEnabled: true });
     tests();
 
+    test('starts dynamic route loaders while the server rewrite lookup is pending', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test/loader-navigation/');
+      await expect(page).toHaveTitle('parent - Qwik');
+
+      const events: string[] = [];
+      const loaderRequests: string[] = [];
+      let startRewriteLookup!: () => void;
+      let releaseRewriteLookup!: () => void;
+      const rewriteLookupStarted = new Promise<void>((resolve) => {
+        startRewriteLookup = resolve;
+      });
+      const rewriteLookupGate = new Promise<void>((resolve) => {
+        releaseRewriteLookup = resolve;
+      });
+
+      page.on('request', (request) => {
+        if (request.url().includes('/q-route.json')) {
+          events.push('rewrite-start');
+        } else if (request.url().includes('/q-loader-')) {
+          const pathname = new URL(request.url()).pathname;
+          loaderRequests.push(pathname);
+          events.push(`loader-start ${pathname}`);
+        }
+      });
+      page.on('requestfinished', (request) => {
+        if (request.url().includes('/q-route.json')) {
+          events.push('rewrite-finish');
+        }
+      });
+      await page.route('**/q-route.json*', async (route) => {
+        startRewriteLookup();
+        await rewriteLookupGate;
+        await route.continue();
+      });
+
+      const loaderRequest = page.waitForRequest('**/q-loader-navigation-dynamic-child.*');
+      await page.locator('#loader-dynamic-child').click();
+      await rewriteLookupStarted;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const loaderStartIndex = events.findIndex((event) =>
+        event.includes('q-loader-navigation-dynamic-child.')
+      );
+      const rewriteFinishIndex = events.indexOf('rewrite-finish');
+      const loaderStartedBeforeRewriteResponse =
+        loaderStartIndex !== -1 &&
+        (rewriteFinishIndex === -1 || loaderStartIndex < rewriteFinishIndex);
+      releaseRewriteLookup();
+
+      await loaderRequest;
+      await expect(page).toHaveTitle('child 42 - Qwik');
+      expect(loaderStartedBeforeRewriteResponse, events.join(' → ')).toBe(true);
+      expect(
+        loaderRequests.filter((url) => url.includes('q-loader-navigation-dynamic-child.'))
+      ).toHaveLength(1);
+    });
+
+    test('rewrites a dynamic route while early source loader requests are pending', async ({
+      page,
+    }) => {
+      const base = '/qwikrouter-test/loader-navigation/';
+      await page.goto(base);
+      await expect(page).toHaveTitle('parent - Qwik');
+
+      let releaseRewriteResponse!: () => void;
+      let startRewriteResponse!: () => void;
+      const rewriteResponseGate = new Promise<void>((resolve) => {
+        releaseRewriteResponse = resolve;
+      });
+      const rewriteResponseReady = new Promise<void>((resolve) => {
+        startRewriteResponse = resolve;
+      });
+      let startEarlyLoader!: () => void;
+      let startTargetLoader!: () => void;
+      const earlyLoaderReady = new Promise<void>((resolve) => {
+        startEarlyLoader = resolve;
+      });
+      const targetLoaderStarted = new Promise<void>((resolve) => {
+        startTargetLoader = resolve;
+      });
+      const earlyLoaderReleases: (() => void)[] = [];
+      const earlyLoaderRequests: string[] = [];
+      const targetLoaderRequests: string[] = [];
+      let rewriteResponseReleased = false;
+
+      await page.route('**/q-loader-*.json*', async (route) => {
+        const requestUrl = route.request().url();
+        if (rewriteResponseReleased) {
+          targetLoaderRequests.push(requestUrl);
+          if (requestUrl.includes('q-loader-navigation-static-child.')) {
+            startTargetLoader();
+          }
+          await route.continue();
+          return;
+        }
+
+        const response = await route.fetch();
+        earlyLoaderRequests.push(requestUrl);
+        if (earlyLoaderRequests.length === 1) {
+          startEarlyLoader();
+        }
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        earlyLoaderReleases.push(release);
+        await gate;
+        await route.fulfill({ response }).catch(() => {});
+      });
+      await page.route('**/loader-navigation/rewrite/q-route.json*', async (route) => {
+        const response = await route.fetch();
+        startRewriteResponse();
+        await rewriteResponseGate;
+        await route.fulfill({ response }).catch(() => {});
+      });
+
+      try {
+        await page.locator('#loader-dynamic-rewrite').click();
+        await Promise.all([earlyLoaderReady, rewriteResponseReady]);
+        releaseRewriteResponse();
+        rewriteResponseReleased = true;
+        const targetLoaderFetched = await Promise.race([
+          targetLoaderStarted.then(() => true),
+          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 2000)),
+        ]);
+        earlyLoaderReleases.forEach((release) => release());
+
+        await expect(page).toHaveURL(new RegExp(`${base}rewrite/$`));
+        await expect(page).toHaveTitle('static child - Qwik');
+        await expect(page.locator('#dynamic-loader-value')).toHaveCount(0);
+        await page.waitForLoadState('networkidle');
+        expect(earlyLoaderRequests.length).toBeGreaterThan(0);
+        expect(targetLoaderFetched).toBe(true);
+        expect(earlyLoaderRequests.some((url) => url.includes('q-loader-lifecycle-layout.'))).toBe(
+          true
+        );
+        expect(targetLoaderRequests.some((url) => url.includes('q-loader-lifecycle-layout.'))).toBe(
+          true
+        );
+        expect(
+          targetLoaderRequests.some((url) => url.includes('q-loader-navigation-static-child.'))
+        ).toBe(true);
+      } finally {
+        releaseRewriteResponse();
+        earlyLoaderReleases.forEach((release) => release());
+      }
+    });
+
     for (const child of [
       { link: 'static', path: 'child', title: 'static child' },
       { link: 'dynamic', path: '42', title: 'child 42' },

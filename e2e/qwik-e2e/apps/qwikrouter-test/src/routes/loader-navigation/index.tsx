@@ -33,6 +33,13 @@ export default component$(() => {
       >
         Dynamic child
       </Link>
+      <Link
+        id="loader-dynamic-rewrite"
+        href="/qwikrouter-test/loader-navigation/rewrite/"
+        prefetch={false}
+      >
+        Dynamic rewrite
+      </Link>
     </>
   );
 });

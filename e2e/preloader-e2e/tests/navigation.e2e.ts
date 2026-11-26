@@ -1050,9 +1050,6 @@ test.describe('a Link click while its own prefetch is ongoing', () => {
 });
 
 test.describe('a second Link click before a routeLoader$ page shows', () => {
-  const SECOND_CLICK_NEVER_NAVIGATES =
-    "on main, a click on another Link while a loader's data is ongoing never navigates, and the first page shows";
-
   const clickTheSmallLinkWhileTheLoaderDataLoads = async (page: Page) => {
     const started = await startAndKeepOngoing(
       page,
@@ -1064,21 +1061,22 @@ test.describe('a second Link click before a routeLoader$ page shows', () => {
     return started;
   };
 
-  test("the second page shows without the loader's data", async ({ page }) => {
+  test("the second page shows while the loader's data is ongoing", async ({ page }) => {
     const { gate, ongoing } = await clickTheSmallLinkWhileTheLoaderDataLoads(page);
     const stillOngoing = ongoing.routes.length;
     const isSecondPageShown = await isShown(page, TO_SMALL)();
     await releaseEverything(page, gate, ongoing);
     expect(stillOngoing).toBeGreaterThan(0);
-    test.fail(true, SECOND_CLICK_NEVER_NAVIGATES);
     expect(isSecondPageShown).toBe(true);
   });
 
-  test("the loader's late data doesn't bring its page back", async ({ page }) => {
+  test("the loader's late data doesn't restore the superseded page", async ({ page }) => {
     const { gate, ongoing } = await clickTheSmallLinkWhileTheLoaderDataLoads(page);
+    const stillOngoing = ongoing.routes.length;
     await releaseEverything(page, gate, ongoing);
-    test.fail(true, SECOND_CLICK_NEVER_NAVIGATES);
-    expect(await shownFixtures(page)).not.toContain(TO_DATA.id);
+    expect(stillOngoing).toBeGreaterThan(0);
+    await expectResult(page, TO_SMALL);
+    await expect(fixtureRoot(page, TO_DATA)).toBeHidden();
     expect(pathOf(page)).toBe(TO_SMALL.path);
   });
 });

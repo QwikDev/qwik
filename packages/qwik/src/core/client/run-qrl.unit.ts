@@ -376,8 +376,22 @@ describe('runEventHandlerQRL', () => {
     expect(mockContainer.handleError).toHaveBeenCalledWith(error, mockHostElement, 'event');
   });
 
-  it('should not call invokeApply when host element is deleted', () => {
+  it('should run handlers for connected elements whose host was already deleted', () => {
     mockHostElement.flags = VNodeFlags.Deleted;
+
+    runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
+
+    expect(useCore.invokeApply).toHaveBeenCalledWith(mockContext, mockQrl, [
+      mockEvent,
+      mockElement,
+    ]);
+  });
+
+  it('should not call invokeApply when host element is deleted while handler waits', () => {
+    vi.mocked(promises.retryOnPromise).mockImplementation((callback) => {
+      mockHostElement.flags = VNodeFlags.Deleted;
+      return callback();
+    });
 
     runEventHandlerQRL(mockQrl, mockEvent, mockElement, mockContext);
 

@@ -168,7 +168,7 @@ fn parent_code(code: &str, entry_strategy: EntryStrategy) -> String {
 
 #[test]
 fn preserves_indexed_reads_before_mutating_the_index() {
-	let output = test_input_fn(TestInput {
+	test_input!(TestInput {
 		code: r#"
 export function makeReader(values) {
   let index = 0;
@@ -180,23 +180,14 @@ export function makeReader(values) {
 }
 "#
 		.to_string(),
-		filename: "reader.js".to_string(),
-		snapshot: false,
 		..TestInput::default()
-	})
-	.unwrap();
-	let code = &output.modules[0].code;
-	let read = code
-		.find("const value = values[index];")
-		.unwrap_or_else(|| panic!("expected the indexed read before mutation:\n{code}"));
-	assert!(read < code.find("index++;").unwrap(), "{code}");
-	assert!(code.contains("return value;"), "{code}");
+	});
 }
 
 #[test]
 fn preserves_captured_reads_before_mutating_the_binding() {
-	let code = parent_code(
-		r#"
+	test_input!(TestInput {
+		code: r#"
 export function makeReader() {
   let index = 0;
   return (_) => {
@@ -205,19 +196,16 @@ export function makeReader() {
     return value;
   };
 }
-"#,
-		EntryStrategy::Inline,
-	);
-	let read = code
-		.find("const value = index;")
-		.unwrap_or_else(|| panic!("expected the captured read before mutation:\n{code}"));
-	assert!(read < code.find("index++;").unwrap(), "{code}");
-	assert!(code.contains("return value;"), "{code}");
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
 }
 
 #[test]
 fn removes_inlined_declarators_from_mixed_const_statements() {
-	let output = test_input_fn(TestInput {
+	test_input!(TestInput {
 		code: r#"
 export function makeReader(values) {
   let index = 0;
@@ -230,13 +218,8 @@ export function makeReader(values) {
 "#
 		.to_string(),
 		minify: MinifyMode::None,
-		snapshot: false,
 		..TestInput::default()
-	})
-	.unwrap();
-	let code = &output.modules[0].code;
-	assert!(code.contains("const value = values[index];"), "{code}");
-	assert!(code.contains("return 42 + value;"), "{code}");
+	});
 }
 
 #[test]

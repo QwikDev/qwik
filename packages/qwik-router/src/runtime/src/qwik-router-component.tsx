@@ -507,7 +507,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (isBrowser && type === 'link' && current.type === 'initial') {
         const url = new URL(window.location.href);
         current.dest = url;
-        routeLocation.url = url;
+        if (routeLocation.url.href !== url.href) {
+          routeLocation.url = url;
+        }
       }
 
       const lastDest = current.dest;
@@ -899,6 +901,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       clearNavFetchCache();
       if (internalState.navCount !== navCountBefore) {
         return;
+      }
+
+      // Route handlers can redirect loader requests before this route commits.
+      if (isBrowser && contentModules.some((module) => module.onRequest)) {
+        if (navigation.historyUpdated) {
+          history.replaceState(history.state, '', toPath(prevUrl));
+        }
+        await whenRouteLoadersSettled(loaderState, container);
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
       }
 
       // Update httpStatus for 404/error pages

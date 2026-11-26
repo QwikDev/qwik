@@ -1,8 +1,9 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { readsOwnCaptures, runQrl, toCoreHandlerQrl } from '../shared/qrl/handler-qrls';
+import { readsOwnCaptures, runQrl, taskQrl, toCoreHandlerQrl } from '../shared/qrl/handler-qrls';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
+import { isTask } from '../use/use-task';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from '../shared/utils/event-names';
 import { tryGetInvokeContext } from '../use/use-core';
@@ -103,6 +104,15 @@ export function setEvent(
   return value;
 }
 
+function getCapturedTask(qrl: QRLInternal<unknown>) {
+  const captures = qrl.$captures$;
+  if (!Array.isArray(captures) || qrl.$hash$ !== taskQrl().$hash$) {
+    return null;
+  }
+  const task = captures[0];
+  return isTask(task) ? task : null;
+}
+
 function addQwikEventToSerializationContext(
   serializationCtx: SerializationContext,
   key: string,
@@ -114,5 +124,9 @@ function addQwikEventToSerializationContext(
     const scopedEvent = getScopedEventName(scope, eventName);
     serializationCtx.$eventNames$.add(scopedEvent);
     serializationCtx.$eventQrls$.add(qrl);
+    const visibleTask = getCapturedTask(qrl as QRLInternal<unknown>);
+    if (visibleTask) {
+      serializationCtx.$eventQrls$.add(visibleTask.$qrl$);
+    }
   }
 }

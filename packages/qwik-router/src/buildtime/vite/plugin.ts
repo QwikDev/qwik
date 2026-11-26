@@ -202,8 +202,9 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
-/** Vite's parser language for a route source, by its extension; none for one it can't read (`.mdx`). */
+/** Vite's parser language for a route source, by its extension (an `.mdx` file's ESM is JavaScript). */
 const PARSE_LANGS: Record<string, 'js' | 'jsx' | 'ts' | 'tsx'> = {
+  '.mdx': 'jsx',
   '.js': 'js',
   '.mjs': 'js',
   '.cjs': 'js',
@@ -213,6 +214,47 @@ const PARSE_LANGS: Record<string, 'js' | 'jsx' | 'ts' | 'tsx'> = {
   '.cts': 'ts',
   '.tsx': 'tsx',
 };
+
+/**
+ * An MDX file's ESM: its top-level paragraphs that start with `import` or `export`, as MDX reads
+ * them, on their own lines (the rest blank, so a parse error's position still names the file's
+ * line). A fenced code block's lines are never ESM, an `import` in a sample included.
+ */
+function mdxEsm(mdx: string) {
+  let fence: string | null = null;
+  let inEsm = false;
+  let paragraphStart = true;
+  return mdx
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      const marker = trimmed.match(/^(`{3,}|~{3,})/)?.[1];
+      if (fence) {
+        if (marker && marker[0] === fence[0] && marker.length >= fence.length) {
+          fence = null;
+        }
+        paragraphStart = false;
+        return '';
+      }
+      if (marker) {
+        fence = marker;
+        inEsm = false;
+        paragraphStart = false;
+        return '';
+      }
+      if (!trimmed) {
+        inEsm = false;
+        paragraphStart = true;
+        return '';
+      }
+      if (paragraphStart) {
+        inEsm = /^(?:import|export)\b/.test(line);
+      }
+      paragraphStart = false;
+      return inEsm ? line : '';
+    })
+    .join('\n');
+}
 
 /**
  * The modules a route source exports its loaders from: `export … from` and `export * from`, the
@@ -229,7 +271,7 @@ async function parsedSourceSpecifiers(code: string, filePath: string) {
   }
   let program: Awaited<ReturnType<typeof parseAstAsync>>;
   try {
-    program = await parseAstAsync(code, { lang });
+    program = await parseAstAsync(extname(filePath) === '.mdx' ? mdxEsm(code) : code, { lang });
   } catch {
     return null;
   }
@@ -275,8 +317,8 @@ async function parsedSourceSpecifiers(code: string, filePath: string) {
 }
 
 /**
- * {@link parsedSourceSpecifiers} for a file Vite's parser can't read (`.mdx`), by mlly's text
- * matching.
+ * {@link parsedSourceSpecifiers} for a file Vite's parser can't read (a syntax error, an unknown
+ * extension), by mlly's text matching.
  */
 function matchedSourceSpecifiers(code: string) {
   const specifiers = new Set<string>();

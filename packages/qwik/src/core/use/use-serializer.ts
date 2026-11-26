@@ -4,11 +4,12 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { SerializerArg } from '../reactive-primitives/types';
 import type { createSerializer$ } from '../reactive-primitives/signal.public';
 import { createSerializerSignal } from '../reactive-primitives/signal-api';
+import { markOwnedByComponent } from './use-computed';
 import { useConstant } from './use-signal';
 
 const creator = <T, S>(qrl: QRL<SerializerArg<T, S>>) => {
   resolveQrlAhead(qrl);
-  return createSerializerSignal<T, S>(qrl as any);
+  return markOwnedByComponent(createSerializerSignal<T, S>(qrl as any));
 };
 
 /** @internal */

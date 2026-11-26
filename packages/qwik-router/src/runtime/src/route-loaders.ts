@@ -12,7 +12,6 @@ import {
 import {
   _deserialize,
   _injectAsyncSignalValue,
-  _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   SerializerSymbol,
@@ -526,7 +525,6 @@ const createRouteLoaderSignal = (
       serializationStrategy: loader.__serializationStrategy,
     }
   );
-  _markSignalAsExternallyOwned(signal);
   return signal;
 };
 

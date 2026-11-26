@@ -6,18 +6,20 @@ import {
   Fragment as Signal,
   Slot,
   _capturesObj,
-  _markSignalAsExternallyOwned,
   _jsxSorted,
   _wrapProp,
   component$,
   createComputed$,
   createComputedQrl,
+  createContextId,
   createSignal,
   noSerialize,
   qrl,
   untrack,
   useComputed$,
   useComputedQrl,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useTask$,
@@ -1025,7 +1027,82 @@ describe.each([
       }
     );
 
-    it('keeps externally owned computations alive after removing a consumer', async () => {
+    it('keeps a provided computed working after a context consumer is removed', async () => {
+      const DoubledContext = createContextId<ComputedSignal<number>>('doubled');
+      const GreetingContext = createContextId<ComputedSignal<string>>('greeting');
+      const Consumer = component$(() => {
+        useContext(DoubledContext);
+        useContext(GreetingContext);
+        return <p id="consumer">consumer</p>;
+      });
+      const Provider = component$(() => {
+        const count = useSignal(1);
+        const visible = useSignal(true);
+        const greetingRead = useSignal('');
+        const doubled = useComputed$(() => count.value * 2);
+        // nobody reads it before the consumer is removed
+        const greeting = useComputed$(() => 'hello');
+        useContextProvider(DoubledContext, doubled);
+        useContextProvider(GreetingContext, greeting);
+        return (
+          <>
+            <button id="increment" onClick$={() => count.value++}>
+              increment
+            </button>
+            <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+              remove
+            </button>
+            <button id="read-greeting" onClick$={() => (greetingRead.value = greeting.value)}>
+              read
+            </button>
+            <span id="doubled">{doubled.value}</span>
+            <span id="greeting">{greetingRead.value}</span>
+            {visible.value && <Consumer />}
+          </>
+        );
+      });
+      const { container } = await render(<Provider />, { debug });
+      await trigger(container.element, '#remove-consumer', 'click');
+      expect(container.element.querySelector('#consumer')).toBeFalsy();
+      await trigger(container.element, '#increment', 'click');
+      await trigger(container.element, '#read-greeting', 'click');
+      expect(container.element.querySelector('#doubled')?.textContent).toBe('4');
+      expect(container.element.querySelector('#greeting')?.textContent).toBe('hello');
+    });
+
+    it('never disposes a computed that no hook created', async () => {
+      const SharedContext = createContextId<ComputedSignal<number>>('shared');
+      const Consumer = component$(() => {
+        useContext(SharedContext);
+        return <p id="consumer">consumer</p>;
+      });
+      const Provider = component$(() => {
+        const count = useSignal(1);
+        const visible = useSignal(true);
+        // like a route loader: created with the factory, so no component owns it
+        const shared = useConstant(() => createComputed$(() => count.value * 2));
+        useContextProvider(SharedContext, shared);
+        return (
+          <>
+            <button id="increment" onClick$={() => count.value++}>
+              increment
+            </button>
+            <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+              remove
+            </button>
+            <span id="shared">{shared.value}</span>
+            {visible.value && <Consumer />}
+          </>
+        );
+      });
+      const { container } = await render(<Provider />, { debug });
+      await trigger(container.element, '#remove-consumer', 'click');
+      expect(container.element.querySelector('#consumer')).toBeFalsy();
+      await trigger(container.element, '#increment', 'click');
+      expect(container.element.querySelector('#shared')?.textContent).toBe('4');
+    });
+
+    it('keeps a computed from props working after a child that stored it is removed', async () => {
       (globalThis as any).sharedComputeCleanups = 0;
       const Child = component$((props: { shared: ComputedSignal<number> }) => {
         const shared = useConstant(() => props.shared);
@@ -1040,7 +1117,6 @@ describe.each([
           });
           return track(count) * 2;
         });
-        _markSignalAsExternallyOwned(shared);
         return (
           <>
             <button id="increment-shared" onClick$={() => count.value++}>

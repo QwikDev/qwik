@@ -106,7 +106,6 @@ export const enum ComputedSignalFlags {
   INVALID = 1,
   /** The next compute must notify even from NEEDS_COMPUTATION */
   SOURCE_CHANGED = 2,
-  PRESERVE_ON_SEQ_CLEANUP = 4,
   /** A transitive source changed: pull sources before deciding to recompute (maybe dirty) */
   CHECK = 128,
   /** Runtime dirty state; never serialized */

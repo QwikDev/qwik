@@ -179,6 +179,13 @@ function* inflateIterator(
   }
   const serializedPayload =
     __EXPERIMENTAL__.pendingBoundary && container.$streamingObjectRefs$ ? data : undefined;
+  if (
+    typeId === TypeIds.ComputedSignal ||
+    typeId === TypeIds.AsyncSignal ||
+    typeId === TypeIds.SerializerSignal
+  ) {
+    keepOwnerSeqAsRootId(container, typeId, data as unknown[]);
+  }
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
@@ -293,6 +300,7 @@ function* inflateIterator(
         unknown?,
         number?,
         number?,
+        number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
       if (d[1]) {
@@ -329,6 +337,7 @@ function* inflateIterator(
         asyncSignal.$jobs$ = [];
       }
       asyncSignal.$timeoutMs$ = (d[8] ?? 0) as number;
+      asyncSignal.$ownerSeq$ = d[9];
       restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
@@ -338,7 +347,12 @@ function* inflateIterator(
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
+      const d = data as [
+        QRLInternal<() => {}>,
+        EffectSubscription[] | undefined,
+        unknown?,
+        number?,
+      ];
       computed.$computeQrl$ = d[0];
       /**
        * If we try to compute value and the qrl is not resolved, then system throws an error with
@@ -361,6 +375,7 @@ function* inflateIterator(
         // The serialized signal is always left invalid so it can recreate the custom object
         computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
+      computed.$ownerSeq$ = d[3];
       restoreEffectBackRefForEffects(computed.$effects$, computed);
       break;
     }
@@ -537,6 +552,26 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
       }
     }
   }
+}
+
+/**
+ * Swaps a signal's owner ref for its root id, so restoring the signal leaves that seq alone. An
+ * owner seq that was not serialized becomes -1, which no root has.
+ */
+function keepOwnerSeqAsRootId(
+  container: DeserializeContainer,
+  typeId: TypeIds,
+  data: unknown[]
+): void {
+  const ownerAt = (typeId === TypeIds.AsyncSignal ? 9 : 3) * 2;
+  if (data.length <= ownerAt) {
+    return;
+  }
+  const ref = data[ownerAt + 1] as number;
+  data[ownerAt + 1] = Number(
+    data[ownerAt] === TypeIds.ForwardRef ? container.$getForwardRef$(ref) : ref
+  );
+  data[ownerAt] = TypeIds.Plain;
 }
 
 function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {

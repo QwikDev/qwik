@@ -17,7 +17,7 @@ import {
 import type { CatchInfo } from '../shared/error/error-handling';
 import { isQrlImportError } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { peekRestoredRoot, wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
@@ -457,6 +457,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   $getObjectById$ = (id: number | string): unknown => {
     return getObjectById(id, this.$stateData$);
   };
+
+  $peekObjectById$(id: number): unknown {
+    return peekRestoredRoot(this.$rawStateData$, id);
+  }
 
   $getForwardRef$(id: number): number | string | undefined {
     return this.$rootForwardRefs$?.[id];

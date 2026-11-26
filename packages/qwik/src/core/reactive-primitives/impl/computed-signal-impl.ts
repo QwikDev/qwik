@@ -151,6 +151,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   declare $loadingEffects$: undefined | Set<EffectSubscription>;
   declare $errorEffects$: undefined | Set<EffectSubscription>;
   declare $disposed$: boolean | undefined;
+  /**
+   * The `q:seq` of the component whose hook created this signal; only that component disposes it.
+   * After resume it is that seq's root id, so restoring the signal leaves the seq unrestored.
+   */
+  declare $ownerSeq$: unknown[] | number | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $info$: unknown | undefined;
   declare $infoVersion$: number | undefined;

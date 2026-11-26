@@ -37,6 +37,12 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
   }
   return proxy;
 };
+/** Returns a root only when it is already restored; never restores it. */
+export const peekRestoredRoot = (rawStateData: unknown[], id: number): unknown => {
+  const typeAt = id * 2;
+  return rawStateData[typeAt] === TypeIds.Plain ? rawStateData[typeAt + 1] : undefined;
+};
+
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
     public $container$: DomContainer,

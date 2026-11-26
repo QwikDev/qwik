@@ -92,6 +92,7 @@ export interface ClientContainer extends _Container {
     $getForwardRef$(id: number): number | string | undefined;
     // (undocumented)
     $locale$: string;
+    $peekObjectById$(id: number): unknown;
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     // (undocumented)
@@ -198,6 +199,7 @@ export class _ComputedSignalImpl<T, S extends _QRLInternal = ComputeQRL<T>> exte
     $jobs$: Job<T>[] | undefined;
     // (undocumented)
     $loadingEffects$: undefined | Set<_EffectSubscription>;
+    $ownerSeq$: unknown[] | number | undefined;
     $pull$(): void;
     // (undocumented)
     $requestCleanups$(job: Job<T>, reason?: any): void;
@@ -443,6 +445,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $hoistStyles$(): void;
     // (undocumented)
     $instanceHash$: string;
+    // (undocumented)
+    $peekObjectById$(id: number): unknown;
     // (undocumented)
     $processContainerData$(): Generator<void, void, void>;
     // (undocumented)
@@ -845,9 +849,6 @@ export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number)
 
 // @internal (undocumented)
 export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number, allowNullValue?: boolean) => void;
-
-// @internal
-export const _markSignalAsExternallyOwned: (signal: ComputedSignal<unknown>) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;

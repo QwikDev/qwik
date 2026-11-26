@@ -5,6 +5,9 @@ import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
 import type { ComputeCtx, ComputedOptions } from '../reactive-primitives/types';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { ELEMENT_SEQ } from '../shared/utils/markers';
+import { getInvokeContext } from './use-core';
 import { useConstant } from './use-signal';
 
 /**
@@ -27,9 +30,16 @@ export type AsyncFn<T> = ComputedFn<T>;
 /** @public */
 export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 
+/** Makes the rendering component the owner of a signal its hook just created. */
+export const markOwnedByComponent = <S extends ComputedSignalImpl<any, any>>(signal: S): S => {
+  const iCtx = getInvokeContext();
+  signal.$ownerSeq$ = iCtx.$container$!.getHostProp<unknown[]>(iCtx.$hostElement$!, ELEMENT_SEQ)!;
+  return signal;
+};
+
 const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => {
   resolveQrlAhead(qrl);
-  return createComputedSignal<T>(qrl, options);
+  return markOwnedByComponent(createComputedSignal<T>(qrl, options));
 };
 /** @internal */
 export const useComputedQrl = <T>(

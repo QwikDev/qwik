@@ -15,7 +15,22 @@ describe('sourceTransforms', () => {
     expect(
       shouldTransformStatisticsSource('/repo/packages/devtools/ui/src/features/Performance.tsx')
     ).toBe(false);
+    expect(
+      shouldTransformStatisticsSource(
+        'C:\\repo\\packages\\devtools\\ui\\src\\features\\Performance.tsx'
+      )
+    ).toBe(false);
     expect(shouldTransformStatisticsSource('/repo/packages/devtools/ui/lib/devtools.js')).toBe(
+      false
+    );
+    expect(
+      shouldTransformStatisticsSource('C:\\repo\\packages\\devtools\\ui\\lib\\devtools.js')
+    ).toBe(false);
+  });
+
+  test('skips node_modules sources with POSIX and Windows paths', () => {
+    expect(shouldTransformStatisticsSource('/repo/node_modules/example/index.js')).toBe(false);
+    expect(shouldTransformStatisticsSource('C:\\repo\\node_modules\\example\\index.js')).toBe(
       false
     );
   });

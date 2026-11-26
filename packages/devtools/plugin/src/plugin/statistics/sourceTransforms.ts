@@ -7,10 +7,18 @@ import { PERF_VIRTUAL_ID, log } from './constants';
 
 export { rewriteComponentQrlImport } from '../../transforms/rewrite-component-qrl-import';
 
+const EXCLUDED_STATISTICS_SOURCE_PATHS = [
+  '/node_modules/',
+  '/packages/devtools/ui/src/',
+  '/packages/devtools/ui/lib/',
+  '/packages/qwik/dist/',
+  '/packages/qwik-router/lib/',
+];
+
 export function shouldTransformStatisticsSource(id: string): boolean {
-  const cleanId = normalizeVirtualModuleId(id);
-  return (
-    !isFromNodeModules(cleanId) && !isDevtoolsUiSource(cleanId) && !isQwikRuntimeOutput(cleanId)
+  const normalizedId = normalizeVirtualModuleId(id).replace(/\\/g, '/');
+  return !EXCLUDED_STATISTICS_SOURCE_PATHS.some((excludedPath) =>
+    normalizedId.includes(excludedPath)
   );
 }
 
@@ -157,27 +165,6 @@ export function wrapHoistedComponentSegments(
   // Kept on line 1 so user line numbers stay put.
   const importWrapper = `import { __qwik_wrap_render__ } from ${JSON.stringify(PERF_VIRTUAL_ID)};`;
   return { code: importWrapper + applySourceEdits(code, edits), changed: true };
-}
-
-function isFromNodeModules(cleanId: string): boolean {
-  return cleanId.includes('/node_modules/') || cleanId.includes('\\node_modules\\');
-}
-
-function isQwikRuntimeOutput(cleanId: string): boolean {
-  const normalizedId = cleanId.replace(/\\/g, '/');
-  return (
-    normalizedId.includes('/packages/qwik/dist/') ||
-    normalizedId.includes('/packages/qwik-router/lib/')
-  );
-}
-
-function isDevtoolsUiSource(cleanId: string): boolean {
-  return (
-    cleanId.includes('/packages/devtools/ui/src/') ||
-    cleanId.includes('/packages/devtools/ui/lib/') ||
-    cleanId.includes('\\packages\\devtools\\ui\\src\\') ||
-    cleanId.includes('\\packages\\devtools\\ui\\lib\\')
-  );
 }
 
 function appendWrappedExport(code: string, exportName: string, id: string): string {

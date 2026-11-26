@@ -202,6 +202,39 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
+/**
+ * `code` with every comment replaced by spaces (newlines kept), so each character keeps its offset.
+ * mlly's export and import matching reads comments as code: a `}` inside a block comment in an
+ * export list ends the list early, and a comment beside a name becomes part of it. Strings and
+ * template literals are left as they are (`'https://…'` is not a comment); a regular expression
+ * literal is read as code.
+ */
+function blankComments(code: string): string {
+  let out = '';
+  let i = 0;
+  while (i < code.length) {
+    const ch = code[i];
+    const next = code[i + 1];
+    if (ch === '"' || ch === "'" || ch === '`') {
+      let j = i + 1;
+      while (j < code.length && code[j] !== ch) {
+        j += code[j] === '\\' ? 2 : 1;
+      }
+      out += code.slice(i, j + 1);
+      i = j + 1;
+    } else if (ch === '/' && (next === '/' || next === '*')) {
+      const close = next === '/' ? code.indexOf('\n', i) : code.indexOf('*/', i + 2);
+      const stop = close === -1 ? code.length : next === '/' ? close : close + 2;
+      out += code.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop;
+    } else {
+      out += ch;
+      i++;
+    }
+  }
+  return out;
+}
+
 async function collectRouteLoaderSources(
   owner: string,
   filePath: string,
@@ -211,7 +244,7 @@ async function collectRouteLoaderSources(
 ) {
   let code: string, exportEntries: ReturnType<typeof findExports> | null;
   try {
-    code = await readFile(filePath, 'utf-8');
+    code = blankComments(await readFile(filePath, 'utf-8'));
     exportEntries = findExports(code);
     if (!exportEntries) {
       return;
@@ -246,11 +279,7 @@ async function collectRouteLoaderSources(
     } else if (/^export\s*{/.test(exp.code)) {
       // `import { useData } from './data'; export { useData as useRouteData };`: the imported
       // binding's module, by its local name (the documented re-export pattern without `from`).
-      // Comments out first: mlly keeps them in the export's text (`export { /* x */ useData }`).
-      const list = (exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '').replace(
-        /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,
-        ''
-      );
+      const list = exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '';
       for (const entry of list.split(',')) {
         const localName = entry.trim().split(/\s+as\s+/)[0];
         const specifier = localName && importedFactories.get(localName);

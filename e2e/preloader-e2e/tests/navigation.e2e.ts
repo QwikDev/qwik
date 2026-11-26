@@ -973,15 +973,11 @@ test.describe('back button before the new page shows', () => {
     return { ...started, urls };
   };
 
-  test('the page the user came from stays, with no JS request', async ({ page }) => {
+  test('the page the user came from stays without fetching JS', async ({ page }) => {
     const { gate, ongoing, urls } = await goBackWhileTheTreePageLoads(page);
     await expect(treeLink(page, FROM.off)).toBeVisible();
     expect(pathOf(page)).toBe(FROM.off.path);
     await releaseEverything(page, gate, ongoing);
-    test.fail(
-      true,
-      'on main, going back renders the page again on the client, though it never left the screen, and fetches its chunks'
-    );
     expect(urls.filter((url) => new URL(url).pathname.endsWith('.js'))).toEqual([]);
   });
 

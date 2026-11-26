@@ -62,7 +62,7 @@ import {
   type ClientContainer,
   type ValueOrPromise,
 } from '@qwik.dev/core/internal';
-import { clientNavigate } from './client-navigate';
+import { clientNavigate, isPopstateToCurrentPage } from './client-navigate';
 import { Q_ROUTE } from './constants';
 import { prefetchRoute } from './prefetch-route';
 import {
@@ -559,6 +559,38 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
           return { type: NavigationStartType.Unchanged };
         }
+      }
+
+      if (
+        typeof dest !== 'number' &&
+        isPopstateToCurrentPage(type, routeLocation.isNavigating, dest, routeLocation.url)
+      ) {
+        const navCount = ++internalState.navCount;
+        internalState.currentTransition?.skipTransition();
+        navResolver.cancel?.();
+        navResolver.cancel = undefined;
+        navResolver.r?.();
+        navResolver.dest = undefined;
+        navResolver.routePreparation?.preparation.resolve(preparation.promise);
+        navResolver.routePreparation = undefined;
+
+        const loaders = getClientRouteLoaders(routeLoaderCtx);
+        if (loaders.current !== loaders.committed && loaders.navCount !== undefined) {
+          abortRouteLoaderNavigation(routeLoaderCtx);
+          restoreRouteLoaders(loaderState, routeLoaderCtx, loaders.navCount);
+        }
+
+        routeLocation.isNavigating = false;
+        routeInternal.value = { type, dest };
+        if (dest.href !== routeLocation.url.href) {
+          routeLocation.url = new URL(dest.href);
+        }
+        restoreScroll(type, dest, new URL(location.href), getScroller(), getScrollHistory());
+        window._qRouterScrollEnabled = true;
+
+        preparation.navCount = navCount;
+        preparation.resolve();
+        return { type: NavigationStartType.Unchanged };
       }
 
       if (typeof dest === 'number') {

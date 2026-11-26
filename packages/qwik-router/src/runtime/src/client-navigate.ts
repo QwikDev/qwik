@@ -41,6 +41,13 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
+export const isPopstateToCurrentPage = (
+  navType: NavigationType,
+  isNavigating: boolean,
+  destination: URL,
+  currentUrl: URL
+) => navType === 'popstate' && isNavigating && isSamePath(destination, currentUrl);
+
 export const preloadRouteBundles = (
   routeName: string,
   priority: number = 0.8,

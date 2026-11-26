@@ -1,5 +1,37 @@
 import { assert, test } from 'vitest';
-import { clientNavigate, newScrollState } from './client-navigate';
+import { clientNavigate, isPopstateToCurrentPage, newScrollState } from './client-navigate';
+
+test('only skips a pending popstate that targets the current page', () => {
+  const currentUrl = new URL('http://qwik.dev/page-a?search=123#current');
+
+  assert.isTrue(
+    isPopstateToCurrentPage(
+      'popstate',
+      true,
+      new URL('http://qwik.dev/page-a?search=123#previous'),
+      currentUrl
+    )
+  );
+  assert.isFalse(
+    isPopstateToCurrentPage(
+      'popstate',
+      false,
+      new URL('http://qwik.dev/page-a?search=123'),
+      currentUrl
+    )
+  );
+  assert.isFalse(
+    isPopstateToCurrentPage('link', true, new URL('http://qwik.dev/page-a?search=123'), currentUrl)
+  );
+  assert.isFalse(
+    isPopstateToCurrentPage(
+      'popstate',
+      true,
+      new URL('http://qwik.dev/page-b?search=123'),
+      currentUrl
+    )
+  );
+});
 
 test('initialize and push empty scroll history state on navigate', () => {
   const [win, urlOf] = createTestWindow('http://qwik.dev/');

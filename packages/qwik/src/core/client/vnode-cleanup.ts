@@ -80,7 +80,7 @@ export function cleanup(
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
-            const obj = seq[i];
+            const obj: unknown = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
               if (objIsTask) {
@@ -97,6 +97,9 @@ export function cleanup(
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.
               else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
+                if (obj instanceof ComputedSignalImpl && obj.$seqOwner$ && obj.$seqOwner$ !== seq) {
+                  continue;
+                }
                 if (obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP) {
                   continue;
                 }

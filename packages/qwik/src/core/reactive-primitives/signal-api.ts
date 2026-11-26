@@ -14,6 +14,17 @@ import { SerializerSignalImpl } from './impl/serializer-signal-impl';
 import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getComputedSignalFlags } from './utils';
 import type { ComputedFn } from '../use/use-computed';
+import { tryGetInvokeContext } from '../use/use-core';
+import { ELEMENT_SEQ } from '../shared/utils/markers';
+
+const setComputedSequenceOwner = <T extends ComputedSignalImpl<any>>(signal: T): T => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx?.$container$ && iCtx.$hostElement$) {
+    signal.$seqOwner$ =
+      iCtx.$container$.getHostProp<unknown[]>(iCtx.$hostElement$, ELEMENT_SEQ) ?? undefined;
+  }
+  return signal;
+};
 
 /** @internal */
 export const createSignal = <T>(value?: T): Signal<T> => {
@@ -25,11 +36,13 @@ export const createComputedSignal = <T>(
   qrl: QRL<ComputedFn<T>>,
   options?: ComputedOptions<T>
 ): ComputedSignalImpl<T> => {
-  return new ComputedSignalImpl<T>(
-    options?.container || null,
-    qrl as ComputeQRL<T>,
-    getComputedSignalFlags(options?.serializationStrategy || 'always'),
-    options
+  return setComputedSequenceOwner(
+    new ComputedSignalImpl<T>(
+      options?.container || null,
+      qrl as ComputeQRL<T>,
+      getComputedSignalFlags(options?.serializationStrategy || 'always'),
+      options
+    )
   );
 };
 
@@ -38,11 +51,13 @@ export const createAsyncSignal = <T>(
   qrl: QRL<ComputedFn<T>>,
   options?: AsyncSignalOptions<T>
 ): AsyncSignalImpl<T> => {
-  return new AsyncSignalImpl<T>(
-    options?.container || null,
-    qrl as AsyncQRL<T>,
-    getComputedSignalFlags(options?.serializationStrategy || 'always'),
-    options
+  return setComputedSequenceOwner(
+    new AsyncSignalImpl<T>(
+      options?.container || null,
+      qrl as AsyncQRL<T>,
+      getComputedSignalFlags(options?.serializationStrategy || 'always'),
+      options
+    )
   );
 };
 

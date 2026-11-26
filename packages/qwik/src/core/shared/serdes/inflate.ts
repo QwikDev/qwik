@@ -293,6 +293,7 @@ function* inflateIterator(
         unknown?,
         number?,
         number?,
+        unknown[]?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
       if (d[1]) {
@@ -329,6 +330,7 @@ function* inflateIterator(
         asyncSignal.$jobs$ = [];
       }
       asyncSignal.$timeoutMs$ = (d[8] ?? 0) as number;
+      asyncSignal.$seqOwner$ = d[9];
       restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);
@@ -338,8 +340,14 @@ function* inflateIterator(
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
+      const d = data as [
+        QRLInternal<() => {}>,
+        EffectSubscription[] | undefined,
+        unknown?,
+        unknown[]?,
+      ];
       computed.$computeQrl$ = d[0];
+      computed.$seqOwner$ = d[3];
       /**
        * If we try to compute value and the qrl is not resolved, then system throws an error with
        * the resolve promise. To prevent that we load it now and qrls wait for the loading to

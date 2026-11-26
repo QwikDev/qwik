@@ -138,6 +138,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    */
   $computeQrl$: S;
   $flags$: number;
+  $seqOwner$: unknown[] | undefined = undefined;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   // Async engine state: only populated when the compute fn is async (ASYNC_MODE),

@@ -10,6 +10,7 @@ import {
   _jsxSorted,
   _wrapProp,
   component$,
+  createContextId,
   createComputed$,
   createComputedQrl,
   createSignal,
@@ -18,6 +19,8 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useTask$,
@@ -1024,6 +1027,96 @@ describe.each([
         expect(computed.$disposed$).toBe(true);
       }
     );
+
+    it('keeps provider computations alive after removing a context consumer', async () => {
+      const DoubledContext = createContextId<ComputedSignal<number>>('doubled');
+      const GreetingContext = createContextId<ComputedSignal<string>>('greeting');
+      const Consumer = component$(() => {
+        const doubled = useContext(DoubledContext);
+        useContext(GreetingContext);
+        return <span id="consumer">{doubled.value}</span>;
+      });
+      const Provider = component$(() => {
+        const count = useSignal(0);
+        const visible = useSignal(true);
+        const greetingText = useSignal('');
+        const doubled = useComputed$(() => count.value * 2);
+        const greeting = useComputed$(() => 'hello');
+        useContextProvider(DoubledContext, doubled);
+        useContextProvider(GreetingContext, greeting);
+        return (
+          <>
+            <button id="count" onClick$={() => count.value++}>
+              count: {count.value}
+            </button>
+            <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+              remove the consumer
+            </button>
+            <button
+              id="read-greeting"
+              onClick$={() => {
+                try {
+                  greetingText.value = greeting.value;
+                } catch (error) {
+                  greetingText.value = String(error);
+                }
+              }}
+            >
+              read the greeting: {greetingText.value}
+            </button>
+            <span id="doubled">doubled: {doubled.value}</span>
+            {visible.value && <Consumer />}
+          </>
+        );
+      });
+
+      const { container } = await render(<Provider />, { debug });
+      const getText = (selector: string) => container.element.querySelector(selector)?.textContent;
+      await trigger(container.element, '#count', 'click');
+      expect(getText('#doubled')).toBe('doubled: 2');
+      expect(getText('#consumer')).toBe('2');
+      await trigger(container.element, '#remove-consumer', 'click');
+      expect(container.element.querySelector('#consumer')).toBeFalsy();
+      await trigger(container.element, '#count', 'click');
+      await trigger(container.element, '#read-greeting', 'click');
+      expect(getText('#count')).toBe('count: 2');
+      expect.soft(getText('#doubled')).toBe('doubled: 4');
+      expect.soft(getText('#read-greeting')).toBe('read the greeting: hello');
+    });
+
+    it('keeps prop computations alive after removing a consumer that caches one', async () => {
+      const Parent = component$(() => {
+        const count = useSignal(1);
+        const visible = useSignal(true);
+        const doubled = useComputed$(() => count.value * 2);
+        const Child = component$((props: { doubled: ComputedSignal<number> }) => {
+          const computed = useConstant(() => props.doubled);
+          return <span id="consumer">{computed.value}</span>;
+        });
+        return (
+          <>
+            <button id="count" onClick$={() => count.value++}>
+              count
+            </button>
+            <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+              remove the consumer
+            </button>
+            <span id="doubled">{doubled.value}</span>
+            {visible.value && <Child doubled={doubled} />}
+          </>
+        );
+      });
+
+      const { container } = await render(<Parent />, { debug });
+      const getText = (selector: string) => container.element.querySelector(selector)?.textContent;
+      await trigger(container.element, '#count', 'click');
+      expect(getText('#doubled')).toBe('4');
+      expect(getText('#consumer')).toBe('4');
+      await trigger(container.element, '#remove-consumer', 'click');
+      expect(container.element.querySelector('#consumer')).toBeFalsy();
+      await trigger(container.element, '#count', 'click');
+      expect(getText('#doubled')).toBe('6');
+    });
 
     it('keeps externally owned computations alive after removing a consumer', async () => {
       (globalThis as any).sharedComputeCleanups = 0;

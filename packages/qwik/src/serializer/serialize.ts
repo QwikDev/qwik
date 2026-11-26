@@ -743,17 +743,32 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        if (v !== NEEDS_COMPUTATION || concurrency !== undefined || timeout !== undefined) {
+        const hasSeqOwner = value.$seqOwner$ !== undefined;
+        if (
+          v !== NEEDS_COMPUTATION ||
+          concurrency !== undefined ||
+          timeout !== undefined ||
+          hasSeqOwner
+        ) {
           /**
            * If value is undefined, we need to keep it in the output. If we don't do that, later
            * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
            * is incorrect.
            */
-          out.push(v === undefined ? explicitUndefined : v);
+          out.push(
+            v === NEEDS_COMPUTATION && hasSeqOwner
+              ? _UNINITIALIZED
+              : v === undefined
+                ? explicitUndefined
+                : v
+          );
         }
         if (isAsync) {
           out.push(concurrency);
           out.push(timeout);
+        }
+        if (hasSeqOwner) {
+          out.push(value.$seqOwner$);
         }
         this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out);
       } else {

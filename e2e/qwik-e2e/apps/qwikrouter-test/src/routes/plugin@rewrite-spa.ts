@@ -2,6 +2,9 @@ import type { RequestHandler } from '@qwik.dev/router';
 
 // Only `/rewrite-spa/target/` is a route. `/rewrite-spa/pretty/` exists only through this rewrite.
 export const onRequest: RequestHandler = ({ url, rewrite, cacheControl, headers }) => {
+  if (url.pathname === '/qwikrouter-test/loader-navigation/rewrite/') {
+    throw rewrite('/qwikrouter-test/loader-navigation/child/');
+  }
   if (url.pathname === '/qwikrouter-test/rewrite-spa/pretty/') {
     throw rewrite('/qwikrouter-test/rewrite-spa/target/');
   }

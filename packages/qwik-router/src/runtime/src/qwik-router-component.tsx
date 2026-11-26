@@ -64,7 +64,7 @@ import {
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { Q_ROUTE } from './constants';
-import { prefetchRoute } from './prefetch-route';
+import { prefetchLoaderData, prefetchRoute } from './prefetch-route';
 import {
   ContentContext,
   ContentInternalContext,
@@ -775,11 +775,24 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
         | PageModule
         | undefined;
+      let didPrefetchDynamicLoaders = false;
       if (
         loadedRoute.$notFound$ ||
         typeof lastModule?.default !== 'function' ||
         loadedRoute.$routeName$.includes('[')
       ) {
+        if (
+          !action &&
+          !loadedRoute.$notFound$ &&
+          typeof lastModule?.default === 'function' &&
+          loadedRoute.$routeName$.includes('[')
+        ) {
+          didPrefetchDynamicLoaders = prefetchLoaderData(
+            loadedRoute,
+            trackUrl,
+            manifestHash || 'dev'
+          );
+        }
         // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
         const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
         if (internalState.navCount !== navCountBefore) {
@@ -793,6 +806,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             return;
           }
         } else if (resolved && resolved !== trackUrl.pathname) {
+          if (didPrefetchDynamicLoaders) {
+            clearNavFetchCache();
+          }
           try {
             const config = await getRouterConfig();
             loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);

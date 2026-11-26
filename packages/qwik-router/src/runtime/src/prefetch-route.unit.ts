@@ -20,31 +20,34 @@ const createLoader = (id: string, cacheControl?: LoaderInternal['__cacheControl'
   const loader = () => null;
   loader.__brand = 'server_loader' as const;
   loader.__id = id;
+  loader.__qrl = { getHash: () => `hash-${id}` } as unknown as LoaderInternal['__qrl'];
   loader.__cacheControl = cacheControl;
   return loader as unknown as LoaderInternal;
 };
 
-const createLoadedRoute = (loaders: LoaderInternal[]) =>
-  ({
+const createLoadedRoute = (loaders: LoaderInternal[]) => {
+  const hashes = loaders.map((loader) => loader.__qrl.getHash());
+  return {
     $routeName$: 'next/',
     $mods$: [Object.fromEntries(loaders.map((loader) => [`use_${loader.__id}`, loader]))],
-    $loaders$: loaders.map((loader) => loader.__id),
-    $loaderPaths$: Object.fromEntries(loaders.map((loader) => [loader.__id, '/next/'])),
-  }) as unknown as LoadedRoute;
+    $loaders$: hashes,
+    $loaderPaths$: Object.fromEntries(hashes.map((hash) => [hash, '/next/'])),
+  } as unknown as LoadedRoute;
+};
 
 describe('prefetchLoaderData', () => {
   beforeEach(() => {
     fetchRouteLoaderDataMock.mockClear();
   });
 
-  it('fetches every loader of the route', () => {
+  it('fetches loaders by their ids when route metadata uses QRL hashes', () => {
     prefetchLoaderData(
       createLoadedRoute([createLoader('a'), createLoader('b')]),
       new URL('http://localhost/next/'),
       manifestHash
     );
 
-    expect(fetchRouteLoaderDataMock).toHaveBeenCalledTimes(2);
+    expect(fetchRouteLoaderDataMock.mock.calls.map(([id]: unknown[]) => id)).toEqual(['a', 'b']);
   });
 
   it('skips immutable loaders so they download lazily on first read', () => {
@@ -60,7 +63,8 @@ describe('prefetchLoaderData', () => {
 
   it('skips loaders without a fetch path', () => {
     const loadedRoute = createLoadedRoute([createLoader('a'), createLoader('pathless')]);
-    (loadedRoute.$loaderPaths$ as Record<string, string | undefined>).pathless = undefined;
+    const pathlessHash = loadedRoute.$loaders$![1];
+    (loadedRoute.$loaderPaths$ as Record<string, string | undefined>)[pathlessHash] = undefined;
 
     prefetchLoaderData(loadedRoute, new URL('http://localhost/next/'), manifestHash);
 

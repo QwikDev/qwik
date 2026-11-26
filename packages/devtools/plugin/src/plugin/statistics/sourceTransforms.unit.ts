@@ -20,6 +20,18 @@ describe('sourceTransforms', () => {
     );
   });
 
+  test('skips compiled Qwik framework runtimes but keeps app sources', () => {
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik/dist/core.qwik.mjs')).toBe(false);
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik-router/lib/index.qwik.mjs')).toBe(
+      false
+    );
+    expect(shouldTransformStatisticsSource('C:\\repo\\packages\\qwik\\dist\\core.qwik.mjs')).toBe(
+      false
+    );
+    expect(shouldTransformStatisticsSource('/repo/packages/docs/src/routes/index.tsx')).toBe(true);
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik-demo/dist/app.mjs')).toBe(true);
+  });
+
   test('escapes Windows module ids in wrapped lazy component exports', () => {
     const id = 'C:\\Users\\alice\\src\\app\\entry_component_abc123.tsx';
     const source = `

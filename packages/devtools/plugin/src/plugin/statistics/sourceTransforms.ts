@@ -9,7 +9,9 @@ export { rewriteComponentQrlImport } from '../../transforms/rewrite-component-qr
 
 export function shouldTransformStatisticsSource(id: string): boolean {
   const cleanId = normalizeVirtualModuleId(id);
-  return !isFromNodeModules(cleanId) && !isDevtoolsUiSource(cleanId);
+  return (
+    !isFromNodeModules(cleanId) && !isDevtoolsUiSource(cleanId) && !isQwikRuntimeOutput(cleanId)
+  );
 }
 
 export function isPerfVirtualModuleId(id: string): boolean {
@@ -159,6 +161,14 @@ export function wrapHoistedComponentSegments(
 
 function isFromNodeModules(cleanId: string): boolean {
   return cleanId.includes('/node_modules/') || cleanId.includes('\\node_modules\\');
+}
+
+function isQwikRuntimeOutput(cleanId: string): boolean {
+  const normalizedId = cleanId.replace(/\\/g, '/');
+  return (
+    normalizedId.includes('/packages/qwik/dist/') ||
+    normalizedId.includes('/packages/qwik-router/lib/')
+  );
 }
 
 function isDevtoolsUiSource(cleanId: string): boolean {

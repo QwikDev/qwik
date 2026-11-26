@@ -24,7 +24,11 @@ export const setTheme = (theme: ThemeName) => {
     document.firstElementChild?.setAttribute('data-theme', theme!);
   }
 
-  localStorage.setItem(themeStorageKey, theme);
+  try {
+    localStorage.setItem(themeStorageKey, theme);
+  } catch (error) {
+    console.warn('[Qwik DevTools] Failed to persist theme preference:', error);
+  }
 };
 
 export const QwikThemeToggle = component$(() => {

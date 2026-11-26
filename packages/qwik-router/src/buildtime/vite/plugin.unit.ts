@@ -118,12 +118,13 @@ describe('qwikRouter plugin', () => {
             `import { useOther as useOtherLocal } from './other';`,
             `import { helper } from './unrelated';`,
             `const url = 'https://example.com/*not a comment*/';`,
+            `const quote = /"/;`,
             `export {`,
             `  /* the page's data, not the } that ends the list */ useData,`,
             `  // under the name the route uses`,
             `  useOtherLocal as useOtherData,`,
             `};`,
-            `export default helper;`,
+            `export default component$(() => <p>{helper}</p>);`,
           ].join('\n')
         );
         await writeFile(data, `export const useData = 1;`);
@@ -145,6 +146,36 @@ describe('qwikRouter plugin', () => {
           data.replaceAll(/\\/g, '/'),
           other.replaceAll(/\\/g, '/'),
         ]);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("reads an MDX route's `export … from` by text, as the parser can't read MDX", async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
+      try {
+        const routeDir = join(dir, 'src/routes/docs');
+        await mkdir(routeDir, { recursive: true });
+        const route = join(routeDir, 'index.mdx');
+        const data = join(routeDir, 'data.ts');
+        await writeFile(
+          route,
+          `export { useDocs } from './data';\n\n# Docs\n\n<Note>{props.x}</Note>\n`
+        );
+        await writeFile(data, `export const useDocs = 1;`);
+        const ctx = {
+          routeTrie: {
+            _files: [{ type: 'route', filePath: route, fileName: 'index.mdx' }],
+            children: new Map(),
+          },
+          serverPlugins: [],
+        } as any;
+
+        const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) =>
+          specifier.startsWith('.') ? join(dirname(importer), specifier) + '.ts' : undefined
+        );
+
+        expect(sources.get(route)).toEqual([data.replaceAll(/\\/g, '/')]);
       } finally {
         await rm(dir, { recursive: true, force: true });
       }

@@ -13,7 +13,7 @@ import type {
   UserConfig,
   ViteDevServer,
 } from 'vite';
-import { loadEnv } from 'vite';
+import { loadEnv, parseAstAsync } from 'vite';
 import {
   isEntryName,
   isErrorName,
@@ -202,57 +202,88 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
+/** Vite's parser language for a route source, by its extension; none for one it can't read (`.mdx`). */
+const PARSE_LANGS: Record<string, 'js' | 'jsx' | 'ts' | 'tsx'> = {
+  '.js': 'js',
+  '.mjs': 'js',
+  '.cjs': 'js',
+  '.jsx': 'jsx',
+  '.ts': 'ts',
+  '.mts': 'ts',
+  '.cts': 'ts',
+  '.tsx': 'tsx',
+};
+
 /**
- * `code` with every comment replaced by spaces (newlines kept), so each character keeps its offset.
- * mlly's export and import matching reads comments as code: a `}` inside a block comment in an
- * export list ends the list early, and a comment beside a name becomes part of it. Strings and
- * template literals are left as they are (`'https://…'` is not a comment); a regular expression
- * literal is read as code.
+ * The modules a route source exports its loaders from: `export … from` and `export * from`, the
+ * module of an imported binding it re-exports (`import { useData } from './data'; export { useData
+ * as useRouteData };`, the documented re-export pattern without `from`), and of the imported
+ * factory a destructuring export calls (`export const { useSession } = QwikAuth$()`). Read from
+ * Vite's parser, so comments, strings and regular expressions are never mistaken for code; `null`
+ * for a file it can't parse.
  */
-function blankComments(code: string): string {
-  let out = '';
-  let i = 0;
-  while (i < code.length) {
-    const ch = code[i];
-    const next = code[i + 1];
-    if (ch === '"' || ch === "'" || ch === '`') {
-      let j = i + 1;
-      while (j < code.length && code[j] !== ch) {
-        j += code[j] === '\\' ? 2 : 1;
+async function parsedSourceSpecifiers(code: string, filePath: string) {
+  const lang = PARSE_LANGS[extname(filePath)];
+  if (!lang) {
+    return null;
+  }
+  let program: Awaited<ReturnType<typeof parseAstAsync>>;
+  try {
+    program = await parseAstAsync(code, { lang });
+  } catch {
+    return null;
+  }
+  const imported = new Map<string, string>();
+  for (const node of program.body) {
+    if (node.type === 'ImportDeclaration') {
+      for (const specifier of node.specifiers) {
+        imported.set(specifier.local.name, String(node.source.value));
       }
-      out += code.slice(i, j + 1);
-      i = j + 1;
-    } else if (ch === '/' && (next === '/' || next === '*')) {
-      const close = next === '/' ? code.indexOf('\n', i) : code.indexOf('*/', i + 2);
-      const stop = close === -1 ? code.length : next === '/' ? close : close + 2;
-      out += code.slice(i, stop).replace(/[^\n]/g, ' ');
-      i = stop;
-    } else {
-      out += ch;
-      i++;
     }
   }
-  return out;
+  const specifiers = new Set<string>();
+  for (const node of program.body) {
+    if (node.type === 'ExportAllDeclaration') {
+      specifiers.add(String(node.source.value));
+    } else if (node.type === 'ExportNamedDeclaration') {
+      if (node.source) {
+        specifiers.add(String(node.source.value));
+        continue;
+      }
+      for (const specifier of node.specifiers) {
+        const source = specifier.local.type === 'Identifier' && imported.get(specifier.local.name);
+        if (source) {
+          specifiers.add(source);
+        }
+      }
+      if (node.declaration?.type === 'VariableDeclaration') {
+        for (const declarator of node.declaration.declarations) {
+          const init = declarator.init;
+          const source =
+            declarator.id.type === 'ObjectPattern' &&
+            init?.type === 'CallExpression' &&
+            init.callee.type === 'Identifier' &&
+            imported.get(init.callee.name);
+          if (source) {
+            specifiers.add(source);
+          }
+        }
+      }
+    }
+  }
+  return specifiers;
 }
 
-async function collectRouteLoaderSources(
-  owner: string,
-  filePath: string,
-  resolveSource: SourceResolver,
-  sources: Map<string, string[]>,
-  seen = new Set<string>([owner])
-) {
-  let code: string, exportEntries: ReturnType<typeof findExports> | null;
-  try {
-    code = blankComments(await readFile(filePath, 'utf-8'));
-    exportEntries = findExports(code);
-    if (!exportEntries) {
-      return;
-    }
-  } catch {
-    return;
+/**
+ * {@link parsedSourceSpecifiers} for a file Vite's parser can't read (`.mdx`), by mlly's text
+ * matching.
+ */
+function matchedSourceSpecifiers(code: string) {
+  const specifiers = new Set<string>();
+  const exportEntries = findExports(code);
+  if (!exportEntries) {
+    return specifiers;
   }
-
   const importedFactories = new Map<string, string>();
   for (const entry of findStaticImports(code)) {
     const parsed = parseStaticImport(entry);
@@ -265,8 +296,6 @@ async function collectRouteLoaderSources(
       }
     }
   }
-
-  const specifiers = new Set<string>();
   for (const exp of exportEntries) {
     if (exp.specifier) {
       specifiers.add(exp.specifier);
@@ -276,18 +305,24 @@ async function collectRouteLoaderSources(
       if (specifier) {
         specifiers.add(specifier);
       }
-    } else if (/^export\s*{/.test(exp.code)) {
-      // `import { useData } from './data'; export { useData as useRouteData };`: the imported
-      // binding's module, by its local name (the documented re-export pattern without `from`).
-      const list = exp.code.match(/^export\s*{([^}]*)}/)?.[1] ?? '';
-      for (const entry of list.split(',')) {
-        const localName = entry.trim().split(/\s+as\s+/)[0];
-        const specifier = localName && importedFactories.get(localName);
-        if (specifier) {
-          specifiers.add(specifier);
-        }
-      }
     }
+  }
+  return specifiers;
+}
+
+async function collectRouteLoaderSources(
+  owner: string,
+  filePath: string,
+  resolveSource: SourceResolver,
+  sources: Map<string, string[]>,
+  seen = new Set<string>([owner])
+) {
+  let specifiers: Set<string>;
+  try {
+    const code = await readFile(filePath, 'utf-8');
+    specifiers = (await parsedSourceSpecifiers(code, filePath)) ?? matchedSourceSpecifiers(code);
+  } catch {
+    return;
   }
 
   for (const specifier of specifiers) {

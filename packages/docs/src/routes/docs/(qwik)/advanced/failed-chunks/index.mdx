@@ -1,0 +1,134 @@
+---
+title: Failed chunk downloads | Advanced
+keywords: 'qerror, chunk, lazy loading, network error, offline, deploy'
+contributors:
+  - maiieul
+---
+
+import { Note } from '~/components/note/note';
+
+# Failed chunk downloads
+
+Qwik downloads the code of a click handler, a task or a component only when the page needs it. That
+download can fail: the network drops, or a new deploy removed the file.
+
+Your code has no bug when this happens, so Qwik does not treat it as one. It leaves the page as it
+is and fires a `qerror` event on `document`.
+
+## The `qerror` event
+
+Qwik shows nothing to the user by itself. Listen for the event to show a message of your own, or to
+report the failure.
+
+```tsx title="src/root.tsx"
+export default () => (
+  <>
+    <head>
+      <script
+        dangerouslySetInnerHTML={`
+          document.addEventListener('qerror', (event) => {
+            if (event.detail.importError) {
+              document.documentElement.setAttribute('data-chunk-failed', '');
+            }
+          });
+        `}
+      />
+    </head>
+    <body>
+      <p class="chunk-failed" role="alert">
+        Part of this page could not load. Reload to try again.
+      </p>
+      {/* ... */}
+    </body>
+  </>
+);
+```
+
+```css
+.chunk-failed {
+  display: none;
+}
+[data-chunk-failed] .chunk-failed {
+  display: block;
+}
+```
+
+The listener marks the document when a chunk fails, and the CSS shows a message the server already
+rendered.
+
+<Note>
+  Write this listener as a plain script. A listener written with `$()` lives in a chunk of its own,
+  and that chunk can fail to download too.
+</Note>
+
+## What the event holds
+
+`event.detail` is typed as `QwikErrorEvent['detail']`:
+
+- `importError` is set when a chunk failed to download. `qerror` also fires when an event handler
+  throws, and then `importError` is not set.
+- `error` is the error the browser gave.
+- `symbol` names the code that failed to download.
+- `element` is the element of the handler, the element around the task or component, or the
+  container element.
+
+## What fires it
+
+Qwik fires it when it needs a chunk to run something and the download fails. It does so whatever
+that something is:
+
+- an event handler;
+- a `useTask$()` or `useVisibleTask$()`;
+- a component that renders in the browser;
+- a `useComputed$()`.
+
+A chunk that Qwik only preloaded, and never needed, fires nothing when its download fails.
+
+What failed did not run. Qwik does not run it again by itself: the next click, or the next change the
+task tracks, starts the download again.
+
+An async `useComputed$()` whose code failed to download stops pending and keeps its `.error` unset.
+`.error` is for the errors your function throws.
+
+<Note>
+  A failed download never reaches a [`Catch`](/docs/labs/catch/) boundary, so content that works
+  stays on screen. An error your own code throws still does.
+</Note>
+
+## A chunk whose top-level code throws
+
+Importing a chunk does more than download it. The browser also runs the code at its top level: the
+statements outside any function, in the chunk and in the modules it imports. If one of them throws,
+the import fails, though the download worked.
+
+```ts
+// a module the chunk imports
+const theme = localStorage.getItem('theme'); // top level: runs during the import
+const size = window.settings.size; // top level too
+
+export const getTheme = () => {
+  return theme.toUpperCase(); // inside a function: runs later, when something calls it
+};
+```
+
+What happens when each of these lines throws:
+
+- **`localStorage.getItem('theme')`** throws when the browser blocks storage. The import fails with
+  that error, and Qwik sends it to the nearest `Catch`, like any other error in your code.
+- **`window.settings.size`** throws a `TypeError` when `settings` is missing. The import fails, and
+  Qwik fires `qerror`, as it does for a failed download.
+- **`theme.toUpperCase()`** runs after the import, so it can't make the import fail. Its error
+  reaches the nearest `Catch`. The same goes for anything thrown inside a handler, a task, a
+  component or a computed.
+
+In the second case your own code fires `qerror`. Browsers use `TypeError` for two things: a download
+that failed, and a mistake such as reading a property of `undefined`. Qwik can't tell which one made
+the import fail, so it treats every `TypeError` from an import as a failed download.
+
+An event handler's own chunk is stricter. The qwikloader imports it, and reports any error from that
+import as `qerror`, the first case included.
+
+Check `event.detail.error` to tell the two apart.
+
+A failed import while the server renders is a server error, as before: there is no `document` to
+fire the event on.

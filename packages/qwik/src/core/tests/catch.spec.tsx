@@ -2015,7 +2015,7 @@ describe('qerror (client event channel)', () => {
     });
 
     it('a failed handler-chunk import in core dispatch is reported as an importError qerror, not routed to the boundary (#8962)', async () => {
-      const importFailure = new Error('Failed to fetch dynamically imported module: /q-h.js');
+      const importFailure = new TypeError('Failed to fetch dynamically imported module: /q-h.js');
       const failingHandler = qrl(() => Promise.reject(importFailure), 's_failingHandler') as any;
       const { container } = await domRender(
         <Catch fallback$={fb()}>
@@ -2052,7 +2052,7 @@ describe('qerror (client event channel)', () => {
     });
 
     it("a failed chunk import of a qerror listener doesn't fire qerror again", async () => {
-      const importFailure = new Error('Failed to fetch dynamically imported module: /q-l.js');
+      const importFailure = new TypeError('Failed to fetch dynamically imported module: /q-l.js');
       const failingListener = qrl(() => Promise.reject(importFailure), 's_failingListener') as any;
       const { container } = await domRender(
         <div id="listener" document:onQError$={failingListener} />,

@@ -1,7 +1,7 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { taskQrl } from '../shared/qrl/handler-qrls';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { resolveQrlAhead } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -45,13 +45,13 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   if (!isServerPlatform() && eagerness !== 'intersection-observer') {
     // The document is already ready/idle in DOM, so execute immediately
     flags = TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY;
-    (qrl as QRLInternal).resolve();
+    resolveQrlAhead(qrl);
     markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
   } else {
     // Defer execution until the trigger event fires
     flags = TaskFlags.VISIBLE_TASK;
     if (!isServerPlatform()) {
-      (qrl as QRLInternal).resolve();
+      resolveQrlAhead(qrl);
     }
   }
 

@@ -41,6 +41,7 @@
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Synchronous Events with State](</docs/(qwik)/advanced/sync-events/index.mdx>)
+- [Failed chunk downloads](</docs/(qwik)/advanced/failed-chunks/index.mdx>)
 - [Advanced Routing](</docs/(qwikrouter)/advanced/routing/index.mdx>)
 - [Qwik Plugins](</docs/(qwikrouter)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)

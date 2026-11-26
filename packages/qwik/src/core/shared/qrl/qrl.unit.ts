@@ -5,9 +5,16 @@ import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext } from '../../../serializer';
 import { parseQRL, qrlToString } from '../serdes/index';
 import { _regInlinedQrl, _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _capturesObj, createQRL, deserializeCaptureDeltas, isQrlImportError } from './qrl-class';
+import {
+  _capturesObj,
+  createQRL,
+  deserializeCaptureDeltas,
+  getFailedImportSymbol,
+  isQrlImportError,
+} from './qrl-class';
 import { type QRL } from './qrl.public';
 import { isSyncQrl } from './qrl-utils';
+import { registerSingleton } from '../singletons';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -396,17 +403,18 @@ describe('w (with captures)', () => {
 
 describe('QRL import errors', () => {
   test.each([
-    ['an Error', new Error('import failed'), true],
-    ['a frozen Error', Object.freeze(new Error('import failed')), true],
-    ['an object', {}, true],
-    ['a function', () => {}, true],
+    ['a TypeError', new TypeError('import failed'), true],
+    ['a frozen TypeError', Object.freeze(new TypeError('import failed')), true],
+    ['an Error', new Error('chunk threw'), false],
+    ['an object', {}, false],
+    ['a function', () => {}, false],
     ['null', null, false],
     ['undefined', undefined, false],
     ['a string', 'import failed', false],
     ['a number', 42, false],
     ['a boolean', false, false],
     ['a symbol', Symbol('import failed'), false],
-  ])('preserves %s rejection and only tags objects or functions', async (_, failure, tagged) => {
+  ])('preserves %s rejection and only tags a TypeError', async (_, failure, tagged) => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const handler = qrl(() => Promise.reject(failure), 's_failedImport');
@@ -440,6 +448,30 @@ describe('QRL import errors', () => {
       expect(isQrlImportError(failure)).toBe(false);
     }
   );
+
+  test('records the symbol of the qrl whose import failed', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const failure = new TypeError('import failed');
+      const handler = qrl(() => Promise.reject(failure), 's_failedImport');
+
+      await expect(handler.resolve()).rejects.toBe(failure);
+      expect(getFailedImportSymbol(failure)).toBe('s_failedImport');
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  test('recognizes an import error tagged by another copy of core', () => {
+    const failure = new TypeError('import failed');
+    registerSingleton('qrlImportSymbols', () => new WeakMap<object, string>()).set(
+      failure,
+      's_failedImport'
+    );
+
+    expect(isQrlImportError(failure)).toBe(true);
+    expect(getFailedImportSymbol(failure)).toBe('s_failedImport');
+  });
 });
 
 describe('binding this', () => {

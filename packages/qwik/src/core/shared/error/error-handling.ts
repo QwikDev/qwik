@@ -13,6 +13,7 @@ import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { CatchPhase } from './catch-phase';
 import { qwikSymbol, registerSingleton } from '../singletons';
+import { getFailedImportSymbol } from '../qrl/qrl-class';
 
 export { CatchPhase } from './catch-phase';
 
@@ -224,6 +225,14 @@ const handleQError = (e: Event) => {
   } catch (handlerError) {
     logError(handlerError);
   }
+};
+
+export const dispatchQrlImportError = (element: Element, error: unknown) => {
+  element.ownerDocument?.dispatchEvent(
+    new CustomEvent('qerror', {
+      detail: { importError: 'async', error, element, symbol: getFailedImportSymbol(error) },
+    })
+  );
 };
 
 /**

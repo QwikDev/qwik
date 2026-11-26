@@ -24,13 +24,19 @@ export type QwikIdleEvent = CustomEvent<{}>;
 export type QwikResumeEvent = CustomEvent<{}>;
 /** Emitted by qwik-core on document when the a view transition start @public */
 export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
-/** Emitted by qwik-loader on document when there was an error loading a module @public */
-export type QwikErrorEvent = CustomEvent<
-  {
-    importError?: 'sync' | 'async' | 'no-symbol';
-    error: unknown;
-  } & QwikSymbolEvent['detail']
->;
+/**
+ * Emitted on document when a chunk failed to download, or when an event handler threw.
+ * `importError` is set only for a failed download, which error boundaries never see. @public
+ */
+export type QwikErrorEvent = CustomEvent<{
+  importError?: 'sync' | 'async' | 'no-symbol';
+  error: unknown;
+  /** The QRL whose chunk failed to download, or the handler that threw. */
+  symbol: string;
+  element: Element;
+  reqTime?: number;
+  qBase?: string;
+}>;
 
 // Utility types for supporting autocompletion in union types
 

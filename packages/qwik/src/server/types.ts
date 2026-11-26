@@ -22,8 +22,8 @@ export interface PreloaderOptions {
   /**
    * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
    * bundles before the preloader script is active: the first ones the preloader would fetch for the
-   * page, ranked the same way by probability, so shared static imports come first. Setting this to
-   * 0 will disable these links.
+   * page, in its order: handlers and what they import first. Setting this to 0 will disable these
+   * links.
    *
    * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
    * a Core Web Vital but more noticeable to the user.
@@ -39,8 +39,8 @@ export interface PreloaderOptions {
    * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
    * longer to be preloaded.
    *
-   * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
-   * immediately, no limit.
+   * Highest priority bundles (what a running QRL needs, with its static imports) will always be
+   * preloaded immediately, no limit.
    *
    * `0` stops the preloader from starting speculative preloads in the browser. An interaction that
    * needs code which has not loaded yet then waits for its download. The links from `ssrPreloads`

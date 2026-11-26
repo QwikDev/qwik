@@ -184,7 +184,6 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export interface QwikBundle {
     dynamicImports?: string[];
     imports?: string[];
-    interactivity?: number;
     origins?: string[];
     qrlImports?: string[];
     size: number;

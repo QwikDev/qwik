@@ -21,7 +21,7 @@ export interface QwikManifest {
   bundles: { [fileName: string]: QwikBundle };
   /** All assets. The key is the fileName relative to the rootDir */
   assets?: { [fileName: string]: QwikAsset };
-  /** All bundles in a compact graph format with probabilities */
+  /** All bundles in a compact graph format, with the kind of code each holds */
   bundleGraph?: QwikBundleGraph;
   /** The bundle graph fileName */
   bundleGraphAsset?: string;
@@ -102,8 +102,6 @@ export interface QwikBundle {
   size: number;
   /** Total size of this bundle's static import graph */
   total: number;
-  /** Interactivity score of the bundle */
-  interactivity?: number;
   /** Symbols in the bundle */
   symbols?: string[];
   /** Direct imports */

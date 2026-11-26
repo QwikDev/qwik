@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, labelRequest } from '../utils/app';
+import { chunkComesFrom, chunkKind, labelRequest, ORIGIN, type ChunkKind } from '../utils/app';
 import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
@@ -108,5 +108,34 @@ test.describe('queue', () => {
     expect(lastInView).toBeGreaterThanOrEqual(0);
     expect(firstOffScreen).toBeGreaterThanOrEqual(0);
     expect(lastInView).toBeLessThan(firstOffScreen);
+  });
+});
+
+const KIND_ORDER: ChunkKind[] = ['handler', 'other-qrl', 'component'];
+
+test.describe('speculative order', () => {
+  test('handlers are preloaded first, then tasks and computeds, then components', async ({
+    page,
+  }) => {
+    await recordSpeculativePreloads(page);
+    let html = '';
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        html = await (await page.goto(ALL_AT_ONCE))!.text();
+        await waitForQwikloader(page);
+      },
+      1500
+    );
+    const [, chunkList] = html.match(/\.then\(\(\{p\}\)=>p\((\[[^\]]*\])\)\)/)!;
+    const namedByThePage = new Set(
+      (JSON.parse(chunkList) as string[]).map((name) => `${ORIGIN}/build/${name}`)
+    );
+    const kinds = (await preloaderLinks(page))
+      .filter((link) => link.speculative && namedByThePage.has(link.href))
+      .map((link) => chunkKind(link.href))
+      .filter((kind) => kind !== undefined);
+    expect(new Set(kinds)).toEqual(new Set(KIND_ORDER));
+    expect(kinds).toEqual([...kinds].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b)));
   });
 });

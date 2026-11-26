@@ -45,6 +45,7 @@ export function runEventHandlerQRL(
   }
   const container = ctx.$container$!;
   const hostElement = ctx.$hostElement$ as ElementVNode;
+  const wasHostElementDeleted = !!(hostElement.flags & VNodeFlags.Deleted);
   vnode_ensureElementInflated(container, hostElement);
   // Sync handlers must not defer subsequent handlers.
   const handlerFn = isSyncQrl(handler)
@@ -74,7 +75,10 @@ export function runEventHandlerQRL(
   return retryOnPromise(
     () => {
       // Check if the host element was deleted while waiting for the promise to resolve
-      if (!(hostElement.flags & VNodeFlags.Deleted)) {
+      if (
+        element.isConnected &&
+        (wasHostElementDeleted || !(hostElement.flags & VNodeFlags.Deleted))
+      ) {
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },

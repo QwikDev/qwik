@@ -165,7 +165,7 @@ function addUseOnEvents(
   jsx: JSXOutput,
   useOnEvents: UseOnMap
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
-  const jsxElement = findFirstElementNode(jsx);
+  const jsxElement = findFirstElementNode(jsx, !!useOnEvents[QVisibleAttr]);
   let jsxResult = jsx;
   return maybeThen(jsxElement, (jsxElement) => {
     // headless components are components that don't render a real DOM element
@@ -335,24 +335,49 @@ function addUseOnModifier(
  * @param jsx The JSX output to search.
  * @returns The first element node or null if no element node is found.
  */
-function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<string> | null> {
+function findFirstElementNode(
+  jsx: JSXOutput,
+  skipHiddenElements = false
+): ValueOrPromise<JSXNodeInternal<string> | null> {
   const queue: any[] = [jsx];
   while (queue.length) {
     const jsx = queue.shift();
     if (isJSXNode(jsx)) {
       if (typeof jsx.type === 'string') {
-        return jsx as JSXNodeInternal<string>;
+        const element = jsx as JSXNodeInternal<string>;
+        if (!skipHiddenElements || !isHiddenElement(element)) {
+          return element;
+        }
+        continue;
       }
       queue.push(jsx.children);
     } else if (isArray(jsx)) {
       queue.push(...jsx);
     } else if (isPromise<JSXOutput>(jsx)) {
-      return maybeThen(jsx, (jsx) => findFirstElementNode(jsx));
+      return maybeThen(jsx, (jsx) => findFirstElementNode(jsx, skipHiddenElements));
     } else if (isSignal(jsx)) {
-      return findFirstElementNode((jsx as SignalImpl).untrackedValue);
+      return findFirstElementNode((jsx as SignalImpl).untrackedValue, skipHiddenElements);
     }
   }
   return null;
+}
+
+function isHiddenElement(jsx: JSXNodeInternal<string>): boolean {
+  const constProps = jsx.constProps;
+  const hidden = constProps && 'hidden' in constProps ? constProps.hidden : jsx.varProps.hidden;
+  if (hidden) {
+    return true;
+  }
+  const style = constProps && 'style' in constProps ? constProps.style : jsx.varProps.style;
+  if (typeof style === 'string') {
+    return /(?:^|;)\s*display\s*:\s*none(?:\s*!important)?\s*(?:;|$)/i.test(style);
+  }
+  return (
+    typeof style === 'object' &&
+    style !== null &&
+    'display' in style &&
+    (style as { display?: unknown }).display === 'none'
+  );
 }
 
 /**

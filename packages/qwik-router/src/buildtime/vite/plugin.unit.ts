@@ -101,6 +101,108 @@ describe('qwikRouter plugin', () => {
         await rm(dir, { recursive: true, force: true });
       }
     });
+
+    it('discovers a loader imported and then re-exported, under its own name or another', async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
+      try {
+        const routeDir = join(dir, 'src/routes/target');
+        await mkdir(routeDir, { recursive: true });
+        const route = join(routeDir, 'index.tsx');
+        const data = join(routeDir, 'data.ts');
+        const other = join(routeDir, 'other.ts');
+        const unrelated = join(routeDir, 'unrelated.ts');
+        await writeFile(
+          route,
+          [
+            `import { useData } from './data';`,
+            `import { useOther as useOtherLocal } from './other';`,
+            `import { helper } from './unrelated';`,
+            `const url = 'https://example.com/*not a comment*/';`,
+            `const quote = /"/;`,
+            `export {`,
+            `  /* the page's data, not the } that ends the list */ useData,`,
+            `  // under the name the route uses`,
+            `  useOtherLocal as useOtherData,`,
+            `};`,
+            `export default component$(() => <p>{helper}</p>);`,
+          ].join('\n')
+        );
+        await writeFile(data, `export const useData = 1;`);
+        await writeFile(other, `export const useOther = 1;`);
+        await writeFile(unrelated, `export const helper = 1;`);
+        const ctx = {
+          routeTrie: {
+            _files: [{ type: 'route', filePath: route, fileName: 'index.tsx' }],
+            children: new Map(),
+          },
+          serverPlugins: [],
+        } as any;
+
+        const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) =>
+          specifier.startsWith('.') ? join(dirname(importer), specifier) + '.ts' : undefined
+        );
+
+        expect(sources.get(route)).toEqual([
+          data.replaceAll(/\\/g, '/'),
+          other.replaceAll(/\\/g, '/'),
+        ]);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("reads an MDX route's ESM: `export … from` and a local re-export, never a code sample", async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
+      try {
+        const routeDir = join(dir, 'src/routes/docs');
+        await mkdir(routeDir, { recursive: true });
+        const route = join(routeDir, 'index.mdx');
+        const data = join(routeDir, 'data.ts');
+        const shared = join(routeDir, 'shared.ts');
+        const sample = join(routeDir, 'sample.ts');
+        await writeFile(
+          route,
+          [
+            `import { useShared } from './shared';`,
+            ``,
+            `export { useDocs } from './data';`,
+            ``,
+            `export { /* shared loader */ useShared };`,
+            ``,
+            `# Docs`,
+            ``,
+            '```ts',
+            `import { useSample } from './sample';`,
+            ``,
+            `export { useSample };`,
+            '```',
+            ``,
+            `<Note>{props.x}</Note>`,
+          ].join('\n')
+        );
+        await writeFile(data, `export const useDocs = 1;`);
+        await writeFile(shared, `export const useShared = 1;`);
+        await writeFile(sample, `export const useSample = 1;`);
+        const ctx = {
+          routeTrie: {
+            _files: [{ type: 'route', filePath: route, fileName: 'index.mdx' }],
+            children: new Map(),
+          },
+          serverPlugins: [],
+        } as any;
+
+        const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) =>
+          specifier.startsWith('.') ? join(dirname(importer), specifier) + '.ts' : undefined
+        );
+
+        expect(sources.get(route)).toEqual([
+          data.replaceAll(/\\/g, '/'),
+          shared.replaceAll(/\\/g, '/'),
+        ]);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('config hook', () => {

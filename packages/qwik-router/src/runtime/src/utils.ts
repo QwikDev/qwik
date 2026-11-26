@@ -4,6 +4,20 @@ import type { SimpleURL } from './types';
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
 
+/**
+ * Applies the app's trailing-slash rule to `url`'s pathname (`__NO_TRAILING_SLASH__`): the path a
+ * navigation requests, so a prefetch of the same link requests it too.
+ */
+export const applyTrailingSlash = (url: URL) => {
+  if (url.pathname.endsWith('/')) {
+    if (globalThis.__NO_TRAILING_SLASH__) {
+      url.pathname = url.pathname.slice(0, -1);
+    }
+  } else if (!globalThis.__NO_TRAILING_SLASH__) {
+    url.pathname = ensureSlash(url.pathname);
+  }
+};
+
 /** Create a URL from a string and baseUrl */
 export const toUrl = (url: string | URL, baseUrl: SimpleURL) => new URL(url, baseUrl.href);
 

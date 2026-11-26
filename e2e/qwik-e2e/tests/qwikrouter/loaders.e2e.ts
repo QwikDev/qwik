@@ -147,6 +147,85 @@ test.describe('loaders', () => {
       await expect(page.getByRole('heading', { name: 'Group page' })).toBeVisible();
     });
 
+    test('prefetches a custom-id loader under the url its navigation requests', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/custom-id-prefetch/');
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/custom-id-prefetch/target/q-loader-')) {
+          loaderRequests.push(new URL(request.url()).pathname);
+        }
+      });
+      const link = page.getByRole('link', { name: 'Open target', exact: true });
+      const prefetch = page.waitForRequest((request) =>
+        request.url().includes('/custom-id-prefetch/target/q-loader-')
+      );
+      await link.hover();
+      await prefetch;
+      await link.click();
+      await expect(page.getByRole('heading', { name: 'Custom id target' })).toBeVisible();
+
+      expect(loaderRequests.length).toBeGreaterThan(0);
+      for (const pathname of loaderRequests) {
+        expect(pathname).toContain('/q-loader-custom-id-prefetch.');
+      }
+    });
+
+    test('a link without its trailing slash prefetches what its click requests: one loader request', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/custom-id-prefetch/');
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        if (
+          request.url().includes('/custom-id-prefetch/target') &&
+          request.url().includes('q-loader-')
+        ) {
+          loaderRequests.push(new URL(request.url()).pathname);
+        }
+      });
+      const link = page.getByRole('link', { name: 'Open target without its slash' });
+      const prefetched = page.waitForResponse(
+        (response) => response.url().includes('/q-loader-custom-id-prefetch.') && response.ok()
+      );
+      await link.hover();
+      await prefetched;
+      await link.click();
+      await expect(page.getByRole('heading', { name: 'Custom id target' })).toBeVisible();
+
+      expect(loaderRequests).toHaveLength(1);
+      expect(loaderRequests[0]).toContain(
+        '/custom-id-prefetch/target/q-loader-custom-id-prefetch.'
+      );
+    });
+
+    test('prefetches a loader the route imports and then re-exports, by its custom id', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/custom-id-prefetch/');
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/custom-id-prefetch/reexported/q-loader-')) {
+          loaderRequests.push(new URL(request.url()).pathname);
+        }
+      });
+      const link = page.getByRole('link', { name: 'Open re-exported target' });
+      const prefetched = page.waitForResponse(
+        (response) => response.url().includes('/q-loader-custom-id-reexported.') && response.ok()
+      );
+      await link.hover();
+      await prefetched;
+      await link.click();
+      await expect(page.getByRole('heading', { name: 'Re-exported target' })).toBeVisible();
+
+      expect(loaderRequests).toHaveLength(1);
+      expect(loaderRequests[0]).toContain('/q-loader-custom-id-reexported.');
+    });
+
     test('catch-all q-loader requests run server plugins before route loaders', async ({
       page,
     }) => {

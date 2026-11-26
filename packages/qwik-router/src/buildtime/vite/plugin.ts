@@ -13,7 +13,7 @@ import type {
   UserConfig,
   ViteDevServer,
 } from 'vite';
-import { loadEnv } from 'vite';
+import { loadEnv, parseAstAsync } from 'vite';
 import {
   isEntryName,
   isErrorName,
@@ -202,24 +202,130 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
-async function collectRouteLoaderSources(
-  owner: string,
-  filePath: string,
-  resolveSource: SourceResolver,
-  sources: Map<string, string[]>,
-  seen = new Set<string>([owner])
-) {
-  let code: string, exportEntries: ReturnType<typeof findExports> | null;
-  try {
-    code = await readFile(filePath, 'utf-8');
-    exportEntries = findExports(code);
-    if (!exportEntries) {
-      return;
-    }
-  } catch {
-    return;
-  }
+/** Vite's parser language for a route source, by its extension (an `.mdx` file's ESM is JavaScript). */
+const PARSE_LANGS: Record<string, 'js' | 'jsx' | 'ts' | 'tsx'> = {
+  '.mdx': 'jsx',
+  '.js': 'js',
+  '.mjs': 'js',
+  '.cjs': 'js',
+  '.jsx': 'jsx',
+  '.ts': 'ts',
+  '.mts': 'ts',
+  '.cts': 'ts',
+  '.tsx': 'tsx',
+};
 
+/**
+ * An MDX file's ESM: its top-level paragraphs that start with `import` or `export`, as MDX reads
+ * them, on their own lines (the rest blank, so a parse error's position still names the file's
+ * line). A fenced code block's lines are never ESM, an `import` in a sample included.
+ */
+function mdxEsm(mdx: string) {
+  let fence: string | null = null;
+  let inEsm = false;
+  let paragraphStart = true;
+  return mdx
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      const marker = trimmed.match(/^(`{3,}|~{3,})/)?.[1];
+      if (fence) {
+        if (marker && marker[0] === fence[0] && marker.length >= fence.length) {
+          fence = null;
+        }
+        paragraphStart = false;
+        return '';
+      }
+      if (marker) {
+        fence = marker;
+        inEsm = false;
+        paragraphStart = false;
+        return '';
+      }
+      if (!trimmed) {
+        inEsm = false;
+        paragraphStart = true;
+        return '';
+      }
+      if (paragraphStart) {
+        inEsm = /^(?:import|export)\b/.test(line);
+      }
+      paragraphStart = false;
+      return inEsm ? line : '';
+    })
+    .join('\n');
+}
+
+/**
+ * The modules a route source exports its loaders from: `export … from` and `export * from`, the
+ * module of an imported binding it re-exports (`import { useData } from './data'; export { useData
+ * as useRouteData };`, the documented re-export pattern without `from`), and of the imported
+ * factory a destructuring export calls (`export const { useSession } = QwikAuth$()`). Read from
+ * Vite's parser, so comments, strings and regular expressions are never mistaken for code; `null`
+ * for a file it can't parse.
+ */
+async function parsedSourceSpecifiers(code: string, filePath: string) {
+  const lang = PARSE_LANGS[extname(filePath)];
+  if (!lang) {
+    return null;
+  }
+  let program: Awaited<ReturnType<typeof parseAstAsync>>;
+  try {
+    program = await parseAstAsync(extname(filePath) === '.mdx' ? mdxEsm(code) : code, { lang });
+  } catch {
+    return null;
+  }
+  const imported = new Map<string, string>();
+  for (const node of program.body) {
+    if (node.type === 'ImportDeclaration') {
+      for (const specifier of node.specifiers) {
+        imported.set(specifier.local.name, String(node.source.value));
+      }
+    }
+  }
+  const specifiers = new Set<string>();
+  for (const node of program.body) {
+    if (node.type === 'ExportAllDeclaration') {
+      specifiers.add(String(node.source.value));
+    } else if (node.type === 'ExportNamedDeclaration') {
+      if (node.source) {
+        specifiers.add(String(node.source.value));
+        continue;
+      }
+      for (const specifier of node.specifiers) {
+        const source = specifier.local.type === 'Identifier' && imported.get(specifier.local.name);
+        if (source) {
+          specifiers.add(source);
+        }
+      }
+      if (node.declaration?.type === 'VariableDeclaration') {
+        for (const declarator of node.declaration.declarations) {
+          const init = declarator.init;
+          const source =
+            declarator.id.type === 'ObjectPattern' &&
+            init?.type === 'CallExpression' &&
+            init.callee.type === 'Identifier' &&
+            imported.get(init.callee.name);
+          if (source) {
+            specifiers.add(source);
+          }
+        }
+      }
+    }
+  }
+  return specifiers;
+}
+
+/**
+ * {@link parsedSourceSpecifiers} for a file Vite's parser can't read (a syntax error, an unknown
+ * extension), by mlly's text matching.
+ */
+function matchedSourceSpecifiers(code: string) {
+  const specifiers = new Set<string>();
+  const exportEntries = findExports(code);
+  if (!exportEntries) {
+    return specifiers;
+  }
   const importedFactories = new Map<string, string>();
   for (const entry of findStaticImports(code)) {
     const parsed = parseStaticImport(entry);
@@ -232,8 +338,6 @@ async function collectRouteLoaderSources(
       }
     }
   }
-
-  const specifiers = new Set<string>();
   for (const exp of exportEntries) {
     if (exp.specifier) {
       specifiers.add(exp.specifier);
@@ -244,6 +348,23 @@ async function collectRouteLoaderSources(
         specifiers.add(specifier);
       }
     }
+  }
+  return specifiers;
+}
+
+async function collectRouteLoaderSources(
+  owner: string,
+  filePath: string,
+  resolveSource: SourceResolver,
+  sources: Map<string, string[]>,
+  seen = new Set<string>([owner])
+) {
+  let specifiers: Set<string>;
+  try {
+    const code = await readFile(filePath, 'utf-8');
+    specifiers = (await parsedSourceSpecifiers(code, filePath)) ?? matchedSourceSpecifiers(code);
+  } catch {
+    return;
   }
 
   for (const specifier of specifiers) {

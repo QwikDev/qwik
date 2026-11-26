@@ -44,15 +44,14 @@ import { _constants, _typeIdNames, Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } fr
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
-import { _createDeserializeContainer, getObjectById } from './serdes.public';
+import { _createDeserializeContainer } from './serdes.public';
 import { SsrNode } from '../../../server/ssr-node';
 import { VNodeDataFlag } from '../../../server/types';
 import { OPEN_FRAGMENT, type VNodeData } from '../../../server/vnode-data';
 import { _serializationWeakRef, shouldSkipComponentProps } from '../../../serializer/serialize';
 import { SubscriptionPatch, SubscriptionPatchChannel } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
-import type { DeserializeContainer } from '../types';
-import { eagerDeserializeStateIterator } from './inflate';
+import { restoreRootsIterator } from './inflate';
 
 const DEBUG = false;
 
@@ -83,7 +82,7 @@ describe('shared-serialization', () => {
     const container = _createDeserializeContainer(raw);
     container.$streamingObjectRefs$ = new WeakMap();
     if (eager) {
-      const iterator = eagerDeserializeStateIterator(container, raw);
+      const iterator = restoreRootsIterator(container, raw);
       while (!iterator.next().done) {
         // Complete eager resume before the late patch arrives.
       }
@@ -125,7 +124,7 @@ describe('shared-serialization', () => {
     const container = _createDeserializeContainer(raw);
     container.$streamingObjectRefs$ = new WeakMap();
     if (eager) {
-      const iterator = eagerDeserializeStateIterator(container, raw);
+      const iterator = restoreRootsIterator(container, raw);
       while (!iterator.next().done) {
         // Complete eager resume before the late patch arrives.
       }
@@ -153,7 +152,7 @@ describe('shared-serialization', () => {
       const container = _createDeserializeContainer(raw);
       container.$streamingObjectRefs$ = new WeakMap();
       if (eager) {
-        const iterator = eagerDeserializeStateIterator(container, raw);
+        const iterator = restoreRootsIterator(container, raw);
         while (!iterator.next().done) {
           // Complete eager resume before the late patch arrives.
         }
@@ -1245,25 +1244,13 @@ describe('shared-serialization', () => {
   };
 
   const eagerDeserialize = (data: unknown[]) => {
-    const state = Array(data.length / 2);
-    const container: DeserializeContainer = {
-      $getObjectById$: (id) => getObjectById(id, state),
-      $getForwardRef$: (id) => container.$forwardRefs$?.[Number(id)],
-      getSyncFn: (_: number) => {
-        const fn = () => {};
-        return fn;
-      },
-      $storeProxyMap$: new WeakMap(),
-      element: null,
-      $forwardRefs$: null,
-    };
-    preprocessState(data, container);
-    const iterator = eagerDeserializeStateIterator(container, data, state);
+    const container = _createDeserializeContainer(data);
+    const iterator = restoreRootsIterator(container, data);
     let yields = 0;
     while (!iterator.next().done) {
       yields++;
     }
-    return { state, yields };
+    return { state: container.$state$!, yields };
   };
 
   describe('chunked eager deserialize', () => {
@@ -1310,9 +1297,8 @@ describe('shared-serialization', () => {
 
     it('releases pending store targets after allocation errors', () => {
       const data = [TypeIds.Store, [TypeIds.Object, EMPTY_OBJECT_PAYLOAD], 999, 0];
-      const state = Array(data.length / 2);
       const container = _createDeserializeContainer(data);
-      const iterator = eagerDeserializeStateIterator(container, data, state);
+      const iterator = restoreRootsIterator(container, data);
 
       expect(iterator.next().done).toBe(false);
       expect(container.$pendingStoreTargets$?.size).toBe(1);

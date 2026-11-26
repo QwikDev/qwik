@@ -2,6 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
+  getQrlCaptureRootIds,
   isQrlImportError,
   setCaptures,
   type QRLInternal,
@@ -13,7 +14,9 @@ import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use/use-core';
-import { getDomContainer, whenContainerDataReady } from './dom-container';
+import { getDomContainer, whenContainerDataReady, type DomContainer } from './dom-container';
+import { processContainerStateData } from './process-state-data';
+import { runIteratorSlice } from './yielding-iterator';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 import { CatchPhase } from '../shared/error/error-handling';
@@ -43,9 +46,20 @@ export function runEventHandlerQRL(
       )
     );
   }
-  const container = ctx.$container$!;
+  const container = ctx.$container$! as DomContainer;
   const hostElement = ctx.$hostElement$ as ElementVNode;
   vnode_ensureElementInflated(container, hostElement);
+  const captureRootIds = getCaptureRootIds(handler as QRLInternal, hostElement);
+  if (captureRootIds.length) {
+    const restoreCaptures = container.$restoreRoots$(captureRootIds);
+    if (!runIteratorSlice(restoreCaptures)) {
+      // Large captures finish restoring in slices, queued like the resume work.
+      processContainerStateData(container, restoreCaptures);
+      return whenContainerDataReady(container, () =>
+        runEventHandlerQRL(handler, event, element, ctx)
+      );
+    }
+  }
   // Sync handlers must not defer subsequent handlers.
   const handlerFn = isSyncQrl(handler)
     ? (...args: any[]) =>
@@ -100,6 +114,26 @@ export function runEventHandlerQRL(
     }
   );
 }
+
+/** Root ids of the handler's captures and iteration items that are not restored yet. */
+const getCaptureRootIds = (handler: QRLInternal, hostElement: ElementVNode): number[] => {
+  const captures = handler.$captures$;
+  const rootIds = typeof captures === 'string' ? getQrlCaptureRootIds(captures) : [];
+  const hasSerializedIterationItems =
+    hostElement.flags & VNodeFlags.HasIterationItems &&
+    !(hostElement.flags & VNodeFlags.InflatedIterationItems);
+  if (!hasSerializedIterationItems) {
+    return rootIds;
+  }
+  const iterationItemKeys = [ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI];
+  for (let i = 0; i < iterationItemKeys.length; i++) {
+    const rootId = hostElement.props?.[iterationItemKeys[i]];
+    if (typeof rootId === 'string') {
+      rootIds.push(parseInt(rootId, 10));
+    }
+  }
+  return rootIds;
+};
 
 /**
  * This is called by qwik-loader to run a QRL. It has to be synchronous when possible.

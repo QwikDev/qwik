@@ -1,7 +1,7 @@
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
 import { wrapDeserializerProxy } from './deser-proxy';
-import { eagerDeserializeStateIterator } from './inflate';
+import { restoreRootsIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
 import { isDev } from '@qwik.dev/core/build';
 import {
@@ -25,11 +25,9 @@ export async function _deserialize<T>(rawStateData: string): Promise<T> {
     throw new Error('Invalid state data');
   }
 
-  const state = Array(stateData.length / 2);
-  const container = createBaseDeserializeContainer(stateData, () => state);
-  container.$state$ = state;
-  await runDeserializeIterator(eagerDeserializeStateIterator(container, stateData, state));
-  return state[0] as T;
+  const container = _createDeserializeContainer(stateData);
+  await runDeserializeIterator(restoreRootsIterator(container, stateData));
+  return container.$state$![0] as T;
 }
 
 const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): Promise<T> => {

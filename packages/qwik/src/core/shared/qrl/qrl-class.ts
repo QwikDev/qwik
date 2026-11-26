@@ -535,6 +535,12 @@ const deserializeQrlCaptureDeltas = (container: Container, qrlString: string) =>
   return deserializeCaptureDeltas(container, qrlString, secondHash + 1, previousRootId);
 };
 
+// Reads the root ids of the captures without restoring them.
+const rootIdReader = { $getObjectById$: (id: number) => id } as unknown as Container;
+
+export const getQrlCaptureRootIds = (qrlString: string): number[] =>
+  deserializeQrlCaptureDeltas(rootIdReader, qrlString) as number[];
+
 /**
  * Puts the qrl captures into `_capturesObj`, and returns a Promise that should be awaited if
  * possible

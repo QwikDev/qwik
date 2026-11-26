@@ -103,50 +103,71 @@ function* eagerDeserializeArrayIterator(
   return output;
 }
 
-export function* eagerDeserializeStateIterator(
+/**
+ * Restores the given roots, or every root, in yielding steps. Restored roots are written back as
+ * plain values, so the lazy state proxy returns them without restoring them again.
+ */
+export function* restoreRootsIterator(
   container: DeserializeContainer,
   data: unknown[],
-  output: unknown[] = Array(data.length / 2)
-): Generator<void, unknown[], void> {
-  const ownsPendingStoreTargets = beginDeserialization(container);
-  const length = data.length / 2;
-  const allocated = new Uint8Array(length);
-  const previousGetObjectById = container.$getObjectById$;
-
-  const allocateRoot = (index: number): unknown => {
-    if (!allocated[index]) {
-      allocated[index] = 1;
-      const typeIndex = index * 2;
-      const typeId = data[typeIndex] as TypeIds;
-      const value = data[typeIndex + 1];
-      output[index] = typeId === TypeIds.Plain ? value : allocate(container, typeId, value);
+  rootIds?: number[]
+): Generator<void, void, void> {
+  // Flat triples of target, type id and serialized value.
+  const pendingInflations: unknown[] = [];
+  const restoreRoot = (id: number | string): unknown => {
+    const typeIndex = (typeof id === 'string' ? parseInt(id, 10) : id) * 2;
+    const typeId = data[typeIndex] as TypeIds;
+    const value = data[typeIndex + 1];
+    if (typeId === TypeIds.Plain) {
+      return value;
     }
-    return output[index];
+    const target = allocate(container, typeId, value);
+    // Queued before the writes: the Rust optimizer inlines `typeId` and `value` as reads of `data`.
+    if (needsInflation(typeId)) {
+      pendingInflations.push(target, typeId, value);
+    }
+    data[typeIndex] = TypeIds.Plain;
+    data[typeIndex + 1] = target;
+    return target;
   };
-
-  container.$getObjectById$ = (id) => allocateRoot(typeof id === 'string' ? parseInt(id, 10) : id);
-  try {
-    for (let i = 0; i < length; i++) {
-      allocateRoot(i);
+  const steps = (function* (): Generator<void, void, void> {
+    const rootCount = rootIds ? rootIds.length : data.length / 2;
+    for (let i = 0; i < rootCount; i++) {
+      restoreRoot(rootIds ? rootIds[i] : i);
       yield;
     }
-    for (let i = 0; i < length; i++) {
-      const typeIndex = i * 2;
-      const typeId = data[typeIndex] as TypeIds;
-      const value = data[typeIndex + 1];
-      const propValue = output[i];
-      data[typeIndex] = TypeIds.Plain;
-      data[typeIndex + 1] = propValue;
-      if (needsInflation(typeId)) {
-        yield* inflateIterator(container, propValue, typeId, value);
+    // Inflating a root can queue the roots it references.
+    for (let i = 0; i < pendingInflations.length; i += 3) {
+      yield* inflateIterator(
+        container,
+        pendingInflations[i],
+        pendingInflations[i + 1] as TypeIds,
+        pendingInflations[i + 2]
+      );
+      yield;
+    }
+  })();
+
+  const ownsPendingStoreTargets = beginDeserialization(container);
+  const getObjectById = container.$getObjectById$;
+  try {
+    while (true) {
+      // Other code may read the container between steps, so the override must not outlive a step.
+      container.$getObjectById$ = restoreRoot;
+      let result;
+      try {
+        result = steps.next();
+      } finally {
+        container.$getObjectById$ = getObjectById;
+      }
+      if (result.done) {
+        return;
       }
       yield;
     }
   } finally {
-    container.$getObjectById$ = previousGetObjectById;
     endDeserialization(container, ownsPendingStoreTargets);
   }
-  return output;
 }
 
 function* deserializeDataIterator(

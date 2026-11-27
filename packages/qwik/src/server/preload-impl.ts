@@ -256,7 +256,10 @@ export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, n
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined
 ): Required<PreloaderOptions> {
-  return { ...preLoaderOptionsDefault, ...input };
+  return {
+    ssrPreloads: input?.ssrPreloads ?? preLoaderOptionsDefault.ssrPreloads,
+    maxIdlePreloads: input?.maxIdlePreloads ?? preLoaderOptionsDefault.maxIdlePreloads,
+  };
 }
 
 export const getBundles = (qrls: QRLInternal[]) => {

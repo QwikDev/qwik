@@ -267,6 +267,30 @@ describe('preloader', () => {
       expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 25 }]]);
     });
 
+    it('an undefined limit means the default: maxIdlePreloads: undefined calls l with {P:25} after load', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, { maxIdlePreloads: undefined });
+      const page = runStartScript(getScriptContent());
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 25 }]]);
+    });
+
+    it('a limit of 0 stays 0: maxIdlePreloads: 0 calls l with {P:0} after load', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, { maxIdlePreloads: 0 });
+      const page = runStartScript(getScriptContent());
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 0 }]]);
+    });
+
     it("a start still pending at load can't hold speculative preloads again: qPreloadStart() resolved after load calls l with {P:25}", async () => {
       const { container, getScriptContent } = createContainer();
       const { preloaderPre } = await import('./preload-impl');

@@ -23,6 +23,8 @@ external
 lib
 tsdoc-metadata.json
 /target
+# Local insights databases (qwikInsights collector)
+.qwik
 
 # IDE and local environment
 .idea

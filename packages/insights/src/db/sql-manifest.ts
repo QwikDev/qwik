@@ -101,36 +101,6 @@ export async function dbGetManifestStats(
   }));
 }
 
-export async function dbGetManifestInfo(
-  db: AppDatabase,
-  publicApiKey: string,
-  manifestHash: string
-): Promise<ManifestRow> {
-  const lookup = db
-    .select()
-    .from(manifestTable)
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey), eq(manifestTable.hash, manifestHash)));
-  const existing = await lookup.get();
-  if (existing) {
-    return existing;
-  }
-  const inserted = await db
-    .insert(manifestTable)
-    .values({
-      publicApiKey,
-      hash: manifestHash,
-      timestamp: new Date(),
-    })
-    .onConflictDoNothing()
-    .returning()
-    .all();
-  const manifest = inserted.at(0) ?? (await lookup.get());
-  if (!manifest) {
-    throw new Error('Manifest could not be registered');
-  }
-  return manifest;
-}
-
 export async function dbGetManifestHashes(
   db: AppDatabase,
   publicApiKey: string,

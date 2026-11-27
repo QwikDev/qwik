@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/insights/collector/index.d.ts",
+  "newlineKind": "lf",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "qwik.insights.collector",
+    "reportFolder": "<projectFolder>/src/insights/collector/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/insights/collector/"
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/insights/collector.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>../../dist-dev/api/qwik/insights/collector/docs.api.json"
+  }
+}

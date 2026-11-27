@@ -36,6 +36,25 @@ import { useCatchStore } from '../use/use-catch-store';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+it.each([150, 500])('renders and resumes a chain of %i computeds', async (length) => {
+  const Chain = component$((props: { length: number }) => {
+    const count = useSignal(1);
+    let last: { value: number } = count;
+    for (let i = 0; i < props.length; i++) {
+      const previous = last;
+      last = useComputed$(() => previous.value + 1);
+    }
+    return <button onClick$={() => count.value++}>{last.value}</button>;
+  });
+
+  const { container } = await ssrRenderToDom(<Chain length={length} />);
+  const button = container.document.querySelector('button')!;
+  expect(button.textContent).toBe(String(length + 1));
+  await trigger(container.element, 'button', 'click');
+  await waitForDrain(container);
+  expect(button.textContent).toBe(String(length + 2));
+});
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //

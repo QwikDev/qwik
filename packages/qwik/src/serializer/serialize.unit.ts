@@ -1,7 +1,9 @@
+import { createComputed$, createSignal } from '@qwik.dev/core';
 import { createDocument } from '@qwik.dev/core/testing';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _serialize } from './index';
+import { TypeIds } from './qwik-copy';
 
 describe('serialized state script', () => {
   it.each(['<!-- <script>', '<!-- <ScRiPt>', `${'a'.repeat(128)}<!-- <script>`])(
@@ -15,6 +17,30 @@ describe('serialized state script', () => {
       expect(document.querySelector('script[type="qwik/state"]')?.textContent).toBe(state);
       expect(document.querySelector('#after')).not.toBeNull();
       expect(await _deserialize(state)).toEqual({ value });
+    }
+  );
+});
+
+describe('computed chains', () => {
+  it.each([
+    { length: 3, splits: false },
+    { length: 500, splits: true },
+  ])(
+    'writes separate computed roots for deep chains only ($length links)',
+    async ({ length, splits }) => {
+      const count = createSignal(1);
+      let last = count;
+      for (let i = 0; i < length; i++) {
+        const previous = last;
+        last = createComputed$(() => previous.value + 1);
+        expect(last.value).toBe(i + 2);
+      }
+
+      const roots = JSON.parse(await _serialize(count)) as unknown[];
+      const hasComputedRoot = roots.some(
+        (typeId, index) => index % 2 === 0 && typeId === TypeIds.ComputedSignal
+      );
+      expect(hasComputedRoot).toBe(splits);
     }
   );
 });

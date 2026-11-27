@@ -14,6 +14,8 @@ export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
   $getForwardRef$: (id: number) => number | string | undefined;
   $pendingStoreTargets$?: Map<object, { t: number; v: unknown }>;
+  $deferSubscriberInflation$?: boolean;
+  $subscriberInflations$?: Generator<void, void, void>[];
   $streamingObjectRefs$?: WeakMap<object, object[]>;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;

@@ -77,6 +77,8 @@ import {
 } from './serialization-context';
 import { getAutoSerializationMode } from './auto';
 
+const MAX_COMPUTED_NESTING = 48;
+
 /**
  * Format:
  *
@@ -93,6 +95,7 @@ export class Serializer {
   private $promises$: Set<Promise<unknown>> = new Set();
   private $s11nWeakRefs$ = new Map<unknown, number>();
   private $parent$: SeenRef | undefined;
+  private $depth$ = 0;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $streamedRootLimit$ = 0;
   private $isPatch$ = false;
@@ -344,16 +347,25 @@ export class Serializer {
       this.outputString(value);
     } else {
       this.$writer$.write(type + COMMA);
-      this.outputArray(value, !!keepUndefined, (valueItem, idx) => {
-        this.writeValue(valueItem, idx);
-      });
+      this.$depth$++;
+      try {
+        const splitSubscriber =
+          this.$depth$ >= MAX_COMPUTED_NESTING &&
+          (type === TypeIds.EffectSubscription || type === TypeIds.EffectSubscriptionNoData);
+        this.outputArray(value, !!keepUndefined, (valueItem, idx) => {
+          this.writeValue(valueItem, idx, splitSubscriber && idx === 0);
+        });
+      } finally {
+        this.$depth$--;
+      }
     }
   }
 
   private getSeenRefOrOutput(
     value: unknown,
     index: number,
-    keepWeak?: boolean
+    keepWeak?: boolean,
+    splitRoot?: boolean
   ): SeenRef | undefined {
     let seen = this.$serializationContext$.getSeenRef(value);
 
@@ -365,8 +377,7 @@ export class Serializer {
         return true as unknown as SeenRef;
       }
       // Maybe it's a weakref and that should count as seen
-      if (typeof forwardRefIdx === 'number') {
-        // Yes, no longer a weakref
+      if (typeof forwardRefIdx === 'number' || splitRoot) {
         seen = this.$serializationContext$.$addRoot$(value, true);
       } else {
         return this.$serializationContext$.$markSeen$(value, this.$parent$, index);
@@ -412,7 +423,7 @@ export class Serializer {
 
   // First check for scalars, then do objects with seen checks
   // Make sure to only get the SeenRef once, it's expensive
-  private writeValue(value: unknown, index: number) {
+  private writeValue(value: unknown, index: number, splitSubscriber = false) {
     if (fastSkipSerialize(value)) {
       this.output(TypeIds.Constant, Constants.Undefined);
     } else {
@@ -561,7 +572,11 @@ export class Serializer {
           } else if (value instanceof SerializationBackRef) {
             this.output(TypeIds.RootRef, value.$path$);
           } else {
-            const newSeenRef = this.getSeenRefOrOutput(value, index);
+            // A new root limits how far the serializer follows a computed chain.
+            const splitRoot =
+              splitSubscriber &&
+              (value instanceof ComputedSignalImpl || value instanceof WrappedSignalImpl);
+            const newSeenRef = this.getSeenRefOrOutput(value, index, false, splitRoot);
             if (newSeenRef) {
               const oldParent = this.$parent$;
               this.$parent$ = newSeenRef;

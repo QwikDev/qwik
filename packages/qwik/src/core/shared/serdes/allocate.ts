@@ -65,6 +65,7 @@ export const endDeserialization = (
   if (ownsPendingStoreTargets) {
     container.$pendingStoreTargets$!.clear();
     container.$pendingStoreTargets$ = undefined;
+    container.$subscriberInflations$ = undefined;
   }
 };
 

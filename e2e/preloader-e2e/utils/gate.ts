@@ -77,7 +77,7 @@ export const chunksHintedAtHighestPriority = (page: Page) =>
     return hints.filter((hint) => hint.priority === 1).flatMap((hint) => hint.item);
   });
 
-export const recordSpeculativePreloads = (page: Page) =>
+export const recordSpeculativePreloads = (page: Page, preloaderFile = getManifest().preloader!) =>
   page.addInitScript((preloaderFile) => {
     const win = window as PreloaderWindow;
     win.__preloaderLinks = [];
@@ -103,7 +103,7 @@ export const recordSpeculativePreloads = (page: Page) =>
       }
       return appendChild.call(this, node) as T;
     };
-  }, getManifest().preloader!);
+  }, preloaderFile);
 
 export const maxSpeculativeInFlight = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__maxSpeculativeInFlight ?? 0);

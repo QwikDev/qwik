@@ -21,7 +21,7 @@ test.describe('docs home page', () => {
     );
     expect(preloader, 'the built docs serve q-manifest.json naming the preloader').toBeTruthy();
     const preloaderUrl = new URL(`/build/${preloader}`, baseURL).href;
-    await recordSpeculativePreloads(page);
+    await recordSpeculativePreloads(page, preloader);
     const cpuRate = await throttleLikeAMidTierPhone(page);
     const tasks = await traceLongTasks(
       browser,

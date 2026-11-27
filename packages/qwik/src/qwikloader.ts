@@ -220,6 +220,14 @@ const resolveHandler = (
     preloaderGlobal.qPreload
       ? preloaderGlobal.qPreload(chunks, 1)
       : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+  } else {
+    for (let i = 0; i < chunks.length; i++) {
+      const link = doc.createElement('link');
+      link.rel = 'modulepreload';
+      link.fetchPriority = 'low';
+      link.href = new URL(chunks[i], base).href;
+      doc.head.appendChild(link);
+    }
   }
 
   const href = new URL(chunk, base).href;

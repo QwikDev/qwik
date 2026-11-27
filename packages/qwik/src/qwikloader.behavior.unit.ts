@@ -101,6 +101,8 @@ function createLoaderEnvironment(initialEvents: QwikEventItem[]) {
   doc.baseURI = 'http://qwik.dev/';
   doc.body = { lastElementChild: null };
   doc.documentElement = {};
+  doc.createElement = () => ({});
+  doc.head = { appendChild: vi.fn() };
 
   const win = createEventTarget() as any;
   win._qwikEv = [...initialEvents];
@@ -667,6 +669,80 @@ describe('qwikloader behavior', () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  describe('page lifecycle imports', () => {
+    const addedToHead = (doc: any) => doc.head.appendChild.mock.calls.map(([link]: [any]) => link);
+    const lowModulepreload = (href: string) => ({
+      rel: 'modulepreload',
+      fetchPriority: 'low',
+      href,
+    });
+    const untilTheImportFails = async (run: () => void) => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        run();
+        await vi.waitFor(() => {
+          expect(consoleError).toHaveBeenCalled();
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
+    };
+
+    test('adds a low-priority modulepreload before the import: qinit on chunk.js adds <link rel="modulepreload" fetchpriority="low" href="chunk.js">', async () => {
+      const { doc } = createLoaderEnvironment(['d:qinit']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const element = createMockElement(container, { 'q-d:qinit': 'chunk.js#handler#' });
+      doc.querySelectorAll.mockReturnValue([element]);
+
+      await untilTheImportFails(() => {
+        doc.readyState = 'complete';
+        getSingleListener(doc, 'readystatechange').handler(
+          createMockEvent(doc, 'readystatechange')
+        );
+        expect(addedToHead(doc)).toEqual([lowModulepreload('http://qwik.dev/chunk.js')]);
+      });
+    });
+
+    test("adds one for each of the handler's other chunks: qvisible on core.js#_task#0#task.js adds core.js and task.js", async () => {
+      const { doc, win } = createLoaderEnvironment(['e:qvisible']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const element = createMockElement(container, { 'q-e:qvisible': 'core.js#_task#0#task.js' });
+      doc.readyState = 'complete';
+      getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+
+      await untilTheImportFails(() => {
+        win.__qwikLoaderIntersect([{ isIntersecting: true, target: element }]);
+        expect(addedToHead(doc)).toEqual([
+          lowModulepreload('http://qwik.dev/core.js'),
+          lowModulepreload('http://qwik.dev/task.js'),
+        ]);
+      });
+    });
+
+    test('adds none for a user event: a click on chunk.js adds no modulepreload', async () => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const button = createMockElement(container, { 'q-e:click': 'chunk.js#handler#' });
+
+      await untilTheImportFails(() => {
+        getSingleListener(doc, 'click').handler(createMockEvent(button));
+        expect(addedToHead(doc)).toEqual([]);
+      });
+    });
+
+    test('treats every event named q* as a page lifecycle event: qrouterpopstate on chunk.js adds one', async () => {
+      const { doc } = createLoaderEnvironment(['d:qrouterpopstate']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const element = createMockElement(container, { 'q-d:qrouterpopstate': 'chunk.js#handler#' });
+      doc.querySelectorAll.mockReturnValue([element]);
+
+      await untilTheImportFails(() => {
+        getSingleListener(doc, 'qrouterpopstate').handler(createMockEvent(doc, 'qrouterpopstate'));
+        expect(addedToHead(doc)).toEqual([lowModulepreload('http://qwik.dev/chunk.js')]);
+      });
+    });
   });
 
   test('runs an already imported handler at once when only its other chunks differ', async () => {

@@ -45,6 +45,23 @@ Every hint has a priority, a number from 0 to 1, and a bundle takes the highest 
 
 Bundles at 0.99 and up are highest priority: they are requested at once. The others are speculative: they are requested a few at a time, with a low fetch priority, and only while nothing of the highest priority is loading and once the bundle graph has arrived.
 
+### Fetch priority
+
+The priority above orders Qwik's own requests. The browser's fetch priority decides who wins against the page's images. A script loaded from JavaScript gets one of two levels: high, the default, or low with `fetchpriority="low"`.
+
+| Request                                                         | Fetch priority |
+| --------------------------------------------------------------- | -------------- |
+| A click's bundles                                               | high           |
+| The preloader, the bundle graph, core and its handlers' bundles | low            |
+| A visible task's own bundle                                     | low            |
+| Speculative preloads                                            | low            |
+
+The browser fetches an image in view at high priority, so the JavaScript that loads with the page does not take its bandwidth. A request that started low is never raised: a click made before core has arrived waits for it at low priority.
+
+A low modulepreload does not fetch the module's static imports, and the import that follows fetches them at high priority. So the server links each bundle with its static imports.
+
+A visible task's own bundle is not linked ahead: a page can hold many, and a server that ignores priorities would send them next to the image. Core imports it once it runs the task, at low priority: it adds a low modulepreload first, which the import then joins.
+
 ### Kinds
 
 Inside a priority, the kind of code decides the order:

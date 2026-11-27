@@ -12,14 +12,14 @@ import type { SSRContainer, SSRWriteChunk } from './ssr-types';
 /** @internal */
 export const modulepreload = (...qrls: (QRL | null | undefined)[]): void => {
   const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
-  const modulepreloads = container?.serializationCtx?.$modulepreloads$;
-  if (!modulepreloads) {
+  const eagerPreloads = container?.serializationCtx?.$eagerPreloads$;
+  if (!eagerPreloads) {
     return;
   }
   for (let i = 0; i < qrls.length; i++) {
     const qrl = qrls[i];
     if (isQrl(qrl)) {
-      modulepreloads.set(qrl.$hash$, qrl);
+      eagerPreloads.set(qrl.$hash$, qrl);
     }
   }
 };

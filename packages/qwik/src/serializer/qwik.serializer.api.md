@@ -44,6 +44,8 @@ export interface SerializationContext {
     $commitRoot$: (root: unknown, obj: unknown) => number;
     $coreHandlerQrls$: Map<string, QRL>;
     // (undocumented)
+    $eagerPreloads$: Map<string, QRL>;
+    // (undocumented)
     $eagerResume$: Set<unknown>;
     // (undocumented)
     $eventNames$: Set<string>;
@@ -67,8 +69,6 @@ export interface SerializationContext {
     $markSeen$: (obj: unknown, parent: SeenRef | undefined, index: number) => SeenRef;
     // (undocumented)
     $markSsrNodeForSerialization$: (node: ISsrNode, flags: number, isStateRoot?: boolean) => void;
-    // (undocumented)
-    $modulepreloads$: Map<string, QRL>;
     // (undocumented)
     $onAddRoot$?: (id: number, root: unknown, obj: unknown) => void;
     // (undocumented)

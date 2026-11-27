@@ -17,7 +17,7 @@ const createContainer = (buildBase = '/') => {
     serializationCtx: {
       $eventQrls$: new Set(),
       $coreHandlerQrls$: new Map(),
-      $modulepreloads$: new Map(),
+      $eagerPreloads$: new Map(),
     },
     openElement(tagName: string, _key: any, attrs: Record<string, string>) {
       elements.push({ tagName, attrs });
@@ -524,7 +524,7 @@ describe('preloader', () => {
     const createGotoQrl = () => createQrl('goto.js', 's_goto');
 
     const askFor = (container: { serializationCtx: any }, qrl: any) =>
-      container.serializationCtx.$modulepreloads$.set(qrl.$hash$, qrl);
+      container.serializationCtx.$eagerPreloads$.set(qrl.$hash$, qrl);
 
     const createContainerAskingFor = (
       item: unknown,

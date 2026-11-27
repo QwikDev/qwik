@@ -232,11 +232,11 @@ describe('SSR Container', () => {
   it('modulepreloads what a part of the page streamed out of order asks for: gotoQrl there still gives goto.js', () => {
     const { root, first } = createVNodeIdContexts();
     const gotoQrl = _createQRL('goto.js', 's_goto', () => 0);
-    first.serializationCtx.$modulepreloads$.set(gotoQrl.$hash$, gotoQrl);
+    first.serializationCtx.$eagerPreloads$.set(gotoQrl.$hash$, gotoQrl);
 
     Reflect.get(first, '$mergeSegmentEventData$').call(first, root, first.serializationCtx);
 
-    expect([...root.serializationCtx.$modulepreloads$.values()]).toEqual([gotoQrl]);
+    expect([...root.serializationCtx.$eagerPreloads$.values()]).toEqual([gotoQrl]);
   });
 
   it('includes only committed segments in the shell serialization scope', () => {

@@ -258,7 +258,7 @@ Out-of-order (OOOS) invariants:
   apart. The bundle of each of core's handlers a page's events run through
   (`$coreHandlerQrls$`), with its static imports, is linked as the page streams whatever
   `ssrPreloads` is: every interaction needs core. Only `preloader: false` turns these links off. A
-  library adds its own with `_modulepreload` (`$modulepreloads$`), as the router does for a
+  library adds its own with `_modulepreload` (`$eagerPreloads$`), as the router does for a
   `<Link>`: keep that to the chunks its first interaction needs, since every page that renders it
   fetches them at load. `ssrPreloads` (0 by default) only adds the first
   bundles the client queue would fetch, ranked on the server with `getPreloadOrder` (same

@@ -182,11 +182,11 @@ describe('_modulepreload', () => {
   const createGotoQrl = () => createQRL('goto.js', 's_goto', () => {});
 
   const duringServerRender = (render: () => void) => {
-    const serializationCtx = { $modulepreloads$: new Map() } as unknown as SerializationContext;
+    const serializationCtx = { $eagerPreloads$: new Map() } as unknown as SerializationContext;
     const context = newInvokeContext();
     context.$container$ = { serializationCtx } as unknown as Container;
     invoke(context, render);
-    return [...serializationCtx.$modulepreloads$.values()];
+    return [...serializationCtx.$eagerPreloads$.values()];
   };
 
   it('remembers QRLs during a server render: _modulepreload(clickQrl, gotoQrl) keeps both', () => {

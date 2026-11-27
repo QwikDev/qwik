@@ -169,7 +169,7 @@ export const preloadHandlerBundles = (
   const manifest = container.resolvedManifest?.manifest;
   const handlerBundles = getBundles([
     ...container.serializationCtx.$coreHandlerQrls$.values(),
-    ...container.serializationCtx.$modulepreloads$.values(),
+    ...container.serializationCtx.$eagerPreloads$.values(),
   ] as QRLInternal[]);
   const linked = handlerBundlesLinked.get(container) ?? [];
   const links: string[] = [];

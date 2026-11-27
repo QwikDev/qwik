@@ -142,44 +142,46 @@ describe('preloader', () => {
     expect(getScriptContent()).toBe('');
   });
 
-  it('starts the preloader after page paint during idle time', async () => {
-    const { container, elements, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+  describe('the script that starts the preloader', () => {
+    it('starts the preloader after page paint during idle time', async () => {
+      const { container, elements, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, { maxIdlePreloads: 1 });
+      preloaderPre(container, { maxIdlePreloads: 1 });
 
-    expect(elements).toEqual([
-      { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'preload',
-          href: '/assets/bundle-graph.json',
-          as: 'fetch',
-          crossorigin: 'anonymous',
+      expect(elements).toEqual([
+        { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
+        {
+          tagName: 'link',
+          attrs: {
+            rel: 'preload',
+            href: '/assets/bundle-graph.json',
+            as: 'fetch',
+            crossorigin: 'anonymous',
+          },
         },
-      },
-    ]);
+      ]);
 
-    expectDeferredUntilAfterPaint(getScriptContent(), true);
-  });
+      expectDeferredUntilAfterPaint(getScriptContent(), true);
+    });
 
-  it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
-    const { container, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+    it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, { maxIdlePreloads: limit });
+      preloaderPre(container, { maxIdlePreloads: limit });
 
-    expect(getScriptContent()).toContain(`{P:${limit}}`);
-  });
+      expect(getScriptContent()).toContain(`{P:${limit}}`);
+    });
 
-  it('falls back to the next paint without a fixed delay', async () => {
-    const { container, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+    it('falls back to the next paint without a fixed delay', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, {});
+      preloaderPre(container, {});
 
-    expectDeferredUntilAfterPaint(getScriptContent(), true, false);
+      expectDeferredUntilAfterPaint(getScriptContent(), true, false);
+    });
   });
 
   it('starts speculative bundle preloads after page paint during idle time', async () => {

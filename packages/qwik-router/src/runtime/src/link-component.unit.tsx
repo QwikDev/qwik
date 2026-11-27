@@ -9,18 +9,18 @@ const {
   preloadRouteBundlesMock,
   getClientNavPathMock,
   gotoMock,
-  modulepreloadMock,
+  eagerPreloadMock,
 } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
   preloadRouteBundlesMock: vi.fn(),
   getClientNavPathMock: vi.fn(),
   gotoMock: vi.fn(),
-  modulepreloadMock: vi.fn(),
+  eagerPreloadMock: vi.fn(),
 }));
 
 vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
   ...((await importOriginal()) as object),
-  _modulepreload: modulepreloadMock,
+  _eagerPreload: eagerPreloadMock,
 }));
 
 vi.mock('./prefetch-route', () => ({
@@ -463,7 +463,7 @@ describe.each([
     });
   });
 
-  describe('what a <Link> asks core to modulepreload', () => {
+  describe('what a <Link> asks core to preload eagerly', () => {
     const LinkRoot = component$((props: { href: string; reload?: boolean }) => {
       return (
         <QwikRouterMockProvider goto={$(() => gotoMock())}>
@@ -477,14 +477,14 @@ describe.each([
     beforeEach(async () => {
       const { getClientNavPath } = await vi.importActual<typeof import('./utils')>('./utils');
       getClientNavPathMock.mockImplementation(getClientNavPath);
-      modulepreloadMock.mockClear();
+      eagerPreloadMock.mockClear();
       gotoMock.mockReset();
     });
 
     it('a <Link> that navigates client-side asks for what its click runs: <Link href="/about/"> on the server asks for its two click handlers and nav', async () => {
       await render(<LinkRoot href="/about/" />, { debug });
 
-      const [preloadHandler, navigationHandler, nav, ...others] = modulepreloadMock.mock.calls[0];
+      const [preloadHandler, navigationHandler, nav, ...others] = eagerPreloadMock.mock.calls[0];
       expect(preloadHandler.getSymbol()).toContain('handlePreload');
       expect(navigationHandler.getSymbol()).toContain('handleClientSideNavigation');
       await nav();
@@ -495,13 +495,13 @@ describe.each([
     it('a <Link> that leaves the app asks for nothing: <Link href="https://example.com/">', async () => {
       await render(<LinkRoot href="https://example.com/" />, { debug });
 
-      expect(modulepreloadMock).not.toHaveBeenCalled();
+      expect(eagerPreloadMock).not.toHaveBeenCalled();
     });
 
     it('a <Link> that reloads the page asks for nothing: <Link href="/about/" reload>', async () => {
       await render(<LinkRoot href="/about/" reload />, { debug });
 
-      expect(modulepreloadMock).not.toHaveBeenCalled();
+      expect(eagerPreloadMock).not.toHaveBeenCalled();
     });
   });
 

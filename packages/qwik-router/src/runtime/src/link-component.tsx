@@ -7,7 +7,7 @@ import {
   untrack,
   type QwikIntrinsicElements,
 } from '@qwik.dev/core';
-import { _modulepreload } from '@qwik.dev/core/internal';
+import { _eagerPreload } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
@@ -160,7 +160,7 @@ export const Link = component$<LinkProps>((props) => {
   });
 
   if (isServer && clientNavPath && !reload) {
-    _modulepreload(handlePreload, handleClientSideNavigation, nav);
+    _eagerPreload(handlePreload, handleClientSideNavigation, nav);
   }
 
   return (

@@ -501,6 +501,9 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const Each: EachComponent;
 
 // @internal (undocumented)
+export const _eagerPreload: (...qrls: (QRL | null | undefined)[]) => void;
+
+// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
@@ -848,9 +851,6 @@ export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | nul
 
 // @internal
 export const _markSignalAsExternallyOwned: (signal: ComputedSignal<unknown>) => void;
-
-// @internal (undocumented)
-export const _modulepreload: (...qrls: (QRL | null | undefined)[]) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;

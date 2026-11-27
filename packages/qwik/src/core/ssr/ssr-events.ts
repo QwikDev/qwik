@@ -10,7 +10,7 @@ import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer, SSRWriteChunk } from './ssr-types';
 
 /** @internal */
-export const modulepreload = (...qrls: (QRL | null | undefined)[]): void => {
+export const eagerPreload = (...qrls: (QRL | null | undefined)[]): void => {
   const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
   const eagerPreloads = container?.serializationCtx?.$eagerPreloads$;
   if (!eagerPreloads) {

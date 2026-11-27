@@ -499,7 +499,7 @@ describe('preloader', () => {
       }));
   });
 
-  describe('bundles a library asks for with _modulepreload', () => {
+  describe('bundles a library asks for with _eagerPreload', () => {
     const graphWhereGotoImportsQwikRouter = ['goto.js', -3, 3, 'qwik-router.js'];
     const graphWhereGotoAndRunImportCore = ['goto.js', -3, 6, 'run.js', -3, 6, 'core.js'];
     const graphWithFiveOtherBundles = [

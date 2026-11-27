@@ -1,4 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
+import { resolveQrlAhead } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
@@ -27,7 +28,7 @@ export type AsyncFn<T> = ComputedFn<T>;
 export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 
 const creator = <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => {
-  qrl.resolve();
+  resolveQrlAhead(qrl);
   return createComputedSignal<T>(qrl, options);
 };
 /** @internal */

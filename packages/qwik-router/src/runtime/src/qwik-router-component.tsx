@@ -134,6 +134,8 @@ import {
   type ViewTransition,
 } from './view-transition';
 
+const LEFT_PAGE_PRIORITY = 0.6;
+
 declare const window: ClientSPAWindow;
 
 /**
@@ -672,7 +674,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       if (isBrowser) {
         // Prefetch bundles; loader signals fetch navigation data below.
-        prefetchRoute(dest, false, 0.8, manifestHash, true);
+        prefetchRoute(dest, false, 1, manifestHash, true, routeLocation.url);
+        if (!isSamePath(dest, routeLocation.url)) {
+          prefetchRoute(routeLocation.url, false, LEFT_PAGE_PRIORITY, manifestHash, true, dest);
+        }
       }
 
       navResolver.p = new Promise<void>((resolve) => {

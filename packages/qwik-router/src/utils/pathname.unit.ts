@@ -195,3 +195,30 @@ function getPathname(t: { originalPathname: string; basePathname: string; params
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
   return normalizePathname(d, '/');
 }
+
+test('dynamic, empty rest pathname in a nested directory leaves no double slash', () => {
+  const originalPathname = '/playground/[...id]/';
+  const { paramNames } = parseRoutePathname('/', originalPathname);
+  assert.equal(
+    getPathnameForDynamicRoute(originalPathname, paramNames, { id: '' }),
+    '/playground/'
+  );
+});
+
+test('dynamic rest pathname keeps repeated slashes inside the value', () => {
+  const originalPathname = '/blog/[...slug]/';
+  const { paramNames } = parseRoutePathname('/', originalPathname);
+  assert.equal(
+    getPathnameForDynamicRoute(originalPathname, paramNames, { slug: 'a//b' }),
+    '/blog/a//b/'
+  );
+});
+
+test('dynamic, empty rest param inside a segment keeps its slashes', () => {
+  const originalPathname = '/blog/prefix-[...slug]/edit/';
+  const { paramNames } = parseRoutePathname('/', originalPathname);
+  assert.equal(
+    getPathnameForDynamicRoute(originalPathname, paramNames, { slug: '' }),
+    '/blog/prefix-/edit/'
+  );
+});

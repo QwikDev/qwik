@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 
 const importAndResetState = async () => {
@@ -11,6 +11,33 @@ const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
 const originalMessageChannel = globalThis.MessageChannel;
+const originalIntersectionObserver = globalThis.IntersectionObserver;
+
+type ViewEntry = { target: unknown; isIntersecting: boolean };
+
+const installViewObserver = (document: Document, elementsWithHandlers: unknown[] = []) => {
+  const watched = new Set<unknown>();
+  let reportToPreloader: (entries: ViewEntry[]) => void = () => {};
+  class TestIntersectionObserver {
+    constructor(callback: (entries: ViewEntry[]) => void) {
+      reportToPreloader = callback;
+    }
+    observe = (element: unknown) => watched.add(element);
+    unobserve = (element: unknown) => watched.delete(element);
+  }
+  Object.assign(globalThis, { IntersectionObserver: TestIntersectionObserver });
+  Object.assign(document, {
+    evaluate: () => ({
+      snapshotLength: elementsWithHandlers.length,
+      snapshotItem: (index: number) => elementsWithHandlers[index],
+    }),
+  });
+  return { watched, report: (entries: ViewEntry[]) => reportToPreloader(entries) };
+};
+
+const elementWith = (attributes: Record<string, string>) => ({
+  attributes: Object.entries(attributes).map(([name, value]) => ({ name, value })),
+});
 
 const installBrowserGlobals = () => {
   const document = createDocument();
@@ -22,6 +49,7 @@ const installBrowserGlobals = () => {
     document,
     HTMLElement,
   });
+  installViewObserver(document);
 
   return document;
 };
@@ -71,6 +99,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.resetModules();
 
   Object.assign(globalThis, {
@@ -78,543 +107,787 @@ afterEach(() => {
     document: originalDocument,
     HTMLElement: originalHTMLElement,
     MessageChannel: originalMessageChannel,
+    IntersectionObserver: originalIntersectionObserver,
   });
 });
 
-test('appends preloads directly to head within a trigger slice', async () => {
+const startPreloaderWith = async (graph: (string | number)[]) => {
   const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
+  Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockImplementation(() => 0);
   vi.resetModules();
   await installTestPlatform();
-
-  const headAppend = vi.spyOn(document.head, 'appendChild');
   const { initPreloader, preload } = await importAndResetState();
+  initPreloader(graph);
+  return { document, preload };
+};
 
-  initPreloader(['entry-a.js', 'entry-b.js']);
-  preload(['entry-a.js', 'entry-b.js'], 1);
+const failPreload = (document: Document) =>
+  (document.head.querySelector('link') as HTMLLinkElement).onerror!(new Event('error'));
 
-  expect(headAppend).toHaveBeenCalledTimes(0);
-  expect(document.head.querySelectorAll('link').length).toBe(0);
+const preloadLinks = (document: Document) =>
+  Array.from(document.head.querySelectorAll('link'), (link) => ({
+    name: link.href.split('/').pop(),
+    priority: link.getAttribute('fetchpriority'),
+  }));
 
-  vi.runAllTimers();
-
-  expect(headAppend).toHaveBeenCalledTimes(2);
-  expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
-  expect(document.head.querySelectorAll('link').length).toBe(2);
-});
-
-test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-
-  const bundles = Array.from({ length: 30 }, (_, index) => `entry-${index}.js`);
-  initPreloader(bundles);
-  preload(bundles, 0.8);
-  vi.runAllTimers();
-
-  // Links never load in the test document, so the limit stays saturated.
-  expect(document.head.querySelectorAll('link').length).toBe(25);
-});
-
-test('holds speculative preloads while a needed bundle is loading', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader, preload } = await importAndResetState();
-
-  const speculative = Array.from({ length: 5 }, (_, index) => `spec-${index}.js`);
-  initPreloader(['needed.js', ...speculative]);
-  preload(speculative, 0.8);
-  preload('needed.js', 1);
-  vi.runAllTimers();
-
-  const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
-  expect(links().map((link) => link.href.split('/').pop())).toEqual(['needed.js']);
-
-  links()[0].onload!(new Event('load'));
-  vi.runAllTimers();
-
-  expect(
-    links()
-      .map((link) => link.href.split('/').pop())
-      .sort()
-  ).toEqual(speculative);
-});
-
-test('holds speculative preloads once an in-flight preload becomes needed', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader, preload } = await importAndResetState();
-
-  const bundles = Array.from({ length: 30 }, (_, index) => `spec-${index}.js`);
-  initPreloader(bundles);
-  preload(bundles, 0.8);
-  vi.runAllTimers();
-  const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
-  expect(links().length).toBe(25);
-
-  preload(links()[0].href.split('/').pop()!, 1);
-  vi.runAllTimers();
-  links()[1].onload!(new Event('load'));
-  vi.runAllTimers();
-
-  expect(links().length).toBe(24);
-});
-
-test('asks the browser for low priority on speculative preloads only', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader, preload } = await importAndResetState();
-
-  initPreloader(['needed.js', 'spec.js']);
-  preload('needed.js', 1);
-  vi.runAllTimers();
-  const needed = document.head.querySelector('link') as HTMLLinkElement;
-  needed.onload!(new Event('load'));
-  preload('spec.js', 0.8);
-  vi.runAllTimers();
-  const spec = document.head.querySelector('link') as HTMLLinkElement;
-
-  expect(needed.getAttribute('fetchpriority')).toBe(null);
-  expect(spec.href.split('/').pop()).toBe('spec.js');
-  expect(spec.getAttribute('fetchpriority')).toBe('low');
-});
-
-test('keeps a bundle needed when a later hint gives it a lower probability', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader, preload } = await importAndResetState();
-
-  initPreloader(['needed.js']);
-  preload('needed.js', 1);
-  preload('needed.js', 0.6);
-  vi.runAllTimers();
-
-  const needed = document.head.querySelector('link') as HTMLLinkElement;
-  expect(needed.getAttribute('fetchpriority')).toBe(null);
-});
-
-test('keeps a needed dependency needed when another importer is hinted at a lower probability', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const { initPreloader, preload } = await importAndResetState();
-
-  initPreloader(['needed.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
-  preload('needed.js', 1);
-  preload('other.js', 0.6);
-  vi.runAllTimers();
-
-  const links = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
-  const shared = links.find((link) => link.href.endsWith('shared.js'))!;
-  expect(shared.getAttribute('fetchpriority')).toBe(null);
-});
-
-test('applies hints buffered before the preloader chunk loaded', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  // Buffered by core's copy of the bridge, e.g. the clicked handler's chunk
-  const g = globalThis as { qPreload?: unknown; qPreloadQueue?: unknown[] };
-  delete g.qPreload;
-  g.qPreloadQueue = [['entry-a.js', 1]];
-  // The chunk entry: evaluates bundle-graph and queue in the bundled order
-  await import('./index');
-  const { initPreloader } = await import('./bundle-graph');
-  initPreloader(['entry-a.js']);
-  await flushPromises();
-  vi.runAllTimers();
-
-  const names = Array.from(document.head.querySelectorAll('link')).map((link) =>
-    (link as HTMLLinkElement).href.split('/').pop()
+const linkNames = (document: Document) =>
+  Array.from(document.head.querySelectorAll('link'), (link) =>
+    new URL(link.href).pathname.split('/').pop()
   );
-  expect(names).toEqual(['entry-a.js']);
-  delete g.qPreloadQueue;
-});
 
-test('yields after the frame budget and resumes later', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  let now = 0;
-  vi.spyOn(performance, 'now').mockImplementation(() => {
-    now += 10;
-    return now;
-  });
-  vi.resetModules();
-  await installTestPlatform();
+const loadLinks = (document: Document) => {
+  const links = document.head.querySelectorAll('link');
+  for (let i = 0; i < links.length; i++) {
+    links[i].onload!({} as Event);
+  }
+};
 
-  const headAppend = vi.spyOn(document.head, 'appendChild');
-  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader, preload } = await importAndResetState();
+const LAYOUT_AND_ROUTE_GRAPH = ['DocsLayout', -7, 3, 'layout.js', 'docs/intro/', -7, 7, 'page.js'];
 
-  initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
-  preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
-
-  expect(document.head.querySelectorAll('link').length).toBe(0);
-  expect(headAppend).toHaveBeenCalledTimes(0);
-
-  vi.advanceTimersToNextTimer();
-
-  expect(document.head.querySelectorAll('link').length).toBe(0);
-  expect(headAppend).toHaveBeenCalledTimes(0);
-
-  vi.advanceTimersToNextTimer();
-
-  expect(document.head.querySelectorAll('link').length).toBe(1);
-  expect(headAppend).toHaveBeenCalledTimes(1);
-  expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
-
-  vi.advanceTimersToNextTimer();
-
-  expect(document.head.querySelectorAll('link').length).toBe(2);
-  expect(headAppend).toHaveBeenCalledTimes(2);
-
-  vi.advanceTimersToNextTimer();
-
-  expect(document.head.querySelectorAll('link').length).toBe(3);
-  expect(headAppend).toHaveBeenCalledTimes(3);
-});
-
-test('yields during dependency propagation and resumes later', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  const nowValues = [0, 5, 20, 20, 21, 22, 30, 35, 40, 41, 42];
-  let lastNow = nowValues[nowValues.length - 1];
-  vi.spyOn(performance, 'now').mockImplementation(() => {
-    const next = nowValues.shift();
-    if (typeof next === 'number') {
-      lastNow = next;
-      return next;
-    }
-    lastNow++;
-    return lastNow;
-  });
-  vi.resetModules();
-  await installTestPlatform();
-
-  const headAppend = vi.spyOn(document.head, 'appendChild');
-  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader, preload } = await importAndResetState();
-
-  initPreloader(createLinearGraph(4));
-  preload('entry-a.js', 1);
-
-  expect(timeoutSpy).toHaveBeenCalledTimes(1);
-  expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
-  expect(document.head.querySelectorAll('link').length).toBe(0);
-  expect(headAppend).toHaveBeenCalledTimes(0);
-
-  vi.advanceTimersToNextTimer();
-
-  expect(document.head.querySelectorAll('link').length).toBe(0);
-  expect(headAppend).toHaveBeenCalledTimes(0);
-
-  vi.runAllTimers();
-
-  expect(document.head.querySelectorAll('link').length).toBe(4);
-  expect(headAppend.mock.calls.length).toBeGreaterThanOrEqual(1);
-});
-
-test('can yield more than once while propagating dependencies', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  let now = 0;
-  vi.spyOn(performance, 'now').mockImplementation(() => {
-    const stack = new Error().stack ?? '';
-    if (stack.includes('processPendingAdjustments')) {
-      now += 20;
-      return now;
-    }
-    return 0;
-  });
-  vi.resetModules();
-  await installTestPlatform();
-
-  const headAppend = vi.spyOn(document.head, 'appendChild');
-  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader, preload } = await importAndResetState();
-
-  initPreloader(createLinearGraph(7));
-  preload('entry-a.js', 1);
-
-  expect(timeoutSpy).toHaveBeenCalledTimes(1);
-  expect(document.head.querySelectorAll('link').length).toBe(0);
-
-  vi.advanceTimersToNextTimer();
-
-  expect(timeoutSpy.mock.calls.length).toBeGreaterThan(2);
-  expect(document.head.querySelectorAll('link').length).toBeLessThan(7);
-
-  vi.runAllTimers();
-
-  expect(document.head.querySelectorAll('link').length).toBe(7);
-  expect(headAppend.mock.calls.length).toBeGreaterThan(1);
-});
-
-test('defers bundle graph re-adjustment to a later task', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, {
-    MessageChannel: undefined,
-  });
-  vi.spyOn(performance, 'now').mockImplementation(() => 0);
-  vi.resetModules();
-  await installTestPlatform();
-
-  const headAppend = vi.spyOn(document.head, 'appendChild');
-  const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+const loadGraphOfThreeHandlers = async (maxIdlePreloads = 1) => {
   const { loadBundleGraph } = await import('./bundle-graph');
   const { preload } = await import('./queue');
+  const graph = { text: async () => JSON.stringify(['first.js', 'second.js', 'third.js']) };
+  loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: maxIdlePreloads });
+  preload(['first.js', 'second.js', 'third.js']);
+};
 
-  preload('entry-a.js', 1);
-  loadBundleGraph(
-    '',
-    Promise.resolve({
-      text: () => Promise.resolve(JSON.stringify(createLinearGraph(4))),
-    } as Response)
-  );
+const listenerFor = (document: Document, eventName: string) => {
+  const listen = vi.spyOn(document, 'addEventListener');
+  return () =>
+    listen.mock.calls.find(([name]) => name === eventName)![1] as (event: unknown) => void;
+};
 
-  await flushPromises();
+const intentOn = (...path: unknown[]) => ({ composedPath: () => path });
 
-  expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
-  expect(headAppend).not.toHaveBeenCalled();
+type ChunkKind = 'handler' | 'other-qrl' | 'component';
 
-  vi.runOnlyPendingTimers();
+const KIND_MARKERS: Record<ChunkKind, number> = { handler: -2, 'other-qrl': -3, component: -4 };
 
-  expect(headAppend).toHaveBeenCalled();
+const graphOf = (
+  entries: Record<string, { kind?: ChunkKind; imports?: string[]; qrls?: string[] }>
+) => {
+  const positions = new Map<string, number>();
+  let position = 0;
+  for (const [name, { kind, imports = [], qrls = [] }] of Object.entries(entries)) {
+    positions.set(name, position);
+    position += 1 + (kind ? 1 : 0) + imports.length + (qrls.length ? 1 + qrls.length : 0);
+  }
+  const serialized: (string | number)[] = [];
+  for (const [name, { kind, imports = [], qrls = [] }] of Object.entries(entries)) {
+    serialized.push(name);
+    if (kind) {
+      serialized.push(KIND_MARKERS[kind]);
+    }
+    serialized.push(...imports.map((dep) => positions.get(dep)!));
+    if (qrls.length) {
+      serialized.push(-1, ...qrls.map((dep) => positions.get(dep)!));
+    }
+  }
+  return serialized;
+};
+
+const CARD_PAGE = graphOf({
+  'page/': { qrls: ['card-render.js', 'card-tasks.js', 'card-events.js'] },
+  'card-render.js': { kind: 'component' },
+  'card-tasks.js': { kind: 'other-qrl' },
+  'card-events.js': { kind: 'handler', imports: ['card.js'] },
+  'card.js': {},
 });
 
-test('replays buffered hints without allocating unrelated BundleImport records', async () => {
+const preloadWithGraph = async (serializedGraph: (string | number)[]) => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { initPreloader, preload } = await importAndResetState();
+  initPreloader(serializedGraph);
+  return { document, preload };
+};
+
+const preloadBeforeGraph = async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
   vi.resetModules();
   await installTestPlatform();
   const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, bundles } = await import('./queue');
-  preload('route/', 1);
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({
-      text: async () =>
-        JSON.stringify(['route/', 2, 'route.js', 4, 'helper.js', 'unrelated.js', 'other/']),
-    } as Response)
-  );
-  await vi.runAllTimersAsync();
-  expect([...bundles.keys()]).toEqual(['route/', 'route.js', 'helper.js']);
-  expect(
-    Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname)
-  ).toEqual(['/build/route.js', '/build/helper.js']);
-});
-
-test('yields while replaying many hints buffered before the graph arrives', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  let now = 0;
-  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, bundles } = await import('./queue');
-  const hints = Array.from({ length: 100 }, (_, index) => `route-${index}/`);
-  const serialized: (string | number)[] = [];
-  for (let i = 0; i < hints.length; i++) {
-    serialized.push(hints[i], serialized.length + 2, `entry-${i}.js`);
-  }
-  serialized.push('unused.js');
-
-  preload(hints, 1);
-  vi.runAllTimers();
-  expect(bundles.size).toBe(hints.length);
-  expect(document.head.querySelectorAll('link')).toHaveLength(0);
-
-  clock.mockImplementation(() => (now += 6));
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
-  );
-  await flushPromises();
-
-  const replayed = hints.filter((name) => bundles.get(name)!.$deps$);
-  expect(replayed.length).toBeGreaterThan(0);
-  expect(replayed.length).toBeLessThan(hints.length);
-  expect(document.head.querySelectorAll('link')).toHaveLength(0);
-
-  await vi.runAllTimersAsync();
-
-  expect(
-    Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname).sort()
-  ).toEqual(hints.map((_, index) => `/build/entry-${index}.js`).sort());
-  expect(bundles.size).toBe(hints.length * 2);
-  expect(bundles.has('unused.js')).toBe(false);
-});
-
-test('keeps newer required hints when buffered replay resumes after yielding', async () => {
-  installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  let now = 0;
-  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, bundles } = await import('./queue');
-  const chain = createLinearGraph(50);
-  const serialized = [
-    'first/',
-    6,
-    'second/',
-    6,
-    'third/',
-    6 + chain.length,
-    ...chain.map((entry) => (typeof entry === 'number' && entry >= 0 ? entry + 6 : entry)),
-    'last.js',
-  ];
-
-  preload(['first/', 'second/'], 1);
-  preload('third/', 0.8);
-  vi.runAllTimers();
-  clock.mockImplementation(() => (now += 6));
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
-  );
-  await flushPromises();
-  expect(bundles.get('third/')!.$deps$).toBeUndefined();
-
-  preload('third/', 1);
-  await vi.runAllTimersAsync();
-
-  expect(bundles.get('third/')!.$inverseProbability$).toBe(0);
-  expect(bundles.get('last.js')!.$inverseProbability$).toBe(0);
-});
-
-test('keeps required links at needed priority between buffered replay slices', async () => {
-  const document = installBrowserGlobals();
-  const channels = installTestMessageChannels();
-  let now = 0;
-  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, bundles } = await import('./queue');
-  const [trigger, adjust] = channels;
-
-  preload('route/', 1);
-  preload('needed.js', 0.8);
-  adjust.port1.onmessage!();
-  clock.mockImplementation(() => (now += 11));
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({
-      text: async () => JSON.stringify(['route/', 2, 'needed.js', 4, 'leaf.js']),
-    } as Response)
-  );
-  await flushPromises();
-  const replay = channels[2];
-  clock.mockImplementation(() => now);
-  adjust.port1.onmessage!();
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
-
-  replay.port1.onmessage!();
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
-  trigger.port1.onmessage!();
-  const neededLink = document.head.querySelector('link[href$="needed.js"]');
-  expect(neededLink).not.toBeNull();
-  expect(neededLink!.getAttribute('fetchpriority')).not.toBe('low');
-
-  adjust.port1.onmessage!();
-  trigger.port1.onmessage!();
-  const leafLink = document.head.querySelector('link[href$="leaf.js"]');
-  expect(leafLink).not.toBeNull();
-  expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
-  expect(bundles.get('needed.js')!.$inverseProbability$).toBe(0);
-});
-
-test('closes the replay MessageChannel after its final slice', async () => {
-  installBrowserGlobals();
-  const channels = installTestMessageChannels();
-  let now = 0;
-  vi.spyOn(performance, 'now').mockImplementation(() => (now += 11));
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
   const { preload } = await import('./queue');
+  let deliver!: (response: Response) => void;
+  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliver = resolve)));
+  const deliverGraph = async (serializedGraph: (string | number)[]) => {
+    deliver({ text: async () => JSON.stringify(serializedGraph) } as Response);
+    await vi.runAllTimersAsync();
+  };
+  return { document, preload, deliverGraph };
+};
 
-  preload(['first/', 'second/'], 1);
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({ text: async () => JSON.stringify(['first/', 'second/']) } as Response)
-  );
-  await flushPromises();
+describe('speculative preloads', () => {
+  test('appends preloads directly to head within a trigger slice', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
 
-  const replay = channels[2];
-  expect(replay.port2.postMessage).toHaveBeenCalledTimes(1);
-  expect(replay.port1.close).not.toHaveBeenCalled();
-  expect(replay.port2.close).not.toHaveBeenCalled();
+    const headAppend = vi.spyOn(document.head, 'appendChild');
+    const { initPreloader, preload } = await importAndResetState();
 
-  replay.port1.onmessage!();
+    initPreloader(['entry-a.js', 'entry-b.js']);
+    preload(['entry-a.js', 'entry-b.js'], 1);
 
-  expect(replay.port1.onmessage).toBeNull();
-  expect(replay.port1.close).toHaveBeenCalledTimes(1);
-  expect(replay.port2.close).toHaveBeenCalledTimes(1);
-  for (let i = 0; i < 2; i++) {
-    expect(channels[i].port1.close).not.toHaveBeenCalled();
-    expect(channels[i].port2.close).not.toHaveBeenCalled();
-  }
+    expect(headAppend).toHaveBeenCalledTimes(0);
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+
+    vi.runAllTimers();
+
+    expect(headAppend).toHaveBeenCalledTimes(2);
+    expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
+    expect(document.head.querySelectorAll('link').length).toBe(2);
+  });
+
+  test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+
+    const bundles = Array.from({ length: 30 }, (_, index) => `entry-${index}.js`);
+    initPreloader(bundles);
+    preload(bundles, 0.8);
+    vi.runAllTimers();
+
+    // Links never load in the test document, so the limit stays saturated.
+    expect(document.head.querySelectorAll('link').length).toBe(25);
+  });
+
+  test('preloads equally likely hinted bundles in hint order', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['a.js', 'b.js', 'c.js']);
+    preload(['a.js', 'b.js', 'c.js'], 0.8);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['a.js', 'b.js', 'c.js']);
+  });
+
+  test('holds speculative preloads while a highest priority bundle is loading', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    const speculative = Array.from({ length: 5 }, (_, index) => `spec-${index}.js`);
+    initPreloader(['highest-priority.js', ...speculative]);
+    preload(speculative, 0.8);
+    preload('highest-priority.js', 1);
+    vi.runAllTimers();
+
+    const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+    expect(links().map((link) => link.href.split('/').pop())).toEqual(['highest-priority.js']);
+
+    links()[0].onload!(new Event('load'));
+    vi.runAllTimers();
+
+    expect(
+      links()
+        .map((link) => link.href.split('/').pop())
+        .sort()
+    ).toEqual(speculative);
+  });
+
+  test('holds speculative preloads once an in-flight preload becomes highest priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    const bundles = Array.from({ length: 30 }, (_, index) => `spec-${index}.js`);
+    initPreloader(bundles);
+    preload(bundles, 0.8);
+    vi.runAllTimers();
+    const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+    expect(links().length).toBe(25);
+
+    preload(links()[0].href.split('/').pop()!, 1);
+    vi.runAllTimers();
+    links()[1].onload!(new Event('load'));
+    vi.runAllTimers();
+
+    expect(links().length).toBe(24);
+  });
+
+  test('asks the browser for low priority on speculative preloads only', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['highest-priority.js', 'spec.js']);
+    preload('highest-priority.js', 1);
+    vi.runAllTimers();
+    const highestPriority = document.head.querySelector('link') as HTMLLinkElement;
+    highestPriority.onload!(new Event('load'));
+    preload('spec.js', 0.8);
+    vi.runAllTimers();
+    const spec = document.head.querySelector('link') as HTMLLinkElement;
+
+    expect(highestPriority.getAttribute('fetchpriority')).toBe(null);
+    expect(spec.href.split('/').pop()).toBe('spec.js');
+    expect(spec.getAttribute('fetchpriority')).toBe('low');
+  });
+
+  test('a limit of 0 starts no speculative preload, and still preloads at the highest priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+
+    const graph = { text: async () => JSON.stringify(['speculative.js', 'highest-priority.js']) };
+    loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 0 });
+    await vi.runAllTimersAsync();
+    preload('speculative.js', 0.8);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+
+    preload('highest-priority.js', 1);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['highest-priority.js']);
+  });
 });
 
-test.each([true, false])(
-  'propagates needed priority to static descendants (buffered hints=%s)',
-  async (buffered) => {
+describe('highest priority preloads', () => {
+  test('keeps a bundle at the highest priority when a later hint gives it a lower priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['highest-priority.js']);
+    preload('highest-priority.js', 1);
+    preload('highest-priority.js', 0.6);
+    vi.runAllTimers();
+
+    const highestPriority = document.head.querySelector('link') as HTMLLinkElement;
+    expect(highestPriority.getAttribute('fetchpriority')).toBe(null);
+  });
+
+  test('keeps a highest priority dependency at the highest priority when another importer is hinted at a lower priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['highest-priority.js', -9, 6, 'other.js', -9, 6, 'shared.js']);
+    preload('highest-priority.js', 1);
+    preload('other.js', 0.6);
+    vi.runAllTimers();
+
+    const links = Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+    const shared = links.find((link) => link.href.endsWith('shared.js'))!;
+    expect(shared.getAttribute('fetchpriority')).toBe(null);
+  });
+
+  test.each([true, false])(
+    'propagates the highest priority to static descendants (buffered hints=%s)',
+    async (buffered) => {
+      const document = installBrowserGlobals();
+      Object.assign(globalThis, { MessageChannel: undefined });
+      vi.spyOn(performance, 'now').mockReturnValue(0);
+      vi.resetModules();
+      await installTestPlatform();
+      const { loadBundleGraph } = await import('./bundle-graph');
+      const { preload, bundles } = await import('./queue');
+      const loadGraph = () =>
+        loadBundleGraph(
+          '/build/',
+          Promise.resolve({
+            text: async () =>
+              JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js', 8, 'static-child.js']),
+          } as Response)
+        );
+
+      if (!buffered) {
+        loadGraph();
+        await vi.runAllTimersAsync();
+      }
+      preload('c.js', 0.988);
+      preload('b.js', 0.995);
+      preload('a.js', 1);
+      if (buffered) {
+        vi.runAllTimers();
+        loadGraph();
+      }
+      await vi.runAllTimersAsync();
+
+      expect(bundles.get('c.js')!.$priority$).toBe(0.99);
+      expect(bundles.get('static-child.js')!.$priority$).toBe(1);
+      const childLink = document.head.querySelector('link[href$="/static-child.js"]');
+      expect(childLink).not.toBeNull();
+      expect(childLink!.getAttribute('fetchpriority')).not.toBe('low');
+    }
+  );
+
+  test('a hint on a bundle whose dependencies lead back to it preloads each bundle once', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['page-a.js', -7, 3, 'page-b.js', -7, 0]);
+    preload('page-a.js', 1);
+    vi.runAllTimers();
+
+    expect(linkNames(document).sort()).toEqual(['page-a.js', 'page-b.js']);
+  });
+
+  test('a highest priority hint of several names preloads the bundles of each, never the names', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(LAYOUT_AND_ROUTE_GRAPH);
+    preload(['DocsLayout', 'docs/intro/'], 1);
+    vi.runAllTimers();
+
+    expect(linkNames(document).sort()).toEqual(['layout.js', 'page.js']);
+  });
+});
+
+describe('failed preloads', () => {
+  test('preloads a bundle again once it is hinted at the highest priority, after its preload failed', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['entry-a.js']);
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+    const failed = document.head.querySelector('link') as HTMLLinkElement;
+    failed.onerror!(new Event('error'));
+    preload('entry-a.js', 1);
+    vi.runAllTimers();
+
+    const retried = document.head.querySelector('link') as HTMLLinkElement;
+    expect(retried.href.split('/').pop()).toBe('entry-a.js');
+    expect(retried.getAttribute('fetchpriority')).toBe(null);
+  });
+
+  test('retries a failed speculative preload once, after a delay', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+
+    failPreload(document);
+    vi.advanceTimersByTime(100);
+    expect(preloadLinks(document)).toEqual([]);
+
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+  });
+
+  test('retries a failed highest priority preload at once', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    preload('entry-a.js', 1);
+    vi.runAllTimers();
+
+    failPreload(document);
+    vi.advanceTimersByTime(10);
+
+    expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: null }]);
+  });
+
+  test('stops after the retry fails too, even when the same hint comes again', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+    failPreload(document);
+    vi.runAllTimers();
+
+    failPreload(document);
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([]);
+
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([]);
+  });
+
+  test('does not retry a preload that failed while the browser is offline', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    vi.stubGlobal('navigator', { onLine: false });
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+
+    failPreload(document);
+    vi.runAllTimers();
+
+    expect(preloadLinks(document)).toEqual([]);
+  });
+
+  test('gives every failed preload two new attempts when the network comes back', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    const listen = vi.fn();
+    document.defaultView!.addEventListener = listen;
+    vi.stubGlobal('navigator', { onLine: false });
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+    failPreload(document);
+    vi.runAllTimers();
+
+    vi.stubGlobal('navigator', { onLine: true });
+    const onNetworkBack = listen.mock.calls.find(([type]) => type === 'online')![1];
+    onNetworkBack();
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+
+    failPreload(document);
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: 'low' }]);
+
+    failPreload(document);
+    vi.runAllTimers();
+    expect(preloadLinks(document)).toEqual([]);
+  });
+
+  test('a hint at the highest priority still preloads a bundle whose two attempts failed', async () => {
+    const { document, preload } = await startPreloaderWith(['entry-a.js']);
+    preload('entry-a.js', 0.8);
+    vi.runAllTimers();
+    failPreload(document);
+    vi.runAllTimers();
+    failPreload(document);
+    vi.runAllTimers();
+
+    preload('entry-a.js', 1);
+    vi.runAllTimers();
+
+    expect(preloadLinks(document)).toEqual([{ name: 'entry-a.js', priority: null }]);
+  });
+});
+
+describe('yielding to the main thread', () => {
+  test('yields after the frame budget and resumes later', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      now += 10;
+      return now;
+    });
+    vi.resetModules();
+    await installTestPlatform();
+
+    const headAppend = vi.spyOn(document.head, 'appendChild');
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
+    preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
+
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+    expect(headAppend).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersToNextTimer();
+
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+    expect(headAppend).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersToNextTimer();
+
+    expect(document.head.querySelectorAll('link').length).toBe(1);
+    expect(headAppend).toHaveBeenCalledTimes(1);
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
+
+    vi.advanceTimersToNextTimer();
+
+    expect(document.head.querySelectorAll('link').length).toBe(2);
+    expect(headAppend).toHaveBeenCalledTimes(2);
+
+    vi.advanceTimersToNextTimer();
+
+    expect(document.head.querySelectorAll('link').length).toBe(3);
+    expect(headAppend).toHaveBeenCalledTimes(3);
+  });
+
+  test('yields during dependency propagation and resumes later', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    const nowValues = [0, 5, 20, 20, 21, 22, 30, 35, 40, 41, 42];
+    let lastNow = nowValues[nowValues.length - 1];
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      const next = nowValues.shift();
+      if (typeof next === 'number') {
+        lastNow = next;
+        return next;
+      }
+      lastNow++;
+      return lastNow;
+    });
+    vi.resetModules();
+    await installTestPlatform();
+
+    const headAppend = vi.spyOn(document.head, 'appendChild');
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(createLinearGraph(4));
+    preload('entry-a.js', 1);
+
+    expect(timeoutSpy).toHaveBeenCalledTimes(1);
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+    expect(headAppend).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersToNextTimer();
+
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+    expect(headAppend).toHaveBeenCalledTimes(0);
+
+    vi.runAllTimers();
+
+    expect(document.head.querySelectorAll('link').length).toBe(4);
+    expect(headAppend.mock.calls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('can yield more than once while propagating dependencies', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      const stack = new Error().stack ?? '';
+      if (stack.includes('processPendingAdjustments')) {
+        now += 20;
+        return now;
+      }
+      return 0;
+    });
+    vi.resetModules();
+    await installTestPlatform();
+
+    const headAppend = vi.spyOn(document.head, 'appendChild');
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const { initPreloader, preload } = await importAndResetState();
+
+    initPreloader(createLinearGraph(7));
+    preload('entry-a.js', 1);
+
+    expect(timeoutSpy).toHaveBeenCalledTimes(1);
+    expect(document.head.querySelectorAll('link').length).toBe(0);
+
+    vi.advanceTimersToNextTimer();
+
+    expect(timeoutSpy.mock.calls.length).toBeGreaterThan(2);
+    expect(document.head.querySelectorAll('link').length).toBeLessThan(7);
+
+    vi.runAllTimers();
+
+    expect(document.head.querySelectorAll('link').length).toBe(7);
+    expect(headAppend.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  test('defers bundle graph re-adjustment to a later task', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    const headAppend = vi.spyOn(document.head, 'appendChild');
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+
+    preload('entry-a.js', 1);
+    loadBundleGraph(
+      '',
+      Promise.resolve({
+        text: () => Promise.resolve(JSON.stringify(createLinearGraph(4))),
+      } as Response)
+    );
+
+    await flushPromises();
+
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function));
+    expect(headAppend).not.toHaveBeenCalled();
+
+    vi.runOnlyPendingTimers();
+
+    expect(headAppend).toHaveBeenCalled();
+  });
+});
+
+describe('waiting for the bundle graph', () => {
+  test('holds speculative preloads until the bundle graph has loaded, but not highest priority ones', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    let deliverGraph!: (response: Response) => void;
+    loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+
+    preload('speculative.js', 0.8);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+
+    preload('highest-priority.js', 1);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['highest-priority.js']);
+
+    deliverGraph({
+      text: async () => JSON.stringify(['speculative.js', 'highest-priority.js']),
+    } as Response);
+    document.head.querySelector('link')!.onload!({} as Event);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['speculative.js']);
+  });
+
+  test('starts speculative preloads when the bundle graph fails to load', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    loadBundleGraph('/build/', Promise.reject(new Error('offline')));
+
+    preload('speculative.js', 0.8);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['speculative.js']);
+  });
+
+  test('still preloads a bundle first hinted after the bundle graph failed to load', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    loadBundleGraph('/build/', Promise.reject(new Error('offline')));
+    await vi.runAllTimersAsync();
+
+    preload('hinted-late.js', 1);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['hinted-late.js']);
+  });
+
+  test('starts speculative preloads when no bundle graph is requested', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    loadBundleGraph('/build/');
+
+    preload('speculative.js', 0.8);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['speculative.js']);
+  });
+});
+
+describe('hints made before the preloader or the bundle graph loaded', () => {
+  test('applies hints buffered before the preloader chunk loaded', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, {
+      MessageChannel: undefined,
+    });
+    vi.spyOn(performance, 'now').mockImplementation(() => 0);
+    vi.resetModules();
+    await installTestPlatform();
+
+    // Buffered by core's copy of the bridge, e.g. the clicked handler's chunk
+    const g = globalThis as { qPreload?: unknown; qPreloadQueue?: unknown[] };
+    delete g.qPreload;
+    g.qPreloadQueue = [['entry-a.js', 1]];
+    // The chunk entry: evaluates bundle-graph and queue in the bundled order
+    await import('./index');
+    const { initPreloader } = await import('./bundle-graph');
+    initPreloader(['entry-a.js']);
+    await flushPromises();
+    vi.runAllTimers();
+
+    const names = Array.from(document.head.querySelectorAll('link')).map((link) =>
+      (link as HTMLLinkElement).href.split('/').pop()
+    );
+    expect(names).toEqual(['entry-a.js']);
+    delete g.qPreloadQueue;
+  });
+
+  test('replays buffered hints without allocating unrelated BundleImport records', async () => {
     const document = installBrowserGlobals();
     Object.assign(globalThis, { MessageChannel: undefined });
     vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -622,250 +895,767 @@ test.each([true, false])(
     await installTestPlatform();
     const { loadBundleGraph } = await import('./bundle-graph');
     const { preload, bundles } = await import('./queue');
-    const loadGraph = () =>
-      loadBundleGraph(
-        '/build/',
-        Promise.resolve({
-          text: async () =>
-            JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js', 8, 'static-child.js']),
-        } as Response)
-      );
+    preload('route/', 1);
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({
+        text: async () =>
+          JSON.stringify(['route/', 2, 'route.js', 4, 'helper.js', 'unrelated.js', 'other/']),
+      } as Response)
+    );
+    await vi.runAllTimersAsync();
+    expect([...bundles.keys()]).toEqual(['route/', 'route.js', 'helper.js']);
+    expect(
+      Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname)
+    ).toEqual(['/build/route.js', '/build/helper.js']);
+  });
 
-    if (!buffered) {
-      loadGraph();
-      await vi.runAllTimersAsync();
+  test('yields while replaying many hints buffered before the graph arrives', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload, bundles } = await import('./queue');
+    const hints = Array.from({ length: 100 }, (_, index) => `route-${index}/`);
+    const serialized: (string | number)[] = [];
+    for (let i = 0; i < hints.length; i++) {
+      serialized.push(hints[i], serialized.length + 2, `entry-${i}.js`);
     }
-    preload('c.js', 0.988);
-    preload('b.js', 0.995);
-    preload('a.js', 1);
-    if (buffered) {
-      vi.runAllTimers();
-      loadGraph();
-    }
+    serialized.push('unused.js');
+
+    preload(hints, 1);
+    vi.runAllTimers();
+    expect(bundles.size).toBe(hints.length);
+    expect(document.head.querySelectorAll('link')).toHaveLength(0);
+
+    clock.mockImplementation(() => (now += 6));
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
+    );
+    await flushPromises();
+
+    const replayed = hints.filter((name) => bundles.get(name)!.$deps$);
+    expect(replayed.length).toBeGreaterThan(0);
+    expect(replayed.length).toBeLessThan(hints.length);
+    expect(document.head.querySelectorAll('link')).toHaveLength(0);
+
     await vi.runAllTimersAsync();
 
-    expect(bundles.get('c.js')!.$inverseProbability$).toBe(0.01);
-    expect(bundles.get('static-child.js')!.$inverseProbability$).toBe(0);
-    const childLink = document.head.querySelector('link[href$="/static-child.js"]');
-    expect(childLink).not.toBeNull();
-    expect(childLink!.getAttribute('fetchpriority')).not.toBe('low');
-  }
-);
+    expect(
+      Array.from(
+        document.head.querySelectorAll('link'),
+        (link) => new URL(link.href).pathname
+      ).sort()
+    ).toEqual(hints.map((_, index) => `/build/entry-${index}.js`).sort());
+    expect(bundles.size).toBe(hints.length * 2);
+    expect(bundles.has('unused.js')).toBe(false);
+  });
 
-test('keeps the small-change cutoff for speculative hints', async () => {
-  installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { initPreloader, preload } = await importAndResetState();
-  const { bundles } = await import('./queue');
-  initPreloader(['entry.js', 2, 'child.js']);
+  test('schedules a single adjustment task for many replayed hints', async () => {
+    installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    const hints = Array.from({ length: 50 }, (_, index) => `hint-${index}.js`);
+    preload(hints, 0.8);
+    vi.runAllTimers();
 
-  preload('entry.js', 0.8);
-  await vi.runAllTimersAsync();
-  const childInverseProbability = bundles.get('child.js')!.$inverseProbability$;
-  expect(childInverseProbability).toBeCloseTo(0.2);
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({ text: async () => JSON.stringify(hints) } as Response)
+    );
+    for (let tick = 0; tick < 10; tick++) {
+      await Promise.resolve();
+    }
 
-  preload('entry.js', 0.805);
-  await vi.runAllTimersAsync();
+    const adjustmentTaskAndTriggerTask = 2;
+    expect(vi.getTimerCount()).toBe(adjustmentTaskAndTriggerTask);
+  });
 
-  expect(bundles.get('entry.js')!.$inverseProbability$).toBeCloseTo(0.195);
-  expect(bundles.get('child.js')!.$inverseProbability$).toBe(childInverseProbability);
+  test('keeps newer highest priority hints when buffered replay resumes after yielding', async () => {
+    installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload, bundles } = await import('./queue');
+    const chain = createLinearGraph(50);
+    const serialized = [
+      'first/',
+      6,
+      'second/',
+      6,
+      'third/',
+      6 + chain.length,
+      ...chain.map((entry) => (typeof entry === 'number' && entry >= 0 ? entry + 6 : entry)),
+      'last.js',
+    ];
+
+    preload(['first/', 'second/'], 1);
+    preload('third/', 0.8);
+    vi.runAllTimers();
+    clock.mockImplementation(() => (now += 6));
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
+    );
+    await flushPromises();
+    expect(bundles.get('third/')!.$deps$).toBeUndefined();
+
+    preload('third/', 1);
+    await vi.runAllTimersAsync();
+
+    expect(bundles.get('third/')!.$priority$).toBe(1);
+    expect(bundles.get('last.js')!.$priority$).toBe(1);
+  });
+
+  test('keeps highest priority links at the highest priority between buffered replay slices', async () => {
+    const document = installBrowserGlobals();
+    const channels = installTestMessageChannels();
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload, bundles } = await import('./queue');
+    const [trigger, adjust] = channels;
+
+    preload('route/', 1);
+    preload('highest-priority.js', 0.8);
+    adjust.port1.onmessage!();
+    clock.mockImplementation(() => (now += 11));
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({
+        text: async () => JSON.stringify(['route/', 2, 'highest-priority.js', 4, 'leaf.js']),
+      } as Response)
+    );
+    await flushPromises();
+    const replay = channels[2];
+    clock.mockImplementation(() => now);
+    adjust.port1.onmessage!();
+    expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
+
+    replay.port1.onmessage!();
+    expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
+    trigger.port1.onmessage!();
+    const highestPriorityLink = document.head.querySelector('link[href$="highest-priority.js"]');
+    expect(highestPriorityLink).not.toBeNull();
+    expect(highestPriorityLink!.getAttribute('fetchpriority')).not.toBe('low');
+
+    adjust.port1.onmessage!();
+    trigger.port1.onmessage!();
+    const leafLink = document.head.querySelector('link[href$="leaf.js"]');
+    expect(leafLink).not.toBeNull();
+    expect(leafLink!.getAttribute('fetchpriority')).not.toBe('low');
+    expect(bundles.get('highest-priority.js')!.$priority$).toBe(1);
+  });
+
+  test('keeps a dependency at the highest priority when its importer is replayed in a later slice', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    let deliverGraph!: (response: Response) => void;
+    loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+    preload('dependency.js', 0.8);
+    preload(['filler-1.js', 'filler-2.js', 'filler-3.js'], 0.5);
+    preload('importer.js', 1);
+    await vi.runAllTimersAsync();
+    document.head.querySelector('link')!.onload!({} as Event);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+
+    clock.mockImplementation(() => (now += 6));
+    deliverGraph({
+      text: async () =>
+        JSON.stringify([
+          'dependency.js',
+          'filler-1.js',
+          'filler-2.js',
+          'filler-3.js',
+          'importer.js',
+          0,
+        ]),
+    } as Response);
+    await vi.runAllTimersAsync();
+
+    const dependencyLink = document.head.querySelector('link[href$="/dependency.js"]')!;
+    expect(dependencyLink.getAttribute('fetchpriority')).toBeNull();
+  });
+
+  test('closes the replay MessageChannel after its final slice', async () => {
+    installBrowserGlobals();
+    const channels = installTestMessageChannels();
+    let now = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => (now += 11));
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+
+    preload(['first/', 'second/'], 1);
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({ text: async () => JSON.stringify(['first/', 'second/']) } as Response)
+    );
+    await flushPromises();
+
+    const replay = channels[2];
+    expect(replay.port2.postMessage).toHaveBeenCalledTimes(1);
+    expect(replay.port1.close).not.toHaveBeenCalled();
+    expect(replay.port2.close).not.toHaveBeenCalled();
+
+    replay.port1.onmessage!();
+
+    expect(replay.port1.onmessage).toBeNull();
+    expect(replay.port1.close).toHaveBeenCalledTimes(1);
+    expect(replay.port2.close).toHaveBeenCalledTimes(1);
+    for (let i = 0; i < 2; i++) {
+      expect(channels[i].port1.close).not.toHaveBeenCalled();
+      expect(channels[i].port2.close).not.toHaveBeenCalled();
+    }
+  });
+
+  test('sends a bundle hinted at the highest priority before the preloader started ahead of speculative ones once the graph arrives', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { nextTriggerMacroTask, preload } = await import('./queue');
+
+    preload('highest-priority.js', 1);
+    await vi.runAllTimersAsync();
+    let deliverGraph!: (response: Response) => void;
+    loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+    preload('speculative.js', 0.6);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+
+    nextTriggerMacroTask();
+    deliverGraph({
+      text: async () => JSON.stringify(['highest-priority.js', 'speculative.js']),
+    } as Response);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['highest-priority.js']);
+  });
+
+  test('a layout key hinted before the bundle graph loaded is preloaded once it loads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { nextTriggerMacroTask, preload } = await import('./queue');
+
+    preload(['DocsLayout', 'docs/intro/'], 1);
+    await vi.runAllTimersAsync();
+    let deliverGraph!: (response: Response) => void;
+    loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+
+    nextTriggerMacroTask();
+    deliverGraph({ text: async () => JSON.stringify(LAYOUT_AND_ROUTE_GRAPH) } as Response);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document).sort()).toEqual(['layout.js', 'page.js']);
+  });
+
+  test('a chunk hinted before the bundle graph loaded still goes with the handler that imports it', async () => {
+    const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+    preload(['card-events.js', 'card-tasks.js', 'card-render.js'], 0.6);
+    await vi.runAllTimersAsync();
+    await deliverGraph(
+      graphOf({
+        'card-events.js': { kind: 'handler', imports: ['card-render.js'] },
+        'card-tasks.js': { kind: 'other-qrl' },
+        'card-render.js': { kind: 'component' },
+      })
+    );
+
+    expect(linkNames(document)).toEqual(['card-events.js', 'card-render.js', 'card-tasks.js']);
+  });
+
+  test('before the bundle graph loaded, a stronger hint replaces an earlier hint for a page to render', async () => {
+    const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+    preload('card-render.js', 0.5, true);
+    preload(['card-render.js', 'card-tasks.js'], 0.8);
+    await vi.runAllTimersAsync();
+    await deliverGraph(
+      graphOf({
+        'card-render.js': { kind: 'component' },
+        'card-tasks.js': { kind: 'other-qrl' },
+      })
+    );
+
+    expect(linkNames(document)).toEqual(['card-tasks.js', 'card-render.js']);
+  });
+
+  test('a weaker hint made before the bundle graph loaded does not reorder what a stronger one reaches', async () => {
+    const { document, preload, deliverGraph } = await preloadBeforeGraph();
+
+    preload('card-events.js', 0.8);
+    preload('card-render.js', 0.5, true);
+    await vi.runAllTimersAsync();
+    await deliverGraph(
+      graphOf({
+        'card-events.js': { kind: 'handler', qrls: ['card-render.js', 'card-tasks.js'] },
+        'card-render.js': { kind: 'component' },
+        'card-tasks.js': { kind: 'other-qrl' },
+      })
+    );
+
+    expect(linkNames(document)).toEqual(['card-events.js', 'card-tasks.js', 'card-render.js']);
+  });
 });
 
-test("keeps a dependency's probability right when its importer is replayed, then hinted higher", async () => {
-  installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload, bundles } = await import('./queue');
-  preload('a.js', 0.8);
-  preload('b.js', 0.8);
-  vi.runAllTimers();
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({
-      text: async () => JSON.stringify(['a.js', -5, 3, 'b.js', -5, 6, 'c.js']),
-    } as Response)
+describe('order by priority and kind', () => {
+  test('among the chunks one hint reaches, handlers go first, then other QRLs, then components', async () => {
+    const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+    preload('page/', 0.6);
+    vi.runAllTimers();
+
+    expect(linkNames(document).filter((name) => name !== 'card.js')).toEqual([
+      'card-events.js',
+      'card-tasks.js',
+      'card-render.js',
+    ]);
+  });
+
+  test("a chunk's static imports are preloaded with it", async () => {
+    const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+    preload('page/', 0.6);
+    vi.runAllTimers();
+
+    expect(linkNames(document).slice(0, 2)).toEqual(['card-events.js', 'card.js']);
+  });
+
+  test('a stronger hint goes first, whatever the kinds', async () => {
+    const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+    preload('card-events.js', 0.6);
+    preload('card-render.js', 0.8);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(['card-render.js', 'card-events.js', 'card.js']);
+  });
+
+  test('a hint preloads every chunk it reaches, however many imports away', async () => {
+    const chain = Object.fromEntries(
+      Array.from({ length: 12 }, (_, index) => [
+        `chunk-${index}.js`,
+        index < 11 ? { qrls: [`chunk-${index + 1}.js`] } : {},
+      ])
+    );
+    const { document, preload } = await preloadWithGraph(graphOf(chain));
+
+    preload('chunk-0.js', 0.6);
+    vi.runAllTimers();
+
+    expect(linkNames(document)).toEqual(Object.keys(chain));
+  });
+
+  test('a hint for a page to render preloads components first', async () => {
+    const { document, preload } = await preloadWithGraph(CARD_PAGE);
+
+    preload('page/', 0.6, true);
+    vi.runAllTimers();
+
+    expect(linkNames(document).filter((name) => name !== 'card.js')).toEqual([
+      'card-render.js',
+      'card-tasks.js',
+      'card-events.js',
+    ]);
+  });
+
+  test('a dependency takes the strongest hint that reached it', async () => {
+    installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload, bundles } = await import('./queue');
+    preload('a.js', 0.6);
+    preload('b.js', 0.8);
+    vi.runAllTimers();
+    loadBundleGraph(
+      '/build/',
+      Promise.resolve({
+        text: async () => JSON.stringify(['a.js', -1, 6, 'b.js', -1, 6, 'c.js']),
+      } as Response)
+    );
+    await vi.runAllTimersAsync();
+    expect(bundles.get('c.js')!.$priority$).toBe(0.8);
+
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+
+    expect(bundles.get('c.js')!.$priority$).toBe(0.9);
+  });
+});
+
+describe('handlers in view', () => {
+  test('preloads the handlers of an element in view before the other speculative preloads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: button, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js']);
+  });
+
+  test('leaves the handlers of an element out of view at their place, and keeps watching it', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: button, isIntersecting: false }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['first.js']);
+    expect(view.watched.has(button)).toBe(true);
+  });
+
+  test('stops watching an element once it came into view', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [button]);
+
+    await loadGraphOfThreeHandlers();
+    expect(view.watched.has(button)).toBe(true);
+    view.report([{ target: button, isIntersecting: true }]);
+
+    expect(view.watched.has(button)).toBe(false);
+  });
+
+  test('keeps the order of the elements that come into view together', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const upper = elementWith({ 'q-e:click': 'second.js#s_click' });
+    const lower = elementWith({ 'q-e:click': 'third.js#s_click' });
+    const view = installViewObserver(document, [upper, lower]);
+
+    await loadGraphOfThreeHandlers(2);
+    view.report([
+      { target: upper, isIntersecting: true },
+      { target: lower, isIntersecting: true },
+    ]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['second.js', 'third.js']);
+  });
+
+  test("an element in view raises every chunk of its handlers, but not its document handlers'", async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { bundles } = await import('./queue');
+    const input = elementWith({
+      'q-e:input': 'second.js#s_input##third.js|#0',
+      'q-d:scroll': 'first.js#s_scroll',
+    });
+    const view = installViewObserver(document, [input]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: input, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    const priorityOf = (name: string) => bundles.get(name)!.$priority$;
+    expect(priorityOf('second.js')).toBeGreaterThan(priorityOf('first.js'));
+    expect(priorityOf('third.js')).toBe(priorityOf('second.js'));
+  });
+
+  test('a q-editor attribute that names third.js leaves third.js at its place', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const editor = elementWith({ 'q-editor': 'third.js#s_edit' });
+    const view = installViewObserver(document, [editor]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: editor, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['first.js']);
+  });
+
+  test('a q-ep:scroll handler in view is preloaded before the other speculative preloads', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const list = elementWith({ 'q-ep:scroll': 'third.js#s_scroll' });
+    const view = installViewObserver(document, [list]);
+
+    await loadGraphOfThreeHandlers();
+    view.report([{ target: list, isIntersecting: true }]);
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js']);
+  });
+});
+
+describe('hover and focus', () => {
+  test.each(['pointerover', 'focusin'])(
+    "%s on an element preloads its handlers and its ancestors' next",
+    async (eventName) => {
+      const document = installBrowserGlobals();
+      Object.assign(globalThis, { MessageChannel: undefined });
+      vi.spyOn(performance, 'now').mockReturnValue(0);
+      vi.resetModules();
+      await installTestPlatform();
+      const getListener = listenerFor(document, eventName);
+      const card = elementWith({ 'q-e:click': 'second.js#s_card' });
+      const button = elementWith({ 'q-e:click': 'third.js#s_button' });
+
+      await loadGraphOfThreeHandlers(2);
+      getListener()(intentOn(button, card, document));
+      await vi.runAllTimersAsync();
+
+      expect(linkNames(document)).toEqual(['second.js', 'third.js']);
+    }
   );
-  await vi.runAllTimersAsync();
-  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.56);
 
-  preload('b.js', 0.9);
-  await vi.runAllTimersAsync();
+  test('the pointer moving inside the same element sends one hint', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { bundles } = await import('./queue');
+    const getListener = listenerFor(document, 'pointerover');
+    const card = elementWith({ 'q-e:click': 'third.js#s_card' });
+    const label = elementWith({});
+    const icon = elementWith({});
 
-  expect(bundles.get('c.js')!.$inverseProbability$).toBeCloseTo(0.55);
+    await loadGraphOfThreeHandlers();
+    getListener()(intentOn(label, card, document));
+    await vi.runAllTimersAsync();
+    const hintOrder = bundles.get('third.js')!.$hintOrder$;
+    getListener()(intentOn(icon, card, document));
+    await vi.runAllTimersAsync();
+
+    expect(bundles.get('third.js')!.$hintOrder$).toBe(hintOrder);
+  });
+
+  test('pointerover on a button inside a q-e:qvisible element preloads the click handler, not the visible task', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const getListener = listenerFor(document, 'pointerover');
+    const section = elementWith({ 'q-e:qvisible': 'second.js#s_visible' });
+    const button = elementWith({ 'q-e:click': 'third.js#s_click' });
+
+    await loadGraphOfThreeHandlers(2);
+    getListener()(intentOn(button, section, document));
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['third.js', 'first.js']);
+  });
 });
 
-test('schedules a single adjustment task for many replayed hints', async () => {
-  installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  const hints = Array.from({ length: 50 }, (_, index) => `hint-${index}.js`);
-  preload(hints, 0.8);
-  vi.runAllTimers();
+describe('latest hint first', () => {
+  test('a later speculative hint is preloaded before an earlier one of the same priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
 
-  loadBundleGraph(
-    '/build/',
-    Promise.resolve({ text: async () => JSON.stringify(hints) } as Response)
-  );
-  for (let tick = 0; tick < 10; tick++) {
-    await Promise.resolve();
-  }
+    initPreloader(['a.js', 'b.js', 'c.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    vi.runAllTimers();
 
-  const adjustmentTaskAndTriggerTask = 2;
-  expect(vi.getTimerCount()).toBe(adjustmentTaskAndTriggerTask);
-});
+    expect(linkNames(document)).toEqual(['c.js', 'b.js', 'a.js']);
+  });
 
-const linkNames = (document: Document) =>
-  Array.from(document.head.querySelectorAll('link'), (link) =>
-    new URL(link.href).pathname.split('/').pop()
-  );
+  test('hinting a queued bundle again moves it to the front of its priority', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
 
-test('holds speculative preloads until the bundle graph has loaded, but not needed ones', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  let deliverGraph!: (response: Response) => void;
-  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
+    initPreloader(['a.js', 'b.js', 'c.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
 
-  preload('speculative.js', 0.8);
-  await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual([]);
+    expect(linkNames(document)).toEqual(['a.js', 'c.js', 'b.js']);
+  });
 
-  preload('needed.js', 1);
-  await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual(['needed.js']);
+  test('a later hint brings what its bundle imports to the front with it', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
 
-  deliverGraph({
-    text: async () => JSON.stringify(['speculative.js', 'needed.js']),
-  } as Response);
-  document.head.querySelector('link')!.onload!({} as Event);
-  await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual(['speculative.js']);
-});
+    initPreloader(['a.js', 2, 'a-import.js', 'b.js', 5, 'b-import.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    vi.runAllTimers();
 
-test('starts speculative preloads when the bundle graph fails to load', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  loadBundleGraph('/build/', Promise.reject(new Error('offline')));
+    expect(linkNames(document)).toEqual(['b.js', 'b-import.js', 'a.js', 'a-import.js']);
+  });
 
-  preload('speculative.js', 0.8);
-  await vi.runAllTimersAsync();
+  test('hinting a queued bundle again brings what it imports to the front too', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
 
-  expect(linkNames(document)).toEqual(['speculative.js']);
-});
+    initPreloader(['a.js', 2, 'a-import.js', 'b.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
 
-test('still preloads a bundle first hinted after the bundle graph failed to load', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  loadBundleGraph('/build/', Promise.reject(new Error('offline')));
-  await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['a.js', 'a-import.js', 'b.js']);
+  });
 
-  preload('hinted-late.js', 1);
-  await vi.runAllTimersAsync();
+  test('a weaker hint does not move a bundle ahead of its equals', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
 
-  expect(linkNames(document)).toEqual(['hinted-late.js']);
-});
+    initPreloader(['a.js', 'b.js']);
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('a.js', 0.6);
+    vi.runAllTimers();
 
-test('starts speculative preloads when no bundle graph is requested', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  loadBundleGraph('/build/');
+    expect(linkNames(document)).toEqual(['b.js', 'a.js']);
+  });
 
-  preload('speculative.js', 0.8);
-  await vi.runAllTimersAsync();
+  test('an import shared by two chunks hinted before the bundle graph loaded keeps the later hint', async () => {
+    const { document, preload, deliverGraph } = await preloadBeforeGraph();
 
-  expect(linkNames(document)).toEqual(['speculative.js']);
-});
+    preload('a.js', 0.9);
+    preload('b.js', 0.9);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    await deliverGraph(
+      graphOf({
+        'a.js': { imports: ['shared.js'] },
+        'b.js': { imports: ['shared.js'] },
+        'c.js': {},
+        'shared.js': {},
+      })
+    );
 
-test('keeps a dependency at needed priority when its importer is replayed in a later slice', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  let now = 0;
-  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
-  let deliverGraph!: (response: Response) => void;
-  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
-  preload('dependency.js', 0.8);
-  preload(['filler-1.js', 'filler-2.js', 'filler-3.js'], 0.5);
-  preload('importer.js', 1);
-  await vi.runAllTimersAsync();
-  document.head.querySelector('link')!.onload!({} as Event);
-  await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual([]);
+    expect(linkNames(document)).toEqual(['a.js', 'shared.js', 'c.js', 'b.js']);
+  });
 
-  clock.mockImplementation(() => (now += 6));
-  deliverGraph({
-    text: async () =>
-      JSON.stringify([
-        'dependency.js',
-        'filler-1.js',
-        'filler-2.js',
-        'filler-3.js',
-        'importer.js',
-        0,
-      ]),
-  } as Response);
-  await vi.runAllTimersAsync();
+  test('hinting a.js again once it and a-import.js have loaded leaves a-import.js untouched', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { initPreloader, preload } = await importAndResetState();
+    const { bundles } = await import('./queue');
 
-  const dependencyLink = document.head.querySelector('link[href$="/dependency.js"]')!;
-  expect(dependencyLink.getAttribute('fetchpriority')).toBeNull();
-});
+    initPreloader(['a.js', 2, 'a-import.js']);
+    preload('a.js', 0.9);
+    vi.runAllTimers();
+    loadLinks(document);
+    vi.runAllTimers();
+    const hintOrder = bundles.get('a-import.js')!.$hintOrder$;
+    preload('a.js', 0.9);
+    vi.runAllTimers();
 
-test('sends a bundle needed before the preloader started ahead of speculative ones once the graph arrives', async () => {
-  const document = installBrowserGlobals();
-  Object.assign(globalThis, { MessageChannel: undefined });
-  vi.spyOn(performance, 'now').mockReturnValue(0);
-  vi.resetModules();
-  await installTestPlatform();
-  const { loadBundleGraph } = await import('./bundle-graph');
-  const { nextTriggerMacroTask, preload } = await import('./queue');
+    expect(bundles.get('a-import.js')!.$hintOrder$).toBe(hintOrder);
+  });
 
-  preload('needed.js', 1);
-  await vi.runAllTimersAsync();
-  let deliverGraph!: (response: Response) => void;
-  loadBundleGraph('/build/', new Promise<Response>((resolve) => (deliverGraph = resolve)));
-  preload('speculative.js', 0.6);
-  await vi.runAllTimersAsync();
-  expect(linkNames(document)).toEqual([]);
+  test('hinting a loaded a.js again still moves its queued a-import.js ahead of c.js', async () => {
+    const document = installBrowserGlobals();
+    Object.assign(globalThis, { MessageChannel: undefined });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    vi.resetModules();
+    await installTestPlatform();
+    const { loadBundleGraph } = await import('./bundle-graph');
+    const { preload } = await import('./queue');
+    const graph = {
+      text: async () => JSON.stringify(['a.js', 2, 'a-import.js', 'b.js', 'c.js']),
+    };
+    loadBundleGraph('/build/', Promise.resolve(graph as Response), { P: 1 });
 
-  nextTriggerMacroTask();
-  deliverGraph({
-    text: async () => JSON.stringify(['needed.js', 'speculative.js']),
-  } as Response);
-  await vi.runAllTimersAsync();
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    preload('b.js', 0.9);
+    await vi.runAllTimersAsync();
+    loadLinks(document);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual(['b.js']);
+    preload('c.js', 0.9);
+    preload('a.js', 0.9);
+    await vi.runAllTimersAsync();
+    loadLinks(document);
+    await vi.runAllTimersAsync();
 
-  expect(linkNames(document)).toEqual(['needed.js']);
+    expect(linkNames(document)).toEqual(['a-import.js']);
+  });
 });

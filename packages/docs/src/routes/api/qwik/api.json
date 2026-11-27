@@ -1655,6 +1655,20 @@
       "mdFile": "core.qwikdragevent.md"
     },
     {
+      "name": "QwikErrorEvent",
+      "id": "qwikerrorevent",
+      "hierarchy": [
+        {
+          "name": "QwikErrorEvent",
+          "id": "qwikerrorevent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Emitted on document when a chunk failed to download, or when an event handler threw. `importError` is set only for a failed download, which error boundaries never see.\n\n\n```typescript\nexport type QwikErrorEvent = CustomEvent<{\n    importError?: 'sync' | 'async' | 'no-symbol';\n    error: unknown;\n    symbol: string;\n    element: Element;\n    reqTime?: number;\n    qBase?: string;\n}>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
+      "mdFile": "core.qwikerrorevent.md"
+    },
+    {
       "name": "QwikFocusEvent",
       "id": "qwikfocusevent",
       "hierarchy": [
@@ -2171,7 +2185,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nReveal: typeof revealCmp\n```",
+      "content": "```typescript\nReveal: Component<RevealProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/reveal.tsx",
       "mdFile": "core.reveal.md"
     },
@@ -2213,7 +2227,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.\n\n- `never`<!-- -->: The value is never serialized. When the component is resumed, the value will be recalculated when it is first read. - `always`<!-- -->: The value is always serialized. This is the default.\n\n\\*\\*IMPORTANT\\*\\*: When you use `never`<!-- -->, your serialized HTML is smaller, but the recalculation will trigger subscriptions, meaning that other signals using this signal will recalculate, even if this signal didn't change.\n\nThis is normally not a problem, but for async signals it may mean fetching something again.\n\n\n```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
+      "content": "Serialization strategy for computed and async signals. This determines whether to serialize their value during SSR.\n\n- `never`<!-- -->: The value is never serialized. When the component is resumed, the value will be recalculated when it is first read. - `always`<!-- -->: The value is always serialized. This is the default. - `auto`<!-- -->: Small values and values already included in the state are serialized when possible. Other values are recalculated on first read, like `never`<!-- -->.\n\n\\*\\*IMPORTANT\\*\\*: When you use `never`<!-- -->, your serialized HTML is smaller, but the recalculation will trigger subscriptions, meaning that other signals using this signal will recalculate, even if this signal didn't change.\n\nThis is normally not a problem, but for async signals it may mean fetching something again.\n\n\n```typescript\nexport type SerializationStrategy = 'never' | 'always' | 'auto';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts",
       "mdFile": "core.serializationstrategy.md"
     },

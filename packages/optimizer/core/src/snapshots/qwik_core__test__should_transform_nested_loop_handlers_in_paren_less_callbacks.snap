@@ -20,13 +20,15 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const q_Facets_component_V53IH8KaBD0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Facets_component_V53IH8KaBD0"), "Facets_component_V53IH8KaBD0");
-const q_Groups_component_hJ0Zdme0QaI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_hJ0Zdme0QaI"), "Groups_component_hJ0Zdme0QaI");
 //
 export const Facets = /*#__PURE__*/ componentQrl(q_Facets_component_V53IH8KaBD0);
+//
+const q_Groups_component_hJ0Zdme0QaI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_hJ0Zdme0QaI"), "Groups_component_hJ0Zdme0QaI");
+//
 export const Groups = /*#__PURE__*/ componentQrl(q_Groups_component_hJ0Zdme0QaI);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,uBAAS,6CAA0K;AAEhM,OAAO,MAAM,uBAAS,6CAEnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,uBAAS,6CAA0K;;;;AAEhM,OAAO,MAAM,uBAAS,6CAEnB\"}")
 ============================= test.tsx_Groups_component_div_div_input_q_e_change_grvJFQyy4iE.js (ENTRY POINT)==
 
 import { _capturesObj } from "@qwik.dev/core";

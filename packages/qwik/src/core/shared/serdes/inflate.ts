@@ -315,7 +315,7 @@ function* inflateIterator(
         asyncSignal.$untrackedPending$ = true;
       }
 
-      const hasValue = d.length > 6;
+      const hasValue = d.length > 6 && d[6] !== _UNINITIALIZED;
       if (hasValue) {
         asyncSignal.$untrackedValue$ = d[6];
       }
@@ -352,7 +352,7 @@ function* inflateIterator(
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }
-      const hasValue = d.length > 2;
+      const hasValue = d.length > 2 && d[2] !== _UNINITIALIZED;
       if (hasValue) {
         computed.$untrackedValue$ = d[2];
       }
@@ -391,6 +391,7 @@ function* inflateIterator(
         Props,
         Props | null,
         Map<string | symbol, Set<EffectSubscription>> | undefined,
+        boolean?,
       ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
@@ -399,12 +400,12 @@ function* inflateIterator(
         // Do not let JSXNodeImpl constructor normalize {} to EMPTY_OBJ/null.
         owner.varProps = d[1];
         owner.constProps = d[2];
-
-        owner._proxy = propsProxy;
       }
+      owner._proxy ||= propsProxy;
       propsProxy[_OWNER] = owner;
       const propsHandler = propsProxy[_PROPS_HANDLER];
       propsHandler.$effects$ = d[3];
+      propsHandler.$omitChildren$ = !!d[4];
       restoreEffectBackRefForEffectsMap(propsHandler.$effects$, propsProxy);
       break;
     }

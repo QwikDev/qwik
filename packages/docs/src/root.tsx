@@ -48,9 +48,9 @@ export default component$(() => {
 
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-        <style dangerouslySetInnerHTML={isDemoPath ? linkedFontFaces : inlinedFontFaces} />
-
         <RouterHead />
+
+        <style dangerouslySetInnerHTML={isDemoPath ? linkedFontFaces : inlinedFontFaces} />
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
         <Insights />

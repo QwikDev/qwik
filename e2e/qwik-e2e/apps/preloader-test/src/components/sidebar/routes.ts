@@ -281,6 +281,11 @@ export const routes = [
     label: 'barrel file',
   },
   {
+    group: 'other',
+    href: '/streaming/',
+    label: 'click while streaming',
+  },
+  {
     group: 'visible',
     href: '/visible/above/',
     label: 'above the fold',
@@ -306,6 +311,11 @@ export const routes = [
     label: 'heavy chunk',
   },
   {
+    group: 'speculative',
+    href: '/speculative/in-view/',
+    label: 'in view, off screen first',
+  },
+  {
     group: 'navigation',
     href: '/navigation/from/off/',
     label: 'from (prefetch off)',
@@ -319,6 +329,36 @@ export const routes = [
     group: 'navigation',
     href: '/navigation/from/intent/',
     label: 'from (prefetch intent)',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/from/nav/',
+    label: 'from (nav() in a button)',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/shell/home/',
+    label: 'nested layouts',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/by-url/a/',
+    label: 'layout that renders from the URL',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/product/1/',
+    label: 'route with a param',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/chain/a/',
+    label: 'three pages linked in a chain',
+  },
+  {
+    group: 'navigation',
+    href: '/navigation/cycle/a/',
+    label: 'two pages that link to each other',
   },
   {
     group: 'navigation',

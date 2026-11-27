@@ -1,15 +1,15 @@
-type Preload = (item: string | string[], probability?: number) => void;
+type Preload = (item: string | string[], priority?: number, isPageToRender?: boolean) => void;
 
-type PreloaderGlobal = typeof globalThis & {
+export type PreloaderGlobal = typeof globalThis & {
   qPreload?: Preload;
-  /** Hints sent before the preloader loaded; shared by core's and the preloader's copy. */
+  /** Hints sent before the preloader loaded; shared by core, qwikloader and the preloader. */
   qPreloadQueue?: Parameters<Preload>[];
 };
 
 /** @internal */
-export const requestPreload: Preload = (item, probability) => {
+export const requestPreload: Preload = (...hint) => {
   const g = globalThis as PreloaderGlobal;
-  g.qPreload ? g.qPreload(item, probability) : (g.qPreloadQueue ||= []).push([item, probability]);
+  g.qPreload ? g.qPreload(...hint) : (g.qPreloadQueue ||= []).push(hint);
 };
 
 export const setPreloader = (preload: Preload | undefined) => {

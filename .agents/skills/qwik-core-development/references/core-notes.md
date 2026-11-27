@@ -1,0 +1,367 @@
+# Qwik Core Notes
+
+Use this reference only after loading `qwik-core-development` and only for core runtime work that
+needs more detail than the skill body. Keep it current when source changes make a note stale.
+
+## Maintainer Bias From History
+
+Recent core work by Varixo and Wout tends to:
+
+- isolate the broken invariant before changing code;
+- keep producer and consumer protocol changes together;
+- add focused regression tests beside the changed behavior;
+- preserve compatibility paths deliberately and test them;
+- extract small semantic helpers when they make ownership or ordering clearer;
+- leave comments only for non-obvious runtime encodings, lifecycle ordering, or compatibility
+  constraints.
+
+Use that style for core work. Avoid broad rewrites, unexplained fallbacks, and temporary debug code.
+
+## Source Map
+
+```text
+packages/qwik/src/core/
+  client/                     client render, VNode materialization, cursor/diff integration
+  reactive-primitives/         signals, async signals, stores, subscriptions
+  shared/qrl/                  QRL classes and helpers
+  shared/serdes/               inflation (deserializer), root refs, type ids
+  shared/vnode/                VNode structures
+  shared/cursor/               cursor walking and DOM update primitives
+  ssr/                         server-side JSX rendering
+  tests/                       core feature specs
+packages/qwik/src/serializer/ the writer, shipped as `@qwik.dev/core/internal/serializer`
+```
+
+Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spec.ts(x)`.
+
+## Computed Invalidation Invariants
+
+Derived signals (`ComputedSignalImpl`, `WrappedSignalImpl`) are glitch-free through three states
+in `$flags$`: clean, `CHECK` (a transitive source changed) and `INVALID` (a direct source changed).
+`scheduleEffects` in `reactive-primitives/utils.ts` owns the protocol; keep these invariants:
+
+- Mark the whole derived closure before dispatching any task/vnode effect and before pulling. On
+  SSR `markVNodeDirty` runs tasks synchronously, so a task dispatched mid-mark would read a
+  not-yet-marked node.
+- `CHECK` is the only "walked this round" marker. `INVALID` can be left over from resume or a
+  cleared subscription, so an `INVALID` node is still walked and still pulled for its effects.
+- Pull only the derived signals that have task/vnode (or pending/error) subscribers; everything
+  else stays lazy until read. A node's non-derived effects run only when its value changed, so a
+  `CHECK` node must never dispatch them during marking.
+- A `CHECK` node resolves itself by pulling its own sources from its `backRef` and recomputes only
+  when one of them promoted it to `INVALID`. Async-mode sources are skipped: they compute in a
+  microtask and push when they settle. An async node with effects is still pulled, but its pull
+  only resolves `CHECK`; the promotion goes through `$setInvalid$`, which schedules the job in a
+  microtask, so a write never starts an async job synchronously and one tick starts one job. A
+  test for this must not read the node (`promise()` or `.value` resolves `CHECK` by itself).
+- A derived signal must push from the place it writes its value (`super.value =` for computeds,
+  `$computeIfNeeded$` for wrapped signals), since the CHECK walk calls `$computeIfNeeded$`
+  directly. A wrapped signal computed from `NEEDS_COMPUTATION` notifies only when
+  `SOURCE_CHANGED` was set by the mark walk (`markDirty`, or `markCheck` on a still-`INVALID`
+  resumed node); a read-driven first compute (e.g. after resume) is not a change its subscribers
+  can act on. A wrapped signal keeps its stale source subscriptions on recompute (clearing 1000
+  of them per store write is measurable in the perf app), so it cannot rely on a source's push.
+- A wrapped signal is cached only while it is subscribed to its sources: `clearEffectSubscription`
+  must set `INVALID` on a wrapped consumer, or a re-tracked attribute silently stops updating.
+- Never serialize `CHECK` or `SOURCE_CHANGED`: a `CHECK` node serializes as needing computation
+  and a resumed node has no own `backRef`, so its CHECK walk degrades to a recompute.
+
+Regression coverage: `impl/signal.unit.tsx` (`diamond`), `impl/async-computed.unit.tsx`,
+`cleanup.unit.tsx`, `shared/serdes/serdes.unit.ts`, and `tests/render-regression.spec.tsx`.
+
+## AsyncSignal Current Model
+
+Current API and implementation facts:
+
+- The async engine (AsyncJob, loading/error, cleanup) lives in `ComputedSignalImpl`;
+  `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
+- All compute fns receive the ComputeCtx argument (`track`, `previous`, `info`, `cleanup`,
+  `abortSignal`); sync computeds allocate an AsyncJob per compute and run the previous job's
+  cleanups before recomputing. `CTX_ARG` signals (`createAsyncQrl`/`useResource$`) track only via the
+  explicit `ctx.track()`; computeds auto-track synchronous reads via a dedicated invoke context,
+  but that context is lost after the first `await` — later reads must use `ctx.track()`.
+- A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
+  `declare`d until then) and then has the full AsyncSignal API. The `clientOnly` option sets
+  `ASYNC_MODE` at construction, since SSR can never resolve such a signal synchronously. Sync compute throws stay in sync
+  mode but still land in `.error`; reading `.value` rethrows until a recompute or explicit value
+  set clears it. Thrown promises must keep propagating for retry, never be captured as errors.
+- Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
+  `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
+  `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
+- `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
+- Signals have no built-in polling or expiration. Polling lives in `usePoll(signal, expires)` from
+  `@qwik.dev/utils`: an interval-based visible task (document-idle) that calls `invalidate()` and
+  resets on the `pending` flip. There is no `expires`/`poll`/`interval` option or property.
+- `invalidate()` keeps the previous value readable while recomputing; `clear()` drops the value
+  first so readers suspend (the old `allowStale: false` behavior, now explicit and one-shot).
+- `clientOnly` skips server computation and computes on first client read.
+- `eagerCleanup` schedules cleanup after subscribers drop to zero.
+
+When changing AsyncSignal behavior, inspect:
+
+- `packages/qwik/src/core/reactive-primitives/impl/async-signal-impl.ts`
+- `packages/qwik/src/core/reactive-primitives/types.ts`
+- `packages/qwik/src/core/reactive-primitives/signal.public.ts`
+- `packages/qwik/src/core/reactive-primitives/cleanup.ts`
+- `packages/qwik/src/serializer/serialize.ts`
+- `packages/qwik/src/core/shared/serdes/inflate.ts`
+- closest async signal unit/spec tests
+
+## AsyncSignal Invariants
+
+- A first unresolved read may throw the compute promise; tests should use `retryOnPromise()` when
+  exercising first-read behavior.
+- `.value`, `.loading`, and `.error` have separate subscriber sets. Subscriber-sensitive logic must
+  account for all three.
+- `invalidate(info)` records the latest info and increments the info version.
+- AbortError is cancellation, not a user-visible `.error`.
+- Reading `.pending` or `.error` triggers computation when needed; serialization must read the
+  private `$untrackedPending$`/`$untrackedError$` fields to avoid starting computes.
+- `clientOnly` resume rides on the state script's `q-d:qidle` `_res` QRL built from
+  `$eagerResume$`; SSR must emit the state script whenever `$eagerResume$` is non-empty, even if
+  no roots were discovered yet (the QRL captures become roots during attribute serialization).
+- Timeout IDs must be cleared in invalidation, destroy, and reschedule paths.
+- Browser timers must not run during SSR. Current code uses `isServer` plus the test platform check.
+- Node timers that can keep the process alive should use `.unref?.()`.
+
+## AsyncSignal Test Patterns
+
+Use the current test helpers already present in nearby tests:
+
+```typescript
+await withContainer(async () => {
+  const signal = createAsyncQrl($(async () => 42)) as AsyncSignalImpl<number>;
+
+  await retryOnPromise(() => {
+    effect$(() => signal.value);
+  });
+
+  await signal.promise();
+  expect(signal.value).toBe(42);
+});
+```
+
+For mutable counters captured by `$()` closures, use an object ref:
+
+```typescript
+const ref = { calls: 0 };
+const signal = createAsyncQrl(
+  $(async () => {
+    ref.calls++;
+    return ref.calls;
+  })
+);
+```
+
+Do not capture and mutate primitive `let` bindings from `$()` tests; optimizer serialization can
+turn the binding into a const-like captured value.
+
+## Serialization And Inflation
+
+When a core value gains serialized state:
+
+1. Update the serializer and inflater together.
+2. Keep array positions or marker encodings documented in the code that owns them.
+3. Add a round-trip test in `shared/serdes` or the closest subsystem.
+4. Check SSR and client resume behavior when the value affects resumed or streamed state.
+
+The serializer is its own entry so browser apps only load it inside the segments that call it
+(e.g. `server$`). It and `src/server/` are entries of core's library build
+(`scripts/submodule-core.ts`), so a core module they import, through `../` or
+`@qwik.dev/core/internal`, stays in core's chunk and keeps one identity. Every variant has every
+entry, under the same package conditions as core: an entry
+resolved to another variant would bundle a second core (the browser imports the server through
+the router). `core-hoisting.unit.ts` checks both. Their `.prod` files
+keep importing `isDev` from `@qwik.dev/core/build` and only get `$props$` mangled, because apps
+decide those (the qwik e2e server runs core.prod with `isDev` true); only core's chunks bake them in.
+
+For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
+concurrency, timeout, stale value, and error/loading state behavior.
+
+## VNode, Cursor, And Streaming
+
+Core rendering changes often cross multiple boundaries:
+
+- SSR emits HTML, VNode data, event data, state, and sometimes streamed patches.
+- Client startup materializes VNodes lazily from DOM plus `qwik/vnode` data.
+- Cursor work must preserve render promise resolution and not orphan paused cursors.
+- Qwikloader changes need behavior tests because they run outside normal framework code.
+
+When touching these areas:
+
+- trace the owner of each marker or ID from emitter to consumer;
+- keep numeric/string encodings deterministic;
+- test root and nested/container cases when a feature can appear in both;
+- include streaming or out-of-order cases when state can arrive after initial event listeners.
+
+Out-of-order (OOOS) invariants:
+
+- Root vnode data is written before deferred segments resolve, so a component whose attrs were not
+  yet roots gets only a render hash. When a segment later serializes that node, re-emit its element's
+  vnode data as a `q:patch`, or the client can never re-render it.
+- Resumed segment elements must resolve through the normal DOM path in `vnode_locate`; a detached
+  vnode breaks every upward walk (context, reset owner).
+- Scoped client vnode walks (patches, segments) must stop after the scope's subtree, and a nested
+  container's root takes vnode data only from its own container, never from the outer walk.
+- The root walk must resume after a `q:rp` subtree even when it is its parent's last child;
+  counting segment elements shifts the vnode data of everything after that parent.
+- Test subscription patches against producers already delivered in the shell or an earlier segment.
+  A newly serialized producer tests initial state rather than merging late subscriptions; keep later
+  segments blocked when verifying that serialization stays within the emitting segment's scope.
+- Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
+  before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
+
+## QRL And Optimizer-Facing Runtime
+
+- Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;
+  production builds mangle `$...$` properties inside core, so external packages cannot read them
+  directly. Verify these integrations after a production build, including client-rendered elements.
+- Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
+- Avoid manual QRL construction unless nearby tests already use it for the same reason.
+- If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.
+- Const props are trusted to never change, so their reads never subscribe. A child computed or task
+  stuck on an old prop value while the render shows the new one usually means an optimizer put a
+  render-varying value in the const bag (see the optimizer skill's "Const prop bag").
+- For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
+  behavior aligned.
+- Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform. They declare
+  each core QRL at module level, eagerly, right before the first top-level statement referencing
+  it (even when the `$()` sits in a lazy arrow), or at the very top when a function declaration
+  that core exports references it. So the bundle must define the QRL machinery (`createQRL`,
+  `inlinedQrl`) before any statement holding a QRL site: only put core `$()` sites in modules
+  bundled after `shared/qrl/qrl.ts`, never inside a function declaration reachable from core's
+  exports. Rolldown orders the `qrl-class` import cycle from where it is first entered, so
+  `core/index.ts` enters it through `handler-qrls.ts`, whose first import is `./qrl`; keep terser's
+  `join_vars` off so no QRL site shares a `const` list with that machinery. `core-hoisting.unit.ts`
+  evaluates the transformed core on every variant (dev, `.prod`, `.min`) with the TS optimizer, and
+  with the Rust one only when its bindings are built (`pnpm build.rust` or
+  `pnpm build.platform.copy`; CI always has them). Run it after `build.core` when touching QRL
+  creation, core's import order or the core minifier, since a dev build makes the variants plain
+  copies.
+- Each core variant imports itself through `@qwik.dev/core`, so never point a variant at another
+  with an `export *` stub: the self-import cycles through the stub. Terser runs per chunk, so its
+  mangled names must not end in `$` (optimizers read `x$()` as a marker) and mangled
+  `$props$` must avoid plain property names of every chunk, not just the one being minified.
+- Write core's own QRLs with `$()`, `component$()` and `useTask$()` imported from their relative
+  modules. `scripts/core-library-qrls.ts` compiles them in library mode, for core's build and for
+  the unit tests (`vitest.config.ts`), so each app's optimizer extracts them like any library's. A
+  `foo$` marker needs `fooQrl` exported from the same module: the optimizer imports it from there.
+  In the unit tests core's modules load unbundled, so a QRL created at the top level of a module
+  that `qrl-class.ts` imports transitively runs before `createQRL` exists: create it on first use.
+  That only helps unbundled loads; the app optimizer still declares it eagerly in the bundle.
+- Functions that read their own captures (the qwikloader calls them with the captures as `this`)
+  get their QRLs in `shared/qrl/handler-qrls.ts`, bound with `.w(captures)`. Write every other QRL,
+  like the control-flow components', inline at its `$()` site, so its segment owns the code.
+- Core has no chunk group: its chunks are ordinary bundles in the graph. An event attribute's QRLs
+  go into `serializationCtx.$eventQrls$`, including `_run`, which the attribute lists next to the
+  handler, and `preloaderPost` hints their bundles to the preloader. Keep the two kinds of SSR links
+  apart. The bundle of each of core's handlers a page's events run through
+  (`$coreHandlerQrls$`), with its static imports, is linked as the page streams whatever
+  `ssrPreloads` is: every interaction needs core. Only `preloader: false` turns these links off. `ssrPreloads` (0 by default) only adds the first
+  bundles the client queue would fetch, ranked on the server with `getPreloadOrder` (same
+  probabilities, shared preloader state reset per call). The preloader e2e suite counts the round
+  trips that depend on this.
+- What every app needs to be interactive belongs in core's chunk; what only some apps use is its
+  own segment. An `import()` inside core is a cut point the preloads don't follow, so don't split
+  code every interaction needs behind one: measured on the preloader app, re-render code in its own
+  chunk cost more bytes than it saved and didn't change first-click latency.
+
+## Focused Verification
+
+Use the closest command first:
+
+```bash
+pnpm vitest run packages/qwik/src/core/reactive-primitives/impl/async-signal.unit.tsx
+pnpm vitest run packages/qwik/src/core/shared/serdes/serdes.unit.ts
+pnpm vitest run packages/qwik/src/qwikloader.behavior.unit.ts
+pnpm build.core.dev
+pnpm api.update
+```
+
+Use e2e only when unit/spec tests cannot cover the behavior, such as real browser event timing,
+streaming, navigation, or integration with fixture apps. For Qwik e2e, load
+`qwik-e2e-verification`.
+
+Never use `pnpm test.unit` for agent verification in this repo.
+
+## Catch (experimental `catchBoundary`)
+
+Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
+at display sites; redaction is origin-based — the server display redacts in production unless the
+app returns an `Error` from `transformError`; the client display always shows the error as thrown.
+
+Reset must re-render the component that authored projected children. Identify and retain that
+component as soon as SSR error teardown determines it; store its VNode reference only when the
+projection cut prevents the client owner walk. Re-key the highest wrapper below that author so
+normal diffing recreates emptied projected content without projection-wide scheduling.
+
+## Duplicated Core Copies
+
+A Qwik library kept external on the server evaluates its own copy of `@qwik.dev/core`, and it
+evaluates before the app bundle (ESM hoists external imports). `e2e/qwik-e2e/tests/external-library.e2e.ts`
+renders such a library; `packages/qwik/src/core/shared/singletons.unit.ts` loads core twice in vitest.
+Keep these invariants so both keep passing:
+
+- Mutable module-level state that another copy may read goes through `registerSingleton` in
+  `shared/singletons.ts`; never a `let` binding or a module-level `Map`/`WeakMap`. The one
+  exception is the platform: each app render installs a platform carrying its own manifest, so it
+  stays per bundle (the `multi-container` error-handling e2e renders two apps in one process).
+- Marker symbols come from `qwikSymbol(name)` in `shared/singletons.ts`, typed `: unique symbol`;
+  a plain `Symbol()` is invisible to the other copy, and a bare `Symbol.for('qwik.…')` would also
+  match another Qwik version on the same page. The server allows one version per process
+  (`shared/duplicate-core.ts` throws Q30 otherwise); the client keeps a registry per version,
+  since every container may come from a different build.
+- A class that is checked with `instanceof` gets `brandClass(Class, Brand.X)` right after its
+  declaration (`shared/utils/brand.ts`); the serializer's unknown-type error (Q20) is the usual sign
+  of an unbranded class.
+- A component the renderer recognizes by identity (`Slot`, `Fragment`, `SSRComment`, `SSRRaw`,
+  `SSRStream`, `SSRStreamBlock`) is created through `registerSingleton`; a library's `<Slot>`
+  from its own copy of core otherwise renders as a plain component and its projected children lose
+  their context (Q8).
+- Never read `__EXPERIMENTAL__.feature` at module top level. The bundler only substitutes literals
+  in bundled copies; an unbundled copy resolves the flags lazily from the bundled copy through
+  `shared/duplicate-core.ts`, which runs once per copy and must stay listed in `sideEffects` in
+  `packages/qwik/package.json`.
+- `dist/preloader.mjs` and `dist/server.mjs` embed their own copy of the registry; keep
+  `shared/singletons.ts` free of heavy imports, and keep `globalThis.QWIK_VERSION` defined in every
+  bundle that embeds it.
+- `src/web-worker/worker.shared.js` may import only what `QWIK_WORKER_CORE_CODE` in
+  `packages/qwik-vite/src/plugins/worker-core.ts` re-exports; a new import there fails only in the
+  `worker.e2e.ts` and adapters `worker.spec.ts` suites.
+- Keep `_captures` exported from core and both optimizers accepting `_captures[N]`: libraries
+  already published against v2 betas read it from their own copy.
+- The server only calls functions registered by hash (`_regSymbol`), so that registry is the
+  allowlist for `server$` calls from the browser; never register every QRL. A library build
+  inlines its QRLs, so the router's `serverQrl()` registers its function (`_regInlinedQrl`); a
+  `server$` declared inside a library component is only registered once that component rendered.
+- The router follows the same rules through `_registerSingleton` and `_qwikSymbol` from
+  `@qwik.dev/core/internal`: the request store is a singleton, a router class checked with
+  `instanceof` gets `shareClassIdentity()` (`middleware/request-handler/shared-class-identity.ts`),
+  and a router copy without a config reads the serving app's config from the request event.
+- In production server builds the Vite plugin leaves Qwik libraries to Vite's defaults and the
+  user's config (`checkExternals` in `packages/qwik-vite/src/plugins/vite.ts`), and only warns
+  when the server could not load an external library at runtime; v1-built libraries
+  import `@builder.io/qwik`, so users list them in top-level `resolve.noExternal`, which also
+  reaches adapter environments such as `ssg` (`ssr.noExternal` does not). The dev
+  server and builds with `NODE_ENV` other than `production` bundle every library: they bundle the
+  development core, whose `$…$` property names differ from the production core Node resolves for
+  an external library, and the dev server's SSR maps a QRL to a segment URL through its parent
+  module, which a raw library cannot provide. The in-repo e2e server passes its own conditions,
+  so only the CLI suite's `external-library.spec.ts` exercises a real starter's builds. The router runtime must keep
+  evaluating without the app build: it reads its config through `getRouterConfig()` in
+  `packages/qwik-router/src/runtime/src/router-config.ts`, never through a static
+  `@qwik-router-config` import, which only the app build resolves. The router plugin appends that
+  import to the server entries so the config registers up front; `getRouterConfig()` falls back to
+  a dynamic import. The config stays per bundle like the platform, since the e2e dev server hosts
+  several apps in one process.
+
+## Keep This Reference Fresh
+
+Before finishing a core task, ask:
+
+1. Did current source contradict anything in this reference?
+2. Did the task teach a durable pattern that future core work should reuse?
+3. Is the lesson specific enough to belong here rather than in `AGENTS.md`?
+
+If yes, update this file in the same task when scope allows it. Prefer replacing stale text over
+appending another long lesson.

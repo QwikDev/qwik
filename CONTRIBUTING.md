@@ -165,28 +165,18 @@ day-to-day work. Only building or testing the Rust optimizer (`@qwik.dev/optimiz
 
 ### AI Assistants
 
-AI assistant instructions are managed with [Ruler](https://github.com/intellectronica/ruler)
-so shared guidance lives in one place instead of being copied across assistant-specific files.
+The repo-wide agent guidance lives in [AGENTS.md](./AGENTS.md); `CLAUDE.md` only imports it. Task
+skills live in [.agents/skills/](./.agents/skills/), where Codex reads them, and `.claude/skills`
+is a symlink to that folder for Claude Code. Edit these files by hand; nothing is generated.
 
-Some examples of configured assistants are Claude, Codex, Cursor, and GitHub Copilot. Ruler supports many additional harnesses.
+On Windows, turn on Developer Mode and run `git config --global core.symlinks true` before you
+clone, so the `.claude/skills` symlink works.
 
-Start by reading [.ruler/README.md](./.ruler/README.md). It explains how Ruler source files become
-each assistant's native instruction, rule, skill, and config files.
-
-To generate the local files for your assistant, run one of:
+If you ran Ruler in this checkout before, delete its old Codex skills once:
 
 ```sh
-ruler apply
-ruler apply --agents codex
-ruler apply --agents claude,cursor
+rm -rf .codex/skills
 ```
-
-Use `.ruler/AGENTS.md` for short repo-wide AI instructions, `.ruler/rules/` for dedicated always-on
-rules, `.ruler/skills/` for reusable prompts or task-specific skills, and `~/.config/ruler/` for
-personal settings such as local MCP servers or workflow preferences.
-
-Do not edit generated files like `AGENTS.md`, `CLAUDE.md`, `.codex/`, `.claude/`, or `.cursor/`
-by hand. Update `.ruler/` and rerun `ruler apply`.
 
 ---
 

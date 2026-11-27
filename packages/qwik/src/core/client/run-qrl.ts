@@ -16,7 +16,7 @@ import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use
 import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
-import { CatchPhase } from '../shared/error/error-handling';
+import { CatchPhase, dispatchQrlImportError } from '../shared/error/error-handling';
 
 /**
  * This safely calls an event handler, handling errors and retrying on thrown Promises, and
@@ -81,18 +81,8 @@ export function runEventHandlerQRL(
     (err) => {
       if (isQrlImportError(err)) {
         // Import failures bypass error boundaries, matching qwikloader (#8962).
-        const doc = element.ownerDocument;
-        if (doc) {
-          doc.dispatchEvent(
-            new CustomEvent('qerror', {
-              detail: {
-                importError: 'async',
-                error: err,
-                element,
-                symbol: (handler as QRLInternal).getSymbol(),
-              },
-            })
-          );
+        if (event.type !== 'qerror') {
+          dispatchQrlImportError(element, err);
         }
         return;
       }

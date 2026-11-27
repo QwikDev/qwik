@@ -17,26 +17,29 @@ import { normalizePath } from '../../utils/fs';
 
 describe('qwikRouter plugin', () => {
   describe('defaultLoadersSerializationStrategy', () => {
-    it('should set the defaultLoadersSerializationStrategy to "never" when not provided', async () => {
+    it('defaults loader serialization to auto', async () => {
       const plugins = qwikRouter();
       await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
         define: {
-          'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"never"',
+          'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"auto"',
         },
       });
     });
 
-    it('should set the defaultLoadersSerializationStrategy to "always" when provided', async () => {
-      const plugins = qwikRouter({
-        defaultLoadersSerializationStrategy: 'always',
-      });
+    it.each(['always', 'never', 'auto'] as const)(
+      'preserves an explicit %s default',
+      async (strategy) => {
+        const plugins = qwikRouter({ defaultLoadersSerializationStrategy: strategy });
 
-      await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
-        define: {
-          'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"always"',
-        },
-      });
-    });
+        await expect(
+          (plugins[0] as any)?.config?.({}, { command: 'build' })
+        ).resolves.toMatchObject({
+          define: {
+            'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(strategy),
+          },
+        });
+      }
+    );
   });
 
   describe('route loader source discovery', () => {

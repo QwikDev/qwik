@@ -245,6 +245,7 @@ html[data-theme='dark'] .output-code-theme {
 .output-panel-section-body pre[class*='language-'] {
   margin: 0;
   padding: 12px 16px 16px;
+  overflow-x: auto;
   border: 0;
   border-radius: 0 0 18px 18px;
   box-shadow: none;
@@ -257,7 +258,7 @@ html[data-theme='dark'] .output-code-theme {
 
 .output-code-theme .prettier-toggle {
   top: 10px;
-  right: 12px;
+  right: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +270,7 @@ html[data-theme='dark'] .output-code-theme {
 .output-code-theme .file-modules > .relative > button.absolute,
 .output-code-theme .file-modules .relative > button.absolute {
   top: 10px;
-  right: 44px;
+  right: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -277,6 +278,14 @@ html[data-theme='dark'] .output-code-theme {
   min-height: 24px;
   padding: 0;
   line-height: 1;
+}
+
+/* Mask the code scrolling underneath the overlay buttons. */
+.output-code-theme .prettier-toggle,
+.output-code-theme .relative > button.absolute {
+  border-radius: 4px;
+  background: var(--color-background-base);
+  box-shadow: 0 0 0 6px var(--color-background-base);
 }
 
 .output-diagnostics {
@@ -782,28 +791,57 @@ html[data-theme='dark'] .output-code-theme {
   border-bottom: 0;
 }
 
-.detail-options .repl-select-field,
-.detail-options .repl-toggle-field {
+.detail-options .repl-select-field {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
 }
 
+.repl-choice {
+  @apply flex p-1 gap-1 border-[1.6px] border-border-base rounded-lg bg-background-base shadow-sm-base;
+}
+
+.repl-choice-option {
+  @apply flex-1 px-2 py-1.5 rounded-md text-center text-body-xs text-foreground-muted capitalize cursor-pointer;
+}
+
+.repl-choice-option input {
+  @apply sr-only;
+}
+
+.repl-choice-option:hover {
+  @apply text-standalone-accent;
+}
+
+.repl-choice-option:has(input:checked) {
+  @apply text-label-xs text-standalone-accent bg-background-emphasis;
+}
+
+.repl-choice-option:has(input:focus-visible) {
+  @apply outline-2 outline-standalone-accent;
+}
+
 .repl-toggle-field {
-  min-width: 0;
+  @apply flex items-center justify-between gap-3 min-w-0 cursor-pointer;
 }
 
-.repl-toggle-control {
-  display: flex;
-  align-items: center;
-  min-height: 42px;
+.repl-switch {
+  @apply relative shrink-0 w-9 h-5 rounded-full cursor-pointer appearance-none transition-colors;
+  @apply border-[1.6px] border-border-base bg-background-base;
 }
 
-.repl-toggle-control input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  @apply accent-border-emphasis;
+.repl-switch::after {
+  content: '';
+  @apply absolute top-0.5 left-0.5 size-3 rounded-full bg-foreground-muted transition-transform;
+}
+
+.repl-switch:checked {
+  @apply bg-standalone-accent border-standalone-accent;
+}
+
+.repl-switch:checked::after {
+  @apply translate-x-4 bg-background-base;
 }
 
 @media (max-width: 90rem) {

@@ -1,10 +1,15 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
-import { assert, describe, expect, test } from 'vitest';
+import { assert, describe, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
+import {
+  ExperimentalFeatures,
+  QWIK_PRELOADER_ID,
+  createQwikPlugin,
+  mightContainDecorators,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -130,10 +135,22 @@ test('csr', async () => {
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({
-    entryStrategy: { type: 'component' },
+    entryStrategy: { type: 'single' },
     buildMode: 'production',
   });
-  assert.deepEqual(opts.entryStrategy.type, 'component');
+  assert.deepEqual(opts.entryStrategy.type, 'single');
+});
+
+test.each([
+  { removed: 'component', replacement: 'smart' },
+  { removed: 'hook', replacement: 'segment' },
+])('rejects the removed $removed entry strategy and names $replacement', async (strategy) => {
+  const plugin = await mockPlugin();
+  await expect(
+    plugin.normalizeOptions({ entryStrategy: { type: strategy.removed } as any })
+  ).rejects.toThrow(
+    `The "${strategy.removed}" entry strategy was removed. Use "${strategy.replacement}" instead.`
+  );
 });
 
 test('entryStrategy, smart', async () => {
@@ -217,12 +234,13 @@ test.each([
       client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
     ).toBe(task.segment.entry);
     expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
-    expect(callback.segment.entry).toBe(
-      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    expect(callback.segment.entry).toBe('example.tsx_entry_App');
+    expect(client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry).toBe(
+      'example.tsx_render_App'
     );
-    expect(
-      client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
-    ).toBeNull();
+    expect(client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry).toBe(
+      callback.segment.entry
+    );
     expect(server.code).toContain('shared-task');
     expect(server.code).toContain('shared-callback');
     if (compiled) {
@@ -701,6 +719,44 @@ export default component$(() => {
   expect(result?.meta?.qwikdeps).toContain('/root/libs/server-fn.ts');
 });
 
+test.each([false, true])(
+  'transforms prebuilt libraries without HMR instrumentation (tsOptimizer: %s)',
+  async (tsOptimizer) => {
+    const plugin = await mockPlugin(process.platform, true, tsOptimizer);
+    await plugin.normalizeOptions({ rootDir: '/root' });
+    plugin.configureServer({
+      hot: {},
+      moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    } as any);
+    const ctx = { addWatchFile: () => undefined, emitFile: () => undefined } as any;
+    const transformWithSegments = async (code: string, id: string) => {
+      const result = await plugin.transform(ctx, code, id);
+      const segments = await Promise.all(
+        (result?.meta?.qwikdeps ?? []).map((segmentId: string) => plugin.load({} as any, segmentId))
+      );
+      return [result?.code, ...segments.map((segment) => (segment as { code: string }).code)].join(
+        '\n'
+      );
+    };
+
+    const app = await transformWithSegments(
+      `import { component$ } from '@qwik.dev/core';
+export const Cmp = component$(() => null);
+`,
+      '/root/src/routes/index.tsx'
+    );
+    const library = await transformWithSegments(
+      `import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+export const Cmp = componentQrl(inlinedQrl(() => null, 'Cmp_component_abc123'));
+`,
+      '/root/node_modules/lib/index.qwik.mjs'
+    );
+
+    expect(app).toContain('_useHmr');
+    expect(library).not.toContain('_useHmr');
+  }
+);
+
 test('load skips HMR wrapper for worker$ segments', async () => {
   const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root' });
@@ -819,6 +875,15 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+test('bundler annotations are not mistaken for decorators', () => {
+  expect(mightContainDecorators('@Entity()\nclass User {}')).toBe(true);
+  expect(mightContainDecorators('const a = (@Inject() b) => b;')).toBe(true);
+  expect(mightContainDecorators('export const Each = /* @__PURE__ */ componentQrl(q);')).toBe(
+    false
+  );
+  expect(mightContainDecorators('const f = /* @__NO_SIDE_EFFECTS__ */ () => 1;')).toBe(false);
+});
+
 describe('decorators follow tsconfig', () => {
   const decoratedComponent = `import { component$ } from '@qwik.dev/core';
 const Entity = (): ClassDecorator => (target) => target;
@@ -856,9 +921,68 @@ export default component$(() => {
     expect(code).toContain('_decorate(');
   });
 
+  test('transforms prebuilt libraries without importing vite, as in the browser REPL', async () => {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    const plugin = await mockPlugin(process.platform, true, true);
+    plugin.getSys().dynamicImport = async (id) => {
+      throw new Error(`no ${id} in the browser`);
+    };
+    await plugin.normalizeOptions({ rootDir });
+    // The decorator probe imports vite natively, not through sys.dynamicImport.
+    vi.doMock('vite', () => {
+      throw new Error('no vite in the browser');
+    });
+    try {
+      const result = await plugin.transform(
+        { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+        `/** @public */
+export const greet = () => 'hi';
+`,
+        path.join(rootDir, 'node_modules/lib/index.qwik.mjs')
+      );
+      expect(result?.code).toContain('greet');
+    } finally {
+      vi.doUnmock('vite');
+    }
+  });
+
   test('keeps standard decorators without experimentalDecorators', async () => {
     const code = await loadDecoratedSegment({});
     expect(code).toContain('@Entity()');
+  });
+
+  test('resolves vite even when the optimizer sys cannot import it', async () => {
+    // Strict layouts (pnpm without hoisting, Yarn PnP, Nix) do not install vite
+    // next to @qwik.dev/optimizer, so resolving vite through the optimizer's sys
+    // fails there. The plugin must resolve vite from its own location instead.
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: {} }));
+    const plugin = createQwikPlugin({
+      tsOptimizer: true,
+      sys: {
+        cwd: () => process.cwd(),
+        env: 'node',
+        os: process.platform,
+        dynamicImport: async (specifier: string) => {
+          if (specifier === 'vite') {
+            throw new Error(`Cannot find package 'vite'`);
+          }
+          return import(specifier);
+        },
+        strictDynamicImport: async (specifier: string) => import(specifier),
+        path: path as any,
+      },
+    });
+    await plugin.init();
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const segmentId = result!.meta!.qwikdeps.find((dep: string) => dep.includes('_component_'));
+    const loaded = await plugin.load({} as any, segmentId!);
+    expect((loaded as { code: string }).code).toContain('@Entity()');
   });
 });
 

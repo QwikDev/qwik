@@ -5,6 +5,7 @@ import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
+  dispatchQrlImportError,
   ERROR_CONTEXT,
   CatchPhase,
   fireOnError,
@@ -14,9 +15,9 @@ import {
   toBoundaryError,
 } from '../shared/error/error-handling';
 import type { CatchInfo } from '../shared/error/error-handling';
+import { isQrlImportError } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
@@ -41,7 +42,6 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
-  QStatePrewarmAttr,
   QStatePatchAttrSelector,
   QStateStreamAttr,
   QStyle,
@@ -78,6 +78,7 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
+  vnode_getDomParent,
   vnode_getProp,
   vnode_isElementVNode,
   vnode_isProjection,
@@ -224,13 +225,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
       yield* preprocessStateIterator(this.$rawStateData$, this);
       this.$rootForwardRefs$ = this.$forwardRefs$;
-      const rootCount = this.$rawStateData$.length / 2;
-      const statePrewarm = element.getAttribute(QStatePrewarmAttr);
-      if (statePrewarm !== null && rootCount > 0 && rootCount >= Number(statePrewarm)) {
-        this.$stateData$ = yield* eagerDeserializeStateIterator(this, this.$rawStateData$);
-      } else {
-        this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
-      }
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
@@ -312,6 +307,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   handleError(err: any, host: VNode | null, phase: CatchPhase = CatchPhase.Render): void {
     if (err === NOT_READY) {
       // Its reader stays subscribed and reruns once the value arrives.
+      return;
+    }
+    if (isQrlImportError(err)) {
+      dispatchQrlImportError((host && vnode_getDomParent(host, true)) || this.element, err);
       return;
     }
     if (qDev && host) {

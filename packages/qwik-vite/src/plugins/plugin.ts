@@ -1,8 +1,7 @@
-import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
+import type { CodeSplittingOptions, ChunkingContext, ModuleInfo } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
-import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -66,6 +65,7 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+const REMOVED_ENTRY_STRATEGIES: Record<string, string> = { component: 'smart', hook: 'segment' };
 
 type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
 type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
@@ -260,6 +260,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     opts.csr = !!updatedOpts.csr;
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
+      const removed: string = updatedOpts.entryStrategy.type;
+      const replacement = REMOVED_ENTRY_STRATEGIES[removed];
+      if (replacement) {
+        throw new Error(
+          `The "${removed}" entry strategy was removed. Use "${replacement}" instead.`
+        );
+      }
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
     if (!opts.entryStrategy) {
@@ -447,14 +454,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   let optimizer: Optimizer;
-  let shouldAddHandlers = false;
   let qwikLoaderChunkRef: string | undefined;
   let preloaderChunkRef: string | undefined;
-  let handlersChunkRef: string | undefined;
   const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
-    shouldAddHandlers = !devServer;
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
@@ -469,7 +473,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     qwikLoaderChunkRef = undefined;
     preloaderChunkRef = undefined;
-    handlersChunkRef = undefined;
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
@@ -782,29 +785,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
         return preloader;
       }
-    } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {
-      debug(`resolveId(${count})`, 'Resolved', QWIK_HANDLERS_ID);
-      result = {
-        id: QWIK_HANDLERS_ID,
-        moduleSideEffects: false,
-      };
     } else {
-      // If qwik core is loaded, also add the handlers
-      if (!isServer && shouldAddHandlers && id.endsWith('@qwik.dev/core')) {
-        shouldAddHandlers = false;
-        const key = await ctx.resolve('@qwik.dev/core/handlers.mjs', importerId, {
-          skipSelf: true,
-        });
-        if (!key) {
-          throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
-        }
-        handlersChunkRef = ctx.emitFile({
-          id: key.id,
-          type: 'chunk',
-          preserveSignature: 'allow-extension',
-        });
-      }
-
       const qrlMatch = /^(?<parent>.*\.[mc]?[jt]sx?)_(?<name>[^/]+)\.js(?<query>$|\?.*$)/.exec(id)
         ?.groups as { parent: string; name: string; query: string } | undefined;
 
@@ -867,7 +848,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rolldown.PluginContext,
     pathId: string
   ): Promise<DecoratorOptions | undefined> => {
-    const { transformWithOxc }: typeof import('vite') = await getSys().dynamicImport('vite');
+    // Resolve vite from this bundle, not from the optimizer package.
+    const { transformWithOxc }: typeof import('vite') = await import('vite');
     const probe = await transformWithOxc(
       '@probe class C { @probe p: string }',
       pathId,
@@ -920,19 +902,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         code: `import { getClientManifest } from '@qwik.dev/core'; export const manifest = getClientManifest();\n`,
       };
     }
-    /**
-     * In dev mode, we need a path to core for qrls. However, we don't know what that is. By
-     * re-exporting the core symbols, we let Vite provide the correct path to core and we prevent
-     * duplicate Qwik instances.
-     */
-    if (id === QWIK_HANDLERS_ID) {
-      debug(`load(${count})`, QWIK_HANDLERS_ID, opts.buildMode);
-      return {
-        moduleSideEffects: false,
-        code: `export * from '@qwik.dev/core';`,
-      };
-    }
-
     // QRL segments
     id = pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
@@ -1028,11 +997,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     let map;
     let meta;
 
+    // Prebuilt Qwik libraries (core included) are never edited and their decorators are compiled.
+    const isPrebuiltLibrary = TRANSFORM_REGEX.test(pathId);
+    const isHmr = devServer?.hot && opts.devTools.hmr && !isPrebuiltLibrary;
     const mode =
       opts.target === 'lib'
         ? 'lib'
         : opts.buildMode === 'development'
-          ? devServer?.hot && opts.devTools.hmr
+          ? isHmr
             ? 'hmr'
             : 'dev'
           : 'prod';
@@ -1096,9 +1068,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode,
         scope: opts.scope || undefined,
         isServer,
-        decorator: mightContainDecorators(code)
-          ? await resolveDecoratorOptions(ctx, pathId)
-          : undefined,
+        decorator:
+          !isPrebuiltLibrary && mightContainDecorators(code)
+            ? await resolveDecoratorOptions(ctx, pathId)
+            : undefined,
       };
 
       if (strip) {
@@ -1186,7 +1159,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             ctx.emitFile({
               id: key,
               type: 'chunk',
-              preserveSignature: 'allow-extension',
+              // A group chunk drops the symbol name of a re-export, so it gets a facade chunk.
+              preserveSignature: isReExportSegment(mod.code) ? 'strict' : 'allow-extension',
             });
           }
           // Notify segment callbacks
@@ -1248,8 +1222,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     rollupBundle: Rolldown.OutputBundle,
     getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
-    preloaderFileName?: string,
-    handlersFileName?: string
+    preloaderFileName?: string
   ) => {
     const injections: GlobalInjections[] = [];
 
@@ -1281,8 +1254,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         canonPath,
         getModuleInfo,
         qwikLoaderFileName,
-        preloaderFileName,
-        handlersFileName
+        preloaderFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1401,7 +1373,6 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        core: manifest.core,
         preloader: manifest.preloader,
         qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
@@ -1443,53 +1414,55 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Eager contexts stay with their parent, not a segment chunk.
-  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
-
   /** Client-only; the server bundle needs no Qwik chunking. */
-  const codeSplitting = (): CodeSplittingOptions => ({
-    groups: [
-      // core and handlers share a chunk: no import waterfall
-      {
-        name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
-        includeDependenciesRecursively: false,
-      },
-      {
-        name: 'qwik-preloader',
-        test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
-        includeDependenciesRecursively: false,
-      },
-      {
-        includeDependenciesRecursively: false,
-        name: (id: string, ctx: ChunkingContext) => {
-          const module = ctx?.getModuleInfo(id);
-          if (module) {
-            const segment = module.meta.segment as SegmentAnalysis | undefined;
-            if (segment) {
-              const isSmartClientOnly =
-                opts.entryStrategy.type === 'smart' &&
-                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
-              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
-                return null;
-              }
-              const { hash } = segment;
-              // Group segments by entry or Qwik Insights hash.
-              const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                (isSmartClientOnly ? segment.canonicalFilename : segment.entry);
-              if (chunkName) {
-                return sanitizeChunkGroupName(chunkName);
-              }
-            }
-          }
-          // Non-qwik code: let the bundler decide.
+  const codeSplitting = (): CodeSplittingOptions => {
+    const getSegmentGroupName = (segment: SegmentAnalysis) => {
+      // Group segments by entry or Qwik Insights hash.
+      const chunkName =
+        (opts.entryStrategy as SmartEntryStrategy).manual?.[segment.hash] || segment.entry;
+      return chunkName ? sanitizeChunkGroupName(chunkName) : null;
+    };
+    // A styles value that isn't a plain re-export (`useStyles$(`${a}${b}`)`) reads its imports
+    // on load. Left to the bundler, they land in the segment's entry chunk, which cycles with the
+    // group chunk and is read before it runs. So they join the styles segments' group.
+    const getValueImportGroupName = (info: ModuleInfo, ctx: ChunkingContext) => {
+      if (info.isEntry || info.dynamicImporters.length || !info.importers.length) {
+        return null;
+      }
+      const groupNames = new Set<string | null>();
+      for (const importer of info.importers) {
+        const importerInfo = ctx.getModuleInfo(importer);
+        const segment = importerInfo?.meta.segment as SegmentAnalysis | undefined;
+        if (!segment || !isStylesValueSegment(segment, importerInfo!.code)) {
           return null;
+        }
+        groupNames.add(getSegmentGroupName(segment));
+      }
+      const [groupName] = groupNames;
+      return groupNames.size === 1 ? groupName : null;
+    };
+    const getGroupName = (id: string, ctx: ChunkingContext): string | null => {
+      const info = ctx?.getModuleInfo(id);
+      if (!info) {
+        return null;
+      }
+      const segment = info.meta.segment as SegmentAnalysis | undefined;
+      return segment ? getSegmentGroupName(segment) : getValueImportGroupName(info, ctx);
+    };
+    return {
+      groups: [
+        {
+          name: 'qwik-preloader',
+          test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+          includeDependenciesRecursively: false,
         },
-      },
-    ],
-  });
+        {
+          includeDependenciesRecursively: false,
+          name: getGroupName,
+        },
+      ],
+    };
+  };
 
   async function generateManifest(
     ctx: Rolldown.PluginContext,
@@ -1499,13 +1472,11 @@ export const isDev = ${JSON.stringify(isDev)};
   ) {
     const qwikLoaderFileName = qwikLoaderChunkRef ? ctx.getFileName(qwikLoaderChunkRef) : undefined;
     const preloaderFileName = preloaderChunkRef ? ctx.getFileName(preloaderChunkRef) : undefined;
-    const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
     const outputAnalyzer = createOutputAnalyzer(
       rollupBundle,
       (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
-      preloaderFileName,
-      handlersFileName
+      preloaderFileName
     );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 
@@ -1610,8 +1581,12 @@ function isAdditionalFile(mod: TransformModule) {
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
 
-/** Cheap pre-check; a false positive only costs an extra transform. */
-const mightContainDecorators = (code: string) => /(?:^|[\s(,])@[\p{ID_Start}$_]/mu.test(code);
+/**
+ * Cheap pre-check; a false positive costs an extra transform and a Vite import, which the browser
+ * REPL lacks. Bundler annotations like `/* @__PURE__ *\/` are not decorators.
+ */
+export const mightContainDecorators = (code: string) =>
+  /(?:^|[\s(,])@(?!__PURE__|__NO_SIDE_EFFECTS__)[\p{ID_Start}$_]/mu.test(code);
 
 const TRANSFORM_EXTS = {
   '.jsx': true,
@@ -1649,9 +1624,6 @@ export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
-/** @internal virtual import to ensure the _run etc handlers are exported as-is */
-export const QWIK_HANDLERS_ID = '@qwik-handlers';
-
 export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
@@ -1753,3 +1725,12 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export type QwikBuildMode = 'production' | 'development';
 
 const globalManifestKey = '__QWIK_MANIFEST__';
+
+const STYLES_CTX_NAMES = new Set(['useStyles$', 'useStylesScoped$']);
+
+/** A qrl of an imported binding, like `$(importedFn)`, compiles to a re-export without a value. */
+const isReExportSegment = (code: string) => !code.includes('export const ');
+
+/** Re-exported styles hold a live binding; only computed styles read imports on load. */
+const isStylesValueSegment = (segment: SegmentAnalysis, code: string | null) =>
+  STYLES_CTX_NAMES.has(segment.ctxName) && !!code && !isReExportSegment(code);

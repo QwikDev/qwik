@@ -4,21 +4,33 @@ import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => ({
-  prefetchRouteMock: vi.fn(),
-  getClientNavPathMock: vi.fn(),
-  gotoMock: vi.fn(),
-}));
+const { prefetchRouteMock, preloadRouteBundlesMock, getClientNavPathMock, gotoMock } = vi.hoisted(
+  () => ({
+    prefetchRouteMock: vi.fn(),
+    preloadRouteBundlesMock: vi.fn(),
+    getClientNavPathMock: vi.fn(),
+    gotoMock: vi.fn(),
+  })
+);
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
+}));
+
+vi.mock('./client-navigate', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  preloadRouteBundles: preloadRouteBundlesMock,
 }));
 
 const page = () => Promise.resolve({});
 vi.mock('./router-config', async (importOriginal) => ({
   ...((await importOriginal()) as object),
   findRouterConfig: () => ({
-    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+    routes: {
+      test: { _I: page },
+      product: { _W: { _P: 'id', _I: page } },
+      docs: { _L: Object.assign(() => Promise.resolve({}), { _K: 'DocsLayout' }), _I: page },
+    },
   }),
 }));
 
@@ -88,6 +100,7 @@ describe.each([
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+    preloadRouteBundlesMock.mockClear();
     onPointerEnterMock.mockClear();
     onMouseOverMock.mockClear();
   });
@@ -101,22 +114,65 @@ describe.each([
 
     await trigger(document.body, anchor, 'pointerenter');
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
-  it('renders the route name of the link target for bundle prefetch', async () => {
+  it('hints the bundles of a link that prefetches when visible again on intent', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'visible',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
+  });
+
+  it('renders the route name of the link target on every client-side link', async () => {
     getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
     const dynamic = await renderLink(render);
     expect(dynamic.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+
+    const withoutPrefetch = await renderLink(render, { prefetchBundles: 'off' });
+    expect(withoutPrefetch.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
 
     getClientNavPathMock.mockReturnValue('/missing/');
     const unmatched = await renderLink(render);
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
   });
 
+  it('renders the layouts the link target needs and this page lacks', async () => {
+    getClientNavPathMock.mockReturnValue('/docs/');
+    const underAnotherLayout = await renderLink(render);
+    expect(underAnotherLayout.anchor.getAttribute('data-q-layouts')).toBe('DocsLayout');
+
+    getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
+    const underTheSameLayouts = await renderLink(render);
+    expect(underTheSameLayouts.anchor.hasAttribute('data-q-layouts')).toBe(false);
+  });
+
+  it('renders a link whose href has a malformed escape, without a route name', async () => {
+    getClientNavPathMock.mockReturnValue('/product/100%');
+    const { anchor } = await renderLink(render, { prefetchBundles: 'off' });
+    expect(anchor.getAttribute('href')).toBe('/product/100%');
+    expect(anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
   it('prefetches route data on intent', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'intent' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'intent',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerdown');
@@ -132,7 +188,10 @@ describe.each([
   });
 
   it('prefetches route data on commit', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'commit' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'commit',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');
@@ -163,8 +222,8 @@ describe.each([
     await trigger(document.body, anchor, 'focus');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
   it('prefetches route bundles on commit', async () => {
@@ -183,8 +242,8 @@ describe.each([
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', false, 0.8);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(0, '/test', false, 0.9);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
   });
 
   it('prefetches route bundles and data on commit', async () => {
@@ -199,9 +258,9 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(4);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.9);
     expectPrefetchRouteCall(2, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(3, '/test', false, 0.8);
+    expectPrefetchRouteCall(3, '/test', false, 0.9);
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
@@ -249,7 +308,10 @@ describe.each([
   });
 
   it('does not prefetch route data when data prefetching is off', async () => {
-    const { document, anchor } = await renderLink(render, { prefetchData: 'off' });
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'off',
+    });
     prefetchRouteMock.mockClear();
 
     await trigger(document.body, anchor, 'pointerenter');
@@ -294,14 +356,31 @@ describe.each([
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
-  it('preloads route bundles on click before navigation', async () => {
-    const ClickRoot = component$(() => {
-      return (
-        <QwikRouterMockProvider>
-          <Link href="/test">Test Link</Link>
-        </QwikRouterMockProvider>
-      );
+  const ClickRoot = component$(() => {
+    return (
+      <QwikRouterMockProvider>
+        <Link href="/test">Test Link</Link>
+      </QwikRouterMockProvider>
+    );
+  });
+
+  it('hints the target route at the highest priority on click, before the router config loads', async () => {
+    const { document } = await render(<ClickRoot />, {
+      debug,
     });
+    const anchor = document.querySelector('a');
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'click');
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/test', 1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  it('resolves the route on click when the link has no route name', async () => {
+    getClientNavPathMock.mockReturnValue('http://localhost/missing/');
     const { document } = await render(<ClickRoot />, {
       debug,
     });
@@ -311,7 +390,8 @@ describe.each([
     await trigger(document.body, anchor, 'click');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 1);
+    expectPrefetchRouteCall(0, '/missing/', false, 1);
+    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
 
   describe('navigating state', () => {

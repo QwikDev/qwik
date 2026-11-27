@@ -153,7 +153,7 @@ const getChunkFileName = (opts: NormalizedQwikPluginOptions, optimizer: Optimize
   } else {
     // Friendlier names in dev or preview with debug mode
     return (chunkInfo: Rolldown.PreRenderedChunk) => {
-      if (chunkInfo.moduleIds?.some((id) => /core\.(prod|min)\.mjs$/.test(id))) {
+      if (chunkInfo.moduleIds?.some((id) => /[/\\]core(\.prod|\.min)?\.qwik\.mjs$/.test(id))) {
         return `${chunkPathPrefix}core.js`;
       }
       if (chunkInfo.moduleIds?.some((id) => /qwik-router\/lib\/index\.qwik\.mjs$/.test(id))) {

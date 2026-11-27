@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 1549
+assertion_line: 2417
 expression: output
 ---
 ==INPUT==
@@ -28,7 +28,7 @@ export default /*#__PURE__*/ componentQrl(q_slug_component_0AM8HPnkNs4);
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,2CAKZ\"}")
-============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js (ENTRY POINT)==
+============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w.js ==
 
 import { sibling } from "./sibling";
 //
@@ -40,7 +40,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "slug_component_div_q_e_click_bCwVPYSTQ0w",
-  "entry": null,
+  "entry": "src/routes/_repl/[id]/[[...slug]].tsx_entry_[[...slug]]",
   "displayName": "[[...slug]].tsx_slug_component_div_q_e_click",
   "hash": "bCwVPYSTQ0w",
   "canonicalFilename": "[[...slug]].tsx_slug_component_div_q_e_click_bCwVPYSTQ0w",
@@ -75,7 +75,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "slug_component_0AM8HPnkNs4",
-  "entry": "src/routes/_repl/[id]/[[...slug]].tsx_entry_[[...slug]]",
+  "entry": "src/routes/_repl/[id]/[[...slug]].tsx_render_[[...slug]]",
   "displayName": "[[...slug]].tsx_slug_component",
   "hash": "0AM8HPnkNs4",
   "canonicalFilename": "[[...slug]].tsx_slug_component_0AM8HPnkNs4",

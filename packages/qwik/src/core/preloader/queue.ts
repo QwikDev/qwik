@@ -1,7 +1,7 @@
 import { createMacroTask } from '../shared/platform/next-tick';
 import { base, getBundle, isWaitingForGraph } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
-import type { BundleImport, BundleImports, ImportProbability } from './types';
+import type { BundleDep, BundleImport, BundleImports } from './types';
 import {
   BundleImportState_Loaded,
   BundleImportState_None,
@@ -22,21 +22,25 @@ let isProcessingAdjustments = false;
 
 type AdjustmentFrame = {
   $bundle$: BundleImport;
-  $inverseProbability$: number;
+  $priority$: number;
+  $importerRank$: number;
+  $hintOrder$: number;
+  $isStaticImport$?: boolean;
+  $isPageToRender$?: boolean;
   $isReplay$?: boolean;
-  $seen$?: Set<BundleImport>;
-  $deps$?: ImportProbability[];
+  $deps$?: BundleDep[];
   $index$?: number;
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
+let hintCount = 0;
 
-const isNeeded = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
+const isHighestPriority = (bundle: BundleImport) => bundle.$priority$ >= 0.99;
 
-// Read live: a speculative preload may since have been requested at probability 1
-const isNeededInFlight = () => {
+// Read live: a speculative preload may since have been requested at priority 1
+const isHighestPriorityInFlight = () => {
   for (const bundle of inFlight) {
-    if (isNeeded(bundle)) {
+    if (isHighestPriority(bundle)) {
       return true;
     }
   }
@@ -45,7 +49,9 @@ const isNeededInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+    queue.sort(
+      (a, b) => b.$priority$ - a.$priority$ || a.$rank$ - b.$rank$ || b.$hintOrder$ - a.$hintOrder$
+    );
     queueDirty = false;
   }
 };
@@ -70,13 +76,13 @@ function trigger() {
   while (queue.length) {
     const bundle = queue[0];
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
+    // Speculative preloads wait while highest priority bundles load, so they don't take their bandwidth.
     if (
-      isNeeded(bundle) ||
+      isHighestPriority(bundle) ||
       (!isWaitingForGraph &&
         !adjustmentStack.length &&
         inFlight.size < config.$maxIdlePreloads$ &&
-        !isNeededInFlight())
+        !isHighestPriorityInFlight())
     ) {
       queue.shift();
       preloadOne(bundle);
@@ -96,15 +102,33 @@ function trigger() {
 
 const enqueueAdjustment = (
   bundle: BundleImport,
-  inverseProbability: number,
+  priority: number,
+  hintOrder: number,
+  isPageToRender?: boolean,
   isReplay?: boolean
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
-    $inverseProbability$: inverseProbability,
+    $priority$: priority,
+    $hintOrder$: hintOrder,
+    $importerRank$: 0,
+    $isPageToRender$: isPageToRender,
     $isReplay$: isReplay,
   });
+};
+
+const HIGHEST_KIND = 3;
+export const UNRANKED = HIGHEST_KIND;
+
+const getRank = (bundle: BundleImport, frame: AdjustmentFrame) => {
+  const kind = bundle.$kind$;
+  const ownRank = kind
+    ? frame.$isPageToRender$
+      ? HIGHEST_KIND - kind
+      : kind - 1
+    : frame.$importerRank$;
+  return frame.$isStaticImport$ ? Math.min(ownRank, frame.$importerRank$) : ownRank;
 };
 
 const processAdjustmentFrame = () => {
@@ -122,57 +146,48 @@ const processAdjustmentFrame = () => {
     frame.$index$ = index + 1;
 
     const depBundle = getBundle(dep.$name$)!;
-    if (depBundle.$inverseProbability$ === 0) {
+    if (depBundle.$priority$ === 1) {
       return true;
-    }
-
-    const probability = 1 - bundle.$inverseProbability$;
-    let newInverseProbability: number;
-    if (probability === 1 || probability >= 0.99) {
-      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
-      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
-    } else {
-      const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
-      /** We need to undo the previous adjustment */
-      const prevAdjust = dep.$factor$;
-      const factor = newInverseImportProbability / prevAdjust;
-      // limit organic probability to 98%
-      newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-      dep.$factor$ = newInverseImportProbability;
     }
 
     adjustmentStack.push({
       $bundle$: depBundle,
-      $inverseProbability$: newInverseProbability,
-      $seen$: frame.$seen$,
+      $priority$: isHighestPriority(bundle) ? (dep.$isStatic$ ? 1 : 0.99) : bundle.$priority$,
+      $hintOrder$: frame.$hintOrder$,
+      $importerRank$: bundle.$rank$,
+      $isStaticImport$: dep.$isStatic$,
+      $isPageToRender$: frame.$isPageToRender$,
     });
     return true;
   }
 
-  if (frame.$seen$?.has(bundle)) {
+  const previousPriority = bundle.$priority$;
+  const rank = getRank(bundle, frame);
+  const isStronger = frame.$priority$ > previousPriority;
+  const isBetterRanked = frame.$priority$ === previousPriority && rank < bundle.$rank$;
+  const isWeaker = frame.$priority$ < previousPriority;
+  const isNewer = !isWeaker && !isStronger && frame.$hintOrder$ > bundle.$hintOrder$;
+  if (isStronger || isNewer) {
+    bundle.$hintOrder$ = frame.$hintOrder$;
+    queueDirty = true;
+  }
+  const isUnchanged = !frame.$isReplay$ && !isStronger && !isBetterRanked;
+  if (isWeaker || (isUnchanged && (!isNewer || !queue.length))) {
     adjustmentStack.pop();
     return false;
   }
-
-  const wasNeeded = isNeeded(bundle);
-  const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Replay and needed transitions must reach dependencies.
-  if (
-    !frame.$isReplay$ &&
-    wasNeeded === isNeeded(bundle) &&
-    previousInverseProbability - bundle.$inverseProbability$ < 0.01
-  ) {
-    adjustmentStack.pop();
-    return false;
+  if (isStronger) {
+    bundle.$priority$ = frame.$priority$;
+    bundle.$isPageToRender$ = frame.$isPageToRender$;
   }
+  bundle.$rank$ = isStronger ? rank : Math.min(rank, bundle.$rank$);
 
   if (
     // don't queue until we have initialized the preloader
     base != null &&
     bundle.$state$ < BundleImportState_Preload
   ) {
-    if (bundle.$state$ === BundleImportState_None) {
+    if (bundle.$state$ === BundleImportState_None && !isUnchanged) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
     }
@@ -182,9 +197,6 @@ const processAdjustmentFrame = () => {
   }
 
   if (bundle.$deps$?.length) {
-    const seen = frame.$seen$ || new Set<BundleImport>();
-    seen.add(bundle);
-    frame.$seen$ = seen;
     frame.$deps$ = bundle.$deps$;
     frame.$index$ = 0;
     return false;
@@ -241,25 +253,66 @@ const preloadOne = (bundle: BundleImport) => {
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
-  if (!isNeeded(bundle)) {
+  if (!isHighestPriority(bundle)) {
     link.setAttribute('fetchpriority', 'low');
   }
   // Handle completion of the preload
-  link.onload = link.onerror = () => {
+  const onSettled = (state: number) => {
     inFlight.delete(bundle);
-    bundle.$state$ = BundleImportState_Loaded;
+    bundle.$state$ = state;
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload
     nextTriggerMacroTask();
   };
+  link.onload = () => onSettled(BundleImportState_Loaded);
+  link.onerror = () => {
+    onSettled(BundleImportState_None);
+    retryFailedPreload(bundle);
+  };
 
   doc.head.appendChild(link);
 };
 
+const RETRY_DELAY_MS = 1000;
+const failedBundles = new Set<BundleImport>();
+
+const queueBundle = (bundle: BundleImport) => {
+  if (bundle.$state$ === BundleImportState_None) {
+    bundle.$state$ = BundleImportState_Queued;
+    queue.push(bundle);
+    queueDirty = true;
+    nextTriggerMacroTask();
+  }
+};
+
+const retryFailedBundlesOnceOnline = () => {
+  for (const bundle of failedBundles) {
+    bundle.$failures$ = 0;
+    queueBundle(bundle);
+  }
+};
+
+// Browsers refetch a failed module from Chromium 156 and Firefox 155; no Safari release yet.
+const retryFailedPreload = (bundle: BundleImport) => {
+  if (!failedBundles.size) {
+    doc.defaultView!.addEventListener('online', retryFailedBundlesOnceOnline);
+  }
+  failedBundles.add(bundle);
+  bundle.$failures$ = (bundle.$failures$ || 0) + 1;
+  if (bundle.$failures$ > 1 || navigator.onLine === false) {
+    return;
+  }
+  if (isHighestPriority(bundle)) {
+    queueBundle(bundle);
+  } else {
+    setTimeout(queueBundle, RETRY_DELAY_MS, bundle);
+  }
+};
+
 /** Replay a buffered hint after its dependencies become available. */
 export const replayBundle = (bundle: BundleImport) => {
-  enqueueAdjustment(bundle, bundle.$inverseProbability$, true);
+  enqueueAdjustment(bundle, bundle.$priority$, bundle.$hintOrder$, bundle.$isPageToRender$, true);
   if (isBrowser) {
     scheduleAdjustments();
   } else {
@@ -267,30 +320,112 @@ export const replayBundle = (bundle: BundleImport) => {
   }
 };
 
-export const handleBundle = (name: string, inverseProbability: number) => {
+export const handleBundle = (name: string, priority: number, isPageToRender?: boolean) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, inverseProbability);
+    enqueueAdjustment(bundle, priority, hintCount, isPageToRender);
   }
 };
 
-export const preload = (item: string | string[], probability?: number) => {
+const PAGE_PRIORITY = 0.6;
+
+export const preload = (item: string | string[], priority?: number, isPageToRender?: boolean) => {
   if (!item?.length) {
     return;
   }
-  const inverseProbability = probability ? 1 - probability : 0.4;
+  const hintPriority = priority || PAGE_PRIORITY;
+  hintCount++;
   if (Array.isArray(item)) {
-    // We must process in reverse order to ensure first bundles are handled first
-    for (let i = item.length - 1; i >= 0; i--) {
-      const bundle = item[i];
-      handleBundle(bundle, inverseProbability);
+    for (let i = 0; i < item.length; i++) {
+      handleBundle(item[i], hintPriority, isPageToRender);
     }
   } else {
-    handleBundle(item, inverseProbability);
+    handleBundle(item, hintPriority, isPageToRender);
   }
   if (isBrowser) {
     scheduleAdjustments();
   } else {
     processPendingAdjustments();
   }
+};
+
+/**
+ * Used during SSR: the bundles the client preloader would fetch for this hint, in its order. The
+ * server shares the preloader's state across requests, so forget this request's adjustments.
+ */
+export const getPreloadOrder = (item: string[], priority?: number) => {
+  try {
+    preload(item, priority);
+    sortQueue();
+    return queue.map((bundle) => bundle.$name$);
+  } finally {
+    bundles.clear();
+    queue.length = 0;
+    adjustmentStack.length = 0;
+    isProcessingAdjustments = false;
+  }
+};
+
+const INTENT_PRIORITY = 0.9;
+const IN_VIEW_PRIORITY = 0.8;
+const ELEMENT_HANDLER_ATTRIBUTE = /^q-ep?:/;
+const VISIBLE_TASK_ATTRIBUTE = 'q-e:qvisible';
+const ORDERED_NODE_SNAPSHOT_TYPE = 7;
+
+const addHandlerChunksOf = (element: Element, chunks: string[], skippedAttribute?: string) => {
+  const attributes = element.attributes;
+  for (let i = 0; attributes && i < attributes.length; i++) {
+    const { name, value } = attributes[i];
+    if (!ELEMENT_HANDLER_ATTRIBUTE.test(name) || name === skippedAttribute) {
+      continue;
+    }
+    const qrls = value.split('|');
+    for (let j = 0; j < qrls.length; j++) {
+      const [chunk, , , otherChunks] = qrls[j].split('#');
+      if (chunk) {
+        chunks.push(chunk, ...(otherChunks ? otherChunks.split(',') : []));
+      }
+    }
+  }
+};
+
+export const preloadHandlersInView = () => {
+  const observer = new IntersectionObserver((entries) => {
+    const chunksInView: string[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const { target, isIntersecting } = entries[i];
+      if (isIntersecting) {
+        observer.unobserve(target);
+        addHandlerChunksOf(target, chunksInView);
+      }
+    }
+    preload(chunksInView, IN_VIEW_PRIORITY);
+  });
+  const elementsWithHandlers = doc.evaluate(
+    "//*[@*[starts-with(name(),'q-e:') or starts-with(name(),'q-ep:')]]",
+    doc,
+    null,
+    ORDERED_NODE_SNAPSHOT_TYPE
+  );
+  for (let i = 0; i < elementsWithHandlers.snapshotLength; i++) {
+    observer.observe(elementsWithHandlers.snapshotItem(i) as Element);
+  }
+};
+
+export const preloadHandlersOnIntent = () => {
+  let lastHint: string;
+  const preloadHandlersUnder = (event: Event) => {
+    const chunks: string[] = [];
+    const path = event.composedPath() as Element[];
+    for (let i = 0; i < path.length; i++) {
+      addHandlerChunksOf(path[i], chunks, VISIBLE_TASK_ATTRIBUTE);
+    }
+    const hint = chunks.join();
+    if (hint !== lastHint) {
+      lastHint = hint;
+      preload(chunks, INTENT_PRIORITY);
+    }
+  };
+  doc.addEventListener('pointerover', preloadHandlersUnder, true);
+  doc.addEventListener('focusin', preloadHandlersUnder, true);
 };

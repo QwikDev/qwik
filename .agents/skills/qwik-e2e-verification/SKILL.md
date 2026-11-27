@@ -1,0 +1,152 @@
+---
+name: qwik-e2e-verification
+description: Use when creating, modifying, debugging, or running Qwik Playwright e2e tests under e2e/, including router, adapters, docs, CLI, and React integration suites.
+---
+
+# Qwik E2E Verification
+
+Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules from
+`AGENTS.md` in force.
+
+## Fast Path
+
+1. Identify the suite: Qwik core app, Qwik Router, adapters, docs, CLI, or Qwik React.
+2. Run the dev rebuild first when testing Qwik runtime/router behavior.
+3. Use the suite's Playwright config and the browser-selection style that config expects.
+4. Prefer one focused e2e file before broad suite commands.
+5. When debugging app fixtures, inspect the matching `e2e/*/apps/` source before changing tests.
+6. Turn a failing behavior into the smallest deterministic regression. Avoid sleeps and broad
+   assertions when a route, marker, event, or serialized state check can prove the behavior.
+
+## Suites
+
+- Main Qwik e2e: `e2e/qwik-e2e/tests/`
+- Router e2e: `e2e/qwik-e2e/tests/qwikrouter/`
+- Adapter e2e: `e2e/adapters-e2e/tests/`
+- Docs e2e: `e2e/docs-e2e/tests/`
+- CLI e2e: `e2e/qwik-cli-e2e/tests/`
+- React integration e2e: `e2e/qwik-react-e2e/tests/`
+- Preloader e2e: `e2e/preloader-e2e/tests/` (own config, see Preloader e2e below)
+
+Apps whose directory names contain `.prod` run in production mode under the shared Qwik dev server.
+Keep exact production-only assertions in those fixtures; regular fixtures must pass after either
+`build.core.dev` or `build.core`.
+
+## Commands
+
+Main Qwik e2e config uses `--browser`, not Playwright projects:
+
+```bash
+pnpm build.core.dev
+pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+pnpm playwright test e2e/qwik-e2e/tests/qwikrouter/nav.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
+```
+
+For timing-sensitive regressions, prefix the command with `GITHUB_ACTIONS=true` and use
+`--retries=0` to disable local `slowMo: 100` and expose races. Wait for a fresh completion marker
+after lazy handlers; a completed click or previously populated output does not prove completion.
+
+SSR content can appear before the dynamically imported qwikloader registers listeners. Before
+testing client handlers, wait for `window._qwikEv?.roots`; neither `commit` nor `load` guarantees
+that the dynamic import has finished.
+
+The brotli budget tests in `ssg-snapshot.e2e.ts` measure the built core chunk, so they need a
+production `pnpm build.core` — `build.core.dev` leaves core unminified and blows the budget by ~4%.
+Before believing a budget failure, rebuild with `build.core` and re-run `pnpm test.e2e.router.ssg`.
+
+The shared Qwik dev server builds an app on its first page request, so `/<app>/q-manifest.json`
+does not exist until a test has called `page.goto()` on that app. A manifest-only test that skips the
+visit passes or fails depending on which worker ran first.
+
+Put preload and round-trip assertions in `e2e/preloader-e2e` (see Preloader e2e below), not in the
+shared Qwik e2e apps. Clicking before qwikloader has loaded drops the event, so wait for the page to
+settle before the first interaction.
+
+Playwright's `reuseExistingServer: !CI` means a dev server left over from an earlier run serves
+stale bundles, so a local pass can hide a build break that CI catches. Kill port 3301 before
+trusting a green local sweep after optimizer or bundler changes.
+
+The CLI e2e scaffolds starters with `create-qwik` and runs their own `npm run dev`/`build` scripts,
+so it is the only suite that exercises a real starter's Vite dev server and production builds; the
+shared Qwik dev server above passes its own resolve conditions. Run it locally with `CI=1` so the
+scaffolds land inside the workspace, where pnpm's `allowBuilds` lets `sharp` build (a `/tmp`
+scaffold fails with `ERR_PNPM_IGNORED_BUILDS`), and after `pnpm build.platform.copy` if
+`packages/optimizer/bindings` is missing. It scaffolds from `packages/create-qwik/dist`, so run
+`pnpm build.cli` after editing `starters/`, or the suite silently tests the previous starters:
+
+```bash
+CI=1 pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts tests/external-library.spec.ts
+```
+
+Commands the CLI e2e spawns inherit Vitest's `NODE_ENV=test`, which Vite treats as a development
+build; pass `NODE_ENV` explicitly through `runCommandUntil` when a test depends on the build mode.
+
+For HTTP cache assertions, use a fresh `launchPersistentContext()` profile per test and remove
+it after closing the context. WebKit's default ephemeral context has no network disk cache, so
+`fetch()` may hit the server despite a fresh `Cache-Control` response. Keep request routing off
+for cache tests: Playwright interception disables HTTP caching.
+
+Other suites may use named Playwright projects. Check their config before choosing flags:
+
+```bash
+pnpm playwright test e2e/docs-e2e/tests/docs-smoke.spec.ts --config e2e/docs-e2e/playwright.config.ts --project chromium
+pnpm playwright test e2e/adapters-e2e/tests/adapters.spec.ts --project=chromium --config e2e/adapters-e2e/playwright.config.ts
+pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts
+```
+
+## Preloader e2e
+
+`e2e/preloader-e2e` checks JS streaming against a production build of
+`e2e/qwik-e2e/apps/preloader-test`, with the app's own vite config, served by `vite preview` over
+HTTPS (HTTP/2).
+
+- Write test titles with the words defined in `e2e/preloader-e2e/README.md` (round trip, cap, cold
+  click, warm click); prefix tests of the gate itself with `gate:`.
+- Count round trips with the request gate in `utils/gate.ts`. It holds responses, so the count is
+  exact on localhost, where timing would show no waterfall.
+- Fixtures come from the app's `scripts/generate.ts` (`pnpm generate` in the app). Edit the script,
+  not the generated files.
+- Every click expects exactly 2 round trips (none when warm). `ROUND_TRIPS_ON_MAIN` and
+  `NOT_READY_WHEN_WARM` in `utils/fixtures.ts` list the clicks main does differently, each with a
+  reason; a fix fails the test until its entry is updated. `NEVER_SHOWS_RESULT` runs as `test.fail()`.
+  Each click's chunks are attached to the report.
+- A chain of visible tasks starts from the visible task, not from a click: its fixture has no
+  trigger and sits a screen below the fold, and the test scrolls it into view
+  (`startsWhenVisible`).
+- The counts assume a production core build, as in CI. `build.core.dev` splits core into other
+  chunks and changes the round trips, so build with `pnpm build.core` first.
+
+```bash
+pnpm build.core
+pnpm test.e2e.preloader
+```
+
+## SSG snapshot suite
+
+`e2e/qwik-e2e/tests/qwikrouter/ssg-snapshot.e2e.ts` asserts two independent things against the built
+`qwikrouter-ssg-snapshot` app:
+
+- **Serialized output goldens** — `expected.state.txt` and `expected.ssg.html`. Regenerate after an
+  intentional serialization or SSR output change with `pnpm test.e2e.router.ssg.update`.
+- **Brotli size budgets** — `CORE_BROTLI_BUDGET` / `PRELOADER_BROTLI_BUDGET` /
+  `QWIKLOADER_BROTLI_BUDGET` constants in that spec. A core change that grows a bundle fails with the
+  exact over-budget byte count; bump the matching constant when the growth is intentional.
+
+Traps:
+
+- The core budget also runs after dev builds; measure it only after `pnpm build.core`.
+- `test.e2e.router.ssg.update` regenerates the goldens only; it never touches the budgets, so a
+  budget breach survives the update.
+- The update run can exit non-zero because a sibling budget assertion failed, not the golden. "N
+  passed" with exit 1 usually means a budget breach — read the failing assertion instead of assuming
+  the golden is stale.
+- After rebasing onto a moved base the golden conflicts; regenerate it rather than hand-merging, then
+  re-run `pnpm test.e2e.router.ssg` (no update flag) to confirm it passes deterministically.
+
+## Stop Conditions
+
+- Stop and inspect the suite config when `--browser` versus `--project` is unclear.
+- Stop and report if browser binaries, build artifacts, or dependencies are missing.
+- Do not broaden to all e2e suites unless the user asks or the changed surface requires it.
+- If a test failure shows this skill has stale suite or command guidance, update the skill before
+  finishing or record why guidance edits were out of scope.

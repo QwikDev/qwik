@@ -162,9 +162,7 @@ export type EntryStrategy =
   | InlineEntryStrategy
   | HoistEntryStrategy
   | SingleEntryStrategy
-  | HookEntryStrategy
   | SegmentEntryStrategy
-  | ComponentEntryStrategy
   | SmartEntryStrategy;
 
 /** @public */
@@ -183,12 +181,6 @@ export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
-/** @public @deprecated Use SegmentStrategy instead */
-export interface HookEntryStrategy {
-  type: 'hook';
-  manual?: Record<string, string>;
-}
-
 /** @public */
 export interface SegmentEntryStrategy {
   type: 'segment';
@@ -198,12 +190,6 @@ export interface SegmentEntryStrategy {
 /** @public */
 export interface SingleEntryStrategy {
   type: 'single';
-  manual?: Record<string, string>;
-}
-
-/** @public */
-export interface ComponentEntryStrategy {
-  type: 'component';
   manual?: Record<string, string>;
 }
 

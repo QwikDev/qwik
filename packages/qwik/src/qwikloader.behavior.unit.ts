@@ -91,7 +91,7 @@ function bootLoader(document: any, window: any) {
     IntersectionObserverImpl,
     CSSImpl,
     { now: () => 1 },
-    (href: string) => import(/* @vite-ignore */ href)
+    (href: string) => import(/* @vite-ignore */ href.replace('%2C', ','))
   );
 }
 
@@ -533,6 +533,174 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  test('imports the chunk while still waiting for streamed container data', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'globalThis.__qwikLoaderChunkLogs.push("imported");' +
+        'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("clicked");'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'early-import',
+    });
+    const button = createMockElement(container, {
+      'q-e:click': `${moduleUrl}#handler#`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['imported']);
+      });
+
+      win._qwikEv.push(QwikEvContainerReady, 'early-import');
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['imported', 'clicked']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
+  test('imports the other chunks of a handler at once and runs the handler from its own', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const chunk = (source: string) =>
+      `data:text/javascript;charset=utf-8%2C${encodeURIComponent(source)}`;
+    const runner = chunk(
+      'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("ran from the first");'
+    );
+    const dependency = chunk('globalThis.__qwikLoaderChunkLogs.push("imported the second");');
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const button = createMockElement(container, {
+      'q-e:click': `${runner}#handler##${dependency}`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['imported the second', 'ran from the first']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
+  test('runs the handler when one of its other chunks fails to import', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const runner = `data:text/javascript;charset=utf-8%2C${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("ran");//beside a failure'
+    )}`;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const button = createMockElement(container, {
+      'q-e:click': `${runner}#handler##data:text/javascript%2Cthrow new Error("boom")`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['ran']);
+      });
+      await flushQueuedTasks();
+
+      expect(doc.dispatchEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'qerror' })
+      );
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
+  test.each([
+    ['queues the chunks it imports for a preloader that has not loaded yet', false],
+    ['tells a loaded preloader which chunks it imports', true],
+  ])('%s', async (_title, isPreloaderLoaded) => {
+    const { doc, win } = createLoaderEnvironment(['e:click']);
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const button = createMockElement(container, {
+      'q-e:click': 'core.js#handler##handler.js,other.js',
+    });
+    win.qPreload = isPreloaderLoaded ? vi.fn() : undefined;
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+      const hint = [['core.js', 'handler.js', 'other.js'], 1];
+      if (isPreloaderLoaded) {
+        expect(win.qPreload).toHaveBeenCalledWith(...hint);
+      } else {
+        expect(win.qPreloadQueue).toEqual([hint]);
+      }
+      await vi.waitFor(() => {
+        expect(consoleError).toHaveBeenCalled();
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  test('leaves the preloader alone when a page lifecycle event imports a chunk', async () => {
+    const { doc, win } = createLoaderEnvironment(['d:qinit']);
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const element = createMockElement(container, { 'q-d:qinit': 'init.js#handler#' });
+    doc.querySelectorAll.mockReturnValue([element]);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      doc.readyState = 'complete';
+      getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+      await vi.waitFor(() => {
+        expect(consoleError).toHaveBeenCalled();
+      });
+
+      expect(win.qPreloadQueue).toBeUndefined();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  test('runs an already imported handler at once when only its other chunks differ', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    const chunk = (source: string) =>
+      `data:text/javascript;charset=utf-8%2C${encodeURIComponent(source)}`;
+    const runner = chunk(
+      'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("ran");//cached'
+    );
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const firstButton = createMockElement(container, {
+      'q-e:click': `${runner}#handler##${chunk('//first')}`,
+    });
+    const secondButton = createMockElement(container, {
+      'q-e:click': `${runner}#handler##${chunk('//second')}`,
+    });
+
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    try {
+      const click = getSingleListener(doc, 'click').handler;
+      click(createMockEvent(firstButton));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['ran']);
+      });
+
+      click(createMockEvent(secondButton));
+      expect(logs).toEqual(['ran', 'ran']);
+    } finally {
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
+  });
+
   test('reports a failed chunk import once when the container was streamed', async () => {
     const { doc, win } = createLoaderEnvironment(['e:click']);
     const container = createMockElement(null, {
@@ -563,6 +731,72 @@ describe('qwikloader behavior', () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  describe('a qerror listener that fails', () => {
+    const failingChunk = (message: string) =>
+      `data:text/javascript,throw new Error("${message}")#handler#`;
+    const waitForLaterRounds = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+    const removeListenersAfter = (qErrorLimit: number, doc: any) => {
+      const dispatchEvent = doc.dispatchEvent.getMockImplementation()!;
+      let qErrorCount = 0;
+      doc.dispatchEvent.mockImplementation((ev: any) => {
+        if (ev.type === 'qerror' && ++qErrorCount > qErrorLimit) {
+          doc.querySelectorAll.mockReturnValue([]);
+        }
+        return dispatchEvent(ev);
+      });
+    };
+
+    const clickWithQErrorListener = async (listenerQrl: string, expectedErrorLogs: number) => {
+      const { doc } = createLoaderEnvironment(['d:qerror', 'e:click']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const listenerElement = createMockElement(container, { 'q-d:qerror': listenerQrl });
+      doc.querySelectorAll.mockReturnValue([listenerElement]);
+      removeListenersAfter(3, doc);
+      const button = createMockElement(container, { 'q-e:click': failingChunk('click chunk') });
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        getSingleListener(doc, 'click').handler(createMockEvent(button));
+        await vi.waitFor(() => {
+          expect(consoleError.mock.calls.length).toBeGreaterThanOrEqual(expectedErrorLogs);
+        });
+        await waitForLaterRounds();
+
+        return {
+          qErrors: doc.dispatchEvent.mock.calls
+            .map(([ev]: any[]) => ev)
+            .filter((ev: any) => ev.type === 'qerror'),
+          loggedMessages: consoleError.mock.calls.map(([error]: any[]) => error.message),
+        };
+      } finally {
+        doc.querySelectorAll.mockReturnValue([]);
+        consoleError.mockRestore();
+      }
+    };
+
+    test("doesn't fire qerror again when its own chunk fails to load", async () => {
+      const { qErrors, loggedMessages } = await clickWithQErrorListener(
+        failingChunk('listener chunk'),
+        2
+      );
+
+      expect(qErrors).toHaveLength(1);
+      expect(qErrors[0].detail.error.message).toBe('click chunk');
+      expect(loggedMessages).toEqual(['click chunk', 'listener chunk']);
+    });
+
+    test("doesn't fire qerror again when it throws", async () => {
+      const throwingListener =
+        'data:text/javascript,export const handler = () => { throw new Error("listener threw") }#handler#';
+      const { qErrors, loggedMessages } = await clickWithQErrorListener(throwingListener, 2);
+
+      expect(qErrors).toHaveLength(1);
+      expect(qErrors[0].detail.error.message).toBe('click chunk');
+      expect(loggedMessages).toEqual(['click chunk', 'listener threw']);
+    });
   });
 
   test('falls back to readystatechange while waiting for streamed container data', async () => {

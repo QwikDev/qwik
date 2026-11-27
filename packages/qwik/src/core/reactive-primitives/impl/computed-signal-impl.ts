@@ -631,7 +631,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       // QRL resolution is async — we have to publish loading=true before awaiting so
       // subscribers know the value isn't ready yet.
       this.untrackedPending = true;
-      fn = await this.$computeQrl$.resolve();
+      try {
+        fn = await this.$computeQrl$.resolve();
+      } catch (err) {
+        running.$computationSettled$ = true;
+        running.$promise$ = null;
+        if (running === this.$current$) {
+          this.untrackedPending = false;
+        }
+        this.$container$?.handleError(err, null);
+        return;
+      }
       if (this.$disposed$ || running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
         running.$computationSettled$ = true;

@@ -23,7 +23,10 @@ use crate::transform::{
 	create_synthetic_named_export, QwikTransform, QwikTransformOptions, Segment, SegmentKind,
 };
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
-use crate::words::{_INLINED_QRL_DEV, _NOOP_QRL_DEV, _QRL_DEV};
+use crate::words::{
+	_INLINED_QRL_DEV, _NOOP_QRL, _NOOP_QRL_DEV, _QRL, _QRL_DEV, _QRL_WITH_CHUNK,
+	_QRL_WITH_CHUNK_DEV,
+};
 use crate::EntryStrategy;
 use indexmap::IndexMap;
 use path_slash::PathExt;
@@ -328,7 +331,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							global_collect: collect,
 							scope: config.scope,
 							mode: config.mode,
-							core_module: config.core_module,
+							core_module: config.core_module.clone(),
 							entry_strategy: config.entry_strategy,
 							reg_ctx_name: config.reg_ctx_name,
 							strip_ctx_name: config.strip_ctx_name,
@@ -609,6 +612,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					let (code, map) = match program {
 						ast::Program::Module(ref mut modu) => {
+							declare_qrls_before_first_use(modu, &config.core_module);
 							add_section_separators(modu, &comments);
 							emit_source_code(
 								Lrc::clone(&source_map),
@@ -776,6 +780,301 @@ pub fn emit_source_code(
 	} else {
 		Ok((unsafe { str::from_utf8_unchecked(&buf).to_string() }, None))
 	}
+}
+
+/// Local names the module imports the QRL factories under.
+fn qrl_factory_names(
+	items: &[ast::ModuleItem],
+	core_module: &Atom,
+) -> std::collections::HashSet<Atom> {
+	let factories = [
+		&*_QRL,
+		&*_QRL_DEV,
+		&*_NOOP_QRL,
+		&*_NOOP_QRL_DEV,
+		&*_QRL_WITH_CHUNK,
+		&*_QRL_WITH_CHUNK_DEV,
+	];
+	let mut names = std::collections::HashSet::new();
+	for item in items {
+		let ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(import)) = item else {
+			continue;
+		};
+		if import.src.value != *core_module {
+			continue;
+		}
+		for specifier in &import.specifiers {
+			let ast::ImportSpecifier::Named(named) = specifier else {
+				continue;
+			};
+			let imported = match &named.imported {
+				Some(ast::ModuleExportName::Ident(ident)) => ident.sym.as_str(),
+				Some(ast::ModuleExportName::Str(str)) => &*str.value,
+				None => named.local.sym.as_str(),
+			};
+			if factories.iter().any(|factory| factory.as_str() == imported) {
+				names.insert(named.local.sym.clone());
+			}
+		}
+	}
+	names
+}
+
+/// Whether `expr` creates a QRL without running other code: a factory call with side-effect-free
+/// arguments, possibly chained with the optimizer's own `.m()` or `.w([...])`.
+fn is_qrl_creation(expr: &ast::Expr, factories: &std::collections::HashSet<Atom>) -> bool {
+	let mut current = expr;
+	while let ast::Expr::Call(call) = current {
+		let has_pure_args = call
+			.args
+			.iter()
+			.all(|arg| arg.spread.is_none() && is_side_effect_free(&arg.expr));
+		let ast::Callee::Expr(callee) = &call.callee else {
+			return false;
+		};
+		match &**callee {
+			ast::Expr::Ident(ident) => return has_pure_args && factories.contains(&ident.sym),
+			ast::Expr::Member(member)
+				if has_pure_args
+					&& matches!(&member.prop, ast::MemberProp::Ident(prop) if &*prop.sym == "m" || &*prop.sym == "w") =>
+			{
+				current = &member.obj
+			}
+			_ => return false,
+		}
+	}
+	false
+}
+
+/// A factory call like `qrl(() => import('./a'), 'a')` that runs no code, with nothing chained.
+fn is_plain_qrl_call(expr: &ast::Expr, factories: &std::collections::HashSet<Atom>) -> bool {
+	matches!(expr, ast::Expr::Call(call) if matches!(&call.callee, ast::Callee::Expr(callee) if callee.is_ident()))
+		&& is_qrl_creation(expr, factories)
+}
+
+fn is_side_effect_free(expr: &ast::Expr) -> bool {
+	match expr {
+		ast::Expr::Arrow(_) | ast::Expr::Fn(_) | ast::Expr::Lit(_) | ast::Expr::Ident(_) => true,
+		ast::Expr::Tpl(tpl) => tpl.exprs.is_empty(),
+		ast::Expr::Array(array) => array
+			.elems
+			.iter()
+			.flatten()
+			.all(|elem| elem.spread.is_none() && is_side_effect_free(&elem.expr)),
+		ast::Expr::Object(object) => object.props.iter().all(|prop| match prop {
+			ast::PropOrSpread::Prop(prop) => match &**prop {
+				ast::Prop::KeyValue(kv) => {
+					!matches!(kv.key, ast::PropName::Computed(_)) && is_side_effect_free(&kv.value)
+				}
+				ast::Prop::Shorthand(_) => true,
+				_ => false,
+			},
+			ast::PropOrSpread::Spread(_) => false,
+		}),
+		_ => false,
+	}
+}
+
+/// The QRL a top-level `const q_x = qrl(...)` declares.
+fn declared_qrl_name(
+	item: &ast::ModuleItem,
+	factories: &std::collections::HashSet<Atom>,
+) -> Option<Atom> {
+	let ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) = item else {
+		return None;
+	};
+	let [decl] = var.decls.as_slice() else {
+		return None;
+	};
+	match (&decl.name, &decl.init) {
+		(ast::Pat::Ident(ident), Some(init)) if is_qrl_creation(init, factories) => {
+			Some(ident.id.sym.clone())
+		}
+		_ => None,
+	}
+}
+
+/// The QRL a top-level `q_x.s(...)` call sets.
+fn set_qrl_name(
+	item: &ast::ModuleItem,
+	qrl_names: &std::collections::HashSet<Atom>,
+) -> Option<Atom> {
+	let ast::ModuleItem::Stmt(ast::Stmt::Expr(stmt)) = item else {
+		return None;
+	};
+	let ast::Expr::Call(call) = &*stmt.expr else {
+		return None;
+	};
+	let ast::Callee::Expr(callee) = &call.callee else {
+		return None;
+	};
+	let ast::Expr::Member(member) = &**callee else {
+		return None;
+	};
+	match (&*member.obj, &member.prop) {
+		(ast::Expr::Ident(obj), ast::MemberProp::Ident(prop))
+			if &*prop.sym == "s" && qrl_names.contains(&obj.sym) =>
+		{
+			Some(obj.sym.clone())
+		}
+		_ => None,
+	}
+}
+
+/// A hoisted `function` declaration's name: it runs where it is called, not where it is written.
+fn hoisted_function_name(item: &ast::ModuleItem) -> Option<Atom> {
+	match item {
+		ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Fn(func))) => Some(func.ident.sym.clone()),
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(export)) => match &export.decl {
+			ast::Decl::Fn(func) => Some(func.ident.sym.clone()),
+			_ => None,
+		},
+		ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDefaultDecl(export)) => {
+			match &export.decl {
+				// Anonymous: no local code can call it, but importers can, like any export.
+				ast::DefaultDecl::Fn(func) => Some(
+					func.ident
+						.as_ref()
+						.map_or_else(|| Atom::from("default"), |ident| ident.sym.clone()),
+				),
+				_ => None,
+			}
+		}
+		_ => None,
+	}
+}
+
+/// Local names the module exports: importers may call them at any time.
+fn exported_names(items: &[ast::ModuleItem]) -> Vec<Atom> {
+	let mut names = Vec::new();
+	for item in items {
+		match item {
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(export))
+				if export.src.is_none() =>
+			{
+				for specifier in &export.specifiers {
+					if let ast::ExportSpecifier::Named(named) = specifier {
+						if let ast::ModuleExportName::Ident(ident) = &named.orig {
+							names.push(ident.sym.clone());
+						}
+					}
+				}
+			}
+			ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDefaultExpr(export)) => {
+				if let ast::Expr::Ident(ident) = &*export.expr {
+					names.push(ident.sym.clone());
+				}
+			}
+			ast::ModuleItem::ModuleDecl(
+				ast::ModuleDecl::ExportDecl(_) | ast::ModuleDecl::ExportDefaultDecl(_),
+			) => names.extend(hoisted_function_name(item)),
+			_ => {}
+		}
+	}
+	names
+}
+
+fn referenced_names(item: &ast::ModuleItem) -> std::collections::HashSet<Atom> {
+	use swc_ecmascript::visit::Visit;
+	struct Names(std::collections::HashSet<Atom>);
+	impl Visit for Names {
+		fn visit_ident(&mut self, ident: &ast::Ident) {
+			self.0.insert(ident.sym.clone());
+		}
+	}
+	let mut names = Names(Default::default());
+	item.visit_with(&mut names);
+	names.0
+}
+
+/// Moves each QRL declaration and its `.s()` call down to just before the first statement using
+/// the QRL, keeping their order, so the QRL is created where the source created it. A use inside a
+/// hoisted function counts where that function is used, or from the start if the module exports
+/// it. QRLs nothing uses go to the end.
+fn declare_qrls_before_first_use(module: &mut ast::Module, core_module: &Atom) {
+	let factories = qrl_factory_names(&module.body, core_module);
+	if factories.is_empty() {
+		return;
+	}
+	let items = std::mem::take(&mut module.body);
+	let declared: Vec<Option<Atom>> = items
+		.iter()
+		.map(|item| declared_qrl_name(item, &factories))
+		.collect();
+	let qrl_names: std::collections::HashSet<Atom> = declared.iter().flatten().cloned().collect();
+	let qrl_statement_names: Vec<Option<Atom>> = items
+		.iter()
+		.zip(declared)
+		.map(|(item, name)| name.or_else(|| set_qrl_name(item, &qrl_names)))
+		.collect();
+	let is_unused_qrl: Vec<bool> = items
+		.iter()
+		.map(|item| {
+			matches!(item, ast::ModuleItem::Stmt(ast::Stmt::Expr(stmt)) if is_plain_qrl_call(&stmt.expr, &factories))
+		})
+		.collect();
+	let function_names: Vec<Option<Atom>> = items.iter().map(hoisted_function_name).collect();
+
+	// What each QRL and hoisted function needs, counted where it is used.
+	let mut deferred_refs: HashMap<Atom, Vec<Atom>> = HashMap::new();
+	for (index, item) in items.iter().enumerate() {
+		let Some(name) = qrl_statement_names[index]
+			.as_ref()
+			.or(function_names[index].as_ref())
+		else {
+			continue;
+		};
+		let refs = deferred_refs.entry(name.clone()).or_default();
+		refs.extend(referenced_names(item).into_iter().filter(|r| r != name));
+	}
+
+	let mut first_use: HashMap<Atom, usize> = HashMap::new();
+	let mut mark_used = |mut used: Vec<Atom>, index: usize| {
+		while let Some(name) = used.pop() {
+			if let Some(refs) = deferred_refs.get(&name) {
+				if let std::collections::hash_map::Entry::Vacant(entry) = first_use.entry(name) {
+					entry.insert(index);
+					used.extend(refs.iter().cloned());
+				}
+			}
+		}
+	};
+	let hoisted_functions: std::collections::HashSet<&Atom> =
+		function_names.iter().flatten().collect();
+	let exported_functions = exported_names(&items)
+		.into_iter()
+		.filter(|name| hoisted_functions.contains(name))
+		.collect();
+	mark_used(exported_functions, 0);
+	for (index, item) in items.iter().enumerate() {
+		if qrl_statement_names[index].is_none()
+			&& !is_unused_qrl[index]
+			&& function_names[index].is_none()
+		{
+			mark_used(referenced_names(item).into_iter().collect(), index);
+		}
+	}
+
+	let mut moved: HashMap<usize, Vec<ast::ModuleItem>> = HashMap::new();
+	let mut unused = Vec::new();
+	let mut body = Vec::with_capacity(items.len());
+	for (index, item) in items.into_iter().enumerate() {
+		let use_index = match &qrl_statement_names[index] {
+			Some(name) => first_use.get(name).copied(),
+			None if is_unused_qrl[index] => None,
+			None => Some(index),
+		};
+		match use_index {
+			None => unused.push(item),
+			Some(use_index) if use_index > index => moved.entry(use_index).or_default().push(item),
+			Some(_) => {
+				body.extend(moved.remove(&index).unwrap_or_default());
+				body.push(item);
+			}
+		}
+	}
+	body.extend(unused);
+	module.body = body;
 }
 
 /// Add `//` separator comments between import declarations, QRL const declarations,

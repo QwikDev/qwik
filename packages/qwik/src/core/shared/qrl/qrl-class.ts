@@ -10,7 +10,7 @@ import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
-import { isFunction, isObject, type ValueOrPromise } from '../utils/types';
+import { isFunction, type ValueOrPromise } from '../utils/types';
 import { requestPreload } from '../../preloader/bridge';
 import type { QRLDev } from './qrl';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
@@ -28,17 +28,28 @@ interface SyncQRLSymbol {
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
 
 // Share import errors across core copies without mutating potentially frozen rejection values.
-const qrlImportErrors = registerSingleton('qrlImportErrors', () => new WeakSet<object>());
+const failedImportSymbols = registerSingleton(
+  'qrlImportSymbols',
+  () => new WeakMap<object, string>()
+);
 
-const tagImportError = (err: unknown): never => {
-  if (isObject(err) || isFunction(err)) {
-    qrlImportErrors.add(err);
+const tagImportError = (err: unknown, symbol: string): never => {
+  if (err instanceof TypeError) {
+    failedImportSymbols.set(err, symbol);
   }
   throw err;
 };
 
 /** @internal Whether `err` came from a failed QRL import rather than from running user code. */
-export const isQrlImportError = (err: unknown): boolean => qrlImportErrors.has(err as object);
+export const isQrlImportError = (err: unknown): boolean => failedImportSymbols.has(err as object);
+
+export const getFailedImportSymbol = (err: unknown): string | undefined =>
+  failedImportSymbols.get(err as object);
+
+/** Starts the download early. A failure is reported when the QRL runs. */
+export const resolveQrlAhead = (qrl: QRL<any>): void => {
+  qrl.resolve().catch(() => {});
+};
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
@@ -143,7 +154,7 @@ export class LazyRef<TYPE = unknown> {
     }
     qDev && initLazyRefDev(this);
 
-    /** Preload the chunk with somewhat lower probability when we create the QRL. */
+    /** Preload the chunk at a lower priority when we create the QRL. */
     if (isBrowser && $chunk$) {
       requestPreload($chunk$, 0.8);
     }
@@ -204,7 +215,7 @@ export class LazyRef<TYPE = unknown> {
     }
 
     if (isBrowser && this.$chunk$) {
-      /** We will run the QRL, so now the probability of the chunk is 100% */
+      /** We will run the QRL, so its chunk is now highest priority */
       requestPreload(this.$chunk$, 1);
     }
 
@@ -217,7 +228,7 @@ export class LazyRef<TYPE = unknown> {
           symbol
         ) as ValueOrPromise<TYPE>);
     if (isPromise(importP)) {
-      importP = importP.then(undefined, tagImportError);
+      importP = importP.then(undefined, (err) => tagImportError(err, symbol));
     }
 
     this.$setRef$(importP);

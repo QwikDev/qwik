@@ -161,7 +161,10 @@ const checkDiagnostics = async (
   }
   const tsWorker = monacoCtx.tsWorker;
 
-  const models = monaco.editor.getModels();
+  // The TypeScript worker throws on files it doesn't own, like an example's CSS.
+  const models = monaco.editor
+    .getModels()
+    .filter((m) => ['typescript', 'javascript'].includes(m.getLanguageId()));
   const tsDiagnostics: TypeScriptDiagnostic[] = [];
 
   await Promise.all(
@@ -274,7 +277,7 @@ const loadDeps = async (pkgVersion: string) => {
     },
   ];
 
-  const depUrls = getDeps(pkgVersion);
+  const depUrls = getDeps(pkgVersion, pkgVersion);
   const toFetch: Record<string, Promise<string>> = {};
   for (const dep of deps) {
     let storedDep = monacoCtx.deps.find(

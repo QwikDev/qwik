@@ -1,5 +1,6 @@
 import { _jsxSorted, Fragment } from '@qwik.dev/core';
 import { createQRL } from '../shared/qrl/qrl-class';
+import { runQrl } from '../shared/qrl/handler-qrls';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, it, expect, vi } from 'vitest';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
@@ -31,7 +32,7 @@ describe('splitVNodeData', () => {
 });
 
 describe('vnode_ensureElementInflated', () => {
-  it('should wrap and reuse the inner event QRL for _run handlers', async () => {
+  it('should wrap and reuse the inner event QRL for run handlers', async () => {
     const { vNode, container } = vnode_fromJSX(_jsxSorted('button', {}, null, [], 0, null));
     const element = (vNode as ElementVNode).node as HTMLButtonElement;
     const loadHandler = vi.fn().mockResolvedValue({
@@ -39,7 +40,7 @@ describe('vnode_ensureElementInflated', () => {
     });
     const eventQrl = createQRL('./chunk.js', 'onClick', null, loadHandler, null, container);
 
-    element.setAttribute('q-e:click', './chunk.js#_run#0');
+    element.setAttribute('q-e:click', `./chunk.js#${runQrl().$symbol$}#0`);
     Object.defineProperty(container, '$getObjectById$', {
       configurable: true,
       value: (id: number | string) => {

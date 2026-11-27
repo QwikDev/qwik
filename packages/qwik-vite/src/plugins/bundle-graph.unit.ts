@@ -51,33 +51,84 @@ describe('convertManifestToBundleGraph', () => {
     version: '1.0.0',
   } as QwikManifest;
 
+  describe('chunk kinds', () => {
+    const HANDLER = -2;
+    const QRL = -3;
+    const COMPONENT = -4;
+    const symbols = {
+      click_CLICK: { ctxKind: 'eventHandler', ctxName: 'onClick$' },
+      prop_PROP: { ctxKind: 'jSXProp', ctxName: 'ActionButton' },
+      task_TASK: { ctxKind: 'function', ctxName: 'useTask$' },
+      computed_COMPUTED: { ctxKind: 'function', ctxName: 'useComputed$' },
+      inline_INLINE: { ctxKind: 'function', ctxName: '$' },
+      card_CARD: { ctxKind: 'function', ctxName: 'component$' },
+      styles_STYLES: { ctxKind: 'function', ctxName: 'useStylesScoped$' },
+    };
+    const kindOfChunkWith = (chunkSymbols: string[]) => {
+      const graph = convertManifestToBundleGraph({
+        bundles: {
+          'page.js': { size, total, dynamicImports: ['chunk.js'], qrlImports: ['chunk.js'] },
+          'chunk.js': { size, total, symbols: chunkSymbols },
+        },
+        mapping: {},
+        symbols,
+      } as unknown as QwikManifest);
+      return graph[graph.indexOf('chunk.js') + 1];
+    };
+
+    test('marks a chunk that holds a handler as a handler chunk', () => {
+      expect(kindOfChunkWith(['click_CLICK'])).toBe(HANDLER);
+    });
+
+    test('a QRL passed to a component as a prop counts as a handler', () => {
+      expect(kindOfChunkWith(['prop_PROP'])).toBe(HANDLER);
+    });
+
+    test('marks a chunk that holds only tasks, computeds or inline QRLs as a chunk of other QRLs', () => {
+      expect(kindOfChunkWith(['task_TASK', 'computed_COMPUTED', 'inline_INLINE'])).toBe(QRL);
+    });
+
+    test('marks a chunk that holds only a render function or styles as a component chunk', () => {
+      expect(kindOfChunkWith(['card_CARD', 'styles_STYLES'])).toBe(COMPONENT);
+    });
+
+    test('a chunk that holds a handler and a task counts as a handler chunk', () => {
+      expect(kindOfChunkWith(['task_TASK', 'click_CLICK'])).toBe(HANDLER);
+      expect(kindOfChunkWith(['card_CARD', 'task_TASK'])).toBe(QRL);
+    });
+
+    test('leaves a chunk with no QRL unmarked', () => {
+      expect(kindOfChunkWith([])).toBeUndefined();
+    });
+  });
+
   test('trivial example', () => {
     expect(convertManifestToBundleGraph(fakeManifest)).toEqual([
       'app.js', // 0
       2,
       'static-dep.js', // 2
-      -7,
+      -1,
       5,
       // doesn't list 13 because it's also statically imported by dynamic-dep.js
       'dynamic-dep.js', // 5
       2,
       10,
-      -9,
+      -1,
       11,
       // boring-dep.js is not listed: a user import() is not a qrl edge
       'transitive-dep.js', // 10
       'has-a-symbol.js', // 11
-      -5,
+      -1,
       14,
       'large-file.js', // 14
       'sym1', // 15
-      -7,
+      -1,
       5,
       'sym2', // 18
-      -7,
+      -1,
       11,
       'sym3', // 21
-      -5,
+      -1,
       14,
     ]);
   });
@@ -98,27 +149,24 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toEqual([
       'a.js', // 0
       4,
-      -7,
+      -1,
       7,
       'b.js', // 4
-      -7,
+      -1,
       7,
       'c.js', // 7
     ]);
   });
 
-  test('only a slow-to-download import graph shifts the preload probability', () => {
-    const probabilityOf = (depTotal: number) =>
-      convertManifestToBundleGraph({
-        bundles: {
-          'page.js': { size, total, dynamicImports: ['dep.js'], qrlImports: ['dep.js'] },
-          'dep.js': { size, total: depTotal, interactivity: 3 },
-        } as Record<string, QwikBundle>,
-        mapping: {},
-      } as QwikManifest)[1];
-
-    expect(probabilityOf(5_000)).toBe(-7);
-    expect(probabilityOf(50_000)).toBe(-8);
+  test('core is preloaded like any bundle its segments import', () => {
+    const manifest = {
+      bundles: {
+        'core.js': { size, total },
+        'run.js': { size, total, imports: ['core.js'], symbols: ['s_run'] },
+      } as Record<string, QwikBundle>,
+      mapping: { s_run: 'run.js' },
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['core.js', 'run.js', 0, 'run', -1, 1]);
   });
 
   test('import cycle through the reduced bundle keeps reachable deps', () => {
@@ -159,7 +207,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toEqual([
       'x.js', // 0
       4,
-      -7,
+      -1,
       7,
       'a.js', // 4
       0,
@@ -179,7 +227,7 @@ describe('convertManifestToBundleGraph', () => {
       symbols: {},
     } as unknown as QwikManifest;
     // widget.js stays reachable only through its symbol
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -7, 0]);
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -1, 0]);
   });
 
   test('adder', () => {
@@ -208,38 +256,81 @@ describe('convertManifestToBundleGraph', () => {
       'app.js', // 0
       2,
       'static-dep.js', // 2
-      -7,
+      -1,
       5,
       'dynamic-dep.js', // 5
       2,
       8,
       'transitive-dep.js', // 8
       'has-a-symbol.js', // 9
-      -5,
+      -1,
       12,
       'large-file.js', // 12
       'sym1', // 13
-      -7,
+      -1,
       5,
       'sym2', // 16
-      -7,
+      -1,
       9,
       'sym3', // 19
-      -5,
+      -1,
       12,
       'dashboard/', // 22
       2,
-      -7,
+      -1,
       8,
     ]);
   });
 
+  describe('added layout entry', () => {
+    const entryOf = (graph: (string | number)[], name: string) => {
+      const start = graph.indexOf(name);
+      const end = graph.findIndex((item, index) => index > start && typeof item === 'string');
+      return graph.slice(start + 1, end === -1 ? undefined : end);
+    };
+    const withLayoutAndRoute = () =>
+      convertManifestToBundleGraph(
+        fakeManifest,
+        new Set([
+          () => ({
+            'docs/': { dynamicImports: ['transitive-dep.js'] },
+            DocsLayout: { dynamicImports: ['transitive-dep.js'] },
+          }),
+        ])
+      );
+
+    test('keeps an added entry that no bundle imports', () => {
+      expect(withLayoutAndRoute()).toContain('DocsLayout');
+    });
+
+    test("follows an added layout entry's bundles like a route's", () => {
+      const graph = withLayoutAndRoute();
+
+      expect(entryOf(graph, 'DocsLayout').length).toBeGreaterThan(0);
+      expect(entryOf(graph, 'DocsLayout')).toEqual(entryOf(graph, 'docs/'));
+    });
+  });
+
   test(`works`, () => {
+    // The fixture keeps only the first 5000 bytes of each chunk's code, which drops its import()
+    // calls; write them over the tail so the sizes stay the same.
+    const bundles = Object.fromEntries(
+      Object.entries(outputBundles.bundles).map(([name, bundle]: [string, any]) => {
+        const imports = (bundle.dynamicImports ?? [])
+          .map((file: string) => `import("./${file.slice(file.lastIndexOf('/') + 1)}");`)
+          .join('');
+        const code: string = bundle.code ?? '';
+        return [
+          name,
+          { ...bundle, code: code.slice(0, Math.max(0, code.length - imports.length)) + imports },
+        ];
+      })
+    );
     const manifest = generateManifestFromBundles(
       path as any,
       outputBundles.segments as any,
       [],
-      outputBundles.bundles as any,
+      bundles as any,
       { rootDir: '/', outDir: '/' } as any,
       console.error,
       (p) => path.relative('build', p),
@@ -251,209 +342,193 @@ describe('convertManifestToBundleGraph', () => {
       }
     );
 
-    // Interactivity scores
-    expect(
-      Object.fromEntries(
-        Object.entries(manifest.bundles).map(([k, v]) => [
-          k,
-          `${v.interactivity} (${v.size}/${v.total})`,
-        ])
-      )
-    ).toMatchInlineSnapshot(`
-      {
-        "handlers.js": "0 (5000/5000)",
-        "index.js": "0 (772/772)",
-        "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js": "2 (2140/2140)",
-        "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js": "1 (697/697)",
-        "index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js": "2 (5000/9886)",
-        "index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js": "2 (5000/9886)",
-        "index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js": "3 (5000/9886)",
-        "index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js": "2 (2017/6903)",
-        "index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js": "1 (1983/1983)",
-        "index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js": "1 (5000/9886)",
-        "index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js": "1 (5000/5000)",
-        "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js": "3 (727/727)",
-        "index.tsx_about_component_useStyles_WOcPLNnm2is.js": "2 (3928/3928)",
-        "index.tsx_form_component_useStyles_0pasaG6nmEA.js": "2 (4658/9544)",
-        "index.tsx_routes_component_vG0UuU4cNCg.js": "5 (4886/4886)",
-        "layout.js": "0 (4886/4886)",
-        "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": "2 (4772/9658)",
-        "preloader.js": "0 (5000/5000)",
-        "qwik-router.js": "2 (4886/4886)",
-        "root.js": "0 (4886/4886)",
-        "root.tsx_root_component_9PcKHFjikV0.js": "2 (4886/9772)",
-        "router-head.tsx_RouterHead_component_dAo05yeFq1I.js": "2 (4886/9772)",
-        "src-vendor-lib-helper.ts.js": "0 (4886/4886)",
-        "src-vendor-lib-libA.ts.js": "0 (465/5351)",
-        "src-vendor-lib-libB.ts.js": "0 (4886/9772)",
-      }
-    `);
-
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
+        "handlers.js",
         "index.js",
-        -9,
-        18,
+        0,
+        -1,
+        34,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
+        -3,
+        0,
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
+        -3,
+        0,
         "index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js",
-        27,
+        -3,
+        50,
         "index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js",
-        27,
+        -3,
+        50,
         "index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js",
-        27,
+        -3,
+        50,
         "index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js",
+        -3,
+        0,
         "index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js",
-        27,
+        -4,
+        50,
         "index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js",
-        27,
+        -3,
+        50,
         "index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js",
+        -3,
         "index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js",
+        -3,
+        0,
         "index.tsx_about_component_useStyles_WOcPLNnm2is.js",
+        -4,
+        0,
         "index.tsx_form_component_useStyles_0pasaG6nmEA.js",
-        27,
+        -4,
+        50,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
+        -2,
+        0,
         "layout.js",
-        -9,
-        25,
+        0,
+        -1,
+        47,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
-        27,
+        -2,
+        50,
         "qwik-router.js",
-        -10,
-        9,
-        17,
-        4,
-        -9,
-        3,
-        5,
-        12,
-        7,
-        -8,
-        16,
+        -3,
+        0,
+        -1,
+        8,
         11,
-        14,
+        29,
+        17,
+        23,
+        20,
         "root.js",
-        -9,
-        44,
+        0,
+        -1,
+        64,
         "root.tsx_root_component_9PcKHFjikV0.js",
-        27,
-        -9,
-        48,
+        -4,
+        50,
+        -1,
+        69,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
-        27,
+        -4,
+        50,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        50,
+        72,
         "src-vendor-lib-libB.ts.js",
-        50,
+        72,
         "BjxcCeNQ9ak",
-        -9,
-        21,
+        -1,
+        40,
         "eevMxFvmCM8",
-        -7,
-        25,
+        -1,
+        47,
         "99K9SAWjPFQ",
-        -9,
-        21,
+        -1,
+        40,
         "LopIayqLfMo",
-        -7,
-        9,
-        "VjDx6RO4Kis",
-        -9,
+        -1,
         17,
+        "VjDx6RO4Kis",
+        -1,
+        31,
         "HEFxKy9cwuk",
-        -9,
-        21,
+        -1,
+        40,
         "6VMZkqoH00Q",
-        -7,
-        3,
+        -1,
+        5,
         "9PcKHFjikV0",
-        -7,
-        44,
+        -1,
+        64,
         "9fcUDoGM9Wo",
-        -7,
-        9,
+        -1,
+        17,
         "SHtFir1Ia94",
-        -7,
-        25,
+        -1,
+        47,
         "cH9twROgaEg",
-        -7,
-        7,
-        "dAo05yeFq1I",
-        -7,
-        48,
-        "ds9jIPT1g9s",
-        -7,
-        19,
-        "lTNqDDf58lI",
-        -7,
-        5,
-        "m7u9ARcfDGU",
-        -7,
-        18,
-        "q56DrQcc9VE",
-        -7,
-        12,
-        "vG0UuU4cNCg",
-        -9,
-        21,
-        "vXTAPbOW0Ig",
-        -7,
-        27,
-        "0pasaG6nmEA",
-        -7,
-        19,
-        "BMutFDNOKhc",
-        -7,
-        9,
-        "Iyy38y0K3Hw",
-        -9,
-        21,
-        "MOLFIZOhXmE",
-        -7,
-        25,
-        "WOcPLNnm2is",
-        -7,
-        18,
-        "3mjmVvTlJqo",
-        -6,
-        16,
-        "5DbAsQLGGo4",
-        -7,
-        4,
-        "Nhj4Mq4ilm8",
-        -6,
+        -1,
         14,
-        "rufUrhffR5k",
-        -6,
+        "dAo05yeFq1I",
+        -1,
+        69,
+        "ds9jIPT1g9s",
+        -1,
+        37,
+        "lTNqDDf58lI",
+        -1,
         11,
+        "m7u9ARcfDGU",
+        -1,
+        34,
+        "q56DrQcc9VE",
+        -1,
+        23,
+        "vG0UuU4cNCg",
+        -1,
+        40,
+        "vXTAPbOW0Ig",
+        -1,
+        50,
+        "0pasaG6nmEA",
+        -1,
+        37,
+        "BMutFDNOKhc",
+        -1,
+        17,
+        "Iyy38y0K3Hw",
+        -1,
+        40,
+        "MOLFIZOhXmE",
+        -1,
+        47,
+        "WOcPLNnm2is",
+        -1,
+        34,
+        "3mjmVvTlJqo",
+        -1,
+        29,
+        "5DbAsQLGGo4",
+        -1,
+        8,
+        "Nhj4Mq4ilm8",
+        -1,
+        26,
+        "rufUrhffR5k",
+        -1,
+        20,
         "0xCNPioszTk",
-        -7,
-        5,
+        -1,
+        11,
         "1F0Ft5Y9bOI",
-        -7,
-        3,
-        "ANY7TPAnAd8",
-        -7,
-        27,
-        "BdwdOv10pp0",
-        -7,
-        9,
-        "YCi2vDzuhns",
-        -7,
-        27,
-        "dNtHVLGwESE",
-        -7,
-        7,
-        "ep3t0fF0SDA",
-        -9,
-        21,
-        "lWJp5Z4VtFs",
-        -7,
+        -1,
         5,
+        "ANY7TPAnAd8",
+        -1,
+        50,
+        "BdwdOv10pp0",
+        -1,
+        17,
+        "YCi2vDzuhns",
+        -1,
+        50,
+        "dNtHVLGwESE",
+        -1,
+        14,
+        "ep3t0fF0SDA",
+        -1,
+        40,
+        "lWJp5Z4VtFs",
+        -1,
+        11,
         "s3XioIi2Huw",
-        -7,
-        9,
+        -1,
+        17,
       ]
     `);
   });

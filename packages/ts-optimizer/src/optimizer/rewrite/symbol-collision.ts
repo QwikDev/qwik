@@ -315,6 +315,21 @@ function rewriteReferences(
     if (node.type === 'ImportDeclaration') {
       return;
     }
+    // `export { x } from './y'` names y's export, not the renamed local binding.
+    if (node.type === 'ExportNamedDeclaration' && node.source) {
+      return;
+    }
+
+    if (node.type === 'Identifier' && parentNode?.type === 'ExportSpecifier') {
+      // Rename the exported binding but keep the exported name: `export { qrl1 as qrl }`.
+      const newName = renameMap.get(node.name);
+      if (newName !== undefined && parentKey === 'local') {
+        const exported = parentNode.exported as AstNode;
+        const keepsName = exported.start === node.start;
+        s.overwrite(node.start, node.end, keepsName ? `${newName} as ${node.name}` : newName);
+      }
+      return;
+    }
 
     if (node.type === 'Identifier') {
       const newName = renameMap.get(node.name);

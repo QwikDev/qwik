@@ -1,9 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkComesFrom, getManifest, ORIGIN } from '../utils/app';
+import { chunkComesFrom, chunkHasVisibleTask, getCoreBundle, ORIGIN } from '../utils/app';
 import { attachRoundTrips } from '../utils/click-tests';
 import {
   MATRIX,
-  OFF_SCREEN_VISIBLE_TASKS,
   VISIBLE_ABOVE,
   VISIBLE_BELOW,
   VISIBLE_DOCUMENT_IDLE,
@@ -32,7 +31,7 @@ const VISIBLE_ABOVE_SOURCE = 'src/components/fixtures/visible/above.tsx';
 const VISIBLE_BELOW_SOURCE = 'src/components/fixtures/visible/below.tsx';
 
 const openOnceASpeculativePreloadStarted = async (page: Page, fixture: Fixture) => {
-  const coreUrl = `${ORIGIN}/build/${getManifest().core}`;
+  const coreUrl = `${ORIGIN}/build/${getCoreBundle()}`;
   const gate = await createGate(page);
   gate.holdWhilePassing = (url) => url === coreUrl;
   await page.goto(fixture.path, { waitUntil: 'commit' });
@@ -53,10 +52,12 @@ test.describe('visible task in view at load', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const firstVisibleTaskChunk = requests.findIndex(
-      (url) => chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && !speculative.has(url)
+    const isVisibleTaskChunk = (url: string) =>
+      chunkComesFrom(url, [VISIBLE_ABOVE_SOURCE]) && chunkHasVisibleTask(url);
+    const firstVisibleTaskChunk = requests.findIndex(isVisibleTaskChunk);
+    const firstSpeculativePreload = requests.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     );
-    const firstSpeculativePreload = requests.findIndex((url) => speculative.has(url));
     expect(firstVisibleTaskChunk).toBeGreaterThanOrEqual(0);
     test.fail(
       true,
@@ -97,11 +98,21 @@ test.describe('visible task below the fold', () => {
     const speculative = new Set(
       (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
     );
-    const fetchedAsNeeded = requests.filter(
+    const fetchedAtHighestPriority = requests.filter(
       (url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]) && !speculative.has(url)
     );
-    expect(fetchedAsNeeded).toEqual([]);
+    expect(fetchedAtHighestPriority).toEqual([]);
     await releaseAll(opened.gate);
+  });
+
+  test('the page lists its chunk for the preloader', async ({ page }) => {
+    const response = await page.goto(VISIBLE_BELOW.path);
+    const [, chunkList] = (await response!.text()).match(/\(\{p\}\)=>p\((\[[^\]]*\])\)/)!;
+    const listed = (JSON.parse(chunkList) as string[]).map((name) => `${ORIGIN}/build/${name}`);
+    const itsVisibleTaskChunks = listed.filter(
+      (url) => chunkComesFrom(url, [VISIBLE_BELOW_SOURCE]) && chunkHasVisibleTask(url)
+    );
+    expect(itsVisibleTaskChunks).not.toEqual([]);
   });
 
   test('after the scroll, its chunks go out at once, even while a speculative preload is ongoing, and the result shows in that one round trip', async ({
@@ -151,7 +162,6 @@ test.describe('visible task chain scrolled into view', () => {
       const roundTrips = await scrollIntoView(opened);
       await releaseAll(opened.gate);
       await expectResult(page, fixture);
-      test.fail(true, OFF_SCREEN_VISIBLE_TASKS);
       expect(roundTrips).toEqual([]);
     });
   }
@@ -174,11 +184,13 @@ const loadAndRecordRequests = async (
   const speculative = new Set(
     (await preloaderLinks(page)).filter((link) => link.speculative).map((link) => link.href)
   );
+  const isVisibleTaskChunk = (url: string) =>
+    url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && chunkHasVisibleTask(url);
   return {
-    firstChunk: events.findIndex(
-      (url) => url !== LOAD_EVENT && chunkComesFrom(url, fixture.sources) && !speculative.has(url)
+    firstChunk: events.findIndex(isVisibleTaskChunk),
+    firstSpeculativePreload: events.findIndex(
+      (url) => speculative.has(url) && !isVisibleTaskChunk(url)
     ),
-    firstSpeculativePreload: events.findIndex((url) => speculative.has(url)),
     load: events.indexOf(LOAD_EVENT),
   };
 };

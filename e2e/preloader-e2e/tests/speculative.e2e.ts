@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, labelRequest } from '../utils/app';
+import { chunkComesFrom, chunkKind, labelRequest, ORIGIN, type ChunkKind } from '../utils/app';
 import { fixtureById, type Fixture } from '../utils/fixtures';
 import {
   countRoundTrips,
@@ -20,6 +20,7 @@ import { expectResult, fixtureRoot } from '../utils/scenarios';
 
 const ALL_AT_ONCE = '/all-at-once/';
 const CONDITIONAL_ALL = fixtureById('conditional/all');
+const IN_VIEW_AFTER_OFF_SCREEN = '/speculative/in-view/';
 const MAX_IDLE_PRELOADS = 25;
 const WITH_25_IDLE_PRELOADS: Fixture = {
   ...CONDITIONAL_ALL,
@@ -47,7 +48,9 @@ test.describe('queue', () => {
     expect(await maxSpeculativeInFlight(page)).toBe(1);
   });
 
-  test('no speculative preload starts while a needed preload is in flight', async ({ page }) => {
+  test('no speculative preload starts while a highest priority preload is in flight', async ({
+    page,
+  }) => {
     await recordSpeculativePreloads(page);
     const gate = await createGate(page);
     gate.holdWhilePassing = (url) => chunkComesFrom(url, [FILLER]);
@@ -58,17 +61,17 @@ test.describe('queue', () => {
     gate.holdWhilePassing = undefined;
     const linksBeforeTheClick = (await preloaderLinks(page)).length;
     const linksSinceTheClick = async () => (await preloaderLinks(page)).slice(linksBeforeTheClick);
-    const neededPreloadIsInFlight = async () => {
-      const needed = (await linksSinceTheClick())
+    const highestPriorityPreloadIsInFlight = async () => {
+      const highestPriority = (await linksSinceTheClick())
         .filter((link) => !link.speculative)
         .map((link) => link.href);
-      return gate.held.some((route) => needed.includes(route.request().url()));
+      return gate.held.some((route) => highestPriority.includes(route.request().url()));
     };
     await countRoundTrips(
       page,
       gate,
       () => fixtureRoot(page, WITH_25_IDLE_PRELOADS).locator('[data-testid=trigger]').click(),
-      neededPreloadIsInFlight
+      highestPriorityPreloadIsInFlight
     );
     await release(fillerPreloads);
     await settle(page, gate);
@@ -81,7 +84,9 @@ test.describe('queue', () => {
     await expectResult(page, WITH_25_IDLE_PRELOADS);
     expect(startedMeanwhile).toEqual([]);
   });
+});
 
+test.describe('handlers in view', () => {
   test('in-view click handlers are preloaded before off-screen ones', async ({ page }) => {
     await recordSpeculativePreloads(page);
     await waitForNetworkIdle(
@@ -105,10 +110,54 @@ test.describe('queue', () => {
     const firstOffScreen = fillerHandlers.findIndex((n) => n > inViewCount);
     expect(lastInView).toBeGreaterThanOrEqual(0);
     expect(firstOffScreen).toBeGreaterThanOrEqual(0);
-    test.fail(
-      true,
-      'on main, the speculative queue runs bottom-up, so off-screen handlers go first'
-    );
     expect(lastInView).toBeLessThan(firstOffScreen);
+  });
+
+  test("an in-view button's click handler is preloaded before an off-screen one that comes first in the HTML", async ({
+    page,
+  }) => {
+    await recordSpeculativePreloads(page);
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        await page.goto(IN_VIEW_AFTER_OFF_SCREEN);
+        await waitForQwikloader(page);
+      },
+      1500
+    );
+    const clickHandlers = (await preloaderLinks(page))
+      .filter((link) => link.speculative)
+      .map((link) => labelRequest(link.href).match(/in-view\/(.+)-button\.tsx_.*_q_e_click/)?.[1])
+      .filter((button) => button !== undefined);
+    expect(clickHandlers).toEqual(['in-view', 'off-screen']);
+  });
+});
+
+const KIND_ORDER: ChunkKind[] = ['handler', 'other-qrl', 'component'];
+
+test.describe('speculative order', () => {
+  test('handlers are preloaded first, then tasks and computeds, then components', async ({
+    page,
+  }) => {
+    await recordSpeculativePreloads(page);
+    let html = '';
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        html = await (await page.goto(ALL_AT_ONCE))!.text();
+        await waitForQwikloader(page);
+      },
+      1500
+    );
+    const [, chunkList] = html.match(/\.then\(\(\{p\}\)=>p\((\[[^\]]*\])\)\)/)!;
+    const namedByThePage = new Set(
+      (JSON.parse(chunkList) as string[]).map((name) => `${ORIGIN}/build/${name}`)
+    );
+    const kinds = (await preloaderLinks(page))
+      .filter((link) => link.speculative && namedByThePage.has(link.href))
+      .map((link) => chunkKind(link.href))
+      .filter((kind) => kind !== undefined);
+    expect(new Set(kinds)).toEqual(new Set(KIND_ORDER));
+    expect(kinds).toEqual([...kinds].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b)));
   });
 });

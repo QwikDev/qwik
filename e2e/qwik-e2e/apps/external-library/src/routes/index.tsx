@@ -1,5 +1,5 @@
 import { component$, useContextProvider, useStore } from '@qwik.dev/core';
-import { GreetingContext, LibCounter, LibLink, LibRequest } from 'e2e-library';
+import { GreetingContext, LibBindings, LibCounter, LibLink, LibRequest } from 'e2e-library';
 
 export default component$(() => {
   const greeting = useStore({ greeting: 'Hello from the app' });
@@ -8,6 +8,7 @@ export default component$(() => {
   return (
     <>
       <LibCounter />
+      <LibBindings />
       <LibLink href="/external-library/other/">other page</LibLink>
       <LibRequest />
     </>

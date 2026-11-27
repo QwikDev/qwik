@@ -113,7 +113,7 @@ describe('link prefetch observer', () => {
     observer.trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.5, undefined);
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
@@ -128,7 +128,24 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances[0].trigger(unmatched);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]', 0.5, undefined);
+    cleanup();
+  });
+
+  it('a visible link hints its route and every layout its attribute lists', () => {
+    const underNewLayouts = createAnchor('http://localhost/docs/intro/', 'b', '/docs/intro');
+    underNewLayouts.setAttribute('data-q-layouts', 'DocsLayout GuideLayout');
+    const underTheSameLayouts = createAnchor('http://localhost/next/', 'b', '/next');
+
+    const cleanup = createObserver();
+    MockIntersectionObserver.instances[0].trigger(underNewLayouts);
+    MockIntersectionObserver.instances[0].trigger(underTheSameLayouts);
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/docs/intro', 0.5, [
+      'DocsLayout',
+      'GuideLayout',
+    ]);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next', 0.5, undefined);
     cleanup();
   });
 

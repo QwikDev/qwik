@@ -1,15 +1,14 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
 import type { Signal } from '../reactive-primitives/signal.public';
-import { componentQrl, type Component } from '../shared/component.public';
+import { component$, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
-import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QFallbackSlot,
@@ -19,18 +18,18 @@ import {
 import { ERROR_CONTEXT, type CatchStore } from '../shared/error/error-handling';
 import { openSlotProjection } from '../ssr/ssr-render-slot';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
+import { canRevealRegistration } from '../shared/utils/reveal';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment } from '../ssr/ssr-types';
-import { useComputedQrl } from '../use/use-computed';
+import { useComputed$ } from '../use/use-computed';
 import { tryGetInvokeContext, untrack } from '../use/use-core';
-import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
+import { useCursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
-import { useTaskQrl, type TaskCtx } from '../use/use-task';
-import { revealCanReveal, useRevealBoundary, type RevealRegistration } from './reveal';
+import { useTask$ } from '../use/use-task-dollar';
+import { useRevealBoundary, type RevealRegistration } from './reveal';
 import {
   isOutOfOrderStreaming,
   nextOutOfOrderPendingId,
-  PENDING_QRL_SYMBOL,
   type OutOfOrderRevealBoundary,
 } from './pending-utils';
 
@@ -66,147 +65,140 @@ const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
 });
 const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
-/** @internal */
-export const pendingTask = ({ track, cleanup }: TaskCtx) => {
-  const cursorBoundary = _capturesObj._![0] as CursorBoundary,
-    props = _capturesObj._![1] as { delay?: number },
-    state = _capturesObj._![2] as Signal<PendingState>,
-    revealRegistration = _capturesObj._![3] as RevealRegistration | null;
-  const pendingCount = track(cursorBoundary);
-  const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
-  if (revealRegistration !== null && isBrowserEnv) {
-    revealRegistration.reveal.version.value++;
-  }
-  if (!isBrowserEnv || pendingCount === 0) {
-    state.value = 'content';
-    return;
-  }
-  const delayTimer = setTimeout(() => {
-    if (cursorBoundary.value > 0) {
-      state.value = 'fallback';
+/** @public @experimental */
+export const Pending: Component<PendingProps> = /*#__PURE__*/ component$<PendingProps>(
+  (props): JSXNodeInternal<string>[] => {
+    if (!__EXPERIMENTAL__.pendingBoundary) {
+      throw new Error(
+        'Pending is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
+      );
     }
-  }, props.delay ?? 0);
-  cleanup(() => clearTimeout(delayTimer));
-};
 
-/** @internal */
-export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
-  if (!__EXPERIMENTAL__.pendingBoundary) {
-    throw new Error(
-      'Pending is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
-    );
-  }
+    const state = useSignal<PendingState>('content');
+    const cursorBoundary = useCursorBoundary();
+    const revealRegistration = useRevealBoundary(cursorBoundary);
+    const canReveal = useComputed$(() => {
+      // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
+      if (revealRegistration !== null && revealRegistration.reveal.version.value < 0) {
+        return false;
+      }
+      if (qTest ? isServerPlatform() : !isBrowser) {
+        const ooos = revealRegistration?.reveal.ooos;
+        if (ooos) {
+          return ooos.canReveal(revealRegistration);
+        }
+      }
+      return canRevealRegistration(revealRegistration);
+    });
 
-  const state = useSignal<PendingState>('content');
-  const cursorBoundary = useCursorBoundary();
-  const revealRegistration = useRevealBoundary(cursorBoundary);
-  const canReveal = useComputedQrl(
-    /*#__PURE__*/ inlinedQrl(revealCanReveal, '_reR', [revealRegistration])
-  );
+    useTask$(({ track, cleanup }) => {
+      const pendingCount = track(cursorBoundary);
+      const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
+      if (revealRegistration !== null && isBrowserEnv) {
+        revealRegistration.reveal.version.value++;
+      }
+      if (!isBrowserEnv || pendingCount === 0) {
+        state.value = 'content';
+        return;
+      }
+      const delayTimer = setTimeout(() => {
+        if (cursorBoundary.value > 0) {
+          state.value = 'fallback';
+        }
+      }, props.delay ?? 0);
+      cleanup(() => clearTimeout(delayTimer));
+    });
 
-  useTaskQrl(
-    /*#__PURE__*/ inlinedQrl(pendingTask, '_peT', [
-      cursorBoundary,
-      props,
-      state,
-      revealRegistration,
-    ])
-  );
-
-  const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  // Reconcile restored SSR state when no client work is pending.
-  if (!isServerEnv && untrack(() => cursorBoundary.value) === 0) {
-    state.value = 'content';
-  }
-  const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
-  const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderPendingId() : 0;
-  const outOfOrderRevealBoundary = isServerOutOfOrder
-    ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
-    : null;
-  const showOutOfOrderFallback =
-    isServerOutOfOrder &&
-    untrack(() => props.fallback$ != null) &&
-    (outOfOrderRevealBoundary === null || outOfOrderRevealBoundary.showFallback);
-  const outOfOrderBoundaryState =
-    showOutOfOrderFallback && isPositiveDelay(props.delay)
-      ? { contentResolved: false, delay: props.delay, delayTimer: null }
+    const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+    // Reconcile restored SSR state when no client work is pending.
+    if (!isServerEnv && untrack(() => cursorBoundary.value) === 0) {
+      state.value = 'content';
+    }
+    const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
+    const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderPendingId() : 0;
+    const outOfOrderRevealBoundary = isServerOutOfOrder
+      ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
       : null;
-  const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
-  const fallback = props.fallback$
-    ? /*#__PURE__*/ _jsxSorted(
-        Slot,
-        null,
-        { name: QFallbackSlot },
-        (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())(),
-        1,
-        null
-      )
-    : null;
-
-  const fallbackHost = /*#__PURE__*/ _jsxSorted(
-    'div',
-    {
-      style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
-    },
-    null,
-    fallback,
-    1,
-    null
-  );
-
-  return [
-    (isServerOutOfOrder
+    const showOutOfOrderFallback =
+      isServerOutOfOrder &&
+      untrack(() => props.fallback$ != null) &&
+      (outOfOrderRevealBoundary === null || outOfOrderRevealBoundary.showFallback);
+    const outOfOrderBoundaryState =
+      showOutOfOrderFallback && isPositiveDelay(props.delay)
+        ? { contentResolved: false, delay: props.delay, delayTimer: null }
+        : null;
+    const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
+    const fallback = props.fallback$
       ? /*#__PURE__*/ _jsxSorted(
-          SSRFallback,
-          {
-            boundary: outOfOrderBoundaryState,
-            showFallback: showOutOfOrderFallback,
-            state,
-          },
+          Slot,
           null,
-          fallbackHost,
+          { name: QFallbackSlot },
+          (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())(),
           1,
           null
         )
-      : fallbackHost) as JSXNodeInternal<string>,
-    /*#__PURE__*/ _jsxSorted(
+      : null;
+
+    const fallbackHost = /*#__PURE__*/ _jsxSorted(
       'div',
+      {
+        style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
+      },
       null,
-      isServerOutOfOrder
-        ? {
-            [QPendingResultParent]: String(outOfOrderBoundaryId),
-            style: contentStyle,
-          }
-        : {
-            style: contentStyle,
-          },
-      /*#__PURE__*/ _jsxSorted(
-        isServerOutOfOrder ? SSRDeferredSlot : Slot,
-        isServerOutOfOrder
-          ? {
-              [QCursorBoundary]: cursorBoundary,
-              boundary: outOfOrderBoundaryState,
-              boundaryId: outOfOrderBoundaryId,
-              contentStyle,
-              reveal: outOfOrderRevealBoundary,
-            }
-          : {
-              [QCursorBoundary]: cursorBoundary,
-            },
-        null,
-        null,
-        3,
-        'u6_0'
-      ),
+      fallback,
       1,
       null
-    ),
-  ];
-};
+    );
 
-/** @public @experimental */
-export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<PendingProps>(
-  /*#__PURE__*/ inlinedQrl(pendingCmp, PENDING_QRL_SYMBOL)
+    return [
+      (isServerOutOfOrder
+        ? /*#__PURE__*/ _jsxSorted(
+            SSRFallback,
+            {
+              boundary: outOfOrderBoundaryState,
+              showFallback: showOutOfOrderFallback,
+              state,
+            },
+            null,
+            fallbackHost,
+            1,
+            null
+          )
+        : fallbackHost) as JSXNodeInternal<string>,
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        null,
+        isServerOutOfOrder
+          ? {
+              [QPendingResultParent]: String(outOfOrderBoundaryId),
+              style: contentStyle,
+            }
+          : {
+              style: contentStyle,
+            },
+        /*#__PURE__*/ _jsxSorted(
+          isServerOutOfOrder ? SSRDeferredSlot : Slot,
+          isServerOutOfOrder
+            ? {
+                [QCursorBoundary]: cursorBoundary,
+                boundary: outOfOrderBoundaryState,
+                boundaryId: outOfOrderBoundaryId,
+                contentStyle,
+                reveal: outOfOrderRevealBoundary,
+              }
+            : {
+                [QCursorBoundary]: cursorBoundary,
+              },
+          null,
+          null,
+          3,
+          'u6_0'
+        ),
+        1,
+        null
+      ),
+    ];
+  }
 );
 
 type SSRFallbackProps = {

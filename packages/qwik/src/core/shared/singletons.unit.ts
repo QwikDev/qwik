@@ -140,7 +140,9 @@ describe('duplicate core copies share runtime state', async () => {
   });
 
   test('QRL import errors are recognized by the other copy without mutating them', async () => {
-    const importFailure = Object.freeze(new Error('Failed to fetch dynamically imported module'));
+    const importFailure = Object.freeze(
+      new TypeError('Failed to fetch dynamically imported module')
+    );
     const handler = first.qrl(() => Promise.reject(importFailure), 's_failedImport');
 
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

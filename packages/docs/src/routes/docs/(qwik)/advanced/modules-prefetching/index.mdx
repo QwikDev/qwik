@@ -38,11 +38,11 @@ For our "Add to cart" example, the optimizer collects the symbols only for the c
 
 The preloader is the part of Qwik that decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any event handlers on the page, as well as their dependencies.
 
-This is done probabilistically based on various metrics, including the real-use metrics collected from [Insights](/docs/labs/insights/)
+Code the user is about to need goes first: what a click or a navigation asks for, then what is under the pointer or has the focus, then what is in view, then the rest of the page, then the pages its visible links point to. Inside each of these, event handlers go first, then tasks and computeds, then components. Real-use metrics collected from [Insights](/docs/labs/insights/) decide which code is bundled together.
 
-To give an example, suppose we have two event handlers, one an `onClick` handler and the other a `beforePrint` handler. The click handler is much more likely to be used than the print handler, so Qwik will prefetch the click handler with a higher probability. Furthermore if both handlers are importing the Qwik core bundle, that core bundle is more important than either of the event handlers, and will be prefetched first.
+To give an example, suppose a page has an `onClick$` handler, a `useTask$` and a few components. Qwik prefetches the click handler's code first, together with the code it imports, such as the Qwik core bundle. The task's code comes next, and the components' code last, since a component the server rendered only runs again when it re-renders.
 
-During execution, new segments of code are imported and they each impact the probability of the segments to be loaded.
+During execution, when Qwik creates or runs a segment, it moves that segment's code and what it imports ahead of the rest.
 
 Only `$()` segments are part of this graph. A regular dynamic `import()` in your code or in a library is never preloaded by Qwik; you (or the library) are responsible for its timing, for example with `<link rel="modulepreload">` or by calling `import()` early. Once the imported code runs, its own `$()` segments join the preloading as usual.
 
@@ -74,7 +74,7 @@ No, for several reasons:
 - Qwik only prefetches the code which is needed for the current page. Qwik avoids downloading code associated with components that are static.  In scenarios where more code needs prefetching, Qwik still only reaches the volume that existing frameworks consider their best case. In most cases, Qwik prefetches a small fraction of code compared to the existing frameworks.
 - Prefetching of code can happen on other threads than the main thread. Many browsers can even pre-parse the AST of the code off the main thread.
 - If the user interaction happens before the prefetch is completed, the browser will automatically prioritize the interaction chunk before the remaining prefetch chunks.
-- Qwik can break up the application into many small chunks, and these chunks can be downloaded in the order of probability that the user will interact with them. Existing frameworks have trouble breaking up applications into small chunks, and there is no easy way to prioritize the chunk download order because hydration requires a single "main" entry point to the application.
+- Qwik can break up the application into many small chunks, and these chunks can be downloaded in the order the user is likely to need them. Existing frameworks have trouble breaking up applications into small chunks, and there is no easy way to prioritize the chunk download order because hydration requires a single "main" entry point to the application.
 
 **QUESTION**: _Who is responsible for knowing what code to prefetch?_
 

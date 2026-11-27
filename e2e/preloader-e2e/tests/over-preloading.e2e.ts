@@ -12,12 +12,6 @@ import {
 import { releaseAll } from '../utils/gate';
 import { coldClick, expectResult, openFixture } from '../utils/scenarios';
 
-const TASK_SHIPS_WITH_ITS_COMPONENT =
-  "on main, a task's segment is bundled in its component's chunk, so running the task fetches the component and every chunk it reaches";
-
-const TASK_AND_INLINE_QRL_SHIP_WITH_THEIR_COMPONENT =
-  "on main, a task's segment and an inline $() segment are bundled in their component's chunk, so running them fetches the component and every chunk it reaches";
-
 const componentChunksFetchedByClick = async (page: Page, fixture: Fixture) => {
   const roundTrips = await coldClick(page, fixture);
   return roundTrips.flatMap((roundTrip) => roundTrip.urls).filter(chunkHasComponent);
@@ -45,7 +39,6 @@ test.describe('over-preloading', () => {
       page,
     }) => {
       const componentChunks = await componentChunksFetchedByClick(page, CLICK_RUNS_TASK);
-      test.fail(true, TASK_SHIPS_WITH_ITS_COMPONENT);
       expect(componentChunks).toEqual([]);
     });
 
@@ -56,7 +49,6 @@ test.describe('over-preloading', () => {
         page,
         CLICK_RUNS_TASK_CALLING_QRL
       );
-      test.fail(true, TASK_AND_INLINE_QRL_SHIP_WITH_THEIR_COMPONENT);
       expect(componentChunks).toEqual([]);
     });
   });
@@ -72,7 +64,6 @@ test.describe('over-preloading', () => {
       page,
     }) => {
       const componentChunks = await componentChunksFetchedAtPageLoad(page, VISIBLE_TASK_RUNS_TASK);
-      test.fail(true, TASK_SHIPS_WITH_ITS_COMPONENT);
       expect(componentChunks).toEqual([]);
     });
 
@@ -83,7 +74,6 @@ test.describe('over-preloading', () => {
         page,
         VISIBLE_TASK_RUNS_TASK_CALLING_QRL
       );
-      test.fail(true, TASK_AND_INLINE_QRL_SHIP_WITH_THEIR_COMPONENT);
       expect(componentChunks).toEqual([]);
     });
   });

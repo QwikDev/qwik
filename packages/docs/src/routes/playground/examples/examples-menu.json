@@ -1,0 +1,110 @@
+[
+  {
+    "id": "introduction",
+    "title": "Introduction",
+    "apps": [
+      {
+        "id": "hello-world",
+        "title": "Hello World",
+        "description": "Greet whoever types in the input.",
+        "icon": "👋"
+      },
+      {
+        "id": "runtime-less",
+        "title": "Runtime-less",
+        "description": "An interactive app without runtime.",
+        "icon": "🪶"
+      },
+      {
+        "id": "static-html",
+        "title": "Static HTML",
+        "description": "Non-interactive code ships no JavaScript: look at the HTML.",
+        "icon": "📄"
+      }
+    ]
+  },
+  {
+    "id": "reactivity",
+    "title": "Reactivity",
+    "apps": [
+      {
+        "id": "task",
+        "title": "Simple useTask()",
+        "description": "Learn how to react to changes in variables.",
+        "icon": "👀"
+      },
+      {
+        "id": "counter",
+        "title": "Counter",
+        "description": "A simple standard counter example.",
+        "icon": "⏲"
+      },
+      {
+        "id": "auto-complete",
+        "title": "Auto-complete",
+        "description": "Auto-complete searching for Star Wars characters using the SWAPI API",
+        "icon": "🎬"
+      }
+    ]
+  },
+  {
+    "id": "streaming",
+    "title": "Streaming",
+    "apps": [
+      {
+        "id": "out-of-order",
+        "title": "Out-of-order streaming",
+        "description": "Send the page shell first, slow sections stream in later.",
+        "icon": "🌊"
+      },
+      {
+        "id": "reveal",
+        "title": "Reveal order",
+        "description": "Coordinate when Pending sections show their content.",
+        "icon": "🎴"
+      }
+    ]
+  },
+  {
+    "id": "errors",
+    "title": "Errors",
+    "apps": [
+      {
+        "id": "catch",
+        "title": "Catch errors",
+        "description": "Render a fallback when a component throws, then reset it.",
+        "icon": "🧯"
+      },
+      {
+        "id": "async-error",
+        "title": "Async errors",
+        "description": "Combine Pending and Catch for data that can fail.",
+        "icon": "💥"
+      }
+    ]
+  },
+  {
+    "id": "visibility",
+    "title": "Visibility",
+    "apps": [
+      {
+        "id": "clock",
+        "title": "Below the fold Clock",
+        "description": "Component which requires lazy initialization when it comes into view.",
+        "icon": "⏰"
+      }
+    ]
+  },
+  {
+    "id": "partial",
+    "title": "Partial",
+    "apps": [
+      {
+        "id": "hackernews-index",
+        "title": "HackerNews",
+        "description": "HackerNews landing page.",
+        "icon": "📰"
+      }
+    ]
+  }
+]

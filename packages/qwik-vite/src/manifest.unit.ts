@@ -19,8 +19,7 @@ describe('generateManifestFromBundles', () => {
   const generate = (
     bundles: Record<string, ReturnType<typeof chunk>>,
     qwikLoaderFileName?: string,
-    preloaderFileName?: string,
-    handlersFileName?: string
+    preloaderFileName?: string
   ) =>
     generateManifestFromBundles(
       path as any,
@@ -32,16 +31,14 @@ describe('generateManifestFromBundles', () => {
       (p) => p,
       () => null,
       qwikLoaderFileName,
-      preloaderFileName,
-      handlersFileName
+      preloaderFileName
     );
 
-  test('identifies core/preloader by group name and the loader by its emit file name', () => {
+  test('identifies the preloader by group name and the loader by its emit file name', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
-          '/app/node_modules/@qwik.dev/core/handlers.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
         ]),
         'q-loader.js': chunk('qwikloader', 'q-loader.js'),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
@@ -50,48 +47,39 @@ describe('generateManifestFromBundles', () => {
       'q-loader.js'
     );
 
-    expect(manifest.core).toBe('q-core.js');
     expect(manifest.qwikLoader).toBe('q-loader.js');
     expect(manifest.preloader).toBe('q-preloader.js');
-    expect(manifest.mapping['_run']).toBe('q-core.js');
-    expect(manifest.symbols['_run']?.origin).toBe('Qwik core');
   });
 
-  test('emitted preloader and handlers facades win over the group chunks', () => {
+  test('the emitted preloader facade wins over the group chunk', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
         ]),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
         'preloader.js': chunk('preloader', 'preloader.js'),
-        'handlers.js': chunk('handlers', 'handlers.js'),
       },
       undefined,
-      'preloader.js',
-      'handlers.js'
+      'preloader.js'
     );
 
-    expect(manifest.core).toBe('q-core.js');
     expect(manifest.preloader).toBe('preloader.js');
-    expect(manifest.mapping['_run']).toBe('handlers.js');
   });
 
   test('falls back to the group chunk when the emitted entry was merged into it', () => {
     const manifest = generate(
       {
-        'q-core.js': chunk('qwik-core', 'q-core.js', [
-          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        'q-core.js': chunk('core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
         ]),
         'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
       },
       undefined,
-      'build/preloader.js',
-      'build/handlers.js'
+      'build/preloader.js'
     );
 
     expect(manifest.preloader).toBe('q-preloader.js');
-    expect(manifest.mapping['_run']).toBe('q-core.js');
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {
@@ -107,7 +95,11 @@ describe('generateManifestFromBundles', () => {
   });
 
   test('records only segment dynamic imports as qrlImports', () => {
-    const page = { ...chunk('page', 'page.js'), modules: { '/app/page.tsx': {} } };
+    const page = {
+      ...chunk('page', 'page.js'),
+      code: 'qrl(() => import("./seg.js")); import("./lib.js");',
+      modules: { '/app/page.tsx': {} },
+    };
     page.dynamicImports = ['seg.js', 'lib.js'];
     const manifest = generateManifestFromBundles(
       path as any,
@@ -130,10 +122,123 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
   });
 
-  test('leaves core handler symbols unmapped when no qwik-core chunk exists', () => {
-    const manifest = generate({ 'q-app.js': chunk('app', 'q-app.js') });
-    expect(manifest.core).toBeUndefined();
-    expect(manifest.mapping['_run']).toBeUndefined();
+  test('points a qrl import of a re-exported segment at the facade chunk that exports it', () => {
+    // A segment like `$(importedFn)` lives in a group chunk; only its facade exports the symbol.
+    const page = {
+      ...chunk('page', 'page.js'),
+      code: 'qrl(() => import("./seg-entry.js"));',
+      modules: { '/app/page.tsx': {} },
+    };
+    page.dynamicImports = ['seg-entry.js'];
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'page.js': page,
+        'seg-entry.js': {
+          ...chunk('seg', 'seg-entry.js'),
+          imports: ['group.js'],
+          facadeModuleId: '/app/page.tsx_seg.js',
+        },
+        'group.js': { ...chunk('group', 'group.js'), modules: { '/app/page.tsx_seg.js': {} } },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        id === '/app/page.tsx'
+          ? ({ dynamicallyImportedIds: ['/app/page.tsx_seg.js'], meta: {} } as any)
+          : ({ dynamicallyImportedIds: [], meta: { segment: true } } as any)
+    );
+    expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg-entry.js']);
+    expect(manifest.bundles['seg-entry.js'].origins).toEqual([path.join('app', 'page.tsx_seg.js')]);
+  });
+
+  test('leaves out dynamic imports that tree-shaking removed from the code', () => {
+    // A library exports two components; the app uses only one, so the other's qrl() is gone.
+    const lib = {
+      ...chunk('lib', 'lib.js'),
+      code: 'export const Used = componentQrl(qrl(() => import("./used.js"), "s_used"));',
+      modules: { '/lib/index.qwik.mjs': {} },
+    };
+    lib.dynamicImports = ['used.js', 'unused.js'];
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'lib.js': lib,
+        'used.js': { ...chunk('used', 'used.js'), modules: { '/lib/index.qwik.mjs_used.js': {} } },
+        'unused.js': {
+          ...chunk('unused', 'unused.js'),
+          modules: { '/lib/index.qwik.mjs_unused.js': {} },
+        },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        id === '/lib/index.qwik.mjs'
+          ? ({
+              dynamicallyImportedIds: [
+                '/lib/index.qwik.mjs_used.js',
+                '/lib/index.qwik.mjs_unused.js',
+              ],
+              meta: {},
+            } as any)
+          : ({ dynamicallyImportedIds: [], meta: { segment: true } } as any)
+    );
+    expect(manifest.bundles['lib.js'].dynamicImports).toEqual(['used.js']);
+    expect(manifest.bundles['lib.js'].qrlImports).toEqual(['used.js']);
+  });
+
+  test("does not keep an import whose file name ends another import's file name", () => {
+    const lib = {
+      ...chunk('lib', 'lib.js'),
+      code: 'export const Unused = componentQrl(qrl(() => import("./unused.js"), "s_unused"));',
+      modules: { '/lib/index.qwik.mjs': {} },
+    };
+    lib.dynamicImports = ['used.js', 'unused.js'];
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'lib.js': lib,
+        'used.js': { ...chunk('used', 'used.js'), modules: { '/lib/index.qwik.mjs_used.js': {} } },
+        'unused.js': {
+          ...chunk('unused', 'unused.js'),
+          modules: { '/lib/index.qwik.mjs_unused.js': {} },
+        },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        id === '/lib/index.qwik.mjs'
+          ? ({
+              dynamicallyImportedIds: [
+                '/lib/index.qwik.mjs_used.js',
+                '/lib/index.qwik.mjs_unused.js',
+              ],
+              meta: {},
+            } as any)
+          : ({ dynamicallyImportedIds: [], meta: { segment: true } } as any)
+    );
+    expect(manifest.bundles['lib.js'].dynamicImports).toEqual(['unused.js']);
+    expect(manifest.bundles['lib.js'].qrlImports).toEqual(['unused.js']);
+  });
+
+  test('lists core among the imports of the bundles that need it, like any bundle', () => {
+    const app = { ...chunk('app', 'q-app.js'), imports: ['q-core.js'] };
+    const manifest = generate({
+      'q-core.js': chunk('core', 'q-core.js', [
+        '/app/node_modules/@qwik.dev/core/dist/core.prod.qwik.mjs',
+      ]),
+      'q-app.js': app,
+    });
+    expect(manifest.bundles['q-app.js'].imports).toEqual(['q-core.js']);
   });
 });
 

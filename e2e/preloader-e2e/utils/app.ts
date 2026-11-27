@@ -11,11 +11,10 @@ export const PORT = 4318;
 export const ORIGIN = `https://localhost:${PORT}`;
 
 type Manifest = {
-  core?: string;
   preloader?: string;
   bundleGraphAsset?: string;
   bundles: Record<string, { origins?: string[]; symbols?: string[]; imports?: string[] }>;
-  symbols: Record<string, { ctxName?: string }>;
+  symbols: Record<string, { ctxName?: string; ctxKind?: string }>;
 };
 
 let manifest: Manifest | undefined;
@@ -23,41 +22,15 @@ let manifest: Manifest | undefined;
 export const getManifest = (): Manifest =>
   (manifest ||= JSON.parse(readFileSync(join(APP_DIR, 'dist/q-manifest.json'), 'utf8')));
 
-let bundleGraph: Map<string, string[]> | undefined;
-
-const getBundleGraph = () => {
-  if (!bundleGraph) {
-    const path = join(APP_DIR, 'dist', getManifest().bundleGraphAsset!);
-    const flat: (string | number)[] = JSON.parse(readFileSync(path, 'utf8'));
-    bundleGraph = new Map();
-    let deps: string[] = [];
-    for (const item of flat) {
-      if (typeof item === 'string') {
-        deps = [];
-        bundleGraph.set(item, deps);
-      } else if (item >= 0) {
-        // Negative numbers are probability markers, not dependencies.
-        deps.push(flat[item] as string);
-      }
-    }
+export const getCoreBundle = () => {
+  const { bundles } = getManifest();
+  const coreBundle = Object.keys(bundles).find((file) =>
+    bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
+  );
+  if (!coreBundle) {
+    throw new Error('No bundle in q-manifest.json holds core');
   }
-  return bundleGraph;
-};
-
-/** What the preloader marks needed with `bundle`: everything it reaches in the bundle graph. */
-export const neededWith = (bundle: string) => {
-  const graph = getBundleGraph();
-  const needed = new Set<string>();
-  const pending = [bundle];
-  while (pending.length) {
-    for (const dep of graph.get(pending.pop()!) ?? []) {
-      if (!needed.has(dep)) {
-        needed.add(dep);
-        pending.push(dep);
-      }
-    }
-  }
-  return needed;
+  return coreBundle;
 };
 
 const SYMBOL_HASH = /_[A-Za-z0-9]{11}\.js$/;
@@ -91,6 +64,9 @@ export const chunkComesFrom = (url: string, paths: string[]) => {
   return origins.some((origin) => paths.some((path) => origin.startsWith(path)));
 };
 
+export const chunkHoldsModule = (url: string, path: string) =>
+  !!getManifest().bundles[bundleFile(url)]?.origins?.includes(path);
+
 export const chunkHoldsSegmentsFrom = (url: string, paths: string[]) =>
   chunkComesFrom(url, paths) && !!getManifest().bundles[bundleFile(url)]?.symbols?.length;
 
@@ -104,6 +80,28 @@ const chunkHasSymbolOf = (url: string, ctxName: string) => {
 export const chunkHasScopedStyles = (url: string) => chunkHasSymbolOf(url, 'useStylesScoped$');
 
 export const chunkHasComponent = (url: string) => chunkHasSymbolOf(url, 'component$');
+
+export const chunkHasVisibleTask = (url: string) => chunkHasSymbolOf(url, 'useVisibleTask$');
+
+export const chunkHasClickHandler = (url: string) => chunkHasSymbolOf(url, 'onClick$');
+
+export type ChunkKind = 'handler' | 'other-qrl' | 'component';
+
+export const chunkKind = (url: string): ChunkKind | undefined => {
+  const manifest = getManifest();
+  const symbols = (manifest.bundles[bundleFile(url)]?.symbols ?? [])
+    .map((symbol) => manifest.symbols[symbol])
+    .filter((symbol) => !!symbol);
+  if (!symbols.length) {
+    return undefined;
+  }
+  if (symbols.some((symbol) => symbol.ctxKind !== 'function')) {
+    return 'handler';
+  }
+  return symbols.every((symbol) => /^(component|useStyles)/.test(symbol.ctxName ?? ''))
+    ? 'component'
+    : 'other-qrl';
+};
 
 export const chunkHoldsTaskFrom = (url: string, file: string) =>
   (getManifest().bundles[bundleFile(url)]?.origins ?? []).some(

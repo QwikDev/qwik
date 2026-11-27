@@ -559,6 +559,85 @@ test.describe('qerror (client event channel)', () => {
       await expect(page.locator('#catch-content-touched')).toHaveText('0');
       expect(pageErrors).toEqual([]);
     });
+
+    test('a failed task chunk (chunk 404) leaves the boundary inert and fires qerror', async ({
+      page,
+    }) => {
+      const pageErrors = collectPageErrors(page);
+
+      await page.addInitScript(() => {
+        (window as any).__catchQErrors = [];
+        document.addEventListener('qerror', (e: any) => {
+          (window as any).__catchQErrors.push({
+            importError: e.detail?.importError ?? null,
+            symbol: e.detail?.symbol,
+          });
+        });
+      });
+
+      const blockedRequests: string[] = [];
+      await page.route(/\/build\/.*VisibleTaskThrower.*useVisibleTask.*\.js/, (route) => {
+        blockedRequests.push(route.request().url());
+        return route.abort();
+      });
+
+      await page.goto(routeUrl('visible-task'), { waitUntil: 'commit' });
+
+      await expect
+        .poll(() => page.evaluate(() => (window as any).__catchQErrors.length), { timeout: 10000 })
+        .toBeGreaterThanOrEqual(1);
+      expect(blockedRequests.length).toBeGreaterThan(0);
+
+      const qErrors: { importError: string | null; symbol: string }[] = await page.evaluate(
+        () => (window as any).__catchQErrors
+      );
+      expect(qErrors.filter((qError) => qError.importError !== 'async')).toEqual([]);
+      expect(qErrors[0].symbol).toContain('useVisibleTask');
+
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
+      await expect(page.locator('[role="alert"]')).toHaveCount(0);
+      await expect(page.locator('#catch-content')).toBeVisible();
+      expect(pageErrors).toEqual([]);
+    });
+
+    test.describe('a banner the developer adds with a plain qerror listener', () => {
+      test("shows when a click's chunk fails to download", async ({ page }) => {
+        await page.route(/\/build\/.*ChunkFailedContent.*q_e_click.*\.js/, (route) =>
+          route.abort()
+        );
+        await page.goto(routeUrl('chunk-failed-banner'), { waitUntil: 'commit' });
+        await expect(page.locator('#chunk-failed-visible-task-runs')).toHaveText('1');
+        await expect(page.locator('#chunk-failed-banner')).toBeHidden();
+
+        await page.locator('#chunk-failed-click').click();
+
+        await expect(page.locator('#chunk-failed-banner')).toBeVisible();
+        await expect(page.locator('#chunk-failed-clicks')).toHaveText('0');
+        await expect(page.locator('#catch-fallback')).toHaveCount(0);
+      });
+
+      test("shows when a task's chunk fails to download", async ({ page }) => {
+        await page.route(/\/build\/.*ChunkFailedContent.*useVisibleTask.*\.js/, (route) =>
+          route.abort()
+        );
+        await page.goto(routeUrl('chunk-failed-banner'), { waitUntil: 'commit' });
+
+        await expect(page.locator('#chunk-failed-banner')).toBeVisible();
+        await expect(page.locator('#chunk-failed-visible-task-runs')).toHaveText('0');
+        await expect(page.locator('#catch-content')).toBeVisible();
+        await expect(page.locator('#catch-fallback')).toHaveCount(0);
+      });
+
+      test('stays hidden when an event handler throws', async ({ page }) => {
+        await page.goto(routeUrl('chunk-failed-banner'), { waitUntil: 'commit' });
+        await expect(page.locator('#chunk-failed-visible-task-runs')).toHaveText('1');
+
+        await page.locator('#chunk-failed-throw').click();
+
+        await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: handler boom');
+        await expect(page.locator('#chunk-failed-banner')).toBeHidden();
+      });
+    });
   });
 });
 

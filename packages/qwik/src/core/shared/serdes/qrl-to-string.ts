@@ -8,6 +8,7 @@ import {
   type QRLInternal,
   type SyncQRLInternal,
 } from '../qrl/qrl-class';
+import { toCoreHandlerQrl } from '../qrl/handler-qrls';
 import { isSyncQrl } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
@@ -29,6 +30,39 @@ export function qrlToString(
   qrl: QRLInternal | SyncQRLInternal,
   raw?: true
 ): string | [string, string, string | null] {
+  if (!isSyncQrl(qrl)) {
+    qrl = toCoreHandlerQrl(qrl);
+  }
+  const [chunk, symbol] = resolveChunkAndSymbol(serializationContext, qrl);
+  const captures = qrl.getCaptured();
+
+  let captureDeltas: string | null = null;
+  if (captures && captures.length > 0) {
+    // We refer by id so every capture needs to be a root
+    let previous = 0;
+    let output = '';
+    for (let i = 0; i < captures.length; i++) {
+      const captureId = serializationContext.$addRoot$(captures[i]);
+      const delta = captureId - previous;
+      previous = captureId;
+      output += (i === 0 ? '' : ' ') + delta;
+    }
+    captureDeltas = output;
+  }
+  if (raw) {
+    return [chunk, symbol, captureDeltas];
+  }
+  let qrlStringInline = `${chunk}#${symbol}`;
+  if (captureDeltas) {
+    qrlStringInline += `#${captureDeltas}`;
+  }
+  return qrlStringInline;
+}
+
+function resolveChunkAndSymbol(
+  serializationContext: SerializationContext,
+  qrl: QRLInternal | SyncQRLInternal
+): [chunk: string, symbol: string] {
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
 
@@ -72,41 +106,26 @@ export function qrlToString(
     // TODO test that provided stringified fn is used
     symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
-
-  const captures = qrl.getCaptured();
-
-  let captureDeltas: string | null = null;
-  if (captures && captures.length > 0) {
-    // We refer by id so every capture needs to be a root
-    let previous = 0;
-    let output = '';
-    for (let i = 0; i < captures.length; i++) {
-      const captureId = serializationContext.$addRoot$(captures[i]);
-      const delta = captureId - previous;
-      previous = captureId;
-      output += (i === 0 ? '' : ' ') + delta;
-    }
-    captureDeltas = output;
-  }
-  if (raw) {
-    return [chunk, symbol, captureDeltas];
-  }
-  let qrlStringInline = `${chunk}#${symbol}`;
-  if (captureDeltas) {
-    qrlStringInline += `#${captureDeltas}`;
-  }
-  return qrlStringInline;
+  return [chunk, symbol];
 }
 
-/** @internal */
+/**
+ * @param importedWith - A QRL whose chunk the qwikloader imports together with this QRL's chunk. It
+ *   follows the captures as a fourth `#` field.
+ * @internal
+ */
 export function qrlToChunks(
   serializationContext: SerializationContext,
-  qrl: QRLInternal | SyncQRLInternal
+  qrl: QRLInternal | SyncQRLInternal,
+  importedWith?: QRLInternal
 ): string | SSRWriteChunk[] {
   const [chunk, symbol, captures] = qrlToString(serializationContext, qrl, true);
+  const otherChunk = importedWith && resolveChunkAndSymbol(serializationContext, importedWith)[0];
+  // '_' is the chunk of a symbol that has no file to import
+  const otherChunks = otherChunk && otherChunk !== '_' && otherChunk !== chunk ? otherChunk : '';
   const prefix = `${chunk}#${symbol}`;
   if (!captures) {
-    return prefix;
+    return otherChunks ? `${prefix}##${otherChunks}` : prefix;
   }
   const chunks: SSRWriteChunk[] = [prefix, '#'];
   let previousCaptureId = 0;
@@ -125,6 +144,9 @@ export function qrlToChunks(
       }
       start = i + 1;
     }
+  }
+  if (otherChunks) {
+    chunks.push(`#${otherChunks}`);
   }
   return chunks;
 }
@@ -147,15 +169,19 @@ export function createQRLWithBackChannel(
   return createQRL(chunk, symbol, null, qrlImporter, captures, container);
 }
 
-/** Parses "chunk#hash#...captureDelta" */
+/** Parses "chunk#hash#...captureDelta#...otherChunk", the other chunks are for qwikloader only */
 export function parseQRL(qrl: string, container?: Container): QRLInternal<any> {
   const firstHash = qrl.indexOf('#');
   const secondHash = qrl.indexOf('#', firstHash + 1);
   const chunk = qrl.slice(0, firstHash);
   const symbol =
     secondHash === -1 ? qrl.slice(firstHash + 1) : qrl.slice(firstHash + 1, secondHash);
+  const thirdHash = secondHash === -1 ? -1 : qrl.indexOf('#', secondHash + 1);
+  const capturesEnd = thirdHash === -1 ? qrl.length : thirdHash;
   const captures =
-    secondHash !== -1 && secondHash + 1 < qrl.length ? qrl.slice(secondHash + 1) : null;
+    secondHash !== -1 && secondHash + 1 < capturesEnd
+      ? qrl.slice(secondHash + 1, capturesEnd)
+      : null;
   return createQRLWithBackChannel(chunk, symbol, captures, container);
 }
 

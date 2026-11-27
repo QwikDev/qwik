@@ -10,9 +10,11 @@
 
 name: Qwik CI
 
+# PRs cancel stale runs. Branch pushes queue instead, so merges that land during a run are
+# tested together by the next one. Manual releases never share a queue, or a push could drop them.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 on:
   pull_request:
@@ -780,7 +782,7 @@ jobs:
 
   ############ DOCS E2E TEST ############
   test-e2e-docs:
-    timeout-minutes: 15
+    timeout-minutes: 30
     name: Docs E2E Tests (shard ${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }})
     if: ${{ !cancelled() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true' }}
     needs:

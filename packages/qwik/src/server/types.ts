@@ -21,13 +21,16 @@ export interface SerializeDocumentOptions {
 export interface PreloaderOptions {
   /**
    * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
-   * bundles before the preloader script is active. This most likely includes the core and the
-   * preloader script itself. Setting this to 0 will disable all preload links.
+   * bundles before the preloader script is active: the first ones the preloader would fetch for the
+   * page, in its order: handlers and what they import first. Setting this to 0 will disable these
+   * links.
    *
    * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
    * a Core Web Vital but more noticeable to the user.
    *
-   * Defaults to `0`, so speculative preloading starts once the page is loaded.
+   * Defaults to `0`, so speculative preloading starts once the page is loaded. Core and the bundles
+   * of its handlers that the page's events and tasks run through are always linked, as the page
+   * streams: every interaction needs them.
    */
   ssrPreloads?: number;
   /**
@@ -36,8 +39,12 @@ export interface PreloaderOptions {
    * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
    * longer to be preloaded.
    *
-   * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
-   * immediately, no limit.
+   * Highest priority bundles (what a running QRL needs, with its static imports) will always be
+   * preloaded immediately, no limit.
+   *
+   * `0` stops the preloader from starting speculative preloads in the browser. An interaction that
+   * needs code which has not loaded yet then waits for its download. The links from `ssrPreloads`
+   * are separate and still go out.
    *
    * Defaults to `25`
    */
@@ -146,14 +153,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
 
   /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
   preloader?: PreloaderOptions | false;
-
-  /**
-   * Root-count threshold for eager yielded state prewarm during client resume.
-   *
-   * Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when
-   * serialized state has at least that many roots.
-   */
-  statePrewarm?: number | false;
 
   /**
    * When set, the app is serialized into a fragment. And the returned html is not a complete

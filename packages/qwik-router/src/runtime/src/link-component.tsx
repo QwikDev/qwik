@@ -1,9 +1,12 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
-import { matchRouteTree } from './routing';
+import { getLayoutKeys, getNewLayoutKeys, matchRouteTree } from './routing';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
+
+const INTENT_PRIORITY = 0.9;
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -46,9 +49,25 @@ export const Link = component$<LinkProps>((props) => {
       prefetchProp === true);
 
   // The bundle graph is keyed by route name (`product/[id]/`), which needs the route tree
-  const routes = shouldVisiblePrefetchBundles && findRouterConfig()?.routes;
+  const routes = !!clientNavPath && findRouterConfig()?.routes;
   const route =
-    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
+    routes &&
+    untrack(() => {
+      try {
+        return matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname);
+      } catch {
+        return undefined;
+      }
+    });
+  const newLayoutKeys =
+    shouldVisiblePrefetchBundles && routes && route && !route.notFound
+      ? untrack(() =>
+          getNewLayoutKeys(
+            getLayoutKeys(matchRouteTree(routes, loc.url.pathname).loaders),
+            getLayoutKeys(route.loaders)
+          )
+        )
+      : undefined;
 
   const shouldPrefetchBundles =
     !!clientNavPath &&
@@ -67,7 +86,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchRoute(url, false, 0.8);
+          prefetchRoute(url, false, INTENT_PRIORITY);
         }
       })
     : null;
@@ -124,8 +143,11 @@ export const Link = component$<LinkProps>((props) => {
     : null;
 
   const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
-    const url = new URL(elm.href);
-    prefetchRoute(url, false, 1);
+    const routeName = elm.getAttribute('data-q-route');
+    if (routeName) {
+      preloadRouteBundles(routeName, 1);
+    }
+    prefetchRoute(new URL(elm.href), false, 1);
   });
 
   return (
@@ -143,6 +165,7 @@ export const Link = component$<LinkProps>((props) => {
               : null
       }
       data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
+      data-q-layouts={newLayoutKeys?.length ? newLayoutKeys.join(' ') : undefined}
       onClick$={[
         preventDefault,
         handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.
@@ -152,12 +175,12 @@ export const Link = component$<LinkProps>((props) => {
       onPointerEnter$={[
         linkProps.onPointerEnter$,
         prefetchDataProp === 'intent' ? prefetchData : null,
-        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+        prefetchBundlesProp === 'commit' ? null : handleBundlePrefetch,
       ]}
       onFocus$={[
         linkProps.onFocus$,
         prefetchDataProp === 'intent' ? prefetchData : null,
-        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+        prefetchBundlesProp === 'commit' ? null : handleBundlePrefetch,
       ]}
       onPointerDown$={[
         linkProps.onPointerDown$,
@@ -195,7 +218,8 @@ export interface LinkProps extends AnchorAttributes {
    * Controls when Qwik should prefetch the javascript bundles required to render this **`Link`**
    * target during client-side navigation.
    *
-   * Defaults to **`"visible"`**.
+   * Defaults to **`"visible"`**. A link that prefetches when visible is hinted again, ahead of the
+   * others, when the user hovers or focuses it.
    *
    * Prefetching will not occur if the user has the **data saver** setting enabled.
    */

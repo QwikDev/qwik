@@ -19,13 +19,14 @@ exports[`injectCollectHooks > matches snapshot of transformed output 1`] = `
   useStylesScoped$,
   createContextId,
   Resource,
-  useAsyncComputed$,
   useSerializer$,
   useConstant,
   useOn,
-  useServerData
+  useServerData,
+  isServer,
+  useVisibleTask$
 } from '@qwik.dev/core';
-import { _getDomContainer, isServer, useVisibleTask$ } from '@qwik.dev/core/internal';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import type { QRL, Signal } from '@qwik.dev/core';
 import { useLocation, useNavigate, Link, useContent, useDocumentHead } from '@qwik.dev/router';
 import { useDebouncer } from './debounce';
@@ -82,9 +83,9 @@ export default component$<ButtonProps>((props) => { const collecthook = useColle
     }
   }); collecthook({ variableName: 'qwikContainer', hookType: 'useComputed', category: 'VariableDeclarator', data: qwikContainer });
 
-  const asyncComputedValue =  useAsyncComputed$(({ track }) =>
+  const asyncComputedValue =  useComputed$(({ track }) =>
     Promise.resolve(track(signal) + 3),
-  ); collecthook({ variableName: 'asyncComputedValue', hookType: 'useAsyncComputed', category: 'VariableDeclarator', data: asyncComputedValue });
+  ); collecthook({ variableName: 'asyncComputedValue', hookType: 'useComputed', category: 'VariableDeclarator', data: asyncComputedValue });
                                                                                                                                       
   useContextProvider(ButtonContext, {
     theme: 'primary',

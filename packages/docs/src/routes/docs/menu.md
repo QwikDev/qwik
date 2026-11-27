@@ -31,7 +31,6 @@
 
 - [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
 - [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
-- [State Prewarm](</docs/(qwik)/advanced/state-prewarm/index.mdx>)
 - [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
 - [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
 - [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
@@ -42,6 +41,7 @@
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Synchronous Events with State](</docs/(qwik)/advanced/sync-events/index.mdx>)
+- [Failed chunk downloads](</docs/(qwik)/advanced/failed-chunks/index.mdx>)
 - [Advanced Routing](</docs/(qwikrouter)/advanced/routing/index.mdx>)
 - [Qwik Plugins](</docs/(qwikrouter)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikrouter)/advanced/request-handling/index.mdx>)

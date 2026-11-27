@@ -15,8 +15,8 @@
     "launch-editor": "^2.14.2",
     "magic-regexp": "^0.11.0",
     "magic-string": "^0.30.21",
-    "oxc-parser": "^0.144.0",
-    "oxc-transform": "^0.144.0",
+    "oxc-parser": "^0.158.0",
+    "oxc-transform": "^0.158.0",
     "oxc-walker": "^1.1.1",
     "pathe": "^2.0.3",
     "siphash": "^1.2.0"
@@ -30,8 +30,8 @@
     "image-size": "2.0.4",
     "kleur": "4.1.5",
     "prettier": "3.7.4",
-    "rolldown": "1.2.4",
-    "vitest": "5.0.5"
+    "rolldown": "1.2.19",
+    "vitest": "5.1.0"
   },
   "engines": {
     "node": "^20.3.0 || >=21.0.0"
@@ -40,23 +40,22 @@
     ".": {
       "types": "./public.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./cli": {
       "require": "./dist/cli.mjs"
     },
-    "./handlers.mjs": "./handlers.mjs",
     "./internal": {
       "types": "./dist/core-internal.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./internal/serializer": {
@@ -64,26 +63,26 @@
       "import": {
         "development": "./dist/serializer.mjs",
         "production": "./dist/serializer.prod.mjs",
-        "min": "./dist/serializer.prod.mjs",
+        "min": "./dist/serializer.min.mjs",
         "default": "./dist/serializer.prod.mjs"
       }
     },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs"
       }
     },
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs",
+        "default": "./dist/core.qwik.mjs"
       }
     },
     "./build": {
@@ -120,12 +119,19 @@
     "./preloader": {
       "import": "./dist/preloader.mjs"
     },
-    "./server.mjs": "./dist/server.mjs",
+    "./server.mjs": {
+      "types": "./server.d.ts",
+      "development": "./dist/server.mjs",
+      "production": "./dist/server.prod.mjs",
+      "min": "./dist/server.min.mjs",
+      "default": "./dist/server.prod.mjs"
+    },
     "./server": {
       "types": "./server.d.ts",
       "import": {
         "development": "./dist/server.mjs",
         "production": "./dist/server.prod.mjs",
+        "min": "./dist/server.min.mjs",
         "default": "./dist/server.prod.mjs"
       }
     },
@@ -150,7 +156,6 @@
     "dist",
     "build.d.ts",
     "cli.d.ts",
-    "handlers.mjs",
     "jsx-dev-runtime.d.ts",
     "jsx-runtime.d.ts",
     "loader.d.ts",

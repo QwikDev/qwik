@@ -815,13 +815,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
       // Submit action if one was triggered
       if (action) {
+        const resolveAction = (result: Awaited<ReturnType<typeof submitAction>>) => {
+          action.resolve?.({ status: result.status, result: result.result });
+          action.resolve = undefined;
+          action.reject = undefined;
+        };
         const result = await Promise.race([
           submitAction(action, trackUrl).then(
             (result) => {
-              // Superseded actions still complete their caller's submit promise.
-              action.resolve?.({ status: result.status, result: result.result });
-              action.resolve = undefined;
-              action.reject = undefined;
+              if (
+                internalState.navCount !== navCountBefore ||
+                action !== actionState.untrackedValue
+              ) {
+                resolveAction(result);
+              }
               return result;
             },
             (error) => {
@@ -834,6 +841,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         ]);
 
         if (internalState.navCount !== navCountBefore || action !== actionState.untrackedValue) {
+          if (result) {
+            resolveAction(result);
+          }
           return;
         }
         navResolver.cancel = undefined;
@@ -845,15 +855,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
 
         if (result.redirect) {
-          const redirectUrl = toSafeRedirectUrl(result.redirect, routeLocation.url);
-          if (result.redirect instanceof URL) {
-            location.href = redirectUrl.href;
-          } else {
-            startNavigation(redirectUrl, { replaceState: true });
+          try {
+            const redirectUrl = toSafeRedirectUrl(result.redirect, routeLocation.url);
+            if (result.redirect instanceof URL) {
+              location.href = redirectUrl.href;
+            } else {
+              await startNavigation(redirectUrl, { replaceState: true });
+            }
+          } finally {
+            resolveAction(result);
           }
           return;
         }
 
+        resolveAction(result);
         actionData = {
           status: result.status,
           action: action.id,

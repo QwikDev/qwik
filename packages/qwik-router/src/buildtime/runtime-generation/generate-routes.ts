@@ -8,7 +8,7 @@ import {
   parseRouteIndexName,
   removeExtension,
 } from '../../utils/fs';
-import { escapeStaticTrieKey } from '../../utils/route-trie-key';
+import { escapeStaticTrieKey, isWildcardTrieKey } from '../../utils/route-trie-key';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
 
@@ -19,9 +19,9 @@ function isGroupKey(key: string) {
   return key.charCodeAt(0) === 40 /* '(' */;
 }
 
-/** The runtime trie key for a build trie key; `_W`/`_A` are the only non-static ones. */
+/** Preserve dynamic branch keys when encoding rewrite targets. */
 function toRuntimeTrieKey(key: string) {
-  return key === '_W' || key === '_A' ? key : escapeStaticTrieKey(key);
+  return isWildcardTrieKey(key) || key === '_A' ? key : escapeStaticTrieKey(key);
 }
 
 /** A rewrite target or base path with each segment converted to its runtime trie key. */
@@ -369,6 +369,7 @@ function serializeBuildTrie(
   }
 
   // Serialize regular children, skipping empty nodes
+  const wildcardStrs: string[] = [];
   for (const [key, child] of regularChildren) {
     const childStr = serializeBuildTrie(
       ctx,
@@ -383,9 +384,17 @@ function serializeBuildTrie(
       routeLoaderSourceFiles
     );
     if (childStr !== '{}') {
-      const keyStr = JSON.stringify(toRuntimeTrieKey(key));
-      lines.push(`${nextIndent}${keyStr}: ${childStr},`);
+      if (isWildcardTrieKey(key)) {
+        wildcardStrs.push(childStr);
+      } else {
+        const keyStr = JSON.stringify(toRuntimeTrieKey(key));
+        lines.push(`${nextIndent}${keyStr}: ${childStr},`);
+      }
     }
+  }
+  if (wildcardStrs.length > 0) {
+    const wildcards = wildcardStrs.length === 1 ? wildcardStrs[0] : `[${wildcardStrs.join(', ')}]`;
+    lines.push(`${nextIndent}"_W": ${wildcards},`);
   }
 
   if (lines.length === 0) {

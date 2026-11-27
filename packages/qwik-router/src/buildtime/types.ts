@@ -18,7 +18,7 @@ export interface BuildTrieNode {
   _G?: string;
   /** Source files at this directory level */
   _files: RouteSourceFile[];
-  /** Children keyed by trie key (lowercase static, `_W`, `_A`, or `(groupName)`) */
+  /** Parameter keys include prefix/suffix metadata to distinguish sibling branches. */
   children: Map<string, BuildTrieNode>;
 }
 

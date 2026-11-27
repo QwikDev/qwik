@@ -129,8 +129,6 @@ const holdsLayoutSegments = (sources: string[]) => (url: string) =>
 const holdsPageChunk = (to: { pageSources: string[] }) => (url: string) =>
   chunkComesFrom(url, [to.pageSources[0]]);
 
-const isRouterConfig = (url: string) => chunkHoldsModule(url, '@qwik-router-config');
-
 const isRouterNavigationCode = (url: string) =>
   !!getManifest().bundles[bundleFile(url)]?.origins?.some((origin) =>
     origin.includes('_useQwikRouter_goto_')
@@ -204,6 +202,19 @@ test.describe('cold SPA navigation', () => {
     );
   });
 
+  test("a cold click requests no router chunk: the round trip holds the route's modules and the page's chunks, and nothing from the router", async ({
+    page,
+  }) => {
+    const { gate, roundTrips } = await navigateToTree(FROM.off, 'cold', page);
+    const stillOngoing = gate.held.map((route) => route.request().url());
+    await releaseAll(gate);
+    const routerChunks = [
+      ...roundTrips.flatMap((roundTrip) => roundTrip.urls),
+      ...stillOngoing,
+    ].filter(isRouterChunk);
+    expect(routerChunks).toEqual([]);
+  });
+
   test("a navigation to a page with the same layout fetches none of the layout's component chunks", async ({
     page,
   }) => {
@@ -234,18 +245,12 @@ const routerChunksModulepreloaded = async (page: Page) => {
 };
 
 test.describe('router chunks modulepreloaded at page load', () => {
-  test("a page with a <Link> modulepreloads only what a click needs: 5 chunks, the <Link>'s click handlers, goto, the router config, and the two they import (qwik-router.js, head.qwik.js)", async ({
+  test('a page with a <Link> modulepreloads the router as one chunk: qwik-router.js and no other router chunk', async ({
     page,
   }) => {
     await openFixture(page, FROM.off, 'cold');
 
-    expect(await routerChunksModulepreloaded(page)).toEqual([
-      '@qwik-router-config.js',
-      'head.qwik.js',
-      'packages-qwik-router-lib-index.qwik.mjs_entry_Link.js',
-      'packages-qwik-router-lib-index.qwik.mjs_entry_useQwikRouter.js',
-      'qwik-router.js',
-    ]);
+    expect(await routerChunksModulepreloaded(page)).toEqual(['qwik-router.js']);
   });
 
   test("the router's modulepreloads are written before the first <Link>, not at the end of the page: the HTML names goto's chunk ahead of the first <a q:link>", async ({
@@ -531,12 +536,12 @@ test.describe('cold navigation with nav()', () => {
     expect(withNewPageChunks).toHaveLength(1);
   });
 
-  test("the router config goes out with the router's navigation code", async ({ page }) => {
+  test("a nav() click requests no router chunk: neither round trip holds the router's navigation code or its config", async ({
+    page,
+  }) => {
     const { gate, roundTrips } = await navigateToTreeWithNav(page);
     await releaseAll(gate);
-    const navigationCodeRoundTrip = roundTripOf(roundTrips, isRouterNavigationCode);
-    expect(navigationCodeRoundTrip).toBeGreaterThanOrEqual(0);
-    expect(roundTripOf(roundTrips, isRouterConfig)).toBe(navigationCodeRoundTrip);
+    expect(roundTrips.flatMap((roundTrip) => roundTrip.urls).filter(isRouterChunk)).toEqual([]);
   });
 
   test("into another layout: the new layout's chunks go out with the page's", async ({ page }) => {
@@ -553,15 +558,11 @@ test.describe('cold navigation with nav()', () => {
     ]);
   });
 
-  test('the new page shows in 3 round trips, over the cap of 2', async ({ page }) => {
+  test('the new page shows in 2 round trips', async ({ page }) => {
     const { gate, roundTrips } = await navigateToTreeWithNav(page);
     await releaseAll(gate);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 3,
-      reason:
-        "over the cap on main: the handler, then the router's navigation code, each cost a round trip before the new page's chunks",
-    });
+    expectRoundTrips(roundTrips);
   });
 });
 
@@ -785,13 +786,10 @@ const submitAction = async (page: Page) => {
 };
 
 test.describe('form action', () => {
-  test("the action's result shows in 5 round trips, over the cap of 2", async ({ page }) => {
+  test("the action's result shows in 2 round trips", async ({ page }) => {
     const roundTrips = await submitAction(page);
     await attachRoundTrips('round-trips.txt', roundTrips);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 5,
-      reason: 'over the cap on main: the action request waits for 4 round trips of router code',
-    });
+    expectRoundTrips(roundTrips);
   });
 });
 

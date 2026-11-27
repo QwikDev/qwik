@@ -481,16 +481,15 @@ describe.each([
       gotoMock.mockReset();
     });
 
-    it(`a <Link> that navigates client-side asks for the router's chunks: <Link href="/about/"> on the server asks for its two click handlers, nav and '@qwik-router-config'`, async () => {
+    it('a <Link> that navigates client-side asks for what its click runs: <Link href="/about/"> on the server asks for its two click handlers and nav', async () => {
       await render(<LinkRoot href="/about/" />, { debug });
 
-      const [preloadHandler, navigationHandler, nav, routerConfigName] =
-        modulepreloadMock.mock.calls[0];
+      const [preloadHandler, navigationHandler, nav, ...others] = modulepreloadMock.mock.calls[0];
       expect(preloadHandler.getSymbol()).toContain('handlePreload');
       expect(navigationHandler.getSymbol()).toContain('handleClientSideNavigation');
       await nav();
       expect(gotoMock).toHaveBeenCalledOnce();
-      expect(routerConfigName).toBe('@qwik-router-config');
+      expect(others).toEqual([]);
     });
 
     it('a <Link> that leaves the app asks for nothing: <Link href="https://example.com/">', async () => {

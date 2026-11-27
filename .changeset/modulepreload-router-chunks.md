@@ -3,4 +3,4 @@
 '@qwik.dev/router': patch
 ---
 
-perf: a `<Link>` click shows the next page in one round trip
+perf: the router loads as one chunk with the page, so a navigation or a form action no longer waits for it

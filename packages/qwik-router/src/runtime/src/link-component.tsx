@@ -9,7 +9,6 @@ import {
 } from '@qwik.dev/core';
 import { _modulepreload } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
-import { ROUTER_CONFIG_BUNDLE_GRAPH_NAME } from './constants';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
 import { getLayoutKeys, getNewLayoutKeys, matchRouteTree } from './routing';
@@ -161,7 +160,7 @@ export const Link = component$<LinkProps>((props) => {
   });
 
   if (isServer && clientNavPath && !reload) {
-    _modulepreload(handlePreload, handleClientSideNavigation, nav, ROUTER_CONFIG_BUNDLE_GRAPH_NAME);
+    _modulepreload(handlePreload, handleClientSideNavigation, nav);
   }
 
   return (

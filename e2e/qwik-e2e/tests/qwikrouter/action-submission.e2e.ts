@@ -333,7 +333,7 @@ for (const payload of ['event', 'form-data', 'object']) {
 }
 
 test('releases the form lock after its submit handler chunk fails to load', async ({ page }) => {
-  const submitChunk = /Form_form_q_e_submit/;
+  const submitChunk = /\/qwik-router\.js/;
   let blocked = 0;
   await page.route(submitChunk, (route) => {
     blocked++;
@@ -353,15 +353,15 @@ test('releases the form lock after its submit handler chunk fails to load', asyn
     .toBe(false);
 });
 
-test('settles a submission superseded while the router config loads', async ({ page }) => {
-  const routerConfig = /qwik-router-config/;
+test("settles a submission superseded while the route's module loads", async ({ page }) => {
+  const routeModule = /\/issue9238\.js/;
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  let configRequests = 0;
-  await page.route(routerConfig, async (route) => {
-    configRequests++;
+  let routeModuleRequests = 0;
+  await page.route(routeModule, async (route) => {
+    routeModuleRequests++;
     await pending;
     await route.continue();
   });
@@ -370,7 +370,7 @@ test('settles a submission superseded while the router config loads', async ({ p
   try {
     await page.locator('#programmatic-submit').click();
     await expect(page.locator('#outcome')).toHaveText('pending');
-    await expect.poll(() => configRequests).toBeGreaterThan(0);
+    await expect.poll(() => routeModuleRequests).toBeGreaterThan(0);
     await page.locator('#reload').click();
     release();
     await expect(page.locator('#outcome')).toHaveText('rejected');

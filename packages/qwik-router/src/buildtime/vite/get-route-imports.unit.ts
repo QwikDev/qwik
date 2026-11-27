@@ -36,6 +36,28 @@ describe('modifyBundleGraph', () => {
     expect(routerBundle.dynamicImports).toEqual(['loader-signal.js', 'q-router-config.js']);
   });
 
+  test("keeps the QRL edges of the chunk that holds the router config: qwik-router.js still leads to the server$ segment's chunk", () => {
+    const size = 0;
+    const total = 0;
+    const manifest = {
+      bundles: {
+        'qwik-router.js': {
+          size,
+          total,
+          origins: ['index.qwik.mjs', '@qwik-router-config'],
+          dynamicImports: ['server-fn.js', 'about.js'],
+          qrlImports: ['server-fn.js'],
+        },
+        'server-fn.js': { size, total },
+        'about.js': { size, total, origins: ['src/routes/about/index.tsx'] },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    expect(getRouteImports([], manifest)['qwik-router.js'].dynamicImports).toEqual([
+      'server-fn.js',
+    ]);
+  });
+
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {

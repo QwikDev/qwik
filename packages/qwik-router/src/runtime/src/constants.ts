@@ -9,8 +9,6 @@ export const QLOADER_KEY = 'qloaders';
 export const QFN_KEY = 'qfunc';
 
 export const QDATA_KEY = 'qdata';
-
-export const ROUTER_CONFIG_BUNDLE_GRAPH_NAME = '@qwik-router-config';
 /** @public */
 export const Q_ROUTE = 'q:route';
 

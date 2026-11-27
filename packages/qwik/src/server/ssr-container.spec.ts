@@ -229,6 +229,16 @@ describe('SSR Container', () => {
     expect([...root.serializationCtx.$coreHandlerQrls$.values()]).toEqual([handler]);
   });
 
+  it('hands the handlers that run on page load in a segment to the root container', () => {
+    const { root, first } = createVNodeIdContexts();
+    const handler = _createQRL(null, 's_segment_start_up', () => 0);
+    first.serializationCtx.$pageLoadQrls$.set(handler.$hash$, handler);
+
+    Reflect.get(first, '$mergeSegmentEventData$').call(first, root, first.serializationCtx);
+
+    expect([...root.serializationCtx.$pageLoadQrls$.values()]).toEqual([handler]);
+  });
+
   it('includes only committed segments in the shell serialization scope', () => {
     const { container: root } = createTestContainer();
     expect(Object.hasOwn(root.serializationCtx, '$scope$')).toBe(false);

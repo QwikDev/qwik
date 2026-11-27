@@ -70,6 +70,8 @@ export interface SerializationContext {
     // (undocumented)
     $onAddRoot$?: (id: number, root: unknown, obj: unknown) => void;
     // (undocumented)
+    $pageLoadQrls$: Map<string, QRL>;
+    // (undocumented)
     $promoteToRoot$: (ref: SeenRef, obj: unknown, index?: number) => void;
     // (undocumented)
     $renderSymbols$: Set<string>;

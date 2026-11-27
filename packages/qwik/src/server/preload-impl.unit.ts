@@ -17,6 +17,7 @@ const createContainer = (buildBase = '/') => {
     serializationCtx: {
       $eventQrls$: new Set(),
       $coreHandlerQrls$: new Map(),
+      $pageLoadQrls$: new Map(),
     },
     openElement(tagName: string, _key: any, attrs: Record<string, string>) {
       elements.push({ tagName, attrs });
@@ -533,6 +534,89 @@ describe('preloader', () => {
           .split(`window.addEventListener('load'`);
         expect(linksAtTheEnd).toContain('["handler.js"].map(');
       }));
+  });
+
+  describe('chunks of handlers that run on page load', () => {
+    // start.js statically imports router.js, which imports core.js; run.js imports core.js.
+    const bundleGraph = ['start.js', -2, 3, 'router.js', 5, 'core.js', 'run.js', -3, 5];
+
+    const createContainerWith = async (use: (serializationCtx: any, qrls: any) => void) => {
+      const { _createQRL } = await import('@qwik.dev/core/internal');
+      const created = createContainer();
+      created.container.resolvedManifest.manifest.bundleGraph = bundleGraph;
+      const list = (qrls: Map<string, any>, qrl: any) => qrls.set(qrl.$hash$, qrl);
+      use(created.container.serializationCtx, {
+        startUp: _createQRL('start.js', 'startUp', () => 0),
+        run: _createQRL('run.js', 'run', () => 0),
+        list,
+      });
+      return created;
+    };
+
+    it('links the chunk and its static imports, imports first: document:onQInit$ in start.js, which imports router.js, links router.js then start.js', async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = await createContainerWith((ctx, { startUp, list }) =>
+        list(ctx.$pageLoadQrls$, startUp)
+      );
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toContain('["core.js","router.js","start.js"].map(');
+    });
+
+    it("links a chunk once when core's handlers already brought it: core.js appears once", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = await createContainerWith(
+        (ctx, { startUp, run, list }) => {
+          list(ctx.$coreHandlerQrls$, run);
+          list(ctx.$pageLoadQrls$, startUp);
+        }
+      );
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toContain('["core.js","run.js","router.js","start.js"].map(');
+    });
+
+    it('links nothing for a visible task that waits to be seen', async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = await createContainerWith((ctx, { startUp }) =>
+        ctx.$eventQrls$.add(startUp)
+      );
+
+      preloadHandlerBundles(container, undefined);
+
+      expect(getScriptContent()).toBe('');
+    });
+
+    it("links them at low priority, from the same script as core's handlers", async () => {
+      const { preloadHandlerBundles } = await import('./preload-impl');
+      const { container, getScriptContent } = await createContainerWith(
+        (ctx, { startUp, run, list }) => {
+          list(ctx.$coreHandlerQrls$, run);
+          list(ctx.$pageLoadQrls$, startUp);
+        }
+      );
+      const added: { href: string; fetchPriority: string }[] = [];
+      const document = {
+        createElement: () => ({}),
+        head: {
+          appendChild: (link: { href: string; fetchPriority: string }) => added.push({ ...link }),
+        },
+        currentScript: { remove: () => {} },
+      };
+
+      preloadHandlerBundles(container, undefined);
+      runInNewContext(getScriptContent(), { document });
+
+      expect(getScriptContent().split('.map(')).toHaveLength(2);
+      expect(added.map((link) => [link.href, link.fetchPriority])).toEqual([
+        ['/core.js', 'low'],
+        ['/run.js', 'low'],
+        ['/router.js', 'low'],
+        ['/start.js', 'low'],
+      ]);
+    });
   });
 
   it("ranks each render's hint afresh, since SSR shares the preloader's state", async () => {

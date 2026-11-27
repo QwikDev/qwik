@@ -15,6 +15,7 @@ describe('setEvent', () => {
     $eventQrls$: new Set(),
     $eventNames$: new Set(),
     $coreHandlerQrls$: new Map(),
+    $pageLoadQrls$: new Map(),
   } as unknown as SerializationContext;
 
   it('does not wrap a capture-free sibling of moved captures', () => {
@@ -104,6 +105,65 @@ describe('setEvent', () => {
     expect(symbols(context.$eventQrls$)).toEqual([taskQrl().$symbol$]);
   });
 
+  describe('handlers to modulepreload while the page streams', () => {
+    const listedSymbols = () => [...context.$pageLoadQrls$.values()].map((q) => q.getSymbol());
+
+    it('lists a handler of a document event named q*: document:onQInit$ adds its QRL to the list', () => {
+      context.$pageLoadQrls$.clear();
+
+      setEvent(
+        context,
+        'q-d:qinit',
+        createQRL('chunk', 'startUp', () => {}),
+        false
+      );
+
+      expect(listedSymbols()).toEqual(['startUp']);
+    });
+
+    it("lists the visible task itself, not only _task: a document-ready useVisibleTask$ adds the task's own QRL", () => {
+      context.$pageLoadQrls$.clear();
+
+      setEvent(context, 'q-d:qinit', taskQrl().w([visibleTask()]), false);
+
+      expect(listedSymbols()).toEqual(['visibleTask']);
+    });
+
+    it('does not list a visible task that waits to be seen: useVisibleTask$ on q-e:qvisible adds nothing', () => {
+      context.$pageLoadQrls$.clear();
+
+      setEvent(context, 'q-e:qvisible', taskQrl().w([visibleTask()]), false);
+
+      expect(listedSymbols()).toEqual([]);
+    });
+
+    it('does not list a handler that waits for the browser to be idle: document:onQIdle$ adds nothing', () => {
+      context.$pageLoadQrls$.clear();
+
+      setEvent(
+        context,
+        'q-d:qidle',
+        createQRL('chunk', 'whenIdle', () => {}),
+        false
+      );
+
+      expect(listedSymbols()).toEqual([]);
+    });
+
+    it("does not list a user event's handler: onClick$ adds nothing", () => {
+      context.$pageLoadQrls$.clear();
+
+      setEvent(
+        context,
+        'q-e:click',
+        createQRL('chunk', 'handler', () => {}),
+        false
+      );
+
+      expect(listedSymbols()).toEqual([]);
+    });
+  });
+
   describe("remembers each of core's handlers the page's events run through", () => {
     const freshContext = () =>
       ({
@@ -112,6 +172,7 @@ describe('setEvent', () => {
         $eventQrls$: new Set(),
         $eventNames$: new Set(),
         $coreHandlerQrls$: new Map(),
+        $pageLoadQrls$: new Map(),
       }) as unknown as SerializationContext;
     const rememberedHashes = (ctx: SerializationContext) => [...ctx.$coreHandlerQrls$.keys()];
 

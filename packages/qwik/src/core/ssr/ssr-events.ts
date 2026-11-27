@@ -110,5 +110,12 @@ function addQwikEventToSerializationContext(
     if (visibleTask) {
       serializationCtx.$eventQrls$.add(visibleTask.$qrl$);
     }
+    if (runsOnPageLoad(scope, eventName)) {
+      const pageLoadQrl = (visibleTask ? visibleTask.$qrl$ : qrl) as QRLInternal<unknown>;
+      serializationCtx.$pageLoadQrls$.set(pageLoadQrl.$hash$, pageLoadQrl);
+    }
   }
 }
+
+const runsOnPageLoad = (scope: string, eventName: string) =>
+  scope.charAt(0) !== 'e' && eventName.charAt(0) === 'q' && eventName !== 'qidle';

@@ -199,10 +199,6 @@ test.describe('other visible task strategies', () => {
   test("document-ready: its chunks go out with the page's load work", async ({ page }) => {
     const { firstChunk, load } = await loadAndRecordRequests(page, VISIBLE_DOCUMENT_READY);
     expect(firstChunk).toBeGreaterThanOrEqual(0);
-    test.fail(
-      true,
-      'on main, document-ready visible task chunks wait for core, so they go out after load'
-    );
     expect(firstChunk).toBeLessThan(load);
   });
 

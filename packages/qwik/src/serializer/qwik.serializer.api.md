@@ -68,7 +68,7 @@ export interface SerializationContext {
     // (undocumented)
     $markSsrNodeForSerialization$: (node: ISsrNode, flags: number, isStateRoot?: boolean) => void;
     // (undocumented)
-    $modulepreloads$: Map<string, QRL | string>;
+    $modulepreloads$: Map<string, QRL>;
     // (undocumented)
     $onAddRoot$?: (id: number, root: unknown, obj: unknown) => void;
     // (undocumented)

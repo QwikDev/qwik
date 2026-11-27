@@ -2371,8 +2371,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     for (const [hash, qrl] of segmentSerializationCtx.$coreHandlerQrls$) {
       rootContainer.serializationCtx.$coreHandlerQrls$.set(hash, qrl);
     }
-    for (const [hashOrName, item] of segmentSerializationCtx.$modulepreloads$) {
-      rootContainer.serializationCtx.$modulepreloads$.set(hashOrName, item);
+    for (const [hash, qrl] of segmentSerializationCtx.$modulepreloads$) {
+      rootContainer.serializationCtx.$modulepreloads$.set(hash, qrl);
     }
   }
 

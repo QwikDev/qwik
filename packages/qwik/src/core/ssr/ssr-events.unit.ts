@@ -189,12 +189,13 @@ describe('_modulepreload', () => {
     return [...serializationCtx.$modulepreloads$.values()];
   };
 
-  it("remembers QRLs and bundle graph names during a server render: _modulepreload(gotoQrl, '@qwik-router-config') keeps both", () => {
+  it('remembers QRLs during a server render: _modulepreload(clickQrl, gotoQrl) keeps both', () => {
+    const clickQrl = createQRL('link.js', 's_click', () => {});
     const gotoQrl = createGotoQrl();
 
-    const kept = duringServerRender(() => _modulepreload(gotoQrl, '@qwik-router-config'));
+    const kept = duringServerRender(() => _modulepreload(clickQrl, gotoQrl));
 
-    expect(kept).toEqual([gotoQrl, '@qwik-router-config']);
+    expect(kept).toEqual([clickQrl, gotoQrl]);
   });
 
   it('remembers a QRL once: two <Link>s call _modulepreload(gotoQrl), the page keeps one gotoQrl', () => {

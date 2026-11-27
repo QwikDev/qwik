@@ -150,18 +150,6 @@ const getStaticClosure = (bundleGraph: (string | number)[] | undefined, bundle: 
   return closure;
 };
 
-const getNamedBundles = (bundleGraph: (string | number)[] | undefined, name: string) => {
-  const bundles: string[] = [];
-  const nameIdx = bundleGraph?.indexOf(name) ?? -1;
-  for (let i = nameIdx + 1; nameIdx >= 0 && typeof bundleGraph![i] === 'number'; i++) {
-    const depIdx = bundleGraph![i] as number;
-    if (depIdx >= 0) {
-      bundles.push(bundleGraph![depIdx] as string);
-    }
-  }
-  return bundles;
-};
-
 const handlerBundlesLinked = new WeakMap<SSRContainer, string[]>();
 
 /**
@@ -179,18 +167,10 @@ export const preloadHandlerBundles = (
     return;
   }
   const manifest = container.resolvedManifest?.manifest;
-  const qrls = Array.from(container.serializationCtx.$coreHandlerQrls$.values()) as QRLInternal[];
-  const namedBundles: string[] = [];
-  const askedFor = Array.from(container.serializationCtx.$modulepreloads$.values());
-  for (let i = 0; i < askedFor.length; i++) {
-    const item = askedFor[i];
-    if (typeof item === 'string') {
-      namedBundles.push(...getNamedBundles(manifest?.bundleGraph, item));
-    } else {
-      qrls.push(item as QRLInternal);
-    }
-  }
-  const handlerBundles = [...getBundles(qrls), ...namedBundles];
+  const handlerBundles = getBundles([
+    ...container.serializationCtx.$coreHandlerQrls$.values(),
+    ...container.serializationCtx.$modulepreloads$.values(),
+  ] as QRLInternal[]);
   const linked = handlerBundlesLinked.get(container) ?? [];
   const links: string[] = [];
   for (let i = 0; i < handlerBundles.length; i++) {

@@ -500,16 +500,7 @@ describe('preloader', () => {
   });
 
   describe('bundles a library asks for with _modulepreload', () => {
-    const graphWhereGotoImportsQwikRouter = [
-      'goto.js',
-      -3,
-      3,
-      'qwik-router.js',
-      '@qwik-router-config',
-      -1,
-      7,
-      'q-AbC123.js',
-    ];
+    const graphWhereGotoImportsQwikRouter = ['goto.js', -3, 3, 'qwik-router.js'];
     const graphWhereGotoAndRunImportCore = ['goto.js', -3, 6, 'run.js', -3, 6, 'core.js'];
     const graphWithFiveOtherBundles = [
       'goto.js',
@@ -532,11 +523,8 @@ describe('preloader', () => {
     };
     const createGotoQrl = () => createQrl('goto.js', 's_goto');
 
-    const askFor = (container: { serializationCtx: any }, item: any) =>
-      container.serializationCtx.$modulepreloads$.set(
-        typeof item === 'string' ? item : item.$hash$,
-        item
-      );
+    const askFor = (container: { serializationCtx: any }, qrl: any) =>
+      container.serializationCtx.$modulepreloads$.set(qrl.$hash$, qrl);
 
     const createContainerAskingFor = (
       item: unknown,
@@ -557,18 +545,11 @@ describe('preloader', () => {
       expect(getScriptContent()).toContain('["qwik-router.js","goto.js"].map(');
     });
 
-    it("a bundle graph name modulepreloads the bundle it stands for: '@qwik-router-config' gives q-AbC123.js", async () => {
+    it("a QRL whose bundle the bundle graph doesn't know gets no modulepreload: a QRL in unknown.js gives none", async () => {
       const { preloadHandlerBundles } = await import('./preload-impl');
-      const { container, getScriptContent } = createContainerAskingFor('@qwik-router-config');
-
-      preloadHandlerBundles(container, undefined);
-
-      expect(getScriptContent()).toContain('["q-AbC123.js"].map(');
-    });
-
-    it("a name the bundle graph doesn't know gets no modulepreload: 'not-a-chunk' gives none", async () => {
-      const { preloadHandlerBundles } = await import('./preload-impl');
-      const { container, getScriptContent } = createContainerAskingFor('not-a-chunk');
+      const { container, getScriptContent } = createContainerAskingFor(
+        await createQrl('unknown.js', 's_unknown')
+      );
 
       preloadHandlerBundles(container, undefined);
 

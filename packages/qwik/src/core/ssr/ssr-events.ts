@@ -10,18 +10,16 @@ import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer, SSRWriteChunk } from './ssr-types';
 
 /** @internal */
-export const modulepreload = (...items: (QRL | string | null | undefined)[]): void => {
+export const modulepreload = (...qrls: (QRL | null | undefined)[]): void => {
   const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
   const modulepreloads = container?.serializationCtx?.$modulepreloads$;
   if (!modulepreloads) {
     return;
   }
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (typeof item === 'string') {
-      modulepreloads.set(item, item);
-    } else if (isQrl(item)) {
-      modulepreloads.set(item.$hash$, item);
+  for (let i = 0; i < qrls.length; i++) {
+    const qrl = qrls[i];
+    if (isQrl(qrl)) {
+      modulepreloads.set(qrl.$hash$, qrl);
     }
   }
 };

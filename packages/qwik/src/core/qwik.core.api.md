@@ -850,7 +850,7 @@ export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | nul
 export const _markSignalAsExternallyOwned: (signal: ComputedSignal<unknown>) => void;
 
 // @internal (undocumented)
-export const _modulepreload: (...items: (QRL | string | null | undefined)[]) => void;
+export const _modulepreload: (...qrls: (QRL | null | undefined)[]) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;

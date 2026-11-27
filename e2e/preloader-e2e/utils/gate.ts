@@ -1,5 +1,5 @@
 import type { Locator, Page, Request, Route } from '@playwright/test';
-import { chunkHoldsSegmentsFrom, labelRequest, ORIGIN } from './app';
+import { chunkHoldsSegmentsFrom, getManifest, labelRequest, ORIGIN } from './app';
 
 export const FILLER = 'src/components/filler/';
 
@@ -78,7 +78,7 @@ export const chunksHintedAtHighestPriority = (page: Page) =>
   });
 
 export const recordSpeculativePreloads = (page: Page) =>
-  page.addInitScript(() => {
+  page.addInitScript((preloaderFile) => {
     const win = window as PreloaderWindow;
     win.__preloaderLinks = [];
     win.__speculativeInFlight = 0;
@@ -86,7 +86,9 @@ export const recordSpeculativePreloads = (page: Page) =>
     const appendChild = Node.prototype.appendChild;
     Node.prototype.appendChild = function <T extends Node>(this: Node, node: T): T {
       if (node instanceof HTMLLinkElement && /preload/i.test(node.rel)) {
-        const speculative = node.getAttribute('fetchpriority') === 'low';
+        const speculative =
+          node.getAttribute('fetchpriority') === 'low' &&
+          new Error().stack!.includes(preloaderFile);
         win.__preloaderLinks!.push({ href: node.href, speculative });
         if (speculative) {
           win.__speculativeInFlight!++;
@@ -101,7 +103,7 @@ export const recordSpeculativePreloads = (page: Page) =>
       }
       return appendChild.call(this, node) as T;
     };
-  });
+  }, getManifest().preloader!);
 
 export const maxSpeculativeInFlight = (page: Page) =>
   page.evaluate(() => (window as PreloaderWindow).__maxSpeculativeInFlight ?? 0);

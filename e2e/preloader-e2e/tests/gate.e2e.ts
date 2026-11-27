@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { chunkComesFrom, chunkUrlsFrom } from '../utils/app';
+import { chunkComesFrom, chunkUrlsFrom, ORIGIN } from '../utils/app';
 import { fixtureById, IMPORT_CHAIN } from '../utils/fixtures';
 import {
   createGate,
@@ -105,5 +105,27 @@ test.describe('gate: cold click setup', () => {
     expect(roundTrips.length).toBeGreaterThan(0);
     expect(clickLinks.length).toBeGreaterThan(0);
     expect(clickLinks.filter((link) => link.speculative)).toEqual([]);
+  });
+});
+
+test.describe('gate: speculative preloads', () => {
+  test('counts a low-priority modulepreload as speculative only when the preloader added it: one added by an inline script is left out', async ({
+    page,
+  }) => {
+    const addedByThePage = `${ORIGIN}/build/added-by-the-page.js`;
+    await recordSpeculativePreloads(page);
+    await page.goto(SINGLE_TASK_CHAIN.path);
+    await expect.poll(async () => (await speculativePreloads(page)).size).toBeGreaterThan(0);
+    await page.addScriptTag({
+      content: `{
+        const link = document.createElement('link');
+        link.rel = 'modulepreload';
+        link.setAttribute('fetchpriority', 'low');
+        link.href = ${JSON.stringify(addedByThePage)};
+        document.head.appendChild(link);
+      }`,
+    });
+    expect(await preloaderLinks(page)).toContainEqual({ href: addedByThePage, speculative: false });
+    expect(await speculativePreloads(page)).not.toContain(addedByThePage);
   });
 });

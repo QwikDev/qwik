@@ -71,6 +71,7 @@ export const preloaderPre = (
     const preloaderLinkAttrs: Record<string, string> = {
       rel: 'modulepreload',
       href: preloaderBundle,
+      fetchpriority: 'low',
     };
     if (nonce) {
       preloaderLinkAttrs['nonce'] = nonce;
@@ -80,7 +81,13 @@ export const preloaderPre = (
     container.openElement(
       'link',
       null,
-      { rel: 'preload', href: bundleGraphPath, as: 'fetch', crossorigin: 'anonymous' },
+      {
+        rel: 'preload',
+        href: bundleGraphPath,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+        fetchpriority: 'low',
+      },
       null,
       null,
       null
@@ -113,6 +120,7 @@ const createLinksScript = (base: string, links: string[]) =>
   `e=document.createElement('link');` +
   `e.rel='modulepreload';` +
   `e.href=${toScriptLiteral(base)}+l;` +
+  `e.fetchPriority='low';` +
   `document.head.appendChild(e)` +
   `});`;
 

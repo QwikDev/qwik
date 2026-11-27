@@ -149,7 +149,10 @@ describe('preloader', () => {
     preloaderPre(container, { maxIdlePreloads: 1 });
 
     expect(elements).toEqual([
-      { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
+      {
+        tagName: 'link',
+        attrs: { rel: 'modulepreload', href: '/preloader.js', fetchpriority: 'low' },
+      },
       {
         tagName: 'link',
         attrs: {
@@ -157,11 +160,21 @@ describe('preloader', () => {
           href: '/assets/bundle-graph.json',
           as: 'fetch',
           crossorigin: 'anonymous',
+          fetchpriority: 'low',
         },
       },
     ]);
 
     expectDeferredUntilAfterPaint(getScriptContent(), true);
+  });
+
+  it('links the preloader chunk and the bundle graph at low priority: both <link>s in the head carry fetchpriority="low"', async () => {
+    const { container, elements } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+
+    expect(elements.map((element) => element.attrs.fetchpriority)).toEqual(['low', 'low']);
   });
 
   it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
@@ -213,6 +226,7 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
+    expect(immediateScript).toContain("fetchPriority='low'");
   });
 
   it('keeps a build base holding </script> inside its scripts, and in the links it adds', async () => {
@@ -384,6 +398,29 @@ describe('preloader', () => {
         expect(script).toContain('"/build/"+l');
         expect(script).not.toContain('lazy.js');
         expect(script).toContain('document.currentScript.remove()');
+      }));
+
+    it('links them at low priority: the script sets fetchPriority to "low" before it adds each modulepreload', () =>
+      withCoreHandlerBundles(async ({ run }) => {
+        const { preloadHandlerBundles } = await import('./preload-impl');
+        const { container, getScriptContent } = createContainerUsing(run);
+        const added: { href: string; fetchPriority: string }[] = [];
+        const document = {
+          createElement: () => ({}),
+          head: {
+            appendChild: (link: { href: string; fetchPriority: string }) => added.push({ ...link }),
+          },
+          currentScript: { remove: () => {} },
+        };
+
+        preloadHandlerBundles(container, undefined);
+        runInNewContext(getScriptContent(), { document });
+
+        expect(added.map((link) => [link.href, link.fetchPriority])).toEqual([
+          ['/core.js', 'low'],
+          ['/glue.js', 'low'],
+          ['/run.js', 'low'],
+        ]);
       }));
 
     it("links _task's bundle on a page whose only handler is a visible task", () =>

@@ -7,7 +7,7 @@ import {
 import { importRenames } from '../rename-import';
 import { keepV1EventNames } from './events';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
-import { removeSlotChildren, renameHtmlFor } from './jsx';
+import { removePrefetchGraph, removeSlotChildren, renameHtmlFor } from './jsx';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
 import {
@@ -69,6 +69,7 @@ export const codemods: Codemod[] = [
   keepV1EventNames,
   renameHtmlFor,
   removeSlotChildren,
+  removePrefetchGraph,
   keepV1LoaderInvalidation,
   keepV1RequestBodyLimit,
   keepV1ViewTransitions,

@@ -4,6 +4,8 @@ import { warn } from '../report';
 const ERROR_BOUNDARY =
   'was removed in v2. `<ErrorBoundary fallback$={(error, reset) => ...}>` from "@qwik.dev/core" (with `qwikVite({ experimental: ["errorBoundary"] })`) replaces it with a different API.';
 
+const PRELOADER = 'was removed in v2, use the `preloader` render option instead.';
+
 const REMOVED: Record<string, Record<string, string>> = {
   '@builder.io/qwik': {
     useErrorBoundary: ERROR_BOUNDARY,
@@ -17,6 +19,20 @@ const REMOVED: Record<string, Record<string, string>> = {
     AriaAttributes: 'was removed in v2, use `PropsOf<tag>` instead.',
     HTMLInputAutocompleteAttribute: "was removed in v2, use `PropsOf<'input'>['autoComplete']`.",
     WebViewHTMLAttributes: 'was removed in v2 without replacement.',
+  },
+  '@builder.io/qwik/server': {
+    PrefetchStrategy: PRELOADER,
+    PrefetchImplementation: PRELOADER,
+    SymbolsToPrefetch: PRELOADER,
+  },
+  '@builder.io/qwik/optimizer': {
+    symbolMapper: 'was removed in v2 without replacement.',
+    versions: 'was removed in v2, use `version` from "@qwik.dev/core".',
+    ComponentEntryStrategy: 'was removed in v2, use the `segment` or `smart` entry strategy.',
+    QwikViteDevResponse: 'was removed in v2 without replacement.',
+    SourceMapsOption: 'was removed in v2, `sourceMaps` is a boolean.',
+    TranspileOption: 'was removed in v2, `transpileTs` is a boolean.',
+    TransformFsOptions: 'was removed in v2 without replacement.',
   },
   '@builder.io/qwik-city': {
     ErrorBoundary: ERROR_BOUNDARY,

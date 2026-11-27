@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { createProject } from './codemods/run-codemods';
-import { renameImports } from './rename-import';
+import { importRenames, renameImports } from './rename-import';
 
 describe('renameImports', () => {
   const run = (code: string, changes: [string, string][], library = '@builder.io/qwik-city') => {
@@ -107,6 +107,19 @@ describe('renameImports', () => {
         `const p: QwikRouterProps = {};`,
         `<QwikRouterProvider {...p}></QwikRouterProvider>;`,
       ].join('\n')
+    );
+  });
+});
+
+describe('importRenames', () => {
+  test('renames the deprecated router scroller id', () => {
+    const file = createProject({ useInMemoryFileSystem: true }).createSourceFile(
+      'a.tsx',
+      `import { QWIK_CITY_SCROLLER } from '@builder.io/qwik-city';\n<div id={QWIK_CITY_SCROLLER} />;`
+    );
+    importRenames.forEach((rename) => rename(file));
+    expect(file.getFullText()).toBe(
+      `import { QWIK_ROUTER_SCROLLER } from '@builder.io/qwik-city';\n<div id={QWIK_ROUTER_SCROLLER} />;`
     );
   });
 });

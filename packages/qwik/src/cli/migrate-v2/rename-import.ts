@@ -77,6 +77,7 @@ export const importRenames: Codemod[] = [
         ['QwikCityNetlifyOptions', 'QwikRouterNetlifyOptions'],
         ['QwikCityVercelEdgeOptions', 'QwikRouterVercelEdgeOptions'],
         ['QwikCityProps', 'QwikRouterProps'],
+        ['QWIK_CITY_SCROLLER', 'QWIK_ROUTER_SCROLLER'],
         ['QwikCityPlan', 'QwikRouterConfig'],
         ['QwikCityMockProvider', 'QwikRouterMockProvider'],
         ['QwikCityMockProps', 'QwikRouterMockProps'],

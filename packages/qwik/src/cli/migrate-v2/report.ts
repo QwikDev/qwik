@@ -84,6 +84,10 @@ const NEXT_STEPS: [marker: string | RegExp, step: string][] = [
     /\bRouterHead\b/,
     'Render `<DocumentHeadTags />` from "@qwik.dev/router" instead of a custom `RouterHead` component.',
   ],
+  [
+    /\buseResource\$|<Resource\b/,
+    'Replace the deprecated `useResource$` and `<Resource>` with an async `useComputed$`, see the "Deprecated APIs" section of the upgrade guide.',
+  ],
 ];
 
 /** Next steps for the files of the project, followed by the steps for every project. */

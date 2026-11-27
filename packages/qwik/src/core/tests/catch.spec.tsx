@@ -2828,6 +2828,59 @@ const resetModes = [
 
 describe('Catch reset', () => {
   describe.each(resetModes)('%s', (_mode, { render: renderReset, driveReset }) => {
+    it.each([false, true])(
+      'recovers from a client error after recovering from an initial render error (onError$: %s)',
+      async (withOnError) => {
+        const Fragile = component$((props: { broken: Signal<boolean> }) => {
+          if (props.broken.value) {
+            throw new Error('Fragile component failed to render');
+          }
+          return <p id="content">Fragile component is fine.</p>;
+        });
+        const App = component$(() => {
+          const broken = useSignal(true);
+          return (
+            <main>
+              <Catch
+                fallback$={$((_error, reset) => (
+                  <button
+                    id="retry"
+                    onClick$={() => {
+                      broken.value = false;
+                      reset();
+                    }}
+                  >
+                    Fix and retry
+                  </button>
+                ))}
+                onError$={withOnError ? $(() => {}) : undefined}
+              >
+                <Fragile broken={broken} />
+              </Catch>
+              <button id="break" onClick$={() => (broken.value = true)}>
+                Break it again
+              </button>
+            </main>
+          );
+        });
+        const { container } = await renderReset(<App />);
+        const el = container.element;
+        expect(el.querySelector('#retry')).toBeTruthy();
+        expect(el.querySelector('#content')).toBeFalsy();
+
+        await trigger(el, '#retry', 'click');
+        expect(el.querySelector('#content')?.textContent).toBe('Fragile component is fine.');
+        expect(el.querySelector('#retry')).toBeFalsy();
+
+        await trigger(el, '#break', 'click');
+        expect(el.querySelector('#retry')).toBeTruthy();
+
+        await trigger(el, '#retry', 'click');
+        expect(el.querySelector('#content')?.textContent).toBe('Fragile component is fine.');
+        expect(el.querySelector('#retry')).toBeFalsy();
+      }
+    );
+
     it('reset re-executes a flaky projected child and recovers', async () => {
       resetRef.flake = 0;
       const App = withResetBoundary(<ResetFlake />);

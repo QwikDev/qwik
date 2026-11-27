@@ -674,6 +674,28 @@ test.describe('onError$', () => {
 
 test.describe('Catch reset', () => {
   for (const { mode, outOfOrder } of streamingModes) {
+    test(`${mode}: recovers from a client error after recovering from an SSR error`, async ({
+      page,
+    }) => {
+      assertNoBrowserErrors(page);
+      await page.goto(routeUrl('reset-client', { outOfOrder }), { waitUntil: 'commit' });
+      const content = page.getByText('Fragile component is fine.', { exact: true });
+      const retry = page.getByRole('button', { name: 'Fix and retry' });
+      await expect(retry).toBeVisible();
+      await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+
+      await retry.click();
+      await expect(content).toBeVisible();
+      await expect(retry).toHaveCount(0);
+
+      await page.getByRole('button', { name: 'Break it again' }).click();
+      await expect(retry).toBeVisible();
+
+      await retry.click();
+      await expect(content).toBeVisible();
+      await expect(retry).toHaveCount(0);
+    });
+
     test(`${mode}: reset on SSR resume re-executes the children and recovers`, async ({ page }) => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('reset', { outOfOrder }), { waitUntil: 'commit' });

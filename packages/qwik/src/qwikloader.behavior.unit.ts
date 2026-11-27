@@ -671,6 +671,68 @@ describe('qwikloader behavior', () => {
         consoleError.mockRestore();
       }
     });
+
+    test('a user event starts a preloader that has not loaded: a click on a button whose handler is in handler.js calls qPreloadStart', async () => {
+      const { doc, win } = createLoaderEnvironment(['e:click']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const button = createMockElement(container, { 'q-e:click': 'handler.js#handler#' });
+      win.qPreloadStart = vi.fn();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+        expect(win.qPreloadStart).toHaveBeenCalledOnce();
+        await vi.waitFor(() => {
+          expect(consoleError).toHaveBeenCalled();
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
+    test("a loaded preloader is not started again: with qPreload defined, a click doesn't call qPreloadStart", async () => {
+      const { doc, win } = createLoaderEnvironment(['e:click']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const button = createMockElement(container, { 'q-e:click': 'handler.js#handler#' });
+      win.qPreload = vi.fn();
+      win.qPreloadStart = vi.fn();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        getSingleListener(doc, 'click').handler(createMockEvent(button));
+
+        expect(win.qPreloadStart).not.toHaveBeenCalled();
+        await vi.waitFor(() => {
+          expect(consoleError).toHaveBeenCalled();
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
+    test("a page lifecycle event doesn't start the preloader: qinit on an element with q-d:qinit doesn't call qPreloadStart", async () => {
+      const { doc, win } = createLoaderEnvironment(['d:qinit']);
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const element = createMockElement(container, { 'q-d:qinit': 'init.js#handler#' });
+      doc.querySelectorAll.mockReturnValue([element]);
+      win.qPreloadStart = vi.fn();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        doc.readyState = 'complete';
+        getSingleListener(doc, 'readystatechange').handler(
+          createMockEvent(doc, 'readystatechange')
+        );
+        await vi.waitFor(() => {
+          expect(consoleError).toHaveBeenCalled();
+        });
+
+        expect(win.qPreloadStart).not.toHaveBeenCalled();
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
   });
 
   test('runs an already imported handler at once when only its other chunks differ', async () => {

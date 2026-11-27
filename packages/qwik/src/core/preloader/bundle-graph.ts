@@ -15,6 +15,7 @@ import { BundleImportState_Alias, BundleImportState_None } from './types';
 export let base: string | undefined;
 export let graph: BundleGraph;
 export let isWaitingForGraph = false;
+let isWatchingHandlers = false;
 
 const makeBundle = (name: string, deps?: BundleDep[], kind = 0) => {
   return {
@@ -90,9 +91,16 @@ export const loadBundleGraph = (
   if (!isBrowser || basePath == null) {
     return;
   }
+  if (config.$maxIdlePreloads$ && !isWatchingHandlers) {
+    isWatchingHandlers = true;
+    preloadHandlersInView();
+    preloadHandlersOnIntent();
+  }
+  if (base != null) {
+    nextTriggerMacroTask();
+    return;
+  }
   base = basePath;
-  preloadHandlersInView();
-  preloadHandlersOnIntent();
 
   if (serializedResponse) {
     isWaitingForGraph = true;

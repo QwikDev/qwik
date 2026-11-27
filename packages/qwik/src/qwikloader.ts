@@ -217,9 +217,12 @@ const resolveHandler = (
   // Page lifecycle handlers stay out, or their whole import graph would load with the page.
   if (isUserEvent) {
     const preloaderGlobal = win as unknown as PreloaderGlobal;
-    preloaderGlobal.qPreload
-      ? preloaderGlobal.qPreload(chunks, 1)
-      : (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+    if (preloaderGlobal.qPreload) {
+      preloaderGlobal.qPreload(chunks, 1);
+    } else {
+      (preloaderGlobal.qPreloadQueue ||= []).push([chunks, 1]);
+      preloaderGlobal.qPreloadStart?.();
+    }
   }
 
   const href = new URL(chunk, base).href;

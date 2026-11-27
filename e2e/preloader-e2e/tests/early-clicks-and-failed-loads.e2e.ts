@@ -6,6 +6,7 @@ import {
   chunkHoldsSegmentsFrom,
   getCoreBundle,
   getManifest,
+  labelRequest,
   ORIGIN,
 } from '../utils/app';
 import {
@@ -13,12 +14,14 @@ import {
   NAVIGATION_SOURCES,
   SHARED_HELPER,
   STREAMING,
+  VISIBLE_ABOVE,
   type Fixture,
 } from '../utils/fixtures';
 import {
   chunksHintedAtHighestPriority,
   countRoundTrips,
   createGate,
+  maxSpeculativeInFlight,
   preloaderLinks,
   recordPreloadHints,
   recordSpeculativePreloads,
@@ -353,27 +356,187 @@ const loadASlowImage = (page: Page) =>
 
 const pageHasLoaded = (page: Page) => page.evaluate(() => document.readyState === 'complete');
 
+const clickBeforeLoad = async (
+  page: Page,
+  trigger: () => Promise<unknown>,
+  result: Fixture,
+  options: { from?: Fixture; withSpeculativePreloads?: boolean } = {}
+) => {
+  await loadASlowImage(page);
+  return clickWhileLoading(page, [SLOW_IMAGE], trigger, result, {
+    onceTheRestHasLoaded: true,
+    ...options,
+  });
+};
+
+const MAX_IDLE_PRELOADS = 3;
+const WITH_SPECULATIVE_PRELOADS = {
+  from: {
+    ...CONDITIONAL_ALL,
+    path: `${CONDITIONAL_ALL.path}?maxIdlePreloads=${MAX_IDLE_PRELOADS}`,
+  },
+  withSpeculativePreloads: true,
+};
+
+const TASK_CHAIN = fixtureById('single/task-chain');
+const FILLERS_IN_VIEW = 20;
+
 test.describe('click before the page has finished loading', () => {
-  test('a slow image holds back the load event: the click shows its result in 11 round trips, over the cap of 2', async ({
+  test('a click before load is preloaded like one after it: with a slow image holding load back, the click shows its result in 2 round trips', async ({
     page,
   }) => {
-    await loadASlowImage(page);
     const {
       gate,
       startupPiece: slowImage,
       roundTrips,
-    } = await clickWhileLoading(page, [SLOW_IMAGE], clickConditional(page), CONDITIONAL_ALL, {
-      onceTheRestHasLoaded: true,
-    });
+    } = await clickBeforeLoad(page, clickConditional(page), CONDITIONAL_ALL);
     const hadLoaded = await pageHasLoaded(page);
     await releaseAll(gate, slowImage);
     await attachRoundTrips('round-trips.txt', roundTrips);
     expect(hadLoaded).toBe(false);
-    expectRoundTrips(roundTrips, {
-      roundTrips: 11,
-      reason:
-        'over the cap on main: the preloader only starts after the load event, so until then each chunk is only found once the one before it has loaded',
+    expectRoundTrips(roundTrips);
+  });
+
+  test('a Link click before load is preloaded like one after it: with a slow image holding load back, the new page shows in 2 round trips', async ({
+    page,
+  }) => {
+    const {
+      gate,
+      startupPiece: slowImage,
+      roundTrips,
+    } = await clickBeforeLoad(
+      page,
+      () => fixtureRoot(page, FROM_OFF).locator('[data-testid=link-tree]').click(),
+      TO_TREE
+    );
+    const hadLoaded = await pageHasLoaded(page);
+    await releaseAll(gate, slowImage);
+    await attachRoundTrips('round-trips.txt', roundTrips);
+    expect(hadLoaded).toBe(false);
+    expectRoundTrips(roundTrips);
+  });
+
+  test('no speculative preload goes out before load: after an early click, every modulepreload added before load is highest priority', async ({
+    page,
+  }) => {
+    const { gate, startupPiece: slowImage } = await clickBeforeLoad(
+      page,
+      clickConditional(page),
+      CONDITIONAL_ALL,
+      WITH_SPECULATIVE_PRELOADS
+    );
+    await waitForNetworkIdle(page, () => releaseAll(gate));
+    const hadLoaded = await pageHasLoaded(page);
+    const linksBeforeLoad = await preloaderLinks(page);
+    await releaseAll(gate, slowImage);
+    expect(hadLoaded).toBe(false);
+    expect(linksBeforeLoad.length).toBeGreaterThan(0);
+    expect(linksBeforeLoad.filter((link) => link.speculative)).toEqual([]);
+  });
+
+  test(`speculative preloads start after load: once the slow image arrives, they go out with at most ${MAX_IDLE_PRELOADS} in flight (maxIdlePreloads=${MAX_IDLE_PRELOADS})`, async ({
+    page,
+  }) => {
+    const { gate, startupPiece: slowImage } = await clickBeforeLoad(
+      page,
+      clickConditional(page),
+      CONDITIONAL_ALL,
+      WITH_SPECULATIVE_PRELOADS
+    );
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        await releaseAll(gate, slowImage);
+        await page.waitForFunction(() => document.readyState === 'complete');
+      },
+      1500
+    );
+    const speculative = (await preloaderLinks(page)).filter((link) => link.speculative);
+    expect(speculative.length).toBeGreaterThan(0);
+    expect(await maxSpeculativeInFlight(page)).toBe(MAX_IDLE_PRELOADS);
+  });
+
+  test("a visible task doesn't start the preloader: with one in view, no click and load held back, window.qPreload stays undefined", async ({
+    page,
+  }) => {
+    await loadASlowImage(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => url === SLOW_IMAGE;
+    await page.goto(VISIBLE_ABOVE.path, { waitUntil: 'commit' });
+    await expectResult(page, VISIBLE_ABOVE);
+    const hadLoaded = await pageHasLoaded(page);
+    const preloader = await page.evaluate(() => typeof (window as any).qPreload);
+    await releaseAll(gate);
+    expect(hadLoaded).toBe(false);
+    expect(preloader).toBe('undefined');
+  });
+
+  test('an early start loads nothing twice: an early click, then load, makes one request for the preloader and one for the bundle graph', async ({
+    page,
+  }) => {
+    const requested: string[] = [];
+    page.on('request', (request) => requested.push(request.url()));
+    const { gate, startupPiece: slowImage } = await clickBeforeLoad(
+      page,
+      clickConditional(page),
+      CONDITIONAL_ALL
+    );
+    await waitForNetworkIdle(page, async () => {
+      await releaseAll(gate, slowImage);
+      await page.waitForFunction(() => document.readyState === 'complete');
     });
+    expect(requested.filter((url) => url === preloaderUrl())).toHaveLength(1);
+    expect(requested.filter((url) => url === bundleGraphUrl())).toHaveLength(1);
+  });
+
+  test("handlers in view are still preloaded first after an early start: an early click, then load: the in-view button's handler goes out before the off-screen one", async ({
+    page,
+  }) => {
+    const { gate, startupPiece: slowImage } = await clickBeforeLoad(
+      page,
+      clickTrigger(page, TASK_CHAIN),
+      TASK_CHAIN,
+      { withSpeculativePreloads: true }
+    );
+    await waitForNetworkIdle(
+      page,
+      async () => {
+        await releaseAll(gate, slowImage);
+        await page.waitForFunction(() => document.readyState === 'complete');
+      },
+      1500
+    );
+    const fillerHandlers = (await preloaderLinks(page))
+      .filter((link) => link.speculative)
+      .map((link) => labelRequest(link.href).match(/collapsible-(\d+)\.tsx_.*_q_e_click/))
+      .filter((match) => match !== null)
+      .map((match) => Number(match[1]));
+    const lastInView = Math.max(
+      -1,
+      ...fillerHandlers.map((n, index) => (n <= FILLERS_IN_VIEW ? index : -1))
+    );
+    const firstOffScreen = fillerHandlers.findIndex((n) => n > FILLERS_IN_VIEW);
+    expect(lastInView).toBeGreaterThanOrEqual(0);
+    expect(firstOffScreen).toBeGreaterThanOrEqual(0);
+    expect(lastInView).toBeLessThan(firstOffScreen);
+  });
+
+  test('a page with no start still answers the click: with qPreloadStart removed, the click shows its result', async ({
+    page,
+  }) => {
+    await page.addInitScript(() =>
+      Object.defineProperty(window, 'qPreloadStart', { get: () => undefined, set: () => {} })
+    );
+    await loadASlowImage(page);
+    const gate = await createGate(page);
+    gate.holdWhilePassing = (url) => url === SLOW_IMAGE;
+    await page.goto(withoutSpeculativePreloads(CONDITIONAL_ALL.path), { waitUntil: 'commit' });
+    await waitForQwikloader(page);
+    await clickConditional(page)();
+    await expectResult(page, CONDITIONAL_ALL);
+    const hadLoaded = await pageHasLoaded(page);
+    await releaseAll(gate);
+    expect(hadLoaded).toBe(false);
   });
 });
 

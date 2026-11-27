@@ -107,6 +107,8 @@ Note that the preloader is a small bundle in a separate bundle that is also impo
 
 Once the preloader is loaded, it will start downloading the bundles in the background, in the order described above. It also downloads the bundle graph as soon as possible.
 
+The preloader starts once the page has loaded, after two frames and idle time, so that it doesn't compete with the page's own resources. A user event before that starts it at once, with speculative preloads held until the page has loaded: only highest priority bundles go out. Page lifecycle events, such as a visible task, don't start it.
+
 ### QRL preloading
 
 When a QRL is created on the client, we hint its bundle at 0.8. When it is called, at 1.

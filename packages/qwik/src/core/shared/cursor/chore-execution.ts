@@ -178,8 +178,12 @@ export function executeErrorWrap(vNode: VNode, journal: VNodeJournal): void {
 
   const vHost = vNode;
   const vHostParent = vHost.parent;
+  const vHostDirtyParent = vHost.slotParent || vHostParent;
   const vHostNextSibling = vHost.nextSibling as VNode | null;
   const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
+  if (vHost.parent === vErrorDiv) {
+    removeDirtyChild(vHostDirtyParent, vHost);
+  }
   // If the host is an element node, we need to insert the error div into its parent.
   const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
   // If the host is different then we need to insert errored-host in the same position as the host.
@@ -197,6 +201,16 @@ export function executeErrorWrap(vNode: VNode, journal: VNodeJournal): void {
   // so any pre-existing child work has already completed.
   vNode.dirty &= ~ChoreBits.CHILDREN;
   vNode.dirtyChildren = null;
+}
+
+function removeDirtyChild(parent: VNode | null, child: VNode): void {
+  const dirtyChildren = parent?.dirtyChildren;
+  const index = dirtyChildren ? dirtyChildren.indexOf(child) : -1;
+  if (index === -1) {
+    return;
+  }
+  dirtyChildren!.splice(index, 1);
+  parent!.nextDirtyChildIndex = 0;
 }
 
 export function executeNodeDiff(

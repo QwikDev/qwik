@@ -212,4 +212,49 @@ describe.each([
       </Component>
     );
   });
+
+  it('wraps an element whose handler throws while its component is about to render again: a click that raises the count and throws leaves the button, showing the new count, inside errored-host', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      const label = counter.value === 0 ? 'zero' : 'one';
+      return (
+        <>
+          <button
+            onClick$={() => {
+              counter.value++;
+              throw new Error('error');
+            }}
+          >
+            {label}
+          </button>
+          <div>some div</div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(
+      <ErrorProvider>
+        <Cmp />
+      </ErrorProvider>,
+      { debug }
+    );
+    globalThis.document = document;
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Projection ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <errored-host>
+                <button>one</button>
+              </errored-host>
+              <div>some div</div>
+            </Fragment>
+          </Component>
+        </Projection>
+      </Component>
+    );
+  });
 });

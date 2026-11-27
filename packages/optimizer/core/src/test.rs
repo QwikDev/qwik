@@ -11203,3 +11203,38 @@ export const List = component$((props: { outputs: any[] }) => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_read_captures_used_in_param_defaults() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+export const make = (x, y) => $((a = x, { b } = { b: y }) => a + b);
+
+export const makeFn = (x) => $(function (a = x) { return this.base + a; });
+
+export const makeLazy = (x) => $((get = () => x) => get);
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_read_captures_used_in_param_defaults_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+  const x = Math.random();
+  const read = $((a = x) => a);
+  return read;
+});
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}

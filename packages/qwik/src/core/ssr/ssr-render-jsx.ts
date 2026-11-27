@@ -5,6 +5,7 @@ import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
+import { throwInvalidJSXFunctionChild } from '../shared/jsx/jsx-node';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -42,9 +43,7 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } 
 import { openSlotProjection } from './ssr-render-slot';
 
 class MaybeAsyncSignal {}
-// we need to differentiate between JSX functions and ssr container functions for error boundary
-// JSX functions need to be skipped after error boundary catch an error
-class InvokeJSXFunction {}
+class InvalidJSXFunctionChild {}
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -54,7 +53,7 @@ export type StackValue = ValueOrPromise<
   | typeof Promise
   | AsyncGenerator
   | typeof MaybeAsyncSignal
-  | typeof InvokeJSXFunction
+  | typeof InvalidJSXFunctionChild
 >;
 
 const openBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
@@ -91,7 +90,7 @@ export async function _walkJSX(
   value: JSXOutput,
   options: SSRRenderJSXOptions
 ): Promise<void> {
-  const stack: StackValue[] = [value];
+  const stack: StackValue[] = [];
   const enqueue = (value: StackValue) => stack.push(value);
   const enqueuePromise = (promise: Promise<unknown>) => {
     markPromiseHandled(promise);
@@ -113,15 +112,12 @@ export async function _walkJSX(
           await retryOnPromise(() => stack.push(trackFn()));
           continue;
         }
-        if (__EXPERIMENTAL__.catchBoundary && value === InvokeJSXFunction) {
-          const fnChild = stack.pop() as StackFn;
+        if (value === InvalidJSXFunctionChild) {
+          stack.pop();
           if (isInsideFailedBoundaryContent(ssr)) {
             continue;
           }
-          const result = fnChild.apply(ssr);
-          if (isPromise(result)) {
-            await result;
-          }
+          throwInvalidJSXFunctionChild();
           continue;
         }
         if (typeof value === 'function') {
@@ -156,13 +152,14 @@ export async function _walkJSX(
       }
     }
   };
+  enqueueJSX(enqueue, value);
   await drain();
 }
 
 function enqueueJSX(enqueue: (v: StackValue) => void, value: JSXOutput) {
   enqueue(value);
-  if (__EXPERIMENTAL__.catchBoundary && typeof value === 'function') {
-    enqueue(InvokeJSXFunction);
+  if (typeof value === 'function') {
+    enqueue(InvalidJSXFunctionChild);
   }
 }
 

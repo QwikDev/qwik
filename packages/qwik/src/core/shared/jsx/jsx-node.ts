@@ -91,3 +91,9 @@ export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
     return n instanceof JSXNodeImpl;
   }
 };
+
+export const throwInvalidJSXFunctionChild = (): never => {
+  throw new Error(
+    'Function children are not supported. Call the function (for example, {fn()}) or wrap it with component$().'
+  );
+};

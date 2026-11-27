@@ -12,7 +12,7 @@ import type { Cursor } from '../shared/cursor/cursor';
 import { getCursorData, queueQwikLoaderEvent } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
+import { JSXNodeImpl, isJSXNode, throwInvalidJSXFunctionChild } from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
 import {
   directGetPropsProxyProp,
@@ -374,7 +374,9 @@ function diff(
             diffContext.$vParent$ === diffContext.$vCurrent$,
             "Parent and current can't be the same"
           );
-        if (typeof diffContext.$jsxValue$ === 'string') {
+        if (typeof diffContext.$jsxValue$ === 'function') {
+          throwInvalidJSXFunctionChild();
+        } else if (typeof diffContext.$jsxValue$ === 'string') {
           expectText(diffContext, diffContext.$jsxValue$);
         } else if (typeof diffContext.$jsxValue$ === 'number') {
           expectText(diffContext, String(diffContext.$jsxValue$));

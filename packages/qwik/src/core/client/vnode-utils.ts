@@ -192,6 +192,7 @@ import {
   createSetTextOperation,
   DeleteOperation,
   InsertOrMoveOperation,
+  PostFlushCallbackOperation,
   RemoveAllChildrenOperation,
   SetAttributeOperation,
   SetTextOperation,
@@ -1041,6 +1042,8 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
       if (insertBefore) {
         stringify('      ', insertBefore);
       }
+    } else if (op instanceof PostFlushCallbackOperation) {
+      stringify('PostFlushCallback');
     }
   }
   lines.push('END JOURNAL');

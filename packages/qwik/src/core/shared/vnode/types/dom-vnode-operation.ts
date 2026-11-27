@@ -4,7 +4,8 @@ export type VNodeOperation =
   | RemoveAllChildrenOperation
   | SetTextOperation
   | InsertOrMoveOperation
-  | SetAttributeOperation;
+  | SetAttributeOperation
+  | PostFlushCallbackOperation;
 
 export class DeleteOperation {
   constructor(public target: Element | Text) {}
@@ -44,6 +45,11 @@ export class SetAttributeOperation {
 }
 brandClass(SetAttributeOperation, Brand.SetAttributeOperation);
 
+export class PostFlushCallbackOperation {
+  constructor(public callback: () => void) {}
+}
+brandClass(PostFlushCallbackOperation, Brand.PostFlushCallbackOperation);
+
 /** Factory functions to create operations with consistent hidden classes. */
 export const createDeleteOperation = (target: Element | Text): DeleteOperation =>
   new DeleteOperation(target);
@@ -68,3 +74,7 @@ export const createSetAttributeOperation = (
   isSvg: boolean = false
 ): SetAttributeOperation =>
   new SetAttributeOperation(target, attrName, attrValue, scopedStyleIdPrefix, isSvg);
+
+export const createPostFlushCallbackOperation = (
+  callback: () => void
+): PostFlushCallbackOperation => new PostFlushCallbackOperation(callback);

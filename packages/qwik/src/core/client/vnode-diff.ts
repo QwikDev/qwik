@@ -56,7 +56,10 @@ import { isArray, type ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { TextVNode } from '../shared/vnode/text-vnode';
-import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
+import {
+  createPostFlushCallbackOperation,
+  createSetAttributeOperation,
+} from '../shared/vnode/types/dom-vnode-operation';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -1033,6 +1036,22 @@ function applyRef(
   throw qError(QError.invalidRefValue, [currentFile]);
 }
 
+function queueRef(
+  journal: VNodeJournal,
+  value: unknown,
+  element: QElement,
+  currentFile: string | null | undefined
+): void {
+  if (value == null) {
+    return;
+  }
+  if (!isSignal(value) && typeof value !== 'function') {
+    applyRef(value, element, currentFile);
+    return;
+  }
+  journal.push(createPostFlushCallbackOperation(() => applyRef(value, element, currentFile)));
+}
+
 function resolveSignalValue(
   container: ClientContainer,
   vHost: ElementVNode,
@@ -1101,6 +1120,8 @@ function createNewElement(
   const vHost = diffContext.$vNewNode$ as ElementVNode;
   const isSvg = (vHost.flags & VNodeFlags.NS_svg) !== 0;
   const { constProps } = jsx;
+  let refValue: unknown;
+  let hasRef = false;
   if (constProps) {
     // Const props are, well, constant, they will never change!
     // For this reason we can cheat and write them directly into the DOM.
@@ -1113,7 +1134,9 @@ function createNewElement(
         continue;
       }
 
-      if (key === 'ref' && applyRef(value, element, currentFile)) {
+      if (key === 'ref') {
+        refValue = value;
+        hasRef = true;
         continue;
       }
 
@@ -1174,6 +1197,9 @@ function createNewElement(
     diffContext.$vNewNode$ as ElementVNode,
     getCurrentInsertBefore(diffContext)
   );
+  if (hasRef) {
+    queueRef(diffContext.$journal$, refValue, element, currentFile);
+  }
 }
 
 function registerEventHandlers(
@@ -1360,9 +1386,8 @@ const patchProperty = (
 
   if (key === 'ref') {
     const element = vnode.node;
-    if (applyRef(value, element as QElement, currentFile)) {
-      return;
-    }
+    queueRef(diffContext.$journal$, value, element as QElement, currentFile);
+    return;
   }
 
   const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);

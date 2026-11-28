@@ -69,6 +69,7 @@ test.describe('rewrite to a different route', () => {
       }
     });
     await page.goto('/qwikrouter-test/rewrite-spa/');
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
     await page.evaluate(() => ((window as any).__noReload = true));
 
     await page.locator('[data-test-link="rewrite-spa-pretty-hinted"]').click();
@@ -87,6 +88,24 @@ test.describe('rewrite to a different route', () => {
     await page.goForward();
     await expect(page.locator('#rewrite-spa-target')).toBeVisible();
     await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
+  });
+
+  test('a Link whose rewrite target is its own URL does not ask q-route.json', async ({ page }) => {
+    const routeRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('q-route.json')) {
+        routeRequests.push(request.url());
+      }
+    });
+    await page.goto('/qwikrouter-test/rewrite-spa/');
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+    await page.evaluate(() => ((window as any).__noReload = true));
+
+    await page.locator('[data-test-link="rewrite-spa-dynamic-hinted"]').click();
+
+    await expect(page.locator('#rewrite-spa-dynamic')).toHaveText('one');
+    expect(routeRequests).toEqual([]);
+    expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
   });
 
   test('the target route loader sees the visible URL of every rewritten navigation', async ({

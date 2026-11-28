@@ -785,7 +785,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         | PageModule
         | undefined;
       if (
-        !rewrittenTo &&
+        // A rewrite hint, even one naming the URL itself, means the server need not be asked.
+        navigation.rewrite === undefined &&
         (loadedRoute.$notFound$ ||
           typeof lastModule?.default !== 'function' ||
           loadedRoute.$routeName$.includes('['))

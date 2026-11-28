@@ -31,11 +31,7 @@ export const createPlatform = (): CorePlatform => {
       if (!containerEl) {
         throw qError(QError.qrlMissingContainer, [url, symbolName]);
       }
-      const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
-      const urlCopy = new URL(urlDoc);
-      urlCopy.hash = '';
-      const importURL = urlCopy.href;
-      return import(/* @vite-ignore */ importURL).then((mod) => {
+      return import(/* @vite-ignore */ toImportUrl(containerEl, url)).then((mod) => {
         return mod[symbolName];
       });
     },
@@ -69,6 +65,12 @@ export const toUrl = (doc: Document, containerEl: Element, url: string | URL): U
   const baseURI = doc.baseURI;
   const base = new URL(containerEl.getAttribute(QBaseAttr) ?? baseURI, baseURI);
   return new URL(url, base);
+};
+
+export const toImportUrl = (containerEl: Element, chunk: string | URL): string => {
+  const url = toUrl(containerEl.ownerDocument, containerEl, chunk);
+  url.hash = '';
+  return url.href;
 };
 
 // Deliberately not a singleton: a server renders many apps, and each render installs its own

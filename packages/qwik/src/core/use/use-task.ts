@@ -9,6 +9,7 @@ import {
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
+import { toImportUrl } from '../shared/platform/platform';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
@@ -260,6 +261,15 @@ export const isTask = (value: any): value is Task => {
   return hasBrand(value, Brand.Task);
 };
 
+const modulepreloadAtLowPriority = (containerEl: Element, chunk: string) => {
+  const doc = containerEl.ownerDocument;
+  const link = doc.createElement('link');
+  link.rel = 'modulepreload';
+  link.fetchPriority = 'low';
+  link.href = toImportUrl(containerEl, chunk);
+  doc.head.appendChild(link);
+};
+
 /**
  * Used internally as a qwikloader event handler to schedule a task. The `this` context is the
  * captures part of the QRL, provided by qwikloader.
@@ -287,6 +297,10 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     };
     if (task.$qrl$.resolved) {
       return markTaskDirty();
+    }
+    const chunk = task.$qrl$.$chunk$;
+    if (chunk) {
+      modulepreloadAtLowPriority(container.element, chunk);
     }
     // Load first, so the body runs right after the render it observes commits.
     // A failed load still schedules the task, so runTask retries and reports it.

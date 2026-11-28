@@ -45,6 +45,37 @@ export function useDelay(value: string) {
   return ready;
 }
 
+describe("a visible task's chunk", () => {
+  const VisibleCmp = component$(() => {
+    const state = useSignal('SSR');
+    useVisibleTask$(() => {
+      state.value = 'CSR';
+    });
+    return <span>{state.value}</span>;
+  });
+  const modulepreloads = (document: Document) =>
+    Array.from(document.head.children)
+      .filter((element) => element.localName === 'link')
+      .map((link) => [(link as HTMLLinkElement).rel, (link as HTMLLinkElement).fetchPriority]);
+
+  it('is imported at low priority: a task that becomes visible after SSR adds a low modulepreload first', async () => {
+    const { document } = await ssrRenderToDom(<VisibleCmp />, { debug });
+    expect(modulepreloads(document)).toEqual([]);
+
+    await trigger(document.body, 'span', 'qvisible');
+
+    expect(modulepreloads(document)).toEqual([['modulepreload', 'low']]);
+  });
+
+  it('is not preloaded again once loaded: a task rendered on the client adds no modulepreload', async () => {
+    const { document } = await domRender(<VisibleCmp />, { debug });
+
+    await trigger(document.body, 'span', 'qvisible');
+
+    expect(modulepreloads(document)).toEqual([]);
+  });
+});
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //

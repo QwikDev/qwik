@@ -394,6 +394,62 @@ describe.each([
     expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
   });
 
+  describe('rewrite', () => {
+    const RewriteRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider goto={$((path, opt) => gotoMock(path, opt))}>
+          <Link href="/pretty" rewrite="/product/hoodie-01/">
+            Test Link
+          </Link>
+        </QwikRouterMockProvider>
+      );
+    });
+
+    it('renders the route name of the rewrite target, not of the href', async () => {
+      getClientNavPathMock.mockReturnValue('/pretty/');
+      const { document } = await render(<RewriteRoot />, { debug });
+      const anchor = document.querySelector('a')!;
+
+      expect(anchor.getAttribute('href')).toBe('/pretty/');
+      expect(anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+      expect(anchor.getAttribute('data-q-rewrite')).toBe('/product/hoodie-01/');
+    });
+
+    it('preloads the rewrite target on click and hands it to the navigation', async () => {
+      getClientNavPathMock.mockReturnValue('http://localhost/pretty/');
+      gotoMock.mockReset();
+      gotoMock.mockReturnValue(Promise.resolve());
+      const { document } = await render(<RewriteRoot />, { debug });
+      const anchor = document.querySelector('a')!;
+      prefetchRouteMock.mockClear();
+
+      await trigger(document.body, anchor, 'click');
+
+      expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]', 1);
+      expectPrefetchRouteCall(0, '/product/hoodie-01/', false, 1);
+      expect(gotoMock).toHaveBeenCalledTimes(1);
+      expect(gotoMock.mock.calls[0][0]).toBe('http://localhost/pretty/');
+      expect(gotoMock.mock.calls[0][1]).toMatchObject({ rewrite: '/product/hoodie-01/' });
+    });
+
+    it('a link without it passes no rewrite to the navigation', async () => {
+      gotoMock.mockReset();
+      gotoMock.mockReturnValue(Promise.resolve());
+      const { document } = await render(
+        <QwikRouterMockProvider goto={$((path, opt) => gotoMock(path, opt))}>
+          <Link href="/test">Test Link</Link>
+        </QwikRouterMockProvider>,
+        { debug }
+      );
+      const anchor = document.querySelector('a')!;
+
+      await trigger(document.body, anchor, 'click');
+
+      expect(anchor.hasAttribute('data-q-rewrite')).toBe(false);
+      expect((gotoMock.mock.calls[0][1] as { rewrite?: string }).rewrite).toBeUndefined();
+    });
+  });
+
   describe('navigating state', () => {
     const NavigatingRoot = component$(() => {
       return (

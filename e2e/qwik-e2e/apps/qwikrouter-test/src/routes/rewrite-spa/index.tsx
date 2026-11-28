@@ -23,6 +23,20 @@ export default component$(() => {
       <Link href="/qwikrouter-test/rewrite-spa/dynamic/one/" data-test-link="rewrite-spa-dynamic">
         a dynamic route
       </Link>
+      <Link
+        href="/qwikrouter-test/rewrite-spa/pretty/"
+        rewrite="/qwikrouter-test/rewrite-spa/target/"
+        data-test-link="rewrite-spa-pretty-hinted"
+      >
+        pretty URL whose link names the rewrite target
+      </Link>
+      <Link
+        href="/qwikrouter-test/rewrite-spa/dynamic/one/"
+        rewrite="/qwikrouter-test/rewrite-spa/dynamic/one/"
+        data-test-link="rewrite-spa-dynamic-hinted"
+      >
+        a dynamic route whose link names itself as the target
+      </Link>
     </>
   );
 });

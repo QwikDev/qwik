@@ -97,14 +97,14 @@ export const loadBundleGraph = (
     preloadHandlersInView();
     preloadHandlersOnIntent();
   }
-  if (base != null && serializedResponse === graphRequest) {
+  if (serializedResponse && serializedResponse === graphRequest) {
     nextTriggerMacroTask();
     return;
   }
-  graphRequest = serializedResponse;
   base = basePath;
 
   if (serializedResponse) {
+    graphRequest = serializedResponse;
     isWaitingForGraph = true;
     serializedResponse
       .then((r) => r.text())

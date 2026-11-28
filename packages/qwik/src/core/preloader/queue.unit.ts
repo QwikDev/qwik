@@ -1752,6 +1752,19 @@ describe('a second start, after one before the page loaded', () => {
     expect(linkPaths(document).sort()).toEqual(['/b/b-import.js', '/b/b.js']);
   });
 
+  test("a start with no bundle graph keeps the one still loading: loadBundleGraph('/build/', graph) then loadBundleGraph('/build/'), preload('a.js', 0.8) links a.js once the graph arrives", async () => {
+    const { document, loadBundleGraph, preload } = await importPreloaderInBrowser();
+    const graph = deferredGraphResponseOf(['a.js']);
+
+    loadBundleGraph('/build/', graph.response, { P: 1 });
+    loadBundleGraph('/build/');
+    preload('a.js', 0.8);
+    graph.arrive();
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['a.js']);
+  });
+
   test('handlers are watched once speculative preloads may go: {P:0} starts no in-view scan and no pointerover listener, then {P:1} starts both', async () => {
     const { document, loadBundleGraph } = await importPreloaderInBrowser();
     const { response } = graphResponseOf(['a.js']);

@@ -14,6 +14,15 @@ export default component$(() => {
       >
         second pretty URL, same target
       </Link>
+      <Link href="/qwikrouter-test/rewrite-spa/target/" data-test-link="rewrite-spa-target">
+        the target route
+      </Link>
+      <Link href="/rewrite-spa-other-app/" data-test-link="rewrite-spa-other">
+        a URL another app serves
+      </Link>
+      <Link href="/qwikrouter-test/rewrite-spa/dynamic/one/" data-test-link="rewrite-spa-dynamic">
+        a dynamic route
+      </Link>
     </>
   );
 });

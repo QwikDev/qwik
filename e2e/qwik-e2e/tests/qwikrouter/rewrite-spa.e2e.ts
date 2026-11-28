@@ -131,3 +131,87 @@ test.describe('rewrite to a different route', () => {
     held.release();
   });
 });
+
+test.describe('a URL another app serves on the same origin', () => {
+  const home = '/qwikrouter-test/rewrite-spa/';
+  const other = '/rewrite-spa-other-app/';
+
+  /** Another app owns the URL: the page loads, q-route.json answers with its 404 or a redirect. */
+  async function otherApp(page: Page, qRouteStatus: 404 | 302) {
+    await page.route(`**${other}q-route.json`, (route) =>
+      route.fulfill({
+        status: qRouteStatus,
+        contentType: 'text/html',
+        headers: qRouteStatus === 302 ? { location: other } : {},
+        body: 'not qwik',
+      })
+    );
+    await page.route(`**${other}`, (route) =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1 id="other">other</h1>' })
+    );
+  }
+
+  for (const status of [404, 302] as const) {
+    test(`q-route.json ${status}: full page load, and back really returns`, async ({ page }) => {
+      await otherApp(page, status);
+      await page.goto(home);
+      await page.locator('[data-test-link="rewrite-spa-other"]').click();
+
+      await expect(page.locator('#other')).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`${other}$`));
+
+      await page.goBack();
+      await expect(page).toHaveURL(new RegExp(`${home}$`));
+      await expect(page.locator('[data-test-link="rewrite-spa-other"]')).toBeVisible();
+      await expect(page.locator('#other')).toBeHidden();
+    });
+  }
+
+  test('forward returns to the other app, and a second visit works', async ({ page }) => {
+    await otherApp(page, 404);
+    await page.goto(home);
+    const link = page.locator('[data-test-link="rewrite-spa-other"]');
+    await link.click();
+    await expect(page.locator('#other')).toBeVisible();
+
+    await page.goBack();
+    await expect(link).toBeVisible();
+    await page.goForward();
+    await expect(page.locator('#other')).toBeVisible();
+
+    await page.goBack();
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page.locator('#other')).toBeVisible();
+  });
+
+  test('back steps through client navigated pages one at a time', async ({ page }) => {
+    await otherApp(page, 404);
+    await page.goto(home);
+    await page.locator('[data-test-link="rewrite-spa-target"]').click();
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    await page.locator('[data-test-link="rewrite-spa-other"]').click();
+    await expect(page.locator('#other')).toBeVisible();
+
+    await page.goBack();
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`${home}$`));
+    await expect(page.locator('[data-test-link="rewrite-spa-other"]')).toBeVisible();
+  });
+
+  test('a matched dynamic route does not reload on a q-route.json 404 (static hosting)', async ({
+    page,
+  }) => {
+    await page.route('**/rewrite-spa/dynamic/one/q-route.json', (route) =>
+      route.fulfill({ status: 404, contentType: 'text/html', body: 'host 404' })
+    );
+    await page.goto(home);
+    await page.evaluate(() => ((window as any).__noReload = true));
+
+    await page.locator('[data-test-link="rewrite-spa-dynamic"]').click();
+
+    await expect(page.locator('#rewrite-spa-dynamic')).toHaveText('one');
+    expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
+  });
+});

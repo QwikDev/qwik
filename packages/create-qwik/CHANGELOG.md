@@ -1,5 +1,7 @@
 # create-qwik
 
+## 2.0.0-rc.6
+
 ## 2.0.0-rc.5
 
 ### Patch Changes

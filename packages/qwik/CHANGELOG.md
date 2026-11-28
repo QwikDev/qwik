@@ -1,5 +1,122 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.6
+
+### Major Changes
+
+- ✨ remove `QwikManifest.core`, so pages without event handlers or visible tasks no longer preload core (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- ✨ remove the `component` and `hook` entry strategies; use `smart` and `segment` instead (by [@maiieul](https://github.com/maiieul) in [#9480](https://github.com/QwikDev/qwik/pull/9480))
+
+### Minor Changes
+
+- feat!: default loader serialization to auto, including unrendered fields in html; set defaultLoadersSerializationStrategy to never for previous behavior (by [@Varixo](https://github.com/Varixo) in [#9430](https://github.com/QwikDev/qwik/pull/9430))
+
+- ✨ remove the `statePrewarm` render option; state is always restored lazily (by [@maiieul](https://github.com/maiieul) in [#9580](https://github.com/QwikDev/qwik/pull/9580))
+
+### Patch Changes
+
+- 🐞🩹 vite plugin failing to load vite in strict package layouts (in [`062a66c`](https://github.com/QwikDev/qwik/commit/062a66c1931f9af30dcbeb435882c95572b17641))
+
+- 🐞🩹 every dynamic import was treated as slow to download when ranking preloads (by [@wmertens](https://github.com/wmertens) in [#9495](https://github.com/QwikDev/qwik/pull/9495))
+
+- 🐞🩹 bundle totals counted shared imports once per import path (by [@wmertens](https://github.com/wmertens) in [#9495](https://github.com/QwikDev/qwik/pull/9495))
+
+- 🐞🩹 a computed read through context or props stops working when the reading component unmounts (by [@Varixo](https://github.com/Varixo) in [#9624](https://github.com/QwikDev/qwik/pull/9624))
+
+- 🐞🩹 keep the dev server running when SSR can't serialize a function (by [@mmporong](https://github.com/mmporong) in [#9538](https://github.com/QwikDev/qwik/pull/9538))
+
+- 🐞🩹 async computeds read inside a streamed `<Pending>` no longer get aborted during SSR (by [@wmertens](https://github.com/wmertens) in [#9499](https://github.com/QwikDev/qwik/pull/9499))
+
+- perf: `<Show>`, `<Each>`, `<Pending>`, `<Reveal>` and `<Catch>` load only on pages that render them (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- refactor: core's own event and task handlers load as regular library segments (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- refactor: core's own QRLs compile like any Qwik library's (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- 🐞🩹 keep devtools compatible with current framework apis and dependencies. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#9507](https://github.com/QwikDev/qwik/pull/9507))
+
+- 🐞🩹 highest priority preloads go out before speculative ones after an early click (by [@maiieul](https://github.com/maiieul) in [#9479](https://github.com/QwikDev/qwik/pull/9479))
+
+- 🐞🩹 a computed object key in a reactive prop no longer throws a ReferenceError (by [@maiieul](https://github.com/maiieul) in [#9487](https://github.com/QwikDev/qwik/pull/9487))
+
+- 🐞🩹 a signal read through a non-null assertion or cast no longer throws a ReferenceError (by [@maiieul](https://github.com/maiieul) in [#9487](https://github.com/QwikDev/qwik/pull/9487))
+
+- perf: with the preloader on, a streaming page loads core as soon as a handler needs it (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- 🐞🩹 an event handler's code starts loading at the event, without waiting for core or the streamed state (by [@wmertens](https://github.com/wmertens) in [#9496](https://github.com/QwikDev/qwik/pull/9496))
+
+- 🐞🩹 show completed updates without waiting for unrelated component code (by [@Varixo](https://github.com/Varixo) in [#9475](https://github.com/QwikDev/qwik/pull/9475))
+
+- 🐞🩹 keep the scoped style class on elements rendered by inline components (for example `<Resource>`) when they render or re-render on the client (by [@tzdesign](https://github.com/tzdesign) in [#9483](https://github.com/QwikDev/qwik/pull/9483))
+
+- 🐞🩹 keep projected content in place when preceding keys change (by [@ZainnQureshii](https://github.com/ZainnQureshii) in [#9503](https://github.com/QwikDev/qwik/pull/9503))
+
+- 🐞🩹 building a library with `bind:value` or `bind:checked` failed with the TS optimizer (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- perf: more chunks are preloaded ahead of time, handlers first (by [@maiieul](https://github.com/maiieul) in [#9537](https://github.com/QwikDev/qwik/pull/9537))
+
+- 🐞🩹 a build base holding `</script>` or a quote broke the preloader's inline scripts (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- 🐞🩹 the preloader fetches equally likely bundles in the order the page hints them (by [@wmertens](https://github.com/wmertens) in [#9519](https://github.com/QwikDev/qwik/pull/9519))
+
+- 🐞🩹 highest priority chunks were preloaded at low priority after a lower preload hint (by [@maiieul](https://github.com/maiieul) in [#9410](https://github.com/QwikDev/qwik/pull/9410))
+
+- 🐞🩹 a preload that fails is tried again once, and again when the network comes back (by [@maiieul](https://github.com/maiieul) in [#9412](https://github.com/QwikDev/qwik/pull/9412))
+
+- 🐞🩹 the preloader no longer fetches chunks of components the app doesn't use (by [@wmertens](https://github.com/wmertens) in [#9505](https://github.com/QwikDev/qwik/pull/9505))
+
+- perf: handlers the user sees, hovers or focuses are preloaded first (by [@maiieul](https://github.com/maiieul) in [#9541](https://github.com/QwikDev/qwik/pull/9541))
+
+- 🐞🩹 `/* @__PURE__ */` annotations no longer make the Vite plugin probe Qwik libraries for decorators (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 every failed chunk download fires `qerror` and no longer triggers an error boundary (by [@maiieul](https://github.com/maiieul) in [#9591](https://github.com/QwikDev/qwik/pull/9591))
+
+- 🐞🩹 a `qerror` listener that fails no longer fires `qerror` again in a loop (by [@maiieul](https://github.com/maiieul) in [#9592](https://github.com/QwikDev/qwik/pull/9592))
+
+- 🐞🩹 the optimizer created a module's qrls before the statements above them had run (by [@wmertens](https://github.com/wmertens) in [#9549](https://github.com/QwikDev/qwik/pull/9549))
+
+- 🐞🩹 production SSR threw a missing chunk error for qrls of imported functions, like `$(importedFn)` (by [@wmertens](https://github.com/wmertens) in [#9529](https://github.com/QwikDev/qwik/pull/9529))
+
+- 🐞🩹 prevent stale fields and cache mutations in resource results (by [@Varixo](https://github.com/Varixo) in [#9567](https://github.com/QwikDev/qwik/pull/9567))
+
+- Preserve projected slot content when a reused JSXOutput is rendered by a remounted component. (by [@fixfon](https://github.com/fixfon) in [#9397](https://github.com/QwikDev/qwik/pull/9397))
+
+- 🐞🩹 the server manifest now includes the bundle graph it declares (by [@wmertens](https://github.com/wmertens) in [#9490](https://github.com/QwikDev/qwik/pull/9490))
+
+- perf: the server and serializer bundles share core's code instead of copying it (by [@wmertens](https://github.com/wmertens) in [#9406](https://github.com/QwikDev/qwik/pull/9406))
+
+- 🐞🩹 the optimizer now emits `_jsxSplit` for dynamic JSX tags with `on*$` props (including shorthand `{ onClick$ }`, lowercase `onclick$` and computed keys), so event listeners are registered when the tag is a string at runtime. `passive:*` directives on such tags are kept too. A computed string event key like `['onClick$']` in `jsx()` props is now handled like `onClick$`. (by [@fixfon](https://github.com/fixfon) in [#9356](https://github.com/QwikDev/qwik/pull/9356))
+
+- 🐞🩹 reduce preloader size and unused graph initialization work (by [@maiieul](https://github.com/maiieul) in [#9479](https://github.com/QwikDev/qwik/pull/9479))
+
+- 🐞🩹 running a task or computed no longer loads its component's render code (by [@maiieul](https://github.com/maiieul) in [#9477](https://github.com/QwikDev/qwik/pull/9477))
+
+- perf: ssrPreloads links the bundles the preloader would fetch first, ranked by probability (by [@wmertens](https://github.com/wmertens) in [#9520](https://github.com/QwikDev/qwik/pull/9520))
+
+- 🐞🩹 keep static attribute bindings out of streamed segment state (by [@akasakariko](https://github.com/akasakariko) in [#9631](https://github.com/QwikDev/qwik/pull/9631))
+
+- 🐞🩹 useStyles$ styles could come out empty in production builds (by [@wmertens](https://github.com/wmertens) in [#9523](https://github.com/QwikDev/qwik/pull/9523))
+
+- 🐞🩹 the TS optimizer no longer hoists store reads that call an import into `_fnSignal` (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 the TS optimizer keeps object keys inside computed keys of hoisted `_fnSignal` (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 the TS optimizer no longer breaks a Qwik library's re-exported `isServer` or helper-named bindings (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 same-file helpers with handlers or tasks no longer break with the TypeScript optimizer (by [@maiieul](https://github.com/maiieul) in [#9159](https://github.com/QwikDev/qwik/pull/9159))
+
+- 🐞🩹 the TS optimizer no longer breaks modules that declare several constants in one statement (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 the TS optimizer tracks signals read through `!`, `as` and `satisfies` in JSX (by [@wmertens](https://github.com/wmertens) in [#9494](https://github.com/QwikDev/qwik/pull/9494))
+
+- 🐞🩹 visible task chunks below the fold are preloaded (by [@maiieul](https://github.com/maiieul) in [#9616](https://github.com/QwikDev/qwik/pull/9616))
+
+- 🐞🩹 `maxIdlePreloads: 0` turns speculative preloading off instead of being ignored (by [@maiieul](https://github.com/maiieul) in [#9534](https://github.com/QwikDev/qwik/pull/9534))
+
+- Updated dependencies [[`ce30588`](https://github.com/QwikDev/qwik/commit/ce30588314660c2b8c46f33a33a840a4b9d29ca6), [`609b5a8`](https://github.com/QwikDev/qwik/commit/609b5a8e8a70dfff2edd6db4a31dfd1b82da239f), [`ffa2938`](https://github.com/QwikDev/qwik/commit/ffa293805f122b229d657be45f65013e78ed25a2), [`fecd951`](https://github.com/QwikDev/qwik/commit/fecd951c8f7a415b58b6cfca0caa66bb4240101c), [`27b694e`](https://github.com/QwikDev/qwik/commit/27b694ef645b05e5a151f03f5a4b336379306d42)]:
+  - @qwik.dev/optimizer@3.0.0-rc.12
+
 ## 2.0.0-rc.5
 
 ### Minor Changes

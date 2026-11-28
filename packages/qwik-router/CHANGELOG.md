@@ -1,5 +1,40 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.6
+
+### Major Changes
+
+- feat!: default loader serialization to auto, including unrendered fields in html; set defaultLoadersSerializationStrategy to never for previous behavior (by [@Varixo](https://github.com/Varixo) in [#9430](https://github.com/QwikDev/qwik/pull/9430))
+
+### Patch Changes
+
+- 🐞🩹 keep devtools compatible with current framework apis and dependencies. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#9507](https://github.com/QwikDev/qwik/pull/9507))
+
+- 🐞🩹 include the named submit button when a GET form navigates (in [`b2b22e7`](https://github.com/QwikDev/qwik/commit/b2b22e7aa22c9e9261a283427f4d57a88700d61d))
+
+- 🐞🩹 a Link click preloads the new page's code at once, not after its route modules load (by [@maiieul](https://github.com/maiieul) in [#9515](https://github.com/QwikDev/qwik/pull/9515))
+
+- perf: a hovered or focused Link preloads its route first (by [@maiieul](https://github.com/maiieul) in [#9541](https://github.com/QwikDev/qwik/pull/9541))
+
+- 🐞🩹 a Link whose href has a malformed escape no longer throws while rendering (by [@maiieul](https://github.com/maiieul) in [#9515](https://github.com/QwikDev/qwik/pull/9515))
+
+- 🐞🩹 `nav()` preloads the new page's code with its route modules, not a round trip after them (by [@maiieul](https://github.com/maiieul) in [#9515](https://github.com/QwikDev/qwik/pull/9515))
+
+- 🐞🩹 a navigation preloads only the page and the layouts it adds, not the layouts both pages share (by [@maiieul](https://github.com/maiieul) in [#9517](https://github.com/QwikDev/qwik/pull/9517))
+
+- perf: more chunks are preloaded ahead of time, handlers first (by [@maiieul](https://github.com/maiieul) in [#9537](https://github.com/QwikDev/qwik/pull/9537))
+
+- 🐞🩹 the router config preloads with the router code that needs it, saving a round trip on `nav()` and form actions (by [@maiieul](https://github.com/maiieul) in [#9515](https://github.com/QwikDev/qwik/pull/9515))
+
+- 🐞🩹 correct ssg warnings and isolate server entries per build (by [@itsnjstyle27](https://github.com/itsnjstyle27) in [#9379](https://github.com/QwikDev/qwik/pull/9379))
+
+- 🐞🩹 ssg now generates the page for an empty rest param in a nested route (by [@wmertens](https://github.com/wmertens) in [#9506](https://github.com/QwikDev/qwik/pull/9506))
+
+- 🐞🩹 prevent response stream failures from crashing the server (by [@alloutflo](https://github.com/alloutflo) in [#9393](https://github.com/QwikDev/qwik/pull/9393))
+
+- Updated dependencies [[`062a66c`](https://github.com/QwikDev/qwik/commit/062a66c1931f9af30dcbeb435882c95572b17641), [`c1d679d`](https://github.com/QwikDev/qwik/commit/c1d679dc2c88ff956a680971eed00a190a9a772e), [`1056db6`](https://github.com/QwikDev/qwik/commit/1056db61c9b5082350b459031b55db9994a592eb), [`ef4a6ea`](https://github.com/QwikDev/qwik/commit/ef4a6ea08d8211d647f5c8777719ec9ed3235ad0), [`68cd53d`](https://github.com/QwikDev/qwik/commit/68cd53dea3804ea6615033086986cb5604e0ec00), [`05702ff`](https://github.com/QwikDev/qwik/commit/05702ff6a5639d00985611a517c9bf468fee9241), [`3f0d60e`](https://github.com/QwikDev/qwik/commit/3f0d60e152ca1dbd85a5affb32246972bbe8f9b5), [`bb6b21f`](https://github.com/QwikDev/qwik/commit/bb6b21f542c9079cf49afe471addc7311ac6e75f), [`1e0ee24`](https://github.com/QwikDev/qwik/commit/1e0ee24452b0c8f97cfe3f405325f2ae277c620b), [`65b6be2`](https://github.com/QwikDev/qwik/commit/65b6be2b4bac2474b2dfa5639fcd5f780f5356a9), [`a52839d`](https://github.com/QwikDev/qwik/commit/a52839dcf291f7ff658825510dd9880bbf3adf35), [`df20fb5`](https://github.com/QwikDev/qwik/commit/df20fb5e5c026f664887e8ac620a60238b9fe738), [`c21344f`](https://github.com/QwikDev/qwik/commit/c21344f7fb6fd3462239d77154cf28a55b2aeb6f), [`f1c2e69`](https://github.com/QwikDev/qwik/commit/f1c2e69a668fac97e18e35fdc41658c3d8ee32bd), [`822f10f`](https://github.com/QwikDev/qwik/commit/822f10fb2e5329cffe2031a178474829cf5ecfb4), [`eef6f7c`](https://github.com/QwikDev/qwik/commit/eef6f7cee17d4bcd652d55bfaec7a25120ce60f0), [`d23b8ea`](https://github.com/QwikDev/qwik/commit/d23b8eadf4bd343e4818d8f53c4f8fb20cbc6787), [`e604399`](https://github.com/QwikDev/qwik/commit/e60439920cb372993b9a03c95b6efdb8dcd2443a), [`9ec8a0b`](https://github.com/QwikDev/qwik/commit/9ec8a0bb061a45c12e0abf9dc48451e62f7ba5ae), [`5acb520`](https://github.com/QwikDev/qwik/commit/5acb520b738304a061353b43efc7b7382a35cc29), [`72f9e0c`](https://github.com/QwikDev/qwik/commit/72f9e0c86acd8e8f2748044a63193d863e62bfd7), [`c9044f9`](https://github.com/QwikDev/qwik/commit/c9044f992599ed6228440b89fd3573c605783293), [`f02b1c4`](https://github.com/QwikDev/qwik/commit/f02b1c43f401893069de22ebc4d8bfc5232dfc3e), [`b9c38b9`](https://github.com/QwikDev/qwik/commit/b9c38b9c6c226d683f60f9b96a0db1a20fcc7cf9), [`4745a02`](https://github.com/QwikDev/qwik/commit/4745a02457dd9a04908cebd7ab6a372c97813c2c), [`0ee6c62`](https://github.com/QwikDev/qwik/commit/0ee6c62d93a950bb37a897cdb2a8682d48a033b0), [`67b2000`](https://github.com/QwikDev/qwik/commit/67b20003f0d9567ecfcca7eecf04e1dd03ee3150), [`5b349ae`](https://github.com/QwikDev/qwik/commit/5b349aee0ddb64bff6e677069d404b8e5323d995), [`124a8e5`](https://github.com/QwikDev/qwik/commit/124a8e5edda3ae5a99b8d0ee3870613cfc4021a5), [`f4a9e1e`](https://github.com/QwikDev/qwik/commit/f4a9e1e79609719b4f0db6b6e498c5fefe9f9667), [`2aeebc6`](https://github.com/QwikDev/qwik/commit/2aeebc6f883f9b8512d636adcd1f3166e8f158b7), [`ce30588`](https://github.com/QwikDev/qwik/commit/ce30588314660c2b8c46f33a33a840a4b9d29ca6), [`73d3974`](https://github.com/QwikDev/qwik/commit/73d397436febbeb1d4b2659b0b169612b41827dd), [`609b5a8`](https://github.com/QwikDev/qwik/commit/609b5a8e8a70dfff2edd6db4a31dfd1b82da239f), [`07324ad`](https://github.com/QwikDev/qwik/commit/07324adfba18a91dd4d7a80628e5fa774f48bb24), [`f9c385d`](https://github.com/QwikDev/qwik/commit/f9c385d572592de560f4e08c68de017d88390a5f), [`5d8bf72`](https://github.com/QwikDev/qwik/commit/5d8bf722d44918b7de33163c2500a1367946f8af), [`9f76abb`](https://github.com/QwikDev/qwik/commit/9f76abb16be76242fdf8227643559d1f91a9be38), [`fd199c3`](https://github.com/QwikDev/qwik/commit/fd199c3b4e21bc8fa38bdf962aad47aa1c8b1d64), [`ffa2938`](https://github.com/QwikDev/qwik/commit/ffa293805f122b229d657be45f65013e78ed25a2), [`2544b4d`](https://github.com/QwikDev/qwik/commit/2544b4d1c9c8b06464a6f32cf83033619b72e87a), [`fecd951`](https://github.com/QwikDev/qwik/commit/fecd951c8f7a415b58b6cfca0caa66bb4240101c), [`cd53810`](https://github.com/QwikDev/qwik/commit/cd53810653aef94efd34696f165b4cb5194ca554), [`00b5a94`](https://github.com/QwikDev/qwik/commit/00b5a94fdfa16463aa50fec7973b8385bcbcd915), [`27b694e`](https://github.com/QwikDev/qwik/commit/27b694ef645b05e5a151f03f5a4b336379306d42), [`37e227f`](https://github.com/QwikDev/qwik/commit/37e227ff09392bec46c2854d84a8e0adae0d4c4e), [`45ffe5e`](https://github.com/QwikDev/qwik/commit/45ffe5ec0bc6bf6c1b4fcd034fec5890f823c377), [`fd5985f`](https://github.com/QwikDev/qwik/commit/fd5985f275c295f822dd33993a64f0e04fb09a3a), [`90687a8`](https://github.com/QwikDev/qwik/commit/90687a83fc77a78886e80bc1d87fb9c69f1406c3), [`fba5470`](https://github.com/QwikDev/qwik/commit/fba5470df18d5b2284f6db2e2fa314fcbb7d21e5), [`b3d87c2`](https://github.com/QwikDev/qwik/commit/b3d87c2351d5e8cffe91274af62bdc25e5074cb8), [`3d737df`](https://github.com/QwikDev/qwik/commit/3d737dfcf998ba19aeb95f8325e1181c9415159f), [`6819edb`](https://github.com/QwikDev/qwik/commit/6819edbd13fa879d51f017bce476d3c7b0b50d5e)]:
+  - @qwik.dev/core@2.0.0-rc.6
+
 ## 2.0.0-rc.5
 
 ### Minor Changes

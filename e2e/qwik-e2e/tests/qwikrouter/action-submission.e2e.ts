@@ -334,14 +334,16 @@ for (const payload of ['event', 'form-data', 'object']) {
 
 test('releases the form lock after its submit handler chunk fails to load', async ({ page }) => {
   const submitChunk = /\/qwik-router\.js/;
-  let blocked = 0;
-  await page.route(submitChunk, (route) => {
-    blocked++;
-    return route.abort('failed');
-  });
+  await page.route(submitChunk, (route) => route.abort('failed'));
   await page.goto('/qwikrouter-test/actions/issue9238/');
+  await page.waitForFunction(() => (window as any)._qwikEv?.roots);
+  await page.locator('#bare-submit').evaluate((button: HTMLButtonElement) =>
+    document.addEventListener('qerror', (event) => {
+      (window as any).submitHandlerFailed ||= (event as CustomEvent).detail.element === button.form;
+    })
+  );
   await page.locator('#bare-submit').click();
-  await expect.poll(() => blocked).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as any).submitHandlerFailed)).toBe(true);
 
   // Chromium caches failed imports, so a retry cannot prove the lock is released.
   await expect

@@ -211,16 +211,26 @@ const ensureRouteInternal = (
 
 /**
  * A URL the client can't render itself (no matching page) may be a server `rewrite()`. Ask the
- * server where it routes to. Returns the target pathname, `'reload'` if the server redirects, or
- * `undefined` when the URL is not rewritten.
+ * server where it routes to. Returns the target pathname, `'reload'` if the server redirects or a
+ * URL with no client route is not served by this app, or `undefined` when the URL is not
+ * rewritten.
+ *
+ * A Qwik server answers q-route.json with 200 even for unknown URLs, so a 404 means another app
+ * owns the URL (a migration next to a legacy backend) or the host has no q-route.json (static
+ * hosting). Only reload when no client route matched: a static host 404s for every dynamic route
+ * too, and those render fine on the client.
  */
-const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
+const resolveServerRewrite = async (url: URL, notFound: boolean): Promise<string | undefined> => {
   try {
     const response = await fetch(`${ensureSlash(url.pathname)}q-route.json${url.search}`, {
       redirect: 'manual',
       headers: { accept: 'application/json' },
     });
-    if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+    if (
+      response.type === 'opaqueredirect' ||
+      (response.status >= 300 && response.status < 400) ||
+      (notFound && response.status === 404)
+    ) {
       return 'reload';
     }
     if (response.ok) {
@@ -230,6 +240,29 @@ const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
   } catch {
     // Fall back to rendering what the client matched.
   }
+};
+
+/**
+ * Full page load of a URL the router may already have pushed. Loading the current URL acts like a
+ * refresh: the new document inherits the same-document entries of the old one, so back only changes
+ * the URL on a page that may have no router. Step out of the pushed entry first to get real
+ * history. Only when the previous entry is the same document: otherwise back would leave the page
+ * and the load would never run, and without shared entries back already works.
+ */
+const fullPageLoad = (url: URL, historyUpdated: boolean | undefined) => {
+  const load = () => {
+    location.href = url.href;
+  };
+  const nav = (window as any).navigation;
+  const previous = nav?.currentEntry && nav.entries()[nav.currentEntry.index - 1];
+  if (!historyUpdated || location.href !== url.href || !previous?.sameDocument) {
+    load();
+    return;
+  }
+  window.addEventListener('popstate', load, { once: true });
+  // Never leave the user stuck if the step back doesn't fire.
+  setTimeout(load, 1000);
+  history.back();
 };
 
 const getRouterContainer = () => _getDomContainer(document.documentElement);
@@ -496,6 +529,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         forceReload = path === undefined, // Hack for nav() because this API is already set.
         replaceState = false,
         scroll = true,
+        rewrite,
       } = typeof opt === 'object' ? opt : { forceReload: opt };
       // If this is the first SPA navigation, we rewrite routeInternal's URL
       // as the browser location URL to prevent an erroneous origin mismatch.
@@ -622,7 +656,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       navResolver.dest = dest;
 
       const preparing = preparePageNavigation(
-        { type, dest, forceReload, replaceState, scroll },
+        { type, dest, forceReload, replaceState, scroll, rewrite },
         navCount
       );
       navResolver.routePreparation = { started: preparing, preparation };
@@ -674,7 +708,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       if (isBrowser) {
         // Prefetch bundles; loader signals fetch navigation data below.
-        prefetchRoute(dest, false, 1, manifestHash, true, routeLocation.url);
+        prefetchRoute(
+          navigation.rewrite ? new URL(navigation.rewrite, dest) : dest,
+          false,
+          1,
+          manifestHash,
+          true,
+          routeLocation.url
+        );
         if (!isSamePath(dest, routeLocation.url)) {
           prefetchRoute(routeLocation.url, false, LEFT_PAGE_PRIORITY, manifestHash, true, dest);
         }
@@ -737,11 +778,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       } else if (!globalThis.__NO_TRAILING_SLASH__) {
         trackUrl.pathname = ensureSlash(trackUrl.pathname);
       }
+      // The caller already knows where the server rewrites this URL to: no need to ask it.
+      let rewrittenTo = navigation.rewrite !== trackUrl.pathname ? navigation.rewrite : undefined;
       const loadRoutePromise = getRouterConfig().then((config) => {
         if (internalState.navCount !== navCountBefore) {
           return;
         }
-        return loadRoute(config.routes, config.cacheModules, trackUrl.pathname);
+        return loadRoute(config.routes, config.cacheModules, rewrittenTo ?? trackUrl.pathname);
       });
       try {
         const route = await Promise.race([loadRoutePromise, canceled]);
@@ -760,7 +803,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           restoreRouteLoaders(loaderState, routeLoaderCtx, preparedNavCount);
         }
         console.error(`Could not load route ${trackUrl.pathname}, reloading:`, e);
-        window.location.href = trackUrl.href;
+        fullPageLoad(trackUrl, navigation.historyUpdated);
         return;
       }
       // Bail if a second nav() was fired while we were loading route modules.
@@ -771,17 +814,21 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
       // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
       // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
-      let rewrittenTo: string | undefined;
       const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
         | PageModule
         | undefined;
       if (
-        loadedRoute.$notFound$ ||
-        typeof lastModule?.default !== 'function' ||
-        loadedRoute.$routeName$.includes('[')
+        // A rewrite hint, even one naming the URL itself, means the server need not be asked.
+        navigation.rewrite === undefined &&
+        (loadedRoute.$notFound$ ||
+          typeof lastModule?.default !== 'function' ||
+          loadedRoute.$routeName$.includes('['))
       ) {
         // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
-        const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+        const resolved = await Promise.race([
+          resolveServerRewrite(trackUrl, !!loadedRoute.$notFound$),
+          canceled,
+        ]);
         if (internalState.navCount !== navCountBefore) {
           abandonAction();
           return;
@@ -789,7 +836,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (resolved === 'reload') {
           // With an action, skip the reload so the submission is not dropped; the action still runs.
           if (!action) {
-            window.location.href = trackUrl.href;
+            fullPageLoad(trackUrl, navigation.historyUpdated);
             return;
           }
         } else if (resolved && resolved !== trackUrl.pathname) {
@@ -803,7 +850,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               return;
             }
             console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
-            window.location.href = trackUrl.href;
+            fullPageLoad(trackUrl, navigation.historyUpdated);
             return;
           }
           if (internalState.navCount !== navCountBefore) {

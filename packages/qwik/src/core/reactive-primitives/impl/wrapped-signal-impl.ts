@@ -129,3 +129,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
   }
 }
 brandClass(WrappedSignalImpl, Brand.WrappedSignal);
+
+/** A computed wrapped signal that read no reactive source can never change. */
+export const isConstantWrappedSignal = (value: WrappedSignalImpl<unknown>) =>
+  !(value.$flags$ & ComputedSignalFlags.INVALID) &&
+  !value[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef?.size;

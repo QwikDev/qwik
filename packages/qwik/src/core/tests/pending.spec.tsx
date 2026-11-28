@@ -2667,6 +2667,45 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   );
 
+  it('renders a static column width without writing it to late segment state', async () => {
+    let release!: (value: JSXOutput) => void;
+    const gate = new Promise<JSXOutput>((resolve) => {
+      release = resolve;
+    });
+    const Table = component$(() => {
+      const columns = [{ width: '37ch', render: () => 'Name' }];
+      return (
+        <table>
+          <thead>
+            <tr>
+              {columns.map((column) => (
+                <th style={column.width ? { width: column.width } : undefined}>
+                  {column.render()}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        </table>
+      );
+    });
+    const chunks: string[] = [];
+    const rendering = ssrRenderPendingStream(
+      <Pending fallback$={() => <p>Loading</p>}>{gate}</Pending>,
+      chunks
+    );
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      release(<Table />);
+      const { document } = await rendering;
+      expect(document.querySelector('th')?.getAttribute('style')).toContain('37ch');
+      const patch = document.querySelector('script[type="qwik/state"][q\\:patch]');
+      expect(patch?.textContent ?? '').not.toContain('37ch');
+    } finally {
+      release(null);
+      await rendering;
+    }
+  });
+
   it('tracks a root-owned computed first read by a late segment', async () => {
     let release!: (value: JSXOutput) => void;
     const gate = new Promise<JSXOutput>((resolve) => {

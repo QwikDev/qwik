@@ -38,6 +38,8 @@ import {
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
+  QHmrAttr,
+  QHmrEvent,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -248,6 +250,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$getObjectById$ = () => undefined;
     const el = this.element;
     el.qContainer = undefined;
+    if (isDev && el.hasAttribute(QHmrAttr)) {
+      el.removeAttribute(QHmrAttr);
+      delete (el as QElement)._qDispatch?.[QHmrEvent];
+    }
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
     if (__EXPERIMENTAL__.pendingBoundary) {

@@ -13,6 +13,7 @@ import {
   Slot,
   useContext,
   useContextProvider,
+  useOnDocument,
   useSignal,
   useStore,
   useTask$,
@@ -3660,7 +3661,10 @@ describe.each([
 describe('slot-projected head/body', () => {
   it('defers the useOn placeholder into <head> instead of under <html>', async () => {
     const Provider = component$(() => {
-      _useHmr('provider.tsx');
+      useOnDocument(
+        'click',
+        $(() => {})
+      );
       return <Slot />;
     });
 

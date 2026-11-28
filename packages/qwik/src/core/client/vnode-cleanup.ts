@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
@@ -14,6 +15,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { markVNodeDirty, propagateToCursorRoot } from '../shared/vnode/vnode-dirty';
+import { unregisterHmrHost } from '../use/use-hmr';
 import { TaskFlags, isTask } from '../use/use-task';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { VNodeFlags, type ClientContainer } from './types';
@@ -86,6 +88,9 @@ export function cleanup(
         type & VNodeFlags.Virtual &&
         vnode_getProp<OnRenderFn<any> | null>(vCursor as VirtualVNode, OnRenderProp, null) !== null;
       if (isComponent) {
+        if (isDev) {
+          unregisterHmrHost(container, vCursor);
+        }
         // cleanup q:seq content
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {

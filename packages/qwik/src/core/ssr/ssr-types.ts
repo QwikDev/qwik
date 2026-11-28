@@ -135,6 +135,7 @@ export interface SSRContainer extends Container {
    * which case the caller must not inject it into the component's JSX.
    */
   $deferRootPlaceholder$(scriptNode: JSXNodeInternal<string>): boolean;
+  $hmrTargets$?: Map<string, Set<number>>;
 
   write(text: string): void;
 
@@ -189,7 +190,7 @@ export interface SSRContainer extends Container {
   emitErrorSwapExecutorIfNeeded(): void;
   $registerErrorSwap$(boundaryId: number): void;
   /** Keeps the node re-renderable after resume. */
-  $retainForResume$(node: ISsrNode | null | undefined): void;
+  $retainForResume$(node: ISsrNode | null | undefined): number | undefined;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
 

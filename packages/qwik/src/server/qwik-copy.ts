@@ -13,6 +13,7 @@ export {
 } from '../core/client/util-mapArray';
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
+export { hmrQrl } from '../core/shared/qrl/handler-qrls';
 export { DEBUG_TYPE, QContainerValue, VirtualType, EffectProperty } from '../core/shared/types';
 export {
   escapeHTML,
@@ -31,6 +32,9 @@ export {
   QBaseAttr,
   QContainerAttr,
   QCtxAttr,
+  QHmrAttr,
+  QHmrEvent,
+  QHmrTargets,
   QDefaultSlot,
   QInstanceAttr,
   QLocaleAttr,

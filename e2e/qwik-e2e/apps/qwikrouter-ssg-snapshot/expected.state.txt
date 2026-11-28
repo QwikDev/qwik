@@ -379,6 +379,8 @@
         ]
       ]
       {number} 0
+      Constant undefined
+      RootRef [omitted]
     ]
     {string} "value"
     ForwardRef 0

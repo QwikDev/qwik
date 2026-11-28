@@ -1070,7 +1070,69 @@ describe.each([
       expect(container.element.querySelector('#greeting')?.textContent).toBe('hello');
     });
 
-    it('never disposes a computed that no hook created', async () => {
+    it('disposes a factory-made computed when the component that made it is removed', async () => {
+      const Child = component$(() => {
+        const computed = useConstant(() => createComputed$(() => 1));
+        return (
+          <button
+            id="save-computed"
+            onClick$={() => ((globalThis as any).factoryComputed = computed)}
+          >
+            {computed.value}
+          </button>
+        );
+      });
+      const Parent = component$(() => {
+        const visible = useSignal(true);
+        return (
+          <>
+            <button id="remove-computed" onClick$={() => (visible.value = false)}>
+              remove
+            </button>
+            {visible.value && <Child />}
+          </>
+        );
+      });
+      const { container } = await render(<Parent />, { debug });
+      await trigger(container.element, '#save-computed', 'click');
+      await trigger(container.element, '#remove-computed', 'click');
+      const computed = (globalThis as any).factoryComputed as ComputedSignalImpl<number>;
+      expect(computed.$disposed$).toBe(true);
+    });
+
+    it('never disposes a computed created outside a component render', async () => {
+      // like a route loader: no component made it, so no component owns it
+      const outside = createComputed$(() => 1);
+      const Child = component$(() => {
+        const computed = useConstant(() => outside);
+        return (
+          <button
+            id="save-computed"
+            onClick$={() => ((globalThis as any).outsideComputed = computed)}
+          >
+            {computed.value}
+          </button>
+        );
+      });
+      const Parent = component$(() => {
+        const visible = useSignal(true);
+        return (
+          <>
+            <button id="remove-computed" onClick$={() => (visible.value = false)}>
+              remove
+            </button>
+            {visible.value && <Child />}
+          </>
+        );
+      });
+      const { container } = await render(<Parent />, { debug });
+      await trigger(container.element, '#save-computed', 'click');
+      await trigger(container.element, '#remove-computed', 'click');
+      const computed = (globalThis as any).outsideComputed as ComputedSignalImpl<number>;
+      expect(computed.$disposed$).toBeFalsy();
+    });
+
+    it('keeps a factory-made computed working after a context consumer is removed', async () => {
       const SharedContext = createContextId<ComputedSignal<number>>('shared');
       const Consumer = component$(() => {
         useContext(SharedContext);
@@ -1079,7 +1141,6 @@ describe.each([
       const Provider = component$(() => {
         const count = useSignal(1);
         const visible = useSignal(true);
-        // like a route loader: created with the factory, so no component owns it
         const shared = useConstant(() => createComputed$(() => count.value * 2));
         useContextProvider(SharedContext, shared);
         return (

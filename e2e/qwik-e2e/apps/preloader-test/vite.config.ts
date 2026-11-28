@@ -15,7 +15,7 @@ export default defineConfig((): UserConfig => {
   return {
     plugins: [
       qwikRouter(),
-      qwikVite({ debug: true, tsOptimizer: true }),
+      qwikVite({ debug: true, tsOptimizer: true, experimental: ['binaryState'] }),
       tsconfigPaths({ root: '.' }),
       basicSsl(),
     ],

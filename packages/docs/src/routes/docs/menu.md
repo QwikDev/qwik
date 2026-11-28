@@ -168,6 +168,7 @@
 - [Pending](/docs/labs/pending/index.mdx)
 - [Catch](/docs/labs/catch/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)
+- [Binary State](/docs/labs/binary-state/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
 

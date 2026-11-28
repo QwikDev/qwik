@@ -5,6 +5,7 @@ export default defineConfig({
     qwikVite({
       debug: true,
       tsOptimizer: true,
+      experimental: ['binaryState'],
     }),
   ],
   build: {

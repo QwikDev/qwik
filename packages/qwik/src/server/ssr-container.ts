@@ -755,6 +755,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
 
   $noScriptHere$: number = 0;
   private coreHandlersLinked = 0;
+  $hasRenderedBodyContent$ = false;
 
   linkCoreHandlerBundles(): void {
     if (
@@ -782,6 +783,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   ): string | undefined {
     if (!VALID_ELEMENT_NAME.test(elementName)) {
       throw qError(QError.invalidElementName, [JSON.stringify(elementName)]);
+    }
+
+    if (this.currentElementFrame?.elementName === 'body') {
+      this.$hasRenderedBodyContent$ = true;
     }
 
     const isQwikStyle =
@@ -1049,16 +1054,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
+    if (text && this.currentElementFrame?.elementName === 'body') {
+      this.$hasRenderedBodyContent$ = true;
+    }
     this.write(escapeHTML(text));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
     this.lastNode = null;
   }
 
   htmlNode(rawHtml: string) {
+    if (rawHtml && this.currentElementFrame?.elementName === 'body') {
+      this.$hasRenderedBodyContent$ = true;
+    }
     this.write(rawHtml);
   }
 
   commentNode(text: string) {
+    if (this.currentElementFrame?.elementName === 'body') {
+      this.$hasRenderedBodyContent$ = true;
+    }
     this.write('<!--' + escapeHTML(text) + '-->');
   }
 

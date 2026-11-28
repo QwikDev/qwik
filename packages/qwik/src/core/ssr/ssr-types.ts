@@ -129,6 +129,9 @@ export interface SSRContainer extends Container {
   /** Set when a Catch caught during this container's render. */
   $hasBoundaryError$?: boolean;
 
+  /** Set after the first child of the document body has been rendered. */
+  $hasRenderedBodyContent$: boolean;
+
   /**
    * Lets the container place a root-level `useOn` placeholder `<script>` itself when injecting it
    * inline would put it at an illegal position. Returns `true` if the container took the node, in

@@ -1034,6 +1034,58 @@ describe('render api', () => {
         );
         expect(calls).toEqual([{ hasCaughtError: true, chunksAtCall: 0 }]);
       });
+
+      it('reports a caught error before an async root flushes', async () => {
+        // Keep the body shell synchronous to exercise the route's first async flush.
+        const AsyncRoute = component$(() => {
+          _waitOn(new Promise<void>((resolve) => setTimeout(resolve, 10)));
+          return (
+            <Catch
+              fallback$={$(() => (
+                <p>caught</p>
+              ))}
+            >
+              <FlushThrower />
+            </Catch>
+          );
+        });
+        const Shell = component$(() => {
+          return (
+            <>
+              <head />
+              <body>
+                <AsyncRoute />
+              </body>
+            </>
+          );
+        });
+        const streamingOptions: StreamingOptions[] = [
+          { inOrder: { strategy: 'disabled' } },
+          { inOrder: { strategy: 'auto', maximumInitialChunk: 50_000 } },
+        ];
+
+        for (let index = 0; index < streamingOptions.length; index++) {
+          const streaming = streamingOptions[index];
+          const calls: Array<{ hasCaughtError: boolean; chunksAtCall: number }> = [];
+          const chunks: string[] = [];
+
+          await renderToStreamAndSetPlatform(<Shell />, {
+            containerTagName: 'html',
+            streaming,
+            stream: createTestStream((chunk) => {
+              chunks.push(chunk as string);
+            }),
+            onBeforeFirstFlush: (info) =>
+              calls.push({
+                hasCaughtError: info.hasCaughtError,
+                chunksAtCall: chunks.length,
+              }),
+          });
+
+          expect(calls).toEqual([{ hasCaughtError: true, chunksAtCall: 0 }]);
+          expect(chunks.join('')).toContain('caught');
+        }
+      });
     });
 
     describe('first flush', () => {

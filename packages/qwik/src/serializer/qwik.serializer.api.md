@@ -53,6 +53,11 @@ DomRefConstructor: {
     };
 } | null, symbolToChunkResolver: SymbolToChunkResolver, setProp: (obj: any, prop: string, value: any) => void, storeProxyMap: ObjToProxyMap, writer?: SSRInternalStreamWriter) => SerializationContext;
 
+// Warning: (ae-internal-missing-underscore) The name "getBinaryStream" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const getBinaryStream: (context: SerializationContext) => BinaryStateStream;
+
 // Warning: (ae-internal-missing-underscore) The name "SeenRef" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -72,6 +77,7 @@ export interface SerializationContext {
     $addRoot$: AddRootFn;
     // (undocumented)
     $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
+    $binaryStream$?: BinaryStateStream;
     // (undocumented)
     $commitRoot$: (root: unknown, obj: unknown) => number;
     $coreHandlerQrls$: Map<string, QRL>;
@@ -85,7 +91,6 @@ export interface SerializationContext {
     $eventQrls$: Set<QRL>;
     // (undocumented)
     $forwardRefOffset$: number;
-    $getBinaryStream$(): BinaryStateStream;
     $hasRootId$: (obj: unknown) => number | undefined;
     // (undocumented)
     $hasRootStateForwardRefs$: boolean;
@@ -118,8 +123,6 @@ export interface SerializationContext {
     //
     // (undocumented)
     $serialize$: () => ValueOrPromise<void>;
-    $serializeBinary$(): Promise<void>;
-    $serializeBinaryPatch$(stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number): Promise<void>;
     // (undocumented)
     $serializedForwardRefCount$: number;
     // (undocumented)
@@ -155,6 +158,16 @@ export interface SerializationScope {
 
 // @internal
 export function _serialize<T>(data: T): Promise<string>;
+
+// Warning: (ae-internal-missing-underscore) The name "serializeBinaryState" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const serializeBinaryState: (context: SerializationContext) => Promise<void>;
+
+// Warning: (ae-internal-missing-underscore) The name "serializeBinaryStatePatch" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const serializeBinaryStatePatch: (context: SerializationContext, stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number) => Promise<void>;
 
 // (No @packageDocumentation comment for this package)
 

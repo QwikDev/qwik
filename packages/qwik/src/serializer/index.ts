@@ -1,9 +1,12 @@
-import { createSerializationContext } from './serialization-context';
+import { createSerializationContext, serializeBinaryState } from './serialization-context';
 
 export { BinaryStateWriter } from './binary-state-writer';
 export { BINARY_VNODE_PREFIX } from './qwik-copy';
 export {
   createSerializationContext,
+  getBinaryStream,
+  serializeBinaryState,
+  serializeBinaryStatePatch,
   type SeenRef,
   type SerializationContext,
   type SerializationScope,
@@ -25,7 +28,7 @@ export async function _serialize<T>(data: T): Promise<string> {
 
   serializationContext.$addRoot$(data);
   if (__EXPERIMENTAL__.binaryState) {
-    await serializationContext.$serializeBinary$();
+    await serializeBinaryState(serializationContext);
   } else {
     await serializationContext.$serialize$();
   }

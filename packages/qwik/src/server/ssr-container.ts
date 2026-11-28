@@ -18,6 +18,9 @@ import {
   BINARY_VNODE_PREFIX,
   BinaryStateWriter,
   createSerializationContext,
+  getBinaryStream,
+  serializeBinaryState,
+  serializeBinaryStatePatch,
 } from '@qwik.dev/core/internal/serializer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
@@ -1680,7 +1683,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     this.openScript(attrs);
     this.serializationCtx.$setWriter$(this.writer);
     if (__EXPERIMENTAL__.binaryState) {
-      return maybeThen(this.serializationCtx.$serializeBinary$(), () => {
+      return maybeThen(serializeBinaryState(this.serializationCtx), () => {
         this.closeScript();
       });
     }
@@ -2546,8 +2549,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     if (__EXPERIMENTAL__.binaryState) {
       const rootIdMap = this.getSegmentRootIdMap();
       return maybeThen(
-        this.serializationCtx.$serializeBinaryPatch$(
-          this.$getRootContainer$().serializationCtx.$getBinaryStream$(),
+        serializeBinaryStatePatch(
+          this.serializationCtx,
+          getBinaryStream(this.$getRootContainer$().serializationCtx),
           rootStart,
           rootIds,
           subscriptionPatchRootId,

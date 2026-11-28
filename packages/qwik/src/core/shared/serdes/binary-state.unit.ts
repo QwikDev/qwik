@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createSerializationContext } from '../../../serializer';
+import {
+  createSerializationContext,
+  getBinaryStream,
+  serializeBinaryState,
+  serializeBinaryStatePatch,
+} from '../../../serializer';
 import { BinaryStateWriter } from '../../../serializer/binary-state-writer';
 import type { DeserializeContainer } from '../types';
 import { BinaryCode, BinaryStateReader, isBinaryState, unitToCharCode } from './binary-state';
@@ -40,7 +45,7 @@ const serialize = async (...roots: unknown[]): Promise<string> => {
     context.$addRoot$(roots[i]);
   }
   const pieces = collectWrites(context);
-  await context.$serializeBinary$();
+  await serializeBinaryState(context);
   return pieces.join('');
 };
 
@@ -60,7 +65,8 @@ const restore = (stateScript: string): unknown[] => {
 
 const roundTrip = async (...roots: unknown[]) => restore(await serialize(...roots));
 
-describe('binary state', () => {
+// The serializer only writes binary state in builds with the flag.
+describe.runIf(__EXPERIMENTAL__.binaryState)('binary state', () => {
   it('is told apart from JSON state by its first character', async () => {
     expect(isBinaryState('[0,1]')).toBe(false);
     expect(isBinaryState(await serialize(1))).toBe(true);
@@ -201,7 +207,7 @@ describe('binary state', () => {
       const addRoots = (roots: unknown[]) => roots.map((root) => context.$addRoot$(root));
       addRoots(shell);
       const shellPieces = collectWrites(context);
-      await context.$serializeBinary$();
+      await serializeBinaryState(context);
       const scripts = [shellPieces.join('')];
       for (let i = 0; i < patches.length; i++) {
         const rootStart = context.$roots$.length;
@@ -210,8 +216,9 @@ describe('binary state', () => {
         context.$onAddRoot$ = (rootId) => rootIds.push(rootId);
         addRoots(patches[i]);
         const patchPieces = collectWrites(context);
-        await context.$serializeBinaryPatch$(
-          context.$getBinaryStream$(),
+        await serializeBinaryStatePatch(
+          context,
+          getBinaryStream(context),
           rootStart,
           rootIds,
           undefined,
@@ -403,7 +410,7 @@ describe('binary state', () => {
       const context = newContext();
       context.$addRoot$(rows);
       const pieces = collectWrites(context);
-      await context.$serializeBinary$();
+      await serializeBinaryState(context);
       expect(pieces.length).toBeGreaterThan(10);
       expect(Array.from(restore(pieces.join('')))[0]).toEqual(rows);
     });
@@ -414,7 +421,7 @@ describe('binary state', () => {
       context.$addRoot$('ready before the wait');
       context.$addRoot$(new Promise<string>((r) => (resolve = r)));
       const pieces = collectWrites(context);
-      const done = context.$serializeBinary$();
+      const done = serializeBinaryState(context);
       await new Promise((r) => setTimeout(r, 5));
       expect(pieces.join('')).toContain('ready before the wait');
       resolve('late');

@@ -136,6 +136,7 @@ const dispatchEffect = (
   const property = effectSubscription.property;
   if (isTask(consumer)) {
     consumer.$flags$ |= TaskFlags.DIRTY;
+    consumer.$interruptRun$?.();
     markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
   } else if (property === EffectProperty.COMPONENT) {
     markVNodeDirty(container, consumer, ChoreBits.COMPONENT);

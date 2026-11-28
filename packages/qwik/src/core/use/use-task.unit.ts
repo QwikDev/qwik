@@ -72,6 +72,26 @@ const createTask = (fn: (...args: any[]) => any) => {
 };
 
 describe('runTask', () => {
+  it.each([false, true])('only retries the current run (interrupted: %s)', async (interrupted) => {
+    let resume!: () => void;
+    const dependency = new Promise<void>((resolve) => (resume = resolve));
+    const taskFn = vi.fn().mockImplementationOnce(() => {
+      throw dependency;
+    });
+    const { host, task } = createTask(taskFn);
+    const container = createMockContainer();
+    const first = runTask(task, container, host);
+    if (interrupted) {
+      task.$interruptRun$!();
+      await first;
+      await runTask(task, container, host);
+    }
+    resume();
+    await dependency;
+    await first;
+    expect(taskFn).toHaveBeenCalledTimes(2);
+  });
+
   it('reports a rejected thrown promise once and allows a later rerun', async () => {
     const error = new Error('dependency failed');
     const container = createMockContainer();

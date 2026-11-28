@@ -151,6 +151,7 @@ export const replResolver = (
             export const isDev = ${isDev};
             export const isServer = ${isServer};
             export const isClient = ${!isServer};
+            export const isBrowser = ${!isServer};
           `;
         }
         const url = deps[QWIK_PKG_NAME_V1][path];

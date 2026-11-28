@@ -83,6 +83,7 @@ export class ReplInstance {
           buildId: 0,
           transformedModules: [],
           events: [],
+          vnodeTreeModule: '',
           isLoading: false,
         };
       });

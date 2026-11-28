@@ -73,7 +73,7 @@ enum TransformInit {
 }
 
 impl<'a> PropsDestructuring<'a> {
-	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
+	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr, is_component: bool) {
 		if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
 			// Refuse to transform if the body reassigns any destructured
 			// parameter (via `=`, compound assignment, or `++`/`--`). This
@@ -118,7 +118,7 @@ impl<'a> PropsDestructuring<'a> {
 			}
 		}
 		if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut *arrow.body {
-			self.transform_component_body(body);
+			self.transform_component_body(body, is_component);
 		}
 	}
 	fn next_dynamic_default_name(&mut self) -> Atom {
@@ -131,7 +131,7 @@ impl<'a> PropsDestructuring<'a> {
 		}
 	}
 
-	fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
+	fn transform_component_body(&mut self, body: &mut ast::BlockStmt, is_component: bool) {
 		// Skip already-preprocessed QRL function bodies (from lib builds).
 		// These have _capturesObj reads at the top that must not be inlined,
 		// because inner QRL capture arrays reference the named variables.
@@ -153,7 +153,7 @@ impl<'a> PropsDestructuring<'a> {
 		for (index, stmt) in body.stmts.iter_mut().enumerate() {
 			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
 				if var_decl.kind == ast::VarDeclKind::Const {
-					for decl in var_decl.decls.iter_mut() {
+					var_decl.decls.retain_mut(|decl| {
 						let convert = match &decl.init {
 							Some(box ast::Expr::Lit(lit)) => {
 								let new_ident = private_ident!("_unused");
@@ -162,6 +162,12 @@ impl<'a> PropsDestructuring<'a> {
 									ast::Expr::Lit(lit.clone()),
 									TransformInit::Remove,
 								))
+							}
+							Some(box ast::Expr::Member(member_expr))
+								if !is_component
+									&& matches!(member_expr.prop, ast::MemberProp::Computed(_)) =>
+							{
+								None
 							}
 							Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
 								box ast::Expr::Ident(ident) => {
@@ -223,7 +229,9 @@ impl<'a> PropsDestructuring<'a> {
 								}
 								_ => None,
 							},
-							Some(box ast::Expr::Ident(ref ident)) => {
+							Some(box ast::Expr::Ident(ref ident))
+								if is_component || matches!(decl.name, ast::Pat::Object(_)) =>
+							{
 								let new_ident = private_ident!("_unused");
 								let new_replace = self
 									.identifiers
@@ -294,7 +302,7 @@ impl<'a> PropsDestructuring<'a> {
 							}
 							match transform_init {
 								TransformInit::Remove => {
-									decl.init = None;
+									return false;
 								}
 								TransformInit::Replace(expr) => {
 									decl.init = Some(Box::new(expr));
@@ -302,7 +310,8 @@ impl<'a> PropsDestructuring<'a> {
 								TransformInit::Keep => {}
 							}
 						}
-					}
+						true
+					});
 				} else {
 					break;
 				}
@@ -313,18 +322,9 @@ impl<'a> PropsDestructuring<'a> {
 			body.stmts.insert(index, stmt);
 		}
 
-		// Remove declarations that were replaced with _unused and have no init
-		// (e.g., `const _unused;` from inlined literals). These are invalid JS.
-		body.stmts.retain(|stmt| {
-			if let ast::Stmt::Decl(ast::Decl::Var(var_decl)) = stmt {
-				!var_decl.decls.iter().all(|decl| {
-					decl.init.is_none()
-						&& matches!(&decl.name, ast::Pat::Ident(ident) if ident.id.sym.starts_with("_unused"))
-				})
-			} else {
-				true
-			}
-		});
+		body.stmts.retain(
+			|stmt| !matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(var_decl)) if var_decl.decls.is_empty()),
+		);
 	}
 }
 
@@ -337,14 +337,14 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 				box ast::BlockStmtOrExpr::Expr(box ast::Expr::Call(_))
 			) {
 				// function without return statement
-				self.transform_component_props(node);
+				self.transform_component_props(node, false);
 			} else if matches!(
 				&node.body,
 				box ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt { stmts, .. })
 				if stmts.iter().any(|stmt| matches!(stmt, ast::Stmt::Return(_)))
 			) {
 				// function with return statement
-				self.transform_component_props(node);
+				self.transform_component_props(node, false);
 			}
 		}
 		node.visit_mut_children_with(self);
@@ -355,7 +355,7 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 			if id_eq!(ident, &self.component_ident) {
 				if let Some(first_arg) = node.args.first_mut() {
 					if let ast::Expr::Arrow(arrow) = &mut *first_arg.expr {
-						self.transform_component_props(arrow);
+						self.transform_component_props(arrow, true);
 					}
 				}
 			}

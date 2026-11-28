@@ -167,6 +167,62 @@ fn parent_code(code: &str, entry_strategy: EntryStrategy) -> String {
 }
 
 #[test]
+fn preserves_indexed_reads_before_mutating_the_index() {
+	test_input!(TestInput {
+		code: r#"
+export function makeReader(values) {
+  let index = 0;
+  return (_) => {
+    const value = values[index];
+    index++;
+    return value;
+  };
+}
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn preserves_captured_reads_before_mutating_the_binding() {
+	test_input!(TestInput {
+		code: r#"
+export function makeReader() {
+  let index = 0;
+  return (_) => {
+    const value = index;
+    index++;
+    return value;
+  };
+}
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn removes_inlined_declarators_from_mixed_const_statements() {
+	test_input!(TestInput {
+		code: r#"
+export function makeReader(values) {
+  let index = 0;
+  return (_) => {
+    const label = 42, value = values[index];
+    index++;
+    return label + value;
+  };
+}
+"#
+		.to_string(),
+		minify: MinifyMode::None,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn qrl_used_through_a_function_comes_before_code_calling_it() {
 	let code = r#"
 import { $ } from '@qwik.dev/core';

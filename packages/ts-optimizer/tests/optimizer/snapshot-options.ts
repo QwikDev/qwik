@@ -964,6 +964,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
 
+  preserves_captured_reads_before_mutating_the_binding: {
+    entryStrategy: { type: 'inline' },
+  },
+  removes_inlined_declarators_from_mixed_const_statements: { minify: 'none' },
+
   relative_paths: {
     srcDir: '/path/to/app/src/thing',
     transpileTs: true,

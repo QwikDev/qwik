@@ -1,0 +1,32 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+export function makeReader(values) {
+  let index = 0;
+  return (_) => {
+    const value = values[index];
+    index++;
+    return value;
+  };
+}
+
+============================= test.tsx ==
+
+export function makeReader(values) {
+    let index = 0;
+    return (_)=>{
+        const value = values[index];
+        index++;
+        return value;
+    };
+}
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,SAAS,WAAW,MAAM;IAC/B,IAAI,QAAQ;IACZ,OAAO,CAAC;QACN,MAAM,QAAQ,MAAM,CAAC,MAAM;QAC3B;QACA,OAAO;IACT;AACF\"}")
+== DIAGNOSTICS ==
+
+[]

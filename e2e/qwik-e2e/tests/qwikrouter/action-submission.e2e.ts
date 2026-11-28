@@ -333,15 +333,17 @@ for (const payload of ['event', 'form-data', 'object']) {
 }
 
 test('releases the form lock after its submit handler chunk fails to load', async ({ page }) => {
-  const submitChunk = /Form_form_q_e_submit/;
-  let blocked = 0;
-  await page.route(submitChunk, (route) => {
-    blocked++;
-    return route.abort('failed');
-  });
+  const submitChunk = /\/qwik-router\.js/;
+  await page.route(submitChunk, (route) => route.abort('failed'));
   await page.goto('/qwikrouter-test/actions/issue9238/');
+  await page.waitForFunction(() => (window as any)._qwikEv?.roots);
+  await page.locator('#bare-submit').evaluate((button: HTMLButtonElement) =>
+    document.addEventListener('qerror', (event) => {
+      (window as any).submitHandlerFailed ||= (event as CustomEvent).detail.element === button.form;
+    })
+  );
   await page.locator('#bare-submit').click();
-  await expect.poll(() => blocked).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as any).submitHandlerFailed)).toBe(true);
 
   // Chromium caches failed imports, so a retry cannot prove the lock is released.
   await expect
@@ -353,15 +355,15 @@ test('releases the form lock after its submit handler chunk fails to load', asyn
     .toBe(false);
 });
 
-test('settles a submission superseded while the router config loads', async ({ page }) => {
-  const routerConfig = /qwik-router-config/;
+test("settles a submission superseded while the route's module loads", async ({ page }) => {
+  const routeModule = /\/issue9238\.js/;
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  let configRequests = 0;
-  await page.route(routerConfig, async (route) => {
-    configRequests++;
+  let routeModuleRequests = 0;
+  await page.route(routeModule, async (route) => {
+    routeModuleRequests++;
     await pending;
     await route.continue();
   });
@@ -370,7 +372,7 @@ test('settles a submission superseded while the router config loads', async ({ p
   try {
     await page.locator('#programmatic-submit').click();
     await expect(page.locator('#outcome')).toHaveText('pending');
-    await expect.poll(() => configRequests).toBeGreaterThan(0);
+    await expect.poll(() => routeModuleRequests).toBeGreaterThan(0);
     await page.locator('#reload').click();
     release();
     await expect(page.locator('#outcome')).toHaveText('rejected');

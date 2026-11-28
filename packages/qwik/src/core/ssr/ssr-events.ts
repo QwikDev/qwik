@@ -6,7 +6,23 @@ import { qrlToChunks } from '../shared/serdes/qrl-to-string';
 import { isTask } from '../use/use-task';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from '../shared/utils/event-names';
-import type { SSRWriteChunk } from './ssr-types';
+import { tryGetInvokeContext } from '../use/use-core';
+import type { SSRContainer, SSRWriteChunk } from './ssr-types';
+
+/** @internal */
+export const eagerPreload = (...qrls: (QRL | null | undefined)[]): void => {
+  const container = tryGetInvokeContext()?.$container$ as SSRContainer | undefined;
+  const eagerPreloads = container?.serializationCtx?.$eagerPreloads$;
+  if (!eagerPreloads) {
+    return;
+  }
+  for (let i = 0; i < qrls.length; i++) {
+    const qrl = qrls[i];
+    if (isQrl(qrl)) {
+      eagerPreloads.set(qrl.$hash$, qrl);
+    }
+  }
+};
 
 /** @internal */
 export function setEvent(

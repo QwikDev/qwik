@@ -44,6 +44,8 @@ export interface SerializationContext {
     $commitRoot$: (root: unknown, obj: unknown) => number;
     $coreHandlerQrls$: Map<string, QRL>;
     // (undocumented)
+    $eagerPreloads$: Map<string, QRL>;
+    // (undocumented)
     $eagerResume$: Set<unknown>;
     // (undocumented)
     $eventNames$: Set<string>;

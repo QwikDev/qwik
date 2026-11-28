@@ -505,6 +505,9 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const Each: EachComponent;
 
 // @internal (undocumented)
+export const _eagerPreload: (...qrls: (QRL | null | undefined)[]) => void;
+
+// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)

@@ -156,6 +156,7 @@ const handlerBundlesLinked = new WeakMap<SSRContainer, string[]>();
  * Links core and the bundles of core's handlers (`_run`, `_task`, …) that the page's events run
  * through, with their static imports, as each handler first appears instead of when the page has
  * finished streaming. Every interaction needs them, so `ssrPreloads` doesn't limit these links.
+ * Libraries add to them with `_eagerPreload`.
  */
 export const preloadHandlerBundles = (
   container: SSRContainer,
@@ -166,9 +167,10 @@ export const preloadHandlerBundles = (
     return;
   }
   const manifest = container.resolvedManifest?.manifest;
-  const handlerBundles = getBundles(
-    Array.from(container.serializationCtx.$coreHandlerQrls$.values()) as QRLInternal[]
-  );
+  const handlerBundles = getBundles([
+    ...container.serializationCtx.$coreHandlerQrls$.values(),
+    ...container.serializationCtx.$eagerPreloads$.values(),
+  ] as QRLInternal[]);
   const linked = handlerBundlesLinked.get(container) ?? [];
   const links: string[] = [];
   for (let i = 0; i < handlerBundles.length; i++) {

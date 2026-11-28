@@ -229,6 +229,16 @@ describe('SSR Container', () => {
     expect([...root.serializationCtx.$coreHandlerQrls$.values()]).toEqual([handler]);
   });
 
+  it('modulepreloads what a part of the page streamed out of order asks for: gotoQrl there still gives goto.js', () => {
+    const { root, first } = createVNodeIdContexts();
+    const gotoQrl = _createQRL('goto.js', 's_goto', () => 0);
+    first.serializationCtx.$eagerPreloads$.set(gotoQrl.$hash$, gotoQrl);
+
+    Reflect.get(first, '$mergeSegmentEventData$').call(first, root, first.serializationCtx);
+
+    expect([...root.serializationCtx.$eagerPreloads$.values()]).toEqual([gotoQrl]);
+  });
+
   it('includes only committed segments in the shell serialization scope', () => {
     const { container: root } = createTestContainer();
     expect(Object.hasOwn(root.serializationCtx, '$scope$')).toBe(false);

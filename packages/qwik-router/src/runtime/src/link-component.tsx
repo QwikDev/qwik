@@ -1,4 +1,13 @@
-import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  isServer,
+  Slot,
+  sync$,
+  untrack,
+  type QwikIntrinsicElements,
+} from '@qwik.dev/core';
+import { _eagerPreload } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { findRouterConfig } from './router-config';
@@ -149,6 +158,10 @@ export const Link = component$<LinkProps>((props) => {
     }
     prefetchRoute(new URL(elm.href), false, 1);
   });
+
+  if (isServer && clientNavPath && !reload) {
+    _eagerPreload(handlePreload, handleClientSideNavigation, nav);
+  }
 
   return (
     <a

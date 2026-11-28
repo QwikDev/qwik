@@ -5,8 +5,10 @@ import { inlinedQrl } from '../shared/qrl/qrl';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializationContext } from '../../serializer/serialization-context';
 import type { QRL } from '../shared/qrl/qrl.public';
+import type { Container } from '../shared/types';
+import { invoke, newInvokeContext } from '../use/use-core';
 import { Task, TaskFlags } from '../use/use-task';
-import { setEvent } from './ssr-events';
+import { eagerPreload as _eagerPreload, setEvent } from './ssr-events';
 
 describe('setEvent', () => {
   const context = {
@@ -172,5 +174,48 @@ describe('setEvent', () => {
       '#',
       0,
     ]);
+  });
+});
+
+describe('_eagerPreload', () => {
+  const symbols = (qrls: QRL<unknown>[]) => qrls.map((q) => q.getSymbol());
+  const createGotoQrl = () => createQRL('goto.js', 's_goto', () => {});
+
+  const duringServerRender = (render: () => void) => {
+    const serializationCtx = { $eagerPreloads$: new Map() } as unknown as SerializationContext;
+    const context = newInvokeContext();
+    context.$container$ = { serializationCtx } as unknown as Container;
+    invoke(context, render);
+    return [...serializationCtx.$eagerPreloads$.values()];
+  };
+
+  it('remembers QRLs during a server render: _eagerPreload(clickQrl, gotoQrl) keeps both', () => {
+    const clickQrl = createQRL('link.js', 's_click', () => {});
+    const gotoQrl = createGotoQrl();
+
+    const kept = duringServerRender(() => _eagerPreload(clickQrl, gotoQrl));
+
+    expect(kept).toEqual([clickQrl, gotoQrl]);
+  });
+
+  it('remembers a QRL once: two <Link>s call _eagerPreload(gotoQrl), the page keeps one gotoQrl', () => {
+    const kept = duringServerRender(() => {
+      _eagerPreload(createGotoQrl());
+      _eagerPreload(createGotoQrl());
+    });
+
+    expect(symbols(kept as QRL<unknown>[])).toEqual(['s_goto']);
+  });
+
+  it('does nothing on the client: _eagerPreload(gotoQrl) in a client render keeps nothing', () => {
+    const clientRender = newInvokeContext();
+    clientRender.$container$ = {} as unknown as Container;
+
+    expect(() => invoke(clientRender, () => _eagerPreload(createGotoQrl()))).not.toThrow();
+    expect(() => _eagerPreload(createGotoQrl())).not.toThrow();
+  });
+
+  it('ignores a missing value: _eagerPreload(undefined) keeps nothing', () => {
+    expect(duringServerRender(() => _eagerPreload(undefined))).toEqual([]);
   });
 });

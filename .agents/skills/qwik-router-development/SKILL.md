@@ -55,6 +55,10 @@ Do not use `--project chromium` with `e2e/qwik-e2e/playwright.config.ts`; this c
   consumption in the same change.
 - Preserve deprecated Qwik City compatibility only when current source still supports it, and keep
   compatibility warnings/tests intentional.
+- The client build puts the router's runtime in one `qwik-router` chunk
+  (`buildtime/vite/router-chunk.ts`), and a page with a `<Link>` fetches it at load. Keep out of that
+  group what no navigation, form or action runs, and what brings a large dependency, as `server$`
+  does with the serializer.
 - If router work exposes stale guidance here or in `AGENTS.md`, update the guidance before
   finishing or record why guidance edits were out of scope.
 

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chunkHasComponent } from '../utils/app';
+import { chunkComesFrom, chunkHasComponent } from '../utils/app';
 import {
   CLICK_RUNS_COMPUTED,
   CLICK_RUNS_TASK,
@@ -12,9 +12,12 @@ import {
 import { releaseAll } from '../utils/gate';
 import { coldClick, expectResult, openFixture } from '../utils/scenarios';
 
+const isAppComponentChunk = (url: string) =>
+  chunkHasComponent(url) && chunkComesFrom(url, ['src/']);
+
 const componentChunksFetchedByClick = async (page: Page, fixture: Fixture) => {
   const roundTrips = await coldClick(page, fixture);
-  return roundTrips.flatMap((roundTrip) => roundTrip.urls).filter(chunkHasComponent);
+  return roundTrips.flatMap((roundTrip) => roundTrip.urls).filter(isAppComponentChunk);
 };
 
 const componentChunksFetchedAtPageLoad = async (page: Page, fixture: Fixture) => {
@@ -22,7 +25,7 @@ const componentChunksFetchedAtPageLoad = async (page: Page, fixture: Fixture) =>
   page.on('request', (request) => requests.push(request.url()));
   const { gate } = await openFixture(page, fixture, 'cold');
   await expectResult(page, fixture);
-  const componentChunks = requests.filter(chunkHasComponent);
+  const componentChunks = requests.filter(isAppComponentChunk);
   await releaseAll(gate);
   return componentChunks;
 };

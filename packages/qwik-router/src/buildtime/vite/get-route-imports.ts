@@ -26,8 +26,10 @@ export function getRouteImports(routes: BuiltRoute[], manifest: QwikManifest) {
     if (bundle.origins?.some((s) => s.endsWith(QWIK_ROUTER_CONFIG_ID))) {
       result[bundleName] = {
         ...bundle,
-        dynamicImports: bundle.dynamicImports?.filter((d) =>
-          manifest.bundles[d].origins?.some((s) => s.endsWith('menu.md'))
+        dynamicImports: bundle.dynamicImports?.filter(
+          (d) =>
+            bundle.qrlImports?.includes(d) ||
+            manifest.bundles[d].origins?.some((s) => s.endsWith('menu.md'))
         ),
       };
       addRouterConfigToItsImporters(manifest, bundleName, result);

@@ -14,6 +14,7 @@ import {
   replaceLoaderPlaceholders,
 } from './plugin';
 import { normalizePath } from '../../utils/fs';
+import { getRouterChunkName } from './router-chunk';
 
 describe('qwikRouter plugin', () => {
   describe('defaultLoadersSerializationStrategy', () => {
@@ -135,16 +136,22 @@ describe('qwikRouter plugin', () => {
       expect(result.resolve.external).toContain('node:async_hooks');
     });
 
-    it('should return empty config for client environments', () => {
+    it("gives the client environment only the router's chunk group: one group, named by getRouterChunkName, at priority 1", () => {
       const plugins = qwikRouter();
       const hook = (plugins[0] as any).configEnvironment;
 
       const result = hook(
         'client',
         { consumer: 'client' },
-        { command: 'serve', mode: 'development' }
+        { command: 'build', mode: 'production' }
       );
-      expect(result).toEqual({});
+      expect(result).toEqual({
+        build: {
+          rolldownOptions: {
+            output: { codeSplitting: { groups: [{ name: getRouterChunkName, priority: 1 }] } },
+          },
+        },
+      });
     });
   });
 

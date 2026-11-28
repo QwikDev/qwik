@@ -38,6 +38,7 @@ import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
 import { bundleServiceWorkerChunks } from './bundle-service-worker';
 import { getRouteImports } from './get-route-imports';
+import { getRouterChunkName } from './router-chunk';
 import { imagePlugin } from './image-jsx';
 import { collectServerFnModuleIds } from './server-fns';
 import type {
@@ -408,6 +409,17 @@ function qwikRouterPlugin(
               QWIK_ROUTER_SW_REGISTER,
               'zod',
             ],
+          },
+        } satisfies EnvironmentOptions;
+      }
+      if (name === 'client') {
+        return {
+          build: {
+            rolldownOptions: {
+              output: {
+                codeSplitting: { groups: [{ name: getRouterChunkName, priority: 1 }] },
+              },
+            },
           },
         } satisfies EnvironmentOptions;
       }

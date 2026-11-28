@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const createContainer = (buildBase = '/') => {
   const elements: { tagName: string; attrs: Record<string, string> }[] = [];
   let scriptContent = '';
+  let scriptAttrs: Record<string, string> = {};
 
   const container = {
     $buildBase$: buildBase,
@@ -24,7 +25,8 @@ const createContainer = (buildBase = '/') => {
     write(content: string) {
       scriptContent += content;
     },
-    writeScript(_attrs: Record<string, string>, body = '') {
+    writeScript(attrs: Record<string, string>, body = '') {
+      scriptAttrs = attrs;
       scriptContent += body;
     },
     closeElement() {},
@@ -34,6 +36,7 @@ const createContainer = (buildBase = '/') => {
     container: container as any,
     elements,
     getScriptContent: () => scriptContent,
+    getScriptAttrs: () => scriptAttrs,
   };
 };
 
@@ -117,6 +120,52 @@ const expectDeferredUntilAfterPaint = (
   expect(fetch).toHaveBeenCalledTimes(shouldFetch ? 1 : 0);
 };
 
+const runStartScript = (script: string) => {
+  const graph = {};
+  const fetch = vi.fn(() => graph);
+  const l = vi.fn();
+  const pendingImports: (() => void)[] = [];
+  const importModule = vi.fn(
+    () => new Promise<{ l: typeof l }>((resolve) => pendingImports.push(() => resolve({ l })))
+  );
+  const scheduled: (() => void)[] = [];
+  const schedule = (callback: () => void) => scheduled.push(callback);
+  let onLoad!: () => void;
+  const window: { qPreloadStart?: () => void; addEventListener: unknown } = {
+    addEventListener: (_eventName: string, callback: () => void) => (onLoad = callback),
+  };
+  // eslint-disable-next-line no-new-func
+  new Function(
+    'window',
+    'requestAnimationFrame',
+    'requestIdleCallback',
+    'fetch',
+    'importModule',
+    script.replaceAll('import(', 'importModule(')
+  )(window, schedule, schedule, fetch, importModule);
+
+  return {
+    graph,
+    fetch,
+    importModule,
+    l,
+    start: () => window.qPreloadStart!(),
+    loadThenTwoFramesThenIdle: () => {
+      onLoad();
+      while (scheduled.length) {
+        scheduled.shift()!();
+      }
+    },
+    finishImports: async () => {
+      while (pendingImports.length) {
+        pendingImports.shift()!();
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+    },
+  };
+};
+
 describe('preloader', () => {
   afterEach(() => {
     vi.doUnmock('./qwik-copy');
@@ -142,44 +191,153 @@ describe('preloader', () => {
     expect(getScriptContent()).toBe('');
   });
 
-  it('starts the preloader after page paint during idle time', async () => {
-    const { container, elements, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+  describe('the script that starts the preloader', () => {
+    it('starts the preloader after page paint during idle time', async () => {
+      const { container, elements, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, { maxIdlePreloads: 1 });
+      preloaderPre(container, { maxIdlePreloads: 1 });
 
-    expect(elements).toEqual([
-      { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'preload',
-          href: '/assets/bundle-graph.json',
-          as: 'fetch',
-          crossorigin: 'anonymous',
+      expect(elements).toEqual([
+        { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
+        {
+          tagName: 'link',
+          attrs: {
+            rel: 'preload',
+            href: '/assets/bundle-graph.json',
+            as: 'fetch',
+            crossorigin: 'anonymous',
+          },
         },
-      },
-    ]);
+      ]);
 
-    expectDeferredUntilAfterPaint(getScriptContent(), true);
-  });
+      expectDeferredUntilAfterPaint(getScriptContent(), true);
+    });
 
-  it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
-    const { container, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+    it.each([0, 1, 25])('passes a speculative preload limit of %s to the client', async (limit) => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, { maxIdlePreloads: limit });
+      preloaderPre(container, { maxIdlePreloads: limit });
 
-    expect(getScriptContent()).toContain(`{P:${limit}}`);
-  });
+      expect(getScriptContent()).toContain(`{P:${limit}}`);
+    });
 
-  it('falls back to the next paint without a fixed delay', async () => {
-    const { container, getScriptContent } = createContainer();
-    const { preloaderPre } = await import('./preload-impl');
+    it('falls back to the next paint without a fixed delay', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
 
-    preloaderPre(container, {});
+      preloaderPre(container, {});
 
-    expectDeferredUntilAfterPaint(getScriptContent(), true, false);
+      expectDeferredUntilAfterPaint(getScriptContent(), true, false);
+    });
+
+    it('nothing starts before a user event or load: the script alone makes no fetch and no import', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {});
+      const page = runStartScript(getScriptContent());
+
+      expect(page.fetch).not.toHaveBeenCalled();
+      expect(page.importModule).not.toHaveBeenCalled();
+    });
+
+    it("a start before load holds speculative preloads: qPreloadStart() calls l('/', graph, {P:0})", async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {});
+      const page = runStartScript(getScriptContent());
+      page.start();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 0 }]]);
+    });
+
+    it('load lets speculative preloads go: with no maxIdlePreloads option, l is called with {P:25} after load, two frames and idle time', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {});
+      const page = runStartScript(getScriptContent());
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 25 }]]);
+    });
+
+    it('an undefined limit means the default: maxIdlePreloads: undefined calls l with {P:25} after load', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, { maxIdlePreloads: undefined });
+      const page = runStartScript(getScriptContent());
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 25 }]]);
+    });
+
+    it('a limit of 0 stays 0: maxIdlePreloads: 0 calls l with {P:0} after load', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, { maxIdlePreloads: 0 });
+      const page = runStartScript(getScriptContent());
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([['/', page.graph, { P: 0 }]]);
+    });
+
+    it("a start still pending at load can't hold speculative preloads again: qPreloadStart() resolved after load calls l with {P:25}", async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {});
+      const page = runStartScript(getScriptContent());
+      page.start();
+      page.loadThenTwoFramesThenIdle();
+      await page.finishImports();
+
+      expect(page.l.mock.calls).toEqual([
+        ['/', page.graph, { P: 25 }],
+        ['/', page.graph, { P: 25 }],
+      ]);
+    });
+
+    it('the bundle graph is fetched once: qPreloadStart() twice, then load, makes one fetch', async () => {
+      const { container, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {});
+      const page = runStartScript(getScriptContent());
+      page.start();
+      page.start();
+      page.loadThenTwoFramesThenIdle();
+
+      expect(page.fetch).toHaveBeenCalledOnce();
+    });
+
+    it("the script runs while the page is parsed: it has no type and no async attribute, and keeps its nonce 'abc'", async () => {
+      const { container, getScriptAttrs } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, {}, 'abc');
+
+      expect(getScriptAttrs()).toEqual({ nonce: 'abc' });
+    });
+
+    it('the preloader turned off defines no start: preloader: false writes no script', async () => {
+      const { container, elements, getScriptContent } = createContainer();
+      const { preloaderPre } = await import('./preload-impl');
+
+      preloaderPre(container, false);
+
+      expect(elements).toEqual([]);
+      expect(getScriptContent()).toBe('');
+    });
   });
 
   it('starts speculative bundle preloads after page paint during idle time', async () => {

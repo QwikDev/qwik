@@ -15,6 +15,8 @@ import { BundleImportState_Alias, BundleImportState_None } from './types';
 export let base: string | undefined;
 export let graph: BundleGraph;
 export let isWaitingForGraph = false;
+let isWatchingHandlers = false;
+let graphRequest: ReturnType<typeof fetch> | undefined;
 
 const makeBundle = (name: string, deps?: BundleDep[], kind = 0) => {
   return {
@@ -90,15 +92,26 @@ export const loadBundleGraph = (
   if (!isBrowser || basePath == null) {
     return;
   }
+  if (config.$maxIdlePreloads$ && !isWatchingHandlers) {
+    isWatchingHandlers = true;
+    preloadHandlersInView();
+    preloadHandlersOnIntent();
+  }
+  if (serializedResponse && serializedResponse === graphRequest) {
+    nextTriggerMacroTask();
+    return;
+  }
   base = basePath;
-  preloadHandlersInView();
-  preloadHandlersOnIntent();
 
   if (serializedResponse) {
+    graphRequest = serializedResponse;
     isWaitingForGraph = true;
     serializedResponse
       .then((r) => r.text())
       .then((text) => {
+        if (serializedResponse !== graphRequest) {
+          return;
+        }
         graph = parseBundleGraph(JSON.parse(text));
         // Snapshot hints before dependency propagation adds new bundle records.
         const pendingBundles = Array.from(bundles.values());

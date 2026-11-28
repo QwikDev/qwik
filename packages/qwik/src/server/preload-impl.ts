@@ -58,14 +58,9 @@ export const preloaderPre = (
     const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
     initPreloader(bundleGraph);
 
-    // Add the preloader script to the head
-    const opts: string[] = [];
-    if (options) {
-      if (options.maxIdlePreloads != null) {
-        opts.push(`P:${options.maxIdlePreloads}`);
-      }
-    }
-    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    const { maxIdlePreloads } = normalizePreLoaderOptions(
+      typeof options === 'boolean' ? undefined : options
+    );
 
     // Fetch early so the deferred start does not pay a request chain
     const preloaderLinkAttrs: Record<string, string> = {
@@ -87,21 +82,14 @@ export const preloaderPre = (
     );
     container.closeElement();
 
-    const script = afterPagePaint(
-      `{let b=fetch(${toScriptLiteral(bundleGraphPath)});` +
-        `import(${toScriptLiteral(preloaderBundle)}).then(({l})=>` +
-        `l(${toScriptLiteral(base)},b${optsStr})` +
-        `)}`
-    );
-    const scriptAttrs: Record<string, string | boolean> = {
-      type: 'module',
-      async: true,
-      crossorigin: 'anonymous',
-    };
-    if (nonce) {
-      scriptAttrs['nonce'] = nonce;
-    }
-    container.writeScript(scriptAttrs, script);
+    const script =
+      `{let b,o={P:0},s=window.qPreloadStart=_=>(` +
+      `b=b||fetch(${toScriptLiteral(bundleGraphPath)}),` +
+      `import(${toScriptLiteral(preloaderBundle)})` +
+      `).then(({l})=>l(${toScriptLiteral(base)},b,o));` +
+      afterPagePaint(`{o={P:${maxIdlePreloads}};s()}`) +
+      `}`;
+    container.writeScript(nonce ? { nonce } : {}, script);
   }
 };
 
@@ -268,7 +256,10 @@ export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, n
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined
 ): Required<PreloaderOptions> {
-  return { ...preLoaderOptionsDefault, ...input };
+  return {
+    ssrPreloads: input?.ssrPreloads ?? preLoaderOptionsDefault.ssrPreloads,
+    maxIdlePreloads: input?.maxIdlePreloads ?? preLoaderOptionsDefault.maxIdlePreloads,
+  };
 }
 
 export const getBundles = (qrls: QRLInternal[]) => {

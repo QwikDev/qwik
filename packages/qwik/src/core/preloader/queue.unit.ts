@@ -1659,3 +1659,132 @@ describe('latest hint first', () => {
     expect(linkNames(document)).toEqual(['a-import.js']);
   });
 });
+
+const importPreloaderInBrowser = async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  return { document, loadBundleGraph, preload };
+};
+
+const graphResponseOf = (serializedGraph: (string | number)[]) => {
+  const text = vi.fn(async () => JSON.stringify(serializedGraph));
+  return { text, response: Promise.resolve({ text } as unknown as Response) };
+};
+
+const deferredGraphResponseOf = (serializedGraph: (string | number)[]) => {
+  let arrive!: () => void;
+  const response = new Promise<Response>((resolve) => {
+    arrive = () => resolve({ text: async () => JSON.stringify(serializedGraph) } as Response);
+  });
+  return { response, arrive };
+};
+
+const linkPaths = (document: Document) =>
+  Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname);
+
+const watchersOn = (document: Document) => {
+  const scan = vi.spyOn(document, 'evaluate');
+  const listen = vi.spyOn(document, 'addEventListener');
+  return () => ({
+    inViewScans: scan.mock.calls.length,
+    pointeroverListeners: listen.mock.calls.filter(([name]) => name === 'pointerover').length,
+  });
+};
+
+describe('a second start, after one before the page loaded', () => {
+  test("lets the held speculative preloads go: loadBundleGraph with {P:0}, preload('a.js', 0.8), then {P:1} links a.js", async () => {
+    const { document, loadBundleGraph, preload } = await importPreloaderInBrowser();
+    const { response } = graphResponseOf(['a.js']);
+
+    loadBundleGraph('/build/', response, { P: 0 });
+    preload('a.js', 0.8);
+    await vi.runAllTimersAsync();
+    expect(linkNames(document)).toEqual([]);
+    loadBundleGraph('/build/', response, { P: 1 });
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['a.js']);
+  });
+
+  test("doesn't load the bundle graph again: loadBundleGraph twice reads the graph's response once", async () => {
+    const { loadBundleGraph } = await importPreloaderInBrowser();
+    const { text, response } = graphResponseOf(['a.js']);
+
+    loadBundleGraph('/build/', response, { P: 0 });
+    await vi.runAllTimersAsync();
+    loadBundleGraph('/build/', response, { P: 1 });
+    await vi.runAllTimersAsync();
+
+    expect(text).toHaveBeenCalledOnce();
+  });
+
+  test("another container's bundle graph is loaded too: loadBundleGraph('/a/', graphA) then ('/b/', graphB), preload('b.js', 1) links /b/b.js and /b/b-import.js", async () => {
+    const { document, loadBundleGraph, preload } = await importPreloaderInBrowser();
+
+    loadBundleGraph('/a/', graphResponseOf(['a.js']).response, { P: 0 });
+    loadBundleGraph('/b/', graphResponseOf(['b.js', 2, 'b-import.js']).response, { P: 0 });
+    await vi.runAllTimersAsync();
+    preload('b.js', 1);
+    await vi.runAllTimersAsync();
+
+    expect(linkPaths(document).sort()).toEqual(['/b/b-import.js', '/b/b.js']);
+  });
+
+  test("the latest container's bundle graph wins whatever arrives first: graphB arrives before graphA, preload('b.js', 1) still links /b/b.js and /b/b-import.js", async () => {
+    const { document, loadBundleGraph, preload } = await importPreloaderInBrowser();
+    const graphA = deferredGraphResponseOf(['a.js']);
+    const graphB = deferredGraphResponseOf(['b.js', 2, 'b-import.js']);
+
+    loadBundleGraph('/a/', graphA.response, { P: 0 });
+    loadBundleGraph('/b/', graphB.response, { P: 0 });
+    graphB.arrive();
+    await vi.runAllTimersAsync();
+    graphA.arrive();
+    await vi.runAllTimersAsync();
+    preload('b.js', 1);
+    await vi.runAllTimersAsync();
+
+    expect(linkPaths(document).sort()).toEqual(['/b/b-import.js', '/b/b.js']);
+  });
+
+  test("a start with no bundle graph keeps the one still loading: loadBundleGraph('/build/', graph) then loadBundleGraph('/build/'), preload('a.js', 0.8) links a.js once the graph arrives", async () => {
+    const { document, loadBundleGraph, preload } = await importPreloaderInBrowser();
+    const graph = deferredGraphResponseOf(['a.js']);
+
+    loadBundleGraph('/build/', graph.response, { P: 1 });
+    loadBundleGraph('/build/');
+    preload('a.js', 0.8);
+    graph.arrive();
+    await vi.runAllTimersAsync();
+
+    expect(linkNames(document)).toEqual(['a.js']);
+  });
+
+  test('handlers are watched once speculative preloads may go: {P:0} starts no in-view scan and no pointerover listener, then {P:1} starts both', async () => {
+    const { document, loadBundleGraph } = await importPreloaderInBrowser();
+    const { response } = graphResponseOf(['a.js']);
+    const countWatchers = watchersOn(document);
+
+    loadBundleGraph('/build/', response, { P: 0 });
+    expect(countWatchers()).toEqual({ inViewScans: 0, pointeroverListeners: 0 });
+    loadBundleGraph('/build/', response, { P: 1 });
+
+    expect(countWatchers()).toEqual({ inViewScans: 1, pointeroverListeners: 1 });
+  });
+
+  test('handlers are watched once: {P:1} twice starts one in-view scan and one pointerover listener', async () => {
+    const { document, loadBundleGraph } = await importPreloaderInBrowser();
+    const { response } = graphResponseOf(['a.js']);
+    const countWatchers = watchersOn(document);
+
+    loadBundleGraph('/build/', response, { P: 1 });
+    loadBundleGraph('/build/', response, { P: 1 });
+
+    expect(countWatchers()).toEqual({ inViewScans: 1, pointeroverListeners: 1 });
+  });
+});

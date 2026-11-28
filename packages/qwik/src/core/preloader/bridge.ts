@@ -4,6 +4,7 @@ export type PreloaderGlobal = typeof globalThis & {
   qPreload?: Preload;
   /** Hints sent before the preloader loaded; shared by core, qwikloader and the preloader. */
   qPreloadQueue?: Parameters<Preload>[];
+  qPreloadStart?: () => void;
 };
 
 /** @internal */

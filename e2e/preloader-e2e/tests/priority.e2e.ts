@@ -66,20 +66,25 @@ const recordPriorities = async (page: Page) => {
   return () => [...requests.values()];
 };
 
-const serveTheHeroImageSlowly = (page: Page) =>
-  page.route(HERO_IMAGE, async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+const openHoldingLoadUntilTheTaskRan = async (page: Page) => {
+  let releaseTheHeroImage!: () => void;
+  const released = new Promise<void>((resolve) => (releaseTheHeroImage = resolve));
+  await page.route(HERO_IMAGE, async (route) => {
+    await released;
     await route.fulfill({ contentType: 'image/png', body: PNG });
   });
+  await page.goto(PRIORITY.path, { waitUntil: 'commit' });
+  await expectResult(page, PRIORITY);
+  releaseTheHeroImage();
+  await page.waitForLoadState('load');
+};
 
 test.describe('before any user event', () => {
   test('every modulepreload added while the page loads is low: on /priority/ none lacks fetchpriority="low"', async ({
     page,
   }) => {
     await recordAddedPreloads(page);
-    await serveTheHeroImageSlowly(page);
-    await page.goto(PRIORITY.path);
-    await expectResult(page, PRIORITY);
+    await openHoldingLoadUntilTheTaskRan(page);
     const whileLoading = (await addedPreloads(page)).filter((link) => link.beforeLoad);
     const hrefs = whileLoading.map((link) => link.href);
     expect(hrefs).toContain(coreUrl());
@@ -107,9 +112,7 @@ test.describe('before any user event', () => {
       IGNORES_LOW_PRIORITY_ON_ADDED_MODULEPRELOADS
     );
     const priorities = await recordPriorities(page);
-    await serveTheHeroImageSlowly(page);
-    await page.goto(PRIORITY.path);
-    await expectResult(page, PRIORITY);
+    await openHoldingLoadUntilTheTaskRan(page);
     const whileLoading = priorities().filter((request) => request.beforeLoad);
     const priorityOf = (url: string) =>
       whileLoading.find((request) => request.url === url)?.priority;

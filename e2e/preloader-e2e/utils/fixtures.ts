@@ -71,6 +71,12 @@ export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
 export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
+export const HEAVY_DEP_QRL_PROP: Fixture = {
+  id: 'heavy-dep-qrl-prop',
+  path: '/heavy-dep-qrl-prop/',
+  sources: ['src/components/fixtures/heavy-dep-qrl-prop/', 'src/routes/heavy-dep-qrl-prop/'],
+  expected: 'rust-front rust-back',
+};
 export const SYNC = handWritten('sync', 'done');
 export const BARREL = handWritten('barrel', 'alpha 1.0');
 export const STREAMING = handWritten('streaming', '1');

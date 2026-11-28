@@ -511,6 +511,7 @@ const HAND_WRITTEN = [
   { group: 'other', href: '/slot/', label: 'slot' },
   { group: 'other', href: '/scoped-styles/', label: 'scoped styles' },
   { group: 'other', href: '/qrl-prop/', label: 'QRL prop' },
+  { group: 'other', href: '/heavy-dep-qrl-prop/', label: 'heavy dependency of a QRL prop' },
   { group: 'other', href: '/sync/', label: 'sync$' },
   { group: 'other', href: '/barrel/', label: 'barrel file' },
   { group: 'other', href: '/streaming/', label: 'click while streaming' },

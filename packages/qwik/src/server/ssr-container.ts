@@ -14,9 +14,16 @@ import {
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
-import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
+import {
+  BINARY_VNODE_PREFIX,
+  BinaryStateWriter,
+  createSerializationContext,
+} from '@qwik.dev/core/internal/serializer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
+  BINARY_VNODE_CODES,
+  BinaryVNodeKind,
+  BinaryVNodeOther,
   ATTR_EQUALS_QUOTE,
   BRACKET_CLOSE,
   BRACKET_OPEN,
@@ -261,6 +268,26 @@ const enum OutOfOrderSegmentState {
 type VNodeDataOwner = string | undefined;
 type PendingVNodeDataPatches = Map<VNodeDataOwner, Map<number, VNodeData>>;
 type VNodeDataSerializableNode = Pick<ISsrNode, 'id' | 'vnodeData'>;
+
+/** The one-character codes of the vnode attributes the client knows. */
+const VNODE_ATTR_CODES = new Map<string, string>([
+  [QScopedStyle, VNodeDataChar.SCOPED_STYLE_CHAR],
+  [OnRenderProp, VNodeDataChar.RENDER_FN_CHAR],
+  [ELEMENT_ID, VNodeDataChar.ID_CHAR],
+  [ELEMENT_PROPS, VNodeDataChar.PROPS_CHAR],
+  [ELEMENT_KEY, VNodeDataChar.KEY_CHAR],
+  [ELEMENT_SEQ, VNodeDataChar.SEQ_CHAR],
+  [ELEMENT_SEQ_IDX, VNodeDataChar.SEQ_IDX_CHAR],
+  [QBackRefs, VNodeDataChar.BACK_REFS_CHAR],
+  [QSlotParent, VNodeDataChar.SLOT_PARENT_CHAR],
+  [QCtxAttr, VNodeDataChar.CONTEXT_CHAR],
+  [QSlot, VNodeDataChar.SLOT_CHAR],
+]);
+
+/** The index in `BINARY_VNODE_CODES` of the vnode attributes the client knows. */
+const BINARY_VNODE_CODE_INDEXES = new Map<string, number>(
+  Array.from(VNODE_ATTR_CODES, ([key, code]) => [key, BINARY_VNODE_CODES.indexOf(code)])
+);
 
 function getSegmentRefDiagonal(pair: number): number {
   let diagonal = Math.floor((Math.sqrt(8 * pair + 1) - 1) / 2);
@@ -1259,14 +1286,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     if (!segmentId && !this.serializationCtx.$roots$.length && !this.hasVNodeRefsForSerialization) {
       return;
     }
-    this.emitVNodeDataScript(segmentId, this.vNodeDatas.entries());
+    this.writeVNodeDataScript(segmentId, this.vNodeDatas.entries());
   }
 
-  protected emitVNodeDataScript(
+  protected writeVNodeDataScript(
     segmentId: string | undefined,
     entries: Iterable<[number, VNodeData]>,
     patch = false
-  ) {
+  ): void {
+    if (__EXPERIMENTAL__.binaryState) {
+      this.emitBinaryVNodeDataScript(segmentId, entries, patch);
+    } else {
+      this.emitVNodeDataScript(segmentId, entries, patch);
+    }
+    if (patch && !segmentId) {
+      this.emitInlineScript(
+        'document.qProcessVNodeDataPatch&&document.qProcessVNodeDataPatch(document.currentScript.previousElementSibling)'
+      );
+    }
+  }
+
+  private openVNodeDataScript(segmentId: string | undefined, patch: boolean): void {
     const attrs: Props = { type: 'qwik/vnode' };
     if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
       attrs[QPendingResolved] = segmentId;
@@ -1275,6 +1315,135 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       attrs[QStatePatchAttr] = true;
     }
     this.openScript(attrs);
+  }
+
+  /**
+   * Writes the vnode data as a binary state stream of its own: one root, the array of tokens
+   * `BINARY_VNODE_CODES` describes. The tokens are written last first, so that the reader, which
+   * reads backwards, gets them in document order.
+   */
+  protected emitBinaryVNodeDataScript(
+    segmentId: string | undefined,
+    entries: Iterable<[number, VNodeData]>,
+    patch = false
+  ): void {
+    const tokens: (number | string)[] = [];
+    // A segment's root ids are its own; the text format maps them when the segment is written out.
+    const rootIdMap = this.vnodeSegment ? this.getSegmentRootIdMap() : null;
+    let lastElementIdx = 0;
+    let previousRootId = 0;
+    const previousRootIdByCode: number[] = [];
+    const pushAttrs = (attrs: Props) =>
+      this.forEachVNodeAttr(attrs, (key, value, isRootRef) => {
+        const codeIndex = BINARY_VNODE_CODE_INDEXES.get(key) ?? BINARY_VNODE_CODES.length;
+        tokens.push((codeIndex + BinaryVNodeOther.FirstCode) * 4 + BinaryVNodeKind.Other);
+        if (codeIndex === BINARY_VNODE_CODES.length) {
+          tokens.push(key);
+        }
+        if (typeof value === 'string') {
+          tokens.push(value);
+          return;
+        }
+        if (isRootRef && rootIdMap) {
+          value = rootIdMap[value] ?? value;
+        }
+        // Root ids come in interleaved runs; the closer base keeps the distances small.
+        const sameCodeBase = previousRootIdByCode[codeIndex] ?? 0;
+        const isSameCodeBase = Math.abs(value - sameCodeBase) < Math.abs(value - previousRootId);
+        const distance = value - (isSameCodeBase ? sameCodeBase : previousRootId);
+        const zigzag = distance >= 0 ? distance * 2 : -distance * 2 - 1;
+        tokens.push(zigzag * 2 + (isSameCodeBase ? 1 : 0));
+        previousRootId = previousRootIdByCode[codeIndex] = value;
+      });
+    // eslint-disable-next-line qwik-local/loop-style -- entries is an iterator
+    for (const [elementIdx, vNodeData] of entries) {
+      const flags = vNodeData[0];
+      const isReferenced = flags & VNodeDataFlag.REFERENCE ? 1 : 0;
+      // Paired with serialize.ts's INERT gate: drop the vnode path AND the state root together.
+      const hasRecord =
+        !(flags & VNodeDataFlag.INERT) &&
+        flags & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE);
+      if (!(flags & VNodeDataFlag.SERIALIZE) || !(hasRecord || isReferenced)) {
+        continue;
+      }
+      tokens.push(
+        ((elementIdx - lastElementIdx) * 2 + isReferenced) * 4 + BinaryVNodeKind.ElementStart
+      );
+      lastElementIdx = elementIdx;
+      if (hasRecord) {
+        this.pushBinaryVNodeTokens(vNodeData, tokens, pushAttrs);
+      }
+    }
+    this.openVNodeDataScript(segmentId, patch);
+    const writer = new BinaryStateWriter(
+      { $stringEnds$: new Map(), $length$: 0 },
+      (text) => this.write(text),
+      BINARY_VNODE_PREFIX
+    );
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      const token = tokens[i];
+      if (typeof token === 'number') {
+        writer.$number$(token);
+      } else {
+        writer.$string$(token);
+      }
+    }
+    writer.$endArray$(0, tokens.length);
+    writer.$endArray$(0, 1);
+    writer.$finish$();
+    this.closeScript();
+  }
+
+  private pushBinaryVNodeTokens(
+    vNodeData: VNodeData,
+    tokens: (number | string)[],
+    pushAttrs: (attrs: Props) => void
+  ): void {
+    const attrsStack: (Props | null)[] = [];
+    let fragmentAttrs: Props | null = null;
+    let depth = 0;
+    const closeVirtual = () => {
+      if (fragmentAttrs) {
+        pushAttrs(fragmentAttrs);
+        fragmentAttrs = attrsStack.pop()!;
+      }
+      depth--;
+      tokens.push(BinaryVNodeOther.CloseVirtual * 4 + BinaryVNodeKind.Other);
+    };
+    for (let i = 1; i < vNodeData.length; i++) {
+      const value = vNodeData[i];
+      if (typeof value === 'object' && value !== null) {
+        attrsStack.push(fragmentAttrs);
+        fragmentAttrs = value;
+      } else if (value === OPEN_FRAGMENT) {
+        depth++;
+        tokens.push(BinaryVNodeOther.OpenVirtual * 4 + BinaryVNodeKind.Other);
+      } else if (value === CLOSE_FRAGMENT) {
+        closeVirtual();
+      } else if (value === WRITE_ELEMENT_ATTRS) {
+        // As in the text format, empty element attributes stay current until the next close.
+        if (fragmentAttrs && !isObjectEmpty(fragmentAttrs)) {
+          pushAttrs(fragmentAttrs);
+          fragmentAttrs = attrsStack.pop()!;
+        }
+      } else if (value < 0) {
+        tokens.push(-value * 4 + BinaryVNodeKind.ElementCount);
+      } else {
+        tokens.push(value * 4 + BinaryVNodeKind.TextLength);
+      }
+    }
+    // Fragments around `<body>` are never closed; close them here, as the text format does.
+    while (depth > 0) {
+      closeVirtual();
+    }
+  }
+
+  protected emitVNodeDataScript(
+    segmentId: string | undefined,
+    entries: Iterable<[number, VNodeData]>,
+    patch = false
+  ) {
+    this.openVNodeDataScript(segmentId, patch);
     const vNodeAttrsStack: Props[] = [];
     let lastSerializedIdx = 0;
 
@@ -1346,11 +1515,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       }
     }
     this.closeScript();
-    if (patch && !segmentId) {
-      this.emitInlineScript(
-        'document.qProcessVNodeDataPatch&&document.qProcessVNodeDataPatch(document.currentScript.previousElementSibling)'
-      );
-    }
   }
 
   $retainForResume$(node: ISsrNode | null | undefined): void {
@@ -1413,103 +1577,93 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       : undefined;
   }
 
-  private writeFragmentAttrs(fragmentAttrs: Props): void {
+  /**
+   * Calls `emit` for every attribute the client needs, with its resolved value. An empty value is a
+   * `q:props` the client cannot diff; a render function without a root is sent as its hash.
+   */
+  private forEachVNodeAttr(
+    fragmentAttrs: Props,
+    emit: (key: string, value: string | number, isRootRef: boolean) => void
+  ): void {
     for (const key in fragmentAttrs) {
       const rawValue = fragmentAttrs[key];
-      let value = rawValue as string;
-      let rootId: number | string | undefined;
-      let encodeValue: ((value: string) => string) | null = null;
       if (key === ELEMENT_ID && typeof rawValue === 'number') {
-        let globalId = rawValue;
-        if (rawValue < 0) {
-          // we are inside a segment and need to resolve the local root id to a global id
-          const pair = -rawValue - 1;
-          const diagonal = getSegmentRefDiagonal(pair);
-          const localRootId = pair - (diagonal * (diagonal + 1)) / 2;
-          const segmentId = diagonal - localRootId + 1;
-          globalId = this.getSegmentRootIdMap(segmentId)[localRootId];
-          if (globalId === undefined) {
-            throw qError(QError.serializeErrorMissingRootId, [
-              `segment ${segmentId} root ${localRootId}`,
-            ]);
+        emit(key, this.getGlobalElementId(rawValue), false);
+      } else if (typeof rawValue === 'string') {
+        emit(key, rawValue, false);
+      } else {
+        const rootId = this.addRoot(rawValue);
+        if (rootId !== undefined) {
+          emit(key, rootId, true);
+        } else if (key === OnRenderProp) {
+          emit(
+            key,
+            VNodeDataChar.RENDER_HASH_PREFIX_CHAR + (rawValue as QRLInternal).$hash$,
+            false
+          );
+        } else if (key === ELEMENT_PROPS) {
+          const varProps = _getVarProps(rawValue as Props);
+          if (varProps && !isObjectEmpty(varProps)) {
+            emit(key, '', false);
           }
         }
-        value = String(globalId);
-      } else if (typeof rawValue !== 'string') {
-        rootId = this.addRoot(rawValue);
-        if (rootId === undefined) {
-          if (key === OnRenderProp) {
-            this.write(VNodeDataChar.RENDER_FN_CHAR);
-            this.write(VNodeDataChar.RENDER_HASH_PREFIX_CHAR);
-            this.write(encodeVNodeDataString(encodeVNodeDataKey((rawValue as QRLInternal).$hash$)));
-          } else if (key === ELEMENT_PROPS) {
-            const varProps = _getVarProps(rawValue as Props);
-            if (varProps && !isObjectEmpty(varProps)) {
-              // A `>` without a ref tells the client it can't diff the var props it gets next.
-              this.write(VNodeDataChar.PROPS_CHAR);
-            }
-          }
-          continue;
-        }
-        value = String(rootId);
       }
-      switch (key) {
-        case QScopedStyle:
-          this.write(VNodeDataChar.SCOPED_STYLE_CHAR);
-          break;
-        case OnRenderProp:
-          this.write(VNodeDataChar.RENDER_FN_CHAR);
-          break;
-        case ELEMENT_ID:
-          this.write(VNodeDataChar.ID_CHAR);
-          break;
-        case ELEMENT_PROPS:
-          this.write(VNodeDataChar.PROPS_CHAR);
-          break;
-        case ELEMENT_KEY:
+    }
+  }
+
+  /** Inside a segment, element ids are local root ids that map to the container's root ids. */
+  private getGlobalElementId(elementId: number): number {
+    if (elementId >= 0) {
+      return elementId;
+    }
+    const pair = -elementId - 1;
+    const diagonal = getSegmentRefDiagonal(pair);
+    const localRootId = pair - (diagonal * (diagonal + 1)) / 2;
+    const segmentId = diagonal - localRootId + 1;
+    const globalId = this.getSegmentRootIdMap(segmentId)[localRootId];
+    if (globalId === undefined) {
+      throw qError(QError.serializeErrorMissingRootId, [
+        `segment ${segmentId} root ${localRootId}`,
+      ]);
+    }
+    return globalId;
+  }
+
+  private writeFragmentAttrs(fragmentAttrs: Props): void {
+    this.forEachVNodeAttr(fragmentAttrs, (key, value, isRootRef) => {
+      const code = VNODE_ATTR_CODES.get(key);
+      let encodeValue: ((value: string) => string) | null = null;
+      if (code === undefined) {
+        encodeValue = encodeURI;
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+        this.write(encodeVNodeDataString(encodeVNodeDataKey(key)));
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+      } else {
+        this.write(code);
+        if (code === VNodeDataChar.KEY_CHAR || code === VNodeDataChar.SLOT_CHAR) {
           encodeValue = encodeVNodeDataKey;
-          this.write(VNodeDataChar.KEY_CHAR);
-          break;
-        case ELEMENT_SEQ:
-          this.write(VNodeDataChar.SEQ_CHAR);
-          break;
-        case ELEMENT_SEQ_IDX:
-          this.write(VNodeDataChar.SEQ_IDX_CHAR);
-          break;
-        case QBackRefs:
-          this.write(VNodeDataChar.BACK_REFS_CHAR);
-          break;
-        case QSlotParent:
-          this.write(VNodeDataChar.SLOT_PARENT_CHAR);
-          break;
-        // Skipping `\` character for now because it is used for escaping.
-        case QCtxAttr:
-          this.write(VNodeDataChar.CONTEXT_CHAR);
-          break;
-        case QSlot:
-          encodeValue = encodeVNodeDataKey;
-          this.write(VNodeDataChar.SLOT_CHAR);
-          break;
-        default: {
-          encodeValue = encodeURI;
-          this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(encodeVNodeDataString(encodeVNodeDataKey(key)));
-          this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
-      const encodedValue = encodeVNodeDataString(encodeValue ? encodeValue(value) : value);
-      const isEncoded = encodeValue ? encodedValue !== value : false;
-      if (isEncoded) {
+      if (isRootRef) {
+        this.writeRootRef(value as number);
+        return;
+      }
+      const text = String(value);
+      if (code === VNodeDataChar.RENDER_FN_CHAR) {
+        // `_` followed by the encoded hash
+        this.write(text[0] + encodeVNodeDataString(encodeVNodeDataKey(text.slice(1))));
+        return;
+      }
+      const encodedValue = encodeVNodeDataString(encodeValue ? encodeValue(text) : text);
+      if (encodeValue && encodedValue !== text) {
         // add separator only before and after the encoded value
         this.write(VNodeDataChar.SEPARATOR_CHAR);
         this.write(encodedValue);
         this.write(VNodeDataChar.SEPARATOR_CHAR);
-      } else if (typeof rootId === 'number') {
-        this.writeRootRef(rootId);
       } else {
-        this.write(value);
+        this.write(text);
       }
-    }
+    });
   }
 
   private emitStateData(): ValueOrPromise<void> {
@@ -2253,7 +2407,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         continue;
       }
       const sortedEntries = Array.from(entries).sort((a, b) => a[0] - b[0]);
-      this.emitVNodeDataScript(owner, sortedEntries, true);
+      this.writeVNodeDataScript(owner, sortedEntries, true);
     }
   }
 

@@ -4,6 +4,37 @@
 
 ```ts
 
+// Warning: (ae-internal-missing-underscore) The name "BINARY_VNODE_PREFIX" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const BINARY_VNODE_PREFIX = "}";
+
+// Warning: (ae-internal-missing-underscore) The name "BinaryStateWriter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class BinaryStateWriter {
+    // (undocumented)
+    $constant$(constant: number): void;
+    $endArray$(start: number, itemCount: number): void;
+    $finish$(): void;
+    $flush$(): void;
+    $length$: number;
+    // (undocumented)
+    $number$(value: number): void;
+    get $offset$(): number;
+    // (undocumented)
+    $rootRef$(rootIndex: number): void;
+    $sharedRoot$(offsetAfterValue: number): void;
+    // (undocumented)
+    $string$(value: string, isTypedPayload?: boolean): void;
+    // Warning: (ae-forgotten-export) The symbol "TypeIds" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $type$(typeId: TypeIds): void;
+    // Warning: (ae-forgotten-export) The symbol "BinaryStateStream" needs to be exported by the entry point index.d.ts
+    constructor($stream$: BinaryStateStream, $write$: (text: string) => void, prefix?: string);
+}
+
 // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SSRInternalStreamWriter" needs to be exported by the entry point index.d.ts
@@ -54,7 +85,6 @@ export interface SerializationContext {
     $eventQrls$: Set<QRL>;
     // (undocumented)
     $forwardRefOffset$: number;
-    // Warning: (ae-forgotten-export) The symbol "BinaryStateStream" needs to be exported by the entry point index.d.ts
     $getBinaryStream$(): BinaryStateStream;
     $hasRootId$: (obj: unknown) => number | undefined;
     // (undocumented)

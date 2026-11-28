@@ -15,6 +15,7 @@ export { qError, qErrorWithoutStop, QError } from '../core/shared/error/error';
 export { isQrl } from '../core/shared/qrl/qrl-utils';
 export {
   BINARY_STATE_PREFIX,
+  BINARY_VNODE_PREFIX,
   BinaryCode,
   unitToCharCode,
 } from '../core/shared/serdes/binary-state';

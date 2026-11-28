@@ -55,7 +55,11 @@ import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
 import { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../core/shared/vnode/vnode-dirty';
 import type { ElementVNode } from '../core/shared/vnode/element-vnode';
-import { processOutOfOrderSegmentVNodeData } from '../core/client/process-vnode-data';
+import {
+  BinaryVNodeCursor,
+  processOutOfOrderSegmentVNodeData,
+} from '../core/client/process-vnode-data';
+import { isBinaryVNodeData } from '../core/shared/serdes/binary-state';
 import { executeBackpatch } from '../backpatch-executor-shared';
 import { getTestPlatform } from '@qwik.dev/core/testing';
 import { whenContainerDataReady } from '../core/client/dom-container';
@@ -289,6 +293,34 @@ export async function ssrRenderToDom(
  * The JSON form of a `qwik/state` script, whatever its format: the root typeId/value pairs, or for
  * a patch `[rootStart, rootPairs, forwardRefs | 0, extraRootId]`.
  */
+/**
+ * The values of the attribute `code` (a `VNodeDataChar`) in a vnode script of either format, as
+ * text. An attribute without a value gives `''`.
+ */
+export function getVNodeAttrValues(script: string, code: string): string[] {
+  if (!isBinaryVNodeData(script)) {
+    const escaped = code.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+    return Array.from(script.matchAll(new RegExp(escaped + '(\\d*)', 'g')), (match) => match[1]);
+  }
+  const cursor = new BinaryVNodeCursor(script);
+  // eslint-disable-next-line no-empty
+  while (cursor.$next$()) {}
+  const table = cursor.$table$;
+  const values: string[] = [];
+  for (let i = 0; i < table.length; i++) {
+    const entry = table[i];
+    if (typeof entry !== 'string' || entry === '{' || entry === '}') {
+      continue;
+    }
+    // An attribute code is followed by its value, which can look like a code.
+    const value = table[++i];
+    if (entry === code) {
+      values.push(String(value));
+    }
+  }
+  return values;
+}
+
 export function parseStateScript(script: Element): any {
   const text = script.textContent || '[]';
   if (!isBinaryState(text)) {

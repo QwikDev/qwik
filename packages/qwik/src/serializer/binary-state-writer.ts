@@ -39,7 +39,7 @@ const needsEscaping = (value: string): boolean => {
  */
 export class BinaryStateWriter {
   /** Text that is not written out yet. */
-  private $text$ = BINARY_STATE_PREFIX;
+  private $text$: string;
   /** Units that are not part of the text yet. */
   private $units$ = new Uint8Array(1 << 12);
   private $unitCount$ = 0;
@@ -47,11 +47,17 @@ export class BinaryStateWriter {
   $length$ = 0;
   private $previousSharedEnd$ = 0;
 
-  /** @param $write$ Receives the content of the script, in pieces, as it is produced. */
+  /**
+   * @param $write$ - Receives the content of the script, in pieces, as it is produced.
+   * @param prefix - The character the script starts with.
+   */
   constructor(
     private $stream$: BinaryStateStream,
-    private $write$: (text: string) => void
-  ) {}
+    private $write$: (text: string) => void,
+    prefix = BINARY_STATE_PREFIX
+  ) {
+    this.$text$ = prefix;
+  }
 
   /** The offset in the stream after the last written value. */
   get $offset$(): number {
@@ -146,7 +152,7 @@ export class BinaryStateWriter {
     this.$push$(BinaryCode.Float);
   }
 
-  /** @param isTypedPayload Whether a typed value, such as a URL, is made from the string. */
+  /** @param isTypedPayload - Whether a typed value, such as a URL, is made from the string. */
   $string$(value: string, isTypedPayload = false): void {
     const stringEnds = this.$stream$.$stringEnds$;
     const isRepeatable =

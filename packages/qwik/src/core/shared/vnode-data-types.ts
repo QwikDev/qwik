@@ -84,6 +84,50 @@ export const VNodeDataChar = {
 };
 
 /**
+ * The vnode data of one element, flat: text lengths (zero or more), element counts (negative), `{`
+ * and `}` around the tokens of a virtual node, and attributes as a `VNodeDataChar` code (or `|` and
+ * the attribute name) followed by the value.
+ */
+export type VNodeRecord = unknown[];
+
+/**
+ * Binary vnode data is decoded into one array per container, where `null` ends each element's
+ * record. An element's entry in `qVNodeData` is the index of that array times this, plus where its
+ * record starts.
+ */
+export const VNODE_TABLE_INDEX_SCALE = 2 ** 28;
+
+/**
+ * Binary vnode data is one array of tokens in document order. A token is a number `payload * 4 +
+ * kind`:
+ *
+ * - Kind 0: an element with vnode data starts; the payload is the elements skipped since the previous
+ *   one times two, plus one when state refers to the element.
+ * - Kind 1: element count. Kind 2: text length.
+ * - Kind 3: payload 0 opens a virtual node, 1 closes it, `2 + i` is the attribute code
+ *   `BINARY_VNODE_CODES[i]`. One past the codes is a custom attribute, whose name follows as a
+ *   string. Then the value: a string, or a root id written as the zigzag distance from a base,
+ *   times two, plus one when the base is the previous id of the same code instead of the previous
+ *   id.
+ */
+export const BINARY_VNODE_CODES = '`=<>@^[];?~';
+
+/** The kind of a binary vnode token: its value modulo 4. */
+export const enum BinaryVNodeKind {
+  ElementStart,
+  ElementCount,
+  TextLength,
+  Other,
+}
+
+/** The payloads of `BinaryVNodeKind.Other`. */
+export const enum BinaryVNodeOther {
+  OpenVirtual,
+  CloseVirtual,
+  FirstCode,
+}
+
+/**
  * Convert a segment-local vnode index into a key for the root container's shared qVNodeRefs map.
  *
  * Out-of-order segments each start counting vnode refs from 0, but the client merges all segment

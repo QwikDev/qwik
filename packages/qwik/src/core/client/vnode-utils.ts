@@ -159,7 +159,12 @@ import {
   QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
-import { VNodeDataChar, getSegmentVNodeRefId } from '../shared/vnode-data-types';
+import {
+  VNodeDataChar,
+  VNODE_TABLE_INDEX_SCALE,
+  getSegmentVNodeRefId,
+  type VNodeRecord,
+} from '../shared/vnode-data-types';
 import {
   _getQContainerElement,
   getDomContainer,
@@ -1539,9 +1544,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
     vFirstChild === undefined &&
     vnode_isElementVNode(vnode) &&
     hasOnlyPendingPlaceholder(vnode.node) &&
-    !(fastOwnerDocument(vnode.node) as QDocument).qVNodeData
-      ?.get(vnode.node)
-      ?.includes(VNodeDataChar.OPEN_CHAR)
+    !hasVirtualChild(vnode.node)
   ) {
     return null;
   }
@@ -1577,7 +1580,10 @@ export const vnode_materializeSegment = (host: ElementVNode, slot: VirtualVNode)
   if (slot.firstChild) {
     return;
   }
-  materializeFromVNodeData(slot, data, element, fastFirstChild(element), segmentId);
+  const record = toVNodeRecord(element, data);
+  if (record) {
+    materializeFromVNodeData(slot, record, element, fastFirstChild(element), segmentId);
+  }
 };
 
 export const splitVNodeData = (vNodeData: string) => {
@@ -1592,47 +1598,31 @@ const materialize = (
   vNode: ElementVNode,
   element: Element,
   firstChild: Node | null,
-  vNodeData?: string
+  vNodeData?: string | number
 ): VNode | null => {
   vnode_ensureElementKeyInflated(vNode);
   const segmentId = __EXPERIMENTAL__.pendingBoundary
     ? (element as QElement)._qSegment || null
     : null;
-  if (vNodeData) {
-    if (
-      vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
-      vNodeData.charCodeAt(1) === VNodeDataChar.SEPARATOR
-    ) {
-      /**
-       * If vNodeData start with the `VNodeDataChar.SEPARATOR` then it means that the vNodeData
-       * contains some data for DOM element. We need to split it to DOM element vNodeData and
-       * virtual element vNodeData.
-       *
-       * For example `||=6`4||2{J=7`3|q:type|S}` should split into `=6`4`and`2{J=7`3|q:type|S}`,
-       * where `=6`4` is vNodeData for the DOM element.
-       */
-      const split = splitVNodeData(vNodeData);
-      const elementVNodeData = split.elementVNodeData;
-      vNodeData = split.virtualVNodeData;
-
-      // Materialize DOM element from HTML. If the `vNodeData` is not empty,
-      // then also materialize virtual element from vNodeData
-      const vFirstChild = materializeFromDOM(vNode, firstChild, elementVNodeData, segmentId);
-      if (!vNodeData) {
-        const segmentData = (element as QElement)._qSegmentVNodeData;
-        if (__EXPERIMENTAL__.pendingBoundary && segmentData !== undefined) {
-          delete (element as QElement)._qSegmentVNodeData;
-          return materializeFromVNodeData(vNode, segmentData, element, firstChild, segmentId);
-        }
-        return vFirstChild;
-      }
-    }
-    // Materialize virtual element form vNodeData
-    return materializeFromVNodeData(vNode, vNodeData, element, firstChild, segmentId);
-  } else {
-    // Materialize DOM element from HTML only
-    return materializeFromDOM(vNode, firstChild, undefined, segmentId);
+  const record = vNodeData === undefined ? 0 : toVNodeRecord(element, vNodeData);
+  if (hasRecordChildren(record)) {
+    return materializeFromVNodeData(vNode, record as VNodeRecord, element, firstChild, segmentId);
   }
+  // The children are as the HTML has them; the record only holds the element's attributes.
+  const vFirstChild = materializeFromDOM(vNode, firstChild, segmentId);
+  if (!record || !record.length) {
+    return vFirstChild;
+  }
+  materializeFromVNodeData(vNode, record, element, firstChild, segmentId);
+  const segmentData = (element as QElement)._qSegmentVNodeData;
+  if (__EXPERIMENTAL__.pendingBoundary && segmentData !== undefined) {
+    delete (element as QElement)._qSegmentVNodeData;
+    const segmentRecord = toVNodeRecord(element, segmentData);
+    return segmentRecord
+      ? materializeFromVNodeData(vNode, segmentRecord, element, firstChild, segmentId)
+      : vFirstChild;
+  }
+  return vFirstChild;
 };
 
 export const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
@@ -1799,7 +1789,6 @@ const fastOwnerDocument = createFastGetter<Node, Document>('ownerDocument');
 const materializeFromDOM = (
   vParent: ElementVNode,
   firstChild: Node | null,
-  vData?: string,
   segmentId?: string | null
 ) => {
   let vFirstChild: VNode | null = null;
@@ -1839,32 +1828,6 @@ const materializeFromDOM = (
   }
   vParent.lastChild = vChild || null;
   vParent.firstChild = vFirstChild;
-
-  if (vData) {
-    /**
-     * If we need to materialize from DOM and we have vNodeData it means that we have some virtual
-     * props for that node.
-     */
-    let container: ClientContainer | null = null;
-    processVNodeData(vData, (peek, consumeValue) => {
-      if (peek() === VNodeDataChar.ID) {
-        if (!container) {
-          container = getDomContainer(vParent.node);
-        }
-        const id = consumeValue();
-        container.$setRawState$(parseInt(id, 10), vParent);
-        isDev && vnode_setProp(vParent, ELEMENT_ID, id);
-      } else if (peek() === VNodeDataChar.BACK_REFS) {
-        if (!container) {
-          container = getDomContainer(vParent.node);
-        }
-        setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
-      } else {
-        // prevent infinity loop if there are some characters outside the range
-        consumeValue();
-      }
-    });
-  }
 
   return vFirstChild;
 };
@@ -2149,124 +2112,72 @@ function hasOnlyPendingPlaceholder(element: Element) {
   );
 }
 
-const stack: any[] = [];
-function materializeFromVNodeData(
-  vParent: ElementVNode | VirtualVNode,
-  vData: string,
-  element: Element,
-  child: Node | null,
-  segmentId: string | null
-): VNode {
-  let idx = 0;
-  let vFirst: VNode | null = null;
-  let vLast: VNode | null = null;
-  let previousTextNode: TextVNode | null = null;
+/** @returns 0 when the element has no record. */
+const toVNodeRecord = (element: Element, vNodeData: string | number): VNodeRecord | 0 => {
+  if (__EXPERIMENTAL__.binaryState && typeof vNodeData === 'number') {
+    // Found through the document: the element can be detached while it materializes.
+    const tables = (fastOwnerDocument(element) as QDocument).qVNodeTables!;
+    const table = tables[Math.floor(vNodeData / VNODE_TABLE_INDEX_SCALE)];
+    const start = vNodeData % VNODE_TABLE_INDEX_SCALE;
+    return table.slice(start, table.indexOf(null, start));
+  }
+  // Only tests hand binary builds text vnode data.
+  if (__EXPERIMENTAL__.binaryState && !qTest) {
+    return 0;
+  }
+  return parseVNodeData(vNodeData as string);
+};
 
-  const addVNode = (node: VNode) => {
-    node.flags = (node.flags & VNodeFlagsIndex.mask) | (idx << VNodeFlagsIndex.shift);
-    idx++;
-    vLast && (vLast.nextSibling = node);
-    node.previousSibling = vLast;
-    node.parent = vParent;
-    if (!vFirst) {
-      vParent.firstChild = vFirst = node;
+const hasRecordChildren = (record: VNodeRecord | 0): boolean => {
+  for (let i = 0; record && i < record.length; i++) {
+    const item = record[i];
+    if (typeof item !== 'string' || item === VNodeDataChar.OPEN_CHAR) {
+      return true;
     }
-    vLast = node;
-  };
+    i++; // the attribute value
+  }
+  return false;
+};
 
-  let textIdx = 0;
-  let combinedText: string | null = null;
-  let container: ClientContainer | null = null;
+const hasVirtualChild = (element: Element): boolean => {
+  const vNodeData = (fastOwnerDocument(element) as QDocument).qVNodeData?.get(element);
+  const record = vNodeData === undefined ? 0 : toVNodeRecord(element, vNodeData);
+  for (let i = 0; record && i < record.length; i++) {
+    const item = record[i];
+    if (item === VNodeDataChar.OPEN_CHAR) {
+      return true;
+    }
+    if (typeof item === 'string') {
+      i++; // the attribute value
+    }
+  }
+  return false;
+};
 
-  const shouldSkipNode = (node: Node | null) => {
-    const nodeIsElement = isElement(node);
-    return !nodeIsElement || (nodeIsElement && shouldSkipElement(node));
-  };
-
-  let components: VirtualVNode[] | null = null;
-
+/** Turns text vnode data into a record. */
+const parseVNodeData = (vData: string): VNodeRecord => {
+  if (
+    vData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
+    vData.charCodeAt(1) === VNodeDataChar.SEPARATOR
+  ) {
+    // `||=6`4||2{J=7`3|q:type|S}` holds the element's own attributes between the `||`.
+    const split = splitVNodeData(vData);
+    return parseVNodeData(split.elementVNodeData).concat(parseVNodeData(split.virtualVNodeData));
+  }
+  const record: VNodeRecord = [];
   processVNodeData(vData, (peek, consumeValue, consume, getChar, dataIdx, consumeEncodedValue) => {
-    if (isNumber(peek())) {
-      // Element counts get encoded as numbers.
-      while (shouldSkipNode(child)) {
-        child = fastNextSibling(child);
-        if (!child) {
-          throw qError(QError.materializeVNodeDataError, [vData, peek(), dataIdx]);
-        }
-      }
-      combinedText = null;
-      previousTextNode = null;
-      let value = 0;
+    const ch = peek();
+    const code = String.fromCharCode(ch);
+    if (isNumber(ch)) {
+      let count = 0;
       while (isNumber(peek())) {
-        value *= 10;
-        value += consume() - 48; /* `0` */
+        count = count * 10 + consume() - 48; /* `0` */
       }
-      while (value--) {
-        const elementVNode = vnode_newUnMaterializedElement(child as Element);
-        vnode_ensureElementKeyInflated(elementVNode);
-        addVNode(elementVNode);
-        child = fastNextSibling(child);
-        while (
-          // skip only elements, not text nodes
-          isElement(child) &&
-          shouldSkipElement(child)
-        ) {
-          child = fastNextSibling(child);
-          if (!child && value > 0) {
-            throw qError(QError.materializeVNodeDataError, [vData, peek(), dataIdx]);
-          }
-        }
-      }
-      // collect the elements;
-    } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
-      vnode_setProp(vParent, QScopedStyle, consumeValue());
-    } else if (peek() === VNodeDataChar.RENDER_FN) {
-      const renderRef = consumeValue();
-      if (renderRef.charCodeAt(0) === VNodeDataChar.RENDER_HASH_PREFIX) {
-        vnode_setProp(
-          vParent,
-          QComponentHash,
-          decodeURIComponent(decodeVNodeDataString(renderRef.slice(1)))
-        );
-      } else {
-        (components ||= []).push(vParent as VirtualVNode);
-        vnode_setProp(vParent, OnRenderProp, renderRef);
-      }
-    } else if (peek() === VNodeDataChar.ID) {
-      if (!container) {
-        container = getDomContainer(element);
-      }
-      const id = consumeValue();
-      container.$setRawState$(parseInt(id, 10), vParent);
-      isDev && vnode_setProp(vParent, ELEMENT_ID, id);
-    } else if (peek() === VNodeDataChar.PROPS) {
-      vnode_setProp(vParent, ELEMENT_PROPS, consumeValue() || false);
-    } else if (peek() === VNodeDataChar.KEY) {
-      vParent.key = consumeEncodedValue();
-    } else if (peek() === VNodeDataChar.SEQ) {
-      vnode_setProp(vParent, ELEMENT_SEQ, consumeValue());
-    } else if (peek() === VNodeDataChar.SEQ_IDX) {
-      vnode_setProp(vParent, ELEMENT_SEQ_IDX, consumeValue());
-    } else if (peek() === VNodeDataChar.BACK_REFS) {
-      if (!container) {
-        container = getDomContainer(element);
-      }
-      setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
-    } else if (peek() === VNodeDataChar.SLOT_PARENT) {
-      if (!container) {
-        container = getDomContainer(element);
-      }
-      vParent.slotParent = vnode_locate(container!.rootVNode, consumeValue());
-    } else if (peek() === VNodeDataChar.CONTEXT) {
-      vnode_setProp(vParent, QCtxAttr, consumeValue());
-    } else if (peek() === VNodeDataChar.OPEN) {
+      record.push(-count);
+    } else if (ch === VNodeDataChar.OPEN || ch === VNodeDataChar.CLOSE) {
       consume();
-      addVNode(vnode_newVirtual());
-      stack.push(vParent, vFirst, vLast, previousTextNode, idx);
-      idx = 0;
-      vParent = vLast as ElementVNode | VirtualVNode;
-      vFirst = vLast = null;
-    } else if (peek() === VNodeDataChar.SEPARATOR) {
+      record.push(code);
+    } else if (ch === VNodeDataChar.SEPARATOR) {
       // Custom attribute: |key|value
       const keyValue = consumeValue();
       const key = decodeURIComponent(decodeVNodeDataString(keyValue));
@@ -2280,17 +2191,123 @@ function materializeFromVNodeData(
       } else {
         value = decodeVNodeDataString(consumeValue());
       }
-      vnode_setProp(vParent, key, value);
-    } else if (peek() === VNodeDataChar.CLOSE) {
-      consume();
-      vParent.lastChild = vLast;
-      idx = stack.pop();
-      previousTextNode = stack.pop();
-      vLast = stack.pop();
-      vFirst = stack.pop();
-      vParent = stack.pop();
-    } else if (peek() === VNodeDataChar.SLOT) {
-      vnode_setProp(vParent, QSlot, consumeEncodedValue());
+      record.push(code + key, value);
+    } else if (isLowercase(ch) || (ch >= 65 /* `A` */ && ch <= 90) /* `Z` */) {
+      // Text nodes get encoded as alphanumeric characters.
+      let length = 0;
+      while (isLowercase(peek())) {
+        length += consume() - 97; /* `a` */
+        length *= 26;
+      }
+      length += consume() - 65; /* `A` */
+      record.push(length);
+    } else if (ch === VNodeDataChar.KEY || ch === VNodeDataChar.SLOT) {
+      record.push(code, consumeEncodedValue());
+    } else {
+      const value = consumeValue();
+      record.push(
+        code,
+        ch === VNodeDataChar.RENDER_FN && value.charCodeAt(0) === VNodeDataChar.RENDER_HASH_PREFIX
+          ? value[0] + decodeURIComponent(decodeVNodeDataString(value.slice(1)))
+          : value
+      );
+    }
+  });
+  return record;
+};
+
+function materializeFromVNodeData(
+  vParent: ElementVNode | VirtualVNode,
+  record: VNodeRecord,
+  element: Element,
+  child: Node | null,
+  segmentId: string | null
+): VNode {
+  let textIdx = 0;
+  let combinedText: string | null = null;
+  let container: ClientContainer | null = null;
+  let components: VirtualVNode[] | null = null;
+  const getContainer = () => (container ||= getDomContainer(element));
+
+  const shouldSkipNode = (node: Node | null) => {
+    const nodeIsElement = isElement(node);
+    return !nodeIsElement || (nodeIsElement && shouldSkipElement(node));
+  };
+
+  // A stack, not recursion: virtual nodes can nest deeper than the call stack allows.
+  const stack: unknown[] = [];
+  let vCurrent: ElementVNode | VirtualVNode = vParent;
+  let previousTextNode: TextVNode | null = null;
+  let idx = 0;
+  let vFirst: VNode | null = null;
+  let vLast: VNode | null = null;
+  const addVNode = (node: VNode) => {
+    node.flags = (node.flags & VNodeFlagsIndex.mask) | (idx << VNodeFlagsIndex.shift);
+    idx++;
+    vLast && (vLast.nextSibling = node);
+    node.previousSibling = vLast;
+    node.parent = vCurrent;
+    if (!vFirst) {
+      vCurrent.firstChild = vFirst = node;
+    }
+    vLast = node;
+  };
+  /** Ends the current virtual node; false when it is `vParent`. */
+  const closeVNode = (): boolean => {
+    // A record with only attributes leaves the children materialized from the DOM.
+    vLast && (vCurrent.lastChild = vLast);
+    if (!stack.length) {
+      return false;
+    }
+    idx = stack.pop() as number;
+    previousTextNode = stack.pop() as TextVNode | null;
+    vLast = stack.pop() as VNode | null;
+    vFirst = stack.pop() as VNode | null;
+    vCurrent = stack.pop() as ElementVNode | VirtualVNode;
+    return true;
+  };
+  for (let i = 0; i < record.length; i++) {
+    const item = record[i];
+    if (item === VNodeDataChar.CLOSE_CHAR) {
+      if (!closeVNode()) {
+        break;
+      }
+    } else if (item === VNodeDataChar.OPEN_CHAR) {
+      const virtual = vnode_newVirtual();
+      addVNode(virtual);
+      stack.push(vCurrent, vFirst, vLast, previousTextNode, idx);
+      vCurrent = virtual;
+      idx = 0;
+      vFirst = vLast = null;
+    } else if (typeof item === 'string') {
+      components = setVNodeAttr(vCurrent, item, record[++i], getContainer, components);
+    } else if ((item as number) < 0) {
+      // Element counts are negative.
+      while (shouldSkipNode(child)) {
+        child = fastNextSibling(child);
+        if (!child) {
+          throw qError(QError.materializeVNodeDataError, [record, item, i]);
+        }
+      }
+      combinedText = null;
+      previousTextNode = null;
+      let count = -(item as number);
+      while (count--) {
+        const elementVNode = vnode_newUnMaterializedElement(child as Element);
+        vnode_ensureElementKeyInflated(elementVNode);
+        addVNode(elementVNode);
+        child = fastNextSibling(child);
+        while (
+          // skip only elements, not text nodes
+          isElement(child) &&
+          shouldSkipElement(child)
+        ) {
+          child = fastNextSibling(child);
+          if (!child && count > 0) {
+            throw qError(QError.materializeVNodeDataError, [record, item, i]);
+          }
+        }
+      }
     } else {
       // skip over style or non-qwik elements in front of text nodes, where text node is the first child (except the style node)
       while (isElement(child) && shouldSkipElement(child)) {
@@ -2298,38 +2315,85 @@ function materializeFromVNodeData(
       }
       const textNode =
         child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
-      // must be alphanumeric
       if (combinedText === null) {
         combinedText = textNode ? textNode.nodeValue : null;
         textIdx = 0;
       }
-      let length = 0;
-      while (isLowercase(peek())) {
-        length += consume() - 97; /* `a` */
-        length *= 26;
-      }
-      length += consume() - 65; /* `A` */
+      const length = item as number;
       const text = combinedText === null ? '' : combinedText.substring(textIdx, textIdx + length);
-
       addVNode(
         (previousTextNode = vnode_newSharedText(previousTextNode, textNode as Text | null, text))
       );
       textIdx += length;
-      // Text nodes get encoded as alphanumeric characters.
     }
-  });
-  if (components) {
-    if (!container) {
-      container = getDomContainer(element);
-    }
-    for (let i = 0; i < (components as VirtualVNode[]).length; i++) {
-      container.ensureProjectionResolved(components[i]);
-    }
-    components = null;
   }
-  vParent.lastChild = vLast;
-  return vFirst!;
+  while (closeVNode()) {
+    // Close the virtual nodes the record leaves open.
+  }
+  const vFirstChild = vParent.firstChild!;
+  for (let i = 0; components && i < (components as VirtualVNode[]).length; i++) {
+    getContainer().ensureProjectionResolved(components[i]);
+  }
+  return vFirstChild;
 }
+
+/** @returns The components found so far, which need their projections resolved. */
+const setVNodeAttr = (
+  vnode: ElementVNode | VirtualVNode,
+  code: string,
+  value: unknown,
+  getContainer: () => ClientContainer,
+  components: VirtualVNode[] | null
+): VirtualVNode[] | null => {
+  // Binary vnode data has numbers where the text format has digits.
+  const text = String(value);
+  switch (code.charCodeAt(0)) {
+    case VNodeDataChar.SCOPED_STYLE:
+      vnode_setProp(vnode, QScopedStyle, text);
+      break;
+    case VNodeDataChar.RENDER_FN:
+      if (text.charCodeAt(0) === VNodeDataChar.RENDER_HASH_PREFIX) {
+        vnode_setProp(vnode, QComponentHash, text.slice(1));
+      } else {
+        (components ||= []).push(vnode as VirtualVNode);
+        vnode_setProp(vnode, OnRenderProp, text);
+      }
+      break;
+    case VNodeDataChar.ID:
+      getContainer().$setRawState$(parseInt(text, 10), vnode);
+      isDev && vnode_setProp(vnode, ELEMENT_ID, text);
+      break;
+    case VNodeDataChar.PROPS:
+      // An empty value is a `q:props` the client cannot diff.
+      vnode_setProp(vnode, ELEMENT_PROPS, text || false);
+      break;
+    case VNodeDataChar.KEY:
+      vnode.key = text;
+      break;
+    case VNodeDataChar.SEQ:
+      vnode_setProp(vnode, ELEMENT_SEQ, text);
+      break;
+    case VNodeDataChar.SEQ_IDX:
+      vnode_setProp(vnode, ELEMENT_SEQ_IDX, text);
+      break;
+    case VNodeDataChar.BACK_REFS:
+      setEffectBackRefFromVNodeData(vnode, text, getContainer());
+      break;
+    case VNodeDataChar.SLOT_PARENT:
+      vnode.slotParent = vnode_locate(getContainer().rootVNode, text);
+      break;
+    case VNodeDataChar.CONTEXT:
+      vnode_setProp(vnode, QCtxAttr, text);
+      break;
+    case VNodeDataChar.SLOT:
+      vnode_setProp(vnode, QSlot, text);
+      break;
+    default:
+      // `|` and the name of a custom attribute
+      vnode_setProp(vnode, code.slice(1), text);
+  }
+  return components;
+};
 
 export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
   const type = vnode.flags;

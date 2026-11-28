@@ -43,6 +43,15 @@ export const peekRestoredRoot = (rawStateData: unknown[], id: number): unknown =
   return rawStateData[typeAt] === TypeIds.Plain ? rawStateData[typeAt + 1] : undefined;
 };
 
+const toRootIndex = (property: PropertyKey): number => {
+  if (typeof property === 'number') {
+    return property;
+  }
+  const index = typeof property === 'string' ? +property : NaN;
+  // Only a canonical index is a root: '0note' or '1.5' are named properties.
+  return String(index >>> 0) === property ? index : NaN;
+};
+
 class DeserializationHandler implements ProxyHandler<object> {
   constructor(
     public $container$: DomContainer,
@@ -104,7 +113,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       return false;
     }
     const out = Reflect.set(target, property, value, receiver);
-    const i = typeof property === 'number' ? property : parseInt(property as string, 10);
+    const i = toRootIndex(property);
     if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
       return out;
     }

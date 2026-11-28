@@ -125,8 +125,6 @@ export class BinaryStateReader {
   protected $pos$ = 0;
   /** Offset of the last unit of every root. */
   $rootEnds$ = new Uint32Array(0);
-  /** Number of units each root occupies in its root list. */
-  $rootSizes$ = new Uint32Array(0);
   /** Number of units in the stream. */
   $unitCount$ = 0;
   /**
@@ -153,8 +151,6 @@ export class BinaryStateReader {
   $onRootAllocated$: (rootIndex: number, value: unknown) => void = () => {};
   /** Called when a state patch has added roots. */
   $onRootsAdded$: () => void = () => {};
-  /** Called when no more state patches can arrive. */
-  $onPatchesEnded$: () => void = () => {};
 
   /** @param text The content of the root state script, if the container has one. */
   constructor(text?: string) {
@@ -163,12 +159,6 @@ export class BinaryStateReader {
       this.$seekArrayEnd$(this.$unitCount$ - 1);
       this.$appendRoots$();
     }
-  }
-
-  /** The stream is complete: nothing can refer to the restored nested objects anymore. */
-  $endPatches$(): void {
-    this.$restoredByOffset$ = null;
-    this.$onPatchesEnded$();
   }
 
   /**
@@ -306,9 +296,7 @@ export class BinaryStateReader {
     if (isEscaped) {
       return JSON.parse('"' + text + '"');
     }
-    // Engines keep a long slice as a view on the state text, which would then never be freed;
-    // concatenating first makes the slice a view on a copy of just this string.
-    return length > 12 ? (' ' + text).slice(1) : text;
+    return text;
   }
 
   /** The string that ends at `offset`; every reference to it gets the same string. */
@@ -346,13 +334,10 @@ export class BinaryStateReader {
       throw qError(QError.serializeErrorNotImplemented, [BinaryCode.ArrayEnd]);
     }
     const rootEnds = new Uint32Array(firstRoot + count);
-    const rootSizes = new Uint32Array(firstRoot + count);
     rootEnds.set(this.$rootEnds$);
-    rootSizes.set(this.$rootSizes$);
     for (let i = firstRoot + count - 1; i >= firstRoot; i--) {
       rootEnds[i] = this.$pos$;
       this.$skip$();
-      rootSizes[i] = rootEnds[i] - this.$pos$;
     }
     // Skipping trusts operand widths; roots must not reach before their script.
     if (this.$pos$ < this.$chunkStart$ - 1) {
@@ -382,7 +367,6 @@ export class BinaryStateReader {
       }
     }
     this.$rootEnds$ = rootEnds;
-    this.$rootSizes$ = rootSizes;
     this.$sharedValues$ = sharedValues.slice(0, sharedCount).sort();
   }
 

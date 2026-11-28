@@ -109,6 +109,13 @@ export const VISIBLE_ABOVE: Fixture = {
   expected: '4',
 };
 
+export const PRIORITY: Fixture = {
+  id: 'priority',
+  path: '/priority/',
+  sources: ['src/components/fixtures/priority/page-load.tsx', 'src/routes/priority/'],
+  expected: '1',
+};
+
 export const VISIBLE_BELOW: Fixture = {
   id: 'visible/below',
   path: '/visible/below/',

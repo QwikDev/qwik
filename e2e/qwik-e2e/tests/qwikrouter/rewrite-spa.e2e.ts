@@ -57,6 +57,57 @@ test.describe('rewrite to a different route', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('a Link that names its rewrite target navigates without asking q-route.json', async ({
+    page,
+  }) => {
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err));
+    const routeRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('q-route.json')) {
+        routeRequests.push(request.url());
+      }
+    });
+    await page.goto('/qwikrouter-test/rewrite-spa/');
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+    await page.evaluate(() => ((window as any).__noReload = true));
+
+    await page.locator('[data-test-link="rewrite-spa-pretty-hinted"]').click();
+
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`${pretty}$`));
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
+    await expect(page.locator('#rewrite-spa-served')).toHaveText(target);
+    expect(routeRequests).toEqual([]);
+    expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
+    expect(pageErrors).toEqual([]);
+
+    // Back and forward carry no hint, so the router asks the server as before.
+    await page.goBack();
+    await expect(page.locator('#rewrite-spa-source')).toBeVisible();
+    await page.goForward();
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
+  });
+
+  test('a Link whose rewrite target is its own URL does not ask q-route.json', async ({ page }) => {
+    const routeRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('q-route.json')) {
+        routeRequests.push(request.url());
+      }
+    });
+    await page.goto('/qwikrouter-test/rewrite-spa/');
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+    await page.evaluate(() => ((window as any).__noReload = true));
+
+    await page.locator('[data-test-link="rewrite-spa-dynamic-hinted"]').click();
+
+    await expect(page.locator('#rewrite-spa-dynamic')).toHaveText('one');
+    expect(routeRequests).toEqual([]);
+    expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
+  });
+
   test('the target route loader sees the visible URL of every rewritten navigation', async ({
     page,
   }) => {

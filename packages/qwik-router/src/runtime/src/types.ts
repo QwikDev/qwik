@@ -100,6 +100,7 @@ export type RouteStateInternal = {
   replaceState?: boolean;
   scroll?: boolean;
   historyUpdated?: boolean;
+  rewrite?: string;
 };
 
 export type RebuildRouteInfoInternal = (
@@ -139,6 +140,8 @@ export type RouteNavigate = QRL<
           forceReload?: boolean;
           replaceState?: boolean;
           scroll?: boolean;
+          /** The pathname a server `rewrite()` routes `path` to, so the router need not ask. */
+          rewrite?: string;
         }
       | boolean
   ) => Promise<void>

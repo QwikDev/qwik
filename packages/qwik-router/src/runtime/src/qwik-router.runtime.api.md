@@ -308,6 +308,7 @@ export interface LinkProps extends AnchorAttributes {
     reload?: boolean;
     // (undocumented)
     replaceState?: boolean;
+    rewrite?: string;
     // (undocumented)
     scroll?: boolean;
 }
@@ -568,6 +569,7 @@ export type RouteNavigate = QRL<(path?: string | number | URL, options?: {
     forceReload?: boolean;
     replaceState?: boolean;
     scroll?: boolean;
+    rewrite?: string;
 } | boolean) => Promise<void>>;
 
 // @public (undocumented)

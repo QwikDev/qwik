@@ -66,6 +66,25 @@ export const onRequest: RequestHandler = async ({ url, rewrite, cacheControl, he
 };
 ```
 
+### Links that already know their rewrite target
+
+Asking `q-route.json` costs a request before the route and its loaders can load, and the target's bundles can't be preloaded. If your app already knows where a URL is rewritten to when it renders the link, pass it as `rewrite`:
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+
+export default component$(() => (
+  <Link href="/articles/qwik-is-very-quick/" rewrite="/articles/777/">
+    Qwik is very quick
+  </Link>
+));
+```
+
+The router then renders `/articles/777/` without asking the server, and preloads its bundles like any other link. The browser still shows `/articles/qwik-is-very-quick/`, and loaders are still fetched through that URL, so your middleware rewrites them as usual. `useNavigate()` takes the same option: `nav('/articles/qwik-is-very-quick/', { rewrite: '/articles/777/' })`.
+
+Back and forward navigations don't carry the hint, so they ask the server as described above.
+
 The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
 
 ```tsx

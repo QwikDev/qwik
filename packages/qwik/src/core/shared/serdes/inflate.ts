@@ -8,6 +8,7 @@ import {
   vnode_isVNode,
 } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
+import { requestPreload } from '../../preloader/bridge';
 import type { BackRef } from '../../reactive-primitives/backref';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -40,7 +41,13 @@ import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { isObject, isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { registerSingleton } from '../singletons';
-import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
+import {
+  allocate,
+  beginDeserialization,
+  collectedTasks,
+  endDeserialization,
+  resolvers,
+} from './allocate';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
@@ -261,6 +268,9 @@ function* inflateIterator(
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
+      if (qTest ? !isServerPlatform() : !isServer) {
+        preloadTaskChain(task);
+      }
       break;
     }
     case TypeIds.Component:
@@ -584,6 +594,14 @@ function restoreEffectBackRefForConsumer(effect: EffectSubscription): void {
   consumerBackRef[_EFFECT_BACK_REF] ||= new Map();
   consumerBackRef[_EFFECT_BACK_REF].set(effect.property, effect);
 }
+
+const preloadTaskChain = (task: Task) => {
+  const qrl = task.$qrl$;
+  if (qrl.$chunk$) {
+    requestPreload(qrl.$chunk$, 1);
+  }
+  collectedTasks.list.push(task);
+};
 
 function restoreEffectBackRefForEffects(
   effects: Set<EffectSubscription> | null | undefined,

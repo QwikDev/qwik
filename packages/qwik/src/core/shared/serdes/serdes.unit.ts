@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -11,7 +12,7 @@ import {
   SerializerSymbol,
   type AsyncSignal,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -29,13 +30,16 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { getPlatform, setPlatform } from '../platform/platform';
+import { getTestPlatform } from '../../../testing/platform';
+import type { PreloaderGlobal } from '../../preloader/bridge';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { _capturesObj, createQRL, setCaptures, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1278,7 +1282,7 @@ describe('shared-serialization', () => {
     return container.$state$!;
   };
 
-  const eagerDeserialize = (data: unknown[]) => {
+  const startEagerDeserialize = (data: unknown[]) => {
     const state = Array(data.length / 2);
     const container: DeserializeContainer = {
       $getObjectById$: (id) => getObjectById(id, state),
@@ -1292,7 +1296,11 @@ describe('shared-serialization', () => {
       $forwardRefs$: null,
     };
     preprocessState(data, container);
-    const iterator = eagerDeserializeStateIterator(container, data, state);
+    return { state, iterator: eagerDeserializeStateIterator(container, data, state) };
+  };
+
+  const eagerDeserialize = (data: unknown[]) => {
+    const { state, iterator } = startEagerDeserialize(data);
     let yields = 0;
     while (!iterator.next().done) {
       yields++;
@@ -1887,6 +1895,333 @@ describe('shared-serialization', () => {
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: false, $scopedStyleIdPrefix$: null });
     });
+  });
+
+  const lazyQrl = (symbol: string, captures: unknown[] | null = null) =>
+    createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
+  const holdModuleOf = (heldSymbol: string) => {
+    let release!: () => void;
+    const heldModule = new Promise<() => void>((resolve) => (release = () => resolve(() => {})));
+    setPlatform({
+      ...getTestPlatform(),
+      isServer: false,
+      importSymbol: (_, __, symbol) => (symbol === heldSymbol ? heldModule : () => {}),
+    });
+    return release;
+  };
+  const startResolving = (qrl: QRLInternal) => {
+    let hasResolved = false;
+    void qrl.resolve().then(() => (hasResolved = true));
+    return () => hasResolved;
+  };
+
+  describe('restoring a task', () => {
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+    const preloaderGlobal = globalThis as PreloaderGlobal;
+    const preloadHints = () => preloaderGlobal.qPreloadQueue ?? [];
+    const createTask = (qrl: QRLInternal) =>
+      new Task(TaskFlags.TASK, 0, shared1 as any, qrl as any, null);
+    const subscribeTaskTo = (signal: SignalImpl, task: Task) => {
+      signal.$effects$ = new Set([
+        new EffectSubscription(task, EffectProperty.COMPONENT, null, null),
+      ]);
+    };
+    const restore = async (objs: unknown[], isServer: boolean) => {
+      setPlatform({ ...getTestPlatform(), isServer });
+      const restored = deserialize(objs)[0];
+      await delay(0);
+      return restored;
+    };
+    const restoreInBrowser = (objs: unknown[]) => restore(objs, false) as Promise<Task>;
+    const restoreOnServer = (objs: unknown[]) => restore(objs, true) as Promise<Task>;
+    const restoreInSlices = async (objs: unknown[]) => {
+      setPlatform({ ...getTestPlatform(), isServer: false });
+      const { state, iterator } = startEagerDeserialize(objs);
+      while (!iterator.next().done) {
+        await Promise.resolve();
+      }
+      await delay(0);
+      return state;
+    };
+
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    afterEach(() => {
+      setPlatform(platformBeforeTest);
+      setCaptures(null);
+      preloaderGlobal.qPreloadQueue = undefined;
+    });
+
+    it("asks for the task's chunk at the highest priority", async () => {
+      const objs = await serialize(createTask(lazyQrl('s_task')));
+
+      await restoreInBrowser(objs);
+
+      expect(preloadHints()).toContainEqual(['s_task.js', 1]);
+    });
+
+    it('restores the signals the task captures, and the tasks subscribed to them', async () => {
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(lazyQrl('s_next')));
+      const objs = await serialize(createTask(lazyQrl('s_first', [written])));
+
+      const first = await restoreInBrowser(objs);
+
+      expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
+      expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it("restores the chain when a QRL's captures reach the task", async () => {
+      const read = createSignal(0) as SignalImpl;
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(read, createTask(lazyQrl('s_task', [written])));
+      subscribeTaskTo(written, createTask(lazyQrl('s_next')));
+      const objs = await serialize(lazyQrl('s_reader', [read]));
+      holdModuleOf('s_nothing');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      await reader.resolve();
+
+      expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it("restores a chain of 400 tasks and asks for every task's chunk", async () => {
+      const tasks: Task[] = [];
+      let input = createSignal(0) as SignalImpl;
+      for (let i = 0; i < 400; i++) {
+        const output = createSignal(0) as SignalImpl;
+        const task = createTask(lazyQrl(`s_task${i}`, [input, output]));
+        subscribeTaskTo(input, task);
+        tasks.push(task);
+        input = output;
+      }
+      const objs = await serialize(tasks[0]);
+
+      await restoreInBrowser(objs);
+
+      const hintedChunks = preloadHints().map(([chunk]) => chunk);
+      expect(new Set(hintedChunks)).toEqual(new Set(tasks.map((task) => task.$qrl$.$chunk$)));
+    });
+
+    it('holds the task until the module of a computed it captures has loaded', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(createTask(lazyQrl('s_task', [computed])));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const task = deserialize(objs)[0] as Task;
+      await Promise.resolve();
+
+      const hasResolved = startResolving(task.$qrl$);
+      await delay(0);
+      expect(hasResolved()).toBe(false);
+      releaseComputedModule();
+      await delay(0);
+      expect(hasResolved()).toBe(true);
+    });
+
+    it('does not hold a QRL for a computed that only a task subscribed to its signal captures', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const signal = createSignal(0) as SignalImpl;
+      subscribeTaskTo(signal, createTask(lazyQrl('s_task', [computed])));
+      const objs = await serialize(lazyQrl('s_reader', [signal]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      const hasResolved = startResolving(reader);
+      await delay(0);
+      expect(hasResolved()).toBe(true);
+      releaseComputedModule();
+    });
+
+    it('does not hold a QRL for a computed that only a task found while restoring a computed captures', async () => {
+      const signal = createSignal(0) as SignalImpl;
+      subscribeTaskTo(
+        signal,
+        createTask(lazyQrl('s_task', [createComputedQrl(lazyQrl('s_held') as any)]))
+      );
+      const computed = createComputedQrl(lazyQrl('s_computed', [signal]) as any);
+      const objs = await serialize(lazyQrl('s_reader', [computed]));
+      const releaseHeldModule = holdModuleOf('s_held');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      const hasResolved = startResolving(reader);
+      await delay(0);
+      expect(hasResolved()).toBe(true);
+      expect(preloadHints()).toContainEqual(['s_task.js', 1]);
+      releaseHeldModule();
+    });
+
+    it('restores a task while the whole state is restored in slices', async () => {
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(lazyQrl('s_next')));
+      const objs = await serialize(createTask(lazyQrl('s_first', [written])));
+
+      const state = await restoreInSlices(objs);
+
+      const [restoredWritten] = (state[0] as Task).$qrl$.$captures$ as SignalImpl[];
+      expect(state).toContain(restoredWritten);
+      expect(preloadHints()).toEqual(
+        expect.arrayContaining([
+          ['s_first.js', 1],
+          ['s_next.js', 1],
+        ])
+      );
+    });
+
+    it("restores the task's captures only after the last slice", async () => {
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(lazyQrl('s_next')));
+      const objs = await serialize(createTask(lazyQrl('s_first', [written])));
+      setPlatform({ ...getTestPlatform(), isServer: false });
+      const { state, iterator } = startEagerDeserialize(objs);
+      const hasRestoredCaptures = () => typeof (state[0] as Task)?.$qrl$?.$captures$ === 'object';
+
+      let restoredBeforeTheEnd = false;
+      while (!iterator.next().done) {
+        await Promise.resolve();
+        restoredBeforeTheEnd ||= hasRestoredCaptures();
+      }
+
+      expect(restoredBeforeTheEnd).toBe(false);
+      expect(hasRestoredCaptures()).toBe(true);
+    });
+
+    it('leaves the captures of the QRL that is running untouched', async () => {
+      const runningCaptures = ['running'];
+      const objs = await serialize(createTask(lazyQrl('s_task', [createSignal(0)])));
+      setCaptures(runningCaptures);
+
+      await restoreInBrowser(objs);
+
+      expect(_capturesObj._).toBe(runningCaptures);
+    });
+
+    it("leaves the captures of the QRL that is running untouched when the task's captures hold a computed with captures", async () => {
+      const runningCaptures = ['running'];
+      const computed = createComputedQrl(lazyQrl('s_computed', [createSignal(0)]) as any);
+      const objs = await serialize(createTask(lazyQrl('s_task', [computed])));
+      holdModuleOf('s_nothing');
+      setCaptures(runningCaptures);
+
+      deserialize(objs)[0];
+
+      expect(_capturesObj._).toBe(runningCaptures);
+    });
+
+    const restoreReaderOfABrokenTask = async () => {
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(lazyQrl('s_task', [{ broken: true }])));
+      const objs = await serialize(lazyQrl('s_reader', [written]));
+      const objectRoot = objs.findIndex((value, i) => i % 2 === 0 && value === TypeIds.Object);
+      objs[objectRoot + 1] = 42;
+      holdModuleOf('s_nothing');
+      const reader = deserialize(objs)[0] as QRLInternal;
+      const hasResolved = startResolving(reader);
+      await delay(0);
+      const [restoredWritten] = reader.getCaptured() as SignalImpl[];
+      const [subscription] = restoredWritten.$effects$!;
+      return { hasResolved, task: subscription.consumer as Task };
+    };
+
+    it("a task whose captures fail to restore doesn't stop the click", async () => {
+      const { hasResolved } = await restoreReaderOfABrokenTask();
+
+      expect(hasResolved()).toBe(true);
+    });
+
+    it('a task whose captures fail to restore fails with that error when it runs', async () => {
+      const { task } = await restoreReaderOfABrokenTask();
+
+      await expect(task.$qrl$.resolve()).rejects.toThrow('Invalid Object payload');
+    });
+
+    it('after a restore that throws, the next restore still finds the chain', async () => {
+      await restoreReaderOfABrokenTask();
+      const written = createSignal(0) as SignalImpl;
+      subscribeTaskTo(written, createTask(lazyQrl('s_next')));
+      const objs = await serialize(createTask(lazyQrl('s_first', [written])));
+
+      const first = await restoreInBrowser(objs);
+
+      expect(first.$qrl$.$captures$).not.toBeTypeOf('string');
+      expect(preloadHints()).toContainEqual(['s_next.js', 1]);
+    });
+
+    it('does neither on the server', async () => {
+      const objs = await serialize(createTask(lazyQrl('s_task', [createSignal(0)])));
+
+      const task = await restoreOnServer(objs);
+
+      expect(task.$qrl$.$captures$).toBeTypeOf('string');
+      expect(preloadHints()).toEqual([]);
+    });
+  });
+
+  describe('a QRL that captures a computed', () => {
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+    });
+
+    afterEach(() => {
+      setPlatform(platformBeforeTest);
+    });
+
+    it('waits for the module of a computed its captures start loading', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(lazyQrl('s_reader', [computed]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      const hasResolved = startResolving(reader);
+      await delay(0);
+      expect(hasResolved()).toBe(false);
+      releaseComputedModule();
+      await delay(0);
+      expect(hasResolved()).toBe(true);
+    });
+
+    it('waits for the module of a computed several levels inside its captures', async () => {
+      const computed = createComputedQrl(lazyQrl('s_computed') as any);
+      const objs = await serialize(lazyQrl('s_reader', [{ stats: { totals: [computed] } }]));
+      const releaseComputedModule = holdModuleOf('s_computed');
+      const reader = deserialize(objs)[0] as QRLInternal;
+
+      const hasResolved = startResolving(reader);
+      await delay(0);
+      expect(hasResolved()).toBe(false);
+      releaseComputedModule();
+      await delay(0);
+      expect(hasResolved()).toBe(true);
+    });
+
+    it.fails(
+      "waits for the module of a computed that a task's captures restored first",
+      async () => {
+        const computed = createComputedQrl(lazyQrl('s_computed') as any);
+        const signal = createSignal(0) as SignalImpl;
+        signal.$effects$ = new Set([
+          new EffectSubscription(
+            new Task(TaskFlags.TASK, 0, shared1 as any, lazyQrl('s_task', [computed]) as any, null),
+            EffectProperty.COMPONENT,
+            null,
+            null
+          ),
+        ]);
+        const objs = await serialize(lazyQrl('s_first', [signal]), lazyQrl('s_reader', [computed]));
+        const releaseComputedModule = holdModuleOf('s_computed');
+        const [first, reader] = deserialize(objs) as QRLInternal[];
+        await first.resolve();
+
+        const hasResolved = startResolving(reader);
+        await delay(0);
+        releaseComputedModule();
+        expect(hasResolved()).toBe(false);
+      }
+    );
   });
 
   describe('effect backref restoration', () => {

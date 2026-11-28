@@ -69,6 +69,12 @@ export const CONDITIONAL_MODAL = handWritten('conditional-modal', 'ready');
 export const EMPTY_LIST = handWritten('empty-list', '1');
 export const TASKS_IN_PARENT_AND_CHILD = handWritten('tasks/parent-child', '2');
 export const TASKS_IN_SIBLINGS = handWritten('tasks/siblings', '2');
+export const TASKS_ON_A_SHARED_STORE = handWritten('tasks/shared-store', '2');
+export const CALLBACK_READING_A_COMPUTED = handWritten('tasks/callback-reading-a-computed', '3');
+export const TASK_READING_A_COMPUTED_FROM_ITS_PARENT = handWritten(
+  'tasks/computed-from-parent',
+  '1 of 3'
+);
 export const SCOPED_STYLES = handWritten('scoped-styles', 'styled');
 export const QRL_PROP = handWritten('qrl-prop', '42');
 export const SYNC = handWritten('sync', 'done');
@@ -148,10 +154,8 @@ const NO_HANDLER_TO_FETCH =
   'one round trip: a scroll has no handler to fetch first, and every visible task chunk goes out at once';
 const TASKS_WITH_HANDLER =
   "one round trip on main: the click handler's chunk also holds the component's tasks";
-const TASKS_FOUND_LEVEL_BY_LEVEL =
-  "over the 2-round-trip cap on main: each component's tasks are only found once the level above has run";
-const RENDER_FOUND_AFTER_TASK =
-  "over the 2-round-trip cap on main: the modal's task loads first, and its render chunk is only found once the task has run";
+const TASK_CHAIN_WITH_HANDLER =
+  "one round trip on main: every component's task chunks go out with the click handler";
 
 export const NEVER_SHOWS_RESULT: Record<string, string> = {
   'tree/mixed-computed-chain': NEVER_UPDATES,
@@ -175,13 +179,12 @@ export const ROUND_TRIPS_ON_MAIN: Record<string, RoundTripsOnMain> = {
   'single/store-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
   'single/task-chain': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
   'single/all': { roundTrips: 1, reason: TASKS_WITH_HANDLER },
-  'tree/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  'tree/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  'tree-context/store-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  'tree-context/task-chain': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  'tree/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  'tree-context/all': { roundTrips: 3, reason: TASKS_FOUND_LEVEL_BY_LEVEL },
-  modal: { roundTrips: 3, reason: RENDER_FOUND_AFTER_TASK },
+  'tree/store-chain': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
+  'tree/task-chain': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
+  'tree-context/store-chain': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
+  'tree-context/task-chain': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
+  'tree/all': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
+  'tree-context/all': { roundTrips: 1, reason: TASK_CHAIN_WITH_HANDLER },
 };
 
 export const NAVIGATION_SOURCES = ['src/components/fixtures/navigation/', 'src/routes/navigation/'];

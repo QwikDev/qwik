@@ -18,7 +18,7 @@ import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
-import type { QRLInternal } from '../qrl/qrl-class';
+import { _capturesObj, restoreQrlCaptures, setCaptures, type QRLInternal } from '../qrl/qrl-class';
 import { registerSingleton } from '../singletons';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
@@ -65,6 +65,29 @@ export const endDeserialization = (
   if (ownsPendingStoreTargets) {
     container.$pendingStoreTargets$!.clear();
     container.$pendingStoreTargets$ = undefined;
+    restoreCollectedTaskCaptures();
+  }
+};
+
+export const collectedTasks = /*#__PURE__*/ registerSingleton('collectedTasks', () => ({
+  list: [] as Task[],
+  isRestoring: false,
+}));
+
+const restoreCollectedTaskCaptures = () => {
+  if (collectedTasks.isRestoring) {
+    return;
+  }
+  collectedTasks.isRestoring = true;
+  const runningCaptures = _capturesObj._;
+  try {
+    for (let i = 0; i < collectedTasks.list.length; i++) {
+      restoreQrlCaptures(collectedTasks.list[i].$qrl$);
+    }
+  } finally {
+    collectedTasks.list.length = 0;
+    collectedTasks.isRestoring = false;
+    setCaptures(runningCaptures);
   }
 };
 

@@ -34,6 +34,7 @@ const loadCoreCopy = async () => {
   const cursorQueue = await import('./cursor/cursor-queue');
   const cursorProps = await import('./cursor/cursor-props');
   const pendingUtils = await import('../control-flow/pending-utils');
+  const allocate = await import('./serdes/allocate');
   return {
     ...useCore,
     ...platform,
@@ -58,6 +59,7 @@ const loadCoreCopy = async () => {
     ...cursorQueue,
     ...cursorProps,
     ...pendingUtils,
+    collectedTasks: allocate.collectedTasks,
     // Module namespaces keep live bindings; a spread copies their value at spread time.
     qrlClassModule: qrlClass,
   };
@@ -179,6 +181,10 @@ describe('duplicate core copies share runtime state', async () => {
     expect(second.getHighestPriorityCursor()).toBe(cursor);
     expect(second.removeCursorFromQueue(cursor, container)).toBe(true);
     expect(first.getHighestPriorityCursor()).toBeNull();
+  });
+
+  test('tasks collected by one copy are restored when the other copy ends a restore', () => {
+    expect(second.collectedTasks).toBe(first.collectedTasks);
   });
 
   test('reveal group ids count per container across copies', () => {

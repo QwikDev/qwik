@@ -1,13 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { defineColdClickTest } from '../utils/click-tests';
 import {
   chunkComesFrom,
   chunkHasComponent,
   chunkHasScopedStyles,
+  chunkHoldsComputedFrom,
   chunkHoldsTaskFrom,
+  ORIGIN,
 } from '../utils/app';
 import {
   BARREL,
+  CALLBACK_READING_A_COMPUTED,
   MATRIX,
   MODAL,
   NEVER_SHOWS_RESULT,
@@ -16,12 +19,28 @@ import {
   SHARED_HELPER,
   SLOT,
   SYNC,
+  TASK_READING_A_COMPUTED_FROM_ITS_PARENT,
   TASKS_IN_PARENT_AND_CHILD,
   TASKS_IN_SIBLINGS,
+  TASKS_ON_A_SHARED_STORE,
   USER_IMPORT,
 } from '../utils/fixtures';
-import type { RoundTrip } from '../utils/gate';
-import { coldClick } from '../utils/scenarios';
+import {
+  chunksHintedAtHighestPriority,
+  recordPreloadHints,
+  releaseAll,
+  resultIsDone,
+  settle,
+  type RoundTrip,
+} from '../utils/gate';
+import {
+  coldClick,
+  countFixtureRoundTrips,
+  expectResult,
+  fixtureResult,
+  fixtureRoot,
+  openFixture,
+} from '../utils/scenarios';
 
 for (const fixture of [...MATRIX, MODAL]) {
   if (!fixture.startsWhenVisible) {
@@ -129,10 +148,6 @@ test.describe('tasks in several components', () => {
       chunkHoldsTaskFrom(url, `${TASKS_DIR}parent-child/child.tsx`)
     );
     expect(parentRoundTrip).toBeGreaterThanOrEqual(0);
-    test.fail(
-      true,
-      "on main, core asks for a child's task chunk only once its parent's tasks have run"
-    );
     expect(childRoundTrip).toBe(parentRoundTrip);
   });
 
@@ -148,6 +163,130 @@ test.describe('tasks in several components', () => {
     );
     expect(firstRoundTrip).toBeGreaterThanOrEqual(0);
     expect(secondRoundTrip).toBe(firstRoundTrip);
+  });
+
+  test('opening the page asks for no task chunk at the highest priority', async ({ page }) => {
+    await recordPreloadHints(page);
+    await openFixture(page, TASKS_IN_PARENT_AND_CHILD, 'cold');
+    const taskChunks = (await chunksHintedAtHighestPriority(page)).filter((chunk) =>
+      ['parent-child/index.tsx', 'parent-child/child.tsx'].some((file) =>
+        chunkHoldsTaskFrom(`${ORIGIN}/build/${chunk}`, `${TASKS_DIR}${file}`)
+      )
+    );
+    expect(taskChunks).toEqual([]);
+  });
+
+  test.describe('task reading a computed from another component', () => {
+    const fixture = TASK_READING_A_COMPUTED_FROM_ITS_PARENT;
+    const holdsTheComputed = (url: string) =>
+      chunkHoldsComputedFrom(url, `${TASKS_DIR}computed-from-parent/index.tsx`);
+
+    const clickWhileTheComputedLoads = async (page: Page, buttonTestId: string) => {
+      const { gate } = await openFixture(page, fixture, 'cold');
+      gate.mode = 'pass';
+      gate.holdWhilePassing = holdsTheComputed;
+      await fixtureRoot(page, fixture).locator(`[data-testid=${buttonTestId}]`).click();
+      await expect.poll(() => gate.held.length).toBe(1);
+      return gate;
+    };
+
+    test("a click runs the task once when the computed's chunk arrives last", async ({ page }) => {
+      const gate = await clickWhileTheComputedLoads(page, 'trigger');
+      await settle(page, gate);
+      await expect(fixtureResult(page, fixture)).not.toHaveAttribute('data-done');
+      await releaseAll(gate);
+      await expectResult(page, fixture);
+      expect(await page.evaluate(() => (globalThis as { taskRuns?: number }).taskRuns)).toBe(1);
+    });
+
+    test("a click that only reads a signal shows its result while the task's computed is still loading", async ({
+      page,
+    }) => {
+      const gate = await clickWhileTheComputedLoads(page, 'read');
+      await expect(fixtureRoot(page, fixture).locator('[data-testid=read-result]')).toHaveAttribute(
+        'data-done'
+      );
+      expect(gate.held).toHaveLength(1);
+      await releaseAll(gate);
+    });
+  });
+
+  test.describe('callback reading a computed that a task in the chain also reads', () => {
+    test("a click whose callback reads the task's computed shows its value when the computed's chunk arrives last", async ({
+      page,
+    }) => {
+      test.fail(
+        true,
+        "the task's early restore starts the computed's load, so the callback no longer waits for it (#9586)"
+      );
+      const fixture = CALLBACK_READING_A_COMPUTED;
+      const { gate } = await openFixture(page, fixture, 'cold');
+      gate.mode = 'pass';
+      gate.holdWhilePassing = (url) =>
+        chunkHoldsComputedFrom(url, `${TASKS_DIR}callback-reading-a-computed/index.tsx`);
+      await fixtureRoot(page, fixture).locator('[data-testid=trigger]').click();
+      await expect.poll(() => gate.held.length).toBe(1);
+      await settle(page, gate);
+      await releaseAll(gate);
+      await expectResult(page, fixture);
+      expect(await page.evaluate(() => (globalThis as { handlerRuns?: number }).handlerRuns)).toBe(
+        1
+      );
+    });
+  });
+});
+
+test.describe('tasks on a shared store', () => {
+  const SHARED_STORE_DIR = `${TASKS_DIR}shared-store/`;
+  const holdsTheTaskOnA = (url: string) =>
+    chunkHoldsTaskFrom(url, `${SHARED_STORE_DIR}tracks-a.tsx`);
+  const holdsTheTaskOnB = (url: string) =>
+    chunkHoldsTaskFrom(url, `${SHARED_STORE_DIR}tracks-b.tsx`);
+  const holdsTheWriteHandler = (url: string) =>
+    chunkComesFrom(url, [`${SHARED_STORE_DIR}writer.tsx_`]);
+
+  const coldClickOn = async (page: Page, buttonTestId: string, resultTestId: string) => {
+    const opened = await openFixture(page, TASKS_ON_A_SHARED_STORE, 'cold');
+    const root = fixtureRoot(page, TASKS_ON_A_SHARED_STORE);
+    const roundTrips = await countFixtureRoundTrips(
+      opened,
+      () => root.locator(`[data-testid=${buttonTestId}]`).click(),
+      resultIsDone(root.locator(`[data-testid=${resultTestId}]`))
+    );
+    const stillOngoing = opened.gate.held.map((route) => route.request().url());
+    await releaseAll(opened.gate);
+    return { roundTrips, fetched: [...requestedUrls(roundTrips), ...stillOngoing] };
+  };
+
+  test("a click that changes one property fetches the task that tracks it with the click's handler", async ({
+    page,
+  }) => {
+    const { roundTrips } = await coldClickOn(page, 'trigger', 'result');
+    const handlerRoundTrip = roundTripOf(roundTrips, holdsTheWriteHandler);
+    expect(handlerRoundTrip).toBeGreaterThanOrEqual(0);
+    expect(roundTripOf(roundTrips, holdsTheTaskOnA)).toBe(handlerRoundTrip);
+  });
+
+  test('a click that changes one property fetches no chunk of the tasks that track its other properties', async ({
+    page,
+  }) => {
+    const { fetched } = await coldClickOn(page, 'trigger', 'result');
+    test.fail(
+      true,
+      "on main, core can't tell which property the click changes, so every task on the store gets its chunk fetched"
+    );
+    expect(fetched.filter(holdsTheTaskOnB)).toEqual([]);
+  });
+
+  test('a click that reads the store without changing it fetches no task chunk', async ({
+    page,
+  }) => {
+    const { fetched } = await coldClickOn(page, 'read', 'read-result');
+    test.fail(
+      true,
+      "on main, core can't tell a read from a write, so every task on the store gets its chunk fetched"
+    );
+    expect(fetched.filter((url) => holdsTheTaskOnA(url) || holdsTheTaskOnB(url))).toEqual([]);
   });
 });
 

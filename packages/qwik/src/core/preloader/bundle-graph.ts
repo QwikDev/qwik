@@ -16,6 +16,7 @@ export let base: string | undefined;
 export let graph: BundleGraph;
 export let isWaitingForGraph = false;
 let isWatchingHandlers = false;
+let graphRequest: ReturnType<typeof fetch> | undefined;
 
 const makeBundle = (name: string, deps?: BundleDep[], kind = 0) => {
   return {
@@ -96,10 +97,11 @@ export const loadBundleGraph = (
     preloadHandlersInView();
     preloadHandlersOnIntent();
   }
-  if (base != null) {
+  if (base != null && serializedResponse === graphRequest) {
     nextTriggerMacroTask();
     return;
   }
+  graphRequest = serializedResponse;
   base = basePath;
 
   if (serializedResponse) {
@@ -107,6 +109,9 @@ export const loadBundleGraph = (
     serializedResponse
       .then((r) => r.text())
       .then((text) => {
+        if (serializedResponse !== graphRequest) {
+          return;
+        }
         graph = parseBundleGraph(JSON.parse(text));
         // Snapshot hints before dependency propagation adds new bundle records.
         const pendingBundles = Array.from(bundles.values());

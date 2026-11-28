@@ -1,3 +1,4 @@
+import { createSerializationContext } from '../../serializer';
 import { describe, expect, it } from 'vitest';
 import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
@@ -25,9 +26,23 @@ import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
 import { _serialize } from '../../serializer';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 
+/** For tests of the JSON state format, whichever format `_serialize` writes in this build. */
+const serializeJson = async (data: unknown): Promise<string> => {
+  const context = createSerializationContext(
+    null,
+    null,
+    () => '',
+    () => {},
+    new WeakMap<any, any>()
+  );
+  context.$addRoot$(data);
+  await context.$serialize$();
+  return context.$writer$.toString();
+};
+
 describe('processVnodeData', () => {
   it('releases streaming object references after queued patches', async () => {
-    const raw = await _serialize({ nested: [{ count: 0 }] });
+    const raw = await serializeJson({ nested: [{ count: 0 }] });
     const document = createDocument({
       html: `<html q:container="paused" q:instance="">
         <head :></head><body :>
@@ -89,7 +104,7 @@ describe('processVnodeData', () => {
     const document = createDocument({
       html: `<html q:container="paused" q:instance="">
         <head :></head><body :>${encodeVNode()}
-        <script type="qwik/state" q:instance="" q:stream>${await _serialize({ nested: { count: 0 } })}</script>
+        <script type="qwik/state" q:instance="" q:stream>${await serializeJson({ nested: { count: 0 } })}</script>
         <script type="qwik/state" q:instance="" q:patch q:r="1">${JSON.stringify([1, [TypeIds.RootRef, '0 1'], 0])}</script>
         <script q:instance="" q:stream="done"></script>
       </body></html>`,

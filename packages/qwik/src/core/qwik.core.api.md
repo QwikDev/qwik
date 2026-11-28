@@ -37,6 +37,9 @@ export type AsyncSignalOptions<T> = ComputedOptions<T>;
 // @internal (undocumented)
 export const _BIGINT_PAYLOAD_REGEXP: RegExp;
 
+// @internal
+export const _binaryStateToJson: (rootScript: string | null | undefined, patchScripts?: string[]) => unknown[];
+
 // @internal (undocumented)
 export const _canSerialize: (value: unknown, seen?: WeakSet<any>) => boolean;
 
@@ -704,6 +707,9 @@ export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDe
 //
 // @internal
 export function _invoke<FN extends (...args: any[]) => any>(this: unknown, context: InvokeContext | undefined, fn: FN, ...args: Parameters<FN>): ReturnType<FN>;
+
+// @internal
+export const _isBinaryState: (text: string) => boolean;
 
 export { isBrowser }
 

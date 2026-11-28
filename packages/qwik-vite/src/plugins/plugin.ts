@@ -97,6 +97,8 @@ export enum ExperimentalFeatures {
   insights = 'insights',
   /** Enable the `blockSSR: false` route loader option */
   blockSSR = 'blockSSR',
+  /** Serialize container state as a byte stream instead of JSON */
+  binaryState = 'binaryState',
 }
 
 export interface QwikPackages {

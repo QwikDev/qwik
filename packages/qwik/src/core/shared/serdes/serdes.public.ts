@@ -1,6 +1,8 @@
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
-import { wrapDeserializerProxy } from './deser-proxy';
+import { BinaryStateReader, isBinaryState } from './binary-state';
+import { qTest } from '../utils/qdev';
+import { wrapBinaryStateProxy, wrapDeserializerProxy } from './deser-proxy';
 import { eagerDeserializeStateIterator } from './inflate';
 import { preprocessState } from './preprocess-state';
 import { isDev } from '@qwik.dev/core/build';
@@ -20,6 +22,9 @@ export async function _deserialize<T>(rawStateData: string): Promise<T> {
   if (rawStateData == null) {
     throw new Error('No state data to deserialize');
   }
+  if (__EXPERIMENTAL__.binaryState && (!qTest || isBinaryState(rawStateData))) {
+    return deserializeBinary<T>(rawStateData);
+  }
   const stateData = JSON.parse(rawStateData);
   if (!Array.isArray(stateData) || stateData.length < 2 || typeof stateData[0] !== 'number') {
     throw new Error('Invalid state data');
@@ -31,6 +36,27 @@ export async function _deserialize<T>(rawStateData: string): Promise<T> {
   await runDeserializeIterator(eagerDeserializeStateIterator(container, stateData, state));
   return state[0] as T;
 }
+
+const deserializeBinary = <T>(stateScript: string): T => {
+  if (!isBinaryState(stateScript)) {
+    throw new Error('Invalid state data');
+  }
+  const reader = new BinaryStateReader(stateScript);
+  const container: DeserializeContainer = {
+    $getObjectById$: (id: number | string) => getObjectById(id, state),
+    $getForwardRef$: (id: number | string) => reader.$forwardRefs$?.[Number(id)],
+    getSyncFn: (_: number) => () => {},
+    $storeProxyMap$: new WeakMap(),
+    element: null,
+    $forwardRefs$: reader.$forwardRefs$,
+  };
+  if (reader.$rootEnds$.length === 0) {
+    throw new Error('Invalid state data');
+  }
+  // Only the first root is wanted, so nothing is restored or released in the background.
+  const state = wrapBinaryStateProxy(container as any, reader, false);
+  return state[0] as T;
+};
 
 const runDeserializeIterator = <T>(iterator: Generator<void, T, void>): Promise<T> => {
   return new Promise<T>((resolve, reject) => {

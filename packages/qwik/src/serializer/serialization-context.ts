@@ -8,6 +8,7 @@ import type {
   SymbolToChunkResolver,
   ValueOrPromise,
 } from './qwik-types';
+import type { BinaryStateStream } from './binary-state-writer';
 import { Serializer } from './serialize';
 
 type DomRef = {
@@ -22,6 +23,8 @@ type DomRef = {
 export type SeenRef = {
   $index$: number;
   $parent$?: SeenRef | null;
+  /** Binary state only: the offset after this value in the stream. */
+  $end$?: number;
 };
 
 /**
@@ -31,7 +34,9 @@ export type SeenRef = {
 export class SerializationBackRef {
   constructor(
     /** The path from root to the original object */
-    public $path$: number[]
+    public $path$: number[],
+    /** The original object's ref, which `$promoteToRoot$` has turned into this root's ref */
+    public $ref$?: SeenRef
   ) {}
 }
 brandClass(SerializationBackRef, Brand.SerializationBackRef);
@@ -108,6 +113,18 @@ export interface SerializationContext {
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;
+  /** The binary state stream of the container this context serializes the root state of. */
+  $getBinaryStream$(): BinaryStateStream;
+  /** Serializes the roots as a binary state script to the writer. */
+  $serializeBinary$(): Promise<void>;
+  /** Serializes a state patch that continues `stream` as a binary state script to the writer. */
+  $serializeBinaryPatch$(
+    stream: BinaryStateStream,
+    rootStart: number,
+    rootIds: number[],
+    extraRootId: number | string | number[] | undefined,
+    mapRootId: (rootId: number) => number
+  ): Promise<void>;
   $syncFns$: string[];
 
   $eventQrls$: Set<QRL>;
@@ -171,6 +188,30 @@ class SerializationContextImpl implements SerializationContext {
     await this.$serializer$.serialize();
   }
 
+  private $binaryStream$: BinaryStateStream | undefined;
+
+  $getBinaryStream$(): BinaryStateStream {
+    return (this.$binaryStream$ ||= { $stringEnds$: new Map(), $length$: 0 });
+  }
+
+  $serializeBinary$(): Promise<void> {
+    return this.$serializer$.serializeBinary(this.$getBinaryStream$());
+  }
+
+  $serializeBinaryPatch$(
+    stream: BinaryStateStream,
+    rootStart: number,
+    rootIds: number[],
+    extraRootId: number | string | number[] | undefined,
+    mapRootId: (rootId: number) => number
+  ): Promise<void> {
+    return this.$serializer$.serializeBinary(
+      stream,
+      { rootStart, rootIds, extraRootId },
+      mapRootId
+    );
+  }
+
   async $serializePatch$(
     rootStart: number,
     rootIds: number[],
@@ -222,7 +263,7 @@ class SerializationContextImpl implements SerializationContext {
     if (index === undefined) {
       index = this.$roots$.length;
     }
-    this.$roots$[index] = new SerializationBackRef(path);
+    this.$roots$[index] = new SerializationBackRef(path, ref);
     if (isNewRoot) {
       this.$rootObjs$[index] = obj;
     }

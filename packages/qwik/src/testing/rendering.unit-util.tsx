@@ -37,9 +37,12 @@ import {
   OnRenderProp,
   QContainerSelector,
   QScopedStyle,
+  QStatePatchAttr,
   QStatePatchAttrSelector,
   QStyle,
 } from '../core/shared/utils/markers';
+import { isBinaryState } from '../core/shared/serdes/binary-state';
+import { binaryStateRootsToJson, binaryStateToJson } from '../core/shared/serdes/binary-state-dump';
 import { useContextProvider } from '@qwik.dev/core';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement } from '../server/qwik-types';
@@ -282,6 +285,27 @@ export async function ssrRenderToDom(
   return { container, document, vNode, getStyles };
 }
 
+/**
+ * The JSON form of a `qwik/state` script, whatever its format: the root typeId/value pairs, or for
+ * a patch `[rootStart, rootPairs, forwardRefs | 0, extraRootId]`.
+ */
+export function parseStateScript(script: Element): any {
+  const text = script.textContent || '[]';
+  if (!isBinaryState(text)) {
+    return JSON.parse(text);
+  }
+  // A binary script refers to the strings of the state scripts before it.
+  const instance = script.getAttribute('q:instance');
+  const stateScripts = Array.from(
+    script.ownerDocument!.querySelectorAll('script[type="qwik/state"]')
+  ).filter((stateScript) => stateScript.getAttribute('q:instance') === instance);
+  const scriptTexts: string[] = [];
+  for (let i = 0; i <= stateScripts.indexOf(script); i++) {
+    scriptTexts.push(stateScripts[i].textContent!);
+  }
+  return binaryStateToJson(scriptTexts, script.hasAttribute(QStatePatchAttr));
+}
+
 function getDebugSerializedState(container: _DomContainer) {
   const stateScriptSelector = `script[type="qwik/state"][q\\:instance="${container.$instanceHash$}"]`;
   const rootStateScript = container.element.querySelector(
@@ -294,15 +318,23 @@ function getDebugSerializedState(container: _DomContainer) {
   if (!rootStateScript && patchStateScripts.length === 0) {
     return null;
   }
+  const rootStateText = rootStateScript?.textContent;
+  if (rootStateText && isBinaryState(rootStateText)) {
+    // Reading the scripts one by one would leave shared roots as placeholders.
+    return binaryStateRootsToJson(
+      rootStateText,
+      Array.from(patchStateScripts, (script) => script.textContent!)
+    );
+  }
 
-  const state = JSON.parse(rootStateScript?.textContent || '[]') as unknown[];
+  const state = (rootStateScript ? parseStateScript(rootStateScript) : []) as unknown[];
   const patchForwardRefs: Array<Array<number | string>> = [];
   for (let i = 0; i < patchStateScripts.length; i++) {
     const patchStateText = patchStateScripts[i].textContent;
     if (!patchStateText) {
       continue;
     }
-    const [rootStart, rawStateData, forwardRefs] = JSON.parse(patchStateText) as [
+    const [rootStart, rawStateData, forwardRefs] = parseStateScript(patchStateScripts[i]) as [
       number,
       unknown[],
       Array<number | string> | 0 | undefined,

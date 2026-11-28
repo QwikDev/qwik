@@ -40,6 +40,7 @@ if (isServer) {
     noSPA: __EXPERIMENTAL__.noSPA,
     insights: __EXPERIMENTAL__.insights,
     blockSSR: __EXPERIMENTAL__.blockSSR,
+    binaryState: __EXPERIMENTAL__.binaryState,
   };
   // Only a bundled copy has literal flags; an unbundled copy reads `undefined` until published.
   if (typeof flags.each === 'boolean') {

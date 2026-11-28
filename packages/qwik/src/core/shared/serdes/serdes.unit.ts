@@ -14,6 +14,7 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
+import { isBinaryState } from './binary-state';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
@@ -60,18 +61,40 @@ const DEBUG = false;
 const title = (typeId: TypeIds) => `${typeId} ${_typeIdNames[typeId]}`;
 
 // Keep the tests in typeId order so it's easy to see if we missed one
+
+/** For tests of the JSON state format, whichever format `_serialize` writes in this build. */
+const serializeJson = async (data: unknown): Promise<string> => {
+  const context = createSerializationContext(
+    null,
+    null,
+    () => '',
+    () => {},
+    new WeakMap<any, any>()
+  );
+  context.$addRoot$(data);
+  await context.$serialize$();
+  return context.$writer$.toString();
+};
+
 describe('shared-serialization', () => {
   const shared1 = { shared: 1 };
   const shared2 = { shared: 2 };
 
   it('keeps a named property apart from the root its name starts with', async () => {
-    const state = _createDeserializeContainer(JSON.parse(await _serialize('first'))).$state$ as any;
+    const state = _createDeserializeContainer(JSON.parse(await serializeJson('first')))
+      .$state$ as any;
     state['0note'] = 'label';
+    state['00'] = 'other';
+    expect(state['00']).toBe('other');
     expect(state[0]).toBe('first');
   });
 
+  it('serializes in the format the build selects', async () => {
+    expect(isBinaryState(await _serialize(1))).toBe(!!__EXPERIMENTAL__.binaryState);
+  });
+
   it('reports missing streaming references with a Qwik error', async () => {
-    const raw = JSON.parse(await _serialize({ nested: { count: 0 } }));
+    const raw = JSON.parse(await serializeJson({ nested: { count: 0 } }));
     const container = _createDeserializeContainer(raw);
     container.$getObjectById$(0);
     const start = raw.length;
@@ -122,7 +145,7 @@ describe('shared-serialization', () => {
   it.each([false, true])('caches only references at original indexes (eager=%s)', async (eager) => {
     const callback = createQRL('/callback.js', 's_callback', () => 0);
     const raw = JSON.parse(
-      await _serialize({
+      await serializeJson({
         text: 'original text',
         amount: 12345678901234567890n,
         numbers: [1, 2, 3],
@@ -156,7 +179,7 @@ describe('shared-serialization', () => {
   it.each([false, true])(
     'resolves late nested refs after shell changes (eager=%s)',
     async (eager) => {
-      const raw = JSON.parse(await _serialize({ nested: [{ count: 0 }] }));
+      const raw = JSON.parse(await serializeJson({ nested: [{ count: 0 }] }));
       const container = _createDeserializeContainer(raw);
       container.$streamingObjectRefs$ = new WeakMap();
       if (eager) {
@@ -184,7 +207,7 @@ describe('shared-serialization', () => {
 
   it('does not retain streaming object references outside streaming', async () => {
     const container = _createDeserializeContainer(
-      JSON.parse(await _serialize({ nested: [{ count: 0 }] }))
+      JSON.parse(await serializeJson({ nested: [{ count: 0 }] }))
     );
     expect(container.$getObjectById$(0)).toEqual({ nested: [{ count: 0 }] });
     expect(container.$streamingObjectRefs$).toBeUndefined();
@@ -2687,7 +2710,7 @@ describe('serializer - internal', () => {
 
   it('_serialize', async () => {
     const a = { a: 1 };
-    const ser = await _serialize({ a, b: [a] });
+    const ser = await serializeJson({ a, b: [a] });
     expect(ser).toMatchInlineSnapshot(`"[5,[0,"a",5,[0,"a",0,1],0,"b",4,[1,1]],1,"0 1"]"`);
   });
   it('_deserialize', async () => {
@@ -2743,6 +2766,19 @@ describe('serializer - internal', () => {
       'Invalid Object payload'
     );
   });
+  it('rejects FormData entries that are not strings', async () => {
+    const entries = [TypeIds.Plain, 'name', TypeIds.Array, [TypeIds.Plain, 1]];
+    await expect(_deserialize(JSON.stringify([TypeIds.FormData, entries]))).rejects.toThrow(
+      'Invalid FormData payload'
+    );
+  });
+  it('restores FormData', async () => {
+    const formData = new FormData();
+    formData.append('name', 'value');
+    formData.append('name', 'second');
+    const restored = (await _deserialize(await _serialize(formData))) as FormData;
+    expect(restored.getAll('name')).toEqual(['value', 'second']);
+  });
   it('preserves trailing undefined Object properties', async () => {
     const value = await _deserialize(JSON.stringify([TypeIds.Object, [TypeIds.Plain, 'key']]));
     expect(value).toStrictEqual({ key: undefined });
@@ -2777,7 +2813,7 @@ describe('serializer - internal', () => {
     await expect(_serialize(10n ** 1000n)).rejects.toThrow(`Code(Q${QError.invalidBigIntPayload})`);
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
-    const ser = await _serialize({
+    const ser = await serializeJson({
       123: 'a',
       '-45': 'b',
       '012': 'c',

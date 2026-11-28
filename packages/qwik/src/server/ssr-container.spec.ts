@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { parseStateScript } from '../testing/rendering.unit-util';
 import {
   _createQRL,
   _getSubscriber,
@@ -156,7 +158,7 @@ describe('SSR Container', () => {
         Reflect.get(segment, 'getSegmentRootIdMap').call(segment)
       );
       const script = createDocument({ html: `<div>${html}</div>` }).querySelector('script')!;
-      const [, patch] = JSON.parse(script.textContent!);
+      const [, patch] = parseStateScript(script);
       expect(await _deserialize(JSON.stringify(patch))).toBe(value);
     }
   );
@@ -860,7 +862,7 @@ it.each(['empty props', 'structure-only child', 'retained child'])(
     let receivedRootCount = initialRootCount;
     for (let i = 0; i < patches.length; i++) {
       const script = patches[i];
-      const [rootStart, roots] = JSON.parse(script.textContent!);
+      const [rootStart, roots] = parseStateScript(script);
       expect(rootStart).toBe(receivedRootCount);
       receivedRootCount += roots.length / 2;
     }

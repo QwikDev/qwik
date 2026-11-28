@@ -28,6 +28,7 @@ DomRefConstructor: {
 export type SeenRef = {
     $index$: number;
     $parent$?: SeenRef | null;
+    $end$?: number;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "SerializationContext" should be prefixed with an underscore because the declaration is marked as @internal
@@ -53,6 +54,8 @@ export interface SerializationContext {
     $eventQrls$: Set<QRL>;
     // (undocumented)
     $forwardRefOffset$: number;
+    // Warning: (ae-forgotten-export) The symbol "BinaryStateStream" needs to be exported by the entry point index.d.ts
+    $getBinaryStream$(): BinaryStateStream;
     $hasRootId$: (obj: unknown) => number | undefined;
     // (undocumented)
     $hasRootStateForwardRefs$: boolean;
@@ -85,6 +88,8 @@ export interface SerializationContext {
     //
     // (undocumented)
     $serialize$: () => ValueOrPromise<void>;
+    $serializeBinary$(): Promise<void>;
+    $serializeBinaryPatch$(stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number): Promise<void>;
     // (undocumented)
     $serializedForwardRefCount$: number;
     // (undocumented)

@@ -1525,6 +1525,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
 
     this.openScript(attrs);
     this.serializationCtx.$setWriter$(this.writer);
+    if (__EXPERIMENTAL__.binaryState) {
+      return maybeThen(this.serializationCtx.$serializeBinary$(), () => {
+        this.closeScript();
+      });
+    }
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeScript();
     });
@@ -2341,6 +2346,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         for (let i = path.length - 1; i >= 0; i--) {
           localRef = { $index$: path[i].$index$, $parent$: localRef };
         }
+        // The binary state refers to the object by where the shell wrote it.
+        localRef.$end$ = seen.$end$;
         this.serializationCtx.$promoteToRoot$(localRef, rootObj, localId);
         rootCtx.$promoteToRoot$(seen, rootObj);
         rootId = rootCtx.$hasRootId$(rootObj)!;
@@ -2382,6 +2389,21 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     this.serializationCtx.$setWriter$(this.writer);
     this.serializationCtx.$markSsrNodeForSerialization$ =
       this.markVNodeDataForSerialization.bind(this);
+    if (__EXPERIMENTAL__.binaryState) {
+      const rootIdMap = this.getSegmentRootIdMap();
+      return maybeThen(
+        this.serializationCtx.$serializeBinaryPatch$(
+          this.$getRootContainer$().serializationCtx.$getBinaryStream$(),
+          rootStart,
+          rootIds,
+          subscriptionPatchRootId,
+          (localId) => rootIdMap[localId] ?? localId
+        ),
+        () => {
+          this.closeScript();
+        }
+      );
+    }
     return maybeThen(
       this.serializationCtx.$serializePatch$(rootStart, rootIds, subscriptionPatchRootId, 0),
       () => {

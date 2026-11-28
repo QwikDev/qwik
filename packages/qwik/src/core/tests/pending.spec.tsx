@@ -37,7 +37,11 @@ import {
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { _DomContainer } from '@qwik.dev/core/internal';
-import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
+import {
+  ErrorProvider,
+  emulateExecutionOfBackpatch,
+  parseStateScript,
+} from '../../testing/rendering.unit-util';
 import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
@@ -1563,8 +1567,8 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       );
       expect(rootStateScript).not.toBeNull();
       expect(segmentStateScript).not.toBeNull();
-      expect(JSON.parse(rootStateScript!.textContent!) as unknown[]).toContain(TypeIds.ForwardRefs);
-      const segmentPatch = JSON.parse(segmentStateScript!.textContent!) as unknown[];
+      expect(parseStateScript(rootStateScript!) as unknown[]).toContain(TypeIds.ForwardRefs);
+      const segmentPatch = parseStateScript(segmentStateScript!) as unknown[];
       const segmentRoots = segmentPatch[1] as unknown[];
       const segmentForwardRefs = segmentPatch[2] as unknown[];
       const hasForwardRef = (value: unknown): boolean =>
@@ -2004,7 +2008,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
       expect(chunks.join('')).toContain('type="qwik/vnode" q:patch');
       const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
-      const [rootStart, segmentRoots] = JSON.parse(segmentStateScript!.textContent!) as [
+      const [rootStart, segmentRoots] = parseStateScript(segmentStateScript!) as [
         number,
         unknown[],
       ];
@@ -2231,7 +2235,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       const segmentStateScript = document.querySelector('script[type="qwik/state"][q\\:patch]');
       expect(segmentStateScript?.getAttribute('q:r')).toBe('1');
       expect(segmentStateScript?.hasAttribute('q:fx')).toBe(false);
-      expect(JSON.parse(segmentStateScript!.textContent!)[3]).toBeDefined();
+      expect(parseStateScript(segmentStateScript!)[3]).toBeDefined();
       expect(segmentStateScript?.hasAttribute('q:s')).toBe(false);
       expect(document.querySelector('#ooos-unit-store-resolved-button')).not.toBeNull();
 
@@ -2372,7 +2376,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       for (let i = 0; i < segmentStateScripts.length; i++) {
         const script = segmentStateScripts[i];
         expect(script.hasAttribute('q:fx')).toBe(false);
-        expect(JSON.parse(script.textContent!)[3]).toBeDefined();
+        expect(parseStateScript(script)[3]).toBeDefined();
       }
       expect(document.querySelector('#ooos-unit-shared-store-first-button')).not.toBeNull();
       expect(document.querySelector('#ooos-unit-shared-store-second-count')).not.toBeNull();
@@ -2803,17 +2807,20 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     resolveData('loaded');
     const { document, container } = await renderPromise;
     // Each state patch must continue where the previous one ended, and reference only roots it sent.
-    const rootState = JSON.parse(
-      document.querySelector('script[type="qwik/state"]:not([q\\:patch])')!.textContent!
+    const rootState = parseStateScript(
+      document.querySelector('script[type="qwik/state"]:not([q\\:patch])')!
     ) as unknown[];
     let rootCount = rootState.length / 2;
     const patchScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
     const segmentIds = Array.from(patchScripts, (script) => script.getAttribute('q:r'));
     expect(new Set(segmentIds).size).toBe(patchScripts.length);
     for (let i = 0; i < patchScripts.length; i++) {
-      const [rootStart, roots, , subscriptionPatchRootId] = JSON.parse(
-        patchScripts[i].textContent!
-      ) as [number, unknown[], unknown, number | undefined];
+      const [rootStart, roots, , subscriptionPatchRootId] = parseStateScript(patchScripts[i]) as [
+        number,
+        unknown[],
+        unknown,
+        number | undefined,
+      ];
       expect(rootStart).toBe(rootCount);
       rootCount += roots.length / 2;
       if (typeof subscriptionPatchRootId === 'number') {

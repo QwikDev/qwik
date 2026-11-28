@@ -1,5 +1,6 @@
 import { isServer } from '@qwik.dev/core/build';
 import { qTest } from '../utils/qdev';
+import { delay } from '../utils/promises';
 import {
   vnode_getFirstChild,
   vnode_getProp,
@@ -46,14 +47,32 @@ import { needsInflation } from './deser-proxy';
 import type { SubscriptionPatch } from './subscription-patch';
 
 interface LoadingHolder {
-  p: Promise<void>;
+  inFlight: number;
+  preloads: WeakMap<object, Promise<unknown>>;
 }
 export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
   'loadingHolder',
   () => ({
-    p: Promise.resolve(),
+    inFlight: 0,
+    preloads: new WeakMap(),
   })
 );
+
+const PRELOAD_RETRY_DELAY_MS = 1_000;
+
+export const trackPreload = (owner: object, load: () => Promise<unknown>): void => {
+  loadingHolder.inFlight++;
+  const tracked = load()
+    .catch(() => delay(PRELOAD_RETRY_DELAY_MS).then(load))
+    .finally(() => {
+      loadingHolder.inFlight--;
+      if (loadingHolder.preloads.get(owner) === tracked) {
+        loadingHolder.preloads.delete(owner);
+      }
+    });
+  tracked.catch(() => {});
+  loadingHolder.preloads.set(owner, tracked);
+};
 
 const dangerousObjectKeys = new Set([
   'constructor',
@@ -359,10 +378,14 @@ function* inflateIterator(
        * the resolve promise. To prevent that we load it now and qrls wait for the loading to
        * finish.
        */
-      const p = computed.$computeQrl$.resolve(container as any).catch(() => {
-        // ignore preload errors
-      });
-      loadingHolder.p = loadingHolder.p.finally(() => p);
+      const load = () => computed.$computeQrl$.resolve(container as any);
+      if (qTest ? isServerPlatform() : isServer) {
+        load().catch(() => {
+          // ignore preload errors
+        });
+      } else {
+        trackPreload(computed, load);
+      }
       if (d[1]) {
         computed.$effects$ = new Set(d[1]);
       }

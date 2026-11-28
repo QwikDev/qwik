@@ -3,6 +3,7 @@ import {
   _verifySerializable,
   componentQrl,
   createComputed$,
+  createComputedQrl,
   createSerializer$,
   createSignal,
   isSignal,
@@ -11,7 +12,7 @@ import {
   SerializerSymbol,
   type AsyncSignal,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
 import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -27,15 +28,19 @@ import {
   ComputedSignalFlags,
   StoreFlags,
 } from '../../reactive-primitives/types';
-import { Task, TaskFlags } from '../../use/use-task';
+import { runTask, Task, TaskFlags } from '../../use/use-task';
+import { createDocument } from '../../../testing/document';
+import { getTestPlatform } from '../../../testing/platform';
+import { getPlatform, setPlatform } from '../platform/platform';
 import { QError } from '../error/error';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { _capturesObj, createQRL, isQrlImportError, type QRLInternal } from '../qrl/qrl-class';
+import { _qrlSync } from '../qrl/qrl.public';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { OnRenderProp, QBackRefs } from '../utils/markers';
-import { retryOnPromise } from '../utils/promises';
+import { delay, retryOnPromise } from '../utils/promises';
 import { Fragment } from '../jsx/jsx-runtime';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -1990,6 +1995,833 @@ describe('shared-serialization', () => {
 
       expect((restoredConsumer as any)[_EFFECT_BACK_REF].get('data-value')).toBe(restoredEffect);
       expect(restoredEffect.property).toBe('data-value');
+    });
+  });
+
+  describe('a QRL run while a computed is being preloaded', () => {
+    const lazyQrl = (symbol: string, captures: unknown[] | null = null) =>
+      createQRL(`${symbol}.js`, symbol, () => {}, null, captures) as QRLInternal;
+    const lazyComputed = (symbol = 's_computed') => createComputedQrl(lazyQrl(symbol) as any);
+    const pendingReleases: (() => void)[] = [];
+    const mockModules = ({
+      held = [],
+      failing,
+      failingOnce,
+      isServer = false,
+      modules = {},
+    }: {
+      held?: string[];
+      failing?: string;
+      failingOnce?: string;
+      isServer?: boolean;
+      modules?: Record<string, (...args: any[]) => unknown>;
+    }) => {
+      const ran: string[] = [];
+      const releases = new Map<string, () => void>();
+      const heldModules = new Map<string, Promise<unknown>>();
+      let hasFailedOnce = false;
+      for (let i = 0; i < held.length; i++) {
+        const symbol = held[i];
+        heldModules.set(
+          symbol,
+          new Promise((resolve) => {
+            const release = () => resolve(modules[symbol] ?? (() => {}));
+            releases.set(symbol, release);
+            pendingReleases.push(release);
+          })
+        );
+      }
+      setPlatform({
+        ...getTestPlatform(),
+        isServer,
+        importSymbol: (_element, _chunk, symbol) => {
+          if (symbol === failing || (symbol === failingOnce && !hasFailedOnce)) {
+            hasFailedOnce ||= symbol === failingOnce;
+            return Promise.reject(new Error('failed to load'));
+          }
+          return heldModules.get(symbol) ?? modules[symbol] ?? (() => ran.push(symbol));
+        },
+      });
+      const release = (symbol = held[0]) => releases.get(symbol)!();
+      return { release, ran };
+    };
+    const runAsTask = (qrl: QRLInternal) =>
+      runTask(
+        new Task(TaskFlags.TASK, 0, {} as any, qrl as any, null),
+        { $locale$: 'en', handleError: vi.fn() } as any,
+        {} as any
+      );
+    const handlerWithoutCaptures = () =>
+      createQRL('s_handler.js', 's_handler', null, null, null) as QRLInternal;
+    const startPreloadingAComputed = async () => {
+      const objs = await serialize(lazyQrl('s_first', [lazyComputed()]));
+      const { release, ran } = mockModules({ held: ['s_computed'] });
+      const [first] = deserialize(objs) as QRLInternal[];
+      void first();
+      return { release, ran, computed: first.getCaptured()![0] };
+    };
+
+    let platformBeforeTest: ReturnType<typeof getPlatform>;
+    beforeEach(() => {
+      platformBeforeTest = getPlatform();
+    });
+    afterEach(async () => {
+      const releases = pendingReleases.splice(0);
+      for (let i = 0; i < releases.length; i++) {
+        releases[i]();
+      }
+      await delay(0);
+      setPlatform(platformBeforeTest);
+    });
+
+    const expectTaskToWaitForAComputedReachedThrough = async (
+      capture: (computed: unknown) => unknown,
+      computed: unknown = lazyComputed()
+    ) => {
+      const objs = await serialize(
+        lazyQrl('s_first', [computed]),
+        lazyQrl('s_task', [capture(computed)])
+      );
+      const { release, ran } = mockModules({ held: ['s_computed'] });
+      const [first, task] = deserialize(objs) as QRLInternal[];
+
+      void first();
+      void runAsTask(task);
+      await delay(0);
+      expect(ran).toEqual([]);
+      release();
+      await delay(0);
+      expect(ran.sort()).toEqual(['s_first', 's_task']);
+    };
+
+    describe('computeds it waits for', () => {
+      it('one it captures', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [handler] = deserialize(objs) as QRLInternal[];
+
+        void handler();
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('one it captures that another QRL restored first', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_second', [computed])
+        );
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [first, second] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void second();
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_second']);
+      });
+
+      it('one inside props', async () => {
+        await expectTaskToWaitForAComputedReachedThrough((computed) =>
+          createComponentProps({ total: computed }, null)
+        );
+        await expectTaskToWaitForAComputedReachedThrough((computed) =>
+          createComponentProps({}, { total: computed })
+        );
+      });
+
+      it('one inside a store', async () => {
+        await expectTaskToWaitForAComputedReachedThrough((computed) =>
+          createStore(null, { total: computed }, StoreFlags.RECURSIVE)
+        );
+      });
+
+      it('one several levels deep that another QRL restored first', async () => {
+        await expectTaskToWaitForAComputedReachedThrough((computed) => ({
+          stats: { totals: [computed] },
+        }));
+      });
+
+      it('one several levels deep, even when its own restore starts another preload', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_task', [{ stats: { totals: [computed] } }, lazyComputed('s_other')])
+        );
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_task']);
+      });
+
+      it('one inside a map, a set and a signal value', async () => {
+        await expectTaskToWaitForAComputedReachedThrough((computed) => ({
+          byName: new Map([['total', new Set([createSignal({ inner: computed })])]]),
+        }));
+      });
+
+      it("one among a wrapped signal's inputs", async () => {
+        await expectTaskToWaitForAComputedReachedThrough((computed) =>
+          _fnSignal(
+            (p0: { value: unknown }) => p0.value,
+            [computed as { value: unknown }],
+            '(p0)=>p0.value'
+          )
+        );
+      });
+
+      it('one passed as an argument', async () => {
+        const objs = await serialize(lazyQrl('s_first', [lazyComputed()]), lazyQrl('s_pick'));
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [first, pick] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void pick(first.getCaptured()![0]);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_pick']);
+      });
+
+      it('one that a computed it reaches reads', async () => {
+        const outer = createComputedQrl(lazyQrl('s_outer', [lazyComputed('s_inner')]) as any);
+        const objs = await serialize(lazyQrl('s_first', [outer]), lazyQrl('s_handler', [outer]));
+        const { release, ran } = mockModules({ held: ['s_inner'] });
+        const [first, handler] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void handler();
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
+      });
+
+      it('one with no value', async () => {
+        const computed = createComputedQrl(
+          createQRL('s_computed.js', 's_computed', () => 3, null, null) as any,
+          { serializationStrategy: 'never' }
+        );
+        expect((computed as { value: number }).value).toBe(3);
+
+        await expectTaskToWaitForAComputedReachedThrough((value) => ({ total: value }), computed);
+      });
+
+      it('one used as a map key', async () => {
+        const { release, ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(new Map([[computed, 'total']]));
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
+      });
+    });
+
+    describe('a task runs once', () => {
+      it('when it reads the computed after an await', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(lazyQrl('s_first', [computed]), lazyQrl('s_task', [computed]));
+        const { release, ran } = mockModules({
+          held: ['s_computed'],
+          modules: {
+            s_computed: () => 6,
+            s_task: async () => {
+              const total = _capturesObj._![0] as { value: number };
+              ran.push('task started');
+              await delay(0);
+              ran.push(`task read ${total.value}`);
+            },
+          },
+        });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        const running = runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await running;
+        expect(ran.filter((entry) => entry !== 's_first')).toEqual(['task started', 'task read 6']);
+      });
+
+      it('when it reads the computed only inside the branch it takes', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_task', [{ isOpen: true }, computed])
+        );
+        const { release, ran } = mockModules({
+          held: ['s_computed'],
+          modules: {
+            s_computed: () => 6,
+            s_task: () => {
+              const [panel, total] = _capturesObj._! as [
+                { isOpen: boolean },
+                { untrackedValue: number },
+              ];
+              ran.push('task started');
+              if (panel.isOpen) {
+                ran.push(`task read ${total.untrackedValue}`);
+              }
+            },
+          },
+        });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        const running = runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await running;
+        expect(ran.filter((entry) => entry !== 's_first')).toEqual(['task started', 'task read 6']);
+      });
+
+      it('when it reads the computed through a helper function', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(lazyQrl('s_first', [computed]), lazyQrl('s_task', [computed]));
+        const { release, ran } = mockModules({
+          held: ['s_computed'],
+          modules: {
+            s_computed: () => 6,
+            s_task: () => {
+              const total = _capturesObj._![0] as { untrackedValue: number };
+              const readTotal = () => total.untrackedValue;
+              ran.push('task started');
+              ran.push(`task read ${readTotal()}`);
+            },
+          },
+        });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        const running = runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await running;
+        expect(ran.filter((entry) => entry !== 's_first')).toEqual(['task started', 'task read 6']);
+      });
+
+      it('when it calls a $() callback that reads the computed, and so does the callback', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_task', [lazyQrl('s_read_total', [computed])])
+        );
+        const { release, ran } = mockModules({
+          held: ['s_computed'],
+          modules: {
+            s_computed: () => 6,
+            s_read_total: () => {
+              const total = _capturesObj._![0] as { untrackedValue: number };
+              ran.push('callback started');
+              return total.untrackedValue;
+            },
+            s_task: async () => {
+              const readTotal = _capturesObj._![0] as () => Promise<number>;
+              ran.push('task started');
+              ran.push(`task read ${await readTotal()}`);
+            },
+          },
+        });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        const running = runAsTask(task);
+        await delay(0);
+        release();
+        await running;
+        expect(ran.filter((entry) => entry !== 's_first')).toEqual([
+          'task started',
+          'callback started',
+          'task read 6',
+        ]);
+      });
+    });
+
+    describe('a task runs twice', () => {
+      it('when the computed is first restored during an await', async () => {
+        const store = createStore<{ total?: unknown }>(null, {}, StoreFlags.RECURSIVE);
+        const objs = await serialize(
+          lazyQrl('s_task', [store]),
+          lazyQrl('s_other', [lazyComputed()])
+        );
+        let resume!: () => void;
+        const paused = new Promise<void>((resolve) => (resume = resolve));
+        const { release, ran } = mockModules({
+          held: ['s_computed'],
+          modules: {
+            s_computed: () => 6,
+            s_task: async () => {
+              const state = _capturesObj._![0] as { total: { value: number } };
+              ran.push('task started');
+              await paused;
+              ran.push(`task read ${state.total.value}`);
+            },
+          },
+        });
+        const [task, other] = deserialize(objs) as QRLInternal[];
+
+        const running = runAsTask(task);
+        await delay(0);
+        void other();
+        (task.getCaptured()![0] as { total?: unknown }).total = other.getCaptured()![0];
+        resume();
+        await delay(0);
+        release();
+        await running;
+        expect(ran.filter((entry) => entry.startsWith('task'))).toEqual([
+          'task started',
+          'task started',
+          'task read 6',
+        ]);
+      });
+    });
+
+    describe('later calls', () => {
+      it('a second call made while the first waits also waits', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [handler] = deserialize(objs) as QRLInternal[];
+
+        void handler();
+        void handler();
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran).toEqual(['s_handler', 's_handler']);
+      });
+
+      it('a later call waits for a computed it reaches whose preload started since', async () => {
+        const store = createStore<{ total?: unknown }>(null, {}, StoreFlags.RECURSIVE);
+        const objs = await serialize(
+          lazyQrl('s_handler', [store]),
+          lazyQrl('s_other', [lazyComputed()])
+        );
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        const [handler, other] = deserialize(objs) as QRLInternal[];
+
+        await handler();
+        expect(ran).toEqual(['s_handler']);
+        void other();
+        (handler.getCaptured()![0] as { total?: unknown }).total = other.getCaptured()![0];
+        void handler();
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_handler', 's_handler', 's_other']);
+      });
+    });
+
+    describe("computeds it doesn't wait for", () => {
+      it('one only another QRL captures', async () => {
+        const objs = await serialize(
+          lazyQrl('s_first', [lazyComputed('s_unread')]),
+          lazyQrl('s_handler', [lazyComputed()])
+        );
+        const { release, ran } = mockModules({ held: ['s_unread', 's_computed'] });
+        const [first, handler] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void handler();
+        await delay(0);
+        expect(ran).toEqual([]);
+        release('s_computed');
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('one that reads a signal it writes', async () => {
+        const count = createSignal(1);
+        const computed = createComputedQrl(
+          createQRL(
+            's_computed.js',
+            's_computed',
+            () => (_capturesObj._![0] as { value: number }).value * 2,
+            null,
+            [count]
+          ) as any
+        );
+        expect(computed.value).toBe(2);
+        const objs = await serialize(lazyQrl('s_writer', [count]), lazyQrl('s_other', [computed]));
+        const { ran } = mockModules({ held: ['s_computed'] });
+        const [writer, other] = deserialize(objs) as QRLInternal[];
+
+        void other();
+        expect((writer.getCaptured()![0] as SignalImpl<number>).$effects$?.size).toBe(1);
+        void writer();
+        await delay(0);
+        expect(ran).toEqual(['s_writer']);
+      });
+
+      it('one captured by a $() callback among its values', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_handler', [lazyQrl('s_callback', [computed])])
+        );
+        const { ran } = mockModules({ held: ['s_computed'] });
+        const [first, handler] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void handler();
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('one inside a value marked noSerialize', async () => {
+        const { ran, computed } = await startPreloadingAComputed();
+
+        void handlerWithoutCaptures()(noSerialize({ total: computed, readTotal: () => 0 }));
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('an async computed that has a value, from an async useComputed$ or useResource$', async () => {
+        const computed = lazyComputed();
+        const fromResource = createAsyncSignal(
+          createQRL('s_async.js', 's_async', () => Promise.resolve(5), null, [computed]) as any
+        );
+        const fromAsyncComputed = createComputedQrl(
+          createQRL('s_async_computed.js', 's_async_computed', () => Promise.resolve(6), null, [
+            computed,
+          ]) as any
+        );
+        await (fromResource as any).promise();
+        await (fromAsyncComputed as any).promise();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_task', [fromResource, fromAsyncComputed])
+        );
+        const { ran } = mockModules({ held: ['s_computed'] });
+        const [first, task] = deserialize(objs) as QRLInternal[];
+
+        void first();
+        void runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual(['s_task']);
+      });
+
+      it('one read only by a plain function passed to it', async () => {
+        const { ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(() => (computed as { value: unknown }).value);
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('one held by a class instance', async () => {
+        const { ran, computed } = await startPreloadingAComputed();
+        class Cart {
+          constructor(readonly total: unknown) {}
+        }
+        void handlerWithoutCaptures()(new Cart(computed));
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+    });
+
+    describe('looking through its values', () => {
+      it("doesn't happen while no computed is being preloaded", async () => {
+        let looks = 0;
+        const watched = new Proxy(
+          {},
+          {
+            ownKeys: (target) => {
+              looks++;
+              return Reflect.ownKeys(target);
+            },
+          }
+        );
+        const objs = await serialize(lazyQrl('s_first', [lazyComputed()]));
+        const { ran } = mockModules({ held: ['s_computed'] });
+        const handler = handlerWithoutCaptures();
+
+        await handler(watched);
+        expect(looks).toBe(0);
+
+        const [first] = deserialize(objs) as QRLInternal[];
+        void first();
+        await handler(watched);
+        expect(looks).toBeGreaterThan(0);
+        expect(ran).toEqual(['s_handler', 's_handler']);
+      });
+
+      it('goes through a structure deeper than the call stack', async () => {
+        const { release, ran, computed } = await startPreloadingAComputed();
+        let deep: object = { total: computed };
+        for (let i = 0; i < 100_000; i++) {
+          deep = { next: deep };
+        }
+        void handlerWithoutCaptures()(deep);
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
+      });
+
+      it('never runs a getter or reads through a store proxy', async () => {
+        const { ran } = await startPreloadingAComputed();
+        let getterRuns = 0;
+        const countGetterRun = () => {
+          getterRuns++;
+          return undefined;
+        };
+        await handlerWithoutCaptures()(
+          {
+            get total() {
+              return countGetterRun();
+            },
+          },
+          createStore(
+            null,
+            {
+              get label() {
+                return countGetterRun();
+              },
+            },
+            StoreFlags.RECURSIVE
+          )
+        );
+        expect(getterRuns).toBe(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it("an argument that carries methods, like a React event, doesn't make it wait", async () => {
+        const { ran } = await startPreloadingAComputed();
+        class ReactLikeEvent {
+          isDefaultPrevented = () => false;
+        }
+        void handlerWithoutCaptures()(new ReactLikeEvent());
+        await delay(0);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('never reads from a noSerialize value, even one that throws when read', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        noSerialize(proxy);
+        revoke();
+        await handlerWithoutCaptures()(proxy);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('never looks inside a class instance, even one that leads to a value that throws', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        class EventWithAView {
+          view = { frame: proxy };
+        }
+        await handlerWithoutCaptures()(new EventWithAView());
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('never looks inside a DOM element, with no global Node', async () => {
+        const { ran } = await startPreloadingAComputed();
+        const { proxy, revoke } = Proxy.revocable({}, {});
+        revoke();
+        const element = createDocument().createElement('div') as Element & { frame?: object };
+        element.frame = proxy;
+        expect(typeof Node).toBe('undefined');
+        await handlerWithoutCaptures()(element);
+        expect(ran).toEqual(['s_handler']);
+      });
+
+      it('looks inside an object that has no prototype', async () => {
+        const { release, ran, computed } = await startPreloadingAComputed();
+        void handlerWithoutCaptures()(Object.assign(Object.create(null), { total: computed }));
+        await delay(0);
+        expect(ran).toEqual([]);
+        release();
+        await delay(0);
+        expect(ran.sort()).toEqual(['s_first', 's_handler']);
+      });
+    });
+
+    describe('a preload that fails or stalls', () => {
+      const settle = (run: Promise<unknown>) => {
+        const outcome: { value: unknown } = { value: 'pending' };
+        run.then(
+          () => (outcome.value = 'ran'),
+          (error) => (outcome.value = error)
+        );
+        return outcome;
+      };
+
+      it('retries the preload once, and runs when the retry lands', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { ran } = mockModules({ failingOnce: 's_computed' });
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.useFakeTimers();
+        try {
+          const [handler] = deserialize(objs) as QRLInternal[];
+
+          void handler();
+          await vi.advanceTimersByTimeAsync(0);
+          expect(ran).toEqual([]);
+          await vi.advanceTimersByTimeAsync(1_000);
+          expect(ran).toEqual(['s_handler']);
+        } finally {
+          vi.useRealTimers();
+          consoleError.mockRestore();
+        }
+      });
+
+      it('fails without running when the retry fails too, with a chunk import error', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { ran } = mockModules({ failing: 's_computed' });
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.useFakeTimers();
+        try {
+          const [handler] = deserialize(objs) as QRLInternal[];
+
+          const outcome = settle(handler());
+          await vi.advanceTimersByTimeAsync(1_000);
+          expect(isQrlImportError(outcome.value)).toBe(true);
+          expect(ran).toEqual([]);
+        } finally {
+          vi.useRealTimers();
+          consoleError.mockRestore();
+        }
+      });
+
+      it('a preload that fails twice is not an unhandled promise rejection, even when no run waits for it', async () => {
+        const objs = await serialize(lazyQrl('s_first', [lazyComputed()]));
+        mockModules({ failing: 's_computed' });
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const onUnhandledRejection = vi.fn();
+        process.on('unhandledRejection', onUnhandledRejection);
+        vi.useFakeTimers();
+        try {
+          const [first] = deserialize(objs) as QRLInternal[];
+
+          first.getCaptured();
+          await vi.advanceTimersByTimeAsync(1_000);
+          vi.useRealTimers();
+          await delay(0);
+          expect(onUnhandledRejection).not.toHaveBeenCalled();
+        } finally {
+          vi.useRealTimers();
+          process.off('unhandledRejection', onUnhandledRejection);
+          consoleError.mockRestore();
+        }
+      });
+
+      it('fails without running 10 seconds after it starts waiting, with a chunk import error', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { ran } = mockModules({ held: ['s_computed'] });
+        vi.useFakeTimers();
+        try {
+          const [handler] = deserialize(objs) as QRLInternal[];
+
+          const outcome = settle(handler());
+          await vi.advanceTimersByTimeAsync(9_999);
+          expect(outcome.value).toBe('pending');
+          await vi.advanceTimersByTimeAsync(1);
+          expect(isQrlImportError(outcome.value)).toBe(true);
+          expect(ran).toEqual([]);
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+
+      it('a run that starts waiting later gets its own 10 seconds', async () => {
+        const computed = lazyComputed();
+        const objs = await serialize(
+          lazyQrl('s_first', [computed]),
+          lazyQrl('s_handler', [computed])
+        );
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        vi.useFakeTimers();
+        try {
+          const [first, handler] = deserialize(objs) as QRLInternal[];
+
+          const firstOutcome = settle(first());
+          await vi.advanceTimersByTimeAsync(6_000);
+          const laterOutcome = settle(handler());
+          await vi.advanceTimersByTimeAsync(4_000);
+          expect(isQrlImportError(firstOutcome.value)).toBe(true);
+          expect(laterOutcome.value).toBe('pending');
+          release();
+          await vi.advanceTimersByTimeAsync(0);
+          expect(laterOutcome.value).toBe('ran');
+          expect(ran).toEqual(['s_handler']);
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+
+      it('a run after a timeout waits again, and runs once the code lands', async () => {
+        const objs = await serialize(lazyQrl('s_handler', [lazyComputed()]));
+        const { release, ran } = mockModules({ held: ['s_computed'] });
+        vi.useFakeTimers();
+        try {
+          const [handler] = deserialize(objs) as QRLInternal[];
+
+          const timedOut = settle(handler());
+          await vi.advanceTimersByTimeAsync(10_000);
+          expect(isQrlImportError(timedOut.value)).toBe(true);
+          const again = settle(handler());
+          await vi.advanceTimersByTimeAsync(0);
+          expect(again.value).toBe('pending');
+          release();
+          await vi.advanceTimersByTimeAsync(0);
+          expect(again.value).toBe('ran');
+          expect(ran).toEqual(['s_handler']);
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+    });
+
+    describe('runs that never wait', () => {
+      it('a sync$ QRL', async () => {
+        const { computed } = await startPreloadingAComputed();
+        const calls: unknown[] = [];
+        const syncHandler = _qrlSync((value: unknown) => calls.push(value));
+
+        void syncHandler(computed);
+
+        expect(calls).toEqual([computed]);
+      });
+
+      it('a render QRL run through getFn', async () => {
+        const objs = await serialize(lazyQrl('s_render', [lazyComputed()]));
+        const { ran } = mockModules({ held: ['s_computed'] });
+        const [render] = deserialize(objs) as QRLInternal[];
+
+        void (render.getFn() as () => unknown)();
+        await delay(0);
+        expect(ran).toEqual(['s_render']);
+      });
+
+      it('any run on the server', async () => {
+        const objs = await serialize(lazyQrl('s_task', [lazyComputed()]));
+        const { ran } = mockModules({ held: ['s_computed'], isServer: true });
+        const [task] = deserialize(objs) as QRLInternal[];
+
+        void runAsTask(task);
+        await delay(0);
+        expect(ran).toEqual(['s_task']);
+      });
     });
   });
 

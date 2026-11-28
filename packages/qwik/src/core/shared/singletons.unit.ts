@@ -34,6 +34,8 @@ const loadCoreCopy = async () => {
   const cursorQueue = await import('./cursor/cursor-queue');
   const cursorProps = await import('./cursor/cursor-props');
   const pendingUtils = await import('../control-flow/pending-utils');
+  const inflate = await import('./serdes/inflate');
+  const reachablePreloads = await import('./qrl/reachable-preloads');
   return {
     ...useCore,
     ...platform,
@@ -58,6 +60,8 @@ const loadCoreCopy = async () => {
     ...cursorQueue,
     ...cursorProps,
     ...pendingUtils,
+    ...inflate,
+    ...reachablePreloads,
     // Module namespaces keep live bindings; a spread copies their value at spread time.
     qrlClassModule: qrlClass,
   };
@@ -169,6 +173,19 @@ describe('duplicate core copies share runtime state', async () => {
     // Libraries built before `_capturesObj` read the legacy binding of their own copy.
     expect(first.qrlClassModule._captures).toBe(captures);
     first.setCaptures(null);
+  });
+
+  test('computed preloads counted by one copy are found by the other', () => {
+    const computed = first.createComputedSignal(first.$(() => 1));
+    let release!: () => void;
+    first.trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    second.setPlatform({ ...second.createPlatform(), isServer: false });
+    try {
+      expect(second.waitForReachablePreloads([{ total: computed }])).toBeInstanceOf(Promise);
+    } finally {
+      second.setPlatform(second.createPlatform());
+      release();
+    }
   });
 
   test('cursors queued by one copy are drained by the other', () => {

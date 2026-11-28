@@ -224,6 +224,11 @@ Out-of-order (OOOS) invariants:
   render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
+- Tasks, event handlers and `$()` calls wait while a computed their captures or arguments can reach
+  is being preloaded (`shared/qrl/reachable-preloads.ts`, counted in `inflate.ts`); renders
+  don't wait and retry on the thrown promise instead. A run that waits over 10 seconds, or whose
+  preload fails twice, doesn't start: handlers and tasks fire `qerror`, a `$()` call rejects. A new
+  place that runs user code with side effects needs the same wait.
 - Core ships as a Qwik library: `dist/core*.qwik.mjs`, which app optimizers transform. They declare
   each core QRL at module level, eagerly, right before the first top-level statement referencing
   it (even when the `$()` sits in a lazy arrow), or at the very top when a function declaration

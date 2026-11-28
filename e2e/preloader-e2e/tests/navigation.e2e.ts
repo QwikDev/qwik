@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page, type Route } from '@playwright/t
 import {
   bundleFile,
   chunkComesFrom,
+  chunkHoldsComputedFrom,
   chunkKind,
   chunkHoldsModule,
   chunkHoldsSegmentsFrom,
@@ -9,7 +10,7 @@ import {
   getManifest,
 } from '../utils/app';
 import { attachRoundTrips, expectRoundTrips } from '../utils/click-tests';
-import { NAVIGATION_SOURCES, type Fixture } from '../utils/fixtures';
+import { NAVIGATION_SOURCES, SECOND_NAVIGATION, type Fixture } from '../utils/fixtures';
 import {
   collectUntilQuiet,
   countRoundTrips,
@@ -1094,5 +1095,59 @@ test.describe('a second Link click before a routeLoader$ page shows', () => {
     test.fail(true, SECOND_CLICK_NEVER_NAVIGATES);
     expect(await shownFixtures(page)).not.toContain(TO_DATA.id);
     expect(pathOf(page)).toBe(TO_SMALL.path);
+  });
+});
+
+const shownPage = (page: Page, name: string) =>
+  page.locator(`[data-fixture="computeds/second-navigation-${name}"] [data-testid=result]`);
+
+const clickWaitingForAComputedAfterOneNavigation = async (page: Page) => {
+  const { gate } = await openFixture(page, SECOND_NAVIGATION, 'cold');
+  gate.mode = 'pass';
+  const root = fixtureRoot(page, SECOND_NAVIGATION);
+  await root.locator('[data-testid=link-b]').click();
+  await expect(shownPage(page, 'b')).toHaveAttribute('data-done');
+  gate.holdWhilePassing = (url) =>
+    chunkHoldsComputedFrom(url, 'src/components/fixtures/computeds/second-navigation/index.tsx');
+  await root.locator('[data-testid=trigger]').click();
+  await expect.poll(() => gate.held.length).toBe(1);
+  return { gate, root };
+};
+
+test.describe("a second SPA navigation while a click waits for a computed's chunk", () => {
+  test('a Link click shows the new page without waiting for that chunk', async ({ page }) => {
+    const { gate, root } = await clickWaitingForAComputedAfterOneNavigation(page);
+
+    await root.locator('[data-testid=link-c]').click();
+
+    await expect(shownPage(page, 'c')).toHaveAttribute('data-done');
+    expect(gate.held).toHaveLength(1);
+    await releaseAll(gate);
+  });
+
+  test('a nav() call shows the new page without waiting for that chunk', async ({ page }) => {
+    const { gate, root } = await clickWaitingForAComputedAfterOneNavigation(page);
+
+    await root.locator('[data-testid=nav-c]').click();
+
+    await expect(shownPage(page, 'c')).toHaveAttribute('data-done');
+    expect(gate.held).toHaveLength(1);
+    await releaseAll(gate);
+  });
+
+  test('the waiting click runs its handler once when the chunk arrives, after the navigation', async ({
+    page,
+  }) => {
+    const { gate, root } = await clickWaitingForAComputedAfterOneNavigation(page);
+    await root.locator('[data-testid=link-c]').click();
+    await expect(shownPage(page, 'c')).toHaveAttribute('data-done');
+
+    await releaseAll(gate);
+
+    await expectResult(page, SECOND_NAVIGATION);
+    const handlerRuns = await page.evaluate(
+      () => (globalThis as { handlerRuns?: number }).handlerRuns
+    );
+    expect(handlerRuns).toBe(1);
   });
 });

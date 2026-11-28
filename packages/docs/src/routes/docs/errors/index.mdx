@@ -256,3 +256,9 @@ A late streamed state patch references an object whose original references are u
 **Invalid serialized BigInt payload**
 
 A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larger BigInt values cannot be serialized; store them in another form, such as a string.
+
+## Q42
+
+**The code of a computed this run can reach could not be preloaded, so the run did not start**
+
+A task or event handler can read a computed whose code was still being preloaded. The run waits for that code, but not past 10 seconds, nor after a preload fails twice. Instead of starting, it fires a `qerror` event, like a chunk that fails to load. Listen for `qerror` on `document` to tell the user, or reload the page when a deploy removed the chunk. A `$()` function you call yourself fires no event: its promise rejects with this error, so catch it where you await the call.

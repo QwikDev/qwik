@@ -7,6 +7,8 @@ import * as promises from '../shared/utils/promises';
 import * as domContainer from './dom-container';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { VNodeFlags } from './types';
+import { createComputedQrl } from '../reactive-primitives/signal.public';
+import { trackPreload } from '../shared/serdes/inflate';
 
 vi.mock('../shared/qrl/qrl-class', async () => {
   const actual =
@@ -491,6 +493,80 @@ describe('runEventHandlerQRL', () => {
         ITERATION_ITEM_MULTI,
         expect.anything()
       );
+    });
+
+    describe('while a computed is being preloaded', () => {
+      let releaseComputed: () => void;
+      let computed: object;
+      let element: Element;
+
+      beforeEach(() => {
+        computed = createComputedQrl(qrlClass.createQRL('c.js', 's_computed', () => 1) as any);
+        trackPreload(computed, () => new Promise<void>((resolve) => (releaseComputed = resolve)));
+        element = { isConnected: true } as unknown as Element;
+        mockHostElement.flags = VNodeFlags.HasIterationItems;
+        vi.mocked(useCore.invokeApply).mockImplementation((_ctx, fn, args) =>
+          (fn as (...args: unknown[]) => unknown)(...(args ?? []))
+        );
+      });
+
+      afterEach(() => {
+        releaseComputed();
+      });
+
+      it('waits for a computed its loop item reaches', async () => {
+        const handlerFn = vi.fn();
+        const handler = qrlClass.createQRL('h.js', 's_handler', handlerFn);
+        vi.mocked(vnodeUtils.vnode_getProp).mockReturnValueOnce({ label: 'row', total: computed });
+
+        const result = runEventHandlerQRL(handler, mockEvent, element, mockContext);
+        await Promise.resolve();
+        expect(handlerFn).not.toHaveBeenCalled();
+        releaseComputed();
+        await result;
+        expect(handlerFn).toHaveBeenCalledOnce();
+      });
+
+      it("reports a computed whose code wasn't preloaded in time as a qerror, without running the handler", async () => {
+        const { retryOnPromise } = await vi.importActual<typeof import('../shared/utils/promises')>(
+          '../shared/utils/promises'
+        );
+        vi.mocked(promises.retryOnPromise).mockImplementation(retryOnPromise);
+        const dispatchEvent = vi.fn();
+        const elementInDocument = {
+          isConnected: true,
+          ownerDocument: { dispatchEvent },
+        } as unknown as Element;
+        const handlerFn = vi.fn();
+        const handler = qrlClass.createQRL('h.js', 's_handler', handlerFn);
+        vi.mocked(vnodeUtils.vnode_getProp).mockReturnValueOnce({ label: 'row', total: computed });
+        vi.useFakeTimers();
+        try {
+          const result = runEventHandlerQRL(handler, mockEvent, elementInDocument, mockContext);
+          await vi.advanceTimersByTimeAsync(10_000);
+          await result;
+
+          expect(handlerFn).not.toHaveBeenCalled();
+          expect(mockContainer.handleError).not.toHaveBeenCalled();
+          expect(dispatchEvent).toHaveBeenCalledOnce();
+          const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
+          expect(event.type).toBe('qerror');
+          expect(event.detail.importError).toBe('async');
+          expect(event.detail.symbol).toBe('s_handler');
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+
+      it('runs at once when nothing its loop items reach is being preloaded', () => {
+        const handlerFn = vi.fn();
+        const handler = qrlClass.createQRL('h.js', 's_handler', handlerFn);
+        vi.mocked(vnodeUtils.vnode_getProp).mockReturnValueOnce({ label: 'row' });
+
+        runEventHandlerQRL(handler, mockEvent, element, mockContext);
+
+        expect(handlerFn).toHaveBeenCalledOnce();
+      });
     });
   });
 });

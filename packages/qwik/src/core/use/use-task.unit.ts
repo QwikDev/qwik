@@ -1,7 +1,11 @@
-import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
-import type { ReadonlySignal } from '../reactive-primitives/signal.public';
+import { afterEach, describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import { VNodeFlags } from '../client/types';
+import { vnode_newVirtual } from '../client/vnode-utils';
+import { createComputedQrl, type ReadonlySignal } from '../reactive-primitives/signal.public';
 import { component$ } from '../shared/component.public';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { inlinedQrl } from '../shared/qrl/qrl';
+import { isQrlImportError, type QRLInternal } from '../shared/qrl/qrl-class';
+import { trackPreload } from '../shared/serdes/inflate';
 import type { Container, HostElement } from '../shared/types';
 import { useResource$ } from './use-resource-dollar';
 import { useSignal } from './use-signal';
@@ -72,6 +76,20 @@ const createTask = (fn: (...args: any[]) => any) => {
 };
 
 describe('runTask', () => {
+  const heldPreloads: (() => void)[] = [];
+  const holdPreloadOf = (computed: object) => {
+    let release!: () => void;
+    trackPreload(computed, () => new Promise<void>((resolve) => (release = resolve)));
+    heldPreloads.push(release);
+    return release;
+  };
+  afterEach(() => {
+    const releases = heldPreloads.splice(0);
+    for (let i = 0; i < releases.length; i++) {
+      releases[i]();
+    }
+  });
+
   it('reports a rejected thrown promise once and allows a later rerun', async () => {
     const error = new Error('dependency failed');
     const container = createMockContainer();
@@ -192,5 +210,84 @@ describe('runTask', () => {
 
     expect(run).toBe(2);
     expect(cleanupCalls).toBe(1);
+  });
+
+  it('waits for a computed the task reaches before each run', async () => {
+    const container = createMockContainer();
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    const taskFn = vi.fn();
+    const host = vnode_newVirtual();
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+
+    let release = holdPreloadOf(computed);
+    const firstRun = runTask(task, container, host);
+    expect(taskFn).not.toHaveBeenCalled();
+    release();
+    await firstRun;
+    expect(taskFn).toHaveBeenCalledTimes(1);
+
+    release = holdPreloadOf(computed);
+    task.$flags$ |= TaskFlags.DIRTY;
+    const secondRun = runTask(task, container, host);
+    expect(taskFn).toHaveBeenCalledTimes(1);
+    release();
+    await secondRun;
+    expect(taskFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a computed whose code wasn't preloaded in time as a chunk import error, without running the task", async () => {
+    const container = createMockContainer();
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    holdPreloadOf(computed);
+    const taskFn = vi.fn();
+    const host = {} as HostElement;
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+    vi.useFakeTimers();
+    try {
+      const run = runTask(task, container, host);
+      await vi.advanceTimersByTimeAsync(10_000);
+      await run;
+
+      expect(taskFn).not.toHaveBeenCalled();
+      expect(container.handleError).toHaveBeenCalledOnce();
+      const [error] = vi.mocked(container.handleError).mock.calls[0];
+      expect(isQrlImportError(error)).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a task whose component was removed while it waited doesn't run", async () => {
+    const container = createMockContainer();
+    const computed = createComputedQrl(inlinedQrl(() => 1, 's_computed'));
+    const release = holdPreloadOf(computed);
+    const taskFn = vi.fn();
+    const host = vnode_newVirtual();
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      0,
+      host,
+      inlinedQrl(taskFn, 's_task', [computed]) as QRLInternal<unknown>,
+      null
+    );
+
+    const run = runTask(task, container, host);
+    host.flags |= VNodeFlags.Deleted;
+    release();
+    await run;
+
+    expect(taskFn).not.toHaveBeenCalled();
   });
 });

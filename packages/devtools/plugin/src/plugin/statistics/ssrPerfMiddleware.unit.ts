@@ -37,6 +37,40 @@ function createMiddleware() {
 }
 
 describe('ssrPerfMiddleware', () => {
+  test('uses the Vite base for the application VNode bridge', () => {
+    const html = '<html><head></head><body></body></html>';
+    expect(injectSsrDevtoolsIntoHtml(html, {}, '/docs/', '/docs/')).toContain(
+      `src="/docs/${QWIK_VNODE_PROTOCOL.bridgeVirtualModuleId}"`
+    );
+  });
+
+  test('escapes the application base in the bridge script attribute', () => {
+    const html = '<html><head></head><body></body></html>';
+    expect(injectSsrDevtoolsIntoHtml(html, {}, '/', '/a"&b/')).toContain(
+      `src="/a&quot;&amp;b/${QWIK_VNODE_PROTOCOL.bridgeVirtualModuleId}"`
+    );
+  });
+
+  test('does not instrument the hosted devtools iframe', () => {
+    const middleware = createMiddleware();
+    const response = {
+      write: () => true,
+      end: () => undefined,
+      setHeader: () => undefined,
+    };
+    const originalEnd = response.end;
+    let nextCalled = false;
+    middleware(
+      { headers: { accept: 'text/html' }, url: '/__qwik_devtools__/?base=%2Fdocs%2F' },
+      response,
+      () => {
+        nextCalled = true;
+      }
+    );
+    expect(nextCalled).toBe(true);
+    expect(response.end).toBe(originalEnd);
+  });
+
   test('injects protocol-defined ssr perf and preload names', () => {
     const html = '<html><head></head><body></body></html>';
     const nextHtml = injectSsrDevtoolsIntoHtml(

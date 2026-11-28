@@ -68,6 +68,26 @@ describe('transform facades', () => {
     expect(transformed).toContain('<QwikDevtools excludePathnames={["/admin","/docs"]} />');
   });
 
+  test('keeps page collection without injecting the overlay when the dock is active', () => {
+    const transformed = transformRootFile(
+      ROOT_SOURCE,
+      { overlay: { excludePathnames: ['/admin'] } },
+      false
+    );
+
+    expect(transformed).toContain("import { QwikDevtoolsCollector } from '@qwik.dev/devtools/ui';");
+    expect(transformed).toContain('<QwikDevtoolsCollector excludePathnames={["/admin"]} />');
+    expect(transformed).not.toContain('<QwikDevtools ');
+    expect(transformed).not.toContain('/styles.css');
+    expectSameSourceLines(ROOT_SOURCE, transformed);
+  });
+
+  test('passes the application base to the overlay', () => {
+    const transformed = transformRootFile(ROOT_SOURCE, {}, true, '/docs/');
+    expect(transformed).toContain('<QwikDevtools appBase={"/docs/"} />');
+    expectSameSourceLines(ROOT_SOURCE, transformed);
+  });
+
   test('root transform injects into the JSX body instead of matching body-like strings', () => {
     const source = `
 const fakeHtml = '<body><main>String body</main></body>';

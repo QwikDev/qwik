@@ -37,7 +37,9 @@ function makeRoute(relativePath: string, name: string): RoutesInfo {
 const routes = [makeRoute('', 'root'), makeRoute('about', 'about')];
 
 function makeState(overrides?: { isExtension?: boolean }): DevtoolsState {
-  const state = createDevtoolsState({ isExtension: overrides?.isExtension });
+  const state = createDevtoolsState({
+    runtimeMode: overrides?.isExtension ? 'browser-extension' : 'overlay',
+  });
   state.components = components;
   state.npmPackages = npmPackages;
   state.routes = noSerialize(routes);
@@ -45,6 +47,13 @@ function makeState(overrides?: { isExtension?: boolean }): DevtoolsState {
 }
 
 describe('command palette sources', () => {
+  test('iframe mode retains Vite-only tools and actions', () => {
+    const state = createDevtoolsState({ runtimeMode: 'vite-iframe' });
+    expect(state.runtimeMode).toBe('vite-iframe');
+    expect(buildPaletteSources(state).map((result) => result.id)).toContain('tab:routes');
+    expect(getActionResults(state).map((result) => result.id)).toContain('action:customizeTabs');
+  });
+
   test('overlay sources include tabs, components, routes, and packages', () => {
     const categories = new Set(buildPaletteSources(makeState()).map((result) => result.category));
     expect(categories).toEqual(new Set(['Tabs', 'Components', 'Routes', 'Packages']));

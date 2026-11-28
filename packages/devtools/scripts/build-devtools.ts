@@ -42,6 +42,9 @@ log('Building devtools library...');
 rmSync(join(UI_PATH, 'lib'), { recursive: true, force: true });
 exec('pnpm exec vite build --config ui/vite.config.mts --mode lib');
 
+log('Building devtools iframe client...');
+exec('pnpm exec vite build --config ui/vite.client.config.mts');
+
 log('Linting devtools UI...');
 exec('pnpm exec eslint "ui/src/**/*.ts*"');
 

@@ -15,9 +15,36 @@ describe('sourceTransforms', () => {
     expect(
       shouldTransformStatisticsSource('/repo/packages/devtools/ui/src/features/Performance.tsx')
     ).toBe(false);
+    expect(
+      shouldTransformStatisticsSource(
+        'C:\\repo\\packages\\devtools\\ui\\src\\features\\Performance.tsx'
+      )
+    ).toBe(false);
     expect(shouldTransformStatisticsSource('/repo/packages/devtools/ui/lib/devtools.js')).toBe(
       false
     );
+    expect(
+      shouldTransformStatisticsSource('C:\\repo\\packages\\devtools\\ui\\lib\\devtools.js')
+    ).toBe(false);
+  });
+
+  test('skips node_modules sources with POSIX and Windows paths', () => {
+    expect(shouldTransformStatisticsSource('/repo/node_modules/example/index.js')).toBe(false);
+    expect(shouldTransformStatisticsSource('C:\\repo\\node_modules\\example\\index.js')).toBe(
+      false
+    );
+  });
+
+  test('skips compiled Qwik framework runtimes but keeps app sources', () => {
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik/dist/core.qwik.mjs')).toBe(false);
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik-router/lib/index.qwik.mjs')).toBe(
+      false
+    );
+    expect(shouldTransformStatisticsSource('C:\\repo\\packages\\qwik\\dist\\core.qwik.mjs')).toBe(
+      false
+    );
+    expect(shouldTransformStatisticsSource('/repo/packages/docs/src/routes/index.tsx')).toBe(true);
+    expect(shouldTransformStatisticsSource('/repo/packages/qwik-demo/dist/app.mjs')).toBe(true);
   });
 
   test('escapes Windows module ids in wrapped lazy component exports', () => {

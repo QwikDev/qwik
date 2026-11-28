@@ -1,6 +1,7 @@
 import { component$, isBrowser } from '@qwik.dev/core';
 import { inspectorLink } from './constant';
 import { setupIframeThemeSync } from './iframe-theme';
+import { getAppBase } from '../../devtools/app-base';
 
 /**
  * Inspect iframe must load under app root (Vite `BASE_URL` + origin), not `location.pathname`, so
@@ -11,7 +12,7 @@ function getInspectIframeSrc(): string {
   if (!isBrowser) {
     return '';
   }
-  const base = new URL(import.meta.env.BASE_URL ?? '/', location.origin);
+  const base = new URL(getAppBase(), location.origin);
   return new URL(inspectorLink, base).href;
 }
 

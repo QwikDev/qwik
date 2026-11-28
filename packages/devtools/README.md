@@ -40,6 +40,22 @@ export default defineConfig({
 });
 ```
 
+### Vite DevTools dock
+
+Install `@vitejs/devtools` to use Qwik DevTools in the Vite DevTools dock. This integration
+has been verified with Vite 8.3.8 and `@vitejs/devtools` 0.8.3; older Vite versions continue
+to use the in-app overlay when the host is unavailable. Follow the Vite DevTools authorization
+prompt when connecting a browser.
+
+The default `qwikDevtools({ mode: 'auto' })` uses the dock when the host is enabled and
+otherwise uses the overlay. Set `mode: 'overlay'` to always use the overlay, or `mode: 'dock'`
+to require the dock (a warning is logged if no host is enabled). Host registration selects the
+dock before the browser connects, so use `overlay` if authorization or the dock cannot be used.
+
+The dock's page panels require a same-origin embedded application page. Standalone DevTools
+windows and cross-origin frames are not supported. The dock uses the Vite server's
+`/__qwik_devtools__/` path for its own assets, independently of the application's base.
+
 ## Features
 
 - 🔍 Route Explorer

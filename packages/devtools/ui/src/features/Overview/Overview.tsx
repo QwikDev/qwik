@@ -8,7 +8,7 @@ interface OverviewProps {
 }
 
 export const Overview = component$(({ state }: OverviewProps) => {
-  const isExtension = state.isExtension;
+  const isExtension = state.runtimeMode === 'browser-extension';
   const pageJump = $((pageName: TabName) => {
     state.activeTab = pageName;
   });

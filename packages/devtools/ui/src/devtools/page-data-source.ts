@@ -10,6 +10,7 @@ import {
   type DevtoolsVNodeTreeNode as VNodeTreeNode,
   type DevtoolsComponentDetailEntry as ComponentDetailEntry,
   type DevtoolsRenderEvent as RenderEvent,
+  type QwikDevtoolsHookExtended,
 } from '@qwik.dev/devtools/kit';
 import { isBrowser } from '@qwik.dev/core';
 
@@ -23,7 +24,11 @@ export type { PageDataSource, VNodeTreeNode, ComponentDetailEntry, RenderEvent }
  * as an in-app overlay (same document).
  */
 class InPageDataSource implements PageDataSource {
-  private readonly bridge = createInPageBridge({ isBrowser });
+  protected readonly bridge: ReturnType<typeof createInPageBridge>;
+
+  constructor(browser = isBrowser, getWindow?: () => Window | null) {
+    this.bridge = createInPageBridge({ isBrowser: browser, getWindow });
+  }
 
   async readPerfData(): Promise<QwikPerfStoreRemembered | null> {
     return this.bridge.readPerfData();
@@ -78,12 +83,106 @@ class InPageDataSource implements PageDataSource {
   }
 
   // No-ops in overlay mode (highlight is handled by the extension's eval)
-  async highlightElement(): Promise<void> {}
+  async highlightElement(_nodeId: string, _componentName: string): Promise<void> {}
   async unhighlightElement(): Promise<void> {}
 
   subscribeRenderEvents(cb: (event: RenderEvent) => void): (() => void) | null {
     return this.bridge.subscribeRenderEvents(cb);
   }
+}
+
+export function findHostQwikWindow(frame: Window): Window | null {
+  try {
+    let current = frame;
+    while (current !== current.parent) {
+      current = current.parent;
+      if (getQwikDevtoolsGlobal(current)) {
+        return current;
+      }
+    }
+  } catch (error) {
+    if (!(error instanceof DOMException) || error.name !== 'SecurityError') {
+      throw error;
+    }
+  }
+  return null;
+}
+
+class IframePageDataSource extends InPageDataSource {
+  constructor(private readonly frame: Window) {
+    super(true, () => findHostQwikWindow(frame));
+  }
+
+  private subscribeToHost(
+    subscribe: () => (() => void) | null,
+    onConnect?: (isCurrent: () => boolean) => void
+  ): () => void {
+    let target: Window | null = null;
+    let targetDocument: Document | undefined;
+    let unsubscribe: (() => void) | null = null;
+    let generation = 0;
+    const rebind = () => {
+      const next = findHostQwikWindow(this.frame);
+      const nextDocument = next?.document;
+      if (next === target && nextDocument === targetDocument) {
+        return;
+      }
+      unsubscribe?.();
+      const currentGeneration = ++generation;
+      target = next;
+      targetDocument = nextDocument;
+      unsubscribe = next ? subscribe() : null;
+      if (next) {
+        onConnect?.(() => generation === currentGeneration);
+      }
+    };
+    rebind();
+    const timer = setInterval(rebind, 500);
+    return () => {
+      clearInterval(timer);
+      generation++;
+      unsubscribe?.();
+    };
+  }
+
+  override subscribePreloadUpdates(cb: () => void): () => void {
+    return this.subscribeToHost(() => this.bridge.subscribePreloadUpdates(cb), cb);
+  }
+
+  override subscribeTreeUpdates(cb: (tree: VNodeTreeNode[]) => void): () => void {
+    return this.subscribeToHost(
+      () => this.bridge.subscribeTreeUpdates(cb),
+      (isCurrent) => {
+        void this.bridge.readVNodeTree().then((tree) => {
+          if (tree && isCurrent()) {
+            cb(tree);
+          }
+        });
+      }
+    );
+  }
+
+  override subscribeRenderEvents(cb: (event: RenderEvent) => void): () => void {
+    return this.subscribeToHost(() => this.bridge.subscribeRenderEvents(cb));
+  }
+
+  override async highlightElement(nodeId: string, componentName: string): Promise<void> {
+    const hook = getQwikDevtoolsGlobal(findHostQwikWindow(this.frame))?.[
+      QWIK_DEVTOOLS_GLOBAL.props.hook
+    ] as QwikDevtoolsHookExtended | undefined;
+    hook?.highlightNode?.(nodeId, componentName);
+  }
+
+  override async unhighlightElement(): Promise<void> {
+    const hook = getQwikDevtoolsGlobal(findHostQwikWindow(this.frame))?.[
+      QWIK_DEVTOOLS_GLOBAL.props.hook
+    ] as QwikDevtoolsHookExtended | undefined;
+    hook?.unhighlightNode?.();
+  }
+}
+
+export function createIframePageDataSource(frame: Window): PageDataSource {
+  return new IframePageDataSource(frame);
 }
 
 const defaultSource = new InPageDataSource();

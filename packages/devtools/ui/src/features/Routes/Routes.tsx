@@ -1,11 +1,19 @@
 import { component$ } from '@qwik.dev/core';
 import { State } from '../../types/state';
+import { getAppBase } from '../../devtools/app-base';
+import { getAppRoutePath } from './route-path';
 
 interface RoutesProps {
   state: State;
 }
 
 export const Routes = component$(({ state }: RoutesProps) => {
+  const pathname =
+    state.runtimeMode === 'vite-iframe'
+      ? getAppRoutePath(state.pagePathname ?? '', getAppBase())
+      : typeof location === 'undefined'
+        ? ''
+        : location.pathname;
   return (
     <div class="border-border flex-1 overflow-hidden rounded-xl border">
       <div class="bg-card-item-bg grid grid-cols-4 gap-4 p-4 text-sm font-medium">
@@ -30,8 +38,8 @@ export const Routes = component$(({ state }: RoutesProps) => {
               <span
                 class={{
                   'text-accent':
-                    (location.pathname === '/' && route.relativePath === '') ||
-                    location.pathname === `/${route.relativePath}/`,
+                    (pathname === '/' && route.relativePath === '') ||
+                    pathname === `/${route.relativePath}/`,
                 }}
               >
                 {route.relativePath === '' ? '/' : `/${route.relativePath}/`}

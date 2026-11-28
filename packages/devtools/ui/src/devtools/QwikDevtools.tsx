@@ -1,5 +1,4 @@
 import { component$, useSignal, useStore, useVisibleTask$ } from '@qwik.dev/core';
-import { getQwikDevtoolsGlobal, QWIK_DEVTOOLS_GLOBAL } from '@qwik.dev/devtools/kit';
 import { DevtoolsButton } from '../components/DevtoolsButton/DevtoolsButton';
 import { DevtoolsContainer } from '../components/DevtoolsContainer/DevtoolsContainer';
 import { DevtoolsPanel } from '../components/DevtoolsPanel/DevtoolsPanel';
@@ -12,11 +11,13 @@ import { DevtoolsSidebar } from './DevtoolsSidebar';
 import { CustomizeTabsPanel } from './CustomizeTabsPanel';
 import { CommandPalette } from './CommandPalette';
 import { loadVisibleTabIds } from './sidebar-tabs';
-import { ensurePreloadRuntime } from '../runtime/preloads';
 import { isExcludedPathname, normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
+import { initializePageCollection } from './QwikDevtoolsCollector';
+import { initializeAppBase } from './app-base';
 
 interface QwikDevtoolsProps {
   excludePathnames?: string[];
+  appBase?: string;
 }
 
 export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
@@ -32,18 +33,19 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
       }
 
       shouldRender.value = true;
+      if (props.appBase) {
+        initializeAppBase(props.appBase, location.origin);
+      }
 
       // Restore the customized sidebar order/visibility (Vite overlay only).
-      if (!state.isExtension) {
+      if (state.runtimeMode !== 'browser-extension') {
         const storedVisibleTabIds = loadVisibleTabIds();
         if (storedVisibleTabIds) {
           state.visibleTabIds = storedVisibleTabIds;
         }
       }
 
-      if (!getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider]) {
-        ensurePreloadRuntime();
-      }
+      initializePageCollection(excludePathnames);
       await loadDevtoolsData(state);
     },
     { strategy: 'document-ready' }
@@ -85,7 +87,9 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
               <div class="custom-scrollbar h-full overflow-y-auto p-4">
                 <DevtoolsContent state={state} />
               </div>
-              {!state.isExtension && state.isCustomizeOpen && <CustomizeTabsPanel state={state} />}
+              {state.runtimeMode !== 'browser-extension' && state.isCustomizeOpen && (
+                <CustomizeTabsPanel state={state} />
+              )}
               {state.isPaletteOpen && <CommandPalette state={state} />}
             </div>
           </DevtoolsPanel>

@@ -48,7 +48,7 @@ const ViteOnlyPlaceholder = component$<{ feature: string }>(({ feature }) => {
 });
 
 export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
-  const isExtensionMode = state.isExtension;
+  const isExtensionMode = state.runtimeMode === 'browser-extension';
   const assetSummary = formatAssetSummary(state.assets);
 
   switch (state.activeTab) {

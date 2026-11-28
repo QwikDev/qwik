@@ -4,6 +4,7 @@ import { parseProgram, traverseProgram } from '../parse/traverse';
 import { prependImportIfMissing } from './source-utils';
 
 export interface QwikDevtoolsOptions {
+  mode?: 'auto' | 'dock' | 'overlay';
   overlay?: {
     excludePathnames?: string[];
   };
@@ -12,20 +13,30 @@ export interface QwikDevtoolsOptions {
 const DEVTOOLS_IMPORT = `import { QwikDevtools } from '@qwik.dev/devtools/ui';`;
 const STYLES_IMPORT = `import '@qwik.dev/devtools/ui/styles.css';`;
 
-export function transformRootFile(code: string, opts: QwikDevtoolsOptions = {}): string {
+export function transformRootFile(
+  code: string,
+  opts: QwikDevtoolsOptions = {},
+  shouldInjectOverlay = true,
+  appBase?: string
+): string {
   const excludePathnames = normalizeExcludePathnames(opts.overlay?.excludePathnames);
   const bodyClosingStart = findBodyClosingStart(code);
+  const component = shouldInjectOverlay ? 'QwikDevtools' : 'QwikDevtoolsCollector';
   if (bodyClosingStart !== null) {
-    const devtoolsElement =
-      excludePathnames.length > 0
-        ? `<QwikDevtools excludePathnames={${JSON.stringify(excludePathnames)}} />`
-        : '<QwikDevtools />';
+    const excludeProp =
+      excludePathnames.length > 0 ? ` excludePathnames={${JSON.stringify(excludePathnames)}}` : '';
+    const baseProp = shouldInjectOverlay && appBase ? ` appBase={${JSON.stringify(appBase)}}` : '';
+    const devtoolsElement = `<${component}${excludeProp}${baseProp} />`;
     code = applySourceEdits(code, [
       { kind: 'insert', pos: bodyClosingStart, text: devtoolsElement },
     ]);
   }
 
-  return prependImportIfMissing(prependImportIfMissing(code, DEVTOOLS_IMPORT), STYLES_IMPORT);
+  const componentImport = shouldInjectOverlay
+    ? DEVTOOLS_IMPORT
+    : `import { QwikDevtoolsCollector } from '@qwik.dev/devtools/ui';`;
+  code = prependImportIfMissing(code, componentImport);
+  return shouldInjectOverlay ? prependImportIfMissing(code, STYLES_IMPORT) : code;
 }
 
 function findBodyClosingStart(code: string): number | null {

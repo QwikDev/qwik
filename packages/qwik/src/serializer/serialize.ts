@@ -3,7 +3,6 @@ import {
   _BIGINT_PAYLOAD_REGEXP as BIGINT_PAYLOAD_REGEXP,
   _canSerialize as canSerialize,
   _ComputedSignalImpl as ComputedSignalImpl,
-  _EFFECT_BACK_REF,
   _EffectSubscription as EffectSubscription,
   _EMPTY_ARRAY as EMPTY_ARRAY,
   _EMPTY_OBJ as EMPTY_OBJ,
@@ -44,6 +43,7 @@ import {
   ELEMENT_ID,
   ELEMENT_PROPS,
   ESCAPED_CLOSE_TAG,
+  isConstantWrappedSignal,
   isObjectEmpty,
   isPromise,
   isQrl,
@@ -1212,11 +1212,6 @@ function isObjectLiteral(obj: unknown): obj is object {
 }
 
 const returnArg = <T>(p0: T) => p0;
-
-/** A computed wrapped signal that read no reactive source can never change. */
-const isConstantWrappedSignal = (value: WrappedSignalImpl<unknown>) =>
-  !(value.$flags$ & ComputedSignalFlags.INVALID) &&
-  !value[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef?.size;
 
 function serializeWrappingFn(
   serializationContext: SerializationContext,

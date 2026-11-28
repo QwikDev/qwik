@@ -5,6 +5,7 @@
  *   resolve to core's own modules, the same ones `@qwik.dev/core` exports.
  */
 
+export { isConstantWrappedSignal } from '../core/reactive-primitives/impl/wrapped-signal-impl';
 export {
   mapApp_remove,
   mapArray_get,

@@ -5,6 +5,7 @@
  *   these resolve to core's own modules, the same ones `@qwik.dev/core/internal` exports.
  */
 
+export { isConstantWrappedSignal } from '../core/reactive-primitives/impl/wrapped-signal-impl';
 export {
   AsyncSignalFlags,
   ComputedSignalFlags,

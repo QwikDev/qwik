@@ -1,4 +1,8 @@
-import { _SubscriptionPatch as SubscriptionPatch } from '@qwik.dev/core/internal';
+import {
+  _SubscriptionPatch as SubscriptionPatch,
+  _WrappedSignalImpl as WrappedSignalImpl,
+} from '@qwik.dev/core/internal';
+import { isConstantWrappedSignal } from './qwik-copy';
 import type {
   EffectSubscription,
   ObjToProxyMap,
@@ -26,6 +30,9 @@ export const recordExternalRootEffect = (
   prop: SubscriptionPatchProp,
   channel?: SubscriptionPatchChannel
 ): void => {
+  if (producer instanceof WrappedSignalImpl && isConstantWrappedSignal(producer)) {
+    return;
+  }
   let rootObj = producer;
   if (prop !== null) {
     rootObj = storeProxyMap.get(producer) || producer;

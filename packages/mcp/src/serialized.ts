@@ -18,12 +18,23 @@ export function readSerializedState(doc: Document): string | null {
   if (!root && !scripts.some((script) => script.hasAttribute('q:patch'))) {
     return null;
   }
+  const patches = scripts.filter((script) => script.hasAttribute('q:patch'));
+  const state = qwikInternal._isBinaryState(root?.textContent ?? patches[0]?.textContent ?? '')
+    ? qwikInternal._binaryStateToJson(
+        root?.textContent,
+        patches.map((patch) => patch.textContent || '')
+      )
+    : readJsonState(root, patches);
+  return qwikInternal._dumpState(state, false, '', null).replace(/^\n/, '');
+}
+
+function readJsonState(root: Element | undefined, patches: Element[]): unknown[] {
   const state = JSON.parse(root?.textContent || '[]') as unknown[];
   if (!Array.isArray(state)) {
     throw new Error('Invalid serialized Qwik state.');
   }
   const patchForwardRefs: Array<number | string> = [];
-  for (const patch of scripts.filter((script) => script.hasAttribute('q:patch'))) {
+  for (const patch of patches) {
     const [start, entries, forwardRefs] = JSON.parse(patch.textContent || '[]') as [
       number,
       unknown[],
@@ -55,7 +66,7 @@ export function readSerializedState(doc: Document): string | null {
   qwikInternal._preprocessState(state, { $forwardRefs$: null } as Parameters<
     typeof qwikInternal._preprocessState
   >[1]);
-  return qwikInternal._dumpState(state, false, '', null).replace(/^\n/, '');
+  return state;
 }
 
 export async function readSerializedVNodeTree(doc: Document): Promise<string | null> {

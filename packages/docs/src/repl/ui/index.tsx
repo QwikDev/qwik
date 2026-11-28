@@ -31,6 +31,7 @@ export const Repl = component$((props: ReplProps) => {
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],
+      vnodeTreeModule: '',
       diagnostics: [],
       monacoDiagnostics: [],
       enableClientOutput: props.enableClientOutput !== false,

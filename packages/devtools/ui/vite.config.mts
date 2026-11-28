@@ -46,6 +46,10 @@ export default defineConfig(() => {
         external: ['stream', 'util', /^node:.*/, ...externalDependencies.map(makeRegex)],
       },
     },
-    plugins: [qwikVite({ tsOptimizer: true }), qwikDevtools(), tailwindcss()],
+    plugins: [
+      qwikVite({ tsOptimizer: true, experimental: ['binaryState'] }),
+      qwikDevtools(),
+      tailwindcss(),
+    ],
   };
 });

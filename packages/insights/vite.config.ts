@@ -27,7 +27,7 @@ export default defineConfig({
     qwikRouter(),
     qwikVite({
       tsOptimizer: true,
-      experimental: ['insights'],
+      experimental: ['insights', 'binaryState'],
     }),
     tsconfigPaths({ root: '.' }),
     qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),

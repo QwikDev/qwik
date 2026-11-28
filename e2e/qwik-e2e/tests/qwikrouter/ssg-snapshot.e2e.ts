@@ -14,13 +14,16 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth. Keep each budget above the actual size by at least 500 bytes for core and 100 bytes
 // for the preloader and qwikloader; brotli output varies between builds, so a tighter budget is flaky.
 const PRELOADER_BROTLI_BUDGET = 2200; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 32200;
+const CORE_BROTLI_BUDGET = 34100;
+// Core without the `binaryState` flag, which is what apps ship by default.
+const CORE_JSON_BROTLI_BUDGET = 32600;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');
 const appDir = resolve(repoRoot, 'e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot');
 const distDir = resolve(appDir, 'dist');
+const jsonStateDistDir = resolve(distDir, 'json-state');
 const serverDir = resolve(appDir, 'server');
 const expectedHtmlPath = resolve(appDir, 'expected.ssg.html');
 const expectedStatePath = resolve(appDir, 'expected.state.txt');
@@ -42,7 +45,7 @@ test.describe('router ssg snapshot', () => {
   });
 
   test('build output matches the checked-in normalized html and state dump', async () => {
-    const { _dumpState } = await import(resolve(serverDir, 'entry.ssr.js'));
+    const { _dumpState, _binaryStateToJson } = await import(resolve(serverDir, 'entry.ssr.js'));
 
     const html = await readFile(resolve(distDir, 'index.html'), 'utf-8');
     const state = extractState(html);
@@ -51,7 +54,7 @@ test.describe('router ssg snapshot', () => {
     const manifestHash = extractManifestHash(html);
     const normalizedHtml = normalizeHtml(html, manifestHash);
     const normalizedState = normalizeStateDump(
-      _dumpState(JSON.parse(state!) as unknown[], false, '', null),
+      _dumpState(_binaryStateToJson(state!), false, '', null),
       manifestHash
     );
 
@@ -129,14 +132,12 @@ test.describe('router ssg snapshot', () => {
   });
 
   test('core chunk brotli size stays within budget', async () => {
-    const manifest = JSON.parse(await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8'));
-    const bundles: Record<string, { origins?: string[] }> = manifest.bundles;
-    const coreFile = Object.keys(bundles).find((file) =>
-      bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
-    );
-    expect(coreFile, 'some bundle should contain core').toBeTruthy();
+    await checkBrotliBudget('core', await findCoreFile(distDir), CORE_BROTLI_BUDGET);
+  });
 
-    await checkBrotliBudget('core', coreFile!, CORE_BROTLI_BUDGET);
+  test('core chunk brotli size of the default build stays within budget', async () => {
+    const coreFile = await findCoreFile(jsonStateDistDir);
+    await checkBrotliBudget('core_json', coreFile, CORE_JSON_BROTLI_BUDGET, jsonStateDistDir);
   });
 
   test('qwikloader chunk brotli size stays within budget', async () => {
@@ -148,13 +149,23 @@ test.describe('router ssg snapshot', () => {
   });
 });
 
+async function findCoreFile(outDir: string): Promise<string> {
+  const manifest = JSON.parse(await readFile(resolve(outDir, 'q-manifest.json'), 'utf-8'));
+  const bundles: Record<string, { origins?: string[] }> = manifest.bundles;
+  const coreFile = Object.keys(bundles).find((file) =>
+    bundles[file].origins?.some((origin) => /\/core(\.prod|\.min)?\.qwik\.mjs$/.test(origin))
+  );
+  expect(coreFile, 'some bundle should contain core').toBeTruthy();
+  return coreFile!;
+}
+
 /**
  * Brotli size guardrail. The bundle's brotli size must stay at or below `budget`. If it grows past
  * the budget the test fails with the actual size — bump the budget at the top of this file when the
  * growth is expected.
  */
-async function checkBrotliBudget(label: string, path: string, budget: number) {
-  const fullPath = resolve(distDir, 'build', path);
+async function checkBrotliBudget(label: string, path: string, budget: number, outDir = distDir) {
+  const fullPath = resolve(outDir, 'build', path);
   const content = await readFile(fullPath, 'utf-8');
   expect(content.length).toBeGreaterThan(0);
   const brotli = compress(Buffer.from(content), { mode: 1, quality: 11 }).length;
@@ -214,6 +225,7 @@ async function buildFixtureApp() {
         captureRouterConfig(),
         qwikVite({
           tsOptimizer: true,
+          experimental: ['binaryState'],
           client: {
             outDir: distDir,
           },
@@ -232,7 +244,7 @@ async function buildFixtureApp() {
       plugins: [
         ...serverPlugins,
         // No manifestInput: the server build reads the client manifest from disk, like real apps.
-        qwikVite({ tsOptimizer: true }),
+        qwikVite({ tsOptimizer: true, experimental: ['binaryState'] }),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],
@@ -241,6 +253,17 @@ async function buildFixtureApp() {
     })
   );
   await builder.buildApp();
+
+  // Only the size of this build is checked, so it needs no server build.
+  await build(
+    getConfig({
+      plugins: [
+        qwikRouter(),
+        tsconfigPaths({ root: '.' }),
+        qwikVite({ tsOptimizer: true, client: { outDir: jsonStateDistDir } }),
+      ],
+    })
+  );
 }
 
 function extractManifestHash(html: string): string | null {
@@ -274,7 +297,7 @@ function extractState(html: string) {
 function normalizeStateDump(stateDump: string, manifestHash: string | null) {
   let result = stateDump
     .replace(/\r\n/g, '\n')
-    .replace(/manifestHash"\n\s+\{string\} "[^"]+"/g, 'manifestHash"\n    {string} "MANIFEST_HASH"')
+    .replace(/manifestHash"\n(\s+)\{string\} "[^"]+"/g, 'manifestHash"\n$1{string} "MANIFEST_HASH"')
     .replace(/qFuncs_[A-Za-z0-9_-]+/g, 'qFuncs_xxxxxx')
     .replace(/q-[A-Za-z0-9_-]+\.(js|css)/g, 'q-xxxxxxxx.$1')
     .replaceAll(/RootRef .*/g, 'RootRef [omitted]')

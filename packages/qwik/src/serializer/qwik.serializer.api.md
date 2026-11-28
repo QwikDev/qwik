@@ -4,6 +4,37 @@
 
 ```ts
 
+// Warning: (ae-internal-missing-underscore) The name "BINARY_VNODE_PREFIX" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const BINARY_VNODE_PREFIX = "}";
+
+// Warning: (ae-internal-missing-underscore) The name "BinaryStateWriter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class BinaryStateWriter {
+    // (undocumented)
+    $constant$(constant: number): void;
+    $endArray$(start: number, itemCount: number): void;
+    $finish$(): void;
+    $flush$(): void;
+    $length$: number;
+    // (undocumented)
+    $number$(value: number): void;
+    get $offset$(): number;
+    // (undocumented)
+    $rootRef$(rootIndex: number): void;
+    $sharedRoot$(offsetAfterValue: number): void;
+    // (undocumented)
+    $string$(value: string, isTypedPayload?: boolean): void;
+    // Warning: (ae-forgotten-export) The symbol "TypeIds" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $type$(typeId: TypeIds): void;
+    // Warning: (ae-forgotten-export) The symbol "BinaryStateStream" needs to be exported by the entry point index.d.ts
+    constructor($stream$: BinaryStateStream, $write$: (text: string) => void, prefix?: string);
+}
+
 // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SSRInternalStreamWriter" needs to be exported by the entry point index.d.ts
@@ -22,12 +53,18 @@ DomRefConstructor: {
     };
 } | null, symbolToChunkResolver: SymbolToChunkResolver, setProp: (obj: any, prop: string, value: any) => void, storeProxyMap: ObjToProxyMap, writer?: SSRInternalStreamWriter) => SerializationContext;
 
+// Warning: (ae-internal-missing-underscore) The name "getBinaryStream" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const getBinaryStream: (context: SerializationContext) => BinaryStateStream;
+
 // Warning: (ae-internal-missing-underscore) The name "SeenRef" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
 export type SeenRef = {
     $index$: number;
     $parent$?: SeenRef | null;
+    $end$?: number;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "SerializationContext" should be prefixed with an underscore because the declaration is marked as @internal
@@ -40,6 +77,7 @@ export interface SerializationContext {
     $addRoot$: AddRootFn;
     // (undocumented)
     $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
+    $binaryStream$?: BinaryStateStream;
     // (undocumented)
     $commitRoot$: (root: unknown, obj: unknown) => number;
     $coreHandlerQrls$: Map<string, QRL>;
@@ -120,6 +158,16 @@ export interface SerializationScope {
 
 // @internal
 export function _serialize<T>(data: T): Promise<string>;
+
+// Warning: (ae-internal-missing-underscore) The name "serializeBinaryState" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const serializeBinaryState: (context: SerializationContext) => Promise<void>;
+
+// Warning: (ae-internal-missing-underscore) The name "serializeBinaryStatePatch" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const serializeBinaryStatePatch: (context: SerializationContext, stream: BinaryStateStream, rootStart: number, rootIds: number[], extraRootId: number | string | number[] | undefined, mapRootId: (rootId: number) => number) => Promise<void>;
 
 // (No @packageDocumentation comment for this package)
 

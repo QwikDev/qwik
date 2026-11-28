@@ -1,10 +1,11 @@
 import { _serialize } from '@qwik.dev/core/internal/serializer';
+import { renderToStream, renderToString, type RenderToStreamOptions } from '@qwik.dev/core/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   renderQwikMiddleware,
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
-import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import { getLoaderName, trimInternalPathname } from '../middleware/request-handler/request-path';
 import { ServerError } from '../middleware/request-handler/server-error';
 import type { ErrorCodes, RequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
@@ -60,7 +61,8 @@ function createSystem() {
     createTimer: () => () => 0,
     getRouteFilePath: (pathname) =>
       `/out${pathname === '/' ? '' : pathname}/index.html`.replace('//', '/'),
-    getLoaderFilePath: (pathname, loaderId) => `/out${pathname}q-data-${loaderId}.json`,
+    getLoaderFilePath: (pathname, loaderId, manifestHash) =>
+      `/out${pathname}${getLoaderName(loaderId, manifestHash)}`,
     getEnv: () => undefined,
     platform: {},
   };
@@ -255,6 +257,28 @@ describe('SSG worker output files', () => {
     expect(fileEvents).toEqual(['announce /out/index.html', 'write /out/index.html']);
   });
 
+  it.each([
+    { mode: 'renderToStream', render: renderToStream },
+    { mode: 'renderToString', render: renderToString },
+  ])('writes immutable loader data with the page manifest hash using $mode', async ({ render }) => {
+    const { sys, written } = createSystem();
+    const useData = createLoader('data', () => 'value', { cacheControl: 'immutable' });
+
+    const result = await renderRoute(
+      sys,
+      (options: RenderToStreamOptions) =>
+        render('Static page', {
+          ...options,
+          manifest: { manifestHash: 'build-hash', mapping: {} },
+        }),
+      { default: () => null, useData }
+    );
+
+    expect(result.ok).toBe(true);
+    expect(written.get('/out/index.html')?.join('')).toContain('q:manifest-hash="build-hash"');
+    expect([...written.keys()]).toEqual(['/out/index.html', '/out/q-loader-data.build-hash.json']);
+  });
+
   it('tells the pool about loader data files before writing them', async () => {
     const { sys } = createSystem();
     const useData = createLoader('data', () => 'value', { cacheControl: 'immutable' });
@@ -263,8 +287,8 @@ describe('SSG worker output files', () => {
     expect(fileEvents).toEqual([
       'announce /out/index.html',
       'write /out/index.html',
-      'announce /out/q-data-data.json',
-      'write /out/q-data-data.json',
+      'announce /out/q-loader-data.dev.json',
+      'write /out/q-loader-data.dev.json',
     ]);
   });
 });

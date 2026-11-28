@@ -28,6 +28,7 @@ import {
   RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
+  RequestEvManifestHash,
   RequestEvShareServerTiming,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -782,6 +783,13 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             }
           },
         });
+        if (isStatic) {
+          const renderedAttributes = serverData.containerAttributes as Record<string, string>;
+          requestEv.sharedMap.set(
+            RequestEvManifestHash,
+            renderedAttributes['q:manifest-hash'] ?? result.manifest?.manifestHash
+          );
+        }
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }

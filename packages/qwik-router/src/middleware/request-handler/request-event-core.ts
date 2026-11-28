@@ -49,6 +49,7 @@ export const RequestEvETagCacheKey = '@eTagCacheKey';
 export const RequestEvCaughtError = '@caughtError';
 export const RequestEvSentServerError = '@sentServerError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
+export const RequestEvManifestHash = '@manifestHash';
 
 /** Builds shared request state and controls route handler execution. */
 export function createRequestEvent(

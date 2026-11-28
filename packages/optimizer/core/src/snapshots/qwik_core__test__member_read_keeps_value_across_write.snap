@@ -1,0 +1,53 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 11209
+expression: output
+---
+==INPUT==
+
+
+export const make = (data, allocate, needsInflation, pending) => {
+  const restoreRoot = (id) => {
+    const typeIndex = id * 2;
+    const typeId = data[typeIndex];
+    const value = data[typeIndex + 1];
+    if (typeId === 0) {
+      return value;
+    }
+    const target = allocate(typeId, value);
+    data[typeIndex] = 0;
+    data[typeIndex + 1] = target;
+    if (needsInflation(typeId)) {
+      pending.push([target, typeId, value]);
+    }
+    return target;
+  };
+  return restoreRoot;
+};
+
+============================= test.tsx ==
+
+export const make = (data, allocate, needsInflation, pending)=>{
+    const restoreRoot = (id)=>{
+        const typeIndex = id * 2;
+        const typeId = data[typeIndex];
+        const value = data[typeIndex + 1];
+        if (typeId === 0) return value;
+        const target = allocate(typeId, value);
+        data[typeIndex] = 0;
+        data[typeIndex + 1] = target;
+        if (needsInflation(typeId)) pending.push([
+            target,
+            typeId,
+            value
+        ]);
+        return target;
+    };
+    return restoreRoot;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,OAAO,CAAC,MAAM,UAAU,gBAAgB;IACnD,MAAM,cAAc,CAAC;QACnB,MAAM,YAAY,KAAK;QACvB,MAAM,SAAS,IAAI,CAAC,UAAU;QAC9B,MAAM,QAAQ,IAAI,CAAC,YAAY,EAAE;QACjC,IAAI,WAAW,GACb,OAAO;QAET,MAAM,SAAS,SAAS,QAAQ;QAChC,IAAI,CAAC,UAAU,GAAG;QAClB,IAAI,CAAC,YAAY,EAAE,GAAG;QACtB,IAAI,eAAe,SACjB,QAAQ,IAAI,CAAC;YAAC;YAAQ;YAAQ;SAAM;QAEtC,OAAO;IACT;IACA,OAAO;AACT,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

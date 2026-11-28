@@ -157,8 +157,6 @@ function isSimpleSideEffectFree(node: AstNode | null | undefined): boolean {
       return !node.name.startsWith('_');
     case 'Literal':
       return true;
-    case 'MemberExpression':
-      return isSimpleSideEffectFree(node.object);
     default:
       return false;
   }
@@ -241,48 +239,6 @@ function collectIdentifiers(node: AstNode): string[] {
   return ids;
 }
 
-function memberRootName(member: AstNode): string | null {
-  let obj: AstNode | null | undefined = member.type === 'MemberExpression' ? member.object : member;
-  while (obj?.type === 'MemberExpression') {
-    obj = obj.object;
-  }
-  return obj?.type === 'Identifier' ? obj.name : null;
-}
-
-/**
- * Inlining a member read of a mutated object is unsound: `const i = ctx.n` before `ctx.n++` must
- * not fold into `return ctx.n` after it.
- */
-function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>): boolean {
-  if (mutatedObjects.size === 0) {
-    return false;
-  }
-  let found = false;
-  function walk(n: AstNode | null | undefined): void {
-    if (!n || found) {
-      return;
-    }
-    if (n.type === 'MemberExpression') {
-      const root = memberRootName(n);
-      if (root && mutatedObjects.has(root)) {
-        found = true;
-        return;
-      }
-    }
-    forEachAstChild(n, (child) => walk(child));
-  }
-  walk(node);
-  return found;
-}
-
-/** Textual, conservative: a false positive only skips an optimization. */
-function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
-  if (to <= from) {
-    return false;
-  }
-  return /\b(await|yield)\b/.test(body.slice(from, to));
-}
-
 /** `elementCaptureNames` feed a later-emitted `q:p` prop, so they must keep their decls. */
 export function propagateConstLiteralsInBody(
   body: string,
@@ -298,7 +254,6 @@ export function propagateConstLiteralsInBody(
   const constDecls = new Map<string, ConstDecl>();
   const identRefs: IdentRef[] = [];
   const mutableVars = new Set<string>();
-  const mutatedObjects = new Set<string>();
   // Identifiers inside `q_X.w([...])` capture arrays — serialization
   // contracts aligned with `_capturesObj._[N]` reads; never inline or remove.
   const protectedNames = new Set<string>(elementCaptureNames);
@@ -322,13 +277,6 @@ export function propagateConstLiteralsInBody(
       }
     }
 
-    if (node.type === 'UpdateExpression' && node.argument?.type === 'MemberExpression') {
-      const root = memberRootName(node.argument);
-      if (root) {
-        mutatedObjects.add(root);
-      }
-    }
-
     // A `q_X.w([...])` capture array is a serialization contract aligned with
     // the segment's `_capturesObj._[N]` reads — its identifiers must stay verbatim.
     if (
@@ -348,13 +296,6 @@ export function propagateConstLiteralsInBody(
         }
       }
     }
-    if (node.type === 'AssignmentExpression' && node.left?.type === 'MemberExpression') {
-      const root = memberRootName(node.left);
-      if (root) {
-        mutatedObjects.add(root);
-      }
-    }
-
     if (
       node.type === 'VariableDeclaration' &&
       node.kind === 'const' &&
@@ -510,21 +451,8 @@ export function propagateConstLiteralsInBody(
       continue;
     }
 
-    if (readsMutatedObject(decl.initNode, mutatedObjects)) {
-      continue;
-    }
-
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs <= 1) {
-      // A member read is position-sensitive: signal/store reads are tracked,
-      // and moving one across an await leaves the invoke context. Keep the
-      // decl when its single use sits past an await.
-      if (refs === 1 && decl.initNode.type === 'MemberExpression') {
-        const ref = identRefs.find((r) => r.name === name && r.insideDeclOf === null);
-        if (ref && bodyHasAwaitBetween(body, decl.stmtEnd, ref.start)) {
-          continue;
-        }
-      }
       toRemove.add(name);
     }
   }

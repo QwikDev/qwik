@@ -11203,3 +11203,31 @@ export const List = component$((props: { outputs: any[] }) => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn member_read_keeps_value_across_write() {
+	test_input!(TestInput {
+		code: r#"
+export const make = (data, allocate, needsInflation, pending) => {
+  const restoreRoot = (id) => {
+    const typeIndex = id * 2;
+    const typeId = data[typeIndex];
+    const value = data[typeIndex + 1];
+    if (typeId === 0) {
+      return value;
+    }
+    const target = allocate(typeId, value);
+    data[typeIndex] = 0;
+    data[typeIndex + 1] = target;
+    if (needsInflation(typeId)) {
+      pending.push([target, typeId, value]);
+    }
+    return target;
+  };
+  return restoreRoot;
+};
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}

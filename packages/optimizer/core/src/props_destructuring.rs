@@ -165,14 +165,8 @@ impl<'a> PropsDestructuring<'a> {
 							}
 							Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
 								box ast::Expr::Ident(ident) => {
-									let should_inline =
-										if self.identifiers.contains_key(&id!(ident.clone())) {
-											true
-										} else {
-											// Inline if property is computed (like obj['key'])
-											matches!(member_expr.prop, ast::MemberProp::Computed(_))
-										};
-									if should_inline {
+									// Only props are read-only; other objects may be written later.
+									if self.identifiers.contains_key(&id!(ident.clone())) {
 										let new_ident = private_ident!("_unused");
 										let expr = self
 											.identifiers

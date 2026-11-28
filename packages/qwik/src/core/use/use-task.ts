@@ -3,6 +3,7 @@ import { BackRef } from '../reactive-primitives/backref';
 import { CatchPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
+import { isServerPlatform } from '../shared/platform/platform';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
@@ -193,41 +194,62 @@ export const runTask = (
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
     // Clear DIRTY here, not before awaiting cleanup, so only invalidations
-    // raised by this very run trigger a reschedule.
+    // during the new run trigger a reschedule.
     task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
-    const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
+    let invalidated = false;
+    const isCurrent = () => !invalidated;
+    const taskFn = task.$qrl$.getFn(iCtx, () => {
+      if (invalidated) {
+        return false;
+      }
+      clearAllEffects(container, task);
+    }) as TaskFn;
 
-    const track = trackFn(task, container);
-    const [cleanup] = cleanupFn(task, handleError);
+    const track = trackFn(task, container, isCurrent);
+    const cleanup = cleanupFn(task, handleError, isCurrent);
 
     const taskApi: TaskCtx = { track, cleanup };
-    return safeCall(
+    const bodyResult = safeCall(
       () => taskFn(taskApi),
       cleanup,
       (err: unknown) => {
         // If a Promise is thrown, that means we need to re-run the task.
         if (isPromise(err)) {
           return err.then(() => {
-            if (task.$taskPromise$ === taskPromise) {
+            if (isCurrent() && task.$taskPromise$ === taskPromise) {
+              task.$interruptRun$ = undefined;
               task.$taskPromise$ = null;
+              return runTask(task, container, host);
             }
-            return runTask(task, container, host);
           }, handleError);
         } else {
           handleError(err);
         }
       }
     );
+    if (!isPromise(bodyResult) || isServerPlatform()) {
+      return bodyResult;
+    }
+    return new Promise<void>((resolve, reject) => {
+      task.$interruptRun$ = () => {
+        invalidated = true;
+        resolve();
+      };
+      bodyResult.then(resolve, reject);
+      if (task.$flags$ & TaskFlags.DIRTY) {
+        task.$interruptRun$();
+      }
+    });
   });
 
   if (isPromise(result)) {
     taskPromise = result.finally(() => {
       if (task.$taskPromise$ === taskPromise) {
+        task.$interruptRun$ = undefined;
         task.$taskPromise$ = null;
         if (task.$flags$ & TaskFlags.DIRTY) {
-          // The task invalidated itself while it was still running, reschedule it.
           markVNodeDirty(container, host, ChoreBits.TASKS);
         }
       }
@@ -242,6 +264,7 @@ export const runTask = (
 /** @internal */
 export class Task<T = unknown, B = T> extends BackRef {
   $destroyPromise$: Promise<void> | undefined;
+  declare $interruptRun$?: () => void;
   $taskPromise$: Promise<void> | null = null;
 
   constructor(

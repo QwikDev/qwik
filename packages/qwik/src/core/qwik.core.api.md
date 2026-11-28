@@ -2151,6 +2151,8 @@ export class _Task<T = unknown, B = T> extends BackRef {
     // (undocumented)
     $index$: number;
     // (undocumented)
+    $interruptRun$?: () => void;
+    // (undocumented)
     $qrl$: _QRLInternal<T>;
     // (undocumented)
     $taskPromise$: Promise<void> | null;

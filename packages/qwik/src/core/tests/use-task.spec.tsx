@@ -1,4 +1,5 @@
 import {
+  $,
   Fragment as Component,
   Fragment,
   Fragment as Signal,
@@ -9,7 +10,10 @@ import {
   useSignal,
   useStore,
   useTask$,
+  useTaskQrl,
+  useVisibleTaskQrl,
   type Signal as SignalType,
+  type TaskFn,
 } from '@qwik.dev/core';
 import {
   domRender,
@@ -459,6 +463,69 @@ describe.each([
     });
   });
   describe('cleanup', () => {
+    it.each(['useTask$', 'useVisibleTask$'])('reruns a pending %s on change', async (hook) => {
+      const visible = hook === 'useVisibleTask$';
+      const log: string[] = [];
+      let finishTask!: () => void;
+      const pending = new Promise<void>((resolve) => (finishTask = resolve));
+      (globalThis as any).pendingRun = { log, pending };
+      const Counter = component$(() => {
+        const step = useSignal(0);
+        const other = useSignal(0);
+        const task = $<TaskFn>(async ({ track, cleanup }) => {
+          const current = track(step);
+          if (current === 0) {
+            return;
+          }
+          const { log, pending } = (globalThis as any).pendingRun;
+          log.push(`start:${current}`);
+          cleanup(async () => {
+            await Promise.resolve();
+            log.push(`cleanup:${current}`);
+          });
+          if (current === 1) {
+            await pending;
+            log.push('finish:1');
+            track(other);
+            return () => log.push('late cleanup:1');
+          }
+        });
+        const useTrackedTask = visible ? useVisibleTaskQrl : useTaskQrl;
+        useTrackedTask(task);
+        return (
+          <>
+            <button id="next" onClick$={() => step.value++}>
+              next
+            </button>
+            <button id="other" onClick$={() => other.value++}>
+              other
+            </button>
+          </>
+        );
+      });
+
+      const { document, container } = await render(<Counter />);
+      try {
+        if (visible) {
+          await trigger(document.body, '#next', 'qvisible');
+        }
+        const click = () => trigger(document.body, '#next', 'click', {}, { waitForIdle: false });
+        await click();
+        await vi.waitFor(() => expect(log).toEqual(['start:1']));
+        await click();
+        await vi.waitFor(() => expect(log).toEqual(['start:1', 'cleanup:1', 'start:2']));
+        finishTask();
+        await pending;
+        await trigger(document.body, '#other', 'click');
+        await trigger(document.body, '#next', 'click');
+        expect(log.slice(3)).toEqual(['finish:1', 'late cleanup:1', 'cleanup:2', 'start:3']);
+      } finally {
+        finishTask();
+        await waitForDrain(container);
+        delete (globalThis as any).pendingRun;
+      }
+    });
+
     it('should execute cleanup task rerun on track', async () => {
       (globalThis as any).log = [] as string[];
       const Counter = component$(() => {

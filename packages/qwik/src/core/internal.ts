@@ -60,11 +60,7 @@ export { SignalImpl as _SignalImpl } from './reactive-primitives/impl/signal-imp
 export { ComputedSignalImpl as _ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 export { WrappedSignalImpl as _WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
 export { SerializerSignalImpl as _SerializerSignalImpl } from './reactive-primitives/impl/serializer-signal-impl';
-export {
-  _markSignalAsExternallyOwned,
-  isSerializerObj as _isSerializerObj,
-  isSignal,
-} from './reactive-primitives/utils';
+export { isSerializerObj as _isSerializerObj, isSignal } from './reactive-primitives/utils';
 export {
   isQwikComponent as _isQwikComponent,
   SERIALIZABLE_STATE as _SERIALIZABLE_STATE,

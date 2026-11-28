@@ -679,12 +679,16 @@ export class Serializer {
               resolved,
               resolvedValue,
               value.$effects$,
-              value.$computeQrl$
+              value.$computeQrl$,
+              value.$ownerSeq$
             );
           });
           this.output(TypeIds.ForwardRef, forwardRefId);
         } else {
-          this.output(TypeIds.SerializerSignal, [value.$computeQrl$, value.$effects$, maybeValue]);
+          this.output(
+            TypeIds.SerializerSignal,
+            withOwnerSeq([value.$computeQrl$, value.$effects$, maybeValue], value.$ownerSeq$)
+          );
         }
         return;
       }
@@ -743,7 +747,14 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        if (v !== NEEDS_COMPUTATION || concurrency !== undefined || timeout !== undefined) {
+        const ownerSeq = value.$ownerSeq$;
+        // later entries are positional, so the value slot must exist when they do
+        if (
+          v !== NEEDS_COMPUTATION ||
+          concurrency !== undefined ||
+          timeout !== undefined ||
+          ownerSeq
+        ) {
           /**
            * If value is undefined, we need to keep it in the output. If we don't do that, later
            * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
@@ -755,7 +766,10 @@ export class Serializer {
           out.push(concurrency);
           out.push(timeout);
         }
-        this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out);
+        this.output(
+          isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal,
+          withOwnerSeq(out, ownerSeq)
+        );
       } else {
         const v = value.$untrackedValue$;
         const out = [v === undefined ? explicitUndefined : v];
@@ -873,7 +887,10 @@ export class Serializer {
     } else if (value instanceof PromiseResult) {
       if (value.$type$ === TypeIds.SerializerSignal) {
         if (value.$qrl$) {
-          this.output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
+          this.output(
+            TypeIds.SerializerSignal,
+            withOwnerSeq([value.$qrl$, value.$effects$, value.$value$], value.$ownerSeq$)
+          );
         } else if (value.$resolved$) {
           // We replace ourselves with this value
           const index = this.$parent$!.$index$;
@@ -1091,7 +1108,8 @@ export class PromiseResult {
       | Map<string | symbol, Set<EffectSubscription>>
       | Set<EffectSubscription>
       | undefined = undefined,
-    public $qrl$: QRLInternal | undefined = undefined
+    public $qrl$: QRLInternal | undefined = undefined,
+    public $ownerSeq$: unknown[] | number | undefined = undefined
   ) {}
 }
 function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
@@ -1220,6 +1238,14 @@ function serializeWrappingFn(
   );
   return [syncFnId, value.$args$] as const;
 }
+
+/** Appends a signal's owner weakly, so it never pulls the component's whole seq into the payload. */
+const withOwnerSeq = (out: unknown[], ownerSeq: unknown[] | number | undefined) => {
+  if (Array.isArray(ownerSeq)) {
+    out.push(_serializationWeakRef(ownerSeq));
+  }
+  return out;
+};
 
 class SerializationWeakRef {
   constructor(public $obj$: unknown) {}

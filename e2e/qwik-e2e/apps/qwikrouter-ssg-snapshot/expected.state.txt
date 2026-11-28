@@ -136,6 +136,7 @@
             {string} "clicks"
             {number} 2
           ]
+          RootRef [omitted]
         ]
         Constant '.'
       ]
@@ -158,7 +159,7 @@
     Constant undefined
     Constant undefined
     Constant undefined
-    {number} 516
+    {number} 512
     Object [
       {string} "heading"
       {string} "SSG Snapshot Fixture"
@@ -378,6 +379,8 @@
         ]
       ]
       {number} 0
+      Constant undefined
+      RootRef [omitted]
     ]
     {string} "value"
     ForwardRef 0

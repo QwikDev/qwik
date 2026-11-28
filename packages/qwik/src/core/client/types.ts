@@ -22,6 +22,8 @@ export interface ClientContainer extends Container {
   vNodeLocate(id: string | Element): VNode;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $getForwardRef$(id: number): number | string | undefined;
+  /** Returns a state root only when it is already restored; never restores it. */
+  $peekObjectById$(id: number): unknown;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
 

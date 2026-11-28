@@ -11,13 +11,15 @@ import {
 } from '@qwik.dev/core';
 import {
   _deserialize,
+  _getContextContainer,
   _injectAsyncSignalValue,
-  _markSignalAsExternallyOwned,
+  _invoke,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
   SerializerSymbol,
   type _AsyncSignalImpl,
   type _ComputedSignalInternal,
+  type _Container,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import type {
@@ -390,7 +392,8 @@ const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
   state: RouteLoaderState,
-  requestEv?: RequestEvent
+  requestEv: RequestEvent | undefined,
+  container: _Container | undefined
 ) => {
   const id = loader.__id;
   const capture = isServer
@@ -400,7 +403,7 @@ const createRouteLoaderSignal = (
         loader.__validators,
         loader.__blockSSR,
         loader,
-        requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
+        requestEv
       )
     : id;
   const searchFilter = loader.__search;
@@ -524,9 +527,9 @@ const createRouteLoaderSignal = (
 
     {
       serializationStrategy: loader.__serializationStrategy,
+      container,
     }
   );
-  _markSignalAsExternallyOwned(signal);
   return signal;
 };
 
@@ -882,7 +885,22 @@ export const ensureRouteLoaderSignal = (
   if (loader.__cacheControl === 'immutable') {
     immutableLoaderIds.add(loader.__id);
   }
-  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
+  const id = loader.__id;
+  if (!state[id]) {
+    const ev =
+      requestEv ?? (isServer ? useServerData<QwikRouterEnvData>('qwikrouter')?.ev : undefined);
+    // made outside the render, so no component owns the loader signal
+    state[id] = _invoke(
+      undefined,
+      createRouteLoaderSignal,
+      loader,
+      routeLoaderCtx,
+      state,
+      ev,
+      _getContextContainer()
+    );
+  }
+  return state[id];
 };
 
 export const ensureRouteLoaderSignals = (

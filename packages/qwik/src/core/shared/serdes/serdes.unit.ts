@@ -44,6 +44,7 @@ import { _constants, _typeIdNames, Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } fr
 import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
+import { peekRestoredRoot } from './deser-proxy';
 import { _createDeserializeContainer, getObjectById } from './serdes.public';
 import { SsrNode } from '../../../server/ssr-node';
 import { VNodeDataFlag } from '../../../server/types';
@@ -878,6 +879,39 @@ describe('shared-serialization', () => {
         2 {string} "mock-chunk"
         3 {string} "describe_describe_it_maybeStale_createComputed_ZKd2da8Q0ss"
         (118 chars)"
+      `);
+    });
+    it('ComputedSignal references its owner seq only when the seq is serialized anyway', async () => {
+      const owned = createComputed$(() => 1) as ComputedSignalImpl<number>;
+      const ownerSeq = [owned, 'other hook state'];
+      owned.$ownerSeq$ = ownerSeq;
+      expect(_dumpState(await serialize(owned))).toMatchInlineSnapshot(`
+        "
+        0 ComputedSignal [
+          QRL "1#1"
+          Constant undefined
+          Constant NEEDS_COMPUTATION
+          ForwardRef 0
+        ]
+        1 {string} "mock-chunk"
+        2 {string} "describe_describe_it_owned_createComputed_JNOJ2ivlyNA"
+        (99 chars)"
+      `);
+      expect(_dumpState(await serialize(owned, ownerSeq))).toMatchInlineSnapshot(`
+        "
+        0 ComputedSignal [
+          QRL "2#1"
+          Constant undefined
+          Constant NEEDS_COMPUTATION
+          RootRef 1
+        ]
+        1 Array [
+          RootRef 0
+          {string} "other hook state"
+        ]
+        2 {string} "mock-chunk"
+        3 {string} "describe_describe_it_owned_createComputed_JNOJ2ivlyNA"
+        (128 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -1716,6 +1750,28 @@ describe('shared-serialization', () => {
     });
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
+    it('restoring a ComputedSignal leaves its owner seq unrestored', async () => {
+      const owned = createComputed$(() => 1) as ComputedSignalImpl<number>;
+      const ownerSeq = [owned, 'other hook state'];
+      owned.$ownerSeq$ = ownerSeq;
+      const data = await serialize(owned, ownerSeq);
+      const state = deserialize(data);
+      const restored = state[0] as ComputedSignalImpl<number>;
+      // the seq is root 1; a restored root would have become Plain
+      expect(restored.$ownerSeq$).toBe(1);
+      expect(peekRestoredRoot(data, 1)).toBeUndefined();
+      expect(data[2]).toBe(TypeIds.Array);
+      const restoredSeq = state[1];
+      expect(peekRestoredRoot(data, 1)).toBe(restoredSeq);
+    });
+    it('restores the owner seq root id of an AsyncSignal', async () => {
+      const owned = createAsyncSignal(inlinedQrl(() => Promise.resolve(1), 'owned', []));
+      const ownerSeq = [owned, 'other hook state'];
+      owned.$ownerSeq$ = ownerSeq;
+      const data = await serialize(owned, ownerSeq);
+      const restored = deserialize(data)[0] as AsyncSignalImpl<number>;
+      expect(restored.$ownerSeq$).toBe(1);
+    });
     it.todo(title(TypeIds.SerializerSignal));
     it(`${title(TypeIds.AsyncSignal)} valid`, async () => {
       const asyncSignal = createAsyncSignal($(async () => 123));

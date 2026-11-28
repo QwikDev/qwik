@@ -1,7 +1,7 @@
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
-import { ComputedSignalFlags, type Consumer } from '../reactive-primitives/types';
+import type { Consumer } from '../reactive-primitives/types';
 import type { OnRenderFn } from '../shared/component.public';
 import { isCursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
@@ -29,6 +29,16 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode-utils';
+
+/** A resumed signal knows its owner seq by root id, and peeking keeps that seq unrestored. */
+const isOwnedBySeq = (
+  container: ClientContainer,
+  signal: ComputedSignalImpl<unknown>,
+  seq: unknown[]
+): boolean => {
+  const ownerSeq = signal.$ownerSeq$;
+  return (typeof ownerSeq === 'number' ? container.$peekObjectById$(ownerSeq) : ownerSeq) === seq;
+};
 
 /**
  * If vnode is removed, it is necessary to release all subscriptions associated with it.
@@ -80,7 +90,7 @@ export function cleanup(
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
-            const obj = seq[i];
+            const obj: unknown = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
               if (objIsTask) {
@@ -96,15 +106,13 @@ export function cleanup(
               }
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.
-              else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
-                if (obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP) {
-                  continue;
-                }
-                if (obj instanceof ComputedSignalImpl) {
+              else if (obj instanceof ComputedSignalImpl) {
+                // a computed read from context or props belongs to another component
+                if (isOwnedBySeq(container, obj, seq)) {
                   obj.$dispose();
-                } else {
-                  clearAllEffects(container, obj as Consumer);
                 }
+              } else if (obj instanceof WrappedSignalImpl) {
+                clearAllEffects(container, obj as Consumer);
               }
             }
           }

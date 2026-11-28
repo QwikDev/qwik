@@ -4,6 +4,9 @@ import {
   Fragment as Signal,
   Fragment as Component,
   component$,
+  createContextId,
+  useContext,
+  useContextProvider,
   useSignal,
   useComputed$,
 } from '@qwik.dev/core';
@@ -206,6 +209,44 @@ describe.each([
         <span>2025-01-15T12:00:00.000Z</span>
       </>
     );
+  });
+
+  it('should keep a provided serializer signal working after a context consumer is removed', async () => {
+    const CountContext = createContextId<{ value: CustomSerialized }>('count');
+    const Consumer = component$(() => {
+      useContext(CountContext);
+      return <p id="consumer">consumer</p>;
+    });
+    const Provider = component$(() => {
+      const sig = useSignal(1);
+      const visible = useSignal(true);
+      const myCount = useSerializer$(() => ({
+        deserialize: () => new CustomSerialized(sig.value * 2),
+        update: (current) => {
+          current.count = sig.value * 2;
+          return current;
+        },
+      }));
+      useContextProvider(CountContext, myCount);
+      return (
+        <>
+          <button id="increment" onClick$={() => sig.value++}>
+            increment
+          </button>
+          <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+            remove
+          </button>
+          <span id="count">{myCount.value.count}</span>
+          {visible.value && <Consumer />}
+        </>
+      );
+    });
+
+    const { container } = await render(<Provider />, { debug });
+    await trigger(container.element, '#remove-consumer', 'click');
+    expect(container.element.querySelector('#consumer')).toBeFalsy();
+    await trigger(container.element, '#increment', 'click');
+    expect(container.element.querySelector('#count')?.textContent).toBe('4');
   });
 
   it('should not crash when used many times', async () => {

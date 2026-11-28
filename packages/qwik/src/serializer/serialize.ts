@@ -1206,7 +1206,13 @@ function outputBinary(
     if (type === TypeIds.QRL && Array.isArray(value)) {
       value = stringifyChunks(value as SSRWriteChunk[], serializer.$mapRootId$);
     }
-    if (typeof value === 'number') {
+    if (
+      (type === TypeIds.VNode || type === TypeIds.RefVNode) &&
+      typeof value === 'string' &&
+      value
+    ) {
+      outputBinaryVNodeRef(binary, value);
+    } else if (typeof value === 'number') {
       binary.$number$(value);
     } else if (typeof value === 'string') {
       binary.$string$(value, type !== TypeIds.Plain);
@@ -1228,6 +1234,34 @@ function outputBinary(
   for (let i = 0; i < seenRefs.length; i++) {
     seenRefs[i].$end$ = binary.$offset$;
   }
+}
+
+/** Writes a vnode ref id such as `12AB` (element 12, then children 0 and 1) as numbers. */
+function outputBinaryVNodeRef(binary: BinaryStateWriter, id: string) {
+  let idx = id.charCodeAt(0) === 45 /* - */ ? 1 : 0;
+  while (idx < id.length && id.charCodeAt(idx) <= 57 /* 9 */) {
+    idx++;
+  }
+  const elementIdx = parseInt(id, 10);
+  if (idx === id.length) {
+    return binary.$number$(elementIdx);
+  }
+  const start = binary.$length$;
+  binary.$number$(elementIdx);
+  let itemCount = 1;
+  let childIdx = 0;
+  for (; idx < id.length; idx++) {
+    const ch = id.charCodeAt(idx);
+    childIdx *= 26;
+    if (ch >= 97 /* a */) {
+      childIdx += ch - 97;
+    } else {
+      binary.$number$(childIdx + ch - 65 /* A */);
+      itemCount++;
+      childIdx = 0;
+    }
+  }
+  binary.$endArray$(start, itemCount);
 }
 
 function outputBinaryRootRef(

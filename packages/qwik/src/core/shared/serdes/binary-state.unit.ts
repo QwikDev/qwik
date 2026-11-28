@@ -402,6 +402,29 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary state', () => {
         ],
       ]);
     });
+
+    it('shows vnode refs in the text form of JSON state', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$number$(12);
+      writer.$type$(TypeIds.RefVNode);
+      const pathStart = writer.$length$;
+      writer.$number$(12);
+      writer.$number$(0);
+      writer.$number$(27);
+      writer.$endArray$(pathStart, 3);
+      writer.$type$(TypeIds.VNode);
+      writer.$endArray$(0, 2);
+      writer.$finish$();
+      expect(binaryStateRootsToJson(script)).toEqual([
+        TypeIds.RefVNode,
+        '12',
+        TypeIds.VNode,
+        '12AbB',
+      ]);
+    });
   });
 
   describe('writing while serializing', () => {
@@ -600,6 +623,20 @@ describe.runIf(__EXPERIMENTAL__.binaryState)('binary state', () => {
       writer.$endArray$(0, 2);
       writer.$finish$();
       expect(() => restore(script)[0]).toThrow();
+    });
+
+    it('rejects a vnode ref path that holds anything but integers', () => {
+      let script = '';
+      const writer = new BinaryStateWriter({ $stringEnds$: new Map(), $length$: 0 }, (text) => {
+        script += text;
+      });
+      writer.$number$(1);
+      writer.$string$('x');
+      writer.$endArray$(0, 2);
+      writer.$type$(TypeIds.VNode);
+      writer.$endArray$(0, 1);
+      writer.$finish$();
+      expect(() => restore(script)[0]).toThrow('data type 10 is not implemented');
     });
 
     it('rejects an object made from a string', () => {
